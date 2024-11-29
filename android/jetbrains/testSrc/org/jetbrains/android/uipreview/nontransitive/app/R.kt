@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview.nontransitive.app;
+package org.jetbrains.android.uipreview.nontransitive.app
 
-public class R {
-  public static final class string {
-    public static final int app_name = 0x7f011111;
+class R {
+  class string {
+    companion object {
+      const val app_name: Int = 0x7f011111
+    }
   }
 }
