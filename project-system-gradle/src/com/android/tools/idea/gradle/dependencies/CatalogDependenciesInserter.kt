@@ -403,7 +403,8 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
 
     enum class KotlinPlugin(val id: String, val defaultPluginName: String) {
       KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlin-android"),
-      KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlin-compose")
+      KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlin-compose"),
+      KOTLIN_MULTIPLATFORM("org.jetbrains.kotlin.multiplatform", "kotlin-multiplatform"),
       ;
 
       companion object {
@@ -424,7 +425,8 @@ enum class AgpPlugin(val id: String) {
   FUSED_LIBRARY("com.android.fused-library"),
   INTERNAL_SETTINGS("com.android.internal.settings"),
   SETTINGS("com.android.settings"),
-  LINT("com.android.lint")
+  LINT("com.android.lint"),
+  KOTLIN_MULTIPLATFORM_LIBRARY("com.android.kotlin.multiplatform.library"),
   ;
 
   companion object {
