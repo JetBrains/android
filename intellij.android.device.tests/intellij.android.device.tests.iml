@@ -43,6 +43,7 @@
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" scope="TEST" />
     <orderEntry type="library" scope="PROVIDED" name="jetbrains.kotlin.compose.compiler.plugin" level="project" />
+    <orderEntry type="library" scope="TEST" name="jewel-ide-laf-bridge" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.device" />
 </module>

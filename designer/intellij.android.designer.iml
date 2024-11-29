@@ -116,5 +116,6 @@
     <orderEntry type="library" scope="PROVIDED" name="jetbrains.kotlin.compose.compiler.plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.designer" />
+    <orderEntry type="library" name="jewel-ide-laf-bridge" level="project" />
   </component>
 </module>

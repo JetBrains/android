@@ -4,32 +4,6 @@
     libraries:
       jetbrains.skiko.awt.runtime.all.0.8.9:
       - name: $MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt-runtime-all/0/skiko-awt-runtime-all-0.jar
-      jetbrains.jewel.ide.laf.bridge.242:
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0/jewel-ide-laf-bridge-242-0.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-242/0/jewel-ui-242-0.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-242/0/jewel-foundation-242-0.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1/foundation-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1/annotation-jvm-1.jar
-      - name: $MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1/collection-jvm-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1/animation-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1/animation-core-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1/ui-geometry-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1/foundation-layout-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1/ui-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2/lifecycle-common-jvm-2.jar
-      - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2/lifecycle-runtime-desktop-2.jar
-      - name: $MAVEN_REPOSITORY$/androidx/arch/core/core-common/2/core-common-2.jar
-      - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2/lifecycle-viewmodel-desktop-2.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2/lifecycle-runtime-compose-desktop-2.jar
-      - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation/1/annotation-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1/runtime-saveable-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1/ui-graphics-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1/ui-unit-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1/ui-text-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1/ui-util-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0/skiko-awt-0.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/components/components-resources-desktop/1/components-resources-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1/runtime-desktop-1.jar
   - name: intellij.android.adt.ui.model
   - name: intellij.android.adt.ui
 - name: lib/android-common.jar
@@ -266,6 +240,36 @@
 - name: lib/javacpp-macos-x64-1.5.9.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
 - name: lib/jb-r8.jar
+- name: lib/jewel-ide-laf-bridge.jar
+  projectLibraries:
+  - name: jewel-ide-laf-bridge
+    files:
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0/jewel-ide-laf-bridge-242-0.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-242/0/jewel-ui-242-0.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-242/0/jewel-foundation-242-0.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1/foundation-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1/annotation-jvm-1.jar
+    - name: $MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1/collection-jvm-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1/animation-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1/animation-core-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1/ui-geometry-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1/foundation-layout-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1/ui-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2/lifecycle-common-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2/lifecycle-runtime-desktop-2.jar
+    - name: $MAVEN_REPOSITORY$/androidx/arch/core/core-common/2/core-common-2.jar
+    - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2/lifecycle-viewmodel-desktop-2.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2/lifecycle-runtime-compose-desktop-2.jar
+    - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation/1/annotation-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1/runtime-saveable-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1/ui-graphics-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1/ui-unit-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1/ui-text-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1/ui-util-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0/skiko-awt-0.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/components/components-resources-desktop/1/components-resources-desktop-1.jar
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1/runtime-desktop-1.jar
+    reason: withProjectLibrary
 - name: lib/jewel-markdown-ide-laf-bridge-styling-242.jar
 - name: lib/layoutlib-loader.jar
   modules:

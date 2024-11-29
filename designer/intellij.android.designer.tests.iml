@@ -112,6 +112,7 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
+    <orderEntry type="library" scope="TEST" name="jewel-ide-laf-bridge" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>
