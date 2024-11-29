@@ -207,9 +207,6 @@ private object CompileScopeImpl : CompileScope {
 
     val compilerConfiguration = getCompilerConfiguration(moduleForAllInputs, input.first())
 
-    val generationStateBuilder = GenerationState.Builder(
-      project, ClassBuilderFactories.BINARIES, analysisResult.moduleDescriptor, input, compilerConfiguration
-    )
     val codegenFactory = JvmIrCodegenFactory(
       compilerConfiguration,
       jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
@@ -221,16 +218,16 @@ private object CompileScopeImpl : CompileScope {
       },
       ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
     )
-    generationStateBuilder.codegenFactory(codegenFactory)
-
-    val generationState = generationStateBuilder.build()
+    val generationState = GenerationState.Builder(
+      project, ClassBuilderFactories.BINARIES, analysisResult.moduleDescriptor, compilerConfiguration
+    ).build()
     inlineClassRequest?.forEach {
       it.fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices)
       it.fillInlineCache(generationState.inlineCache)
     }
 
     try {
-      KotlinCodegenFacade.compileCorrectFiles(generationState, analysisResult.bindingContext)
+      KotlinCodegenFacade.compileCorrectFiles(input, generationState, analysisResult.bindingContext, codegenFactory)
     } catch (e: Throwable) {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
