@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * This is a group of includes in order to be presented as if they are #included.
@@ -55,6 +56,7 @@ final public class ShadowingIncludeValue extends IncludeValue {
   }
 
   @NotNull
+  @Unmodifiable
   public Collection<File> getIncludePathsInOrder() {
     return ContainerUtil.map(myIncludes, value -> value.getIncludeFolder());
   }

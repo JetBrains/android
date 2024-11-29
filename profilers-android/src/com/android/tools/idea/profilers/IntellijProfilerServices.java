@@ -85,6 +85,7 @@ import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class IntellijProfilerServices implements IdeProfilerServices, Disposable {
 
@@ -305,6 +306,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
    */
   @NotNull
   @Override
+  @Unmodifiable
   public List<String> getNativeSymbolsDirectories() {
     String arch = myCodeNavigator.getCpuArchSource().get();
     Collection<File> dirs = mySymbolLocator.getDirectories(arch);

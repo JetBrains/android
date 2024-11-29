@@ -64,6 +64,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -1177,6 +1178,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
 
     @NotNull
+    @Unmodifiable
     private List<GradleDslElement> removeAll(@NotNull Predicate<ElementItem> filter) {
       List<ElementItem> toBeRemoved = myElements.stream().filter(filter).collect(Collectors.toList());
       toBeRemoved.forEach(e -> e.myElementState = TO_BE_REMOVED);

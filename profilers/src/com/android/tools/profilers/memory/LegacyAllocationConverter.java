@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -151,6 +152,7 @@ public class LegacyAllocationConverter {
     myAllocations.add(allocationInfo);
   }
 
+  @Unmodifiable
   public List<AllocationEvent.Allocation> getAllocationEvents() {
     return ContainerUtil.map(myAllocations, allocation -> allocation.bindAllocationEventInfos());
   }
@@ -159,6 +161,7 @@ public class LegacyAllocationConverter {
    * Note that this returns all stacks gathered from all seen allocation tracking sessions. We can refactor this to not share the data
    * across sessions, but it's probably not worth it given it is legacy.
    */
+  @Unmodifiable
   public List<AllocationStack> getAllocationStacks() {
     return ContainerUtil.map(myAllocationStacks.values(), CallStack::getAllocationStack);
   }
@@ -167,6 +170,7 @@ public class LegacyAllocationConverter {
    * Note that this returns all classes gathered from all seen allocation tracking sessions. We can refactor this to not share the data
    * across sessions, but it's probably not worth it given it is legacy.
    */
+  @Unmodifiable
   public List<AllocatedClass> getClassNames() {
     return ContainerUtil.map(myAllocatedClasses.values(), ClassName::getAllocatedClass);
   }
