@@ -20,7 +20,8 @@ import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorC
 import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.utils.FileUtils
+import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildIssueEvent
@@ -36,6 +37,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.registerExtension
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +49,9 @@ import org.mockito.kotlin.whenever
 class BuildOutputParserWrapperTest {
   @get:Rule
   val temporaryFolder = TemporaryFolder()
+
+  @get:Rule
+  val tempDirRule = TemporaryDirectoryRule()
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -216,6 +221,39 @@ class BuildOutputParserWrapperTest {
     }
   }
 
+  @Test
+  fun `test 'Ask Gemini' quick fix sends query with file contents for FileMessageEvent`() {
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
+    val file = tempDirRule.createVirtualFile(
+      "MyFile.kt",
+      """
+        class MyClass {
+          println("Hello") return
+        }
+      """
+        .trimIndent()
+    )
+
+    messageEvent = createFileMessageEvent(ERROR, file = file)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.sourceFiles).isEqualTo(listOf(file))
+      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo("""
+            GradleErrorContext:
+            errorMessage: !!some error message!!
+            fullErrorDetails: Detailed error message
+            source: build
+            Source files included:
+            ${file.name}
+      """.trimIndent())
+    }
+  }
+
   private fun GradleErrorContext.formatForTests() = buildString {
     append("GradleErrorContext:")
     if (!gradleTask.isNullOrEmpty()) {
@@ -225,10 +263,16 @@ class BuildOutputParserWrapperTest {
       append("\nerrorMessage: $errorMessage")
     }
     if (!fullErrorDetails.isNullOrEmpty()) {
-      append("\nfullErrorDetails: $fullErrorDetails\n")
+      append("\nfullErrorDetails: $fullErrorDetails")
     }
     if (source != null) {
       append("\nsource: $source")
+    }
+    if (sourceFiles.isNotEmpty()) {
+      append("\nSource files included:")
+      sourceFiles.forEach {
+        append("\n${it.name}")
+      }
     }
   }
 
@@ -253,6 +297,7 @@ class BuildOutputParserWrapperTest {
     message: String = "!!some error message!!",
     detailedMessage: String = "Detailed error message",
     id: Any = ID,
+    file: VirtualFile = tempDirRule.createVirtualFile("Main.kt"),
   ): FileMessageEvent {
     val folder = temporaryFolder.newFolder("test")
     return FileMessageEventImpl(
@@ -261,7 +306,7 @@ class BuildOutputParserWrapperTest {
       group,
       message,
       detailedMessage,
-      FilePosition(FileUtils.join(folder, "main", "src", "main.java"),1, 1))
+      FilePosition(file.toIoFile(),1, 1))
   }
 
   companion object {

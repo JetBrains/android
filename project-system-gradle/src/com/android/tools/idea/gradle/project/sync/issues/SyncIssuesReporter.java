@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQui
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -160,18 +161,24 @@ public class SyncIssuesReporter {
   private static void addIssueExplanationLinks(@NotNull List<SyncMessage> syncMessages) {
     for (SyncMessage syncMessage : syncMessages) {
       final var message = syncMessage.getText();
-      syncMessage.add(new SyncIssueNotificationHyperlink(
-        "explain.issue",
-        consoleLinkUnderlinedText,
-        AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX
-      ) {
+      syncMessage.add(new SyncIssueNotificationHyperlink("explain.issue", consoleLinkUnderlinedText,
+                                                         AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX) {
         @Override
         protected void execute(@NotNull Project project) {
           StudioBotQuickFixProvider provider = StudioBotQuickFixProvider.Companion.getInstance();
-          provider.askGemini( new GradleErrorContext(/* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC), project);
+          provider.askGemini(new GradleErrorContext(
+                               /* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC, /* sourceFiles = */ getErrorSourceFiles(syncMessage)),
+                             project);
         }
       });
     }
+  }
+
+  private static List<VirtualFile> getErrorSourceFiles(SyncMessage syncMessage) {
+    if (syncMessage.getPosition() == null) {
+      return ImmutableList.of();
+    }
+    return ImmutableList.of(syncMessage.getPosition().file);
   }
 
   @VisibleForTesting

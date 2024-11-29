@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssu
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.DuplicateMessageAware
+import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
@@ -34,7 +35,9 @@ import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.util.function.Consumer
 
 
@@ -63,7 +66,8 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
             gradleTask = extractTaskNameFromId(it.parentId?:""),
             errorMessage = it.message,
             fullErrorDetails = it.description,
-            source = extractSourceFromTaskId(taskId)
+            source = extractSourceFromTaskId(taskId),
+            sourceFiles = it.getVirtualFiles()
           )
           val quickFix = OpenStudioBotBuildIssueQuickFix(context)
           it.toBuildIssueEventWithQuickFix(quickFix)
@@ -71,6 +75,18 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
           it
         }
       messageConsumer?.accept(event)
+    }
+  }
+
+  private fun MessageEvent.getVirtualFiles(): List<VirtualFile> {
+    if(this !is FileMessageEvent) {
+      return emptyList()
+    }
+
+    return buildList {
+      filePosition.file.toVirtualFile()?.let {
+        add(it)
+      }
     }
   }
 
