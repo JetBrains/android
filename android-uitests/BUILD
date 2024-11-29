@@ -632,7 +632,8 @@ java_test(
         "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-    ] + glob(["testData/SimpleComposeApplication/**"]),
+        "//tools/adt/idea/compose-designer/testData:test_projects",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -654,7 +655,8 @@ java_test(
         "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-    ] + glob(["testData/SimpleComposeApplication/**"]),
+        "//tools/adt/idea/compose-designer/testData:test_projects",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",

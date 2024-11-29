@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 @Preview
 @Composable
 fun VerySimpleAnimation() {
@@ -28,16 +27,14 @@ fun VerySimpleAnimation() {
 
   val transition: Transition<Boolean> = updateTransition(targetState = toState)
 
-  val scale: Float by transition.animateFloat(
-    label = "Scale",
-    transitionSpec = { spring(stiffness = 50f) }
-  ) { state ->
-    if (state) 3f else 1f
-  }
+  val scale: Float by
+    transition.animateFloat(label = "Scale", transitionSpec = { spring(stiffness = 50f) }) { state
+      ->
+      if (state) 3f else 1f
+    }
 
   Box(
-    Modifier
-      .fillMaxSize()
+    Modifier.fillMaxSize()
       .wrapContentSize(Alignment.CenterStart)
       .size((100 * scale).dp)
       .background(Color(0xFFFF0000))

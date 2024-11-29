@@ -29,55 +29,52 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 @Preview
 @Composable
 fun GestureAnimationSample() {
   // enum class ComponentState { Pressed, Released }
   var useRed by remember { mutableStateOf(false) }
   var toState by remember { mutableStateOf(ComponentState.Released) }
-  val modifier = Modifier.pointerInput(Unit) {
-    detectTapGestures(
-      onPress = {
-        toState = ComponentState.Pressed
-        tryAwaitRelease()
-        toState = ComponentState.Released
-      }
-    )
-  }
+  val modifier =
+    Modifier.pointerInput(Unit) {
+      detectTapGestures(
+        onPress = {
+          toState = ComponentState.Pressed
+          tryAwaitRelease()
+          toState = ComponentState.Released
+        }
+      )
+    }
 
   val transition: Transition<ComponentState> = updateTransition(targetState = toState)
 
-  val scale: Float by transition.animateFloat(
-    label = "Scale",
-    transitionSpec = { spring(stiffness = 50f) }
-  ) { state ->
-    if (state == ComponentState.Pressed) 3f else 1f
-  }
+  val scale: Float by
+    transition.animateFloat(label = "Scale", transitionSpec = { spring(stiffness = 50f) }) { state
+      ->
+      if (state == ComponentState.Pressed) 3f else 1f
+    }
 
-  val color: Color by transition.animateColor(
-    label = "Background Color",
-    transitionSpec = {
-      when {
-        ComponentState.Pressed isTransitioningTo ComponentState.Released ->
-          spring(stiffness = 50f)
-        else ->
-          tween(durationMillis = 500)
+  val color: Color by
+    transition.animateColor(
+      label = "Background Color",
+      transitionSpec = {
+        when {
+          ComponentState.Pressed isTransitioningTo ComponentState.Released ->
+            spring(stiffness = 50f)
+          else -> tween(durationMillis = 500)
+        }
+      },
+    ) { state ->
+      when (state) {
+        ComponentState.Pressed -> MaterialTheme.colors.primary
+        ComponentState.Released -> if (useRed) Color(0xFFFF0000) else MaterialTheme.colors.secondary
       }
     }
-  ) { state ->
-    when (state) {
-      ComponentState.Pressed -> MaterialTheme.colors.primary
-      ComponentState.Released -> if (useRed) Color(0xFFFF0000) else MaterialTheme.colors.secondary
-    }
-  }
 
   Column {
     Button(
-      modifier = Modifier
-        .padding(10.dp)
-        .align(Alignment.CenterHorizontally),
-      onClick = { useRed = !useRed }
+      modifier = Modifier.padding(10.dp).align(Alignment.CenterHorizontally),
+      onClick = { useRed = !useRed },
     ) {
       Text("Change Color")
     }
@@ -89,16 +86,16 @@ fun GestureAnimationSample() {
         .size((100 * scale).dp)
         .background(color)
     )
-
   }
 }
 
-enum class ComponentState { Pressed, Released }
+enum class ComponentState {
+  Pressed,
+  Released,
+}
 
 @Preview
 @Composable
 fun NotAnAnimation() {
-  MaterialTheme {
-    Text(text = "Not an animation!")
-  }
+  MaterialTheme { Text(text = "Not an animation!") }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.customview
 
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.compose.ComposeDesignerTestDataRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith
 class CustomViewPreviewTest {
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = ComposeDesignerTestDataRule()
   @Rule
   @JvmField
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
@@ -53,7 +53,7 @@ class CustomViewPreviewTest {
   }
 
   private fun importProject(): IdeFrameFixture =
-    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication", "35")
+    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication-ui", "35")
 
   @Throws(Exception::class)
   private fun openBuildAndClosePreview(fixture: IdeFrameFixture) {
