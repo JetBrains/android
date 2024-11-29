@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -207,6 +208,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
 
   @Nullable
   @Override
+  @Unmodifiable
   public List<GradlePropertyModel> toList() {
     List<GradlePropertyModel> list = resolveModel().toList();
     if (list == null) {

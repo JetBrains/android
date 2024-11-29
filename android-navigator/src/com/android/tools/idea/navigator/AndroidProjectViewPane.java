@@ -77,6 +77,7 @@ import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupport {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
@@ -402,6 +403,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     @Override
+    @Unmodifiable
     public List<TreeStructureProvider> getProviders() {
       List<TreeStructureProvider> providers = super.getProviders();
       if (providers == null) {

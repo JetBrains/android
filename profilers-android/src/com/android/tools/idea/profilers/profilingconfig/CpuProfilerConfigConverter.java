@@ -37,6 +37,7 @@ import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 public class CpuProfilerConfigConverter {
@@ -142,6 +143,7 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from list of {@link CpuProfilerConfig} to a list of {@link ProfilingConfiguration}
    */
+  @Unmodifiable
   public static List<ProfilingConfiguration> toProfilingConfiguration(List<CpuProfilerConfig> configs, int deviceApi) {
     return ContainerUtil.map(configs, config -> toProfilingConfiguration(config, deviceApi));
   }

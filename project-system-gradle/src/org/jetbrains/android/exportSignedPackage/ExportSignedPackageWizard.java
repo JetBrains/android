@@ -77,6 +77,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
   public enum TargetType {
@@ -396,6 +397,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @NotNull
+  @Unmodifiable
   public static List<String> getGradleTasks(@NotNull String gradleProjectPath,
                                      @NotNull GradleAndroidModel GradleAndroidModel,
                                      @NotNull List<String> buildVariants,

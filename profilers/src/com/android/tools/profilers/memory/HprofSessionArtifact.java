@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * An artifact representation of a memory heap dump.
@@ -73,6 +74,7 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
     return "hprof";
   }
 
+  @Unmodifiable
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                              @NotNull Common.Session session,
                                                              @NotNull Common.SessionMetaData sessionMetaData) {

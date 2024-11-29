@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.util.Collection;
@@ -57,6 +58,7 @@ final public class ShadowingIncludeValue extends IncludeValue {
   }
 
   @NotNull
+  @Unmodifiable
   public Collection<File> getIncludePathsInOrder() {
     return ContainerUtil.map(myIncludes, value -> value.getIncludeFolder());
   }

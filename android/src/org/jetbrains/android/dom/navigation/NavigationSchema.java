@@ -87,6 +87,7 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * NavigationSchema is structured around two mappings:
@@ -933,6 +934,7 @@ public class NavigationSchema implements Disposable {
   }
 
   @NotNull
+  @Unmodifiable
   public Collection<PsiClass> getStyleablesForTag(@NotNull String tag) {
     return ContainerUtil.map(myTagToStyleables.get(tag), TypeRef::dereference);
   }
