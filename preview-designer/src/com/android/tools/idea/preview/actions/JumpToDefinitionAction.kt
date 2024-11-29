@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -34,8 +34,7 @@ class JumpToDefinitionAction(
   @SwingCoordinate private val x: Int,
   @SwingCoordinate private val y: Int,
   private val navigationHandler: NavigationHandler,
-  title: String = message("action.jump.to.definition"),
-) : AnAction(title) {
+) : AnAction(message("action.jump.to.definition")) {
 
   override fun update(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE)
