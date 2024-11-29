@@ -138,7 +138,7 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
    * @param progressStep used to provide feedback on installation progress
    */
   @Throws(WizardException::class)
-  fun installComponents(progressStep: ProgressStep) {
+  fun installComponents(progressStep: InstallComponentsProgressStep) {
     val sdkHandler = localHandler
     InstallComponentsPath.installComponents(
       componentTree.childrenToInstall,

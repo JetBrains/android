@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.DelegatingProgressIndicator
@@ -31,7 +32,7 @@ import javax.swing.JComponent
 /**
  * Wizard step with progress bar and "more details" button.
  */
-abstract class ProgressStep(model: FirstRunWizardModel, parent: Disposable, name: String) : ModelWizardStep<FirstRunWizardModel>(model, name), IProgressStep {
+abstract class ProgressStep<T: WizardModel>(model: T, parent: Disposable, name: String) : ModelWizardStep<T>(model, name), IProgressStep {
   private val form = ProgressStepForm(parent)
   private var myProgressIndicator: ProgressIndicator? = null
 
