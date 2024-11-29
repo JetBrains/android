@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilat
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.phaser.PhaseConfig
@@ -218,9 +217,7 @@ private object CompileScopeImpl : CompileScope {
       },
       ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
     )
-    val generationState = GenerationState.Builder(
-      project, ClassBuilderFactories.BINARIES, analysisResult.moduleDescriptor, compilerConfiguration
-    ).build()
+    val generationState = GenerationState(project, analysisResult.moduleDescriptor, compilerConfiguration)
     inlineClassRequest?.forEach {
       it.fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices)
       it.fillInlineCache(generationState.inlineCache)
