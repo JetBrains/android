@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.compose
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -54,7 +53,8 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
-  @get:Rule val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+  @get:Rule val guiTest = ComposeDesignerTestDataRule().withTimeout(10, TimeUnit.MINUTES)
+
   @get:Rule val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
   @get:Rule val adbRule: FakeAdbTestRule = FakeAdbTestRule("35")
@@ -80,7 +80,10 @@ class ComposePreviewTest {
 
   private fun getSyncedProjectFixture() =
     guiTest
-      .importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication", "35")
+      .importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(
+        "SimpleComposeApplication-ui",
+        "35",
+      )
       .also {
         it.buildToolWindow.activate()
         assertThat(it.invokeProjectMake().isBuildSuccessful).isTrue()

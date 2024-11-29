@@ -15,4 +15,3 @@ class AnotherCustomButton : AppCompatButton {
     text = "Another Custom Button"
   }
 }
-
