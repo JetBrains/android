@@ -16,22 +16,14 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
+import static com.android.tools.idea.sdk.wizard.AehdWizardUtils.handleCancel;
+import static com.android.tools.idea.sdk.wizard.AehdWizardUtils.setupAehd;
 
-import com.android.repository.api.ProgressIndicator;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
-import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.install.AehdSdkComponent;
-import com.android.tools.idea.welcome.install.InstallSdkComponentsOperation;
-import com.android.tools.idea.welcome.install.InstallContext;
-import com.android.tools.idea.welcome.install.InstallOperation;
-import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.wizard.IProgressStep;
-import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep;
 import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStep;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
@@ -39,15 +31,8 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,21 +62,7 @@ public class AehdWizard extends DynamicWizard {
       return;
     }
 
-    // The wizard was invoked to install, but installer invocation failed or was cancelled.
-    // Have to ensure the SDK package is removed
-    if (myInstallationIntention.isInstall()) {
-      try {
-        AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-        SdkComponentInstaller sdkComponentInstaller = new SdkComponentInstaller(sdkHandler);
-        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
-        sdkComponentInstaller.ensureSdkPackagesUninstalled(myAehdPath.myAehdSdkComponent.getRequiredSdkPackages(), progress);
-      }
-      catch (Exception e) {
-        Messages.showErrorDialog(sdkPackageCleanupFailedMessage(), "Cleanup Error");
-        LOG.warn("Failed to make sure AEHD SDK package is uninstalled after AEHD wizard was cancelled", e);
-      }
-    }
+    handleCancel(myInstallationIntention, myAehdPath.myAehdSdkComponent, getClass(), LOG);
     super.doCancelAction();
   }
 
@@ -141,7 +112,7 @@ public class AehdWizard extends DynamicWizard {
     protected void execute() {
       myHost.runSensitiveOperation(getProgressIndicator(), true, () -> {
         try {
-          setupAehd();
+          setupAehd(myAehdSdkComponent, this, myProgressIndicator);
           myIsSuccessfullyCompleted.set(myAehdSdkComponent.isInstallerSuccessfullyCompleted());
         }
         catch (Exception e) {
@@ -156,59 +127,6 @@ public class AehdWizard extends DynamicWizard {
     public boolean canGoPrevious() {
       return false;
     }
-
-    private void setupAehd() throws IOException {
-      final File tmpDir = FileUtil.createTempDirectory(getPlatformPrefix(), "AEHD", true);
-      final InstallContext installContext = new InstallContext(tmpDir, this);
-      final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      myAehdSdkComponent.updateState(sdkHandler);
-      final SdkComponentInstaller sdkComponentInstaller = new SdkComponentInstaller(sdkHandler);
-      final Collection<? extends InstallableSdkComponentTreeNode> selectedComponents = Lists.newArrayList(myAehdSdkComponent);
-
-      double configureAehdProgressRatio = 1.0;
-      if (myAehdSdkComponent.installationIntention.isInstall()) {
-        configureAehdProgressRatio = 0.5; // leave the first half of the progress to the updates check & install operation
-      }
-
-      InstallOperation<File, File> configureAehdOperation = InstallOperation.wrap(installContext, input -> {
-        myAehdSdkComponent.configure(installContext, sdkHandler);
-        return input;
-      }, configureAehdProgressRatio);
-
-      InstallOperation<File, File> opChain;
-      if (myAehdSdkComponent.installationIntention.isInstall()) {
-        InstallSdkComponentsOperation install =
-          new InstallSdkComponentsOperation(installContext, selectedComponents, sdkComponentInstaller, 0.5);
-        opChain = install.then(configureAehdOperation);
-      }
-      else {
-        opChain = configureAehdOperation;
-      }
-
-      try {
-        opChain.execute(sdkHandler.getLocation().toFile());
-      }
-      catch (InstallationCancelledException e) {
-        installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-      }
-      catch (WizardException e) {
-        throw new RuntimeException(e);
-      }
-      finally {
-        if (!myAehdSdkComponent.isInstallerSuccessfullyCompleted() && myAehdSdkComponent.installationIntention != AehdSdkComponent.InstallationIntention.UNINSTALL) {
-          // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
-          sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
-          sdkComponentInstaller.ensureSdkPackagesUninstalled(myAehdSdkComponent.getRequiredSdkPackages(), myProgressIndicator);
-        }
-      }
-      installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT);
-    }
-  }
-
-  private static String sdkPackageCleanupFailedMessage() {
-    return "AEHD installer cleanup failed. The status of the package in the SDK manager may " +
-           "be reflected incorrectly. Reinstalling the package may solve the issue" +
-           (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)" : ".");
   }
 
   private class AehdPath extends DynamicWizardPath {
