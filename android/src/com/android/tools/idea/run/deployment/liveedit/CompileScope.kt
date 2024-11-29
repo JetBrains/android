@@ -20,8 +20,8 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
-import kotlinx.coroutines.sync.Semaphore
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -207,14 +207,10 @@ private object CompileScopeImpl : CompileScope {
 
     val compilerConfiguration = getCompilerConfiguration(moduleForAllInputs, input.first())
 
-    val generationStateBuilder = GenerationState.Builder(project,
-                                                         ClassBuilderFactories.BINARIES,
-                                                         analysisResult.moduleDescriptor,
-                                                         analysisResult.bindingContext,
-                                                         input,
-                                                         compilerConfiguration)
-
-    generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
+    val generationStateBuilder = GenerationState.Builder(
+      project, ClassBuilderFactories.BINARIES, analysisResult.moduleDescriptor, input, compilerConfiguration
+    )
+    val codegenFactory = JvmIrCodegenFactory(
       compilerConfiguration,
       jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
         override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
@@ -222,9 +218,10 @@ private object CompileScopeImpl : CompileScope {
             descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
           return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
         }
-        },
+      },
       ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
-    ))
+    )
+    generationStateBuilder.codegenFactory(codegenFactory)
 
     val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
@@ -233,7 +230,7 @@ private object CompileScopeImpl : CompileScope {
     }
 
     try {
-      KotlinCodegenFacade.compileCorrectFiles(generationState)
+      KotlinCodegenFacade.compileCorrectFiles(generationState, analysisResult.bindingContext)
     } catch (e: Throwable) {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
