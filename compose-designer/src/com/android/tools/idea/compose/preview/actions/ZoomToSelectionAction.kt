@@ -17,19 +17,14 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.compose.preview.findDeepestHits
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
-import java.awt.Dimension
-import java.awt.Point
 import java.awt.Rectangle
 
 /**
@@ -40,6 +35,8 @@ import java.awt.Rectangle
 class ZoomToSelectionAction(
   @SwingCoordinate private val x: Int,
   @SwingCoordinate private val y: Int,
+  val zoomTargetProvider:
+    ( sceneView: SceneView, x: Int, y: Int, logger: Logger) -> Rectangle?,
 ) : AnAction(message("action.zoom.to.selection")) {
 
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
@@ -58,39 +55,7 @@ class ZoomToSelectionAction(
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE) as NlDesignSurface
     val sceneView = surface.getSceneViewAt(x, y) ?: return
-    val androidX = Coordinates.getAndroidX(sceneView, x)
-    val androidY = Coordinates.getAndroidY(sceneView, y)
-    val deepestViewInfos =
-      sceneView.scene.root
-        ?.nlComponent
-        ?.viewInfo
-        ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
-        ?.findDeepestHits(androidX, androidY)
-    if (deepestViewInfos.isNullOrEmpty()) {
-      // This is expected for example when the Preview contains showSystemUi=true
-      // and the "systemUi" is where the right-click happens.
-      logger.info("Could not find the view to zoom to, zooming to the whole Preview.")
-      surface.zoomAndCenter(sceneView, Rectangle(Point(0, 0), sceneView.scaledContentSize))
-      return
-    }
-    if (deepestViewInfos.size > 1) {
-      logger.warn(
-        "Expected 1 view to zoom to, but found ${deepestViewInfos.size}, choosing the last one."
-      )
-    }
-    val composeViewInfo = deepestViewInfos.last()
-    composeViewInfo.bounds.let {
-      val topLeftCorner =
-        Point(
-          Coordinates.getSwingDimension(sceneView, it.left),
-          Coordinates.getSwingDimension(sceneView, it.top),
-        )
-      val size =
-        Dimension(
-          Coordinates.getSwingDimension(sceneView, it.width),
-          Coordinates.getSwingDimension(sceneView, it.height),
-        )
-      surface.zoomAndCenter(sceneView, Rectangle(topLeftCorner, size))
-    }
+    var zoomTarget: Rectangle = zoomTargetProvider(sceneView, x, y, logger) ?: return
+    surface.zoomAndCenter(sceneView, zoomTarget)
   }
 }
