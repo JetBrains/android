@@ -304,7 +304,8 @@ public class ChooseSystemImagePanel extends JPanel
              && !SystemImageTags.isWearImage(imageTags)
              && !SystemImageTags.isAutomotiveImage(imageTags)
              && !imageTags.contains(SystemImageTags.DESKTOP_TAG)
-             && !imageTags.contains(SystemImageTags.CHROMEOS_TAG);
+             && !imageTags.contains(SystemImageTags.CHROMEOS_TAG)
+             && !imageTags.contains(SystemImageTags.XR_TAG);
     }
 
     // 4K TV requires at least S (API 31)

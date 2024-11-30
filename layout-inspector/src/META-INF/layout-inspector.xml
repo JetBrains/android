@@ -59,7 +59,7 @@
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
     <notificationGroup id="LAYOUT_INSPECTOR_DISCOVERY" displayType="TOOL_WINDOW" toolWindowId="Running Devices"/>
 
-    <applicationConfigurable groupId="tools" id="layout.inspector"
+    <projectConfigurable groupId="tools" id="layout.inspector"
                              bundle="messages.LayoutInspectorBundle"
                              provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"
                              key="layout.inspector"/>

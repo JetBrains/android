@@ -30,19 +30,25 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
+import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
+import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -60,6 +66,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -88,16 +95,23 @@ import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_A
+import java.awt.event.KeyEvent.VK_D
 import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_E
 import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_P
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.KeyEvent.VK_W
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.nio.file.Path
@@ -137,6 +151,9 @@ class EmulatorToolWindowPanelTest {
 
   @Before
   fun setUp() {
+    StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
@@ -342,6 +359,263 @@ class EmulatorToolWindowPanelTest {
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testXrToolbarActions() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+    assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    // Check that the buttons not applicable to XR devices are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Back" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    // Check XR-specific actions.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
+    val modes = mapOf(
+      "Hand Tracking" to XrInputMode.HAND,
+      "Eye Tracking" to XrInputMode.EYE,
+      "Hardware Input" to XrInputMode.HARDWARE,
+      "View Direction" to XrInputMode.VIEW_DIRECTION,
+      "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+      "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+    )
+    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+    for ((actionName, mode) in modes) {
+      ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == actionName })
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
+    }
+
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
+
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Show Taskbar" })
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { action: SHOW_TASKBAR }")
+
+    panel.destroyContent()
+    assertThat(panel.primaryDisplayView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testXrMouseInput() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    val testCases = mapOf(
+      XrInputMode.HAND to "xr_hand_event",
+      XrInputMode.EYE to "xr_eye_event",
+      XrInputMode.HARDWARE to "mouse_event",
+    )
+    var streamInputCall: GrpcCallRecord? = null
+    for ((inputMode, expectedEvent) in testCases) {
+      xrInputController.inputMode = inputMode
+      ui.mouse.moveTo(100, 100)
+      val call = streamInputCall ?: getNextGrpcCallIgnoringStreamScreenshot().also { streamInputCall = it }
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 }")
+      ui.mouse.press(100, 100)
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 buttons: 1 }")
+      ui.mouse.dragTo(500, 200)
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 buttons: 1 }")
+      ui.mouse.release()
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 }")
+    }
+  }
+
+  @Test
+  fun testXrKeyboardNavigation() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
+    ui.keyboard.setFocus(emulatorView)
+    ui.keyboard.press(VK_ENTER)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    // Keys that are not used for navigation produce keypress events.
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
+    ui.keyboard.release(VK_ENTER)
+    val keys = mapOf(
+      VK_W to "forward_held: true",
+      VK_A to "left_held: true",
+      VK_S to "backward_held: true",
+      VK_D to "right_held: true",
+      VK_Q to "down_held: true",
+      VK_E to "up_held: true",
+      VK_RIGHT to "rotate_right_held: true",
+      VK_LEFT to "rotate_left_held: true",
+      VK_UP to "rotate_up_held: true",
+      VK_DOWN to "rotate_down_held: true",
+      VK_PAGE_UP to "rotate_right_held: true rotate_up_held: true",
+      VK_PAGE_DOWN to "rotate_right_held: true rotate_up_held: true",
+      VK_HOME to "rotate_left_held: true rotate_up_held: true",
+      VK_END to "rotate_left_held: true rotate_up_held: true",
+    )
+    for ((k, event) in keys) {
+      ui.keyboard.press(k)
+      assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { $event } }")
+      ui.keyboard.release(k)
+      assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
+    }
+
+    // Two keys pressed together.
+    ui.keyboard.press(VK_D)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { nav_event { right_held: true } }")
+    ui.keyboard.press(VK_E)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { nav_event { right_held: true up_held: true } }")
+
+    // Switching to Hardware Input resets state of the navigation keys.
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
+    ui.keyboard.release(VK_D)
+    ui.keyboard.release(VK_E)
+  }
+
+  @Test
+  fun testXrMouseViewRotation() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 100)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_x: 1707 } }")
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_y: 1707 } }")
+    ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
+    ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
+    ui.mouse.dragTo(100, 435)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_x: -853 rel_y: 1707 } }")
+  }
+
+  @Test
+  fun testXrMouseMovementInSpace() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    // Moving in the view plane dragging the mouse.
+    xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_XY
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 100)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_x: 1707 } }")
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_y: 1707 } }")
+    ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
+    ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
+    ui.mouse.dragTo(100, 435)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { rel_x: -853 rel_y: 1707 } }")
+    ui.mouse.release()
+
+    // Moving forward and backward by rotating the mouse wheel.
+    ui.mouse.wheel(10, 100, 1)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: -512 } }")
+    ui.mouse.wheel(10, 100, -3)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: 1536 } }")
+
+    // Moving forward by dragging the mouse.
+    xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_Z
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: 1707 } }")
+    ui.mouse.release()
   }
 
   @Test
@@ -841,6 +1115,11 @@ class EmulatorToolWindowPanelTest {
     return createWindowPanel(avdFolder)
   }
 
+  private fun createWindowPanelForXr(): EmulatorToolWindowPanel {
+    val avdFolder = FakeEmulator.createXrAvd(emulatorRule.avdRoot)
+    return createWindowPanel(avdFolder)
+  }
+
   private fun createWindowPanel(avdFolder: Path): EmulatorToolWindowPanel {
     emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
@@ -886,6 +1165,9 @@ class EmulatorToolWindowPanelTest {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return emulatorView.frameNumber
   }
+
+  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
+      emulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
 
   private fun assertAppearance(ui: FakeUi,
                                goldenImageName: String,

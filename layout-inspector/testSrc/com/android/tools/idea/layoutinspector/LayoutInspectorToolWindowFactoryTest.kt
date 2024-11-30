@@ -23,7 +23,10 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
@@ -35,6 +38,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
@@ -44,6 +48,7 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.project.TestProjectManager
@@ -57,6 +62,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
@@ -69,6 +75,7 @@ import org.mockito.Mockito.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
@@ -248,6 +255,70 @@ class LayoutInspectorToolWindowFactoryTest {
       } ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidProjectChecker::class.qualifiedName)
+  }
+
+  @Test
+  fun testRegisterLayoutInspectorToolWindow() {
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val fakeForegroundProcessDetection = FakeForegroundProcessDetection()
+
+    val layoutInspector =
+      LayoutInspector(
+        coroutineScope = coroutineScope,
+        processModel = mock(),
+        deviceModel = mock(),
+        foregroundProcessDetection = fakeForegroundProcessDetection,
+        inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        launcher = mock(),
+        layoutInspectorModel = mock(),
+        notificationModel = mock(),
+        treeSettings = mock(),
+        executor = MoreExecutors.directExecutor(),
+        renderModel = mock(),
+      )
+
+    val stopInspectorLatch = CountDownLatch(1)
+    layoutInspector.stopInspectorListeners.add { stopInspectorLatch.countDown() }
+
+    val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
+    whenever(mockLayoutInspectorProjectService.getLayoutInspector()).thenAnswer { layoutInspector }
+    projectRule.project.replaceService(
+      LayoutInspectorProjectService::class.java,
+      mockLayoutInspectorProjectService,
+      projectRule.testRootDisposable,
+    )
+
+    val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
+    projectRule.project.replaceService(
+      LayoutInspectorManager::class.java,
+      mockLayoutInspectorManager,
+      projectRule.testRootDisposable,
+    )
+
+    // Verify that the tool window is null to begin with.
+    val layoutInspectorToolWindow1 =
+      ToolWindowManager.getInstance(projectRule.project)
+        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    assertThat(layoutInspectorToolWindow1).isNull()
+
+    registerLayoutInspectorToolWindow(projectRule.project)
+
+    stopInspectorLatch.await()
+    verify(mockLayoutInspectorManager).disable()
+
+    // Verify that the tool window was added.
+    val layoutInspectorToolWindow2 =
+      ToolWindowManager.getInstance(projectRule.project)
+        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    assertThat(layoutInspectorToolWindow2).isNotNull()
+
+    unregisterLayoutInspectorToolWindow(projectRule.project)
+
+    // Verify that the tool window has been removed.
+    val layoutInspectorToolWindow3 =
+      ToolWindowManager.getInstance(projectRule.project)
+        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    assertThat(layoutInspectorToolWindow3).isNull()
   }
 }
 

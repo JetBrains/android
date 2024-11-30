@@ -29,15 +29,13 @@ import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
-import com.google.common.truth.Correspondence
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RuleChain
@@ -51,6 +49,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+/** Tests for [StreamingHardwareInputAction]. */
 @RunWith(JUnit4::class)
 class StreamingHardwareInputActionTest {
 
@@ -126,24 +125,8 @@ class StreamingHardwareInputActionTest {
     val presentation = updateAndGetActionPresentation(action, view, project)
     val popup = showPopup(presentation)
     val labels = popup.content.findAllDescendants<JLabel>().toList()
-
-    assertThat(labels).comparingElementsUsing(LabelCorrespondence()).apply {
-      contains("Hardware Input")
-      contains("Enable transparent forwarding of keyboard and mouse events to the connected device")
-    }
-  }
-
-  @Test
-  fun testTooltipWithShortcutHasShortcutLabel() {
-    KeymapManager.getInstance().activeKeymap.addShortcut(
-        StreamingHardwareInputAction.ACTION_ID, KeyboardShortcut.fromString("control shift J"))
-    val action = ActionManager.getInstance().getAction(StreamingHardwareInputAction.ACTION_ID)
-    val view = emulatorViewRule.newEmulatorView(FakeEmulator::createPhoneAvd)
-    val presentation = updateAndGetActionPresentation(action, view, project)
-    val popup = showPopup(presentation)
-    val labels = popup.content.findAllDescendants<JLabel>().toList()
-
-    assertThat(labels).comparingElementsUsing(LabelCorrespondence()).contains("Ctrl+Shift+J")
+    assertThat(labels.map { extractText(it.text)})
+        .containsExactly("Hardware Input Ctrl+W", "Enable transparent forwarding of keyboard and mouse events to the device")
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
@@ -163,13 +146,5 @@ class StreamingHardwareInputActionTest {
     ui.mouse.moveTo(0, 0)
 
     return popupFactory.getNextPopup(2000, TimeUnit.MILLISECONDS)
-  }
-
-  private class LabelCorrespondence : Correspondence<JLabel, String>() {
-    override fun toString(): String = "has the partial label text"
-
-    override fun compare(actual: JLabel?, expected: String?): Boolean {
-      return actual?.text?.contains(expected ?: return false) ?: false
-    }
   }
 }

@@ -249,5 +249,7 @@ class ToggleLayoutInspectorActionTest {
     override fun isSupported(deviceId: DeviceId) = true
 
     override fun dispose() {}
+
+    override fun disable() {}
   }
 }

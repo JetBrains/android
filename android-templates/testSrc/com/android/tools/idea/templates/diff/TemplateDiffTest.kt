@@ -768,6 +768,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
       templateStateCustomizer = mapOf("API Key" to "abcd"),
     )
   }
+
+  // TODO(b/377918259): XR template requires API 35
+  //@Test
+  //fun testXRBasicHeadsetActivity() {
+  //  checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
+  //}
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>

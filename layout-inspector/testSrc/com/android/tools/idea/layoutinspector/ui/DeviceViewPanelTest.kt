@@ -76,6 +76,7 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
+import com.android.tools.idea.layoutinspector.viewWindow
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
@@ -687,6 +688,60 @@ class DeviceViewPanelTest {
 
     // now we should be zoomed to fit
     assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(90)
+  }
+
+  @Test
+  fun textXrZoom() {
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
+    val notificationModel = NotificationModel(projectRule.project)
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val launcher =
+      InspectorClientLauncher(
+        processModel,
+        listOf(),
+        projectRule.project,
+        notificationModel,
+        coroutineScope,
+        disposableRule.disposable,
+        executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
+      )
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val treeSettings = FakeTreeSettings()
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        processModel,
+        deviceModel,
+        null,
+        clientSettings,
+        launcher,
+        model,
+        notificationModel,
+        treeSettings,
+        MoreExecutors.directExecutor(),
+      )
+    treeSettings.hideSystemNodes = true
+    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
+
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+    model.resourceLookup.screenDimension = Dimension(200, 300)
+
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
+
+    val newWindow1 =
+      viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
+    model.update(newWindow1, listOf(ROOT), 0)
+
+    val newWindow2 =
+      viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
+    model.update(newWindow2, listOf(ROOT, ROOT2), 1)
+
+    // now we should be zoomed to fit
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(11)
   }
 
   @Test

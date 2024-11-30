@@ -58,6 +58,7 @@ internal data class VirtualDeviceProfile(
         FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv
         FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
         FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear
+        FormFactors.XR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceHeadset
         // TODO: Add icon for tablet
         else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
@@ -135,6 +136,7 @@ internal val Device.formFactor: String
       Device.isTv(this) -> FormFactors.TV
       Device.isTablet(this) -> FormFactors.TABLET
       Device.isDesktop(this) -> FormFactors.DESKTOP
+      Device.isXr(this) -> FormFactors.XR
       else -> FormFactors.PHONE
     }
 

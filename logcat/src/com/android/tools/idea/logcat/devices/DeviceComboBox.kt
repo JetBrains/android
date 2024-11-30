@@ -43,6 +43,7 @@ import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
@@ -75,7 +76,13 @@ private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPAC
 
 private val PHYSICAL_ICONS = StudioDefaultDeviceIcons
 private val EMULATOR_ICONS =
-  DeviceIcons(VIRTUAL_DEVICE_PHONE, VIRTUAL_DEVICE_WEAR, VIRTUAL_DEVICE_TV, VIRTUAL_DEVICE_CAR)
+  DeviceIcons(
+    VIRTUAL_DEVICE_PHONE,
+    VIRTUAL_DEVICE_WEAR,
+    VIRTUAL_DEVICE_TV,
+    VIRTUAL_DEVICE_CAR,
+    VIRTUAL_DEVICE_HEADSET,
+  )
 
 /**
  * A [ComboBox] for selecting a device.

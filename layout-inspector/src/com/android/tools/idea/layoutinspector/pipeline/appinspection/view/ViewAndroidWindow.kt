@@ -69,6 +69,8 @@ class ViewAndroidWindow(
   private var screenshotBytes =
     if (event.hasScreenshot()) event.screenshot.bytes.toByteArray() else null
 
+  val isXr: Boolean = event.isXr
+
   override val deviceClip =
     if (folderConfiguration.screenRoundQualifier?.value == ScreenRound.ROUND) {
       val width = folderConfiguration.screenWidthQualifier?.value

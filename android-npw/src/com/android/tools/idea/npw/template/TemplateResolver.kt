@@ -19,25 +19,34 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
-import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardTemplateProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 
 class TemplateResolver {
 
   companion object {
-    private val EP_NAME = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
+    private val EP_NAME =
+      ExtensionPointName<WizardTemplateProvider>(
+        "com.android.tools.idea.wizard.template.wizardTemplateProvider"
+      )
 
     fun getAllTemplates(): List<Template> {
-      return EP_NAME.extensions
-        .flatMap {
-          it.getTemplates().filter {
-            StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get() || it.name != "Gemini API Starter"
+      return EP_NAME.extensions.flatMap {
+        it.getTemplates().filter { template ->
+          when (template.name) {
+            "Gemini API Starter" -> StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get()
+            "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
+            else -> true
           }
         }
+      }
     }
 
-    fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =
+    fun getTemplateByName(
+      name: String,
+      category: Category? = null,
+      formFactor: FormFactor? = null,
+    ) =
       getAllTemplates()
         .filter { category == null || it.category == category }
         .filter { formFactor == null || it.formFactor == formFactor }

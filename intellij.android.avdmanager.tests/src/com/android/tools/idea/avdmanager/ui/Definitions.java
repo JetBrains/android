@@ -47,6 +47,11 @@ final class Definitions {
   }
 
   @NotNull
+  static Device mockXrDefinition() {
+    return mockDefinition("android-xr", null, "XR Device", "xr_device");
+  }
+
+  @NotNull
   static Device mockTv() {
     return mockDefinition("android-tv", mockHardware(0), "Television (1080p)", "tv_1080p");
   }

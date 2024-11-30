@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.viewWindow
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -135,6 +136,110 @@ class InspectorModelTest {
     assertThat(newNodes.keys).containsExactlyElementsIn(origNodes.keys.plus(VIEW3))
     assertThat(children(origNodes[VIEW1]!!)).containsExactly(newNodes[VIEW3] ?: fail())
     assertSingleRoot(model, FakeTreeSettings())
+  }
+
+  @Test
+  fun testXrWindow() {
+    val largeWindowWidth = WINDOWS_GAP * 10
+    val smallWindowWidth = WINDOWS_GAP
+    val windowHeight = 5
+
+    val model = model(disposable) {}
+    val window1 =
+      viewWindow(
+        rootViewDrawId = ROOT,
+        x = 0,
+        y = 0,
+        width = largeWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW1, 0, 0, 2, 2, qualifiedName = "view1")
+      }
+    val window2 =
+      viewWindow(
+        rootViewDrawId = ROOT2,
+        x = 0,
+        y = 0,
+        width = largeWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW2, 0, 0, 2, 2, qualifiedName = "view2")
+      }
+    val window3 =
+      viewWindow(
+        rootViewDrawId = ROOT3,
+        x = 0,
+        y = 0,
+        width = smallWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW3, 0, 0, 2, 2, qualifiedName = "view3")
+      }
+    val window4 =
+      viewWindow(
+        rootViewDrawId = ROOT4,
+        x = 0,
+        y = 0,
+        width = smallWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW4, 0, 0, 2, 2, qualifiedName = "view4")
+      }
+    var isModified = false
+    model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
+
+    model.update(window1, listOf(ROOT), 0)
+    assertThat(isModified).isTrue()
+
+    val nodes1 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes1).hasSize(3)
+    assertThat(nodes1[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes1[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes1[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes1[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    model.update(window2, listOf(ROOT, ROOT2), 1)
+
+    val nodes2 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes2).hasSize(5)
+    assertThat(nodes2[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes2[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    assertThat(nodes2[ROOT2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[ROOT2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+    assertThat(nodes2[VIEW2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[VIEW2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+
+    model.update(window3, listOf(ROOT, ROOT2, ROOT3), 2)
+    model.update(window4, listOf(ROOT, ROOT2, ROOT3, ROOT4), 3)
+
+    val nodes3 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes3).hasSize(9)
+    assertThat(nodes3[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes3[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    assertThat(nodes3[ROOT2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+    assertThat(nodes3[VIEW2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+
+    assertThat(nodes3[ROOT3]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT3]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+    assertThat(nodes3[VIEW3]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW3]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+
+    assertThat(nodes3[ROOT4]!!.layoutBounds.x).isEqualTo(WINDOWS_GAP + smallWindowWidth)
+    assertThat(nodes3[ROOT4]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+    assertThat(nodes3[VIEW4]!!.layoutBounds.x).isEqualTo(WINDOWS_GAP + smallWindowWidth)
+    assertThat(nodes3[VIEW4]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
   }
 
   @Test

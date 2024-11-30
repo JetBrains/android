@@ -17,6 +17,8 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.emulator.actions.getEmulatorXrInputController
+import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -40,8 +42,15 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val displayView = getDisplayView(event) ?: return
-    event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, selected)
-    displayView.hardwareInputStateChanged(event, selected)
+    val xrInputController = getEmulatorXrInputController(event)
+    // The action works as a toggle for non-XR devices and as a mode selector for XR ones.
+    if (selected || xrInputController == null) {
+      event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, selected)
+      displayView.hardwareInputStateChanged(event, selected)
+    }
+    if (selected) {
+      xrInputController?.inputMode = XrInputMode.HARDWARE
+    }
   }
 
   override fun update(event: AnActionEvent) {

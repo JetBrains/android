@@ -161,6 +161,12 @@ public final class StudioFlags {
     "Allows the GenAI template to be used.",
     true);
 
+  public static final Flag<Boolean> NPW_ENABLE_XR_TEMPLATE = new BooleanFlag(
+    NPW, "xr.template",
+    "Enable XR template",
+    "Allows the XR template to be used.",
+    ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE = new BooleanFlag(
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.",
@@ -1057,6 +1063,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.parent.counts", "Enable or disable recomposition parent counts",
     "When this flag is enabled, the max recomposition count among the children of a node is displayed in a separate column.",
     ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
+    "When this flag is enabled, xr inspection is enabled.",
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Embedded Emulator
@@ -1101,6 +1112,18 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
     "Enables Gesture Navigation setting in Device UI Shortcuts",
     ChannelDefault.enabledUpTo(CANARY));
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_AVD = new BooleanFlag(
+    EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
+    "Enables running an XR AVD in the Running Devices tool window",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
+    "Enables hand tracking input mode for XR AVDs",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_EYE_TRACKING = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.eye.tracking", "Enable eye tracking input mode for XR AVDs",
+    "Enables eye tracking input mode for XR AVDs",
+    false);
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs",

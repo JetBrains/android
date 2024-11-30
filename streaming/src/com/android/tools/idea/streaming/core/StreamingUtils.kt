@@ -160,6 +160,7 @@ internal val AvdInfo.icon: Icon
       SystemImageTags.isTvImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
       SystemImageTags.isAutomotiveImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
       SystemImageTags.isWearImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+      SystemImageTags.isXrImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET
       else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     }
   }

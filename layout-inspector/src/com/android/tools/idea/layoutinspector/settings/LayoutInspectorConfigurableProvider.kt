@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.settings
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.registerLayoutInspectorToolWindow
+import com.android.tools.idea.layoutinspector.unregisterLayoutInspectorToolWindow
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.application.ApplicationManager
@@ -24,6 +26,8 @@ import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
@@ -39,16 +43,29 @@ const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
 
 /** Class used to provide a [Configurable] to show in Android Studio settings panel. */
 class LayoutInspectorConfigurableProvider(
-  private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() }
+  private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() },
+  private val doRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = {
+    registerLayoutInspectorToolWindow(it)
+  },
+  private val doUnRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = {
+    unregisterLayoutInspectorToolWindow(it)
+  },
 ) : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable {
-    return LayoutInspectorConfigurable(showRestartAndroidStudioDialog)
+    return LayoutInspectorConfigurable(
+      showRestartAndroidStudioDialog,
+      doRegisterLayoutInspectorToolWindow,
+      doUnRegisterLayoutInspectorToolWindow,
+    )
   }
 }
 
-class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: () -> Boolean) :
-  SearchableConfigurable {
+class LayoutInspectorConfigurable(
+  private val showRestartAndroidStudioDialog: () -> Boolean,
+  private val doRegisterLayoutInspectorToolWindow: (project: Project) -> Unit,
+  private val doUnRegisterLayoutInspectorToolWindow: (project: Project) -> Unit,
+) : SearchableConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnectCheckBox =
     JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
@@ -104,21 +121,24 @@ class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: ()
     val autoConnectHasChanged = autoConnectSettingControl.apply()
     val embeddedLayoutInspectorHasChanged = embeddedLayoutInspectorSettingControl.apply()
 
-    if (autoConnectHasChanged || embeddedLayoutInspectorHasChanged) {
+    if (embeddedLayoutInspectorHasChanged) {
+      if (!embeddedLayoutInspectorSettingControl.setting.getValue()) {
+        val projects = ProjectManager.getInstance().openProjects
+        projects.forEach { doRegisterLayoutInspectorToolWindow(it) }
+      } else {
+        val projects = ProjectManager.getInstance().openProjects
+        projects.forEach { doUnRegisterLayoutInspectorToolWindow(it) }
+      }
+    }
+
+    if (autoConnectHasChanged) {
       val restarted = showRestartAndroidStudioDialog()
       if (!restarted) {
         // if Studio wasn't restarted, we are going to restore the settings to their previous state.
         // This prevents entering an inconsistent state where the user has changed the settings but
         // not restarted Studio.
-        if (autoConnectHasChanged) {
-          enableAutoConnectCheckBox.isSelected = !enableAutoConnectCheckBox.isSelected
-          autoConnectSettingControl.apply()
-        }
-        if (embeddedLayoutInspectorHasChanged) {
-          enableEmbeddedLayoutInspectorCheckBox.isSelected =
-            !enableEmbeddedLayoutInspectorCheckBox.isSelected
-          embeddedLayoutInspectorSettingControl.apply()
-        }
+        enableAutoConnectCheckBox.isSelected = !enableAutoConnectCheckBox.isSelected
+        autoConnectSettingControl.apply()
       }
     }
   }

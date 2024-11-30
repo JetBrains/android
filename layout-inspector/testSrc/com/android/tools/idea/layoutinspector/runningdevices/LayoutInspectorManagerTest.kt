@@ -580,6 +580,22 @@ class LayoutInspectorManagerTest {
     verifyUiRemoved(tab1)
     verifyUiInjected(tab2)
   }
+
+  @Test
+  @RunsInEdt
+  fun testDisable() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+    verifyUiInjected(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector)
+      .containsExactly(tab1.deviceId)
+
+    layoutInspectorManager.disable()
+
+    verifyUiRemoved(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
+  }
 }
 
 private fun verifyUiInjected(tabInfo: TabInfo) {

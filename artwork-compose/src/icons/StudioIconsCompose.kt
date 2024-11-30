@@ -223,6 +223,7 @@ object StudioIconsCompose {
     val OemLabDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/oem-lab-device-tv.svg", "/studio/icons/device-explorer/oem-lab-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
     val OemLabDeviceWear: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/oem-lab-device-wear.svg", "/studio/icons/device-explorer/oem-lab-device-wear.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceCar: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-car.svg", "/studio/icons/device-explorer/physical-device-car.svg", StudioIconsCompose.javaClass) // 16x16
+    val PhysicalDeviceHeadset: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-headset.svg", "/studio/icons/device-explorer/physical-device-headset.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-phone.svg", "/studio/icons/device-explorer/physical-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceThings: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-things.svg", "/studio/icons/device-explorer/physical-device-things.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-tv.svg", "/studio/icons/device-explorer/physical-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
@@ -231,6 +232,7 @@ object StudioIconsCompose {
     val SharedPrefs: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/shared-prefs.svg", "/studio/icons/device-explorer/shared-prefs.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceCar: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-car.svg", "/studio/icons/device-explorer/virtual-device-car.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceDesktop: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-desktop.svg", "/studio/icons/device-explorer/virtual-device-desktop.svg", StudioIconsCompose.javaClass) // 16x16
+    val VirtualDeviceHeadset: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-headset.svg", "/studio/icons/device-explorer/virtual-device-headset.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-phone.svg", "/studio/icons/device-explorer/virtual-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-tv.svg", "/studio/icons/device-explorer/virtual-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceWear: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-wear.svg", "/studio/icons/device-explorer/virtual-device-wear.svg", StudioIconsCompose.javaClass) // 16x16
@@ -289,6 +291,22 @@ object StudioIconsCompose {
       val HealthServices: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/wear/health-services.svg", "/studio/icons/emulator/wear/health-services.svg", StudioIconsCompose.javaClass) // 16x16
       val Palm: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/wear/palm.svg", "/studio/icons/emulator/wear/palm.svg", StudioIconsCompose.javaClass) // 16x16
       val Tilt: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/wear/tilt.svg", "/studio/icons/emulator/wear/tilt.svg", StudioIconsCompose.javaClass) // 16x16
+    }
+
+    object Xr {
+      val Dolly: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/dolly.svg", "/intui/icons/emulator/xr/dolly.svg", StudioIconsCompose.javaClass) // 16x16
+      val EnvironmentDay: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/environment-day.svg", "/intui/icons/emulator/xr/environment-day.svg", StudioIconsCompose.javaClass) // 16x16
+      val EnvironmentNight: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/environment-night.svg", "/intui/icons/emulator/xr/environment-night.svg", StudioIconsCompose.javaClass) // 16x16
+      val Environment: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/environment.svg", "/intui/icons/emulator/xr/environment.svg", StudioIconsCompose.javaClass) // 16x16
+      val EyeGaze: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/eye-gaze.svg", "/intui/icons/emulator/xr/eye-gaze.svg", StudioIconsCompose.javaClass) // 16x16
+      val HandTracking: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/hand-tracking.svg", "/intui/icons/emulator/xr/hand-tracking.svg", StudioIconsCompose.javaClass) // 16x16
+      val MouseKeyboardMode: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/mouse-keyboard-mode.svg", "/intui/icons/emulator/xr/mouse-keyboard-mode.svg", StudioIconsCompose.javaClass) // 16x16
+      val Pan: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/pan.svg", "/intui/icons/emulator/xr/pan.svg", StudioIconsCompose.javaClass) // 16x16
+      val PassthroughOff: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/passthrough-off.svg", "/intui/icons/emulator/xr/passthrough-off.svg", StudioIconsCompose.javaClass) // 16x16
+      val PassthroughOn: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/passthrough-on.svg", "/intui/icons/emulator/xr/passthrough-on.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResetPosition: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/reset-position.svg", "/intui/icons/emulator/xr/reset-position.svg", StudioIconsCompose.javaClass) // 16x16
+      val Rotate: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/rotate.svg", "/intui/icons/emulator/xr/rotate.svg", StudioIconsCompose.javaClass) // 16x16
+      val Taskbar: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/taskbar.svg", "/intui/icons/emulator/xr/taskbar.svg", StudioIconsCompose.javaClass) // 16x16
     }
   }
 

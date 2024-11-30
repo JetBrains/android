@@ -30,6 +30,7 @@ fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() = whe
   com.android.tools.idea.wizard.template.FormFactor.Wear -> FormFactor.WEAR
   com.android.tools.idea.wizard.template.FormFactor.Tv -> FormFactor.TV
   com.android.tools.idea.wizard.template.FormFactor.Automotive -> FormFactor.AUTOMOTIVE
+  com.android.tools.idea.wizard.template.FormFactor.XR -> FormFactor.MOBILE
   com.android.tools.idea.wizard.template.FormFactor.Generic -> FormFactor.MOBILE
 }
 

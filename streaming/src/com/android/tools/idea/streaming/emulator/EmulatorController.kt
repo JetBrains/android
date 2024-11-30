@@ -42,6 +42,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
@@ -383,6 +384,27 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Sets the XR-related options.
+   */
+  fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setXrOptions(${shortDebugString(xrOptions)})")
+    }
+    emulatorControllerStub.setXrOptions(xrOptions, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetXrOptionsMethod()))
+  }
+
+  /**
+   * Retrieves the XR-related options.
+   */
+  fun getXrOptions(streamObserver: StreamObserver<XrOptions>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getXrOptions()")
+    }
+    emulatorControllerStub.getXrOptions(EMPTY_PROTO,
+                                        DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetXrOptionsMethod()))
+  }
+
+  /**
    * Streams input events to the emulator.
    *
    * @param streamObserver a client stream observer that is used only for error handling
@@ -398,7 +420,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
       override fun onNext(message: InputEvent) {
         val loggingEnabled = when {
-          message.hasKeyEvent() || message.hasAndroidEvent() -> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
+          message.hasKeyEvent() || message.hasAndroidEvent() || message.xrInputEvent.hasNavEvent() || message.hasXrCommand() ->
+              EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
           else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
         }
         if (loggingEnabled) {

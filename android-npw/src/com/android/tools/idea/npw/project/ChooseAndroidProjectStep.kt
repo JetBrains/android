@@ -238,7 +238,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
     private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
       val listItems = sequence {
-        yield(NewTemplateRendererWithDescription(Template.NoActivity))
+        if (formFactor.includeNoActivity) {
+          yield(NewTemplateRendererWithDescription(Template.NoActivity))
+        }
         formFactor.getProjectTemplates().forEach { yield(NewTemplateRendererWithDescription(it)) }
       }.toList()
 

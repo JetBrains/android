@@ -22,6 +22,7 @@ import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.XR_TAG;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -71,7 +72,8 @@ public class AvdWizardUtils {
   // Tags
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, DESKTOP_TAG,
                                                                          ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                         AUTOMOTIVE_TAG, AUTOMOTIVE_DISTANT_DISPLAY_TAG);
+                                                                         AUTOMOTIVE_TAG, AUTOMOTIVE_DISTANT_DISPLAY_TAG,
+                                                                         XR_TAG);
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   /**
