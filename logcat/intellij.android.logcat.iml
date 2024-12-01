@@ -18,6 +18,7 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
