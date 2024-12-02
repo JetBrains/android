@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -71,4 +72,15 @@ jvm_import(
     name = "libjava_sites",
     jars = ["//tools/base/deploy/sites:libjava_sites.jar"],
     visibility = ["//visibility:public"],
+)
+
+kotlin_library(
+    name = "android-field-visibility-provider",
+    srcs = ["src/com/android/tools/idea/debug/AndroidFieldVisibilityProvider.kt"],
+    coverage_baseline_enabled = False,
+    lint_enabled = False,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tools/adt/idea/debuggers:intellij.android.debuggers",
+    ],
 )

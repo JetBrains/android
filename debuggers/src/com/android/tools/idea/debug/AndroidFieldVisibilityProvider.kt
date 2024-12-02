@@ -25,7 +25,7 @@ private val SHADOW_FIELDS = setOf(
   "shadow${'$'}_monitor_",
 )
 
-internal class AndroidFieldVisibilityProvider : FieldVisibilityProvider {
+class AndroidFieldVisibilityProvider : FieldVisibilityProvider {
   override fun shouldDisplay(field: Field): Boolean {
     return when {
       !DebuggerUtils.isAndroidVM(field.virtualMachine()) -> true

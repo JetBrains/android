@@ -138,6 +138,13 @@ debugger_test(
     ],
 )
 
+debugger_test(
+    name = "test-shadow-fields",
+    test_include_filter = [
+        "K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.*testInlineLambdasInAnonymousObjects",
+    ],
+)
+
 maven_repository(
     name = "test_repo",
     # keep sorted: for buildifier
@@ -156,6 +163,7 @@ kotlin_library(
     deps = [
         ":kotlin.jvm-debugger.test_lib_import",
         "//tools/adt/idea/android-kotlin:android-dexer",
+        "//tools/adt/idea/debuggers:android-field-visibility-provider",
         "@maven//:junit.junit",
     ],
 )

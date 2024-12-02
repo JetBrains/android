@@ -52,6 +52,7 @@ def debugger_test(
             ":attacher",
             "//prebuilts/r8",
             "//tools/adt/idea/android-kotlin:android-dexer",
+            "//tools/adt/idea/debuggers:android-field-visibility-provider",
         ],
         deps = [
             ":kotlin.jvm-debugger.test_lib",

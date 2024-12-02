@@ -16,6 +16,9 @@
 
 package com.google.android.tools.debugger.test
 
+import com.android.tools.idea.debug.AndroidFieldVisibilityProvider
+import com.intellij.core.CoreApplicationEnvironment
+import com.intellij.debugger.engine.FieldVisibilityProvider
 import com.intellij.debugger.engine.RemoteStateState
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.debugger.impl.RemoteConnectionBuilder
@@ -23,7 +26,12 @@ import com.intellij.debugger.settings.DebuggerSettings
 import com.intellij.execution.configurations.JavaParameters
 import com.intellij.execution.configurations.RemoteConnection
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.observable.util.whenDisposed
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
@@ -66,11 +74,17 @@ private val DEX_CACHE by lazy { getDexCache() }
 private val ROOT by lazy(NONE) { getStudioRoot() }
 private val D8_COMPILER by lazy(NONE) { loadD8Compiler() }
 
+/** Private in [FieldVisibilityProvider] */
+@Suppress("UnresolvedPluginConfigReference")
+private val FIELD_VISIBILITY_PROVIDER_EP = ExtensionPointName.create<FieldVisibilityProvider>(
+  "com.intellij.debugger.fieldVisibilityProvider")
+
 /** Attaches to an ART VM */
 @Suppress("unused")
 internal class ArtAttacher : VmAttacher {
   private lateinit var steppingFilters: Array<ClassFilter>
-
+  private val disposable = Disposer.newDisposable("ArtAttacher")
+  
   override fun setUp() {
     steppingFilters = DebuggerSettings.getInstance().steppingFilters
     DebuggerSettings.getInstance().steppingFilters += arrayOf(
@@ -84,6 +98,7 @@ internal class ArtAttacher : VmAttacher {
 
   override fun tearDown() {
     DebuggerSettings.getInstance().steppingFilters = steppingFilters
+    Disposer.dispose(disposable)
   }
 
   override fun attachVirtualMachine(
@@ -91,12 +106,15 @@ internal class ArtAttacher : VmAttacher {
     javaParameters: JavaParameters,
     environment: ExecutionEnvironment
   ): DebuggerSession {
+    val project = testCase.project
+    val application = ApplicationManager.getApplication()
+
     // Register extensions
-    AndroidDexer.registerExtensionPoint(testCase.project)
-    AndroidDexer.registerExtension(testCase.project, AndroidDexerImpl(testCase.project))
+    project.registerExtension(AndroidDexer.extensionPointName, AndroidDexerImpl(project), disposable)
+    application.registerExtension(FIELD_VISIBILITY_PROVIDER_EP, AndroidFieldVisibilityProvider(), disposable)
 
     val remoteConnection = getRemoteConnection(testCase, javaParameters)
-    val remoteState = RemoteStateState(testCase.project, remoteConnection)
+    val remoteState = RemoteStateState(project, remoteConnection)
     return testCase.attachVirtualMachine(remoteState, environment, remoteConnection, false)
   }
 
@@ -242,4 +260,10 @@ private fun loadD8Compiler(): Method {
   val classLoader = URLClassLoader(arrayOf(URL("file://${ROOT.resolve(DEX_COMPILER).pathString}")))
   val d8 = classLoader.loadClass("com.android.tools.r8.D8")
   return d8.getDeclaredMethod("main", Array<String>::class.java)
+}
+
+@Suppress("SameParameterValue")
+private inline fun <reified T : Any> ComponentManager.registerExtension(ep: ExtensionPointName<T>, extension: T, disposable: Disposable) {
+  CoreApplicationEnvironment.registerExtensionPoint(extensionArea, ep, T::class.java)
+  extensionArea.getExtensionPoint(ep).registerExtension(extension, disposable)
 }
