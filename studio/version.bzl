@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Meerkat"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.3"
-STUDIO_RELEASE_NUMBER = 3
+STUDIO_MICRO_PATCH = "1.4"
+STUDIO_RELEASE_NUMBER = 4
