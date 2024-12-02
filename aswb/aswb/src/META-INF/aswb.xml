@@ -22,6 +22,16 @@
   <depends>com.intellij.modules.java</depends>
   <depends>com.android.tools.design</depends>
 
+  <actions>
+    <action id="Blaze.ImportProject2"
+            class="com.google.idea.blaze.android.wizard2.BlazeImportProjectAction"
+            icon="BlazeIcons.Logo">
+      <add-to-group group-id="FileOpenGroup" anchor="first"/>
+      <add-to-group group-id="WelcomeScreen.QuickStart" anchor="before"
+                    relative-to-action="Vcs.VcsClone"/>
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.intellij">
     <programRunner implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryProgramRunner" order="first"/>
     <programRunner implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestProgramRunner" order="first"/>

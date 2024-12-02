@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.wizard2;
+package com.google.idea.blaze.android.wizard2;
 
 import com.google.idea.blaze.base.settings.Blaze;
+import com.google.idea.blaze.base.wizard2.BlazeEditProjectViewImportWizardStep;
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard;
+import com.google.idea.blaze.base.wizard2.BlazeSelectWorkspaceImportWizardStep;
+import com.google.idea.blaze.base.wizard2.BlazeSelectProjectViewImportWizardStep;
+import com.google.idea.blaze.base.wizard2.ProjectImportWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;

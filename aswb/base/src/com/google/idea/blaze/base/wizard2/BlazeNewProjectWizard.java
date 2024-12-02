@@ -31,10 +31,10 @@ import java.awt.event.ActionListener;
 import javax.annotation.Nullable;
 
 /** Largely copied from AbstractProjectWizard / AddModuleWizard (which aren't in the CLion SDK). */
-abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImportWizardStep> {
+public abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImportWizardStep> {
 
-  final WizardContext context;
-  final BlazeProjectImportBuilder builder;
+  public final WizardContext context;
+  public final BlazeProjectImportBuilder builder;
 
   public BlazeNewProjectWizard() {
     super("Import Project from " + Blaze.defaultBuildSystemName(), (Project) null);

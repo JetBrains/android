@@ -23,13 +23,13 @@ import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-class BlazeSelectWorkspaceImportWizardStep extends ProjectImportWizardStep {
+public class BlazeSelectWorkspaceImportWizardStep extends ProjectImportWizardStep {
 
   private final JPanel component = new JPanel(new BorderLayout());
   private BlazeSelectWorkspaceControl control;
   private boolean settingsInitialised;
 
-  BlazeSelectWorkspaceImportWizardStep(WizardContext context) {
+  public BlazeSelectWorkspaceImportWizardStep(WizardContext context) {
     super(context);
   }
 

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.wizard2;
+package com.google.idea.blaze.android.wizard2;
 
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
 import com.google.idea.blaze.base.project.ExtendableBazelProjectCreator;
 import com.intellij.ide.SaveAndSyncHandler;
-import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -65,8 +66,11 @@ public class BlazeProjectCreator {
 
     @VisibleForTesting
     public void openProject() {
-      ProjectManagerEx.getInstanceEx()
-          .openProject(ideaProjectPath, OpenProjectTask.build().withProject(project));
+      ProjectManagerEx pm = ProjectManagerEx.getInstanceEx();
+      pm.openProject(
+        ideaProjectPath,
+        ProjectSystemService.Companion.projectSystemOpenProjectTask(BlazeProjectSystemProvider.ID, false, null).withProject(project)
+      );
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         SaveAndSyncHandler.getInstance().scheduleProjectSave(project);
