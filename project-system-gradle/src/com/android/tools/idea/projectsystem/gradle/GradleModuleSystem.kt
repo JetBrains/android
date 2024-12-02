@@ -136,24 +136,10 @@ class GradleModuleSystem(
     }
 
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.createWithoutTests(module)
-  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingAndroidTest(module)
-  private val screenshotTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingScreenshotTest(module)
+  internal val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingAndroidTest(module)
+  internal val screenshotTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingScreenshotTest(module)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
-
-  /**
-   * Return the corresponding [ClassFileFinder], depending on whether the [sourceFile] is an android
-   * test file, a screenshot test file or a file from the main sourceset. In case the [sourceFile]
-   * is not specified (is null), the [androidTestsClassFileFinder] will be returned, as it has a wider
-   * search scope than [moduleClassFileFinder].
-   */
-  override fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) =
-    when {
-      sourceFile == null -> androidTestsClassFileFinder
-      isAndroidTestFile(module.project, sourceFile) ->  androidTestsClassFileFinder
-      isScreenshotTestFile(module.project, sourceFile) -> screenshotTestsClassFileFinder
-      else -> moduleClassFileFinder
-    }
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)

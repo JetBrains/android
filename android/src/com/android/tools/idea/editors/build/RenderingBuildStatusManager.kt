@@ -25,9 +25,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.hasExistingClassFile
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
@@ -37,16 +35,18 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.SlowOperations
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -168,10 +168,8 @@ private class RenderingBuildStatusManagerImpl(
     get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
-  private val buildSystemFilePreviewServices: BuildSystemFilePreviewServices<*, *> = project
-    .getProjectSystem()
-    .getBuildSystemFilePreviewServices()
-
+  private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot get build target reference for: $psiFile")
+  private val buildSystemFilePreviewServices = buildTargetReference.getBuildSystemFilePreviewServices()
 
   private val projectBuildStatusFlow = MutableStateFlow(ProjectBuildStatus.NotReady)
   private val areResourcesOutOfDateFlow = MutableStateFlow(false)
@@ -207,16 +205,16 @@ private class RenderingBuildStatusManagerImpl(
             }
 
 
-            suspend fun handleSuccess(searchScope: GlobalSearchScope): ProjectBuildStatus {
-              withContext(workerThread) {
-                readAction { preparedMarkUpToDateAction.markUpToDate(searchScope) }
-              }
+            fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
+              SlowOperations.allowSlowOperations(ThrowableComputable {
+                preparedMarkUpToDateAction.markUpToDate(scope)
+              })
               // Clear the resources out of date flag
               areResourcesOutOfDateFlow.value = false
               return ProjectBuildStatus.Built
             }
 
-            suspend fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
+            fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
               when (result.status) {
                 BuildStatus.SUCCESS -> handleSuccess(result.scope)
                 BuildStatus.FAILED -> handleFailure()
@@ -315,7 +313,7 @@ private class RenderingBuildStatusManagerImpl(
             // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow
             // method).
             val newState =
-              if (hasExistingClassFile(editorFile)) ProjectBuildStatus.Built
+              if (editorHasExistingClassFile()) ProjectBuildStatus.Built
               else ProjectBuildStatus.NeedsBuild
             // Only update the status if we are still in NotReady.
             if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
@@ -331,4 +329,11 @@ private class RenderingBuildStatusManagerImpl(
   }
 
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
+
+  fun editorHasExistingClassFile(): Boolean {
+    val psiClassOwner = editorFile as? PsiClassOwner ?: return false
+    val classFileFinder by lazy { buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder }
+    return runReadAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
+      .firstNotNullOfOrNull { classFileFinder?.findClassFile(it) } != null
+  }
 }

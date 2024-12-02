@@ -42,20 +42,18 @@ class StudioParametrizedComposePreviewElementTemplate(
     factory@{ element ->
       val psiFile = element.containingFile ?: return@factory null
       var buildTargetRefence = BuildTargetReference.from(psiFile) ?: return@factory null
-      psiFile
-        .let { StudioModuleRenderContext.forFile(buildTargetRefence, it) }
-        .let {
-          RenderModelModule.ClassLoaderProvider {
-            parent: ClassLoader?,
-            additionalProjectTransform: ClassTransform,
-            additionalNonProjectTransform: ClassTransform,
-            onNewModuleClassLoader: Runnable ->
-            StudioModuleClassLoaderManager.get()
-              .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
-              .also {
-                onNewModuleClassLoader.run()
-              } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
-          }
+      StudioModuleRenderContext.forBuildTargetReference(buildTargetRefence).let {
+        RenderModelModule.ClassLoaderProvider {
+          parent: ClassLoader?,
+          additionalProjectTransform: ClassTransform,
+          additionalNonProjectTransform: ClassTransform,
+          onNewModuleClassLoader: Runnable ->
+          StudioModuleClassLoaderManager.get()
+            .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
+            .also {
+              onNewModuleClassLoader.run()
+            } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
         }
+      }
     },
   )

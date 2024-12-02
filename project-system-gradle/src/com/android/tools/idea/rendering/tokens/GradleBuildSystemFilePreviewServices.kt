@@ -21,17 +21,29 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
+import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.android.tools.idea.projectsystem.gradle.toProjectSystemBuildMode
 import com.android.tools.idea.projectsystem.gradle.toProjectSystemBuildStatus
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.GradleApplicationLiveEditServices
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -85,6 +97,32 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
   private fun getBuildServicesStatus(buildTarget: GradleBuildTargetReference): GradleBuildServicesStatus {
     val module = buildTarget.module
     return (module as UserDataHolderEx).getOrCreateUserData(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
+  }
+
+  override fun getRenderingServices(buildTargetReference: GradleBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
+    return object: BuildSystemFilePreviewServices.RenderingServices {
+      override val classFileFinder: ClassFileFinder?
+        get() {
+          val module = buildTargetReference.moduleIfNotDisposed ?: return null
+          val gradleModuleSystem = module.getModuleSystem() as GradleModuleSystem
+          return when {
+            module.isMainModule() -> gradleModuleSystem.moduleClassFileFinder
+            module.isAndroidTestModule() -> gradleModuleSystem.androidTestsClassFileFinder
+            module.isScreenshotTestModule() -> gradleModuleSystem.screenshotTestsClassFileFinder
+            module.isHolderModule() -> gradleModuleSystem.moduleClassFileFinder.also {
+              thisLogger().error(
+                "ClassFileFinder for $module holder module requested. This is ambiguous. Falling back to the main module.",
+                Throwable()
+              )
+            }
+            else -> null
+          }
+        }
+    }
+  }
+
+  override fun getApplicationLiveEditServices(buildTargetReference: GradleBuildTargetReference): ApplicationLiveEditServices {
+    return GradleApplicationLiveEditServices(buildTargetReference.module)
   }
 
   /**

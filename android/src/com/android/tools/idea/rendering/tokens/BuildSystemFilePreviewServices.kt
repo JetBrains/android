@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.tokens
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.Token
@@ -24,6 +25,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -78,6 +80,17 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
   }
 
   /**
+   * A collection of services required to render previews in a [BuildTargetReference] for which it was obtained.
+   */
+  interface RenderingServices {
+    /**
+     * An instance of [ClassFileFinder] associated with a [BuildTargetReference] for which this instance of [RenderingServices] was
+     * obtained.
+     */
+    val classFileFinder: ClassFileFinder?
+  }
+
+  /**
    * An instance of [BuildTargets] services.
    */
   val buildTargets: BuildTargets
@@ -86,6 +99,16 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
    * An instance of [BuildServices].
    */
   val buildServices: BuildServices<R>
+
+  /**
+   * Returns an instance of [RenderingServices] that provides build system services required to render previews in [buildTargetReference].
+   */
+  fun getRenderingServices(buildTargetReference: R): RenderingServices
+
+  /**
+   * Returns an instance of [RenderingServices] that provides build system services required to render previews in [buildTargetReference].
+   */
+  fun getApplicationLiveEditServices(buildTargetReference: R): ApplicationLiveEditServices
 
   /**
    * A listener that can be subscribed to receive events related to builds that might affect rendering related build artifacts.

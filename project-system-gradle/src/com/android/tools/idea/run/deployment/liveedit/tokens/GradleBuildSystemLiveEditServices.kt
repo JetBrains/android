@@ -21,8 +21,11 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.run.deployment.liveedit.setOptions
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -44,39 +47,39 @@ class GradleBuildSystemLiveEditServices :
   }
 
   override fun getApplicationServices(applicationProjectContext: FacetBasedApplicationProjectContext): ApplicationLiveEditServices {
-    return object: ApplicationLiveEditServices {
-      val project = applicationProjectContext.facet.module.project
+    return GradleApplicationLiveEditServices(applicationProjectContext.facet.module)
+  }
+}
 
-      override fun getClassContent(
-        file: VirtualFile,
-        className: String,
-      ): ClassContent? {
-        val module = ModuleUtilCore.findModuleForFile(file, project)  ?: return null
-        val classContent = module.getModuleSystem().getClassFileFinderForSourceFile(file).findClassFile(className)
-        return classContent
-      }
+internal class GradleApplicationLiveEditServices(module: Module): ApplicationLiveEditServices {
+  val classFileFinder = GradleClassFileFinder.createWithoutTests(module)
 
-      override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
-        val module = ktFile.module ?: return CompilerConfiguration.EMPTY
-        val compilerConfiguration = CompilerConfiguration().apply<CompilerConfiguration> {
-          put(
-            CommonConfigurationKeys.MODULE_NAME,
-            module.name
-          )
-          KotlinFacet.get(module)?.let { kotlinFacet ->
-            val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-              is K2JVMCompilerArguments -> compilerArguments.moduleName
-              is K2MetadataCompilerArguments -> compilerArguments.moduleName
-              else -> null
-            }
-            moduleName?.let {
-              put(CommonConfigurationKeys.MODULE_NAME, it)
-            }
-          }
-          setOptions(ktFile.languageVersionSettings)
+  override fun getClassContent(
+    file: VirtualFile,
+    className: String,
+  ): ClassContent? {
+    return classFileFinder.findClassFile(className)
+  }
+
+  override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
+    val module = ktFile.module ?: return CompilerConfiguration.EMPTY
+    val compilerConfiguration = CompilerConfiguration().apply<CompilerConfiguration> {
+      put(
+        CommonConfigurationKeys.MODULE_NAME,
+        module.name
+      )
+      KotlinFacet.get(module)?.let { kotlinFacet ->
+        val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+          is K2JVMCompilerArguments -> compilerArguments.moduleName
+          is K2MetadataCompilerArguments -> compilerArguments.moduleName
+          else -> null
         }
-        return compilerConfiguration
+        moduleName?.let {
+          put(CommonConfigurationKeys.MODULE_NAME, it)
+        }
       }
+      setOptions(ktFile.languageVersionSettings)
     }
+    return compilerConfiguration
   }
 }

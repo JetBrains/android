@@ -139,7 +139,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(myBuildTarget.getBuildTarget(), psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get()
                                                       .getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
@@ -181,7 +181,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(myBuildTarget.getBuildTarget(), psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
@@ -210,7 +210,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(myBuildTarget.getBuildTarget(), psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =

@@ -27,7 +27,6 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.api.RenderModelModuleLoggingId
@@ -42,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
-import java.lang.ref.WeakReference
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -112,17 +110,14 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   override val name: String
     get() = nameFromFacet(facet)
   override val environment: StudioEnvironmentContext = StudioEnvironmentContext(facet.module)
-  private fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): StudioModuleRenderContext {
-    return StudioModuleRenderContext.forFile(buildTarget.buildTarget) {
-      weakRenderTask.get()?.xmlFile?.get()
-    }
+  private fun createModuleRenderContext(): StudioModuleRenderContext {
+    return StudioModuleRenderContext.forBuildTargetReference(buildTarget.buildTarget)
   }
 
   override fun getClassLoaderProvider(
-    weakRenderTask: WeakReference<RenderTask>,
     privateClassLoader: Boolean
   ): RenderModelModule.ClassLoaderProvider {
-    val moduleRenderContext = createModuleRenderContext(weakRenderTask)
+    val moduleRenderContext = createModuleRenderContext()
     return RenderModelModule.ClassLoaderProvider {
         parent: ClassLoader?,
         additionalProjectTransform: ClassTransform,

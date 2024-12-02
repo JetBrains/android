@@ -127,7 +127,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
       } else {
         val resolution = fetchResolution(project, inputFiles)
         val analysisResult = analyze(inputFiles, resolution)
-        val generationState: GenerationState = backendCodeGen(ApplicationLiveEditServices.Legacy(project),
+        val generationState: GenerationState = backendCodeGen(ApplicationLiveEditServices.LegacyForTests(project),
                                                               project,
                                                               analysisResult,
                                                               inputFiles,

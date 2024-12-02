@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
@@ -378,6 +379,7 @@ class FastPreviewManager private constructor(
     val outputDir = Files.createTempDirectory("overlay")
     log.debug("Compiling $outputDir (id=$requestId)")
     indicator.text = "Looking for compiler daemon"
+    // TODO: solodkyy - this needs to bemoved to the new api.
     val runtimeVersion = moduleRuntimeVersionLocator(contextBuildTargetReference.module).toString()
 
     val result = try {
@@ -390,7 +392,14 @@ class FastPreviewManager private constructor(
       }
       indicator.text = "Compiling"
       try {
-        daemon.compileRequest(ApplicationLiveEditServices.Legacy(project), files, contextBuildTargetReference, outputDir, indicator)
+        daemon.compileRequest(
+          contextBuildTargetReference.getBuildSystemFilePreviewServices()
+            .getApplicationLiveEditServices(contextBuildTargetReference),
+          files,
+          contextBuildTargetReference,
+          outputDir,
+          indicator
+        )
       }
       catch (t: CancellationException) {
         CompilationResult.CompilationAborted(t)

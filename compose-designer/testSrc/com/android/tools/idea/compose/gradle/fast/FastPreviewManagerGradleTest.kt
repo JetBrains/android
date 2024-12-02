@@ -280,7 +280,7 @@ class FastPreviewManagerGradleTest {
             .also {
               // Normally initialized from a run configuration triggering deployment.
               it.setApplicationLiveEditServicesForTests(
-                ApplicationLiveEditServices.Legacy(projectRule.project)
+                ApplicationLiveEditServices.LegacyForTests(projectRule.project)
               )
             }
             .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))

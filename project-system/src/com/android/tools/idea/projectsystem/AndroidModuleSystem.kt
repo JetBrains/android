@@ -69,19 +69,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val module: Module
 
   /** [ClassFileFinder] that uses this module as scope for the search. */
+  @Deprecated("ClassFileFinder needs to be requested in a context of a specific file. Talk to @xof or @solodkyy about alternatives.")
   val moduleClassFileFinder: ClassFileFinder
-
-  /**
-   * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
-   * origin source file to allow for disambiguation.
-   * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
-   *
-   * Implementations of this method should avoid performing read actions and grabbing the read lock
-   * to avoid deadlocks when class loading is performed in the render thread. If read actions are
-   * completely necessary, then they must be non-blocking.
-   */
-  @Deprecated("Create or use application spcific token interfaces and implementations")
-  fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
   /**
    * Requests information about the folder layout for the module. This can be used to determine

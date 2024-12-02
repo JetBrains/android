@@ -17,15 +17,22 @@ package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.project.DefaultToken
+import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.intellij.util.application
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * An implementation of [BuildSystemFilePreviewServices] for the [DefaultProjectSystem].
@@ -57,6 +64,31 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
 
     override fun buildArtifacts(buildTargets: Collection<DefaultBuildTargetReference>) {
       error("Building artifacts for rendering is not supported in this project")
+    }
+  }
+
+  override fun getRenderingServices(buildTargetReference: DefaultBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
+    return object: BuildSystemFilePreviewServices.RenderingServices {
+      override val classFileFinder: ClassFileFinder?
+        get() {
+          val module = buildTargetReference.moduleIfNotDisposed ?: return null
+          val moduleSystem = module.getModuleSystem()
+          return moduleSystem.moduleClassFileFinder
+        }
+    }
+  }
+
+  override fun getApplicationLiveEditServices(buildTargetReference: DefaultBuildTargetReference): ApplicationLiveEditServices {
+    if (application.isUnitTestMode) {
+      return ApplicationLiveEditServices.LegacyForTests(buildTargetReference.project);
+    }
+    return object: ApplicationLiveEditServices {
+      override fun getClassContent(
+        file: VirtualFile,
+        className: String,
+      ): ClassContent? = null
+
+      override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.EMPTY
     }
   }
 

@@ -149,11 +149,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public ClassFileFinder getClassFileFinderForSourceFile(VirtualFile sourceFile) {
-    return classFileFinder;
-  }
-
-  @Override
   @Nullable
   public PathString getOrCreateSampleDataDirectory() throws IOException {
     return sampleDataDirectoryProvider.getOrCreateSampleDataDirectory();

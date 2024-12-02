@@ -86,7 +86,7 @@ private class JarEntryClassContent(private val jarFile: File, override val conte
   }
 }
 
-private class ClassContentForTests(override val content: ByteArray): ClassContent{
+class ClassContentForTests(override val content: ByteArray): ClassContent{
   override fun isUpToDate(): Boolean = true
 }
 

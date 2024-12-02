@@ -267,7 +267,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     RenderModelModule renderContextModule = renderContext.getModule();
-    myModuleClassLoaderReference = renderContextModule.getClassLoaderProvider(new WeakReference<>(this), privateClassLoader)
+    myModuleClassLoaderReference = renderContextModule.getClassLoaderProvider(privateClassLoader)
       .getClassLoader(myLayoutLib.getClassLoader(), additionalProjectTransform, additionalNonProjectTransform, onNewModuleClassLoader);
     ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);

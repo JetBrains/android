@@ -73,10 +73,12 @@ interface ApplicationLiveEditServices {
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
   fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
 
-  class Legacy(private val project: Project): ApplicationLiveEditServices {
+  @TestOnly
+  class LegacyForTests(private val project: Project): ApplicationLiveEditServices {
     override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
       val module = ModuleUtilCore.findModuleForFile(file, project) ?: return null
-      return module.getModuleSystem().getClassFileFinderForSourceFile(file).findClassFile(className)
+      // TODO: solodkyy - ??? this is not the same for non main modules in gradle but gradle should not be here.
+      return module.getModuleSystem().moduleClassFileFinder.findClassFile(className)
     }
 
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {

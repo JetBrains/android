@@ -38,7 +38,6 @@ import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -52,7 +51,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,10 +185,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   @NotNull
   private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
 
-  /**
-   * Holds the provider that allows finding the {@link PsiFile}
-   */
-  private final Supplier<PsiFile> myPsiFileProvider;
   private final ModuleClassLoaderImpl myImpl;
   /**
    * Saves the given {@link ClassLoader} passed as parent to this {@link StudioModuleClassLoader}. This allows to check
@@ -231,8 +225,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     if (module != null) {
       Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
     }
-    // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
-    myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
   }
 
@@ -358,7 +350,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
 
   @Nullable
   public StudioModuleRenderContext getModuleContext() {
-    return isDisposed() ? null : StudioModuleRenderContext.forFile(myBuildTargetReference, myPsiFileProvider);
+    return isDisposed() ? null : StudioModuleRenderContext.forBuildTargetReference(myBuildTargetReference);
   }
 
   /**
