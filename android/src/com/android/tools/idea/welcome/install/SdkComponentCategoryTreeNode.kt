@@ -30,7 +30,7 @@ class SdkComponentCategoryTreeNode(
     get() = components.any(SdkComponentTreeNode::isEnabled)
 
   override val isChecked: Boolean
-    get() = components.none(SdkComponentTreeNode::isChecked)
+    get() = components.all(SdkComponentTreeNode::isChecked)
 
   override val immediateChildren: Collection<SdkComponentTreeNode>
     get() = components
