@@ -22,9 +22,12 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -46,7 +49,9 @@ class AndroidGradleClassJarProviderTest {
     val module = gradleProjectRule.project.findAppModule()
 
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
-    assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency)))
+    assertTrue(dependencyManager.addDependencies(module, listOf(mockitoDependency)))
+    val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED)
+    getInstance().requestProjectSync(module.project, request, null)
 
     fun IdeDependencies.all() = this.libraries.flatMap {
       when (it) {

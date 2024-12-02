@@ -22,6 +22,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -37,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -114,7 +116,8 @@ public class GradleDependencyManagerTest {
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean found = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean found = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
       assertTrue(found);
 
       List<ResourceItem> items = StudioResourceRepositoryManager
@@ -141,7 +144,8 @@ public class GradleDependencyManagerTest {
       assertFalse(isRecyclerViewRegistered(project));
       assertFalse(isRecyclerViewResolved(project));
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       // If addDependencyAndSync worked correctly,
       // 1. findMissingDependencies with the added dependency should return empty.
@@ -177,7 +181,7 @@ public class GradleDependencyManagerTest {
       assertFalse(isRecyclerViewRegistered(project));
       assertFalse(isRecyclerViewResolved(project));
 
-      boolean result = dependencyManager.addDependenciesWithoutSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
 
       // If addDependencyWithoutSync worked correctly,
       // 1. findMissingDependencies with the added dependency should return empty.
@@ -247,7 +251,8 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
       GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
@@ -272,7 +277,8 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
       GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
@@ -297,7 +303,8 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
       GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
@@ -404,6 +411,11 @@ public class GradleDependencyManagerTest {
     PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
     assertNotNull(buildGradlePsi.getText());
     return check.apply(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
+  }
+
+  private static void requestProjectSync(@NotNull Project project) {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_GRADLEDEPENDENCY_ADDED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
 }

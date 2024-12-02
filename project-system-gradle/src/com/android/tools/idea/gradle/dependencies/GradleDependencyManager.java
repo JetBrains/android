@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dependencies;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
 import com.android.ide.common.gradle.Component;
@@ -35,10 +34,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.base.Objects;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -50,7 +47,6 @@ import java.util.Optional;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
@@ -204,25 +200,6 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Add all the specified dependencies to the module. Adding a dependency that already exists will result in a no-op.
-   * A sync will be triggered immediately after a successful addition (e.g. [dependencies] contains a dependency that
-   * doesn't already exist and is therefore added); and caller may supply a callback to determine when the requested
-   * dependencies have been added (this make take several seconds).
-   *
-   * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest
-   * @return true if the dependencies were successfully added or were already present in the module
-   */
-  @TestOnly
-  public boolean addDependenciesAndSync(@NotNull Module module,
-                                        @NotNull Iterable<Dependency> dependencies) {
-    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
-    boolean result = addDependenciesInTransaction(module, dependencies, policy, null);
-    requestProjectSync(module.getProject(), TRIGGER_GRADLEDEPENDENCY_ADDED);
-    return result;
-  }
-
-  /**
    * Add all the specified dependencies to the module without triggering a sync afterwards.
    * Adding a dependency that already exists will result in a no-op.
    *
@@ -230,13 +207,13 @@ public class GradleDependencyManager {
    * @param dependencies the dependencies of interest
    * @return true if the dependencies were successfully added or were already present in the module.
    */
-  public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
+  public boolean addDependencies(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
     AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     return addDependenciesInTransaction(module, dependencies, policy, null);
   }
 
   /**
-   * Like {@link #addDependenciesWithoutSync(Module, Iterable)} but allows you to customize the configuration
+   * Like {@link #addDependencies(Module, Iterable)} but allows you to customize the configuration
    * name of the inserted dependencies.
    *
    * @param module       the module to add dependencies to
@@ -244,7 +221,7 @@ public class GradleDependencyManager {
    * @param nameMapper   a factory to produce configuration names and artifact specs
    * @return true if the dependencies were successfully added or were already present in the module.
    */
-  public boolean addDependenciesWithoutSync(
+  public boolean addDependencies(
     @NotNull Module module,
     @NotNull Iterable<Dependency> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
@@ -382,11 +359,6 @@ public class GradleDependencyManager {
     Project project = module.getProject();
     WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY)
       .run(() -> updateDependencies(buildModel, module, dependencies));
-  }
-
-  private static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
