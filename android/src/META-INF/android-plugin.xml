@@ -545,7 +545,6 @@
     <resolveScopeEnlarger implementation="org.jetbrains.android.AndroidResolveScopeEnlarger" />
 
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.AndroidManifestClassPsiElementFinder" />
 
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectNamespacingStatusService" />
 
