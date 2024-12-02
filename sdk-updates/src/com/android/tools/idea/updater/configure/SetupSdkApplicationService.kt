@@ -123,7 +123,7 @@ class SetupSdkApplicationService : Disposable {
   }
 
   private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?) {
-    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), ComponentInstallerProvider())
+    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, ComponentInstallerProvider())
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)

@@ -19,6 +19,7 @@ import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -32,7 +33,6 @@ import com.android.tools.idea.welcome.install.AndroidSdkComponent
 import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponent
 import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.install.InstallContext
 import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponent
@@ -48,7 +48,7 @@ import java.util.function.Supplier
 import kotlin.io.path.isDirectory
 
 // Contains all the data which Studio should collect in the First Run Wizard
-class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocation: Path, private val componentInstallerProvider: ComponentInstallerProvider): WizardModel() {
+class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocation: Path, installUpdates: Boolean, private val componentInstallerProvider: ComponentInstallerProvider): WizardModel() {
   enum class InstallationType {
     STANDARD,
     CUSTOM
@@ -80,11 +80,10 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
   val sdkInstallLocationProperty: OptionalValueProperty<Path> = OptionalValueProperty(initialSdkLocation)
   val sdkInstallLocation: Path? get() = sdkInstallLocationProperty.get().orNull()
 
-  // FIXME (why always true?)
   /**
    * Should store the root node of the component tree.
    */
-  val componentTree = createComponentTree(true)
+  val componentTree = createComponentTree(!isChromeOSAndIsNotHWAccelerated() && mode.shouldCreateAvd(), installUpdates)
 
   init {
     componentTree.updateState(localHandler)
@@ -101,8 +100,7 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
     }
   }
 
-  private fun createComponentTree(createAvd: Boolean): SdkComponentTreeNode {
-    val installUpdates = true // FIXME
+  private fun createComponentTree(createAvd: Boolean, installUpdates: Boolean): SdkComponentTreeNode {
     val components: MutableList<SdkComponentTreeNode> = mutableListOf(AndroidSdkComponent(installUpdates))
 
     val sdkManager = localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {

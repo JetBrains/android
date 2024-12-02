@@ -101,7 +101,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
-    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), componentInstallerProvider)
+    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, componentInstallerProvider)
     modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, this)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
