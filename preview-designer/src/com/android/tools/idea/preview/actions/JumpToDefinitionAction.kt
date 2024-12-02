@@ -27,8 +27,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
 
 /**
- * [AnAction] that navigates to the deepest Composable that is part of the project, and that is
- * visible at the position where the mouse is located, at the moment the action is created.
+ * [AnAction] that navigates to a UI component, and that is visible at the position where the mouse
+ * is located, at the moment the action is created. For Compose Previews, for example, this means
+ * the deepest Composable that is part of the project.
  */
 class JumpToDefinitionAction(
   @SwingCoordinate private val x: Int,
