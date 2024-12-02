@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
@@ -151,11 +151,13 @@ class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnActi
 class BuildAndRefresh(@RequiresReadLock private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     ReadAction.nonBlocking<PsiFile?> { fileProvider() }
-      .finishOnUiThread(ModalityState.defaultModalityState()) {
-        val file = it ?: return@finishOnUiThread
-        file.project.requestBuildArtifactsForRendering(file.virtualFile)
-      }
       .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess {
+        val file = it ?: return@onSuccess
+        ApplicationManager.getApplication().executeOnPooledThread {
+          file.project.requestBuildArtifactsForRendering(file.virtualFile)
+        }
+      }
   }
 }
 
