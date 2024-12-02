@@ -152,11 +152,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   fun getAndroidFacets(): Collection<AndroidFacet> = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
 
-  @Deprecated("replaced by method without the project parameter",
-              replaceWith = ReplaceWith("getAndroidFacetsWithPackageName(packageName)"))
-  fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
-    getAndroidFacetsWithPackageName(packageName)
-
   /**
    * Returns a collection of [AndroidFacet]s by given package name.
    */

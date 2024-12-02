@@ -83,7 +83,7 @@ class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName
     val projectSystem = project.getProjectSystem()
     val modulesInScope =
       projectSystem
-        .getAndroidFacetsWithPackageName(project, qualifiedName)
+        .getAndroidFacetsWithPackageName(qualifiedName)
         .map { it.module }
         .filter { scope.isSearchInModuleContent(it) }
 

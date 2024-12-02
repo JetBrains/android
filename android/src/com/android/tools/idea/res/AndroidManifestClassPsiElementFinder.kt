@@ -76,7 +76,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
 
     return project
       .getProjectSystem()
-      .getAndroidFacetsWithPackageName(project, packageName)
+      .getAndroidFacetsWithPackageName(packageName)
       .mapNotNull { facet ->
         getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
       }

@@ -370,7 +370,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     // prevent bugs like b/313521550.
     return project
       .getProjectSystem()
-      .getAndroidFacetsWithPackageName(project, packageName)
+      .getAndroidFacetsWithPackageName(packageName)
       .sortedBy(AndroidFacet::getName)
   }
 
