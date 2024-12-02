@@ -134,8 +134,6 @@ class SelectProcessAction(
     }
   }
 
-  private var lastProcess: ProcessDescriptor? = null
-  private var lastProcessCount = 0
   var button: JComponent? = null
     private set
 
@@ -144,8 +142,6 @@ class SelectProcessAction(
   }
 
   override fun update(event: AnActionEvent) {
-    if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
-
     val currentProcess = model.selectedProcess
     val content =
       currentProcess?.let {
@@ -163,9 +159,6 @@ class SelectProcessAction(
 
     event.presentation.icon = currentProcess?.device.toIcon()
     event.presentation.text = content
-
-    lastProcess = currentProcess
-    lastProcessCount = model.processes.size
   }
 
   public override fun updateActions(context: DataContext): Boolean {
