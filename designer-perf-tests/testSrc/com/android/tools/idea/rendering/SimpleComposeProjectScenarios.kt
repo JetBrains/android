@@ -44,7 +44,7 @@ class SimpleComposeProjectScenarios {
     }
 
     fun baselineRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
-      val facet = projectRule.androidFacet(":app")
+      val facet = projectRule.mainAndroidFacet(":app")
       val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
       val renderResult = renderPreviewElementForResult(
         facet,
@@ -64,7 +64,7 @@ class SimpleComposeProjectScenarios {
     }
 
     fun complexRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
-      val facet = projectRule.androidFacet(":app")
+      val facet = projectRule.mainAndroidFacet(":app")
       val complexPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
       val renderResult = renderPreviewElementForResult(
         facet,
@@ -89,7 +89,7 @@ class SimpleComposeProjectScenarios {
       }
 
     fun interactiveRenderScenario(projectRule: AndroidGradleProjectRule): ExtendedRenderResult {
-      val facet = projectRule.androidFacet(":app")
+      val facet = projectRule.mainAndroidFacet(":app")
       val complexPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
       val renderTaskFuture = createRenderTaskFuture(
         facet,

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
@@ -65,6 +66,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   val project: Project get() = fixture.project
 
   fun androidFacet(gradlePath: String): AndroidFacet = findGradleModule(gradlePath)?.androidFacet ?: gradleModuleNotFound(gradlePath)
+  fun mainAndroidFacet(gradlePath: String): AndroidFacet = findGradleModule(gradlePath)?.getMainModule()?.androidFacet ?: gradleModuleNotFound(gradlePath)
   fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 

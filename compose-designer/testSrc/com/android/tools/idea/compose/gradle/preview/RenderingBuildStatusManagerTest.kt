@@ -28,14 +28,19 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.utils.vfs.createFile
 import java.util.concurrent.Executor
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -72,10 +77,9 @@ class RenderingBuildStatusManagerTest {
   @RunsInEdt
   @Test
   fun testProjectStatusManagerStates() = runBlocking {
+    val projectRoot = projectRule.project.guessProjectDir()!!
     val mainFile =
-      projectRule.project
-        .guessProjectDir()!!
-        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+      projectRoot.findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
@@ -99,13 +103,15 @@ class RenderingBuildStatusManagerTest {
     ) {
       it == RenderingBuildStatus.Ready
     }
+    val newVirtualFile = runWriteAction {
+      val newVirtualFile =
+        projectRoot.createFile(SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR.path + "/newFile")
+      newVirtualFile.writeText("")
+      PsiDocumentManager.getInstance(project).commitAllDocuments()
+      newVirtualFile
+    }
+    val newFile = runReadAction { PsiManager.getInstance(project).findFile(newVirtualFile) }!!
 
-    // Status of files created after a build should be NeedsBuild until a new build happens
-    val newFile =
-      projectRule.fixture.addFileToProject(
-        "${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile",
-        "",
-      )
     val newStatusManager =
       RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,

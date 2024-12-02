@@ -16,13 +16,13 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.projectsystem.ProjectSystemBuildUtil.PROJECT_SYSTEM_BUILD_TOPIC;
+import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getMainModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
-import static com.google.common.truth.Truth.assertThat;
 import static com.android.tools.idea.testing.JavacUtil.getJavac;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -43,6 +42,7 @@ import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.StudioResourceIdManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.TestResourceIdManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -51,7 +51,6 @@ import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
-import com.android.tools.idea.res.TestResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -76,6 +75,7 @@ import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class StudioModuleClassLoaderTest extends AndroidTestCase {
@@ -85,12 +85,13 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    testResourceIdManager = TestResourceIdManager.Companion.getManager(myModule);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    testResourceIdManager.resetFinalIdsUsed();
+    if (testResourceIdManager != null) {
+      testResourceIdManager.resetFinalIdsUsed();
+    }
     super.tearDown();
     FastPreviewConfiguration.Companion.getInstance().resetDefault();
   }
@@ -154,6 +155,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   }
 
   private void doTestAARPriority() throws IOException {
+    testResourceIdManager = TestResourceIdManager.Companion.getManager(myModule);
     testResourceIdManager.setFinalIdsUsed(false);
     Module module = myFixture.getModule();
     File tmpDir = Files.createTempDirectory("testProject").toFile();
@@ -191,7 +193,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),
       new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
-
+    final var mainModule = getMainModule(gradleModule(getProject(), ":"));
     // Create regular project path
     Path srcDir = Files.createDirectories(Files.createTempDirectory("testProject").resolve("src"));
     Path packageDir = Files.createDirectories(srcDir.resolve("com/google/example"));
@@ -201,16 +203,16 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Files.createDirectories(overlayDir1.resolve("com/google/example"));
-    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir1);
+    ModuleClassLoaderOverlays.getInstance(mainModule).pushOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
-      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule,
+      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(mainModule,
                                                                 Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir.toFile(), true))));
 
     buildFile(getProject(), aClassSrc.toString());
 
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
-      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(mainModule));
     StudioModuleClassLoader loader = loaderReference.getClassLoader();
 
     // Add the compiled class to the overlay directory
@@ -219,7 +221,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     assertTrue(loader.isUserCodeUpToDate());
     // New overlay will make the code out-of-date
-    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir2);
+    ModuleClassLoaderOverlays.getInstance(mainModule).pushOverlayPath(overlayDir2);
     assertFalse(loader.isUserCodeUpToDate());
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
@@ -237,7 +239,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   }
 
   private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
-    testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
 
     setupTestProjectFromAndroidModel(
       getProject(),
@@ -246,8 +247,11 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         ":",
         "debug",
         createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "p1.p2")));
-
-    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    final var mainModule = getMainModule(gradleModule(getProject(), ":"));
+    testResourceIdManager = TestResourceIdManager.Companion.getManager(mainModule);
+    testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
+    final var mainFacet = AndroidFacet.getInstance(mainModule);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(mainFacet);
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     WriteAction.run(() -> {
@@ -263,10 +267,10 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
       assertNotNull(defaultManifestContent);
       manifestFile.setBinaryContent(defaultManifestContent);
     });
-    assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
+    assertThat(Manifest.getMainManifest(mainFacet)).isNotNull();
 
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
-      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(mainModule));
     ModuleClassLoader loader = loaderReference.getClassLoader();
     try {
       assertNotNull(loader.loadClass("p1.p2.R"));
@@ -282,7 +286,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     // Make sure there is a compiled R class in the output directory, to be used when final IDs are used.
     Path moduleCompileOutputPath =
-      GradleClassFinderUtil.getModuleCompileOutputs(myModule, EnumSet.of(ScopeType.MAIN)).collect(Collectors.toList()).get(0).toPath();
+      GradleClassFinderUtil.getModuleCompileOutputs(mainModule, EnumSet.of(ScopeType.MAIN)).collect(Collectors.toList()).get(0).toPath();
     Files.createDirectories(moduleCompileOutputPath);
     Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
     Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
@@ -312,9 +316,10 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         ":",
         "debug",
         createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)));
+    final var mainModule = getMainModule(gradleModule(getProject(), ":"));
 
     try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
-      .getShared(null, StudioModuleRenderContext.forModule(myModule))) {
+      .getShared(null, StudioModuleRenderContext.forModule(mainModule))) {
       ModuleClassLoader loader = loaderRef.getClassLoader();
       try {
         loader.loadClass("kotlinx.coroutines.android.AndroidDispatcherFactory");
