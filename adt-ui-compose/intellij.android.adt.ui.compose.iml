@@ -41,7 +41,7 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-243/0.27.0/jewel-markdown-extension-autolink-243-0.27.0.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-243/0.27.0/jewel-markdown-extension-gfm-alerts-243-0.27.0.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-243/0.27.0/jewel-markdown-ide-laf-bridge-styling-243-0.27.0.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.24.0/commonmark-0.24.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
@@ -52,7 +52,7 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-243/0.27.0/jewel-markdown-extension-autolink-243-0.27.0-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-243/0.27.0/jewel-markdown-extension-gfm-alerts-243-0.27.0-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-243/0.27.0/jewel-markdown-ide-laf-bridge-styling-243-0.27.0-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.24.0/commonmark-0.24.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

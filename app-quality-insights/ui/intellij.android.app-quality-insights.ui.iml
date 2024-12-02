@@ -21,15 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />

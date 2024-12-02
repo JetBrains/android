@@ -1350,7 +1350,7 @@ android-studio/plugins/android/lib/build-analysis-results-proto.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/collection-jvm-1.4.0.jar
 android-studio/plugins/android/lib/common_proto.jar
-android-studio/plugins/android/lib/commonmark-0.22.0.jar
+android-studio/plugins/android/lib/commonmark-0.24.0.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 android-studio/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
