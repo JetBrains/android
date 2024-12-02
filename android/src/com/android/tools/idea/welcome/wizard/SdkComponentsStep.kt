@@ -94,12 +94,16 @@ class SdkComponentsStep(
       }
     })
 
-    val renderer = object : SdkComponentsRenderer(tableModel, form.componentsTable) {
+    form.setCellRenderer(object : SdkComponentsRenderer(tableModel, form.componentsTable) {
       override fun onCheckboxUpdated() {
         updateDiskSizes()
       }
-    }
-    form.setRenderer(renderer)
+    })
+    form.setCellEditor(object : SdkComponentsRenderer(tableModel, form.componentsTable) {
+      override fun onCheckboxUpdated() {
+        updateDiskSizes()
+      }
+    })
   }
 
   override fun getComponent(): JComponent = form.contents

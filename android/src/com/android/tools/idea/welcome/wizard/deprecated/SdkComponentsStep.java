@@ -67,13 +67,18 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     ComponentsTableModel tableModel = new ComponentsTableModel(rootNode);
     myForm.setTableModel(tableModel);
 
-    SdkComponentsRenderer renderer = new SdkComponentsRenderer(tableModel, myForm.getComponentsTable()) {
+    myForm.setCellRenderer(new SdkComponentsRenderer(tableModel, myForm.getComponentsTable()) {
       @Override
       public void onCheckboxUpdated() {
         invokeUpdate(null);
       }
-    };
-    myForm.setRenderer(renderer);
+    });
+    myForm.setCellEditor(new SdkComponentsRenderer(tableModel, myForm.getComponentsTable()) {
+      @Override
+      public void onCheckboxUpdated() {
+        invokeUpdate(null);
+      }
+    });
 
     myController = new SdkComponentsStepController(project, mode, myRootNode, sdkHandlerProperty) {
       @Override

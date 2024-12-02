@@ -39,6 +39,14 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+/**
+ * A [TableCellRenderer] and [TableCellEditor] for the SDK components in [SdkComponentsTableModel].
+ * Each row of the table has a checkbox to enable/disable the installation of the corresponding SDK
+ * component. The checkbox is disabled for non-optional components, where `node.isEnabled=false`.
+ *
+ * <p>Note: You need to create separate instances when configuring the cell renderer and cell editor,
+ * since components are cached and re-used when configuring the cells.
+ */
 public abstract class SdkComponentsRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
   private final RendererPanel myPanel;
   private final RendererCheckBox myCheckBox;

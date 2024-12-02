@@ -36,6 +36,8 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -158,10 +160,16 @@ public class SdkComponentsStepForm implements Disposable {
     return text;
   }
 
-  public void setRenderer(@NotNull SdkComponentsRenderer renderer) {
-    TableColumn column = myComponentsTable.getColumnModel().getColumn(0);
-    column.setCellRenderer(renderer);
-    column.setCellEditor(renderer);
+  public void setCellRenderer(@NotNull TableCellRenderer renderer) {
+    getTableColumn().setCellRenderer(renderer);
+  }
+
+  public void setCellEditor(@NotNull TableCellEditor editor) {
+    getTableColumn().setCellEditor(editor);
+  }
+
+  private TableColumn getTableColumn() {
+    return myComponentsTable.getColumnModel().getColumn(0);
   }
 
   @Override
