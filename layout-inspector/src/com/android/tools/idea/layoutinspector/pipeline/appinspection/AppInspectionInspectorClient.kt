@@ -233,7 +233,7 @@ class AppInspectionInspectorClient(
   // TODO: unify with compose checks in ComposeLayoutInspectorClient#checkComposeVersion
   private fun checkIfComposeSupportsXrInspection() {
     // The minimum version of compose required to support XR
-    val minComposeVersion = "1.8.0-alpha07"
+    val minComposeVersion = "1.8.0-alpha06"
     val version = composeInspector?.composeVersion?.let { Version.parse(it) }
     if (model.isXr && version != null && version < Version.parse(minComposeVersion)) {
       val notificationId = "compose.inspection.does.not.support.xr"

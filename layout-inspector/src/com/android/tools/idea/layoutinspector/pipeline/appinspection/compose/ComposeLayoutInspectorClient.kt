@@ -301,24 +301,39 @@ class ComposeLayoutInspectorClient(
             }
 
           val appInspectorJar =
-            when (token) {
-              null ->
-                getAppInspectorJar(
-                  project,
-                  composeVersion,
-                  notificationModel,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
-              else ->
-                token.getAppInspectorJar(
-                  projectSystem,
-                  composeVersion,
-                  notificationModel,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
-            } ?: return null
+            if (
+              composeVersion != null &&
+                Version.parse(composeVersion) == Version.parse("1.8.0-alpha06")
+            ) {
+              Logger.getInstance(ComposeLayoutInspectorClient::class.java)
+                .info("Project is using compose-ui-1.8.0-alpha06. Using bundled compose inspector.")
+              AppInspectorJar(
+                "compose-ui-inspection.jar",
+                developmentDirectory =
+                  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER
+                    .get(),
+                releaseDirectory = "plugins/android/resources/app-inspection/",
+              )
+            } else {
+              when (token) {
+                null ->
+                  getAppInspectorJar(
+                    project,
+                    composeVersion,
+                    notificationModel,
+                    logErrorToMetrics,
+                    isRunningFromSourcesInTests,
+                  )
+                else ->
+                  token.getAppInspectorJar(
+                    projectSystem,
+                    composeVersion,
+                    notificationModel,
+                    logErrorToMetrics,
+                    isRunningFromSourcesInTests,
+                  )
+              } ?: return null
+            }
 
           requiredCompatibility =
             token?.getRequiredCompatibility() ?: COMPOSE_INSPECTION_COMPATIBILITY
