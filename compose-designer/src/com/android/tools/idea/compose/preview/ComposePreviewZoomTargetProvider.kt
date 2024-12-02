@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.compose.preview.util.getDeepestViewInfos
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension

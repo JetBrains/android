@@ -30,6 +30,7 @@ import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.ViewInGalleryAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
+import com.android.tools.idea.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
