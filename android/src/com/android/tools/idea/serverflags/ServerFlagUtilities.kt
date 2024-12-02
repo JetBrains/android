@@ -31,7 +31,8 @@ private const val VERSION_OVERRIDE_KEY = "studio.server.flags.version.override"
 val localCacheDirectory: Path
   get() = File(PathManager.getSystemPath()).toPath().resolve(DIRECTORY_PREFIX)
 
-fun buildLocalFilePath(localCacheDirectory: Path, version: String): Path = localCacheDirectory.resolve(version).resolve(FILE_NAME)
+fun buildLocalFilePath(localCacheDirectory: Path, version: String): Path =
+  localCacheDirectory.resolve(version).resolve(FILE_NAME)
 
 val flagsVersion: String
   get() = System.getProperty(VERSION_OVERRIDE_KEY, ApplicationInfo.getInstance().versionString)
@@ -39,8 +40,7 @@ val flagsVersion: String
 fun unmarshalFlagList(file: File): ServerFlagList? {
   return try {
     file.inputStream().use { ServerFlagList.parseFrom(it) }
-  }
-  catch (e: IOException) {
+  } catch (e: IOException) {
     null
   }
 }
@@ -48,8 +48,7 @@ fun unmarshalFlagList(file: File): ServerFlagList? {
 fun buildUrl(baseUrl: String, version: String): URL? {
   return try {
     URL("$baseUrl/$version/$FILE_NAME")
-  }
-  catch (e: MalformedURLException) {
+  } catch (e: MalformedURLException) {
     null
   }
 }
@@ -57,8 +56,7 @@ fun buildUrl(baseUrl: String, version: String): URL? {
 fun createTempFile(): File? {
   return try {
     File.createTempFile(DIRECTORY_PREFIX, "")
-  }
-  catch (e: IOException) {
+  } catch (e: IOException) {
     null
   }
 }

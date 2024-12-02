@@ -31,19 +31,29 @@ import kotlin.math.abs
 private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
 
 /**
- * ServerFlagInitializer initializes the ServerFlagService.instance field.
- * It will try to download the protobuf file for the current version of Android Studio
- * from the specified URL. If it succeeds it will save the file to a local path, then initialize the service.
- * If the download fails, it will use the last successful download to initialize the service
+ * ServerFlagInitializer initializes the ServerFlagService.instance field. It will try to download
+ * the protobuf file for the current version of Android Studio from the specified URL. If it
+ * succeeds it will save the file to a local path, then initialize the service. If the download
+ * fails, it will use the last successful download to initialize the service
  */
+data class ServerFlagInitializationData(
+  val configurationVersion: Long,
+  val flags: Map<String, ServerFlag>,
+)
 
-data class ServerFlagInitializationData(val configurationVersion: Long, val flags: Map<String, ServerFlag>)
 class ServerFlagInitializer {
   companion object {
     @JvmStatic
     fun initializeService(): ServerFlagInitializationData {
       val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
-      val data = initializeService(localCacheDirectory, flagsVersion, CommonMetricsData.osName, currentIdeBrand(), experiments)
+      val data =
+        initializeService(
+          localCacheDirectory,
+          flagsVersion,
+          CommonMetricsData.osName,
+          currentIdeBrand(),
+          experiments,
+        )
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
       val string = data.flags.keys.toList().joinToString()
@@ -54,17 +64,21 @@ class ServerFlagInitializer {
 
     /**
      * Initialize the server flag service
+     *
      * @param localCacheDirectory: The local directory to store the most recent download.
-     * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
-     * @param enabled: An optional set of experiment names to be enabled. If empty, the percentEnabled field will determine whether
-     * a given flag is enabled.
+     * @param version: The current version of Android Studio. This is used to construct the full
+     *   paths from the first two parameters.
+     * @param enabled: An optional set of experiment names to be enabled. If empty, the
+     *   percentEnabled field will determine whether a given flag is enabled.
      */
     @JvmStatic
-    fun initializeService(localCacheDirectory: Path,
-                          version: String,
-                          osName: String,
-                          ideBrand: AndroidStudioEvent.IdeBrand,
-                          enabled: Collection<String>): ServerFlagInitializationData {
+    fun initializeService(
+      localCacheDirectory: Path,
+      version: String,
+      osName: String,
+      ideBrand: AndroidStudioEvent.IdeBrand,
+      enabled: Collection<String>,
+    ): ServerFlagInitializationData {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
       val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
@@ -72,12 +86,12 @@ class ServerFlagInitializer {
       val osType = getOsType(osName)
       val brand = getBrand(ideBrand)
 
-      val filter = if (enabled.isEmpty()) {
-        { flag: ServerFlagData -> flag.isEnabled(osType, brand) }
-      }
-      else {
-        { flag: ServerFlagData -> enabled.contains(flag.name) }
-      }
+      val filter =
+        if (enabled.isEmpty()) {
+          { flag: ServerFlagData -> flag.isEnabled(osType, brand) }
+        } else {
+          { flag: ServerFlagData -> enabled.contains(flag.name) }
+        }
 
       val flags = list.filter(filter)
 
@@ -119,11 +133,10 @@ private fun getOsType(osName: String): OSType {
   }
 }
 
-private fun getBrand(brand: AndroidStudioEvent.IdeBrand) : Brand {
+private fun getBrand(brand: AndroidStudioEvent.IdeBrand): Brand {
   return when (brand) {
     AndroidStudioEvent.IdeBrand.ANDROID_STUDIO -> Brand.BRAND_ANDROID_STUDIO
     AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE -> Brand.BRAND_ANDROID_STUDIO_WITH_BLAZE
     else -> Brand.BRAND_UNKNOWN
   }
 }
-

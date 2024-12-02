@@ -18,9 +18,7 @@ package com.android.tools.idea.serverflags
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
-  content = "default"
-}.build()
+private val TEST_PROTO = ServerFlagTest.newBuilder().apply { content = "default" }.build()
 
 class ServerFlagServiceEmptyTest {
   @Test
@@ -37,7 +35,7 @@ class ServerFlagServiceEmptyTest {
 
   private fun <T> checkNull(
     service: ServerFlagService,
-    retrieve: (ServerFlagService, String) -> T?
+    retrieve: (ServerFlagService, String) -> T?,
   ) {
     assertThat(retrieve(service, "missing")).isNull()
   }

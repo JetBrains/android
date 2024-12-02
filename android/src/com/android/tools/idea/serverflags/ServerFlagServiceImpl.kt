@@ -77,8 +77,7 @@ class ServerFlagServiceImpl : ServerFlagService {
     return try {
       @Suppress("UNCHECKED_CAST")
       instance.parserForType.parseFrom(any.value) as T
-    }
-    catch (e: InvalidProtocolBufferException) {
+    } catch (e: InvalidProtocolBufferException) {
       null
     }
   }
@@ -90,34 +89,37 @@ class ServerFlagServiceImpl : ServerFlagService {
 
     val sb = StringBuilder()
     for ((name, flag) in flags.entries.sortedBy { it.key }) {
-      sb.append("Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${prettyPrint(name, flag)}\n\n")
+      sb.append(
+        "Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${prettyPrint(name, flag)}\n\n"
+      )
     }
 
     return sb.toString()
   }
 
-  private fun prettyPrint(name: String, flag: ServerFlag): String  = when {
-    flag.hasStringValue() -> flag.stringValue
-    flag.hasBooleanValue() -> flag.booleanValue.toString()
-    flag.hasFloatValue() -> flag.floatValue.toString()
-    flag.hasIntValue() -> flag.intValue.toString()
-    flag.hasProtoValue() -> prettyPrintProto(name)
-    else -> "No value specified"
-  }
+  private fun prettyPrint(name: String, flag: ServerFlag): String =
+    when {
+      flag.hasStringValue() -> flag.stringValue
+      flag.hasBooleanValue() -> flag.booleanValue.toString()
+      flag.hasFloatValue() -> flag.floatValue.toString()
+      flag.hasIntValue() -> flag.intValue.toString()
+      flag.hasProtoValue() -> prettyPrintProto(name)
+      else -> "No value specified"
+    }
 
   private fun prettyPrintProto(name: String): String {
-    val type = when(name) {
-      "feature/studio_api_level_support" -> AndroidSdkSupportConfiguration.getDefaultInstance()
-      else -> return "custom proto"
-    }
+    val type =
+      when (name) {
+        "feature/studio_api_level_support" -> AndroidSdkSupportConfiguration.getDefaultInstance()
+        else -> return "custom proto"
+      }
     val proto = getProtoOrNull(name, type) ?: return "null"
     return TextFormat.printer().printToString(proto)
   }
 
   companion object {
-    var initializer: () -> ServerFlagInitializationData = { ServerFlagInitializer.initializeService() }
+    var initializer: () -> ServerFlagInitializationData = {
+      ServerFlagInitializer.initializeService()
+    }
   }
 }
-
-
-
