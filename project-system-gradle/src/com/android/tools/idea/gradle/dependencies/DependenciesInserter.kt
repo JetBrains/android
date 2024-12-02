@@ -17,15 +17,16 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.PluginsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
-import com.android.tools.idea.gradle.dsl.api.PluginsModel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.utils.addIfNotNull
-import com.intellij.openapi.diagnostic.Logger
 
 @Suppress("AddDependencyUsage")
 open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
@@ -149,7 +150,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     if (pluginManagementPlugins?.any { pluginMatcher.match(it) } == true) {
       return true
     }
-    if (projectModel.projectBuildModel?.plugins()?.any { pluginMatcher.match(it)} == true) {
+    if (projectModel.projectBuildModel?.plugins()?.any { pluginMatcher.match(it) } == true) {
       return true
     }
     if (projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true) {
@@ -277,7 +278,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
   // Adding plugin to settings file plugin{} block.
   // It does not init version catalog declaration yet so catalog references are illegible here.
   open fun applySettingsPlugin(pluginId: String,
-                          version: String): Set<PsiFile> {
+                               version: String): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
     val settingsFile = projectModel.projectSettingsModel
     if (settingsFile == null)
@@ -306,6 +307,35 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
       }
     }
     return updateFiles
+  }
+
+  internal fun findDependency(dependency: Dependency,
+                              buildModel: GradleBuildModel):ArtifactDependencyModel?{
+    val dependenciesModel = buildModel.dependencies()
+    val richVersion = dependency.version
+    var richVersionIdentifier: String? = null
+    if (richVersion != null) richVersionIdentifier = richVersion.toIdentifier()
+
+    val artifacts: List<ArtifactDependencyModel> = ArrayList(dependenciesModel.artifacts())
+    for (artifact in artifacts) {
+      if (dependency.group == artifact.group().toString()
+          && dependency.name == artifact.name().forceString()
+          && richVersionIdentifier != artifact.version().toString()) {
+        return artifact
+      }
+    }
+    return null
+  }
+
+  open fun updateDependencyVersion(dependency: Dependency,
+                                   buildModel: GradleBuildModel) {
+    require(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
+    findDependency(dependency, buildModel)?.let { artifact ->
+      buildModel.dependencies().apply {
+        remove(artifact)
+        addArtifact(artifact.configurationName(), dependency.toString())
+      }
+    }
   }
 
   private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {

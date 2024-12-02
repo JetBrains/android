@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin
@@ -174,6 +173,19 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
         }
       }
     }
+
+  override fun updateDependencyVersion(dependency: Dependency,
+                                       buildModel: GradleBuildModel) {
+    require(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
+    val catalogsModel = projectModel.versionCatalogsModel
+
+    findDependency(dependency, buildModel)?.let { artifact ->
+      if (artifact.isVersionCatalogDependency)
+        updateCatalogLibrary(catalogsModel, artifact, dependency.version!!)
+      else
+        super.updateDependencyVersion(dependency, buildModel)
+    }
+  }
 
   private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
     return if (sourceSetName != null) {

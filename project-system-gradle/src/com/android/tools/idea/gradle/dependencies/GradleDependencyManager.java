@@ -17,16 +17,13 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.RichVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.base.Objects;
@@ -173,11 +170,12 @@ public class GradleDependencyManager {
    */
   public boolean updateLibrariesToVersion(@NotNull Module module,
                                           @NotNull List<Dependency> dependencies) {
-    GradleBuildModel buildModel = ProjectBuildModel.get(module.getProject()).getModuleBuildModel(module);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(module.getProject());
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(module);
     if (buildModel == null) {
       return false;
     }
-    updateDependenciesInTransaction(buildModel, module, dependencies);
+    updateDependenciesInTransaction(projectBuildModel, buildModel, module, dependencies);
     return true;
   }
 
@@ -215,51 +213,22 @@ public class GradleDependencyManager {
     return true;
   }
 
-  private static void updateDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
+  private static void updateDependenciesInTransaction(@NotNull ProjectBuildModel projectBuildModel,
+                                                      @NotNull GradleBuildModel buildModel,
                                                       @NotNull Module module,
                                                       @NotNull List<Dependency> dependencies) {
     assert !dependencies.isEmpty();
 
     Project project = module.getProject();
     WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY)
-      .run(() -> updateDependencies(buildModel, module, dependencies));
-  }
+      .run(() -> {
+        DependenciesInserter helper = DependenciesHelper.withModel(projectBuildModel);
 
-  private static void updateDependencies(@NotNull GradleBuildModel buildModel,
-                                         @NotNull Module module,
-                                         @NotNull List<Dependency> dependencies) {
-    GradleVersionCatalogsModel catalogsModel = ProjectBuildModel.get(module.getProject()).getVersionCatalogsModel();
-
-    updateModel(module, model -> {
-      DependenciesModel dependenciesModel = buildModel.dependencies();
-      for (Dependency dependency : dependencies) {
-        List<ArtifactDependencyModel> artifacts = new ArrayList<>(dependenciesModel.artifacts());
-        for (ArtifactDependencyModel m : artifacts) {
-          RichVersion richVersion = dependency.getVersion();
-          String richVersionIdentifier = null;
-          if (richVersion != null) richVersionIdentifier = richVersion.toIdentifier();
-          if (Objects.equal(dependency.getGroup(), m.group().toString())
-              && Objects.equal(dependency.getName(), m.name().forceString())
-              && !Objects.equal(richVersionIdentifier, m.version().toString())) {
-
-            boolean successfulUpdate = false;
-
-            if (m.isVersionCatalogDependency()) {
-              // Trying update catalog once dependency is a reference to a catalog declaration
-              successfulUpdate = CatalogDependenciesInserter.updateCatalogLibrary(catalogsModel, m, richVersion);
-            }
-            if (!successfulUpdate) {
-              // Update directly in build file if there is no catalog or update there was unsuccessful
-              dependenciesModel.remove(m);
-              dependenciesModel.addArtifact(m.configurationName(), dependency.toString());
-            }
-          }
+        for (Dependency dependency : dependencies) {
+          helper.updateDependencyVersion(dependency, buildModel);
         }
-      }
-      for (String catalogName : catalogsModel.catalogNames()) {
-        catalogsModel.getVersionCatalogModel(catalogName).applyChanges();
-      }
-      buildModel.applyChanges();
-    });
+        projectBuildModel.applyChanges();
+      });
   }
+
 }
