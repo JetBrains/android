@@ -20,8 +20,8 @@ import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.observable.ObservableValue
 import com.android.tools.idea.observable.core.ObjectValueProperty
-import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
@@ -45,6 +45,7 @@ import com.intellij.util.containers.orNull
 import java.io.File
 import java.nio.file.Path
 import java.util.function.Supplier
+import java.util.Optional
 import kotlin.io.path.isDirectory
 
 // Contains all the data which Studio should collect in the First Run Wizard
@@ -57,7 +58,7 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
   val isStandardInstallSupported = initialSdkLocation.toString().isNotEmpty()
   var installationType: InstallationType? = null
 
-  val sdkExists = if (initialSdkLocation.isDirectory()) {
+  val initialSdkExists = if (initialSdkLocation.isDirectory()) {
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
     val progress = StudioLoggerProgressIndicator(javaClass)
     sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
@@ -65,19 +66,10 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
     false
   }
 
-  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)).apply {
-    this.addListener {
-      val location = this.get().location
-      if (location == null) {
-        sdkInstallLocationProperty.clear()
-      } else {
-        sdkInstallLocationProperty.value = location
-      }
-    }
-  }
-  val localHandler get() = localHandlerProperty.get()
+  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation))
+  private val localHandler get() = localHandlerProperty.get()
 
-  val sdkInstallLocationProperty: OptionalValueProperty<Path> = OptionalValueProperty(initialSdkLocation)
+  val sdkInstallLocationProperty: ObservableValue<Optional<Path>> = localHandlerProperty.transform { Optional.ofNullable(it.location) }
   val sdkInstallLocation: Path? get() = sdkInstallLocationProperty.get().orNull()
 
   /**

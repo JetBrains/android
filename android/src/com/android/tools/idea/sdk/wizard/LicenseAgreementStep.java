@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -36,10 +35,13 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.swing.ButtonGroup;
@@ -281,6 +283,11 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
+    Optional<Path> sdkRoot = getModel().getSdkRoot().get();
+    if (sdkRoot.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     getModel().getLicenses().clear();
     List<Change> toReturn = new ArrayList<>();
     Collection<RemotePackage> installRequests = myInstallRequestsSupplier.get();
@@ -289,7 +296,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().getSdkRoot().getValue())) {
+          if (!license.checkAccepted(sdkRoot.get())) {
             toReturn.add(new Change(p, license));
           }
         }
