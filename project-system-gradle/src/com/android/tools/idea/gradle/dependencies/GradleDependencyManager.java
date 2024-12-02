@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
@@ -24,90 +23,30 @@ import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.RichVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec;
-import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.base.Objects;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
 
-  private static final Logger LOG = Logger.getInstance("Gradle Dependency Manager");
-
   @NotNull
   public static GradleDependencyManager getInstance(@NotNull Project project) {
     return project.getService(GradleDependencyManager.class);
-  }
-
-  static class CatalogDependenciesInfo {
-    public List<Dependency> missingLibraries = new ArrayList<>();
-    public List<Pair<String, Dependency>> matchedCoordinates = new ArrayList<>();
-  }
-
-
-  /**
-   * Looks through catalog and adds aliases for declarations that already there
-   * @param module - need to understand module context and resolve new dependency version correctly in case it's a dynamic '+' one
-   * @param dependencies
-   * @param catalogModel
-   * @return
-   */
-  @NotNull
-  protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Module module,
-                                                                   @NotNull Iterable<Dependency> dependencies,
-                                                                   @NotNull GradleVersionCatalogModel catalogModel) {
-    Project project = module.getProject();
-    GradleBuildModel moduleModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
-
-    List<ArtifactDependencyModel> compileDependencies = moduleModel != null ? moduleModel.dependencies().artifacts() : null;
-
-    String declaredAppCompatVersion = getDeclaredAppCompatVersion(compileDependencies);
-    CatalogDependenciesInfo searchResult = new CatalogDependenciesInfo();
-    GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
-    for (Dependency dependency : dependencies) {
-      if (dependency.getGroup() == null || dependency.getName() == null) continue;
-      Optional<Dependency> resolvedDependency = resolveCoordinate(project, dependency, declaredAppCompatVersion);
-      Dependency finalDependency = resolvedDependency.orElse(dependency);
-      Optional<Pair<String, Dependency>> maybeDependency = libraries.getAll().entrySet().stream()
-        .filter(entry -> {
-          LibraryDeclarationSpec spec = entry.getValue().getSpec();
-          VersionDeclarationSpec version = spec.getVersion();
-          String richVersionIdentifier = null;
-          RichVersion richVersion = dependency.getVersion();
-          if (richVersion != null) {
-            richVersionIdentifier = richVersion.toIdentifier();
-          }
-          return (Objects.equal(spec.getGroup(), dependency.getGroup()) &&
-                  Objects.equal(spec.getName(), dependency.getName()) &&
-                  Objects.equal(version == null ? null : version.compactNotation(), richVersionIdentifier));
-        }).map(dep -> new Pair<>(dep.getKey(), dependency)).findFirst();
-      if (maybeDependency.isEmpty()) {
-        searchResult.missingLibraries.add(finalDependency);
-      }
-      else {
-        searchResult.matchedCoordinates.add(maybeDependency.get());
-      }
-    }
-    return searchResult;
   }
 
   /**
@@ -121,8 +60,7 @@ public class GradleDependencyManager {
    * @param dependencies the dependencies of interest.
    * @return a list of the dependencies NOT defined in the build files.
    */
-
-  @NotNull
+  @TestOnly
   public List<Dependency> findMissingDependencies(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
     Project project = module.getProject();
     GradleAndroidModel gradleModel = GradleAndroidModel.get(module);
@@ -138,7 +76,7 @@ public class GradleDependencyManager {
     List<Dependency> missingLibraries = new ArrayList<>();
     for (Dependency dependency : dependencies) {
 
-      if (dependency.getGroup() == null || dependency.getName() == null) continue;
+      if (dependency.getGroup() == null) continue;
 
       Optional<Dependency> resolvedCoordinate = resolveCoordinate(project, dependency, declaredAppCompatVersion);
       Dependency finalDependency = resolvedCoordinate.orElse(dependency);
@@ -208,8 +146,7 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
-    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
-    return addDependenciesInTransaction(module, dependencies, policy, null);
+    return addDependenciesInTransaction(module, dependencies, null);
   }
 
   /**
@@ -225,8 +162,7 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<Dependency> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
-    return addDependenciesInTransaction(module, dependencies, policy, nameMapper);
+    return addDependenciesInTransaction(module, dependencies, nameMapper);
   }
 
   /**
@@ -245,110 +181,38 @@ public class GradleDependencyManager {
     return true;
   }
 
-  private static List<Pair<String, Dependency>> addCatalogLibraries(@NotNull GradleVersionCatalogModel catalogModel,
-                                                                          @NotNull List<Dependency> dependencies) {
-    List<Pair<String, Dependency>> addedCoordinates = new ArrayList<>();
-
-    for (Dependency dependency : dependencies) {
-      String alias = CatalogDependenciesInserter.addCatalogLibrary(catalogModel, dependency);
-      addedCoordinates.add(new Pair<>(alias, dependency));
-    }
-    return addedCoordinates;
-  }
-
-  private static void addCatalogReferences(@NotNull GradleBuildModel buildModel,
-                                           @NotNull Module module,
-                                           @NotNull List<Pair<String, Dependency>> namedDependencies,
-                                           @NotNull GradleVersionCatalogModel catalogModel,
-                                           @Nullable ConfigurationNameMapper nameMapper) {
-      DependenciesModel dependenciesModel = buildModel.dependencies();
-      for (Pair<String, Dependency> namedDependency : namedDependencies) {
-        String name = IMPLEMENTATION;
-        if (nameMapper != null) {
-          name = nameMapper.mapName(module, name, namedDependency.getSecond());
-        }
-        String alias = namedDependency.getFirst();
-        ReferenceTo reference = new ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel);
-        dependenciesModel.addArtifact(name, reference);
-      }
-  }
-
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<Dependency> dependencies,
-                                               @NotNull AddDependencyPolicy policy,
                                                @Nullable ConfigurationNameMapper nameMapper) {
+
     Project project = module.getProject();
-    GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(module);
+    DependenciesInserter helper = DependenciesHelper.withModel(projectBuildModel);
     if (buildModel == null) {
       return false;
     }
 
-    switch (policy) {
-      case BUILD_FILE ->
-        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
-          List<Dependency> missing = findMissingDependencies(module, dependencies);
-          if (missing.isEmpty()) {
-            return;
-          }
-          addDependenciesToBuildFile(buildModel, module, missing, nameMapper);
-        });
-      case VERSION_CATALOG -> {
-        ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
-        GradleVersionCatalogModel catalogModel = DependenciesHelper.getDefaultCatalogModel(projectBuildModel);
-        if (catalogModel == null) {
-          LOG.warn("Version Catalog model is null but VERSION_CATALOG policy in effect");
-          return addDependenciesInTransaction(module, dependencies, AddDependencyPolicy.BUILD_FILE, nameMapper);
-        }
-        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+    List<ArtifactDependencyModel> compileDependencies = buildModel.dependencies().artifacts();
+    String declaredAppCompatVersion = getDeclaredAppCompatVersion(compileDependencies);
 
-          List<Dependency> missingFromModule = findMissingDependencies(module, dependencies);
-          if(missingFromModule.isEmpty()) return; // we have all dependencies already
-
-          CatalogDependenciesInfo catalogSearchResult = computeCatalogDependenciesInfo(module, missingFromModule, catalogModel);
-
-          addDependenciesToCatalogAndModuleBuildFile(module, nameMapper, buildModel, catalogModel, catalogSearchResult);
-        });
-      }
-    }
-    return true;
-  }
-
-  private static void addDependenciesToCatalogAndModuleBuildFile(@NotNull Module module,
-                                                                 @Nullable ConfigurationNameMapper nameMapper,
-                                                                 @NotNull GradleBuildModel buildModel,
-                                                                 @NotNull GradleVersionCatalogModel catalogModel,
-                                                                 @NotNull CatalogDependenciesInfo catalogSearchResult) {
-    updateModel(module, model -> {
-      List<Pair<String, Dependency>> addedDependencies = addCatalogLibraries(catalogModel,
-                                                                             catalogSearchResult.missingLibraries);
-
-      List<Pair<String, Dependency>> allCoordinates = new ArrayList<>(catalogSearchResult.matchedCoordinates);
-      allCoordinates.addAll(addedDependencies);
-      addCatalogReferences(buildModel, module, allCoordinates, catalogModel, nameMapper);
-      catalogModel.applyChanges(); // need to store catalog first as build file has reference to it
-      buildModel.applyChanges();
-    });
-  }
-
-
-  private static void addDependenciesToBuildFile(@NotNull GradleBuildModel buildModel,
-                                                 @NotNull Module module,
-                                                 @NotNull List<Dependency> dependencies,
-                                                 @Nullable ConfigurationNameMapper nameMapper) {
-    updateModel(module, model -> {
-      DependenciesModel dependenciesModel = buildModel.dependencies();
+    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
       for (Dependency dependency : dependencies) {
         String name = IMPLEMENTATION;
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, dependency);
         }
-        String identifier = dependency.toIdentifier();
-        if (identifier != null) {
-          dependenciesModel.addArtifact(name, identifier);
-        }
+        Optional<Dependency> resolvedCoordinate = resolveCoordinate(project, dependency, declaredAppCompatVersion);
+        Dependency finalDependency = resolvedCoordinate.orElse(dependency);
+        String depString = finalDependency.toIdentifier();
+        if (depString == null) return;
+        helper.addDependency(name,
+                             depString,
+                             buildModel);
       }
-      buildModel.applyChanges();
+      projectBuildModel.applyChanges();
     });
+    return true;
   }
 
   private static void updateDependenciesInTransaction(@NotNull GradleBuildModel buildModel,

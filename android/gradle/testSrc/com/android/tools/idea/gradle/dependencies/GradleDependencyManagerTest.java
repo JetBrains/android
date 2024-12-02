@@ -201,11 +201,12 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
 
       Module appModule = TestModuleUtil.findAppModule(project);
-      List<Dependency> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<Dependency> missing = dependencyManager.findMissingDependencies(appModule, dependencies);
-      assertThat(missing.size()).isEqualTo(1);
-      assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.4.0");
+      Boolean result = dependencyManager.addDependencies(appModule,  Collections.singletonList(RECYCLER_VIEW_DEPENDENCY));
+      requestProjectSync(project);
+      assertThat(result).isEqualTo(true);
+
+      assertBuildGradle(project, str -> str.contains("com.android.support:recyclerview-v7:25.4.0"));
       assertFalse(isRecyclerInCatalog(project));
       return null;
     });
@@ -255,12 +256,11 @@ public class GradleDependencyManagerTest {
       requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
 
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
-      assertTrue(isRecyclerInCatalog(project));
+      String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([0-9a-zA-Z-]+)");
+      assertNotNull(versionRef);
+      assertTrue(isInCatalog(project, versionRef + "=+"));
+
       assertBuildGradle(project, str -> !str.contains("com.android.support:libs.recyclerview-v7"));
       assertBuildGradle(project, str -> str.contains("implementation libs.recyclerview.v7"));
       return null;
@@ -281,11 +281,7 @@ public class GradleDependencyManagerTest {
       requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
 
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
       assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5.0"));
       assertBuildGradle(project, str -> str.contains("implementation libs.androidx.room.ktx"));
@@ -307,18 +303,12 @@ public class GradleDependencyManagerTest {
       requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
-
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
 
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
 
       String versionRef = extractVersionRef(project,"group=androidx.room,name=room-ktx,version.ref=([a-zA-Z-]+)");
       assertNotNull(versionRef);
       assertTrue(isInCatalog(project, versionRef + "=2.5.1"));
-
 
       assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5"));
       assertBuildGradle(project, str -> str.contains("implementation libs.room.ktx"));
@@ -371,7 +361,7 @@ public class GradleDependencyManagerTest {
   }
 
   private boolean isRecyclerInCatalog(Project project){
-    String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-z-]+)");
+    String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-Z-]+)");
     if(versionRef==null) return false;
     return isInCatalog(project, versionRef + "=+");
 
