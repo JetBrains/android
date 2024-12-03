@@ -618,10 +618,6 @@ const ShellCommand UiSettings::CreateResetCommand() {
 // Reset all changed settings to the initial state.
 // Null response means that the connection to Studio ended.
 void UiSettings::Reset(UiSettingsResponse* response) {
-  if (response == nullptr && (Agent::flags() & AUTO_RESET_UI_SETTINGS) == 0) {
-    // Auto resets are turned off: Do nothing!
-    return;
-  }
   string command = CreateResetCommand();
   if (!command.empty()) {
     ExecuteShellCommand(command);

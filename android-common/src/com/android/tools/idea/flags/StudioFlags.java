@@ -1158,10 +1158,6 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring of Physical Devices",
     "The name of a video codec, e.g. \"vp8\" or \"vp9\"; the default is \"vp8\"",
     "");
-  public static final Flag<Boolean> DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS = new BooleanFlag(
-    DEVICE_MIRRORING, "auto.reset", "The agent should reset all changed UI settings on disconnect",
-    "Enable the reset logic in the device agent for the UI settings picker",
-    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS = new BooleanFlag(
     DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
     "Show and allow starting remote device from their templates through the plus action",
