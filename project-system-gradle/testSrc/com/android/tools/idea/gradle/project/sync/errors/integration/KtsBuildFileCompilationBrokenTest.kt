@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -29,10 +26,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
-import org.junit.Ignore
 import org.junit.Test
 
-@Ignore("b/379853239")
 class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(
