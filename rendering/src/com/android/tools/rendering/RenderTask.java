@@ -186,6 +186,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
+  private boolean myForceMonochromeIcon = false;
   private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -554,6 +555,16 @@ public class RenderTask {
   }
 
   /**
+   * Sets whether the adaptive icon preview should automatically create a monochrome version if none is provided.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setForceMonochromeIcon(boolean forceMonochromeIcon) {
+    myForceMonochromeIcon = forceMonochromeIcon;
+    return this;
+  }
+
+  /**
    * Sets whether the rendering should use 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes.
    * <p>
    * Default is {@code true}.
@@ -672,6 +683,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_FORCE_MONOCHROME_ICON, myForceMonochromeIcon);
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_GESTURE_NAV, configuration.isGestureNav());
     params.setFlag(RenderParamsFlags.FLAG_KEY_EDGE_TO_EDGE, configuration.isEdgeToEdge());
@@ -1239,6 +1251,7 @@ public class RenderTask {
     params.setAssetRepository(context.getModule().getAssetRepository());
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_FORCE_MONOCHROME_ICON, myForceMonochromeIcon);
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))

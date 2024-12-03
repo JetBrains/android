@@ -367,6 +367,11 @@ public final class StudioFlags {
     NELE, "background.displaylist", "Enable Display List background creation",
     "When enabled, the scene display list is created in the background.",
     false);
+
+  public static final Flag<Boolean> FORCE_MONOCHROME_ADAPTIVE_ICON = new BooleanFlag(
+    NELE, "force.monochrome.adaptive.icon", "Display monochrome preview of adaptive icon when none provided",
+    "When enabled, the adaptive icon preview will automatically create a monochrome version if none is provided.",
+    false);
   //endregion
 
   //region Resource Repository

@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -225,6 +226,7 @@ class LayoutlibSceneRenderConfiguration(
         .taskBuilder(model.buildTarget, configuration, logger) { wrapRenderModule(it) }
         .withPsiFile(PsiXmlFile(model.file))
         .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled)
+        .withForceMonochromeIcon(StudioFlags.FORCE_MONOCHROME_ADAPTIVE_ICON.get())
         .withTopic(renderingTopic)
         .setUseCustomInflater(useCustomInflater)
     if (!useImagePool) taskBuilder.disableImagePool()

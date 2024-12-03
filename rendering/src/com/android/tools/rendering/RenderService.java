@@ -280,6 +280,7 @@ final public class RenderService implements Disposable {
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
     private boolean enableLayoutScanner = false;
+    private boolean forceMonochromeIcon = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
@@ -376,6 +377,11 @@ final public class RenderService implements Disposable {
 
     public RenderTaskBuilder withLayoutScanner(Boolean enableLayoutScanner) {
       this.enableLayoutScanner = enableLayoutScanner;
+      return this;
+    }
+
+    public RenderTaskBuilder withForceMonochromeIcon(Boolean forceMonochromeIcon) {
+      this.forceMonochromeIcon = forceMonochromeIcon;
       return this;
     }
 
@@ -608,7 +614,8 @@ final public class RenderService implements Disposable {
           task
             .setDecorations(showDecorations)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
-            .setEnableLayoutScanner(enableLayoutScanner);
+            .setEnableLayoutScanner(enableLayoutScanner)
+            .setForceMonochromeIcon(forceMonochromeIcon);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

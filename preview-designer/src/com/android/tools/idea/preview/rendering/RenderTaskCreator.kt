@@ -22,6 +22,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
@@ -77,6 +78,7 @@ fun createRenderTaskFutureForTest(
         }
       }
       .withLayoutScanner(useLayoutScanner)
+      .withForceMonochromeIcon(StudioFlags.FORCE_MONOCHROME_ADAPTIVE_ICON.get())
       // Compose Preview has its own out-of-date reporting mechanism
       .doNotReportOutOfDateUserClasses()
 
