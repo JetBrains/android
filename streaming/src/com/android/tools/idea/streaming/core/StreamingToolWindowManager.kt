@@ -733,9 +733,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun panelClosed(panel: DeviceToolWindowPanel) {
     val deviceHandle = panel.deviceHandle
-    logger.info("$simpleId.panelClosed: device: ${panel.deviceSerialNumber} client: ${panel.deviceClient.simpleId}" +
-                      " deviceHandle.state.isOnline(): ${deviceHandle.state.isOnline()}") // b/364541401
-    if (deviceHandle.state.isOnline() && !isLocalEmulator(panel.deviceSerialNumber)) {
+    logger.info("$simpleId.panelClosed: device: ${panel.deviceSerialNumber} client: ${panel.deviceClient.simpleId}") // b/364541401
+    if (!isLocalEmulator(panel.deviceSerialNumber)) {
       val deactivationAction = deviceHandle.deactivationAction
       deactivationAction?.let { CoroutineScope(Dispatchers.IO).launch { it.deactivate() } } ?: stopMirroring(panel.deviceSerialNumber)
     }
