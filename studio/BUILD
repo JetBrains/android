@@ -386,6 +386,7 @@ studio_plugin(
             "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/app-inspection/inspectors/database:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
+            "//prebuilts/tools/common/app-inspection/androidx/compose/ui:bundle",  # TODO(b/381887363): remove after release of compose 1.8.0
             "//tools/base/process-monitor/process-tracker-agent:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",

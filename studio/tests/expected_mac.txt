@@ -2213,6 +2213,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_pr
 Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
 Android Studio Preview.app/Contents/plugins/android/resources/apks/ComplicationWatchFace.apk
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
+Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/compose-ui-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/database-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
