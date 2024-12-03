@@ -97,7 +97,7 @@ public class CandidatePackageFinder {
         candidates.add(new CandidatePackage(forPath, packages.size()));
       }
       forPath = forPath.getParent();
-    } while (candidates.size() < 2 && packages.size() < 2);
+    } while (candidates.size() < 2 && packages.size() < 2 && forPath != null);
     return ImmutableList.copyOf(candidates);
   }
 
