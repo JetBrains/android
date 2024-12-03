@@ -39,8 +39,11 @@ internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = StudioFlags.BACKUP_ENABLED.get()
-    e.presentation.isEnabled = false
+    e.presentation.isEnabledAndVisible = false
+    if (!StudioFlags.BACKUP_ENABLED.get()) {
+      return
+    }
+    e.presentation.isVisible = true
     super.update(e)
   }
 
