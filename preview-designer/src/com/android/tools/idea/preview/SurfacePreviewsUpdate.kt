@@ -309,28 +309,32 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
         newModel.setModelUpdater(modelUpdater)
         (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
+          // PreviewDisplaySettings.organizationGroup is optional, if present it defines subgroups.
+          // Without PreviewDisplaySettings.organizationGroup present
+          // groupId - "fully qualified name of composable"
+          // displayName - "name of composable" for example "MyComposableName"
+          // With PreviewDisplaySettings.organizationGroup present
+          // groupId - "fully qualified name of composable PreviewDisplaySettings.organizationGroup"
+          // displayName - "name of composable - PreviewDisplaySettings.organizationGroup" for
+          // example "MyComposableName - Font sizes"
+          val groupId =
+            methodPreviewElement.methodFqn +
+              (methodPreviewElement.displaySettings.organizationGroup ?: "")
+          val displayName =
+            methodPreviewElement.displaySettings.baseName +
+              (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
           newModel.organizationGroup =
-            groups.getOrCreate(methodPreviewElement.methodFqn) {
-              OrganizationGroup(
-                  methodPreviewElement.methodFqn,
-                  methodPreviewElement.displaySettings.baseName,
-                ) {
+            groups.getOrCreate(groupId) {
+              OrganizationGroup(groupId, displayName) {
                   // Everytime state is changed we need to save it.
                   isOpened ->
                   getInstance(project)
                     .surfaceState
-                    .saveOrganizationGroupState(
-                      psiFile.virtualFile,
-                      methodPreviewElement.methodFqn,
-                      isOpened,
-                    )
+                    .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
                 }
                 .apply {
                   // Load previously saved state.
-                  setOpened(
-                    previousOrganizationState[methodPreviewElement.methodFqn]
-                      ?: DEFAULT_ORGANIZATION_GROUP_STATE
-                  )
+                  setOpened(previousOrganizationState[groupId] ?: DEFAULT_ORGANIZATION_GROUP_STATE)
                 }
             }
         }
