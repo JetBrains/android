@@ -45,10 +45,10 @@ dependencies {
   // MUST align version with the Jewel dependency in adt-ui-compose
   // MUST align -XXX suffix in artifact ID to the target IJP version
   // See https://github.com/JetBrains/Jewel/releases for the release notes
-  api("org.jetbrains.jewel:jewel-ide-laf-bridge-242:0.25.0") {
+  api("org.jetbrains.jewel:jewel-ide-laf-bridge-243:0.27.0") {
     exclude(group = "org.jetbrains.kotlinx")
   }
-  api("org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-242:0.25.0") {
+  api("org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-243:0.27.0") {
     exclude(group = "org.jetbrains.kotlinx")
   }
 
