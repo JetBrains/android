@@ -4,6 +4,7 @@
 .DS_Store
 .gradle
 /local.properties
+/.idea/AndroidProjectSystem.xml
 /.idea/appInsightsSettings.xml
 /.idea/assetWizardSettings.xml
 /.idea/caches
