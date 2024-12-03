@@ -26,13 +26,13 @@ import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.findDeepestHits
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
-import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -54,7 +54,7 @@ fun SceneView.getRootComponent(): NlComponent? {
   return root
 }
 
-fun SceneView.getDeepestViewInfos(x: Int, y: Int, logger: Logger): Collection<ComposeViewInfo>?{
+fun SceneView.getDeepestViewInfos(x: Int, y: Int, logger: Logger): Collection<ComposeViewInfo>? {
   val androidX = Coordinates.getAndroidX(this, x)
   val androidY = Coordinates.getAndroidY(this, y)
   val deepestViewInfos =
