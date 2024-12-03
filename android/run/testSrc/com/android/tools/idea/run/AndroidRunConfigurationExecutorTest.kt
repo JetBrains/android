@@ -266,6 +266,10 @@ class AndroidRunConfigurationExecutorTest {
       fail("Process handler didn't stop when debug process terminated")
     }
     assertThat(startInvocation).isEqualTo(1)
+
+    // Give some time for the virtual machine to finish initializing.
+    // Otherwise, JDI Internal Event Handler thread viewed as leaked.
+    Thread.sleep(250)
   }
 
   @Test
