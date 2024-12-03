@@ -386,7 +386,7 @@ class PreviewRefreshManagerTest {
 
   @Test
   fun testRefreshingTypeFlow_isCorrect(): Unit = runBlocking {
-    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(2)
     val refreshWaitJob = launch {
       refreshManager.refreshingTypeFlow
         // Wait for the flow to go to not-null and back to null
@@ -404,6 +404,7 @@ class PreviewRefreshManagerTest {
       )
     )
     refreshWaitJob.join()
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
   }
 
   @Test
