@@ -46,22 +46,30 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
   companion object {
     private val logger = Logger.getInstance(DdmlibTestRunListenerAdapter::class.java)
     const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
+    // V2
     const val BENCHMARK_V2_TEST_METRICS_KEY = "android.studio.v2display.benchmark"
     const val BENCHMARK_PATH_TEST_METRICS_KEY = "android.studio.v2display.benchmark.outputDirPath"
+    // V3
+    const val BENCHMARK_V3_TEST_METRICS_KEY = "android.studio.v3display.benchmark"
+    const val BENCHMARK_V3_PATH_TEST_METRICS_KEY = "android.studio.v3display.benchmark.outputDirPath"
+
     private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
-     * Retrieves benchmark output text from a given [testMetrics].
+     * Gets the benchmark output from the [testMetrics] map. The order of the keys is important here, given we look
+     * at the first key (in that specific order) that exists in [testMetrics].
+     *
+     * We do this because, benchmark output is versioned, and we typically want outputs in the latest
+     * version while gracefully falling back to a prior version if that version of the output is not a part of [testMetrics]. That might
+     * happen when an older version of the `androidx.benchmark` library might be being used.
      */
-    private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>): String {
-      // Workaround solution for b/154322086.
-      // Newer libraries output strings on both BENCHMARK_TEST_METRICS_KEY and BENCHMARK_V2_OUTPUT_TEST_METRICS_KEY.
-      // The V2 supports linking while the V1 does not. This is done to maintain backward compatibility with older versions of studio.
-      var key = BENCHMARK_TEST_METRICS_KEY
-      if (testMetrics.containsKey(BENCHMARK_V2_TEST_METRICS_KEY)) {
-        key = BENCHMARK_V2_TEST_METRICS_KEY
+    private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>, orderedKeys: List<String>): String {
+      for (key in orderedKeys) {
+        if (testMetrics.containsKey(key)) {
+          return benchmarkPrefixRegex.replace(testMetrics.getOrDefault(key, ""), "")
+        }
       }
-      return benchmarkPrefixRegex.replace(testMetrics.getOrDefault(key, ""), "")
+      return "" // Default to empty
     }
   }
 
@@ -135,9 +143,19 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
       testCase.result = AndroidTestCaseResult.PASSED
     }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
-    testCase.benchmark = getBenchmarkOutput(testMetrics)
+    testCase.benchmark = getBenchmarkOutput(
+      testMetrics = testMetrics,
+      orderedKeys = listOf(BENCHMARK_V3_TEST_METRICS_KEY, BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY)
+    )
     testCase.endTimestampMillis = System.currentTimeMillis()
-    copyBenchmarkFilesIfNeeded(testCase.benchmark, testMetrics.getOrDefault(BENCHMARK_PATH_TEST_METRICS_KEY, ""))
+    // When copying outputs use the V2 format for ease. This way we don't need to prune path parameters.
+    copyBenchmarkFilesIfNeeded(
+      benchmark = getBenchmarkOutput(
+        testMetrics = testMetrics,
+        orderedKeys = listOf(BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY)
+      ),
+      deviceRoot = testMetrics.getOrDefault(BENCHMARK_PATH_TEST_METRICS_KEY, ""),
+    )
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 

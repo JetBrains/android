@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.LINK_GROUP
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -25,6 +26,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
+import kotlin.test.assertNotNull
 
 @RunWith(JUnit4::class)
 class BenchmarkOutputTest {
@@ -49,7 +51,7 @@ class BenchmarkOutputTest {
   @Test
   fun hyperlinkSingleLineBenchmarkPrint() {
     val line1 = "This [link me](file://is/a/hyperlink/test)"
-    val benchmark = BenchmarkOutput("$line1")
+    val benchmark = BenchmarkOutput(line1)
     val expectedOutput = "This link me\n"
     val expectedHyperlink = mutableListOf("link me")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
@@ -61,17 +63,47 @@ class BenchmarkOutputTest {
     val line2 = "This [second link](file://a/second/hyperlink)"
     val benchmark = BenchmarkOutput("$line1\n$line2")
     val expectedOutput = "This link me\nThis second link\n"
-    val expectedHyperlink = mutableListOf("link me", "second link")
+    val expectedHyperlink = listOf("link me", "second link")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
   }
 
   @Test
   fun hyperlinkInlineFormatBenchmarkPrint() {
-    val line1 = "This [link me](file://is/a/hyperlink/test)\tmin: [trace](/path/to/trace)\tmax: [trace2](/path/to/trace)"
-    val benchmark = BenchmarkOutput("$line1")
+    val line1 = "This [link me](file://is/a/hyperlink/test)\tmin: [trace](file://path/to/trace)\tmax: [trace2](file://path/to/trace)"
+    val benchmark = BenchmarkOutput(line1)
     val expectedOutput = "This link me\tmin: trace\tmax: trace2\n"
-    val expectedHyperlink = mutableListOf("link me", "trace", "trace2")
+    val expectedHyperlink = listOf("link me", "trace", "trace2")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
+  }
+
+  @Test
+  fun hyperlinkWithUriInlineFormatBenchmarkPrint() {
+    val line1 = "This [link me](uri://is/a/hyperlink/test)\tmin: [trace](file://path/to/trace)\tmax: [trace2](file://path/to/trace)"
+    val benchmark = BenchmarkOutput(line1)
+    val expectedOutput = "This link me\tmin: trace\tmax: trace2\n"
+    val expectedHyperlink = listOf("link me", "trace", "trace2")
+    validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
+  }
+
+  @Test
+  fun supportedHyperLinkFormats() {
+      val path = "/path/to/resource"
+      val parameters = "foo=bar"
+      val contents = """
+        This V3 [link](uri://$path?$parameters) is valid.
+        This V2 [link](file://$path) is valid.
+      """.trimIndent()
+    val benchmark = BenchmarkOutput(contents)
+    val v3Link = benchmark.lines.find {
+      it.rawText.contains("V3")
+    }
+    assertNotNull(v3Link)
+    assertThat(v3Link.matches?.groups?.get(LINK_GROUP)?.value == "uri://$path?$parameters")
+    val v2Link = benchmark.lines.find {
+      it.rawText.contains("V2")
+    }
+    assertNotNull(v2Link)
+    assertThat(v2Link.matches?.groups?.get(LINK_GROUP)?.value == "file://$path")
   }
 
   @Test

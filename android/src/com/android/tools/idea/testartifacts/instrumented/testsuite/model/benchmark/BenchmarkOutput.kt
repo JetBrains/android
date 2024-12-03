@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.BENCHMARK_URL_REGEX
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.BENCHMARK_LINK_REGEX
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.LINK_GROUP
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.openapi.util.io.FileUtil
-import java.io.File
 
 /**
  * This class manages the parsed output of a benchmark run. The lines array is a list of benchmark lines with the "benchmark: " prefix
@@ -55,9 +53,18 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
 
   companion object {
     val Empty = BenchmarkOutput("")
-    // Valid string: Benchmark test took [200 ms](path/to/my.trace) to run.
-    // text = 200 ms, url = path/to/my.trace, title = "", total = "[200 ms](path/to/my.trace)"
-    val BENCHMARK_URL_REGEX = Regex("(?<total>\\[(?<text>.+?)\\]\\((?<link>[^ ]+?)(?: \"(?<title>.+?)\")?\\))")
+
+    /**
+     * Valid links look something like:
+     *
+     * `timeToInitialDisplayMs   [min 346.4](file://ExampleStartupBenchmark_startup.perfetto-trace)`
+     * `seen in iterations: [0](uri://ExampleStartupBenchmark_startup_iter.perfetto-trace?enablePlugins=...)(100 count)`
+     *
+     * `file://` links are guaranteed to not have parameters (and may be present in either V2 or V3)
+     * `uri://` links may have parameters (and are only present in V3)
+     * `http` and `https://` links are also sometimes emitted by the Benchmark, but they link to DAC.
+     */
+    val BENCHMARK_LINK_REGEX = Regex("""(\[(?<title>[^]]*)])?\((?<link>(?<protocol>(file|uri|http|https)://)(?<path>[^)]*))\)""")
     val LINK_GROUP = "link"
     val BENCHMARK_TRACE_FILE_PREFIX = "file://"
   }
@@ -74,14 +81,14 @@ class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
       var match = matches
       var offsetStart = 0
       while (match != null) {
-        val nextStart = match.range.start
-        val title = match.groups["title"]?.value ?: match.groups["text"]?.value ?: match.groups["url"]?.value ?: "[Link]"
+        val nextStart = match.range.first
+        val title = match.groups["title"]?.value ?: "[Link]"
         val link = match.groups[LINK_GROUP]?.value ?: ""
         console.print(rawText.substring(offsetStart, nextStart), type)
         console.printHyperlink(title) {
           hyperlinkListener?.hyperlinkClicked(link)
         }
-        offsetStart = match.range.endInclusive+1
+        offsetStart = match.range.last + 1
         match = match.next()
       }
       console.print(rawText.substring(offsetStart), type)
@@ -91,7 +98,7 @@ class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
 }
 
 /**
- * Retrieves benchmark output text from a given [testMetrics].
+ * Retrieves benchmark output text from a given benchmark output.
  */
 private fun parse(benchmarkOutput: String): List<BenchmarkLine> {
   if (benchmarkOutput.isEmpty()) {
@@ -99,6 +106,6 @@ private fun parse(benchmarkOutput: String): List<BenchmarkLine> {
   }
   val strLines = benchmarkOutput.split("\n")
   return strLines.map {
-    BenchmarkLine(it, BENCHMARK_URL_REGEX.find(it))
+    BenchmarkLine(it, BENCHMARK_LINK_REGEX.find(it))
   }.toList()
 }
