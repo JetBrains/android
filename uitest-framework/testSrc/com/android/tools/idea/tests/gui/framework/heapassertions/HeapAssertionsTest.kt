@@ -63,7 +63,10 @@ class HeapAssertionsTest : HeavyPlatformTestCase() {
     }
     catch (e: HeapAssertionError) {
       assert(e.message!!.contains(
-        "reached via 'com.android.tools.idea.tests.gui.framework.heapassertions.HeapAssertionsTest\$test_weakHashMap\$1.\$dummy'"
+        "reached via 'com.android.tools.idea.tests.gui.framework.heapassertions.HeapAssertionsTest\$\$Lambda"
+      ))
+      assert(e.message!!.contains(
+        "via 'com.android.tools.idea.tests.gui.framework.heapassertions.HeapAssertionsTest.leakyMap'"
       ))
     }
     finally {

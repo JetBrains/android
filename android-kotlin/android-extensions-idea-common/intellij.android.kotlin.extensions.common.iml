@@ -8,8 +8,8 @@
         </compilerSettings>
         <compilerArguments>
           <stringArguments>
-            <stringArg name="apiVersion" arg="1.5" />
-            <stringArg name="languageVersion" arg="1.5" />
+            <stringArg name="apiVersion" arg="2.0" />
+            <stringArg name="languageVersion" arg="2.0" />
           </stringArguments>
         </compilerArguments>
       </configuration>

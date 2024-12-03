@@ -601,7 +601,8 @@ class AndroidComplicationConfigurationEditorTest {
     getPanelForSlot(1).getCheckBox().isSelected = true
     getPanelForSlot(1).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
     // runConfiguration.watchFaceInfo has only 2 available slots.
-    val slotTypeComboBox2 = getPanelForSlot(1).getComboBox()
+    @Suppress("UNCHECKED_CAST")
+    val slotTypeComboBox2 = getPanelForSlot(1).getComboBox() as ComboBox<ComplicationType>
     // intersect between (LONG_TEXT, SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
     assertThat(slotTypeComboBox2.items)
       .containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)
