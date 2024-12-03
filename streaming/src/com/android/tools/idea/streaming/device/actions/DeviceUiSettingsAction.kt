@@ -29,16 +29,12 @@ import kotlinx.coroutines.launch
 import java.awt.Dimension
 import java.awt.EventQueue
 
-private val isSettingsPickerEnabled: Boolean
-  get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
-
 /**
  * Opens a picker with UI settings of a physical device.
  */
 internal class DeviceUiSettingsAction : AbstractDeviceAction(
   configFilter = {
     it.apiLevel >= 33
-    && isSettingsPickerEnabled
     && it.deviceProperties.resolution != null
     && it.deviceProperties.density != null
     && it.deviceType != DeviceType.AUTOMOTIVE

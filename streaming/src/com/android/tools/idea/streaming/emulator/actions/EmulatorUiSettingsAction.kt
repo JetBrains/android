@@ -28,18 +28,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
 import java.awt.EventQueue
 
-private val isSettingsPickerEnabled: Boolean
-  get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
-
 /**
  * Opens a picker with UI settings of an emulator.
  */
 internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
-  configFilter = {
-    it.api >= 33 &&
-    isSettingsPickerEnabled &&
-    it.deviceType != DeviceType.AUTOMOTIVE
-  }
+  configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE },
 ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
