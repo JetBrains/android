@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,11 +28,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.tools.adtui.compose.grid.Grid
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
 import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
@@ -92,50 +95,52 @@ private fun CameraGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Camera")
 
-    if (CameraLocation.FRONT in device.cameraLocations) {
-      Row {
-        Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+      if (CameraLocation.FRONT in device.cameraLocations) {
+        GridRow {
+          Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-        Dropdown(
-          device.frontCamera,
-          FRONT_CAMERAS,
-          onSelectedItemChange = { device.frontCamera = it },
-          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-        )
+          Dropdown(
+            device.frontCamera,
+            FRONT_CAMERAS,
+            onSelectedItemChange = { device.frontCamera = it },
+            Modifier.alignByBaseline().width(DROPDOWN_WIDTH).padding(end = Padding.MEDIUM),
+          )
 
-        InfoOutlineIcon(
-          """
+          InfoOutlineIcon(
+            """
         None: no camera installed for AVD
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-            .trimIndent(),
-          Modifier.align(Alignment.CenterVertically),
-        )
+              .trimIndent(),
+            Modifier.align(Alignment.CenterVertically),
+          )
+        }
       }
-    }
 
-    if (CameraLocation.BACK in device.cameraLocations) {
-      Row {
-        Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      if (CameraLocation.BACK in device.cameraLocations) {
+        GridRow {
+          Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-        Dropdown(
-          device.rearCamera,
-          REAR_CAMERAS,
-          onSelectedItemChange = { device.rearCamera = it },
-          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-        )
+          Dropdown(
+            device.rearCamera,
+            REAR_CAMERAS,
+            onSelectedItemChange = { device.rearCamera = it },
+            Modifier.alignByBaseline().width(DROPDOWN_WIDTH).padding(end = Padding.MEDIUM),
+          )
 
-        InfoOutlineIcon(
-          """
+          InfoOutlineIcon(
+            """
         None: no camera installed for AVD
         VirtualScene: use a virtual camera in a simulated environment
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-            .trimIndent(),
-          Modifier.align(Alignment.CenterVertically),
-        )
+              .trimIndent(),
+            Modifier.align(Alignment.CenterVertically),
+          )
+        }
       }
     }
   }
@@ -151,38 +156,40 @@ private fun NetworkGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Network")
 
-    Row {
-      Text("Speed", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+      GridRow {
+        Text("Speed", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.speed,
-        SPEEDS,
-        onSelectedItemChange = { device.speed = it },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.speed,
+          SPEEDS,
+          onSelectedItemChange = { device.speed = it },
+          Modifier.alignByBaseline().width(DROPDOWN_WIDTH).padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        "Sets the initial state of the simulated network transfer rate used by the AVD. The network speed can also be adjusted in the " +
-          "emulator.",
-        Modifier.align(Alignment.CenterVertically),
-      )
-    }
+        InfoOutlineIcon(
+          "Sets the initial state of the simulated network transfer rate used by the AVD. The network speed can also be adjusted in the " +
+            "emulator.",
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
 
-    Row {
-      Text("Latency", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      GridRow {
+        Text("Latency", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.latency,
-        LATENCIES,
-        onSelectedItemChange = { device.latency = it },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.latency,
+          LATENCIES,
+          onSelectedItemChange = { device.latency = it },
+          Modifier.alignByBaseline().width(DROPDOWN_WIDTH).padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        "Sets the initial state of the simulated network transfer latency used by the AVD. Latency is the delay in processing data " +
-          "across the network. The network latency can also be adjusted in the emulator.",
-        Modifier.align(Alignment.CenterVertically),
-      )
+        InfoOutlineIcon(
+          "Sets the initial state of the simulated network transfer latency used by the AVD. Latency is the delay in processing data " +
+            "across the network. The network latency can also be adjusted in the emulator.",
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
   }
 }
@@ -197,45 +204,48 @@ private fun StartupGroup(device: VirtualDevice) {
 
     val orientations =
       remember(device) { device.deviceProfile.allStates.mapTo(HashSet()) { it.orientation } }
-    if (orientations.size > 1) {
-      Row {
-        Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-        Dropdown(
-          Modifier.alignByBaseline(),
-          menuContent = {
-            orientations.forEach {
-              selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
-                Text(it.shortDisplayValue)
+    Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+      if (orientations.size > 1) {
+        GridRow {
+          Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+          Dropdown(
+            Modifier.alignByBaseline(),
+            menuContent = {
+              orientations.forEach {
+                selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
+                  Text(it.shortDisplayValue)
+                }
               }
-            }
-          },
-        ) {
-          Text(device.orientation.shortDisplayValue)
+            },
+          ) {
+            Text(device.orientation.shortDisplayValue)
+          }
         }
       }
-    }
 
-    Row {
-      Text("Default boot", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      GridRow {
+        Text("Default boot", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.defaultBoot,
-        BOOTS,
-        onSelectedItemChange = { device.defaultBoot = it },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.defaultBoot,
+          BOOTS,
+          onSelectedItemChange = { device.defaultBoot = it },
+          Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
+        )
 
-      InfoOutlineIcon(
-        """
+        InfoOutlineIcon(
+          """
         Choose how the AVD should start
 
         Cold: start as from a power-up
         Quick: start from the state that was saved when the AVD last exited
         """
-          .trimIndent(),
-        Modifier.align(Alignment.CenterVertically),
-      )
+            .trimIndent(),
+          Modifier.align(Alignment.CenterVertically).padding(start = Padding.MEDIUM),
+        )
+      }
     }
   }
 }
@@ -251,74 +261,80 @@ private fun EmulatedPerformanceGroup(
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Emulated Performance")
 
-    Row {
-      Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+      GridRow {
+        Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        modifier = Modifier.alignByBaseline(),
-        menuContent = {
-          for (count in 1..maxCpuCoreCount) {
-            selectableItem(
-              device.cpuCoreCount == count,
-              onClick = { device.cpuCoreCount = count },
-            ) {
-              Text(count.toString())
+        Dropdown(
+          modifier = Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
+          menuContent = {
+            for (count in 1..maxCpuCoreCount) {
+              selectableItem(
+                device.cpuCoreCount == count,
+                onClick = { device.cpuCoreCount = count },
+              ) {
+                Text(count.toString())
+              }
             }
-          }
-        },
-      ) {
-        Text(device.cpuCoreCount.toString())
+          },
+        ) {
+          Text(device.cpuCoreCount.toString())
+        }
       }
-    }
 
-    Row {
-      Text("Graphics acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      GridRow {
+        Text("Graphics acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        selectedItem = device.graphicsMode,
-        items =
-          listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
-        onSelectedItemChange = { device.graphicsMode = it },
-        modifier = Modifier.alignByBaseline(),
-      )
+        Dropdown(
+          selectedItem = device.graphicsMode,
+          items =
+            listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE)
+              .toImmutableList(),
+          onSelectedItemChange = { device.graphicsMode = it },
+          modifier = Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
+        )
+      }
     }
 
     @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
 
-    Row(Modifier.testTag("RamRow")) {
-      Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+      GridRow {
+        Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      StorageCapacityField(
-        state = state.ram,
-        errorMessage = state.ram.result().ramErrorMessage(),
-        modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        StorageCapacityField(
+          state = state.ram,
+          errorMessage = state.ram.result().ramErrorMessage(),
+          modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM).testTag("RamRow"),
+        )
 
-      LaunchedEffect(Unit) { state.ram.storageCapacity.collect { device.ram = it } }
+        LaunchedEffect(Unit) { state.ram.storageCapacity.collect { device.ram = it } }
 
-      InfoOutlineIcon(
-        "The amount of RAM on the AVD. This RAM is allocated from the host system while the AVD is running. Larger amounts of RAM will " +
-          "allow the AVD to run more applications, but have a greater impact on the host system.",
-        Modifier.align(Alignment.CenterVertically),
-      )
-    }
+        InfoOutlineIcon(
+          "The amount of RAM on the AVD. This RAM is allocated from the host system while the AVD is running. Larger amounts of RAM will " +
+            "allow the AVD to run more applications, but have a greater impact on the host system.",
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
 
-    Row(Modifier.testTag("VMHeapSizeRow")) {
-      Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      GridRow {
+        Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      StorageCapacityField(
-        state = state.vmHeapSize,
-        errorMessage = state.vmHeapSize.result().vmHeapSizeErrorMessage(),
-        modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        StorageCapacityField(
+          state = state.vmHeapSize,
+          errorMessage = state.vmHeapSize.result().vmHeapSizeErrorMessage(),
+          modifier =
+            Modifier.alignByBaseline().padding(end = Padding.MEDIUM).testTag("VMHeapSizeRow"),
+        )
 
-      LaunchedEffect(Unit) { state.vmHeapSize.storageCapacity.collect { device.vmHeapSize = it } }
+        LaunchedEffect(Unit) { state.vmHeapSize.storageCapacity.collect { device.vmHeapSize = it } }
 
-      InfoOutlineIcon(
-        "The amount of RAM available to the Java virtual machine (VM) to allocate to running apps on the AVD. A larger VM heap allows " +
-          "applications to run longer between garbage collection events.",
-        Modifier.align(Alignment.CenterVertically),
-      )
+        InfoOutlineIcon(
+          "The amount of RAM available to the Java virtual machine (VM) to allocate to running apps on the AVD. A larger VM heap allows " +
+            "applications to run longer between garbage collection events.",
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
   }
 }
@@ -370,10 +386,12 @@ private fun PreferredAbiGroup(
       preferredAbi ?: "Optimal",
       availableAbis,
       onSelectedItemChange = { onPreferredAbiChange(it.takeUnless { it == "Optimal" }) },
-      Modifier.alignByBaseline(),
+      Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
       enabled = availableAbis.isNotEmpty(),
       outline =
         if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
     )
   }
 }
+
+private val DROPDOWN_WIDTH = 150.dp
