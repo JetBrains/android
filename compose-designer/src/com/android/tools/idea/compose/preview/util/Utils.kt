@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -89,6 +90,7 @@ fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
  *
  * @see [isValidPreviewLocation]
  */
+@RequiresReadLock
 internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isValidPreviewLocation() &&

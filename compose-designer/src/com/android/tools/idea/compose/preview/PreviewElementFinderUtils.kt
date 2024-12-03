@@ -37,7 +37,6 @@ import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -52,14 +51,22 @@ import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 
-/** Returns true if the [UAnnotation] is a `@Preview` annotation. */
+/**
+ * Returns true if the [UAnnotation] is a `@Preview` annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
 fun UAnnotation.isPreviewAnnotation() =
-  ReadAction.compute<Boolean, Throwable> {
-    COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
-      COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
-  }
+  COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
+    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
 
-/** Returns true if the [UElement] is a `@Preview` annotation */
+/**
+ * Returns true if the [UElement] is a `@Preview` annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
 private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewAnnotation() == true
 
 /**
@@ -144,7 +151,7 @@ private fun getPreviewNodes(
             }
           else null
       ) {
-        it.isPreviewAnnotation()
+        readAction { it.isPreviewAnnotation() }
       }
       .mapNotNull {
         it.toPreviewElement(
@@ -201,7 +208,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   overrideGroupName: String?,
 ): ComposePreviewElement<*>? {
   val annotation = element as UAnnotation
-  if (!annotation.isPreviewAnnotation()) return null
+  if (readAction { !annotation.isPreviewAnnotation() }) return null
 
   val rootAnnotation = subtreeInfo?.topLevelAnnotation ?: annotation
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
@@ -209,7 +216,9 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod = UastAnnotatedMethod(composableMethod)
   val nameHelper =
-    AnnotationPreviewNameHelper.create(this, annotatedMethod.name, UElement?::isPreviewAnnotation)
+    AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
+      readAction { isPreviewAnnotation() }
+    }
   // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
   // read lock
   return readAction {
@@ -249,7 +258,7 @@ private suspend fun UMethod.toMultiPreviewNode(
       )
       .withChildNodes(
         nonPreviewChildNodes,
-        directPreviewChildrenCount(UElement?::isPreviewAnnotation),
+        directPreviewChildrenCount { readAction { isPreviewAnnotation() } },
       )
       .withDepthLevel(0)
       .withComposableFqn(readAction { qualifiedName })
@@ -270,7 +279,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
   multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>,
   composableFqn: String,
 ): MultiPreviewNodeImpl? {
-  if (element.isPreviewAnnotation()) return null
+  if (readAction { element.isPreviewAnnotation() }) return null
   val nonPreviewChildNodes =
     subtreeInfo
       ?.children
@@ -283,7 +292,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
       )
       .withChildNodes(
         nonPreviewChildNodes,
-        element.directPreviewChildrenCount(UElement?::isPreviewAnnotation),
+        element.directPreviewChildrenCount { readAction { isPreviewAnnotation() } },
       )
       .withDepthLevel(subtreeInfo?.depth ?: -1)
       .withComposableFqn(composableFqn)

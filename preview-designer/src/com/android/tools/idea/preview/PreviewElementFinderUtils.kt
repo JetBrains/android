@@ -62,8 +62,9 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
  * Returns the number of preview annotations attached to this element. This method does not count
  * preview annotations that are indirectly referenced through the annotation graph.
  */
-suspend fun UElement.directPreviewChildrenCount(isPreviewAnnotation: UElement?.() -> Boolean) =
-  getUAnnotations().count { it.isPreviewAnnotation() }
+suspend fun UElement.directPreviewChildrenCount(
+  isPreviewAnnotation: suspend UElement?.() -> Boolean
+) = getUAnnotations().count { it.isPreviewAnnotation() }
 
 /**
  * Class that helps to build a Preview's name and parameter name.
@@ -113,13 +114,14 @@ private constructor(
      *   be used to build the preview and parameter name whenever a nameParameter is not available
      * @param methodName the name of the method that is annotated with the preview annotation
      * @param isPreviewAnnotation a method used to identify which [UElement]s are considered
-     *   previews
+     *   previews. The method is `suspendable` to allow for non-blocking read actions and can be
+     *   slow.
      * @see AnnotationPreviewNameHelper
      */
     suspend fun create(
       node: NodeInfo<UAnnotationSubtreeInfo>?,
       methodName: String,
-      isPreviewAnnotation: UElement?.() -> Boolean,
+      isPreviewAnnotation: suspend UElement?.() -> Boolean,
     ): AnnotationPreviewNameHelper {
       val parentAnnotationInfo =
         node?.parent?.let { parent ->
