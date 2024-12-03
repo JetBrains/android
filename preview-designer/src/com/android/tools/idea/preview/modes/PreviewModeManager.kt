@@ -106,7 +106,7 @@ sealed class PreviewMode {
 
   class UiCheck(
     val baseInstance: UiCheckInstance,
-    override val layoutOption: SurfaceLayoutOption = GRID_NO_GROUP_LAYOUT_OPTION,
+    override val layoutOption: SurfaceLayoutOption = UI_CHECK_LAYOUT_OPTION,
   ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 

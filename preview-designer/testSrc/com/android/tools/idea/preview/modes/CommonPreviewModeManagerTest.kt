@@ -63,7 +63,7 @@ class CommonPreviewModeManagerTest {
     assertThat(manager.mode.value.layoutOption).isEqualTo(GALLERY_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false)))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(UI_CHECK_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.AnimationInspection(previewElement))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)

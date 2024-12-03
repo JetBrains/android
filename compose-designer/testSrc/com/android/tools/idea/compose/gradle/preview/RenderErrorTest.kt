@@ -22,6 +22,7 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
+import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
@@ -162,6 +163,7 @@ class RenderErrorTest {
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
       StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -191,6 +193,7 @@ class RenderErrorTest {
   fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
     runBlocking(workerThread) {
       StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -219,6 +222,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithoutRenderErrors() =
     runBlocking(workerThread) {
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithoutRenderErrors")
 
       lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel

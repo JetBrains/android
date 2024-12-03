@@ -55,6 +55,19 @@ val GRID_LAYOUT_OPTION =
     SceneViewAlignment.LEFT,
   )
 
+val UI_CHECK_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    displayName = message("grid.layout.title"),
+    layoutManager =
+      GridLayoutManager(
+        transform =
+          if (StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get()) GROUP_BY_BASE_COMPONENT
+          else NO_GROUP_TRANSFORM
+      ),
+    organizationEnabled = StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get(),
+    sceneViewAlignment = SceneViewAlignment.LEFT,
+  )
+
 /** The default layout that should appear when the Preview is open. */
 val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION
 
