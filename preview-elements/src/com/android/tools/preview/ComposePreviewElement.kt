@@ -239,11 +239,13 @@ class ParametrizedComposePreviewElementInstance<T>(
     PreviewDisplaySettings(
       getDisplayName(parameterName),
       basePreviewElement.displaySettings.baseName,
-      basePreviewElement.displaySettings.parameterName?.let { "$it - ${getParameterName(parameterName)}" } ?: getParameterName(parameterName),
+      getParameterName(basePreviewElement.displaySettings.parameterName, parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
       basePreviewElement.displaySettings.backgroundColor,
+      basePreviewElement.displaySettings.displayPositioning,
+      basePreviewElement.displaySettings.organizationGroup
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -266,10 +268,18 @@ class ParametrizedComposePreviewElementInstance<T>(
     }
   }
 
-  private fun getParameterName(parameterName: String?): String {
+  private fun getParameterName(baseParameterName: String?, parameterName: String?): String? {
+    if (baseParameterName == null) return getParameterName(parameterName)
+    if (parameterName == null) return baseParameterName
+    return "$baseParameterName - ${getParameterName(parameterName)}"
+  }
+
+  private fun getParameterName(parameterName: String?): String? {
     // Make all index numbers to use the same number of digits,
     // so that they can be properly sorted later.
-    return "$parameterName ${index.toString().padStart(maxIndex.toString().length, '0')}"
+    return parameterName?.let {
+      "$it ${index.toString().padStart(maxIndex.toString().length, '0')}"
+    }
   }
 }
 

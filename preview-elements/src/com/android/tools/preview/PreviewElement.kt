@@ -34,6 +34,9 @@ enum class DisplayPositioning {
  * @param backgroundColor when [showBackground] is true, this is the background color to be used by
  *   the preview. If null, the default activity background specified in the system theme will be
  *   used.
+ * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not specified - default grouping method is used.
+ *   Could be used to override default grouping method, for example for UI Check - grouping is done by UI Check type (Screen sizes, Font
+ *   scales, etc).
  */
 data class PreviewDisplaySettings(
   val name: String,
@@ -43,7 +46,8 @@ data class PreviewDisplaySettings(
   val showDecoration: Boolean,
   val showBackground: Boolean,
   val backgroundColor: String?,
-  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL
+  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
+  val organizationGroup: String? = null
 )
 
 /**

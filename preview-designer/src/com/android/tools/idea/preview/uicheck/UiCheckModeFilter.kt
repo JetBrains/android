@@ -172,6 +172,7 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
           parameterName = idToName[effectiveDeviceIds[device]],
           group = message("ui.check.mode.screen.size.group"),
           showDecoration = true,
+          organizationGroup = message("ui.check.mode.screen.size.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -190,6 +191,7 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T): L
           baseName = baseDisplaySettings.name,
           parameterName = name,
           group = message("ui.check.mode.font.scale.group"),
+          organizationGroup = message("ui.check.mode.font.scale.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -209,6 +211,7 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
           baseName = baseDisplaySettings.name,
           parameterName = name,
           group = message("ui.check.mode.light.dark.group"),
+          organizationGroup = message("ui.check.mode.light.dark.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -231,6 +234,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T):
           parameterName = colorBlindMode.displayName,
           group = message("ui.check.mode.screen.accessibility.group"),
           showDecoration = false,
+          organizationGroup = message("ui.check.mode.screen.accessibility.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
     }
