@@ -1131,7 +1131,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_WRAP_TOOLBAR = new BooleanFlag(
     EMBEDDED_EMULATOR, "wrap.toolbar", "Enable Toolbar Wrapping",
     "Wraps the toolbar when all buttons don't fit into the available width",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
   //endregion
 
   //region Device Mirroring
