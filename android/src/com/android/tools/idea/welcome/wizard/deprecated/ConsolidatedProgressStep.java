@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Step to show installation progress for long running operations contributed by other paths.
  */
-public class ConsolidatedProgressStep extends ProgressStep {
+public class ConsolidatedProgressStep extends AbstractProgressStep {
   private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
   private final DynamicWizardHost myHost;
   private List<? extends AndroidStudioWizardPath> myPaths;
@@ -69,7 +69,7 @@ public class ConsolidatedProgressStep extends ProgressStep {
     });
   }
 
-  private void doLongRunningOperation(@NotNull final ProgressStep progressStep) throws WizardException {
+  private void doLongRunningOperation(@NotNull final AbstractProgressStep progressStep) throws WizardException {
     for (AndroidStudioWizardPath path : myPaths) {
       if (progressStep.isCanceled()) {
         break;

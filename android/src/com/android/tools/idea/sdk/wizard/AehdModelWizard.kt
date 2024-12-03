@@ -28,7 +28,7 @@ import com.android.tools.idea.welcome.install.AehdSdkComponent
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.wizard.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep
-import com.android.tools.idea.welcome.wizard.ProgressStep
+import com.android.tools.idea.welcome.wizard.AbstractProgressStep
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -142,7 +142,7 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
     }
   }
 
-  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, parent: Disposable, name: String): ProgressStep<BlankModel>(model, parent, name) {
+  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, parent: Disposable, name: String): AbstractProgressStep<BlankModel>(model, parent, name) {
     val isSuccessfullyCompleted = AtomicBooleanProperty(false)
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
 

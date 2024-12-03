@@ -81,7 +81,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private final ObjectValueProperty<AndroidSdkHandler> myLocalHandlerProperty;
 
   private SdkComponentTreeNode myComponentTree;
-  private final ProgressStep myProgressStep;
+  private final AbstractProgressStep myProgressStep;
   @NotNull private final ComponentInstallerProvider myComponentInstallerProvider;
   private final boolean myInstallUpdates;
   private SdkComponentsStep myComponentsStep;
@@ -89,7 +89,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
-                               @NotNull ProgressStep progressStep,
+                               @NotNull AbstractProgressStep progressStep,
                                @NotNull ComponentInstallerProvider componentInstallerProvider,
                                boolean installUpdates) {
     myMode = mode;

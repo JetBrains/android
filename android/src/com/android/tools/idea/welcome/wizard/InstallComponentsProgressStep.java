@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Step to show installation progress when installing components
  */
-public class InstallComponentsProgressStep extends ProgressStep<FirstRunWizardModel> {
+public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRunWizardModel> {
   private final BoolProperty myIsBusyProperty = new BoolProperty() {
     private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
 

@@ -30,14 +30,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Wizard step with progress bar and "more details" button.
  *
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.ProgressStep}
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.AbstractProgressStep}
  */
 @Deprecated
-public abstract class ProgressStep extends FirstRunWizardStep implements IProgressStep {
+public abstract class AbstractProgressStep extends FirstRunWizardStep implements IProgressStep {
   private final ProgressStepForm myForm;
   private ProgressIndicator myProgressIndicator;
 
-  public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
+  public AbstractProgressStep(@NotNull Disposable parent, @NotNull String name) {
     super(name);
     myForm = new ProgressStepForm(parent);
     setComponent(myForm.getRoot());
@@ -74,7 +74,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
   @NotNull
   public synchronized ProgressIndicator getProgressIndicator() {
     if (myProgressIndicator == null) {
-      myProgressIndicator = new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressIndicatorIntegration(myForm);
+      myProgressIndicator = new com.android.tools.idea.welcome.wizard.AbstractProgressStep.ProgressIndicatorIntegration(myForm);
     }
     return myProgressIndicator;
   }
@@ -121,7 +121,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
   @Override
   public void run(final @NotNull Runnable runnable, double progressPortion) {
     ProgressIndicator progress =
-      new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressPortionReporter(getProgressIndicator(), myForm.getFraction(), progressPortion);
+      new com.android.tools.idea.welcome.wizard.AbstractProgressStep.ProgressPortionReporter(getProgressIndicator(), myForm.getFraction(), progressPortion);
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress);
   }
 }

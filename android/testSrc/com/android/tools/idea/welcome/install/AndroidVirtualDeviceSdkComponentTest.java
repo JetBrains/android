@@ -40,7 +40,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.TemporaryDirectoryRule;
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.AbstractProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -132,7 +132,7 @@ public final class AndroidVirtualDeviceSdkComponentTest {
   public RuleChain ruleChain = new RuleChain(applicationRule, environmentRule, tempDirectoryRule, new EdtRule(), disposableRule);
 
   private AndroidSdkHandler sdkHandler;
-  ProgressStep progressStep;
+  AbstractProgressStep progressStep;
 
   @Before
   public void setUp() throws Exception {
@@ -147,7 +147,7 @@ public final class AndroidVirtualDeviceSdkComponentTest {
     AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
     when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, disposableRule.getDisposable());
-    progressStep = new ProgressStep(disposableRule.getDisposable(), "test") {
+    progressStep = new AbstractProgressStep(disposableRule.getDisposable(), "test") {
       @Override
       protected void execute() {}
     };

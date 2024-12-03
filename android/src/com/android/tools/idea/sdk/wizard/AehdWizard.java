@@ -24,9 +24,9 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.AehdSdkComponent;
 import com.android.tools.idea.welcome.wizard.IProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.AbstractProgressStep;
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep;
 import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStep;
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
@@ -86,7 +86,7 @@ public class AehdWizard extends DynamicWizard {
     return "AEHD Installation";
   }
 
-  private static class SetupProgressStep extends ProgressStep implements IProgressStep {
+  private static class SetupProgressStep extends AbstractProgressStep implements IProgressStep {
     @NotNull private AehdSdkComponent myAehdSdkComponent;
     @NotNull private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     @NotNull private DynamicWizardHost myHost;
