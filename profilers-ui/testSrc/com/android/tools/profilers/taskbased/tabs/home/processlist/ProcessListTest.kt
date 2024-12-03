@@ -21,9 +21,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -77,7 +77,7 @@ class ProcessListTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing TaskGridView",
     ) {
       populateVisualTestData()
@@ -90,7 +90,7 @@ class ProcessListTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing TaskGridView",
     ) {
       val device1 = TaskModelTestUtils.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)

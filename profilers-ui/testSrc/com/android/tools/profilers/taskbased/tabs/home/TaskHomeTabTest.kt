@@ -29,9 +29,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -99,7 +99,7 @@ class TaskHomeTabTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
       StudioTestTheme(darkMode = false) {
@@ -111,7 +111,7 @@ class TaskHomeTabTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
       StudioTestTheme(darkMode = true) {

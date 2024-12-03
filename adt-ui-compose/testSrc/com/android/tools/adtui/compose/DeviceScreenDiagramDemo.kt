@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.window.singleWindowApplication
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.ui.component.TextField
@@ -36,7 +35,7 @@ import org.jetbrains.jewel.ui.theme.colorPalette
 
 /** Demonstration of the device screen diagram in a standalone app. */
 fun main() {
-  singleWindowApplication(title = "Screen Diagram") {
+  standaloneSingleWindowApplication(title = "Screen Diagram") {
     val isDark = true
     IntUiTheme(isDark = isDark) {
       val windowBackground =

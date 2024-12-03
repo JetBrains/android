@@ -18,8 +18,8 @@ package com.android.tools.idea.common.surface.organization
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.window.singleWindowApplication
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.intellij.util.ui.UIUtil
 import kotlin.test.assertEquals
@@ -68,7 +68,7 @@ class OrganizationHeaderTest {
   @Ignore("Visual test")
   fun previewHeader() {
     val group = OrganizationGroup("method", "Organization Group")
-    singleWindowApplication(title = "Preview") {
+    standaloneSingleWindowApplication(title = "Preview") {
       StudioTestTheme(darkMode = false) { OrganizationHeader(group) }
     }
   }

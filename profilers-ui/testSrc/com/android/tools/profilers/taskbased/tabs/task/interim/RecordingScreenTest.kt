@@ -23,9 +23,9 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -84,7 +84,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, stoppable (CPU) recording screen`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
       StudioTestTheme(darkMode = false) {
@@ -101,7 +101,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, stoppable (CPU) recording screen`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
       StudioTestTheme(darkMode = true) {
@@ -118,7 +118,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, non stoppable (memory) recording screen`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
       StudioTestTheme(darkMode = false) {
@@ -132,7 +132,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, non stoppable (memory) recording screen`() {
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
       StudioTestTheme(darkMode = true) {
