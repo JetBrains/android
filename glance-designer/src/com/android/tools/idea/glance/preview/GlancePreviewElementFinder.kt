@@ -31,7 +31,6 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
@@ -51,13 +50,21 @@ private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
 internal const val GLANCE_PREVIEW_ANNOTATION_FQN =
   "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 
-/** Returns true if this [UAnnotation] is a Glance @Preview annotation. */
+/**
+ * Returns true if this [UAnnotation] is a Glance @Preview annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
 private fun isGlancePreview(annotation: UAnnotation) =
-  ReadAction.compute<Boolean, Throwable> {
-    GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
-  }
+  GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
 
-/** Returns true if the [UElement] is a `@Preview` annotation */
+/**
+ * Returns true if the [UElement] is a `@Preview` annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
 private fun UElement?.isGlancePreviewAnnotation() =
   (this as? UAnnotation)?.let { isGlancePreview(it) } == true
 
@@ -66,12 +73,14 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
   uMethod: UMethod
 ): PsiGlancePreviewElement? {
   val annotation = element as UAnnotation
-  if (!isGlancePreview(annotation)) return null
+  if (readAction { !isGlancePreview(annotation) }) return null
 
   val uClass = uMethod.uastParent as UClass
   val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
   val nameHelper =
-    AnnotationPreviewNameHelper.create(this, uMethod.name, UElement?::isGlancePreviewAnnotation)
+    AnnotationPreviewNameHelper.create(this, uMethod.name) {
+      readAction { isGlancePreviewAnnotation() }
+    }
   val displaySettings =
     PreviewDisplaySettings(
       nameHelper.buildPreviewName(),
@@ -114,9 +123,9 @@ open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePrevie
         COMPOSABLE_ANNOTATION_NAME,
       ) { methods ->
         methods.asFlow().flatMapConcat { method ->
-          method.findAllAnnotationsInGraph(filter = ::isGlancePreview).mapNotNull {
-            it.asGlancePreviewNode(method)
-          }
+          method
+            .findAllAnnotationsInGraph(filter = { readAction { isGlancePreview(it) } })
+            .mapNotNull { it.asGlancePreviewNode(method) }
         }
       }
       .distinct()
