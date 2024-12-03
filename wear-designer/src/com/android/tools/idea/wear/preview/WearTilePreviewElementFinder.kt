@@ -37,7 +37,6 @@ import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -160,7 +159,7 @@ internal class WearTilePreviewElementFinder(
             .flatMap { method ->
               ProgressManager.checkCanceled()
               method
-                .findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
+                .findAllTilePreviewAnnotations()
                 .mapNotNull { it.asTilePreviewNode(method) }
                 .toList()
             }
@@ -185,16 +184,25 @@ fun UElement?.hasTilePreviewAnnotation(): Boolean {
   }
   // TODO(b/381827960): avoid using runBlockingCancellable
   return runBlockingCancellable {
-    this@hasTilePreviewAnnotation?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
-      ?.firstOrNull() != null
+    this@hasTilePreviewAnnotation?.findAllTilePreviewAnnotations()?.firstOrNull() != null
   }
 }
 
-internal fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
+/**
+ * Checks if a [UAnnotation] is a Wear Tile `@Preview` annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
+internal fun UAnnotation.isTilePreviewAnnotation() =
   this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
-}
 
-/** Returns true if the [UElement] is a `@Preview` annotation */
+/**
+ * Returns true if the [UElement] is a `@Preview` annotation.
+ *
+ * This method must be called under a read lock.
+ */
+@RequiresReadLock
 private fun UElement?.isWearTilePreviewAnnotation() =
   (this as? UAnnotation)?.isTilePreviewAnnotation() == true
 
@@ -203,7 +211,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   uMethod: UMethod
 ): PsiWearTilePreviewElement? {
   val annotation = element as UAnnotation
-  if (!annotation.isTilePreviewAnnotation()) return null
+  if (readAction { !annotation.isTilePreviewAnnotation() }) return null
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
 
   val name = readAction {
@@ -214,7 +222,9 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   }
   val methodName = readAction { uMethod.name }
   val nameHelper =
-    AnnotationPreviewNameHelper.create(this, methodName, UElement?::isWearTilePreviewAnnotation)
+    AnnotationPreviewNameHelper.create(this, methodName) {
+      readAction { isWearTilePreviewAnnotation() }
+    }
   val displaySettings =
     PreviewDisplaySettings(
       name = nameHelper.buildPreviewName(name),
@@ -294,8 +304,8 @@ private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
     .mapNotNull { smartReadAction(project) { it.element.toUElement(UMethod::class.java) } }
 }
 
-private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph {
-  it.isTilePreviewAnnotation()
+private fun UElement.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph {
+  readAction { it.isTilePreviewAnnotation() }
 }
 
 /**
