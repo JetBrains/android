@@ -38,7 +38,6 @@ import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -95,7 +94,7 @@ fun UAnnotation?.isMultiPreviewAnnotation() =
  * Given a Composable method, return a sequence of [ComposePreviewElement] corresponding to its
  * Preview annotations
  */
-private fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
+private suspend fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
   getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement<*> }
 
 /**
@@ -108,7 +107,7 @@ private fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = nu
  *   not just a [PreviewNode], but specifically a [MultiPreviewNode]
  */
 @Slow
-fun getPreviewNodes(
+suspend fun getPreviewNodes(
   composableMethod: UMethod,
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
@@ -127,14 +126,14 @@ fun getPreviewNodes(
  * @see getPreviewNodes
  */
 @Slow
-private fun getPreviewNodes(
+private suspend fun getPreviewNodes(
   composableMethod: UMethod,
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
   rootSearchElement: UElement,
 ): Flow<PreviewNode> {
   if (!composableMethod.isComposable()) return emptyFlow()
-  val composableFqn = runReadAction { composableMethod.qualifiedName }
+  val composableFqn = readAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
 
   return flow {
@@ -178,7 +177,7 @@ private fun getPreviewNodes(
  */
 @RequiresReadLock
 @Slow
-private fun UAnnotation.getPreviewNodes(
+private suspend fun UAnnotation.getPreviewNodes(
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
 ): Flow<PreviewNode> {
