@@ -78,8 +78,8 @@ public class ModifyMinSdkAndSyncTest {
     ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
       it.getEditor()
         .open("app/build.gradle")
-        .select("minSdkVersion (21)")
-        .enterText("23")
+        .select("minSdkVersion (\\d+)")
+        .enterText("26")
         .awaitNotification(
           "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
         .performActionWithoutWaitingForDisappearance("Sync Now");
