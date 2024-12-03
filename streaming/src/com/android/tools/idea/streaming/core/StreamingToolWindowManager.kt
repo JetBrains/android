@@ -979,15 +979,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         add(Separator.getInstance())
       }
 
-      if (StudioFlags.DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS.get()) {
-        val remoteDevices = deviceProvisioner.reservableDevices()
-        if (remoteDevices.isNotEmpty()) {
-          add(Separator("Remote Devices"))
-          for (template in remoteDevices) {
-            add(ReserveRemoteDeviceAction(template))
-          }
-          add(Separator.getInstance())
+      val remoteDevices = deviceProvisioner.reservableDevices()
+      if (remoteDevices.isNotEmpty()) {
+        add(Separator("Remote Devices"))
+        for (template in remoteDevices) {
+          add(ReserveRemoteDeviceAction(template))
         }
+        add(Separator.getInstance())
       }
 
       val avds = getStartableVirtualDevices().sortedBy { it.displayName }
