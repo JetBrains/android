@@ -1372,6 +1372,11 @@ public final class StudioFlags {
     "If enabled, shows a menu item to open the selected preview in Gallery mode.",
     ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> ADD_PREVIEW_IMAGE_TO_AI_REQUEST_FOR_CODE_GENERATION = new BooleanFlag(
+    PREVIEW_COMMON, "add.image.to.ai.request.for.preview",
+    "Add preview image to AI request for code generation",
+    "If enabled, adds current preview image to an AI request for code generation.",
+    true);
   //endregion
 
   //region Compose
