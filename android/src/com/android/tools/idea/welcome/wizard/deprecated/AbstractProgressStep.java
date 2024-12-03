@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.tools.idea.welcome.wizard.IProgressStep;
+import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.AbstractProgressStep}
  */
 @Deprecated
-public abstract class AbstractProgressStep extends FirstRunWizardStep implements IProgressStep {
+public abstract class AbstractProgressStep extends FirstRunWizardStep implements ProgressStep {
   private final ProgressStepForm myForm;
   private ProgressIndicator myProgressIndicator;
 

@@ -24,7 +24,7 @@ import com.intellij.openapi.progress.ProgressIndicator
  * step to the new {@link com.android.tools.idea.welcome.wizard.ProgressStep} step. It can be removed once the migration is complete
  * and the deprecated class has been removed.
  */
-interface IProgressStep {
+interface ProgressStep {
   fun isCanceled(): Boolean
   fun print(s: String, contentType: ConsoleViewContentType)
   fun run(runnable: Runnable, progressPortion: Double)

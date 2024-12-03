@@ -31,7 +31,7 @@ import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallationCancelledException
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.WizardException
-import com.android.tools.idea.welcome.wizard.IProgressStep
+import com.android.tools.idea.welcome.wizard.ProgressStep
 import com.google.common.collect.Lists
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
@@ -44,7 +44,7 @@ import java.io.File
 object AehdWizardUtils {
 
   @JvmStatic
-  fun setupAehd(aehdSdkComponent: AehdSdkComponent, progressStep: IProgressStep, progressIndicator: ProgressIndicator) {
+  fun setupAehd(aehdSdkComponent: AehdSdkComponent, progressStep: ProgressStep, progressIndicator: ProgressIndicator) {
     val tmpDir = FileUtil.createTempDirectory(PlatformUtils.getPlatformPrefix(), "AEHD", true)
     val installContext = InstallContext(tmpDir, progressStep)
 
