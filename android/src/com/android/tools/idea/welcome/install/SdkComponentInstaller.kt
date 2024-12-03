@@ -29,12 +29,12 @@ import com.android.tools.idea.progress.ThrottledProgressWrapper
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
 
-/**
- * Installs SDK components.
- */
+/** Installs SDK components. */
 class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
   @Throws(PackageResolutionException::class)
-  fun getPackagesToInstall(components: Iterable<InstallableSdkComponentTreeNode>): List<RemotePackage> {
+  fun getPackagesToInstall(
+    components: Iterable<InstallableSdkComponentTreeNode>
+  ): List<RemotePackage> {
     // TODO: Prompt about connection in handoff case?
     val progress = StudioLoggerProgressIndicator(javaClass)
     val sdkManager = sdkHandler.getSdkManager(progress)
@@ -43,27 +43,36 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
   }
 
   @Slow
-  fun installPackages(packages: List<RemotePackage>, downloader: Downloader, progress: ProgressIndicator) {
+  fun installPackages(
+    packages: List<RemotePackage>,
+    downloader: Downloader,
+    progress: ProgressIndicator,
+  ) {
     val throttledProgress = ThrottledProgressWrapper(progress)
     val sdkManager = sdkHandler.getSdkManager(throttledProgress)
     var progressMax = 0.0
     val progressIncrement = 0.9 / (packages.size * 2.0)
     val factory = BasicInstallerFactory()
 
-    packages.map {
-      factory.createInstaller(it, sdkManager, downloader)
-    }.forEach { installer ->
-      // Intentionally don't register any listeners on the installer, so we don't recurse on AEHD
-      // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
-      progressMax += progressIncrement
-      if (installer.prepare(throttledProgress.createSubProgress(progressMax))) {
-        installer.complete(throttledProgress.createSubProgress(progressMax + progressIncrement))
+    packages
+      .map { factory.createInstaller(it, sdkManager, downloader) }
+      .forEach { installer ->
+        // Intentionally don't register any listeners on the installer, so we don't recurse on AEHD
+        // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
+        progressMax += progressIncrement
+        if (installer.prepare(throttledProgress.createSubProgress(progressMax))) {
+          installer.complete(throttledProgress.createSubProgress(progressMax + progressIncrement))
+        }
+        progressMax += progressIncrement
+        throttledProgress.fraction = progressMax
       }
-      progressMax += progressIncrement
-      throttledProgress.fraction = progressMax
-    }
 
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, throttledProgress.createSubProgress(1.0), null, null)
+    sdkManager.loadSynchronously(
+      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+      throttledProgress.createSubProgress(1.0),
+      null,
+      null,
+    )
   }
 
   @Slow
@@ -75,8 +84,7 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
       val p = localPackages[packageName]
       if (p != null) {
         packagesToUninstall.add(p)
-      }
-      else {
+      } else {
         progress.logInfo("Package '$packageName' does not appear to be installed - ignoring")
       }
     }
@@ -84,27 +92,37 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     val progressIncrement = 0.9 / (packagesToUninstall.size * 2.0)
     val factory: InstallerFactory = BasicInstallerFactory()
 
-    // This is pretty much symmetric to the installPackages() method above, so the same comments apply.
-    // Should we have registered listeners, AehdInstallListener would have invoked another instance of AehdWizard.
+    // This is pretty much symmetric to the installPackages() method above, so the same comments
+    // apply.
+    // Should we have registered listeners, AehdInstallListener would have invoked another instance
+    // of AehdWizard.
     // The good news is that as of writing this,
     // this class is used in Welcome and Aehd wizards only, and plays the role of a utility class.
     // If we have more packages which require custom pre- and post-installation steps like AEHD,
-    // then we might still need a way to invoke non-recursive / listener-free uninstall operations for cleanup purposes
+    // then we might still need a way to invoke non-recursive / listener-free uninstall operations
+    // for cleanup purposes
     // It's possible that a change in packaging API would make sense to support that later -
-    // there is already some cleanup() support in operation chain implementation, but its limitation is that cleanup()
-    // is executed unconditionally, whereas in most cases it should be dependent on the next operation success status -
+    // there is already some cleanup() support in operation chain implementation, but its limitation
+    // is that cleanup()
+    // is executed unconditionally, whereas in most cases it should be dependent on the next
+    // operation success status -
     // like stack unwinding after an exception.
-    packagesToUninstall.map {
-      factory.createUninstaller(it, sdkManager)
-    }.forEach { uninstaller ->
-      progressMax += progressIncrement
-      if (uninstaller.prepare(progress.createSubProgress(progressMax))) {
-        uninstaller.complete(progress.createSubProgress(progressMax + progressIncrement))
+    packagesToUninstall
+      .map { factory.createUninstaller(it, sdkManager) }
+      .forEach { uninstaller ->
+        progressMax += progressIncrement
+        if (uninstaller.prepare(progress.createSubProgress(progressMax))) {
+          uninstaller.complete(progress.createSubProgress(progressMax + progressIncrement))
+        }
+        progressMax += progressIncrement
+        progress.fraction = progressMax
       }
-      progressMax += progressIncrement
-      progress.fraction = progressMax
-    }
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1.0), null, null)
+    sdkManager.loadSynchronously(
+      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+      progress.createSubProgress(1.0),
+      null,
+      null,
+    )
     progress.fraction = 1.0
   }
 }

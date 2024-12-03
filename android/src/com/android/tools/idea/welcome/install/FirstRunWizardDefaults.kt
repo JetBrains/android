@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * The goal is to keep all defaults in one place so it is easier to update them as needed.
- */
+/** The goal is to keep all defaults in one place so it is easier to update them as needed. */
 @file:JvmName("FirstRunWizardDefaults")
 
 package com.android.tools.idea.welcome.install
@@ -24,17 +22,18 @@ package com.android.tools.idea.welcome.install
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 object FirstRunWizardDefaults {
   /**
-   * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case,
-   * SDK location location from the preference if set or platform-dependant default path.
+   * Returns initial SDK location. That will be the SDK location from the installer handoff file in
+   * the handoff case, SDK location location from the preference if set or platform-dependant
+   * default path.
    */
   @JvmStatic
   fun getInitialSdkLocation(mode: FirstRunWizardMode): File =
     mode.sdkLocation
-    ?: AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()
-    ?: AndroidSdkUtils.getAndroidSdkPathOrDefault()
+      ?: AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()
+      ?: AndroidSdkUtils.getAndroidSdkPathOrDefault()
 }

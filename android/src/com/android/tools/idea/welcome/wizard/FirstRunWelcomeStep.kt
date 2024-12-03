@@ -19,13 +19,12 @@ import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWelcomeStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import javax.swing.JComponent
 
-/**
- * Welcome page for the first run wizard
- */
-class FirstRunWelcomeStep(model: FirstRunWizardModel) : ModelWizardStep<FirstRunWizardModel>(model, "Android Studio") {
+/** Welcome page for the first run wizard */
+class FirstRunWelcomeStep(model: FirstRunWizardModel) :
+  ModelWizardStep<FirstRunWizardModel>(model, "Android Studio") {
   private val form = FirstRunWelcomeStepForm(model.initialSdkExists)
 
   override fun getComponent(): JComponent = form.root
+
   override fun getPreferredFocusComponent(): JComponent? = form.root
 }
-

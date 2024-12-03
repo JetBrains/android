@@ -48,28 +48,36 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.system.CpuArch
-import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Logic for setting up Android virtual device
- */
-class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: AndroidVersion?, installUpdates: Boolean) : InstallableSdkComponentTreeNode(
-  "Android Virtual Device",
-  "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
-  installUpdates
-) {
+/** Logic for setting up Android virtual device */
+class AndroidVirtualDeviceSdkComponentTreeNode(
+  private val androidVersion: AndroidVersion?,
+  installUpdates: Boolean,
+) :
+  InstallableSdkComponentTreeNode(
+    "Android Virtual Device",
+    "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
+    installUpdates,
+  ) {
   // This is a bit weird that we take a collection of RemotePackages just to find the latest
   // version, but then later require an AndroidSdkHandler in a bunch of methods, which is the
   // source of RemotePackages in the first place.
   //
   // Plus, there's an sdkHandler in the superclass; why aren't we using it?
-  constructor(remotePackages: Collection<RemotePackage>, installUpdates: Boolean) :
-    this(findLatestPlatform(remotePackages, true)?.let {
+  constructor(
+    remotePackages: Collection<RemotePackage>,
+    installUpdates: Boolean,
+  ) : this(
+    findLatestPlatform(remotePackages, true)?.let {
       (it.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
-    }, installUpdates)
+    },
+    installUpdates,
+  )
 
-  private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
+  private val IS_ARM64_HOST_OS =
+    CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
 
   // After this we use x86-64 system images
   private val MAX_X86_API_LEVEL = 30
@@ -80,7 +88,10 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
     if (androidVersion == null) {
       throw WizardException("Missing system image required for an AVD setup")
     }
-    val systemImages = sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
+    val systemImages =
+      sdkHandler
+        .getSystemImageManager(progress)
+        .lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
     if (systemImages.isEmpty()) {
       throw WizardException("Missing system image required for an AVD setup")
     }
@@ -100,13 +111,23 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
 
     val avdBuilder = avdManager.createAvdBuilder(device)
     with(avdBuilder) {
-      displayName = avdManager.uniquifyDisplayName(AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version))
+      displayName =
+        avdManager.uniquifyDisplayName(
+          AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version)
+        )
       avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(displayName))
       systemImage = systemImageDescription.systemImage
       sdCard = InternalSdCard(EmulatedProperties.DEFAULT_SDCARD_SIZE.size)
-      skin = device.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }?.let { defaultHardwareSkin ->
-        OnDiskSkin(DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get())
-      } ?: device.defaultGenericSkin()
+      skin =
+        device.defaultHardware.skinFile
+          ?.let { sdkHandler.toCompatiblePath(it) }
+          ?.let { defaultHardwareSkin ->
+            OnDiskSkin(
+              DeviceSkinUpdaterService.getInstance()
+                .updateSkins(defaultHardwareSkin, systemImageDescription)
+                .get()
+            )
+          } ?: device.defaultGenericSkin()
 
       gpuMode = GpuMode.AUTO
       backCamera = AvdCamera.VIRTUAL_SCENE
@@ -120,7 +141,8 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
     }
 
     val abi = Abi.getEnum(systemImageDescription.primaryAbiType)
-    val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
+    val supportsSmp =
+      abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     avdBuilder.cpuCoreCount = if (supportsSmp) AvdWizardUtils.getMaxCpuCores() else 1
 
     try {
@@ -132,35 +154,41 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
 
   @VisibleForTesting
   fun getRequiredSysimgPath(isArm64HostOs: Boolean): String {
-    return DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG,
-                                      when {
-                                        isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
-                                        androidVersion == null -> SdkConstants.ABI_INTEL_ATOM
-                                        androidVersion.compareTo(MAX_X86_API_LEVEL, null) > 0 -> SdkConstants.ABI_INTEL_ATOM64
-                                        else ->  SdkConstants.ABI_INTEL_ATOM
-                                      })
+    return DetailsTypes.getSysImgPath(
+      ID_VENDOR_GOOGLE,
+      androidVersion,
+      ID_ADDON_GOOGLE_API_IMG,
+      when {
+        isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
+        androidVersion == null -> SdkConstants.ABI_INTEL_ATOM
+        androidVersion.compareTo(MAX_X86_API_LEVEL, null) > 0 -> SdkConstants.ABI_INTEL_ATOM64
+        else -> SdkConstants.ABI_INTEL_ATOM
+      },
+    )
   }
 
   override val requiredSdkPackages: Collection<String>
     get() =
-      if (androidVersion == null) emptyList()
-      else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
+      if (androidVersion == null) emptyList() else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
 
   override val optionalSdkPackages: Collection<String>
     get() =
       if (androidVersion == null) emptyList()
-      else listOf(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG))
+      else
+        listOf(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG))
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
       installContext.progressIndicator.isIndeterminate = true
       installContext.progressIndicator.text = "Creating Android virtual device"
-      installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+      installContext.print(
+        "Creating Android virtual device\n",
+        ConsoleViewContentType.SYSTEM_OUTPUT,
+      )
       val avd = createAvd(sdkHandler)
       val successMessage = "Android virtual device ${avd.name} was successfully created\n"
       installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
-    }
-    catch (e: WizardException) {
+    } catch (e: WizardException) {
       LOG.error(e)
       val failureMessage = "Unable to create a virtual device: ${e.message}\n"
       installContext.print(failureMessage, ConsoleViewContentType.ERROR_OUTPUT)
@@ -169,13 +197,13 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
 
   public override fun isSelectedByDefault(): Boolean {
     val sdkHandler = sdkHandler ?: return false
-    val desired: SystemImageDescription = try {
-      getSystemImageDescription(sdkHandler)
-    }
-    catch (e: WizardException) {
-      // No System Image yet. Default is to install.
-      return true
-    }
+    val desired: SystemImageDescription =
+      try {
+        getSystemImageDescription(sdkHandler)
+      } catch (e: WizardException) {
+        // No System Image yet. Default is to install.
+        return true
+      }
     val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val avds = connection.getAvds(false)
     for (avd in avds) {
@@ -197,8 +225,9 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
 
     @Throws(WizardException::class)
     private fun getDevice(sdkPath: Path): Device {
-      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find { it.id == DEFAULT_DEVICE_ID } ?:
-          throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
+      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find {
+        it.id == DEFAULT_DEVICE_ID
+      } ?: throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
   }
 }

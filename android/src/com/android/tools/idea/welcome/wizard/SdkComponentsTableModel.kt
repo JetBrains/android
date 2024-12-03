@@ -21,9 +21,9 @@ import com.intellij.openapi.util.Pair
 import javax.swing.table.AbstractTableModel
 
 /**
- * The [AbstractTableModel] corresponding to a list of SDK components [SdkComponentTreeNode].
- * The tree is traversed using depth-first search and each component is added to the table as a new
- * row. Only optional components, where `isEnabled=true` are editable.
+ * The [AbstractTableModel] corresponding to a list of SDK components [SdkComponentTreeNode]. The
+ * tree is traversed using depth-first search and each component is added to the table as a new row.
+ * Only optional components, where `isEnabled=true` are editable.
  *
  * @param rootNode The children of this node are used to construct the table (the root is discarded)
  */
@@ -32,13 +32,16 @@ internal class SdkComponentsTableModel(rootNode: SdkComponentTreeNode) : Abstrac
 
   init {
     val components = ImmutableList.builder<Pair<SdkComponentTreeNode, Int>>()
-    // Note that root component is not present in the table model so the tree appears to have multiple roots
+    // Note that root component is not present in the table model so the tree appears to have
+    // multiple roots
     traverse(rootNode.immediateChildren, 0, components)
     this.components = components.build()
   }
 
   private fun traverse(
-    children: Collection<SdkComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<SdkComponentTreeNode, Int>>
+    children: Collection<SdkComponentTreeNode>,
+    indent: Int,
+    components: ImmutableList.Builder<Pair<SdkComponentTreeNode, Int>>,
   ) {
     for (child in children) {
       components.add(Pair.create(child, indent))
@@ -46,7 +49,8 @@ internal class SdkComponentsTableModel(rootNode: SdkComponentTreeNode) : Abstrac
     }
   }
 
-  override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = columnIndex == 0 && getInstallableComponent(rowIndex).isEnabled
+  override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean =
+    columnIndex == 0 && getInstallableComponent(rowIndex).isEnabled
 
   override fun getRowCount(): Int = components.size
 
@@ -54,7 +58,8 @@ internal class SdkComponentsTableModel(rootNode: SdkComponentTreeNode) : Abstrac
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any = components[rowIndex]
 
-  private fun getInstallableComponent(rowIndex: Int): SdkComponentTreeNode = components[rowIndex].getFirst()
+  private fun getInstallableComponent(rowIndex: Int): SdkComponentTreeNode =
+    components[rowIndex].getFirst()
 
   override fun setValueAt(aValue: Any?, row: Int, column: Int) {
     val node = getInstallableComponent(row)

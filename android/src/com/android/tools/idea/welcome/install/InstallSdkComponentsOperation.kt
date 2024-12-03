@@ -23,39 +23,36 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.progress.ProgressIndicator
 import java.io.File
 
-/**
- * Install or updates SDK components if needed.
- */
+/** Install or updates SDK components if needed. */
 class InstallSdkComponentsOperation(
   context: InstallContext,
   private val components: Collection<InstallableSdkComponentTreeNode>,
   private val sdkComponentInstaller: SdkComponentInstaller,
-  progressRatio: Double
+  progressRatio: Double,
 ) : InstallOperation<File, File>(context, progressRatio) {
   @Throws(WizardException::class)
   override fun perform(indicator: ProgressIndicator, argument: File): File {
     indicator.text = "Checking for updated SDK components"
-    var packages: List<RemotePackage> = try {
-      sdkComponentInstaller.getPackagesToInstall(components)
-    }
-    catch (e: PackageResolutionException) {
-      throw WizardException("Failed to determine required packages", e)
-    }
+    var packages: List<RemotePackage> =
+      try {
+        sdkComponentInstaller.getPackagesToInstall(components)
+      } catch (e: PackageResolutionException) {
+        throw WizardException("Failed to determine required packages", e)
+      }
     while (packages.isNotEmpty()) {
       indicator.fraction = 0.0
       val logger = SdkManagerProgressIndicatorIntegration(indicator, context)
       sdkComponentInstaller.installPackages(packages, StudioDownloader(), logger)
-      // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
+      // If we didn't set remote information on the installer we assume we weren't expecting
+      // updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
-      packages = try {
-        sdkComponentInstaller.getPackagesToInstall(components)
-      }
-      catch (e: PackageResolutionException) {
-        throw WizardException("Failed to determine required packages", e)
-      }
-      getRetryMessage(packages)?.let { message ->
-        promptToRetry(message, logger.errors, null)
-      }
+      packages =
+        try {
+          sdkComponentInstaller.getPackagesToInstall(components)
+        } catch (e: PackageResolutionException) {
+          throw WizardException("Failed to determine required packages", e)
+        }
+      getRetryMessage(packages)?.let { message -> promptToRetry(message, logger.errors, null) }
     }
     context.print("Android SDK is up to date.\n", ConsoleViewContentType.SYSTEM_OUTPUT)
     indicator.fraction = 1.0 // 100%
@@ -75,7 +72,7 @@ class InstallSdkComponentsOperation(
         packages.map { it.displayName },
         "The following SDK component was not installed: %s",
         "The following SDK components were not installed: %1\$s and %2\$s",
-        "%1\$s and %2\$s more SDK components were not installed"
+        "%1\$s and %2\$s more SDK components were not installed",
       )
     }
   }

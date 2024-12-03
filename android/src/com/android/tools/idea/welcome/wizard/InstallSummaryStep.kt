@@ -27,23 +27,19 @@ import java.io.File
 import java.util.function.Supplier
 import javax.swing.JComponent
 
-/**
- * Provides an explanation of changes the wizard will perform.
- */
+/** Provides an explanation of changes the wizard will perform. */
 class InstallSummaryStep(
   private val model: FirstRunWizardModel,
-  private val packagesProvider: Supplier<out Collection<RemotePackage>?>
+  private val packagesProvider: Supplier<out Collection<RemotePackage>?>,
 ) : ModelWizardStep<FirstRunWizardModel>(model, "Verify Settings") {
 
   companion object {
     @JvmStatic
     fun getSdkFolderSection(location: File?): Section {
-      val text = if (location == null)
-        ""
-      else if (isWritable(location.toPath()))
-        location.absolutePath
-      else
-        location.absolutePath + " (read-only)"
+      val text =
+        if (location == null) ""
+        else if (isWritable(location.toPath())) location.absolutePath
+        else location.absolutePath + " (read-only)"
 
       return Section("SDK Folder", text)
     }
@@ -61,35 +57,40 @@ class InstallSummaryStep(
       if (remotePackages.isEmpty()) {
         return null
       }
-      val sortedPackagesList = sortedSetOf(PackageInfoComparator()).apply {
-        addAll(remotePackages)
-      }
-      return HtmlBuilder().apply {
-        beginTable()
-        sortedPackagesList.forEach {
-          beginTableRow()
-          addTableRow(
-            it.displayName,
-            "&nbsp;&nbsp;", // Adds some whitespace between name and size columns
-            getSizeLabel(it.archive!!.complete.size)
-          )
-          endTableRow()
+      val sortedPackagesList = sortedSetOf(PackageInfoComparator()).apply { addAll(remotePackages) }
+      return HtmlBuilder()
+        .apply {
+          beginTable()
+          sortedPackagesList.forEach {
+            beginTableRow()
+            addTableRow(
+              it.displayName,
+              "&nbsp;&nbsp;", // Adds some whitespace between name and size columns
+              getSizeLabel(it.archive!!.complete.size),
+            )
+            endTableRow()
+          }
+          endTable()
         }
-        endTable()
-      }.html
+        .html
     }
 
     @JvmStatic
     fun getDownloadSizeSection(remotePackages: Collection<RemotePackage>): Section {
       // TODO: calculate patches?
       val downloadSize = remotePackages.map { it.archive!!.complete.size }.sum()
-      return Section("Total Download Size", if (downloadSize == 0L) "" else getSizeLabel(downloadSize))
+      return Section(
+        "Total Download Size",
+        if (downloadSize == 0L) "" else getSizeLabel(downloadSize),
+      )
     }
 
     @JvmStatic
     fun generateSummaryHtml(sections: List<Section>): String {
       val builder = java.lang.StringBuilder("<html><head>")
-      builder.append(UIUtil.getCssFontDeclaration(labelFont, UIUtil.getLabelForeground(), null, null)).append("</head><body>")
+      builder
+        .append(UIUtil.getCssFontDeclaration(labelFont, UIUtil.getLabelForeground(), null, null))
+        .append("</head><body>")
 
       for (section in sections) {
         if (!section.isEmpty) {
@@ -120,34 +121,40 @@ class InstallSummaryStep(
       return
     }
     val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.STANDARD
-    val sections = listOf(
-      getSetupTypeSection(StringUtil.capitalize(installationType.name.lowercase())),
-      getSdkFolderSection(model.sdkInstallLocation?.toFile()),
-      getDownloadSizeSection(packages),
-      getPackagesSection(packages)
-    )
+    val sections =
+      listOf(
+        getSetupTypeSection(StringUtil.capitalize(installationType.name.lowercase())),
+        getSdkFolderSection(model.sdkInstallLocation?.toFile()),
+        getDownloadSizeSection(packages),
+        getPackagesSection(packages),
+      )
 
     form.summaryText.text = generateSummaryHtml(sections)
-    form.summaryText.setCaretPosition(0) // Otherwise the scroll view will already be scrolled to the bottom when the UI is first shown
+    form.summaryText.setCaretPosition(
+      0
+    ) // Otherwise the scroll view will already be scrolled to the bottom when the UI is first shown
   }
 }
 
-/**
- * Summary section, consists of a header and a body text.
- */
+/** Summary section, consists of a header and a body text. */
 class Section(private val title: String, private val text: String) {
-  val isEmpty: Boolean get() = text.isBlank()
-  val html: String get() = "<p><strong>$title:</strong><br>$text</p>"
+  val isEmpty: Boolean
+    get() = text.isBlank()
+
+  val html: String
+    get() = "<p><strong>$title:</strong><br>$text</p>"
 }
 
 /**
- * Sorts package info in descending size order. Packages with the same size are sorted alphabetically.
+ * Sorts package info in descending size order. Packages with the same size are sorted
+ * alphabetically.
  */
 private class PackageInfoComparator : Comparator<RemotePackage> {
-  override fun compare(o1: RemotePackage?, o2: RemotePackage?): Int = when {
-    o1 === o2 -> 0
-    o1 == null -> -1
-    o2 == null -> 1
-    else -> o1.displayName.compareTo(o2.displayName)
-  }
+  override fun compare(o1: RemotePackage?, o2: RemotePackage?): Int =
+    when {
+      o1 === o2 -> 0
+      o1 == null -> -1
+      o2 == null -> 1
+      else -> o1.displayName.compareTo(o2.displayName)
+    }
 }

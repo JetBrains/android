@@ -29,72 +29,79 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
 
-/**
- * Wizard page for selecting SDK components to download.
- */
+/** Wizard page for selecting SDK components to download. */
 class SdkComponentsStep(
   model: FirstRunWizardModel,
   val project: Project?,
   val mode: FirstRunWizardMode,
-  val licenseAgreementStep: LicenseAgreementStep?
+  val licenseAgreementStep: LicenseAgreementStep?,
 ) : ModelWizardStep<FirstRunWizardModel>(model, "SDK Components Setup") {
   private val form = SdkComponentsStepForm()
   private val rootNode = model.componentTree
-  private val controller = object : SdkComponentsStepController(project, mode, rootNode, model.localHandlerProperty) {
-    override fun setError(icon: Icon?, message: String?) {
-      form.setErrorIcon(icon)
-      form.setErrorMessage(message)
-    }
+  private val controller =
+    object : SdkComponentsStepController(project, mode, rootNode, model.localHandlerProperty) {
+      override fun setError(icon: Icon?, message: String?) {
+        form.setErrorIcon(icon)
+        form.setErrorMessage(message)
+      }
 
-    override fun onLoadingStarted() {
-      form.startLoading()
-      validate()
-      updateDiskSizes()
-    }
+      override fun onLoadingStarted() {
+        form.startLoading()
+        validate()
+        updateDiskSizes()
+      }
 
-    override fun onLoadingFinished() {
-      validate()
-      updateDiskSizes()
-      form.stopLoading()
-    }
+      override fun onLoadingFinished() {
+        validate()
+        updateDiskSizes()
+        form.stopLoading()
+      }
 
-    override fun onLoadingError() {
-      validate()
-      updateDiskSizes()
-      form.setLoadingText("Error loading components")
-    }
+      override fun onLoadingError() {
+        validate()
+        updateDiskSizes()
+        form.setLoadingText("Error loading components")
+      }
 
-    override fun reloadLicenseAgreementStep() {
-      licenseAgreementStep?.reload()
+      override fun reloadLicenseAgreementStep() {
+        licenseAgreementStep?.reload()
+      }
     }
-  }
-  private val tableModel: SdkComponentsTableModel = SdkComponentsTableModel(model.componentTree).apply {
-    form.setTableModel(this)
-  }
+  private val tableModel: SdkComponentsTableModel =
+    SdkComponentsTableModel(model.componentTree).apply { form.setTableModel(this) }
   private val isValid = BoolValueProperty(false)
 
   init {
     Disposer.register(this, form)
 
-    form.path.textField.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        validate()
-        controller.onPathUpdated(form.path.getText(), ModalityState.stateForComponent(form.contents))
+    form.path.textField.document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          validate()
+          controller.onPathUpdated(
+            form.path.getText(),
+            ModalityState.stateForComponent(form.contents),
+          )
+        }
       }
-    })
+    )
 
-    form.setCellRenderer(object : SdkComponentsRenderer(tableModel, form.componentsTable) {
-      override fun onCheckboxUpdated() {
-        updateDiskSizes()
-        licenseAgreementStep?.reload()
+    form.setCellRenderer(
+      object : SdkComponentsRenderer(tableModel, form.componentsTable) {
+        override fun onCheckboxUpdated() {
+          updateDiskSizes()
+          licenseAgreementStep?.reload()
+        }
       }
-    })
-    form.setCellEditor(object : SdkComponentsRenderer(tableModel, form.componentsTable) {
-      override fun onCheckboxUpdated() {
-        updateDiskSizes()
-        licenseAgreementStep?.reload()
+    )
+    form.setCellEditor(
+      object : SdkComponentsRenderer(tableModel, form.componentsTable) {
+        override fun onCheckboxUpdated() {
+          updateDiskSizes()
+          licenseAgreementStep?.reload()
+        }
       }
-    })
+    )
   }
 
   override fun getComponent(): JComponent = form.contents
@@ -116,13 +123,16 @@ class SdkComponentsStep(
     super.onEntering()
 
     form.path.text = model.sdkInstallLocation?.toFile()?.absolutePath ?: ""
-    updateDiskSizes();
+    updateDiskSizes()
     validate()
   }
 
   override fun shouldShow(): Boolean {
     val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.CUSTOM
-    return controller.isStepVisible(installationType == FirstRunWizardModel.InstallationType.CUSTOM, model.sdkInstallLocation?.toFile()?.absolutePath ?: "")
+    return controller.isStepVisible(
+      installationType == FirstRunWizardModel.InstallationType.CUSTOM,
+      model.sdkInstallLocation?.toFile()?.absolutePath ?: "",
+    )
   }
 
   override fun canGoForward() = isValid
@@ -132,7 +142,9 @@ class SdkComponentsStep(
   }
 
   private fun updateDiskSizes() {
-    form.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath))
+    form.setDiskSpace(
+      SdkComponentsStepUtils.getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath)
+    )
     form.setDownloadSize(controller.componentsSize)
   }
 
@@ -140,4 +152,3 @@ class SdkComponentsStep(
     isValid.set(controller.validate(form.path.text))
   }
 }
-

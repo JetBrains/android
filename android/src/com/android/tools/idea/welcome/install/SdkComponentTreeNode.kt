@@ -25,8 +25,7 @@ abstract class SdkComponentTreeNode(val description: String) {
     @JvmStatic
     fun areAllRequiredComponentsAvailable(rootNode: SdkComponentTreeNode): Boolean {
       return !rootNode.allChildren.stream().anyMatch { node: SdkComponentTreeNode? ->
-        node is InstallableSdkComponentTreeNode &&
-        !node.unavailablePackages.isEmpty()
+        node is InstallableSdkComponentTreeNode && !node.unavailablePackages.isEmpty()
       }
     }
   }
@@ -41,6 +40,8 @@ abstract class SdkComponentTreeNode(val description: String) {
   abstract val isEnabled: Boolean
 
   override fun toString(): String = label
+
   abstract fun updateState(handler: AndroidSdkHandler)
+
   abstract fun toggle(isSelected: Boolean)
 }

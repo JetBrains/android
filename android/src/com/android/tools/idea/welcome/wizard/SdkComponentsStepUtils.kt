@@ -21,8 +21,8 @@ import com.android.tools.sdk.isValid
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.containers.isEmpty
 import com.intellij.util.containers.notNullize
-import org.jetbrains.annotations.Contract
 import java.io.File
+import org.jetbrains.annotations.Contract
 
 internal object SdkComponentsStepUtils {
 
@@ -43,14 +43,14 @@ internal object SdkComponentsStepUtils {
     return if (SystemInfo.isWindows) {
       val driveName = generateSequence(file, File::getParentFile).last().name
       "$available (drive $driveName)"
-    }
-    else {
+    } else {
       available
     }
   }
 
   @JvmStatic
-  fun getTargetFilesystem(path: String?): File? = getExistingParentFile(path) ?: File.listRoots().firstOrNull()
+  fun getTargetFilesystem(path: String?): File? =
+    getExistingParentFile(path) ?: File.listRoots().firstOrNull()
 
   @Contract("null->false")
   @JvmStatic
@@ -68,6 +68,8 @@ internal object SdkComponentsStepUtils {
       return false
     }
     val file = File(path)
-    return file.exists() && !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() && AndroidSdkData.getSdkData(file) == null
+    return file.exists() &&
+      !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() &&
+      AndroidSdkData.getSdkData(file) == null
   }
 }

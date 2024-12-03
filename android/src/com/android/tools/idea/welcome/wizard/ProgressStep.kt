@@ -20,14 +20,19 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.progress.ProgressIndicator
 
 /**
- * This interface facilitates migration from the deprecated {@link com.android.tools.idea.welcome.wizard.deprecated.ProgressStep}
- * step to the new {@link com.android.tools.idea.welcome.wizard.ProgressStep} step. It can be removed once the migration is complete
- * and the deprecated class has been removed.
+ * This interface facilitates migration from the deprecated {@link
+ * com.android.tools.idea.welcome.wizard.deprecated.ProgressStep} step to the new {@link
+ * com.android.tools.idea.welcome.wizard.ProgressStep} step. It can be removed once the migration is
+ * complete and the deprecated class has been removed.
  */
 interface ProgressStep {
   fun isCanceled(): Boolean
+
   fun print(s: String, contentType: ConsoleViewContentType)
+
   fun run(runnable: Runnable, progressPortion: Double)
+
   fun attachToProcess(processHandler: ProcessHandler)
+
   fun getProgressIndicator(): ProgressIndicator
 }

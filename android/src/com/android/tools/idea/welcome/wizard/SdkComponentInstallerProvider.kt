@@ -23,5 +23,4 @@ class SdkComponentInstallerProvider {
   fun getComponentInstaller(handler: AndroidSdkHandler): SdkComponentInstaller {
     return SdkComponentInstaller(handler)
   }
-
 }

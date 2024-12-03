@@ -21,9 +21,7 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Step to show a message that the SDK is missing.
- */
+/** Step to show a message that the SDK is missing. */
 class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
   private val panel = createPanel()
 
@@ -32,8 +30,13 @@ class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
   companion object {
     fun createPanel(): JPanel {
       val panel = JPanel(BorderLayout())
-      panel.add(JBLabel("<html><b>No Android SDK found.</b><br><br>Before continuing, you must download the necessary " +
-                        "components or select an existing SDK."), BorderLayout.NORTH)
+      panel.add(
+        JBLabel(
+          "<html><b>No Android SDK found.</b><br><br>Before continuing, you must download the necessary " +
+            "components or select an existing SDK."
+        ),
+        BorderLayout.NORTH,
+      )
       return panel
     }
   }

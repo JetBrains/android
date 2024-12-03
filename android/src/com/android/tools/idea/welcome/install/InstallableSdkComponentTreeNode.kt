@@ -25,15 +25,14 @@ import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.intellij.openapi.diagnostic.thisLogger
 
-private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableSdkComponentTreeNode::class.java)
+private val PROGRESS_LOGGER =
+  StudioLoggerProgressIndicator(InstallableSdkComponentTreeNode::class.java)
 
-/**
- * Base class for leaf components (the ones that are immediately installed).
- */
+/** Base class for leaf components (the ones that are immediately installed). */
 abstract class InstallableSdkComponentTreeNode(
   private val name: String,
   description: String,
-  @JvmField protected val installUpdates: Boolean
+  @JvmField protected val installUpdates: Boolean,
 ) : SdkComponentTreeNode(description) {
   protected var willBeInstalled: BoolProperty = BoolValueProperty(true)
   private var userSelection: Boolean? = null // null means default component enablement is used
@@ -41,30 +40,30 @@ abstract class InstallableSdkComponentTreeNode(
   private var isInstalled = false
   private var isUnavailable = false
 
-  @JvmField
-  protected var sdkHandler: AndroidSdkHandler? = null
+  @JvmField protected var sdkHandler: AndroidSdkHandler? = null
 
   /**
-   * Gets the packages that this component would actually install (the required packages that aren't already installed
-   * or have an update available, if we're installing updates).
+   * Gets the packages that this component would actually install (the required packages that aren't
+   * already installed or have an update available, if we're installing updates).
    */
   val packagesToInstall: Collection<UpdatablePackage>
-    get() = requiredSdkPackages.plus(optionalSdkPackages)
-      .mapNotNull { repositoryPackages.consolidatedPkgs[it] }
-      .filter { p -> p.hasRemote() && (!p.hasLocal() || installUpdates && p.isUpdate) }
+    get() =
+      requiredSdkPackages
+        .plus(optionalSdkPackages)
+        .mapNotNull { repositoryPackages.consolidatedPkgs[it] }
+        .filter { p -> p.hasRemote() && (!p.hasLocal() || installUpdates && p.isUpdate) }
 
   val unavailablePackages: Collection<String>
     get() {
-      val installedPackages = requiredSdkPackages
-        .mapNotNull { repositoryPackages.consolidatedPkgs[it]?.local?.path }
+      val installedPackages =
+        requiredSdkPackages.mapNotNull { repositoryPackages.consolidatedPkgs[it]?.local?.path }
       return requiredSdkPackages.minus(packagesToInstall.map { it.path }).minus(installedPackages)
     }
 
-  protected val repositoryPackages: RepositoryPackages get() = sdkHandler!!.getSdkManager(PROGRESS_LOGGER).packages
+  protected val repositoryPackages: RepositoryPackages
+    get() = sdkHandler!!.getSdkManager(PROGRESS_LOGGER).packages
 
-  /**
-   * Gets the unfiltered collection of all packages required by this component.
-   */
+  /** Gets the unfiltered collection of all packages required by this component. */
   protected abstract val requiredSdkPackages: Collection<String>
   protected open val optionalSdkPackages: Collection<String> = listOf()
 
@@ -78,11 +77,12 @@ abstract class InstallableSdkComponentTreeNode(
 
   override val label: String
     get() {
-      val sizeLabel = when {
-        isInstalled -> "installed"
-        isUnavailable -> "unavailable"
-        else -> getSizeLabel(downloadSize)
-      }
+      val sizeLabel =
+        when {
+          isInstalled -> "installed"
+          isUnavailable -> "unavailable"
+          else -> getSizeLabel(downloadSize)
+        }
       return "$name – ($sizeLabel)"
     }
 
@@ -110,7 +110,10 @@ abstract class InstallableSdkComponentTreeNode(
     isInstalled = packagesToInstall.isEmpty() && unavailablePackages.isEmpty()
     isUnavailable = unavailablePackages.isNotEmpty()
     if (isUnavailable) {
-      thisLogger().warn("$name depends on the the packages that are not available: ${unavailablePackages.joinToString(", ")}")
+      thisLogger()
+        .warn(
+          "$name depends on the the packages that are not available: ${unavailablePackages.joinToString(", ")}"
+        )
     }
   }
 
@@ -121,7 +124,9 @@ abstract class InstallableSdkComponentTreeNode(
     }
   }
 
-  override val immediateChildren: Collection<SdkComponentTreeNode> get() = emptySet()
+  override val immediateChildren: Collection<SdkComponentTreeNode>
+    get() = emptySet()
 
-  override val isChecked: Boolean get() = willBeInstalled.get()
+  override val isChecked: Boolean
+    get() = willBeInstalled.get()
 }

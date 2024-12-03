@@ -28,10 +28,9 @@ import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
 import javax.swing.JComponent
 
-/**
- * Wizard step with progress bar and "more details" button.
- */
-abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : ModelWizardStep<T>(model, name), ProgressStep {
+/** Wizard step with progress bar and "more details" button. */
+abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
+  ModelWizardStep<T>(model, name), ProgressStep {
   private val form = ProgressStepForm()
   private var myProgressIndicator: ProgressIndicator? = null
 
@@ -47,9 +46,7 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
 
   protected abstract fun execute()
 
-  /**
-   * Returns progress indicator that will report the progress to this wizard step.
-   */
+  /** Returns progress indicator that will report the progress to this wizard step. */
   @Synchronized
   override fun getProgressIndicator(): ProgressIndicator {
     if (myProgressIndicator == null) {
@@ -65,7 +62,7 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
   /**
    * Output text to the console pane.
    *
-   * @param s           text to print
+   * @param s text to print
    * @param contentType attributes of the text to output
    */
   override fun print(s: String, contentType: ConsoleViewContentType) {
@@ -75,19 +72,16 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
   /**
    * Will output process standard in and out to the console view.
    *
+   * Note: current version does not support collecting user input. We may reconsider this at a later
+   * point.
    *
-   * Note: current version does not support collecting user input. We may
-   * reconsider this at a later point.
-   *
-   * @param processHandler  process to track
+   * @param processHandler process to track
    */
   override fun attachToProcess(processHandler: ProcessHandler) {
     form.attachToProcess(processHandler)
   }
 
-  /**
-   * Displays console widget if one was not visible already
-   */
+  /** Displays console widget if one was not visible already */
   fun showConsole() = form.showConsole()
 
   /**
@@ -103,12 +97,12 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
     super.dispose()
   }
 
-  /**
-   * Progress indicator that scales task to only use a portion of the parent indicator.
-   */
+  /** Progress indicator that scales task to only use a portion of the parent indicator. */
   // TODO(qumeric): make private
   class ProgressPortionReporter(
-    indicator: ProgressIndicator, private val start: Double, private val portion: Double
+    indicator: ProgressIndicator,
+    private val start: Double,
+    private val portion: Double,
   ) : DelegatingProgressIndicator(indicator) {
 
     override fun start() {
@@ -124,22 +118,20 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
     }
   }
 
-  /**
-   * Progress indicator integration for this wizard step
-   */
+  /** Progress indicator integration for this wizard step */
   class ProgressIndicatorIntegration(private val form: ProgressStepForm) : ProgressIndicatorBase() {
     override fun start() {
       super.start()
       isIndeterminate = false
     }
 
-    override fun setText(text: String) = invokeLater(ModalityState.stateForComponent(form.label)) {
-      form.label.text = text
-    }
+    override fun setText(text: String) =
+      invokeLater(ModalityState.stateForComponent(form.label)) { form.label.text = text }
 
-    override fun setText2(text: String?) = invokeLater(ModalityState.stateForComponent(form.label)) {
-      form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10)
-    }
+    override fun setText2(text: String?) =
+      invokeLater(ModalityState.stateForComponent(form.label)) {
+        form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10)
+      }
 
     override fun stop() {
       invokeLater(ModalityState.stateForComponent(form.progressBar)) {
@@ -152,7 +144,9 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : Mo
     }
 
     override fun setIndeterminate(indeterminate: Boolean) {
-      invokeLater(ModalityState.stateForComponent(form.progressBar)) { form.progressBar.isIndeterminate = indeterminate }
+      invokeLater(ModalityState.stateForComponent(form.progressBar)) {
+        form.progressBar.isIndeterminate = indeterminate
+      }
     }
 
     override fun setFraction(fraction: Double) {

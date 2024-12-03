@@ -17,17 +17,26 @@ package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
 
-/**
- * A non-leaf tree node. It is not possible to install it.
- */
+/** A non-leaf tree node. It is not possible to install it. */
 class SdkComponentCategoryTreeNode(
-  override val label: String, description: String, private val components: Collection<SdkComponentTreeNode>
+  override val label: String,
+  description: String,
+  private val components: Collection<SdkComponentTreeNode>,
 ) : SdkComponentTreeNode(description) {
-  override val childrenToInstall: Collection<InstallableSdkComponentTreeNode> get() = components.flatMap(SdkComponentTreeNode::childrenToInstall)
-  override val isEnabled: Boolean get() = components.any(SdkComponentTreeNode::isEnabled)
-  override val isChecked: Boolean get() = components.none (SdkComponentTreeNode::isChecked)
-  override val immediateChildren: Collection<SdkComponentTreeNode> get() = components
+  override val childrenToInstall: Collection<InstallableSdkComponentTreeNode>
+    get() = components.flatMap(SdkComponentTreeNode::childrenToInstall)
 
-  override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
+  override val isEnabled: Boolean
+    get() = components.any(SdkComponentTreeNode::isEnabled)
+
+  override val isChecked: Boolean
+    get() = components.none(SdkComponentTreeNode::isChecked)
+
+  override val immediateChildren: Collection<SdkComponentTreeNode>
+    get() = components
+
+  override fun updateState(handler: AndroidSdkHandler) =
+    components.forEach { it.updateState(handler) }
+
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }
 }

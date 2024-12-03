@@ -37,9 +37,7 @@ import javax.swing.JRootPane
 
 val log = logger<AndroidStudioWelcomeScreenProvider>()
 
-/**
- * Shows a wizard first time Android Studio is launched.
- */
+/** Shows a wizard first time Android Studio is launched. */
 class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   override fun createWelcomeScreen(rootPane: JRootPane): WelcomeScreen {
     ApplicationManager.getApplication().executeOnPooledThread {
@@ -55,21 +53,28 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   }
 
   @VisibleForTesting
-  fun createWelcomeScreen(useNewWizard: Boolean, wizardMode: FirstRunWizardMode, sdkComponentInstallerProvider: SdkComponentInstallerProvider): WelcomeScreen {
+  fun createWelcomeScreen(
+    useNewWizard: Boolean,
+    wizardMode: FirstRunWizardMode,
+    sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+  ): WelcomeScreen {
     // This means isAvailable was false! Why are we even called?
     ourWasShown = true
-    return if (useNewWizard)
-      StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstallerProvider) else FirstRunWizardHost(wizardMode, sdkComponentInstallerProvider)
+    return if (useNewWizard) StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstallerProvider)
+    else FirstRunWizardHost(wizardMode, sdkComponentInstallerProvider)
   }
 
   override fun isAvailable(): Boolean {
-    val isWizardDisabled = GuiTestingService.getInstance().isGuiTestingMode || java.lang.Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)
+    val isWizardDisabled =
+      GuiTestingService.getInstance().isGuiTestingMode ||
+        java.lang.Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)
     return !ourWasShown && !isWizardDisabled && wizardMode != null
   }
 
   companion object {
     private const val SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run"
-    private var ourWasShown: Boolean = false // Do not show wizard multiple times in one session even if it was canceled
+    private var ourWasShown: Boolean =
+      false // Do not show wizard multiple times in one session even if it was canceled
 
     /**
      * Analyzes system state and decides if and how the wizard should be invoked.
@@ -77,7 +82,8 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
      * @return one of the [FirstRunWizardMode] constants or `null` if wizard is not needed.
      */
     // TODO: Remove this temporary code, once the Welcome Wizard is more completely ported.
-    // This code forces the first run wizard to run every time, but eventually it should only run the first time.
+    // This code forces the first run wizard to run every time, but eventually it should only run
+    // the first time.
     val wizardMode: FirstRunWizardMode?
       @JvmStatic
       get() {
@@ -94,12 +100,11 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
         }
       }
 
-    /**
-     * Returns true if the handoff data was updated since the last time wizard ran.
-     */
+    /** Returns true if the handoff data was updated since the last time wizard ran. */
     private fun isHandoff(persistentData: AndroidFirstRunPersistentData): Boolean {
       val data = installerData ?: return false
-      return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) && data.isCurrentVersion
+      return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) &&
+        data.isCurrentVersion
     }
 
     @WorkerThread
@@ -110,18 +115,16 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       do {
         var retryConnection: Boolean
         try {
-          val connection = HttpConfigurable.getInstance().openHttpConnection("http://developer.android.com")
+          val connection =
+            HttpConfigurable.getInstance().openHttpConnection("http://developer.android.com")
           connection.connect()
           connection.disconnect()
           retryConnection = false
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
           retryConnection = promptToRetryFailedConnection()
-        }
-        catch (e: RuntimeException) {
+        } catch (e: RuntimeException) {
           retryConnection = promptToRetryFailedConnection()
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           // Some other unexpected error related to JRE setup, e.g.
           // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
           //     at javax.crypto.KeyGenerator.a(DashoA13*..)
@@ -139,14 +142,20 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
     }
 
     private fun promptToRetryFailedConnection(): Boolean {
-      return invokeAndWaitIfNeeded {  promptUserForProxy() }
+      return invokeAndWaitIfNeeded { promptUserForProxy() }
     }
 
     private fun promptUserForProxy(): Boolean {
-      val selection = Messages.showIdeaMessageDialog(
-        null, "Unable to access Android SDK add-on list", "Android Studio First Run",
-        arrayOf("Setup Proxy", "Cancel"), 1, Messages.getErrorIcon(), null
-      )
+      val selection =
+        Messages.showIdeaMessageDialog(
+          null,
+          "Unable to access Android SDK add-on list",
+          "Android Studio First Run",
+          arrayOf("Setup Proxy", "Cancel"),
+          1,
+          Messages.getErrorIcon(),
+          null,
+        )
       val showSetupProxy = selection == 0
       if (showSetupProxy) {
         HttpConfigurable.editConfigurable(null)

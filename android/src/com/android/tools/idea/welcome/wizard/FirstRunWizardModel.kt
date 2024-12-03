@@ -29,13 +29,13 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
+import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.AndroidSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponentTreeNode
-import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
-import com.android.tools.idea.welcome.install.SdkComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallContext
 import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode
-import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode
 import com.android.tools.idea.welcome.install.WizardException
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath
 import com.android.tools.idea.wizard.model.WizardModel
@@ -44,38 +44,52 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.containers.orNull
 import java.io.File
 import java.nio.file.Path
-import java.util.function.Supplier
 import java.util.Optional
+import java.util.function.Supplier
 import kotlin.io.path.isDirectory
 
 // Contains all the data which Studio should collect in the First Run Wizard
-class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocation: Path, installUpdates: Boolean, private val sdkComponentInstallerProvider: SdkComponentInstallerProvider): WizardModel() {
+class FirstRunWizardModel(
+  private val mode: FirstRunWizardMode,
+  initialSdkLocation: Path,
+  installUpdates: Boolean,
+  private val sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+) : WizardModel() {
   enum class InstallationType {
     STANDARD,
-    CUSTOM
+    CUSTOM,
   }
 
   val isStandardInstallSupported = initialSdkLocation.toString().isNotEmpty()
   var installationType: InstallationType? = null
 
-  val initialSdkExists = if (initialSdkLocation.isDirectory()) {
-    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
-    val progress = StudioLoggerProgressIndicator(javaClass)
-    sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
-  } else {
-    false
-  }
+  val initialSdkExists =
+    if (initialSdkLocation.isDirectory()) {
+      val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
+      val progress = StudioLoggerProgressIndicator(javaClass)
+      sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
+    } else {
+      false
+    }
 
-  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation))
-  private val localHandler get() = localHandlerProperty.get()
+  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> =
+    ObjectValueProperty(
+      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
+    )
+  private val localHandler
+    get() = localHandlerProperty.get()
 
-  val sdkInstallLocationProperty: ObservableValue<Optional<Path>> = localHandlerProperty.transform { Optional.ofNullable(it.location) }
-  val sdkInstallLocation: Path? get() = sdkInstallLocationProperty.get().orNull()
+  val sdkInstallLocationProperty: ObservableValue<Optional<Path>> =
+    localHandlerProperty.transform { Optional.ofNullable(it.location) }
+  val sdkInstallLocation: Path?
+    get() = sdkInstallLocationProperty.get().orNull()
 
-  /**
-   * Should store the root node of the component tree.
-   */
-  val componentTree = createComponentTree(!isChromeOSAndIsNotHWAccelerated() && mode.shouldCreateAvd(), installUpdates)
+  /** Should store the root node of the component tree. */
+  val componentTree =
+    createComponentTree(
+      !isChromeOSAndIsNotHWAccelerated() && mode.shouldCreateAvd(),
+      installUpdates,
+    )
 
   init {
     componentTree.updateState(localHandler)
@@ -84,26 +98,40 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
   fun getPackagesToInstallSupplier(): Supplier<Collection<RemotePackage>?> = Supplier {
     val components: Iterable<InstallableSdkComponentTreeNode> = componentTree.childrenToInstall
     try {
-      sdkComponentInstallerProvider.getComponentInstaller(localHandler).getPackagesToInstall(components)
-    }
-    catch (e: SdkQuickfixUtils.PackageResolutionException) {
+      sdkComponentInstallerProvider
+        .getComponentInstaller(localHandler)
+        .getPackagesToInstall(components)
+    } catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)
       null
     }
   }
 
-  private fun createComponentTree(createAvd: Boolean, installUpdates: Boolean): SdkComponentTreeNode {
-    val components: MutableList<SdkComponentTreeNode> = mutableListOf(AndroidSdkComponentTreeNode(installUpdates))
+  private fun createComponentTree(
+    createAvd: Boolean,
+    installUpdates: Boolean,
+  ): SdkComponentTreeNode {
+    val components: MutableList<SdkComponentTreeNode> =
+      mutableListOf(AndroidSdkComponentTreeNode(installUpdates))
 
-    val sdkManager = localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
-      loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-           StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-           StudioDownloader(), StudioSettingsController.getInstance())
-    }
+    val sdkManager =
+      localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
+        loadSynchronously(
+          RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+          null,
+          null,
+          null,
+          StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+          StudioDownloader(),
+          StudioSettingsController.getInstance(),
+        )
+      }
 
     val remotePackages = sdkManager.packages.remotePackages.values
 
-    components.add(AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates))
+    components.add(
+      AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates)
+    )
 
     val installationIntention =
       if (installUpdates) AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
@@ -117,13 +145,16 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
         components.add(avdSdkComponent)
       }
     }
-    return SdkComponentCategoryTreeNode("Root", "Root node that is not supposed to appear in the UI", components)
+    return SdkComponentCategoryTreeNode(
+      "Root",
+      "Root node that is not supposed to appear in the UI",
+      components,
+    )
   }
 
   /**
-   * Installs all components in the `componentTree` that are configured to be installed.
-   * Once the components have been installed, the SDK path and installer timestamp are
-   * stored in preferences.
+   * Installs all components in the `componentTree` that are configured to be installed. Once the
+   * components have been installed, the SDK path and installer timestamp are stored in preferences.
    *
    * @param progressStep used to provide feedback on installation progress
    */
@@ -137,7 +168,7 @@ class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocati
       mode.installerTimestamp,
       ModalityState.stateForComponent(progressStep.component),
       sdkHandler,
-      getDestination()
+      getDestination(),
     )
   }
 

@@ -49,20 +49,19 @@ private const val INSTALLER_EXIT_CODE_USER_CANCELLED = 1223
 private val LOG: Logger
   get() = logger<AehdSdkComponentTreeNode>()
 
-/**
- * Google AEHD installable component
- */
-class AehdSdkComponentTreeNode(
-  @JvmField val installationIntention: InstallationIntention
-) : InstallableSdkComponentTreeNode("Performance (Android Emulator hypervisor visor})",
-                                    "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-                         "Android app emulation on your development computer. (Recommended)",
-                                    installationIntention == InstallationIntention.INSTALL_WITH_UPDATES) {
+/** Google AEHD installable component */
+class AehdSdkComponentTreeNode(@JvmField val installationIntention: InstallationIntention) :
+  InstallableSdkComponentTreeNode(
+    "Performance (Android Emulator hypervisor visor})",
+    "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+      "Android app emulation on your development computer. (Recommended)",
+    installationIntention == InstallationIntention.INSTALL_WITH_UPDATES,
+  ) {
   /**
    * Specifies what to do with the AEHD package.
    *
-   * For most packages managed by the SDK manager, "installation" means simply unpacking the packages
-   * into the appropriate directory beneath the SDK root. For the AEHD packages, however,
+   * For most packages managed by the SDK manager, "installation" means simply unpacking the
+   * packages into the appropriate directory beneath the SDK root. For the AEHD packages, however,
    * the contents of the package are only installation (and uninstallation) scripts that install the
    * AEHD in the operating system.
    *
@@ -70,8 +69,8 @@ class AehdSdkComponentTreeNode(
    * running the setup script (which we call "configuration").
    *
    * The AEHD needs to be installed and configured. (Note that "install" here means unpacking the
-   * package files into their installation directory below the SDK root, and "configure" means running
-   * the installation script that installs the components in the OS.)
+   * package files into their installation directory below the SDK root, and "configure" means
+   * running the installation script that installs the components in the OS.)
    */
   enum class InstallationIntention {
     /**
@@ -136,7 +135,9 @@ class AehdSdkComponentTreeNode(
     val sdkRoot = sdkHandler.location?.toFile()
     if (sdkRoot == null) {
       installContext.print(
-        "Android Emulator hypervisor driver installer could not be run because SDK root isn't specified", ConsoleViewContentType.ERROR_OUTPUT)
+        "Android Emulator hypervisor driver installer could not be run because SDK root isn't specified",
+        ConsoleViewContentType.ERROR_OUTPUT,
+      )
       return
     }
     if (installationIntention == InstallationIntention.UNINSTALL) {
@@ -154,29 +155,35 @@ class AehdSdkComponentTreeNode(
       solution = reinstallSolution
     }
     when (solution) {
-      installSolution, reinstallSolution -> try {
-        val commandLine: GeneralCommandLine = getInstallCommandLine(sdkRoot)
-        runInstaller(installContext, commandLine)
-      }
-      catch (e: WizardException) {
-        printExceptionMessage(e, installContext)
-      }
-      catch (e: IOException) {
-        printExceptionMessage(e, installContext)
-      }
+      installSolution,
+      reinstallSolution ->
+        try {
+          val commandLine: GeneralCommandLine = getInstallCommandLine(sdkRoot)
+          runInstaller(installContext, commandLine)
+        } catch (e: WizardException) {
+          printExceptionMessage(e, installContext)
+        } catch (e: IOException) {
+          printExceptionMessage(e, installContext)
+        }
       SolutionCode.NONE -> {
-        val message = "Unable to install Android Emulator hypervisor driver\n${accelerationErrorCode.problem}\n${accelerationErrorCode.solutionMessage}"
+        val message =
+          "Unable to install Android Emulator hypervisor driver\n${accelerationErrorCode.problem}\n${accelerationErrorCode.solutionMessage}"
         installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT)
       }
       else -> {}
     }
   }
 
-  private fun printExceptionMessage(e: Exception,
-                                    installContext: InstallContext) {
-    LOG.warn("Tried to install Android Emulator hypervisor driver on ${Platform.current().name} OS with " +
-             "${MemorySettingsUtil.getMachineMemoryBytes()} memory size", e)
-    installContext.print("Unable to install Android Emulator hypervisor driver\n", ConsoleViewContentType.ERROR_OUTPUT)
+  private fun printExceptionMessage(e: Exception, installContext: InstallContext) {
+    LOG.warn(
+      "Tried to install Android Emulator hypervisor driver on ${Platform.current().name} OS with " +
+        "${MemorySettingsUtil.getMachineMemoryBytes()} memory size",
+      e,
+    )
+    installContext.print(
+      "Unable to install Android Emulator hypervisor driver\n",
+      ConsoleViewContentType.ERROR_OUTPUT,
+    )
     var message = e.message ?: "(unknown)"
     if (!StringUtil.endsWithLineBreak(message)) {
       message += "\n"
@@ -189,44 +196,45 @@ class AehdSdkComponentTreeNode(
       try {
         val commandLine: GeneralCommandLine = getUninstallCommandLine(sdkRoot)
         runInstaller(installContext, commandLine)
-      }
-      catch (e: WizardException) {
+      } catch (e: WizardException) {
+        printExceptionMessage(e, installContext)
+      } catch (e: IOException) {
         printExceptionMessage(e, installContext)
       }
-      catch (e: IOException) {
-        printExceptionMessage(e, installContext)
-      }
-    }
-    else {
+    } else {
       // The vm is not installed and the intention is to uninstall, so nothing to do here
-      // This should not normally be the case unless some of the previous installation/uninstallation
+      // This should not normally be the case unless some of the previous
+      // installation/uninstallation
       // operations failed or were executed outside of Studio
-      installContext.print("Android Emulator hypervisor driver is not installed, so not proceeding with its uninstallation.",
-                           ConsoleViewContentType.NORMAL_OUTPUT)
+      installContext.print(
+        "Android Emulator hypervisor driver is not installed, so not proceeding with its uninstallation.",
+        ConsoleViewContentType.NORMAL_OUTPUT,
+      )
       isInstallerSuccessfullyCompleted = true
     }
   }
 
   private fun isInstalled(context: InstallContext, sdkRoot: File): Boolean {
     val printError = { exception: Exception ->
-      context.print("Failed to determine whether Android Emulator hypervisor driver is installed: ${exception.message}",
-                    ConsoleViewContentType.ERROR_OUTPUT)
+      context.print(
+        "Failed to determine whether Android Emulator hypervisor driver is installed: ${exception.message}",
+        ConsoleViewContentType.ERROR_OUTPUT,
+      )
     }
     try {
       val command: GeneralCommandLine = getInstallerBaseCommandLine(sdkRoot)
       command.addParameter("-v")
-      return OSProcessHandler(command).apply {
-        startNotify()
-        waitFor()
-      }.exitCode == 0
-    }
-    catch (exception: ExecutionException) {
+      return OSProcessHandler(command)
+        .apply {
+          startNotify()
+          waitFor()
+        }
+        .exitCode == 0
+    } catch (exception: ExecutionException) {
       printError(exception)
-    }
-    catch (exception: WizardException) {
+    } catch (exception: WizardException) {
       printError(exception)
-    }
-    catch (exception: IOException) {
+    } catch (exception: IOException) {
       printError(exception)
     }
     return false
@@ -242,20 +250,24 @@ class AehdSdkComponentTreeNode(
       installContext.print(runningInstallerMessage + "\n", ConsoleViewContentType.SYSTEM_OUTPUT)
       val process = CapturingAnsiEscapesAwareProcessHandler(commandLine)
       val output = StringBuffer()
-      process.addProcessListener(object : ProcessAdapter() {
-        override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-          output.append(event.text)
-          super.onTextAvailable(event, outputType)
+      process.addProcessListener(
+        object : ProcessAdapter() {
+          override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+            output.append(event.text)
+            super.onTextAvailable(event, outputType)
+          }
         }
-      })
+      )
       installContext.attachToProcess(process)
       val exitCode = process.runProcess().exitCode
       // More testing of bash scripts invocation with intellij process wrappers might be useful.
       if (exitCode != INSTALLER_EXIT_CODE_SUCCESS) {
-        // According to the installer docs for Windows, installer may signify that a reboot is required
+        // According to the installer docs for Windows, installer may signify that a reboot is
+        // required
         if (SystemInfo.isWindows && exitCode == INSTALLER_EXIT_CODE_REBOOT_REQUIRED) {
-          val rebootMessage = "Reboot required: Android Emulator hypervisor driver installation succeeded, however the installer reported that a " +
-                              "reboot is required in order for the changes to take effect"
+          val rebootMessage =
+            "Reboot required: Android Emulator hypervisor driver installation succeeded, however the installer reported that a " +
+              "reboot is required in order for the changes to take effect"
           installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT)
           AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.nonModal())
           isInstallerSuccessfullyCompleted = true
@@ -266,44 +278,57 @@ class AehdSdkComponentTreeNode(
         if (SystemInfo.isWindows && exitCode == INSTALLER_EXIT_CODE_USER_CANCELLED) {
           installContext.print(
             "Android Emulator hypervisor driver installation failed because the operation was cancelled. " +
-            "To install Android Emulator hypervisor driver, try the installer again. Make sure to click \"yes\" when " +
-            "the installer requests administrator privilege. This has to be done before the request times out.",
-            ConsoleViewContentType.ERROR_OUTPUT)
+              "To install Android Emulator hypervisor driver, try the installer again. Make sure to click \"yes\" when " +
+              "the installer requests administrator privilege. This has to be done before the request times out.",
+            ConsoleViewContentType.ERROR_OUTPUT,
+          )
           isInstallerSuccessfullyCompleted = false
           progressIndicator?.apply { fraction = 1.0 }
           return
         }
         // The vm is not required so we do not stop setup process if this install failed.
         if (installationIntention == InstallationIntention.UNINSTALL) {
-          installContext.print("Android Emulator hypervisor driver uninstallation failed", ConsoleViewContentType.ERROR_OUTPUT)
-        }
-        else {
+          installContext.print(
+            "Android Emulator hypervisor driver uninstallation failed",
+            ConsoleViewContentType.ERROR_OUTPUT,
+          )
+        } else {
           installContext.print(
             "Android Emulator hypervisor driver installation failed. To install Android Emulator hypervisor driver " +
-            "follow the instructions found at: https://github.com/google/android-emulator-hypervisor-driver",
-            ConsoleViewContentType.ERROR_OUTPUT)
+              "follow the instructions found at: https://github.com/google/android-emulator-hypervisor-driver",
+            ConsoleViewContentType.ERROR_OUTPUT,
+          )
         }
-        val file = Regex("installation log:\\s*\"(.*)\"").find(output.toString())?.groupValues?.get(1)
+        val file =
+          Regex("installation log:\\s*\"(.*)\"").find(output.toString())?.groupValues?.get(1)
         if (file != null) {
-          installContext.print("Installer log is located at ${file}", ConsoleViewContentType.ERROR_OUTPUT)
+          installContext.print(
+            "Installer log is located at ${file}",
+            ConsoleViewContentType.ERROR_OUTPUT,
+          )
           try {
             installContext.print("Installer log contents:\n", ConsoleViewContentType.ERROR_OUTPUT)
-            installContext.print(FileUtil.loadFile(File(file), "UTF-16"),
-                                 ConsoleViewContentType.NORMAL_OUTPUT)
-          }
-          catch (e: IOException) {
-            installContext.print("Failed to read installer output log.\n", ConsoleViewContentType.ERROR_OUTPUT)
+            installContext.print(
+              FileUtil.loadFile(File(file), "UTF-16"),
+              ConsoleViewContentType.NORMAL_OUTPUT,
+            )
+          } catch (e: IOException) {
+            installContext.print(
+              "Failed to read installer output log.\n",
+              ConsoleViewContentType.ERROR_OUTPUT,
+            )
           }
         }
         isInstallerSuccessfullyCompleted = false
-      }
-      else {
+      } else {
         isInstallerSuccessfullyCompleted = true
       }
       progressIndicator?.apply { fraction = 1.0 }
-    }
-    catch (e: ExecutionException) {
-      installContext.print("Unable to run Android Emulator hypervisor driver installer: ${e.message}\n", ConsoleViewContentType.ERROR_OUTPUT)
+    } catch (e: ExecutionException) {
+      installContext.print(
+        "Unable to run Android Emulator hypervisor driver installer: ${e.message}\n",
+        ConsoleViewContentType.ERROR_OUTPUT,
+      )
       LOG.warn(e)
     }
   }
@@ -312,9 +337,13 @@ class AehdSdkComponentTreeNode(
   protected fun ensureExistsAndIsExecutable(path: File, exeName: String): File {
     val executable = File(path, exeName)
     return when {
-      !executable.isFile -> throw WizardException("Installer executable is missing: ${executable.absolutePath}")
+      !executable.isFile ->
+        throw WizardException("Installer executable is missing: ${executable.absolutePath}")
       executable.canExecute() || executable.setExecutable(true) -> executable
-      else -> throw WizardException("Unable to set execute permission bit on installer executable: ${executable.absolutePath}")
+      else ->
+        throw WizardException(
+          "Unable to set execute permission bit on installer executable: ${executable.absolutePath}"
+        )
     }
   }
 
@@ -324,13 +353,15 @@ class AehdSdkComponentTreeNode(
   companion object InstallerInfo {
     val installSolution = SolutionCode.INSTALL_AEHD
     val reinstallSolution = SolutionCode.REINSTALL_AEHD
-    val incompatibleSystemError = when {
-      !SystemInfo.isWindows -> AccelerationErrorCode.AEHD_REQUIRES_WINDOWS
-      else -> null
-    }
+    val incompatibleSystemError =
+      when {
+        !SystemInfo.isWindows -> AccelerationErrorCode.AEHD_REQUIRES_WINDOWS
+        else -> null
+      }
 
     val repoPackagePath
       get() = "extras;google;Android_Emulator_Hypervisor_Driver"
+
     val runningInstallerMessage
       get() = "Running Android Emulator hypervisor driver installer"
 
@@ -340,36 +371,39 @@ class AehdSdkComponentTreeNode(
      * Check the status of the AEHD installation.
      *
      * If the AEHD is installed we return the error code:
-     *  * [AccelerationErrorCode.ALREADY_INSTALLED]
-     * Other possible error conditions:
-     *
-     *  * On an OS other than Windows
-     *  * On Windows (until we fix the headless installer to use an admin account)
-     *  * If the CPU is not a supported processor
-     *  * If there is not enough memory available
-     *  * BIOS is not setup correctly
+     * * [AccelerationErrorCode.ALREADY_INSTALLED] Other possible error conditions:
+     * * On an OS other than Windows
+     * * On Windows (until we fix the headless installer to use an admin account)
+     * * If the CPU is not a supported processor
+     * * If there is not enough memory available
+     * * BIOS is not setup correctly
      *
      * For some of these error conditions the user may rectify the problem and install Aehd later.
      */
     fun checkInstallation(): AccelerationErrorCode =
-      incompatibleSystemError ?: checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      incompatibleSystemError
+        ?: checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
     /**
-     * Return true if it is possible to install on the current machine without any other configuration changes.
+     * Return true if it is possible to install on the current machine without any other
+     * configuration changes.
      */
     fun canRun(): Boolean {
       val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }
       return when (check) {
-        AccelerationErrorCode.NO_EMULATOR_INSTALLED, AccelerationErrorCode.UNKNOWN_ERROR -> {
+        AccelerationErrorCode.NO_EMULATOR_INSTALLED,
+        AccelerationErrorCode.UNKNOWN_ERROR -> {
           // We don't know if we can install. Assume we can if this is a compatible system:
           incompatibleSystemError == null
         }
         AccelerationErrorCode.NOT_ENOUGH_MEMORY -> false
         AccelerationErrorCode.ALREADY_INSTALLED -> true // just continue anyway
-        else -> when (check.solution) {
-          installSolution, reinstallSolution -> true
-          else -> false
-        }
+        else ->
+          when (check.solution) {
+            installSolution,
+            reinstallSolution -> true
+            else -> false
+          }
       }
     }
   }

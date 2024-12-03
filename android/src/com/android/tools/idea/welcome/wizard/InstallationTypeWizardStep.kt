@@ -19,10 +19,9 @@ import com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardSt
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import javax.swing.JComponent
 
-/**
- * Wizard step for selecting installation types
- */
-class InstallationTypeWizardStep(model: FirstRunWizardModel) : ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
+/** Wizard step for selecting installation types */
+class InstallationTypeWizardStep(model: FirstRunWizardModel) :
+  ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
   private val myForm = InstallationTypeWizardStepForm()
 
   override fun getComponent(): JComponent {
@@ -42,13 +41,17 @@ class InstallationTypeWizardStep(model: FirstRunWizardModel) : ModelWizardStep<F
     super.onEntering()
 
     val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.STANDARD
-    myForm.standardRadioButton.isSelected = installationType == FirstRunWizardModel.InstallationType.STANDARD
-    myForm.customRadioButton.isSelected = installationType == FirstRunWizardModel.InstallationType.CUSTOM
+    myForm.standardRadioButton.isSelected =
+      installationType == FirstRunWizardModel.InstallationType.STANDARD
+    myForm.customRadioButton.isSelected =
+      installationType == FirstRunWizardModel.InstallationType.CUSTOM
   }
 
   override fun onProceeding() {
     super.onProceeding()
 
-    model.installationType = if (myForm.standardRadioButton.isSelected) FirstRunWizardModel.InstallationType.STANDARD else FirstRunWizardModel.InstallationType.CUSTOM
+    model.installationType =
+      if (myForm.standardRadioButton.isSelected) FirstRunWizardModel.InstallationType.STANDARD
+      else FirstRunWizardModel.InstallationType.CUSTOM
   }
 }

@@ -21,33 +21,47 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.google.common.annotations.VisibleForTesting
 
-/**
- * Android SDK installable component.
- */
-class AndroidSdkComponentTreeNode(installUpdates: Boolean) : InstallableSdkComponentTreeNode(
-  "Android SDK", """
+/** Android SDK installable component. */
+class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
+  InstallableSdkComponentTreeNode(
+    "Android SDK",
+    """
     The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your apps.
     The setup wizard will update your current Android SDK installation (if necessary) or install a new version.
-  """.trimIndent(),
-  installUpdates) {
+  """
+      .trimIndent(),
+    installUpdates,
+  ) {
   /**
-   * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
-   * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
+   * Find latest build tools revision. Versions compatible with the selected platforms will be
+   * installed by the platform components.
+   *
+   * @return The Revision of the latest build tools package, or null if no remote build tools
+   *   packages are available.
    */
   private val latestCompatibleBuildToolsPath: String?
-    get() = sdkHandler!!
-      .getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, null, false, object : ProgressIndicatorAdapter() {})
-      ?.path
+    get() =
+      sdkHandler!!
+        .getLatestRemotePackageForPrefix(
+          SdkConstants.FD_BUILD_TOOLS,
+          null,
+          false,
+          object : ProgressIndicatorAdapter() {},
+        )
+        ?.path
 
   override val requiredSdkPackages: Collection<String>
     get() = getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated())
 
   @VisibleForTesting
-  fun getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated: Boolean): Collection<String> = sequence {
-    yield(SdkConstants.FD_EMULATOR.takeIf { !isChromeOSAndIsNotHWAccelerated })
-    yield(SdkConstants.FD_PLATFORM_TOOLS)
-    yield(latestCompatibleBuildToolsPath)
-  }.filterNotNull().toList()
+  fun getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated: Boolean): Collection<String> =
+    sequence {
+        yield(SdkConstants.FD_EMULATOR.takeIf { !isChromeOSAndIsNotHWAccelerated })
+        yield(SdkConstants.FD_PLATFORM_TOOLS)
+        yield(latestCompatibleBuildToolsPath)
+      }
+      .filterNotNull()
+      .toList()
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     // Nothing to do, having components installed is enough

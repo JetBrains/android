@@ -20,13 +20,13 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.util.SystemInfo
 import javax.swing.JComponent
 
-/**
- * Provides guidance for setting up KVM on Linux platform.
- */
+/** Provides guidance for setting up KVM on Linux platform. */
 class LinuxKvmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
   private val form = LinuxKvmInfoStepForm()
 
   override fun getComponent(): JComponent = form.root
+
   override fun getPreferredFocusComponent(): JComponent? = form.urlPane
+
   override fun shouldShow(): Boolean = SystemInfo.isLinux
 }
