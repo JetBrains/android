@@ -132,7 +132,6 @@ class DeviceMenuActionTest {
                   Nexus 6 (411 × 731 dp, 560dpi)
                   Nexus 6P (411 × 731 dp, 560dpi)
                   Nexus 5X (411 × 731 dp, 420dpi)
-                  XR Device (1280 × 1184 dp, xhdpi)
               Tablets
                   Pixel Tablet (1280 × 800 dp, xhdpi)
                   Pixel C (1280 × 900 dp, xhdpi)
@@ -166,6 +165,9 @@ class DeviceMenuActionTest {
               Automotive (1408p landscape) (1408 × 792 dp, mdpi)
               Automotive (1080p landscape) (1440 × 800 dp, ldpi)
               Automotive (1024p landscape) (1024 × 768 dp, mdpi)
+              ------------------------------------------------------
+              XR
+              XR Device (1280 × 1184 dp, xhdpi)
               ------------------------------------------------------
               Custom
               ------------------------------------------------------

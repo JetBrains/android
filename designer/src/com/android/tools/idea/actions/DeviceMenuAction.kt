@@ -164,6 +164,7 @@ class DeviceMenuAction(
     addWearDeviceSection(groupedDevices, currentDevice)
     addTvDeviceSection(groupedDevices, currentDevice)
     addAutomotiveDeviceSection(groupedDevices, currentDevice)
+    addXrDeviceSection(groupedDevices, currentDevice)
     addCustomDeviceSection(currentDevice)
     addAvdDeviceSection(configuration.settings.avdDevices, currentDevice)
     addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice)
@@ -281,6 +282,30 @@ class DeviceMenuAction(
     addSeparator()
   }
 
+  private fun addXrDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?,
+  ) {
+    val xrDevices = groupedDevices.get(DeviceGroup.XR) ?: return
+    add(
+      DeviceCategory("XR", "Android XR devices", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET)
+    )
+    for (device in xrDevices) {
+      val selected = device == currentDevice
+      add(
+        SetDeviceAction(
+          getDeviceLabel(device),
+          { updatePresentation(it) },
+          deviceChangeListener,
+          device,
+          null,
+          selected,
+        )
+      )
+    }
+    addSeparator()
+  }
+
   private fun addCustomDeviceSection(currentDevice: Device?) {
     add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice))
     addSeparator()
@@ -361,6 +386,7 @@ class DeviceMenuAction(
           groupedDevices.get(DeviceGroup.WEAR),
           groupedDevices.get(DeviceGroup.TV),
           groupedDevices.get(DeviceGroup.AUTOMOTIVE),
+          groupedDevices.get(DeviceGroup.XR),
           config.settings.avdDevices,
           groupedDevices.get(DeviceGroup.GENERIC),
         )
