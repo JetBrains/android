@@ -31,7 +31,6 @@ import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
@@ -86,11 +85,9 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val resourceResolver = configuration.resourceItemResolver
     val resourceValue =
       ApplicationManager.getApplication().runReadAction<String> {
-        SlowOperations.allowSlowOperations(
-          ThrowableComputable {
-            resourceResolver.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value
-          }
-        )
+        SlowOperations.knownIssue("b/321676532").use {
+          resourceResolver.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value
+        }
       } ?: return empty
 
     val file = File(resourceValue)
