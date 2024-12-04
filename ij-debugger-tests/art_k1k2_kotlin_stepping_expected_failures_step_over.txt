@@ -1,5 +1,0 @@
-# Coroutines
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepOver$Coroutines.testSequenceNested2
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepOver$Coroutines.testSequenceTake2
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepOver$Coroutines.testSequenceNested
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepOver$Coroutines.testSequenceSimple

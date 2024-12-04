@@ -1,3 +1,0 @@
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Filters.testNpe
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Filters.testStepIntoSpecificKotlinClasses
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Filters.testStepIntoMultiFileFacade
