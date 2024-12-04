@@ -62,7 +62,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -121,13 +120,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       String configurationName = getConfigurationName(from, scope, openedFile);
       dependencies.addModule(configurationName, gradlePath.getPath(), null);
 
-      new WriteCommandAction(project, "Add Gradle Module Dependency") {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          buildModel.applyChanges();
-          registerUndoAction(project);
-        }
-      }.execute();
+      WriteCommandAction.writeCommandAction(project)
+        .withName("Add Gradle Module Dependency")
+        .run(() -> { buildModel.applyChanges(); registerUndoAction(project); } );
       return requestProjectSync(project, TRIGGER_MODIFIER_ADD_MODULE_DEPENDENCY);
     }
 
@@ -189,15 +184,14 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       DependenciesHelper.getDefaultCatalogModel(projectBuildModel);
     if (maybeCatalog != null) buildModelsToUpdate.add(maybeCatalog);
 
-    new WriteCommandAction(project, "Add Gradle Library Dependency") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
+    WriteCommandAction.writeCommandAction(project)
+      .withName("Add Gradle Library Dependency")
+      .run(() -> {
         for (GradleFileModel buildModel : buildModelsToUpdate) {
           buildModel.applyChanges();
         }
         registerUndoAction(project);
-      }
-    }.execute();
+      });
 
     return requestProjectSync(project, TRIGGER_MODIFIER_ADD_LIBRARY_DEPENDENCY);
   }
@@ -233,13 +227,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       javaModel.targetCompatibility().setLanguageLevel(level);
     }
 
-    new WriteCommandAction(project, "Change Gradle Language Level") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        buildModel.applyChanges();
-        registerUndoAction(project);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(project)
+      .withName("Change Gradle Language Level")
+      .run(() -> { buildModel.applyChanges(); registerUndoAction(project); });
 
     return requestProjectSync(project, TRIGGER_MODIFIER_LANGUAGE_LEVEL_CHANGED);
   }
