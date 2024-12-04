@@ -33,7 +33,7 @@ private data class FetchedVariant(val moduleId: String, val variantName: String?
   var final: Boolean = false
     private set
 
-  fun finalize() {
+  fun setFinal() {
     final = true
   }
 }
@@ -456,7 +456,7 @@ internal class VariantDiscovery(
         }
     }
     keys.forEach {
-      it.finalize()
+      it.setFinal()
     }
   }
 }
