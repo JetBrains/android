@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PsiPreviewElementInstance
@@ -241,9 +242,12 @@ class ViewInGalleryActionTest {
     val modelMock = mock<NlModel>()
     whenever(sceneManagerMock.model).thenReturn(modelMock)
 
-    val dataContextMock = mock<DataContext>()
-    whenever(modelMock.dataContext).thenReturn(dataContextMock)
-    whenever(dataContextMock.getData(PREVIEW_ELEMENT_INSTANCE)).thenReturn(previewElement)
+    val dataProvider =
+      object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+      }
+    whenever(modelMock.dataProvider).thenReturn(dataProvider)
     return sceneManagerMock
   }
 

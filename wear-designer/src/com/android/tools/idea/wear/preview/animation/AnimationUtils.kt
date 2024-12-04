@@ -30,7 +30,7 @@ import com.android.tools.idea.wear.preview.WearTilePreviewElement
 fun detectAnimations(sceneManager: SceneManager) {
   if (!StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get()) return
   val previewElementInstance =
-    sceneManager.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
+    sceneManager.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
       ?: return
   val tileServiceViewAdapter = sceneManager.scene.root?.nlComponent?.viewInfo?.viewObject
   previewElementInstance.tileServiceViewAdapter.value = tileServiceViewAdapter

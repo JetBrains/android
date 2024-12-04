@@ -70,7 +70,7 @@ class ViewInGalleryAction(
         .getSceneViewAt(x, y)
         ?.sceneManager
         ?.model
-        ?.dataContext
+        ?.dataProvider
         ?.getData(PREVIEW_ELEMENT_INSTANCE)
 
     if (previewElementInstance == null) {

@@ -412,7 +412,7 @@ class RenderErrorTest {
     delayUntilCondition(250, timeout = 1.minutes) {
       previewView.mainSurface.models
         .firstOrNull { it.displaySettings.modelDisplayName.value == modelName }
-        ?.dataContext
+        ?.dataProvider
         ?.previewElement()
         ?.also { previewElement = it } != null
     }

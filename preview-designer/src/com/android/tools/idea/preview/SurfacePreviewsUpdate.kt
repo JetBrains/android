@@ -306,7 +306,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
         newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
         newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
-        newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
+        newModel.dataProvider = previewElementModelAdapter.createDataProvider(previewElement)
         newModel.setModelUpdater(modelUpdater)
         (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
           // PreviewDisplaySettings.organizationGroup is optional, if present it defines subgroups.

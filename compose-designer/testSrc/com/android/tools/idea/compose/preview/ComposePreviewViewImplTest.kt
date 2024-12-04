@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.common.model.DefaultModelUpdater
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -51,13 +52,11 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -85,19 +84,25 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private class TestPreviewElementDataContext(
-  private val project: Project,
-  private val composePreviewManager: ComposePreviewManager,
-  private val previewElement: ComposePreviewElementInstance<*>,
-) : DataContext {
-  override fun getData(dataId: String): Any? =
-    when (dataId) {
-      COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-      CommonDataKeys.PROJECT.name -> project
-      else -> null
-    }
-}
+private fun createTestPreviewElementDataContext(
+  project: Project,
+  composePreviewManager: ComposePreviewManager,
+  previewElement: PsiComposePreviewElementInstance,
+) =
+  object :
+    NlDataProvider(
+      COMPOSE_PREVIEW_MANAGER,
+      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
+      CommonDataKeys.PROJECT,
+    ) {
+    override fun getData(dataId: String): Any? =
+      when (dataId) {
+        COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        CommonDataKeys.PROJECT.name -> project
+        else -> null
+      }
+  }
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
@@ -306,8 +311,8 @@ class ComposePreviewViewImplTest {
   android:text="Hello world ${previewElement.displaySettings.name}" />
 """
 
-        override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
-          TestPreviewElementDataContext(project, composePreviewManager, previewElement)
+        override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
+          createTestPreviewElementDataContext(project, composePreviewManager, previewElement)
       }
     runBlocking(workerThread) {
       surface.updatePreviewsAndRefresh(
