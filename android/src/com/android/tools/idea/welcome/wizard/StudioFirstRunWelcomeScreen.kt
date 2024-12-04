@@ -55,7 +55,6 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
       val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
       val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, parent)
 
-      // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
       val modelWizard = ModelWizard.Builder().apply {
         if (mode == FirstRunWizardMode.NEW_INSTALL) {
           addStep(FirstRunWelcomeStep(model))

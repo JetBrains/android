@@ -36,8 +36,8 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
-import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.wizard.deprecated.LinuxKvmInfoStepForm
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.impl.EditorComponentImpl
@@ -127,9 +127,14 @@ class WelcomeScreenWizardTest {
 
     mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
     fakeRepoManager = FakeRepoManager(RepositoryPackages(emptyList(), listOf(
-      createFakeRemotePackageWithLicense("build-tools;33.0.1"), createFakeRemotePackageWithLicense("platforms;android-35"))))
+      createFakeRemotePackageWithLicense("build-tools;33.0.1"),
+      createFakeRemotePackageWithLicense("platforms;android-35"),
+      createFakeRemotePackageWithLicense("system-images;android-35;google_apis_playstore;arm64-v8a")
+    )))
     val sdkHandler = AndroidSdkHandler(sdkPath.toPath(), null, fakeRepoManager)
     whenever(AndroidSdkHandler.getInstance(any(), eq(sdkPath.toPath()))).thenReturn(sdkHandler)
+
+    IdeSdks.removeJdksOn(projectRule.testRootDisposable)
   }
 
   @After
@@ -480,12 +485,64 @@ class WelcomeScreenWizardTest {
     assertTrue(fakeUi.isShowing(missingSdkLabel))
   }
 
+  @Test
+  fun installHandoffMode_skipsStraightToInstallingComponentsStepWhenSdkConfiguredInInstaller() {
+    val mockInstaller = mock(SdkComponentInstaller::class.java)
+    whenever(mockInstaller.getPackagesToInstall(any())).thenReturn(listOf(FakeRemotePackage("system-images;android-35;google_apis_playstore;arm64-v8a")))
+
+    val installerStarted = CompletableFuture<Boolean>()
+    val cancelTriggered = CompletableFuture<Boolean>()
+    whenever(mockInstaller.installPackages(any(), any(), any())).then {
+      // Pause the installer to allow us to check the UI and to cancel the task
+      installerStarted.complete(true)
+
+      // Resume once cancel has been triggered
+      cancelTriggered.get()
+    }
+
+    val mockInstallerProvider = mock(ComponentInstallerProvider::class.java)
+    whenever(mockInstallerProvider.getComponentInstaller(any())).thenReturn(mockInstaller)
+
+    val installHandoffData = InstallerData(sdkPath, true, "timestamp", "1234")
+    val fakeUi = createWizard(FirstRunWizardMode.INSTALL_HANDOFF, mockInstallerProvider, installHandoffData)
+
+    val progressLabel = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Downloading Components") })
+    assertTrue(fakeUi.isShowing(progressLabel))
+
+    installerStarted.get()
+
+    // Let's cancel the installation, otherwise the AndroidVirtualDeviceSdkComponent.configure step will run
+    // and throw an exception, since the component is not actually installed in this test
+    val cancelButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Cancel") })
+    cancelButton.doClick()
+
+    cancelTriggered.complete(true)
+
+    val finishButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Finish") })
+    waitForCondition(10, TimeUnit.SECONDS) { finishButton.isEnabled }
+  }
+
+  @Test
+  fun installHandoffMode_startsWithSdkComponentsStepWhenSdkNotConfiguredInInstaller() {
+    val installHandoffData = InstallerData(null, true, "timestamp", "1234")
+    val fakeUi = createWizard(FirstRunWizardMode.INSTALL_HANDOFF, installHandoffData = installHandoffData)
+
+    val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("SDK Components Setup") })
+    assertTrue(fakeUi.isShowing(title))
+  }
+
   private fun getExistingSdkPath(): File {
     return AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()!!
   }
 
-  private fun createWizard(wizardMode: FirstRunWizardMode, sdkPath: File? = null, componentInstallerProvider: ComponentInstallerProvider? = null): FakeUi {
-    installerData = InstallerData(sdkPath ?: IdeSdks.getInstance().getAndroidSdkPath(), true, "timestamp", "1234")
+  private fun createWizard(
+    wizardMode: FirstRunWizardMode,
+    componentInstallerProvider: ComponentInstallerProvider? = null,
+    installHandoffData: InstallerData? = null
+  ): FakeUi {
+    if (installHandoffData != null) {
+      installerData = installHandoffData
+    }
 
     val installer = componentInstallerProvider ?: ComponentInstallerProvider()
     val welcomeScreen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(useNewWizard = !isTestingLegacyWizard!!, wizardMode, installer)

@@ -38,6 +38,8 @@ private val log: Logger = logger<InstallerData>()
 
 /**
  * Wrapper around data passed from the installer.
+ *
+ * <p>You can find the scripts used to generate installers in the 'native/installer' directory
  */
 class InstallerData(
   val androidDest: File?,
