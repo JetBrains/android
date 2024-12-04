@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.PlatformTestUtil
@@ -62,6 +63,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 
 data class SimpleValue(val groupingKey: String, val title: String)
@@ -181,12 +183,17 @@ class TreeDropDownActionTest {
       dropdown.update(actionEvent)
       verify(presentation, times(1)).isEnabled = true
       verify(presentation, times(1)).text = "All values"
+      verify(presentation, times(1))
+        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
+      verifyNoMoreInteractions(presentation)
 
       enabledFlow.update { false }
       dropdown.update(actionEvent)
 
       verify(presentation, times(1)).isEnabled = false
       verify(presentation, times(2)).text = "All values"
+      verify(presentation, times(2))
+        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
       verifyNoMoreInteractions(presentation)
     }
 

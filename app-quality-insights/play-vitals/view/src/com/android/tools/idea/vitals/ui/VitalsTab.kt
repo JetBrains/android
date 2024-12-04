@@ -42,6 +42,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
@@ -215,11 +216,10 @@ class VitalsTab(
 
           override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-          override fun displayTextInToolbar() = true
-
           override fun update(e: AnActionEvent) {
             e.presentation.text =
               if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
+            e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
           }
         }
       )

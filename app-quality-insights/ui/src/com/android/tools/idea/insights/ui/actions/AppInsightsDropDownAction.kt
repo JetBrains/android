@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import javax.swing.Icon
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.StateFlow
@@ -54,9 +55,8 @@ open class AppInsightsDropDownAction<T>(
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(getDisplayTitle(flow.value.selected), false)
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
-
-  override fun displayTextInToolbar() = true
 
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
     component.repaint()

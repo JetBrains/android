@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ui.popup.JBPopup
 import java.awt.Component
 import java.awt.Point
@@ -37,13 +38,12 @@ class VitalsConnectionSelectorAction(
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-  override fun displayTextInToolbar() = true
-
   override fun update(e: AnActionEvent) {
     e.presentation.setText(
       flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "No apps available",
       false,
     )
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   override fun actionPerformed(eve: AnActionEvent) {

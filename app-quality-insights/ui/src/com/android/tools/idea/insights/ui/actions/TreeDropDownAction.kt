@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -48,7 +49,7 @@ private fun allSelected(name: String) = "All $name"
 private fun noneSelected(name: String) = "No $name selected"
 
 /** The maximum number of items the dropdown can show before it refuses to display anything. */
-val MAX_DROPDOWN_ITEMS = 3000
+const val MAX_DROPDOWN_ITEMS = 3000
 
 class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val name: String,
@@ -165,10 +166,9 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
     return popup
   }
 
-  override fun displayTextInToolbar() = true
-
   override fun update(e: AnActionEvent) {
     e.presentation.text = titleState.value
     e.presentation.isEnabled = enabledFlow.value
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 }
