@@ -23,39 +23,42 @@ import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import kotlin.math.roundToInt
 
-data class WindowSizeData(val id: String, val name: String, val widthDp: Double, val heightDp: Double, val density: Density,
-                          val defaultOrientation: ScreenOrientation) {
+data class WindowSizeData(
+  val id: String,
+  val name: String,
+  val widthDp: Double,
+  val heightDp: Double,
+  val density: Density,
+  val defaultOrientation: ScreenOrientation,
+) {
   val widthPx: Int = widthDp.toPx(density)
   val heightPx: Int = heightDp.toPx(density)
 }
 
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
+/** Convert dp to px. The formula is "px = dp * (dpi / 160)" */
 internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
 
-val DeviceWindowsNames = mapOf(
-  DEVICE_CLASS_PHONE_ID to "Medium Phone",
-  DEVICE_CLASS_FOLDABLE_ID to "Foldable",
-  DEVICE_CLASS_TABLET_ID to "Medium Tablet",
-  DEVICE_CLASS_DESKTOP_ID to "Desktop"
-)
-
-/**
- * The device definitions used by Android Studio only
- */
-val PREDEFINED_WINDOW_SIZES_DEFINITIONS = referenceDeviceIds.entries.map { (_, deviceClassName) ->
-  val config = getDeviceConfigFor(deviceClassName)
-  WindowSizeData(
-    config.deviceId ?: "",
-    DeviceWindowsNames[deviceClassName] ?: "Custom",
-    config.width.toDouble(),
-    config.height.toDouble(),
-    Density.create(config.dpi),
-    when (config.orientation) {
-      Orientation.portrait -> ScreenOrientation.PORTRAIT
-      Orientation.landscape -> ScreenOrientation.LANDSCAPE
-    }
+val DeviceWindowsNames =
+  mapOf(
+    DEVICE_CLASS_PHONE_ID to "Medium Phone",
+    DEVICE_CLASS_FOLDABLE_ID to "Foldable",
+    DEVICE_CLASS_TABLET_ID to "Medium Tablet",
+    DEVICE_CLASS_DESKTOP_ID to "Desktop",
   )
-}
+
+/** The device definitions used by Android Studio only */
+val PREDEFINED_WINDOW_SIZES_DEFINITIONS =
+  referenceDeviceIds.entries.map { (_, deviceClassName) ->
+    val config = getDeviceConfigFor(deviceClassName)
+    WindowSizeData(
+      config.deviceId ?: "",
+      DeviceWindowsNames[deviceClassName] ?: "Custom",
+      config.width.toDouble(),
+      config.height.toDouble(),
+      Density.create(config.dpi),
+      when (config.orientation) {
+        Orientation.portrait -> ScreenOrientation.PORTRAIT
+        Orientation.landscape -> ScreenOrientation.LANDSCAPE
+      },
+    )
+  }

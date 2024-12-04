@@ -21,26 +21,22 @@ import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 
 /** Default device configuration for Phones */
-val ReferencePhoneConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
-  getDeviceConfigFor(DEVICE_CLASS_PHONE_ID)
-}
+val ReferencePhoneConfig: DeviceConfig by
+  lazy(LazyThreadSafetyMode.NONE) { getDeviceConfigFor(DEVICE_CLASS_PHONE_ID) }
 
 /** Default device configuration for Foldables */
-val ReferenceFoldableConfig: DeviceConfig by lazy {
-  getDeviceConfigFor(DEVICE_CLASS_FOLDABLE_ID)
-}
+val ReferenceFoldableConfig: DeviceConfig by lazy { getDeviceConfigFor(DEVICE_CLASS_FOLDABLE_ID) }
 
 /** Default device configuration for Tablets */
-val ReferenceTabletConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
-  getDeviceConfigFor(DEVICE_CLASS_TABLET_ID)
-}
+val ReferenceTabletConfig: DeviceConfig by
+  lazy(LazyThreadSafetyMode.NONE) { getDeviceConfigFor(DEVICE_CLASS_TABLET_ID) }
 
 /** Default device configuration for Desktops */
-val ReferenceDesktopConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
-  getDeviceConfigFor(DEVICE_CLASS_DESKTOP_ID)
-}
+val ReferenceDesktopConfig: DeviceConfig by
+  lazy(LazyThreadSafetyMode.NONE) { getDeviceConfigFor(DEVICE_CLASS_DESKTOP_ID) }
 
 internal fun getDeviceConfigFor(deviceClassName: String): DeviceConfig {
-  val serialisedDeviceConfig = referenceDeviceIds.entries.first { (_, value) -> value == deviceClassName }.key
+  val serialisedDeviceConfig =
+    referenceDeviceIds.entries.first { (_, value) -> value == deviceClassName }.key
   return DeviceConfig.toDeviceConfigOrNull(serialisedDeviceConfig, emptyList()) ?: DeviceConfig()
 }

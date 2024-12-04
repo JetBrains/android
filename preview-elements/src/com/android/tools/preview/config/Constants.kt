@@ -46,6 +46,7 @@ const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
 const val PARAMETER_HARDWARE_CUTOUT = "Cutout"
 const val PARAMETER_HARDWARE_NAVIGATION = "Navigation"
 const val PARAMETER_WALLPAPER = "wallpaper"
+
 // endregion
 
 object Preview {

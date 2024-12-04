@@ -58,7 +58,7 @@ internal class DeviceUtilsKtTest {
     // On legacy DeviceSpec, width and height are swapped to reflect orientation
     assertEquals(
       "spec:width=2300px,height=2280px,dpi=240,isRound=true,chinSize=10px",
-      landscapeConfig.deviceSpec()
+      landscapeConfig.deviceSpec(),
     )
   }
 
@@ -78,7 +78,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(200, screenProvider().yDimension)
     assertEquals(
       ScreenOrientation.LANDSCAPE,
-      orientationProvider()
+      orientationProvider(),
     ) // Orientation implied from dimensions
 
     device = deviceFromDeviceSpec("spec:width=100px,height=200px,orientation=portrait")
@@ -92,12 +92,12 @@ internal class DeviceUtilsKtTest {
     // From DeviceConfig
     var screen =
       DeviceConfig(
-        width = 100f,
-        height = 100f,
-        dimUnit = DimUnit.px,
-        shape = Shape.Round,
-        chinSize = 20f
-      )
+          width = 100f,
+          height = 100f,
+          dimUnit = DimUnit.px,
+          shape = Shape.Round,
+          chinSize = 20f,
+        )
         .createDeviceInstance()
         .defaultHardware
         .screen
@@ -174,35 +174,35 @@ private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
   return listOf(
-    DeviceConfig(
-      width = 1080f,
-      height = 1920f,
-      dimUnit = DimUnit.px,
-      dpi = 320,
-      shape = Shape.Normal
-    ),
-    DeviceConfig(
-      width = 540f,
-      height = 960f,
-      dimUnit = DimUnit.px,
-      dpi = 640,
-      shape = Shape.Normal
-    ),
-    DeviceConfig(
-      width = 1080f,
-      height = 2280f,
-      dimUnit = DimUnit.px,
-      dpi = 480,
-      shape = Shape.Normal
-    ),
-    DeviceConfig(
-      width = 600f,
-      height = 600f,
-      dimUnit = DimUnit.px,
-      dpi = 480,
-      shape = Shape.Round
+      DeviceConfig(
+        width = 1080f,
+        height = 1920f,
+        dimUnit = DimUnit.px,
+        dpi = 320,
+        shape = Shape.Normal,
+      ),
+      DeviceConfig(
+        width = 540f,
+        height = 960f,
+        dimUnit = DimUnit.px,
+        dpi = 640,
+        shape = Shape.Normal,
+      ),
+      DeviceConfig(
+        width = 1080f,
+        height = 2280f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Normal,
+      ),
+      DeviceConfig(
+        width = 600f,
+        height = 600f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Round,
+      ),
     )
-  )
     .map {
       Device.Builder(it.createDeviceInstance())
         .also { builder ->

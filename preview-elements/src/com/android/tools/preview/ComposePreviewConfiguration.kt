@@ -39,10 +39,10 @@ fun attributesToConfiguration(
   // Both width and height have to support old ("width") and new ("widthDp") conventions
   val width =
     attributesProvider.getIntAttribute(PARAMETER_WIDTH)
-    ?: attributesProvider.getIntAttribute(PARAMETER_WIDTH_DP)
+      ?: attributesProvider.getIntAttribute(PARAMETER_WIDTH_DP)
   val height =
     attributesProvider.getIntAttribute(PARAMETER_HEIGHT)
-    ?: attributesProvider.getIntAttribute(PARAMETER_HEIGHT_DP)
+      ?: attributesProvider.getIntAttribute(PARAMETER_HEIGHT_DP)
   val fontScale = attributesProvider.getFloatAttribute(PARAMETER_FONT_SCALE)
   val uiMode = attributesProvider.getIntAttribute(PARAMETER_UI_MODE)
   val device = attributesProvider.getStringAttribute(PARAMETER_DEVICE)

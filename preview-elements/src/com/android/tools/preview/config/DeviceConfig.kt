@@ -62,25 +62,27 @@ val referenceDeviceIds =
     REFERENCE_PHONE_SPEC to DEVICE_CLASS_PHONE_ID,
     REFERENCE_FOLDABLE_SPEC to DEVICE_CLASS_FOLDABLE_ID,
     REFERENCE_TABLET_SPEC to DEVICE_CLASS_TABLET_ID,
-    REFERENCE_DESKTOP_SPEC to DEVICE_CLASS_DESKTOP_ID
+    REFERENCE_DESKTOP_SPEC to DEVICE_CLASS_DESKTOP_ID,
   )
 
-/**
- * Table containing the mapping of some old specs to newer specs.
- */
+/** Table containing the mapping of some old specs to newer specs. */
 private val specPatchTable =
   mapOf(
     // region Compose pre-1.8 specs patch
     // TODO(b/375166200) pre-1.8 specs: these can be removed once Compose 1.7 is no longer used
-    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to "spec:width=411dp,height=891dp",
-    "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420" to "spec:width=673dp,height=841dp",
-    "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240" to "spec:width=1280dp,height=800dp,dpi=240",
-    "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160" to "spec:width=1920dp,height=1080dp,dpi=160",
+    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to
+      "spec:width=411dp,height=891dp",
+    "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420" to
+      "spec:width=673dp,height=841dp",
+    "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240" to
+      "spec:width=1280dp,height=800dp,dpi=240",
+    "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160" to
+      "spec:width=1920dp,height=1080dp,dpi=160",
     // TV_720p
     "spec:shape=Normal,width=1280,height=720,unit=dp,dpi=420" to "spec:width=1280dp,height=720dp",
     // TV_1080p
-    "spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420" to  "spec:width=1920dp,height=1080dp",
-    //endregion
+    "spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420" to "spec:width=1920dp,height=1080dp",
+    // endregion
   )
 
 /**
@@ -107,7 +109,7 @@ open class DeviceConfig(
   open val orientation: Orientation = DEFAULT_ORIENTATION,
   open val cutout: Cutout = DEFAULT_CUTOUT,
   open val navigation: Navigation = DEFAULT_NAVIGATION,
-  open val parentDeviceId: String? = null
+  open val parentDeviceId: String? = null,
 ) {
   /**
    * String representation of the width as it is used in DeviceSpec Language.
@@ -222,7 +224,7 @@ open class DeviceConfig(
       orientation,
       cutout,
       navigation,
-      parentDeviceId
+      parentDeviceId,
     )
   }
 
@@ -236,7 +238,7 @@ open class DeviceConfig(
      */
     fun toMutableDeviceConfigOrNull(
       serialized: String?,
-      availableDevices: Collection<Device>
+      availableDevices: Collection<Device>,
     ): MutableDeviceConfig? {
       return toDeviceConfigOrNull(serialized, availableDevices)?.toMutableConfig()
     }
@@ -250,7 +252,7 @@ open class DeviceConfig(
      */
     fun toDeviceConfigOrNull(
       serialized: String?,
-      availableDevices: Collection<Device>
+      availableDevices: Collection<Device>,
     ): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
       val patchedSerialized = specPatchTable[serialized] ?: serialized
@@ -266,7 +268,7 @@ open class DeviceConfig(
             .associate { paramString ->
               Pair(
                 paramString.substringBefore(OPERATOR).trim(),
-                paramString.substringAfter(OPERATOR).trim()
+                paramString.substringAfter(OPERATOR).trim(),
               )
             }
       return parseDeviceSpecLanguage(paramsMap, availableDevices)
@@ -290,7 +292,7 @@ open class DeviceConfig(
      */
     private fun parseDeviceSpecLanguage(
       params: Map<String, String>,
-      availableDevices: Collection<Device>
+      availableDevices: Collection<Device>,
     ): DeviceConfig? {
       val parentId = params[PARAMETER_PARENT]
       if (parentId != null) {
@@ -303,13 +305,13 @@ open class DeviceConfig(
 
     private fun parseFromExistingDeviceWithDeviceSpecLanguage(
       device: Device,
-      params: Map<String, String>
+      params: Map<String, String>,
     ): DeviceConfig? {
       val initialConfig = device.toDeviceConfig()
       val orientation =
         if (params[PARAMETER_ORIENTATION] != null) {
           enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, ""))
-          ?: return null
+            ?: return null
         } else {
           null
         }
@@ -317,7 +319,7 @@ open class DeviceConfig(
       val navigation =
         if (params[PARAMETER_NAVIGATION] != null) {
           enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
-          ?: return null
+            ?: return null
         } else {
           null
         }
@@ -390,8 +392,7 @@ open class DeviceConfig(
 
       val cutout =
         if (params[PARAMETER_CUTOUT] != null) {
-          enumValueOfOrNull<Cutout>(params.getOrDefault(PARAMETER_CUTOUT, ""))
-          ?: return null
+          enumValueOfOrNull<Cutout>(params.getOrDefault(PARAMETER_CUTOUT, "")) ?: return null
         } else {
           DEFAULT_CUTOUT
         }
@@ -399,7 +400,7 @@ open class DeviceConfig(
       val navigation =
         if (params[PARAMETER_NAVIGATION] != null) {
           enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
-          ?: return null
+            ?: return null
         } else {
           DEFAULT_NAVIGATION
         }
@@ -415,7 +416,7 @@ open class DeviceConfig(
         cutout = cutout,
         navigation = navigation,
         parentDeviceId =
-          null // Not supported when explicitly declaring width, height, dpi, chinSize
+          null, // Not supported when explicitly declaring width, height, dpi, chinSize
       )
     }
   }
@@ -438,7 +439,7 @@ class MutableDeviceConfig(
   initialOrientation: Orientation = DEFAULT_ORIENTATION,
   initialCutout: Cutout = DEFAULT_CUTOUT,
   initialNavigation: Navigation = DEFAULT_NAVIGATION,
-  initialBackingDeviceId: String? = null
+  initialBackingDeviceId: String? = null,
 ) : DeviceConfig(id, initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
 
   /**
@@ -515,7 +516,7 @@ internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
     orientation = this.orientation,
     cutout = this.cutout,
     navigation = this.navigation,
-    parentDeviceId = this.parentDeviceId
+    parentDeviceId = this.parentDeviceId,
   )
 
 /** Returns a mutable copy of this [DeviceConfig] instance. */
@@ -530,7 +531,7 @@ fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
     initialOrientation = this.orientation,
     initialCutout = this.cutout,
     initialNavigation = this.navigation,
-    initialBackingDeviceId = this.parentDeviceId
+    initialBackingDeviceId = this.parentDeviceId,
   )
 
 /** Convenience class to define an Android dimension by its number [value] and [unit]. */
@@ -558,12 +559,12 @@ enum class Shape {
 /** Unit for the Device's width and height. */
 enum class DimUnit {
   px,
-  dp
+  dp,
 }
 
 enum class Orientation {
   portrait,
-  landscape
+  landscape,
 }
 
 enum class Cutout(val overlay: FrameworkOverlay) {
@@ -571,10 +572,10 @@ enum class Cutout(val overlay: FrameworkOverlay) {
   corner(FrameworkOverlay.CUTOUT_CORNER),
   double(FrameworkOverlay.CUTOUT_DOUBLE),
   punch_hole(FrameworkOverlay.CUTOUT_HOLE),
-  tall(FrameworkOverlay.CUTOUT_TALL)
+  tall(FrameworkOverlay.CUTOUT_TALL),
 }
 
 enum class Navigation {
   buttons,
-  gesture
+  gesture,
 }

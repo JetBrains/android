@@ -26,7 +26,6 @@ import com.android.annotations.TestOnly
 import com.android.tools.environment.Logger
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.classloading.ClassTransform
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.google.common.annotations.VisibleForTesting
 import java.util.Objects
@@ -245,7 +244,7 @@ class ParametrizedComposePreviewElementInstance<T>(
       basePreviewElement.displaySettings.showBackground,
       basePreviewElement.displaySettings.backgroundColor,
       basePreviewElement.displaySettings.displayPositioning,
-      basePreviewElement.displaySettings.organizationGroup
+      basePreviewElement.displaySettings.organizationGroup,
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -261,8 +260,7 @@ class ParametrizedComposePreviewElementInstance<T>(
       // This case corresponds to the parameter already having been added to the display name,
       // so it should not be added again.
       basePreviewElement.displaySettings.name
-    }
-    else {
+    } else {
       // TODO(b/241699422) Allow customization of preview name.
       "${basePreviewElement.displaySettings.name} (${getParameterName(parameterName)})"
     }
@@ -295,7 +293,8 @@ open class ParametrizedComposePreviewElementTemplate<T>(
   val parameterProviders: Collection<PreviewParameter>,
   private val parentClassLoader: ClassLoader =
     ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-  private val privateClassLoaderFactory: (ComposePreviewElement<T>) -> RenderModelModule.ClassLoaderProvider?,
+  private val privateClassLoaderFactory:
+    (ComposePreviewElement<T>) -> RenderModelModule.ClassLoaderProvider?,
 ) : ComposePreviewElement<T> by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
@@ -314,7 +313,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         parentClassLoader,
         ClassTransform.identity,
         ClassTransform.identity,
-        Runnable {}
+        Runnable {},
       )
       .useWithClassLoader { classLoader ->
         return parameterProviders
@@ -386,8 +385,15 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     return sequenceOf(
       SingleComposePreviewElementInstance(
         fakeElementFqn,
-        PreviewDisplaySettings(basePreviewElement.displaySettings.name, basePreviewElement.displaySettings.baseName,
-                               basePreviewElement.displaySettings.parameterName, null, false, false, null),
+        PreviewDisplaySettings(
+          basePreviewElement.displaySettings.name,
+          basePreviewElement.displaySettings.baseName,
+          basePreviewElement.displaySettings.parameterName,
+          null,
+          false,
+          false,
+          null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),

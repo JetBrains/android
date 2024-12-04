@@ -34,6 +34,7 @@ class PreviewXmlBuilder(private val customViewFqcn: String) {
 
   fun toolsAttribute(name: String, value: String): PreviewXmlBuilder =
     addAttribute(SdkConstants.TOOLS_NS_NAME, name, value)
+
   fun androidAttribute(name: String, value: String): PreviewXmlBuilder =
     addAttribute(SdkConstants.ANDROID_NS_NAME, name, value)
 

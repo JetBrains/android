@@ -23,7 +23,7 @@ class PreviewConfigurationTest {
   fun testPreviewConfigurationCleaner() {
     Assert.assertEquals(
       PreviewConfiguration.cleanAndGet(-120, null, 1, 1, "", 2f, null, "", 2),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null, 2)
+      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null, 2),
     )
 
     Assert.assertEquals(
@@ -35,14 +35,14 @@ class PreviewConfigurationTest {
         null,
         null,
         null,
-        "id:device"
+        "id:device",
       ),
-      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, null, 1f, 0, "id:device")
+      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, null, 1f, 0, "id:device"),
     )
 
     Assert.assertEquals(
       PreviewConfiguration.cleanAndGet(12, null, 120, MAX_DIMENSION, null, -1f, 123, null, -1),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 0f, 123, null, null)
+      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 0f, 123, null, null),
     )
   }
 }

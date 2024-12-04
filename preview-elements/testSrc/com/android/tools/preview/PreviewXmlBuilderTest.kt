@@ -33,7 +33,7 @@ class PreviewXmlBuilderTest {
             android:intFoo="1" />
       """
         .trimIndent(),
-      builder.buildString().trimIndent()
+      builder.buildString().trimIndent(),
     )
   }
 }
