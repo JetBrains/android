@@ -20,6 +20,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
 
@@ -34,12 +35,12 @@ class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) ->
     // TODO(b/157895086): Generalize the icon or use a specific one for animation inspector
     STOP_INTERACTIVE_MODE,
   ) {
-  override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
     val previewMode = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value
     e.presentation.isEnabled = previewMode is PreviewMode.AnimationInspection && !isDisabled(e)
     e.presentation.isVisible = previewMode is PreviewMode.AnimationInspection
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
