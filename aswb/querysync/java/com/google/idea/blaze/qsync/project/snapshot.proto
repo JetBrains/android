@@ -22,6 +22,8 @@ message ProjectDefinition {
   repeated string exclude_paths = 2;
   repeated LanguageClass language_classes = 3;
   repeated string test_sources = 4;
+  // TODO(b/382333575): improve excluding system folders
+  repeated string system_excludes = 5;
 }
 
 message VcsState {

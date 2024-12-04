@@ -126,11 +126,14 @@ public class ProjectLoader {
             .collect(ImmutableSet.toImmutableSet());
 
     ProjectDefinition latestProjectDef =
-        ProjectDefinition.create(
-            importRoots.rootPaths(),
-            importRoots.excludePaths(),
-            LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()),
-            testSourceGlobs);
+        ProjectDefinition.builder()
+            .setProjectIncludes(importRoots.rootPaths())
+            .setProjectExcludes(importRoots.excludePaths())
+            .setLanguageClasses(
+                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
+            .setTestSources(testSourceGlobs)
+            .setSystemExcludes(importRoots.systemExcludes())
+            .build();
 
     Path snapshotFilePath = getSnapshotFilePath(importSettings);
 

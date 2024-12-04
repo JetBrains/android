@@ -484,11 +484,14 @@ public class QuerySyncProject {
             .map(Glob::toString)
             .collect(ImmutableSet.toImmutableSet());
     ProjectDefinition projectDefinition =
-        ProjectDefinition.create(
-            importRoots.rootPaths(),
-            importRoots.excludePaths(),
-            LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()),
-            testSourceGlobs);
+        ProjectDefinition.builder()
+            .setProjectIncludes(importRoots.rootPaths())
+            .setProjectExcludes(importRoots.excludePaths())
+            .setLanguageClasses(
+                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
+            .setTestSources(testSourceGlobs)
+            .setSystemExcludes(importRoots.systemExcludes())
+            .build();
 
     return this.projectDefinition.equals(projectDefinition);
   }
