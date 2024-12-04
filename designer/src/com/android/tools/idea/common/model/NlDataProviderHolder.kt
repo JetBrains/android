@@ -16,12 +16,11 @@
 package com.android.tools.idea.common.model
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataContext
 
 /**
  * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate
- * a model with a [PreviewElement] through a [DataContext].
+ * a model with a [PreviewElement] through a [NlDataProvider].
  */
-interface DataContextHolder : Disposable {
-  var dataContext: DataContext
+interface NlDataProviderHolder : Disposable {
+  var dataProvider: NlDataProvider?
 }

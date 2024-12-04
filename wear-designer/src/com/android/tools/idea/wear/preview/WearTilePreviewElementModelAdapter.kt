@@ -16,7 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.idea.common.model.NlDataProviderHolder
 import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.preview.PreviewXmlBuilder
@@ -30,7 +30,7 @@ private val PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE =
 
 internal const val DEFAULT_WEAR_TILE_BACKGROUND = "#ff000000"
 
-internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
+internal class WearTilePreviewElementModelAdapter<M : NlDataProviderHolder> :
   ConfigurablePreviewElementModelAdapter<PsiWearTilePreviewElement, M>,
   MethodPreviewElementModelAdapter<PsiWearTilePreviewElement, M>(
     PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE

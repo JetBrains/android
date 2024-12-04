@@ -20,6 +20,7 @@ import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
@@ -30,7 +31,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
@@ -75,12 +77,14 @@ data class CustomConfigurationAttribute(
   var nightMode: NightMode? = null,
 )
 
-private object CustomModelDataContext : DataContext {
-  override fun getData(dataId: String): Any? =
-    when (dataId) {
-      IS_CUSTOM_MODEL.name -> true
-      else -> null
-    }
+private object CustomModelDataProvider : NlDataProvider() {
+  override fun <T> getData(key: DataKey<T>): T? {
+    @Suppress("UNCHECKED_CAST") return true.takeIf { key == IS_CUSTOM_MODEL } as? T
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[IS_CUSTOM_MODEL] = true
+  }
 }
 
 /**
@@ -159,7 +163,7 @@ class CustomModelsProvider(
       val model =
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
-          .withDataContext(CustomModelDataContext)
+          .withDataProvider(CustomModelDataProvider)
           .build()
       model.displaySettings.setTooltip(config.toHtmlTooltip())
       model.displaySettings.setDisplayName(customConfig.name)

@@ -23,6 +23,7 @@ import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
+import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
@@ -110,7 +111,6 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -154,7 +154,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -186,28 +185,25 @@ private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityMo
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
  */
-private class PreviewElementDataContext(
-  private val project: Project,
-  private val composePreviewManager: ComposePreviewManager,
-  private val previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
-  private val previewElement: ComposePreviewElementInstance<*>,
-  private val fastPreviewSurface: FastPreviewSurface,
-) : DataContext {
-  override fun getData(dataId: String): Any? =
-    when (dataId) {
-      COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name -> composePreviewManager
-      PreviewGroupManager.KEY.name,
-      PreviewFlowManager.KEY.name -> previewFlowManager
-      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
-      PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-      CommonDataKeys.PROJECT.name -> project
-      PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
-      FastPreviewSurface.KEY.name -> fastPreviewSurface
-      PreviewInvalidationManager.KEY.name -> composePreviewManager
-      else -> null
-    }
-}
+private fun createPreviewElementDataProvider(
+  project: Project,
+  composePreviewManager: ComposePreviewManager,
+  previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
+  previewElement: PsiComposePreviewElementInstance,
+  fastPreviewSurface: FastPreviewSurface,
+) =
+  NlDataProviderBuilder()
+    .add(COMPOSE_PREVIEW_MANAGER, composePreviewManager)
+    .add(PreviewModeManager.KEY, composePreviewManager)
+    .add(PreviewGroupManager.KEY, previewFlowManager)
+    .add(PreviewFlowManager.KEY, previewFlowManager)
+    .add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement)
+    .add(PREVIEW_ELEMENT_INSTANCE, previewElement)
+    .add(CommonDataKeys.PROJECT, project)
+    .add(PREVIEW_VIEW_MODEL_STATUS, composePreviewManager.status())
+    .add(FastPreviewSurface.KEY, fastPreviewSurface)
+    .add(PreviewInvalidationManager.KEY, composePreviewManager)
+    .build()
 
 /**
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently,
@@ -491,8 +487,8 @@ class ComposePreviewRepresentation(
 
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
-      override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
-        PreviewElementDataContext(
+      override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
+        createPreviewElementDataProvider(
           project,
           this@ComposePreviewRepresentation,
           composePreviewFlowManager,

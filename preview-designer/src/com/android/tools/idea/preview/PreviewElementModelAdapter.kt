@@ -16,9 +16,9 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.preview.PreviewElement
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
@@ -49,7 +49,7 @@ interface PreviewElementModelAdapter<T : PreviewElement<*>, M> {
 
   fun modelToElement(model: M): T?
 
-  fun createDataContext(previewElement: T): DataContext
+  fun createDataProvider(previewElement: T): NlDataProvider
 
   fun toLogString(previewElement: T): String
 

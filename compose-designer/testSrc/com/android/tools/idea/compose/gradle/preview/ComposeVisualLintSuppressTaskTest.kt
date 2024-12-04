@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
+import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.getPsiFile
@@ -37,7 +38,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSiz
 import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.smartReadActionBlocking
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
@@ -116,12 +116,8 @@ class ComposeVisualLintSuppressTaskTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    nlModel.dataContext = DataContext {
-      when (it) {
-        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-        else -> null
-      }
-    }
+    nlModel.dataProvider =
+      NlDataProviderBuilder().add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement).build()
     nlModel.setModelUpdater(AccessibilityModelUpdater())
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 
@@ -219,12 +215,8 @@ class ComposeVisualLintSuppressTaskTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    nlModel.dataContext = DataContext {
-      when (it) {
-        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-        else -> null
-      }
-    }
+    nlModel.dataProvider =
+      NlDataProviderBuilder().add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement).build()
     nlModel.setModelUpdater(AccessibilityModelUpdater())
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 

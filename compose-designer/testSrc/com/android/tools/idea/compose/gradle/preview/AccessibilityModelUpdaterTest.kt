@@ -114,7 +114,7 @@ class AccessibilityModelUpdaterTest {
         it.displaySettings.modelDisplayName.value == "TwoElementsPreview"
       }
 
-    val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
+    val uiCheckElement = twoElementsPreviewModel.dataProvider?.previewElement()!!
 
     runBlocking {
       waitForAllRefreshesToFinish(30.seconds)
