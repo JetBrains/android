@@ -74,16 +74,17 @@ class WearDevicePairingWizard {
             ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           } else {
             // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
-            val actionId = "Android.DeviceManager2"
-            val deviceManagerAction = ActionManager.getInstance().getAction(actionId)
-            val projectContext = SimpleDataContext.getProjectContext(project)
-            ActionUtil.invokeAction(
-              deviceManagerAction,
-              projectContext,
-              ActionPlaces.UNKNOWN,
-              null,
-              null,
-            )
+            val deviceManagerAction =
+              ActionManager.getInstance().getAction("Android.DeviceManager2")
+            val actionEvent =
+              AnActionEvent.createEvent(
+                SimpleDataContext.getProjectContext(project),
+                null,
+                ActionPlaces.UNKNOWN,
+                ActionUiKind.NONE,
+                null,
+              )
+            ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           }
         }
 
