@@ -67,7 +67,6 @@ import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
 import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupElementFactory
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -93,7 +92,10 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.AbbreviatedType
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * Enhances code completion for Modifier (androidx.compose.ui.Modifier)
@@ -247,6 +249,13 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       }
     }
   }
+
+  private val KotlinType.fqName: FqName?
+    get() =
+      when (this) {
+        is AbbreviatedType -> abbreviation.fqName
+        else -> constructor.declarationDescriptor?.fqNameOrNull()
+      }
 
   @VisibleForTesting
   fun consumerCompletionResultFromRemainingContributor(
