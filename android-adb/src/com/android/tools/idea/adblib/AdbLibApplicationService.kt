@@ -17,6 +17,8 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannel
 import com.android.adblib.AdbServerChannelProvider
+import com.android.adblib.AdbServerConfiguration
+import com.android.adblib.AdbServerController
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
 import com.android.adblib.ddmlibcompatibility.AdbLibAndroidDebugBridge
@@ -40,6 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.Duration
 
 /**
@@ -56,14 +59,24 @@ class AdbLibApplicationService : Disposable {
    */
   private val host = AndroidAdbSessionHost()
 
-  /** keeps track of [Project] instances to retrieve the path to `adb` */
   private val adbFileLocationTracker = AdbFileLocationTracker()
+
+  private val adbServerConfiguration = MutableStateFlow(
+    AdbServerConfiguration(adbPath = null, serverPort = null, isUserManaged = false, isUnitTest = false, envVars = emptyMap()))
+
+  private val adbServerController = if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
+    AdbServerController.createServerController(host, adbServerConfiguration)
+  }
+  else {
+    null
+  }
 
   /**
    * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
    * [AdbChannel].
    */
-  private val channelProvider = AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+  private val channelProvider =
+    adbServerController?.channelProvider ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 
   /**
    * A [AdbSession] customized to work in the Android plugin.
@@ -90,8 +103,9 @@ class AdbLibApplicationService : Disposable {
   }
 
   init {
-    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
-      AndroidDebugBridge.preInit(AdbLibAndroidDebugBridge())
+    if (adbServerController != null) {
+      val androidDebugBridge = AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
+      AndroidDebugBridge.preInit(androidDebugBridge)
     }
 
     // Listen to "project closed" events to unregister projects
