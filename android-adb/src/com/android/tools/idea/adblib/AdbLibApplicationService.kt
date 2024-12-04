@@ -56,10 +56,14 @@ class AdbLibApplicationService : Disposable {
    */
   private val host = AndroidAdbSessionHost()
 
+  /** keeps track of [Project] instances to retrieve the path to `adb` */
+  private val adbFileLocationTracker = AdbFileLocationTracker()
+
   /**
-   * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening [AdbChannel].
+   * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
+   * [AdbChannel].
    */
-  private val channelProvider = AndroidAdbServerChannelProvider(host)
+  private val channelProvider = AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 
   /**
    * A [AdbSession] customized to work in the Android plugin.
@@ -93,13 +97,13 @@ class AdbLibApplicationService : Disposable {
     // Listen to "project closed" events to unregister projects
     ProjectManager.TOPIC.subscribe(this, object: ProjectManagerListener {
       override fun projectClosed(project: Project) {
-        channelProvider.unregisterProject(project)
+        adbFileLocationTracker.unregisterProject(project)
       }
     })
   }
 
   internal fun registerProject(project: Project): Boolean {
-    return channelProvider.registerProject(project)
+    return adbFileLocationTracker.registerProject(project)
   }
 
   override fun dispose() {
@@ -113,7 +117,7 @@ class AdbLibApplicationService : Disposable {
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
       // Startup activities run quite late when opening a project
-      instance.channelProvider.registerProject(project)
+      instance.adbFileLocationTracker.registerProject(project)
     }
   }
 
