@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.visual.VisualizationForm.Companion.VISUA
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 /** The dropdown action used to choose the configuration set in visualization tool. */
 class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) :
@@ -39,9 +40,8 @@ class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) :
     }
   }
 
-  override fun displayTextInToolbar() = true
-
   override fun update(e: AnActionEvent) {
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     e.presentation.text = currentConfigurationSet.name
   }
 

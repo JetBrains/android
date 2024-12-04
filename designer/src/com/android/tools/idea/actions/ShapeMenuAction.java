@@ -23,6 +23,7 @@ import com.android.tools.configurations.Configuration;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,16 +49,12 @@ public class ShapeMenuAction extends DropDownAction {
     Configuration configuration = Iterables.getFirst(configurations, null);
     AdaptiveIconShape shape = configuration != null ? configuration.getAdaptiveShape() : AdaptiveIconShape.getDefaultShape();
     e.getPresentation().setText(shape.getName());
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
   }
 
   @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   private static class SetShapeAction extends ConfigurationAction {

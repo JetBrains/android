@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class TargetMenuAction extends DropDownAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     if (configurations == null) {
       return;
@@ -88,11 +90,6 @@ public class TargetMenuAction extends DropDownAction {
   @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   /**

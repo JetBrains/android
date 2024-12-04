@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
@@ -53,10 +54,9 @@ class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEd
   // Run on EDT since toolbar.isTransitionSelected accesses UI state
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
     e.presentation.description = null
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
 
     val surface = e.getData(DESIGN_SURFACE)
     if (surface == null) {

@@ -34,6 +34,7 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.thisLogger
@@ -337,7 +338,10 @@ private class BrowseAction(
     }
   }
 
-  override fun displayTextInToolbar() = true
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+  }
 
   override fun actionPerformed(e: AnActionEvent) {
     openResourcePickerDialog()

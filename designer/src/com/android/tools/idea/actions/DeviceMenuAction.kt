@@ -51,6 +51,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
@@ -128,11 +129,10 @@ class DeviceMenuAction(
     )
   }
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
     super.update(e)
     updatePresentation(e)
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   private fun updatePresentation(e: AnActionEvent) {

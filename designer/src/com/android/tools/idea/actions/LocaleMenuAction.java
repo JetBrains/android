@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
@@ -54,11 +55,6 @@ import org.jetbrains.annotations.Nullable;
 public class LocaleMenuAction extends DropDownAction {
   public LocaleMenuAction() {
     super("Locale for Preview", "Locale for Preview", null);
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   @Override
@@ -180,6 +176,7 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   private void updatePresentation(@NotNull AnActionEvent e) {
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     if (configurations == null) {
       return;

@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -59,16 +60,12 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   @Override
-  public boolean displayTextInToolbar() {
-    return true;
-  }
-
-  @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
   }
 
   private void updatePresentation(@NotNull AnActionEvent e) {
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     Project project = e.getProject();
     Presentation presentation = e.getPresentation();

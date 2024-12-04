@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +43,7 @@ public class DensityMenuAction extends DropDownAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     if (configurations == null || configurations.isEmpty()) {
       return;
@@ -59,11 +61,6 @@ public class DensityMenuAction extends DropDownAction {
   @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
   }
 
   private static class SetDensityAction extends AnAction {

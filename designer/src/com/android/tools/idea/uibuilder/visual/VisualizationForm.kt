@@ -61,6 +61,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -670,9 +671,8 @@ class VisualizationForm(
     override fun update(e: AnActionEvent) {
       e.presentation.setText(text, false)
       e.presentation.isEnabled = false
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
-
-    override fun displayTextInToolbar() = true
   }
 
   private inner class ToggleShowDecorationAction : ToggleAction("Show System UI") {

@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
@@ -253,6 +254,7 @@ abstract class SplitEditor<P : FileEditor>(
 
     override fun update(e: AnActionEvent) {
       super.update(e)
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       val bothShortcutsEmpty =
         navigateLeftAction.shortcutSet == CustomShortcutSet.EMPTY &&
           navigateRightAction.shortcutSet == CustomShortcutSet.EMPTY
@@ -274,8 +276,6 @@ abstract class SplitEditor<P : FileEditor>(
           ?.let { " (${it})" } ?: ""
       e.presentation.description = "$name$suffix"
     }
-
-    override fun displayTextInToolbar() = true
 
     open fun onUserSelectedAction() {}
   }

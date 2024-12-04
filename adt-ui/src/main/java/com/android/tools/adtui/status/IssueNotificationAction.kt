@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
@@ -192,9 +193,8 @@ open class IssueNotificationAction(
   @UiThread
   open fun shouldSimplify(status: IdeStatus, dataContext: DataContext) : Boolean = false
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     val project = e.project ?: return
     val presentation = e.presentation
     createStatusInfo(project, e.dataContext)?.let {

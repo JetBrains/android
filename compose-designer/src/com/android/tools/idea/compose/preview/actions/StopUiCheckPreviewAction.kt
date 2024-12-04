@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.actions.navigateBack
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
@@ -31,9 +32,8 @@ class StopUiCheckPreviewAction :
     message("action.stop.uicheck.description"),
     StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     val composePreviewManager = e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)
     e.presentation.isEnabled = composePreviewManager?.status()?.isRefreshing != true
     e.presentation.isVisible = composePreviewManager?.mode?.value is PreviewMode.UiCheck

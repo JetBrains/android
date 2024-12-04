@@ -148,6 +148,7 @@ class SelectDeviceAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       // restore the icon after the Action was de-selected
       if (!Toggleable.isSelected(event.presentation)) {
         event.presentation.icon = device.toIcon()
