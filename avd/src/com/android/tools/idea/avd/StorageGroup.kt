@@ -36,6 +36,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.tools.adtui.compose.LocalProject
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
 import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
@@ -64,6 +65,7 @@ internal fun StorageGroup(
   device: VirtualDevice,
   state: StorageGroupState,
   hasPlayStore: Boolean,
+  postMvpFeaturesEnabled: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -91,7 +93,13 @@ internal fun StorageGroup(
       )
     }
 
-    ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+    if (postMvpFeaturesEnabled) {
+      if (device.formFactor != FormFactors.WEAR) {
+        ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+      }
+    } else {
+      ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+    }
   }
 }
 

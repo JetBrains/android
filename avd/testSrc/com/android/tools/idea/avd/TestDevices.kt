@@ -212,4 +212,41 @@ internal object TestDevices {
       formFactor = FormFactors.PHONE,
     )
   }
+
+  internal fun wearOSSmallRound(fileSystem: FileSystem): VirtualDevice {
+    val skin =
+      DefaultSkin(
+        fileSystem.getPath(
+          System.getProperty("user.home"),
+          "Android",
+          "Sdk",
+          "skins",
+          "wearos_small_round",
+        )
+      )
+
+    return VirtualDevice(
+      name = "Wear OS Small Round",
+      device = mock(),
+      skin = skin,
+      defaultSkin = skin,
+      frontCamera = AvdCamera.NONE,
+      rearCamera = AvdCamera.NONE,
+      speed = AvdNetworkSpeed.FULL,
+      latency = AvdNetworkLatency.NONE,
+      orientation = ScreenOrientation.PORTRAIT,
+      defaultBoot = Boot.QUICK,
+      internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB),
+      expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
+      cpuCoreCount = 4,
+      graphicsMode = GraphicsMode.AUTO,
+      ram = StorageCapacity(512, StorageCapacity.Unit.MB),
+      vmHeapSize = StorageCapacity(48, StorageCapacity.Unit.MB),
+      preferredAbi = null,
+      hasPlaystore = true,
+      isFoldable = false,
+      cameraLocations = emptyList(),
+      formFactor = FormFactors.WEAR,
+    )
+  }
 }

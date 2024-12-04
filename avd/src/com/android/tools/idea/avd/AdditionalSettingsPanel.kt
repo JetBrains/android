@@ -38,6 +38,7 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
+import com.android.tools.idea.flags.StudioFlags
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -68,7 +69,14 @@ internal fun AdditionalSettingsPanel(
     CameraGroup(state.device, state::device::set)
     NetworkGroup(state.device, state::device::set)
     StartupGroup(state.device, state::device::set)
-    StorageGroup(state.device, state.storageGroupState, hasPlayStore, state::device::set)
+
+    StorageGroup(
+      state.device,
+      state.storageGroupState,
+      hasPlayStore,
+      StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
+      state::device::set,
+    )
 
     EmulatedPerformanceGroup(
       state.device,

@@ -1702,6 +1702,13 @@ public final class StudioFlags {
     "Enable new UI for selecting Firebase devices",
     enabledUpTo(CANARY)
   );
+
+  public static final Flag<Boolean> POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "post.mvp.virtual.device.dialog.features.enabled",
+    "Post MVP Virtual Device Dialog Features Enabled",
+    "Enable miscellaneous Add/Edit Device dialog features for post MVP",
+    false);
   // endregion
 
   //region DDMLIB
