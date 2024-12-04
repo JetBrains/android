@@ -140,6 +140,7 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, parent: Disposable
     override fun stop() {
       invokeLater(ModalityState.stateForComponent(form.progressBar)) {
         form.label.text = null
+        form.label2.text = null
         form.progressBar.isVisible = false
         form.showConsole()
       }
