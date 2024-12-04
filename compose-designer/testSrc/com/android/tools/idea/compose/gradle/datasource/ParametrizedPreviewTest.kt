@@ -339,6 +339,16 @@ class ParametrizedPreviewTest {
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
+
+    assertThat(
+        preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
+          .asCollection()
+          .map { it.displaySettings.organizationGroup!! }
+          .toSet()
+      )
+      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
+      .inOrder()
+
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed waiting to start UI check mode",
       5.seconds,
