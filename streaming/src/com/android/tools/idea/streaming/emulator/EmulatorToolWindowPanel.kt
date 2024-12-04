@@ -105,7 +105,7 @@ internal class EmulatorToolWindowPanel(
 
   override val icon: Icon
     get() {
-      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(emulatorId.avdId)
+      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithFolder(emulatorId.avdFolder)
       val icon = avd?.icon ?: StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
       return ExecutionUtil.getLiveIndicator(icon)
     }
