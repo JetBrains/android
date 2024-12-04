@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.typing
 
 import com.android.tools.analytics.crash.GoogleCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
+import com.android.tools.idea.diagnostics.freeze.ThreadCallTreeSorter
 import com.android.tools.idea.diagnostics.report.DiagnosticCrashReport
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
 import com.android.tools.idea.diagnostics.util.ThreadCallTree
@@ -334,9 +335,11 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
       sb.append(missedSlowTypingEventsCount).append("\n")
       sb.append(longestTypingLatencyMs).append("\n")
       serializeThread(threadSnapshots[EDT.getEventDispatchThread().id], sb)
-      for (threadId in threadSnapshots.keys) {
-        if (threadId != EDT.getEventDispatchThread().id) {
-          serializeThread(threadSnapshots[threadId], sb)
+      val sortedCallTrees = ThreadCallTreeSorter(threadSnapshots.values.toMutableList()).sort()
+
+      for (callTree in sortedCallTrees) {
+        if (!callTree.isAwtThread) {
+          serializeThread(callTree, sb)
         }
       }
       Files.writeString(path, sb)
