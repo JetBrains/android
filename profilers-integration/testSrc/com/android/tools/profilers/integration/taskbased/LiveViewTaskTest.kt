@@ -55,6 +55,9 @@ class LiveViewTaskTest : ProfilersTestBase() {
         // Selecting live view task.
         selectLiveViewTask(studio)
 
+        // Set starting point to 'NOW' to enable the task start.
+        setProfilingStartingPointToNow(studio)
+
         // Live View Task is alsways
         // Starting task
         startTask(studio)

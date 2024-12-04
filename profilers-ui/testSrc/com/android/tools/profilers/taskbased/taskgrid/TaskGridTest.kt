@@ -75,7 +75,7 @@ class TaskGridTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    taskGridModel = TaskGridModel {}
+    taskGridModel = TaskGridModel()
     ideProfilerServices.enableTaskBasedUx(true)
     ideProfilerServices.enableLeakCanary(true)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)

@@ -292,6 +292,9 @@ class TaskHomeTabModelTest {
     addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
     taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
 
+    // Set task starting point to enable task start.
+    taskHomeTabModel.setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
+
     // Select the task and populate the respective task handler
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
     assertTrue(canTaskStartFromNow(ProfilerTaskType.CALLSTACK_SAMPLE,
@@ -331,12 +334,13 @@ class TaskHomeTabModelTest {
     assertTrue(taskHomeTabModel.isPrevTaskStartDone.value)
     setCurrentTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE)
 
-    // Create and select the device, process, and task
+    // Create and select the device, process, starting point, and task
     val selectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE, "12", AndroidVersion.VersionCodes.S)
     taskHomeTabModel.processListModel.onDeviceSelection(selectedDevice)
     val selectedProcess = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, selectedDevice.deviceId)
     addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
     taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
+    taskHomeTabModel.setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
 
     // Task start can be indicated by the selected session changing, which can be verified to occur by checking the SELECTED_SESSION aspect

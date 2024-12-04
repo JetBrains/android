@@ -116,7 +116,7 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
                             profilers).takeIf { STARTUP_TASK_ERRORS.contains(it) }
         }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
-                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled,
+                                isProfilingProcessFromNowEnabled = true, isProfilingProcessFromProcessStartEnabled = true,
                                 selectedProcess.state == Common.Process.State.ALIVE, processStartDisabledReason)
       if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
         Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))

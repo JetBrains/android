@@ -40,11 +40,10 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
                               isProfilingProcessFromProcessStartEnabled: Boolean,
                               isSelectedProcessAlive: Boolean,
                               processStartDisabledReason: StartTaskSelectionError?) {
-  val isDropdownEnabled = isProfilingProcessFromNowEnabled || isProfilingProcessFromProcessStartEnabled
 
   Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
     EllipsisText(text = TaskBasedUxStrings.STARTING_POINT_DROPDOWN_TITLE)
-    Dropdown(modifier = Modifier.testTag("TaskStartingPointDropdown"), enabled = isDropdownEnabled, menuContent = {
+    Dropdown(modifier = Modifier.testTag("TaskStartingPointDropdown"), menuContent = {
       selectableItem(enabled = isProfilingProcessFromNowEnabled,
                      selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) }) {
