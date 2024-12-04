@@ -15,45 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
-import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.applyDslLiteralOrReference;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.closableBlockNeedsNewline;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createAndAddClosure;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createDerivedMap;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createInfixElement;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createMethodCallArgumentList;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createNamedArgumentList;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.deletePsiElement;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureGroovyPsi;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getClosableBlock;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getParentPsi;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getPsiElementForAnchor;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.maybeUpdateName;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.needToCreateParent;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.processListElement;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.processMapElement;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.quotePartsIfNecessary;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
-import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
-import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
-
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
@@ -74,6 +41,15 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssign
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
+import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
+import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
+import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
 
 public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDslWriter {
   public GroovyDslWriter(@NotNull BuildModelContext context) {
