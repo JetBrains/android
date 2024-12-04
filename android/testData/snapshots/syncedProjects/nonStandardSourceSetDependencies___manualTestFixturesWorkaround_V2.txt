@@ -1851,10 +1851,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: JarWrappedLib.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: JarWrappedLib.jar
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1924,10 +1924,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: JarWrappedLib.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: JarWrappedLib.jar
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
