@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.annotations.RequiresEdt
@@ -263,9 +264,8 @@ class PlaybackControls(
 
     override fun update(e: AnActionEvent) {
       e.presentation.text = clockControl.speed.displayText
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
-
-    override fun displayTextInToolbar() = true
 
     private inner class SpeedAction(private val speed: TimelineSpeed) :
       ToggleAction(speed.displayText, speed.displayText, null) {
