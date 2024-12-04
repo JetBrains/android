@@ -39,13 +39,14 @@ public record Label(String workspace, String buildPackage, String name) {
   public final static String ROOT_WORKSPACE = "";
 
   public static Label of(String label) {
+    Preconditions.checkArgument(!label.isBlank(), "Empty label");
     final var workspacePosition = label.startsWith("@") ? (label.startsWith("@@") ? 2 : 1) : 0;
     final var workspaceEnd = label.indexOf("//", workspacePosition);
     final var buildPackagePosition =  workspaceEnd + 2;
-    Preconditions.checkArgument(buildPackagePosition >= 2);
+    Preconditions.checkArgument(buildPackagePosition >= 2, "Invalid label: " + label);
     final var buildPackageEnd = label.indexOf(":", buildPackagePosition);
     final var namePosition = buildPackageEnd + 1;
-    Preconditions.checkArgument(namePosition >= 1);
+    Preconditions.checkArgument(namePosition >= 1, "Invalid label: " + label);
 
     final var workspace = label.substring(workspacePosition, workspaceEnd);
     final var buildPackage = label.substring(buildPackagePosition, buildPackageEnd);

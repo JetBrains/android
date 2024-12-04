@@ -332,13 +332,17 @@ public abstract class QuerySummary {
               rule.addAllHdrs(indexer.indexStringsAsLabels(a.getStringListValueList()));
             } else if (attributeIsTrackedDependency(attributeName, target)) {
               if (a.hasStringValue()) {
-                rule.addDeps(indexer.indexLabel(Label.of(a.getStringValue())));
+                if (!a.getStringValue().isEmpty()) {
+                  rule.addDeps(indexer.indexLabel(Label.of(a.getStringValue())));
+                }
               } else {
                 rule.addAllDeps(indexer.indexStringsAsLabels(a.getStringListValueList()));
               }
             } else if (RUNTIME_DEP_ATTRIBUTES.contains(attributeName)) {
               if (a.hasStringValue()) {
-                rule.addRuntimeDeps(indexer.indexLabel(Label.of(a.getStringValue())));
+                if (!a.getStringValue().isEmpty()) {
+                  rule.addRuntimeDeps(indexer.indexLabel(Label.of(a.getStringValue())));
+                }
               } else {
                 rule.addAllRuntimeDeps(indexer.indexStringsAsLabels(a.getStringListValueList()));
               }
