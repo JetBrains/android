@@ -24,6 +24,7 @@ import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataSink
@@ -89,11 +90,12 @@ open class IconWithFocusBorder(
       popupMenu.component.show(this, location.x, location.y)
     } else {
       val event =
-        AnActionEvent.createFromAnAction(
-          action,
-          mouseEvent,
-          ActionPlaces.UNKNOWN,
+        AnActionEvent.createEvent(
           DataManager.getInstance().getDataContext(this),
+          action.getTemplatePresentation().clone(),
+          ActionPlaces.UNKNOWN,
+          ActionUiKind.NONE,
+          mouseEvent,
         )
       action.actionPerformed(event)
     }

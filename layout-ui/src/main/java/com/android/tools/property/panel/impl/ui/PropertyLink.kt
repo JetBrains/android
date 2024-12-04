@@ -24,6 +24,7 @@ import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.components.JBLabel
@@ -75,7 +76,13 @@ class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLa
     val dataContext = DataManager.getInstance().getDataContext(this)
     val manager = ActionManager.getInstance()
     val actionEvent =
-      AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, presentation, manager, 0)
+      AnActionEvent.createEvent(
+        dataContext,
+        presentation,
+        ActionPlaces.UNKNOWN,
+        ActionUiKind.NONE,
+        null,
+      )
     action.actionPerformed(actionEvent)
   }
 }
