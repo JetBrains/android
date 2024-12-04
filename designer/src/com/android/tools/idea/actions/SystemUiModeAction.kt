@@ -22,6 +22,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -192,7 +193,15 @@ private class ActionItem(action: SetNightModeAction, dataContext: DataContext) :
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
-      val anEvent = AnActionEvent.createFromAnAction(action, null, ActionPlaces.POPUP, dataContext)
+      val anEvent =
+        AnActionEvent.createEvent(
+          action,
+          dataContext,
+          null,
+          ActionPlaces.POPUP,
+          ActionUiKind.POPUP,
+          null,
+        )
       action.actionPerformed(anEvent)
     }
   }
@@ -267,11 +276,13 @@ private class SetWallpaperAction(val wallpaper: Wallpaper?) : ConfigurationActio
       object : AbstractAction(null, scaledWallpaperIcon) {
         override fun actionPerformed(e: ActionEvent) {
           val actionEvent =
-            AnActionEvent.createFromAnAction(
+            AnActionEvent.createEvent(
               this@SetWallpaperAction,
+              dataContext,
               null,
               ActionPlaces.POPUP,
-              dataContext,
+              ActionUiKind.POPUP,
+              null,
             )
           this@SetWallpaperAction.actionPerformed(actionEvent)
         }
