@@ -961,7 +961,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
     init {
       createDefaultColumnsFromModel()
-      setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS)
+      setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS)
 
       addPropertyChangeListener { event ->
         if (event.propertyName == "model") {
