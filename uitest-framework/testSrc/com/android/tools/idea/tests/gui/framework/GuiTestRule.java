@@ -29,9 +29,11 @@ import static org.fest.reflect.core.Reflection.method;
 import static org.fest.reflect.core.Reflection.type;
 
 import com.android.SdkConstants;
+import com.android.flags.junit.FlagRule;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.bleak.StudioBleakOptions;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -109,6 +111,8 @@ public class GuiTestRule implements TestRule {
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
 
+  private final FlagRule<Boolean> myFlagRule = new FlagRule<>(StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS, false);
+
   /* By nesting a pair of timeouts (one around just the test, one around the entire rule chain), we ensure that Rule code executing
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
    */
@@ -152,6 +156,7 @@ public class GuiTestRule implements TestRule {
       .around(new IdeControl(myRobotTestRule::getRobot))
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
+      .around(myFlagRule)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(new DiagnosticsOnFailure())
