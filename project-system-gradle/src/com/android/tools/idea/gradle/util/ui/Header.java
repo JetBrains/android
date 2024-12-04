@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util.ui;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -53,7 +54,7 @@ import static com.intellij.util.ui.UIUtil.*;
 public class Header extends JPanel {
   @NotNull private final String myTitle;
 
-  private JPanel myButtonPanel;
+  private final JPanel myButtonPanel;
   private BufferedImage myImage;
   private BufferedImage myActiveImage;
 
@@ -218,7 +219,7 @@ public class Header extends JPanel {
     public void actionPerformed(ActionEvent e) {
       DataContext dataContext = DataManager.getInstance().getDataContext(this);
       InputEvent inputEvent = e.getSource() instanceof InputEvent ? (InputEvent)e.getSource() : null;
-      AnActionEvent event = AnActionEvent.createFromAnAction(myAction, inputEvent, UNKNOWN, dataContext);
+      AnActionEvent event = AnActionEvent.createEvent(myAction, dataContext, null, UNKNOWN, ActionUiKind.NONE, inputEvent);
       ActionUtil.performActionDumbAwareWithCallbacks(myAction, event);
     }
   }
