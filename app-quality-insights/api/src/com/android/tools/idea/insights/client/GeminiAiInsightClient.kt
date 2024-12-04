@@ -78,7 +78,7 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
       }
     return if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
       val response =
-        GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("")
+        GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("\n")
       AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
     } else {
       // Simulate a delay that would come generating an actual insight
