@@ -19,18 +19,26 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.ui.util.preferredHeight
+import com.intellij.ui.util.preferredWidth
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -38,10 +46,14 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import javax.swing.JSeparator
+import javax.swing.JTextArea
 import javax.swing.ListSelectionModel
 import javax.swing.event.DocumentEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+private val VITALS_POPUP_ITEM_BORDER = JBUI.Borders.empty(1, 8)
 
 class VitalsConnectionSelectorPopup(
   selection: Selection<VitalsConnection>,
@@ -53,56 +65,69 @@ class VitalsConnectionSelectorPopup(
 
   init {
     val (mainConnections, secondaryConnections) = selection.items.partition { it.isPreferred }
-
     val contentPanel = JPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 
-    if (mainConnections.isNotEmpty()) {
-      val suggestedContainer = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5) }
-      val suggestedLabel =
-        SimpleColoredComponent().apply {
-          append("Suggested apps", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
-        }
-      val (suggestedApps, suggestedAppsModel) = setUpList()
-
-      suggestedAppsModel.addAll(mainConnections)
-
-      suggestedContainer.add(suggestedLabel, BorderLayout.NORTH)
-      suggestedContainer.add(suggestedApps, BorderLayout.CENTER)
-
-      contentPanel.add(suggestedContainer)
-
-      if (secondaryConnections.isNotEmpty()) {
-        suggestedContainer.border = JBUI.Borders.customLineBottom(JBColor.border())
-      }
-    }
-
-    if (secondaryConnections.isNotEmpty()) {
-      val allContainer = JPanel(BorderLayout()).apply { JBUI.Borders.empty(5) }
-      val allLabel =
-        SimpleColoredComponent().apply {
-          append("All apps", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
-        }
-      val (allApps, allAppsModel) = setUpList()
-      allAppsModel.addAll(secondaryConnections)
-      allContainer.add(allLabel, BorderLayout.NORTH)
-      allContainer.add(allApps, BorderLayout.CENTER)
-
-      contentPanel.add(allContainer)
-    }
-
     if (mainConnections.isEmpty() && secondaryConnections.isEmpty()) {
-      val emptyMessagePanel = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5) }
-      val title = JBLabel("No apps available").apply { border = JBUI.Borders.emptyBottom(5) }
-      val subtitle =
-        JBLabel("Your Play Console account does not have access to").apply {
-          foreground = JBColor.GRAY
+      val bannerPanel =
+        JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.empty(8, 8, 0, 8)
+          add(NoAvailableAppsBanner(), BorderLayout.CENTER)
         }
-      val subtitleLine2 = JBLabel("Android Vitals for any app.").apply { foreground = JBColor.GRAY }
-      emptyMessagePanel.add(title, BorderLayout.NORTH)
-      emptyMessagePanel.add(subtitle, BorderLayout.CENTER)
-      emptyMessagePanel.add(subtitleLine2, BorderLayout.SOUTH)
-      contentPanel.add(emptyMessagePanel)
+      contentPanel.add(bannerPanel)
     }
+
+    val suggestedContainer =
+      JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5, 5, 0, 5) }
+    val suggestedLabel =
+      SimpleColoredComponent().apply {
+        append("Suggested apps for this project", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        border = VITALS_POPUP_ITEM_BORDER
+      }
+    val (suggestedApps, suggestedAppsModel) = setUpList()
+
+    suggestedAppsModel.addAll(mainConnections)
+
+    suggestedContainer.add(suggestedLabel, BorderLayout.NORTH)
+    suggestedContainer.add(
+      if (mainConnections.isEmpty()) {
+        emptyLabel("No suggested apps")
+      } else {
+        suggestedApps
+      },
+      BorderLayout.CENTER,
+    )
+
+    contentPanel.add(suggestedContainer)
+
+    val separatorPanel =
+      JPanel(BorderLayout()).apply {
+        add(JSeparator(), BorderLayout.CENTER)
+        border = JBUI.Borders.empty(0, 8)
+      }
+    contentPanel.add(separatorPanel)
+
+    val allContainer = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 5) }
+    val allLabel =
+      SimpleColoredComponent().apply {
+        append(
+          "${if (mainConnections.isNotEmpty()) "Other" else "All"} apps",
+          SimpleTextAttributes.GRAYED_ATTRIBUTES,
+        )
+        border = VITALS_POPUP_ITEM_BORDER
+      }
+    val (allApps, allAppsModel) = setUpList()
+    allAppsModel.addAll(secondaryConnections)
+    allContainer.add(allLabel, BorderLayout.NORTH)
+    allContainer.add(
+      if (secondaryConnections.isEmpty()) {
+        emptyLabel("No apps accessible to you")
+      } else {
+        allApps
+      },
+      BorderLayout.CENTER,
+    )
+
+    contentPanel.add(allContainer)
 
     add(searchTextField, BorderLayout.NORTH)
     add(contentPanel, BorderLayout.CENTER)
@@ -129,13 +154,13 @@ class VitalsConnectionSelectorPopup(
       val hasFocus = list.selectedValue == value
       val renderer = JPanel(BorderLayout())
       renderer.isOpaque = false
-      renderer.border = JBUI.Borders.empty(2, 5)
+      renderer.border = VITALS_POPUP_ITEM_BORDER
       val component =
         JListSimpleColoredComponent(null, list, hasFocus).apply {
           toolTipText = value.appId
           append(value.displayName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
           append("  ")
-          append(value.appId, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
+          append(value.appId, SimpleTextAttributes.GRAYED_ATTRIBUTES)
         }
       component.background = if (hasFocus) list.selectionBackground else list.background
       renderer.add(component, BorderLayout.WEST)
@@ -173,6 +198,7 @@ class VitalsConnectionSelectorPopup(
       }
     )
 
+    connectionsList.border = JBUI.Borders.empty()
     return connectionsList to model
   }
 
@@ -181,5 +207,53 @@ class VitalsConnectionSelectorPopup(
       .createComponentPopupBuilder(this, searchTextField)
       .setFocusable(true)
       .setRequestFocus(true)
+      .setMinSize(Dimension(preferredWidth, preferredHeight + 20))
       .createPopup()
+
+  private fun emptyLabel(text: String) =
+    SimpleColoredComponent().apply {
+      append(text, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+      border = VITALS_POPUP_ITEM_BORDER
+    }
+
+  inner class NoAvailableAppsBanner : JPanel(BorderLayout()) {
+    init {
+      isOpaque = false
+      border = JBUI.Borders.empty(8)
+      val iconPanel =
+        JPanel(BorderLayout()).apply {
+          val iconLabel = JBLabel(AllIcons.General.Error).apply { isOpaque = false }
+          add(iconLabel, BorderLayout.NORTH)
+          isOpaque = false
+        }
+      add(iconPanel, BorderLayout.WEST)
+
+      val descriptionTextPane =
+        JTextArea().apply {
+          text = "Your Play Console account does not have access to Android Vitals for any app."
+          isEditable = false
+          isFocusable = false
+          wrapStyleWord = true
+          lineWrap = true
+          columns = 25
+          font = JBFont.label()
+          isOpaque = false
+          border = JBUI.Borders.emptyLeft(4)
+        }
+      add(descriptionTextPane, BorderLayout.CENTER)
+    }
+
+    override fun paintBorder(g: Graphics) {
+      super.paintComponent(g)
+      with(g as Graphics2D) {
+        val color = Banner.ERROR_BACKGROUND
+        setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+        g.color = color
+        g.fillRoundRect(0, 0, width - 1, height - 1, 12, 12)
+        g.color = color.brighter()
+        g.drawRoundRect(0, 0, width - 1, height - 1, 12, 12)
+      }
+    }
+  }
 }

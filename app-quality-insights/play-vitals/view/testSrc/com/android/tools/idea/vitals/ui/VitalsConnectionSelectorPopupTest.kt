@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import ai.grazie.utils.text
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.insights.Selection
@@ -23,17 +24,19 @@ import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_CONNECTION_2
 import com.android.tools.idea.vitals.TEST_CONNECTION_3
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import com.android.tools.idea.vitals.ui.VitalsConnectionSelectorPopup.NoAvailableAppsBanner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.SimpleColoredComponent
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.jetbrains.rd.generator.nova.fail
 import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -71,49 +74,50 @@ class VitalsConnectionSelectorPopupTest {
     val labels =
       fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
     assertThat(labels).hasSize(2)
-    assertThat(labels.map { it.toString() }).containsExactly("Suggested apps", "All apps")
+    assertThat(labels.map { it.toString() })
+      .containsExactly("Suggested apps for this project", "Other apps")
   }
 
   @Test
-  fun `popup only shows suggested apps when all connections are associated with a variant`() =
-    runTest {
-      val stateFlow =
-        MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2)))
-      val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
-      val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
-      action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
-
-      val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
-      val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
-      val lists = fakeUi.findAllComponents<JBList<VitalsConnection>>()
-      assertThat(lists).hasSize(1)
-      assertThat(lists[0].model.getElementAt(0)).isEqualTo(TEST_CONNECTION_1)
-      assertThat(lists[0].model.getElementAt(1)).isEqualTo(TEST_CONNECTION_2)
-
-      val labels =
-        fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
-      assertThat(labels).hasSize(1)
-      assertThat(labels.map { it.toString() }).containsExactly("Suggested apps")
-    }
-
-  @Test
-  fun `popup only shows all apps when no connections are associated with a variant`() = runTest {
-    val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_3, listOf(TEST_CONNECTION_3)))
+  fun `popup shows empty other app when all connections are associated with a variant`() = runTest {
+    val stateFlow =
+      MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2)))
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
     val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
     action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
 
     val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
     val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
-    val lists = fakeUi.findAllComponents<JBList<VitalsConnection>>()
-    assertThat(lists).hasSize(1)
-    assertThat(lists[0].model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
+    val list = fakeUi.findComponent<JBList<VitalsConnection>>() ?: fail("List not found")
+    assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_1)
+    assertThat(list.model.getElementAt(1)).isEqualTo(TEST_CONNECTION_2)
 
     val labels =
       fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
-    assertThat(labels).hasSize(1)
-    assertThat(labels.map { it.toString() }).containsExactly("All apps")
+    assertThat(labels).hasSize(3)
+    assertThat(labels.map { it.toString() })
+      .containsExactly("Suggested apps for this project", "Other apps", "No apps accessible to you")
   }
+
+  @Test
+  fun `popup shows empty suggested apps when no connections are associated with a variant`() =
+    runTest {
+      val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_3, listOf(TEST_CONNECTION_3)))
+      val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
+      val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
+      action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
+
+      val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
+      val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
+      val list = fakeUi.findComponent<JBList<VitalsConnection>>() ?: fail("List not found")
+      assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
+
+      val labels =
+        fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
+      assertThat(labels).hasSize(3)
+      assertThat(labels.map { it.toString() })
+        .containsExactly("Suggested apps for this project", "No suggested apps", "All apps")
+    }
 
   @Test
   fun `popup shows empty state message when there are no apps at all`() = runTest {
@@ -124,9 +128,11 @@ class VitalsConnectionSelectorPopupTest {
 
     val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
     val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
-    val labels = fakeUi.findAllComponents<JBLabel>()
-    assertThat(labels).hasSize(3)
-    assertThat(labels[0].text).isEqualTo("No apps available")
+    val banner = fakeUi.findComponent<NoAvailableAppsBanner>() ?: fail("Banner panel not found")
+    val bannerFakeUi = FakeUi(banner)
+    val textPane = bannerFakeUi.findComponent<JTextArea>() ?: fail("Text area not found")
+    assertThat(textPane.text)
+      .isEqualTo("Your Play Console account does not have access to Android Vitals for any app.")
   }
 
   @Test
