@@ -39,6 +39,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -197,10 +198,12 @@ class DeviceViewContentPanel(
           button,
         )
         val event =
-          AnActionEvent.createFromDataContext(
-            ActionPlaces.TOOLWINDOW_CONTENT,
-            selectTargetAction.dropDownAction.templatePresentation,
+          AnActionEvent.createEvent(
             dataContext,
+            selectTargetAction.dropDownAction.templatePresentation.clone(),
+            ActionPlaces.TOOLWINDOW_CONTENT,
+            ActionUiKind.NONE,
+            null,
           )
         selectTargetAction.dropDownAction.actionPerformed(event)
       }

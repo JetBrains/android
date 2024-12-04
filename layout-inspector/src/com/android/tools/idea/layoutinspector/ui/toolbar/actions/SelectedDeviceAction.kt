@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import javax.swing.Icon
 import javax.swing.JComponent
 import org.jetbrains.annotations.VisibleForTesting
@@ -85,6 +86,7 @@ class SelectDeviceAction(
 
     event.presentation.icon = dropDownPresentation.icon
     event.presentation.text = dropDownPresentation.text
+    event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -110,8 +112,6 @@ class SelectDeviceAction(
 
     return true
   }
-
-  override fun displayTextInToolbar() = true
 
   class DetachPresentation(
     val text: String = "Stop Inspector",
@@ -143,7 +143,6 @@ class SelectDeviceAction(
   /** A device which the user can select. */
   private inner class DeviceAction(private val device: DeviceDescriptor) :
     ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
-    override fun displayTextInToolbar() = true
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -154,6 +153,7 @@ class SelectDeviceAction(
         event.presentation.icon = device.toIcon()
       }
       customDeviceAttribution(device, event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
@@ -177,8 +177,6 @@ class SelectDeviceAction(
     ) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    override fun displayTextInToolbar() = true
-
     init {
       val processes =
         deviceModel.processes
@@ -196,6 +194,7 @@ class SelectDeviceAction(
     override fun update(event: AnActionEvent) {
       super.update(event)
       customDeviceAttribution(device, event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
 
