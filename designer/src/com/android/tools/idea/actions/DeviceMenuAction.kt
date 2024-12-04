@@ -147,6 +147,7 @@ class DeviceMenuAction(
     if (visible != presentation.isVisible) {
       presentation.isVisible = visible
     }
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

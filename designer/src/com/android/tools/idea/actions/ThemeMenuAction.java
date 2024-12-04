@@ -69,6 +69,7 @@ public class ThemeMenuAction extends DropDownAction {
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     Project project = e.getProject();
     Presentation presentation = e.getPresentation();
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
 
     // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
     //  getResourceResolver in non-smart mode.

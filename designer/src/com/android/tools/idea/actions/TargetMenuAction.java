@@ -85,6 +85,7 @@ public class TargetMenuAction extends DropDownAction {
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
     }
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
   }
 
   @Override

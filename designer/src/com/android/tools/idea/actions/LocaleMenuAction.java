@@ -168,6 +168,7 @@ public class LocaleMenuAction extends DropDownAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e);
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
   }
 
   @Override
