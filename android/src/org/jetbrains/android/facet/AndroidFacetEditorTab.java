@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -30,7 +16,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -154,17 +139,19 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     Module module = myContext.getModule();
 
-    myManifestFileField.addActionListener(
-      new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
+    myManifestFileField.addActionListener(new MyFolderFieldListener(
+      myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+      .withExtensionFilter("xml")
+      .withFileFilter(file -> file.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML))));
 
-    myResFolderField.addActionListener(new MyFolderFieldListener(myResFolderField,
-                                                                             AndroidRootUtil.getResourceDir(facet), false, null));
+    myResFolderField.addActionListener(new MyFolderFieldListener(
+      myResFolderField, AndroidRootUtil.getResourceDir(facet), FileChooserDescriptorFactory.createSingleFolderDescriptor()));
 
-    myAssetsFolderField.addActionListener(new MyFolderFieldListener(myAssetsFolderField,
-                                                                                AndroidRootUtil.getAssetsDir(facet), false, null));
+    myAssetsFolderField.addActionListener(new MyFolderFieldListener(
+      myAssetsFolderField, AndroidRootUtil.getAssetsDir(facet), FileChooserDescriptorFactory.createSingleFolderDescriptor()));
 
-    myNativeLibsFolder.addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
-                                                                               AndroidRootUtil.getLibsDir(facet), false, null));
+    myNativeLibsFolder.addActionListener(new MyFolderFieldListener(
+      myNativeLibsFolder, AndroidRootUtil.getLibsDir(facet), FileChooserDescriptorFactory.createSingleFolderDescriptor()));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override
@@ -173,7 +160,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       }
     });
 
-    myCustomDebugKeystoreField.addActionListener(new MyFolderFieldListener(myCustomDebugKeystoreField, null, true, null));
+    myCustomDebugKeystoreField.addActionListener(new MyFolderFieldListener(
+      myCustomDebugKeystoreField, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()));
 
     myResetPathsButton.addActionListener(new ActionListener() {
       @Override
@@ -227,15 +215,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
     apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
 
-    myApkPathCombo.addBrowseFolderListener(project, new FileChooserDescriptor(true, false, false, false, false, false) {
-      @Override
-      public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
-        if (!super.isFileVisible(file, showHiddenFiles)) {
-          return false;
-        }
-        return file.isDirectory() || "apk".equals(file.getExtension());
-      }
-    });
+    myApkPathCombo.addBrowseFolderListener(project, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withExtensionFilter("apk"));
 
     myUseCustomManifestPackage.addActionListener(new ActionListener() {
       @Override
@@ -251,7 +231,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
     assert mavenTabIndex >= 0;
-    myProguardLogsDirectoryField.addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
+    myProguardLogsDirectoryField.addActionListener(new MyFolderFieldListener(
+      myProguardLogsDirectoryField, null, FileChooserDescriptorFactory.createSingleFolderDescriptor()));
   }
 
   @Nullable
@@ -635,17 +616,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private class MyFolderFieldListener implements ActionListener {
     private final TextFieldWithBrowseButton myTextField;
     private final VirtualFile myDefaultDir;
-    private final boolean myChooseFile;
-    private final Condition<VirtualFile> myFilter;
+    private final FileChooserDescriptor myDescriptor;
 
-    public MyFolderFieldListener(TextFieldWithBrowseButton textField,
-                                 VirtualFile defaultDir,
-                                 boolean chooseFile,
-                                 @Nullable Condition<VirtualFile> filter) {
+    private MyFolderFieldListener(TextFieldWithBrowseButton textField, VirtualFile defaultDir, FileChooserDescriptor descriptor) {
       myTextField = textField;
       myDefaultDir = defaultDir;
-      myChooseFile = chooseFile;
-      myFilter = filter;
+      myDescriptor = descriptor;
     }
 
     @Override
@@ -659,7 +635,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       if (path != null) {
         initialFile = LocalFileSystem.getInstance().findFileByPath(path);
       }
-      VirtualFile[] files = chooserDirsUnderModule(initialFile, myChooseFile, myFilter);
+      VirtualFile[] files = chooserDirsUnderModule(initialFile, myDescriptor);
       if (files.length > 0) {
         assert files.length == 1;
         myTextField.setText(FileUtil.toSystemDependentName(files[0].getPath()));
@@ -667,9 +643,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
   }
 
-  private VirtualFile[] chooserDirsUnderModule(@Nullable VirtualFile initialFile,
-                                               final boolean chooseFile,
-                                               @Nullable final Condition<VirtualFile> filter) {
+  private VirtualFile[] chooserDirsUnderModule(@Nullable VirtualFile initialFile, FileChooserDescriptor descriptor) {
     if (initialFile == null) {
       initialFile = myContext.getModule().getModuleFile();
     }
@@ -679,28 +653,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         initialFile = LocalFileSystem.getInstance().findFileByPath(p);
       }
     }
-    final FileChooserDescriptor descriptor = new FileChooserDescriptor(chooseFile, !chooseFile, false, false, false, false) {
-      @Override
-      public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
-        if (!super.isFileVisible(file, showHiddenFiles)) {
-          return false;
-        }
-
-        if (!file.isDirectory() && !chooseFile) {
-          return false;
-        }
-
-        return filter == null || filter.value(file);
-      }
-    };
     return FileChooser.chooseFiles(descriptor, myContentPanel, myContext.getProject(), initialFile);
-  }
-
-  private static class MyManifestFilter implements Condition<VirtualFile> {
-
-    @Override
-    public boolean value(VirtualFile file) {
-      return file.isDirectory() || file.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    }
   }
 }

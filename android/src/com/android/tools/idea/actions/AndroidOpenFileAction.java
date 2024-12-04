@@ -202,14 +202,14 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     @NotNull Validator.Result result;
     @Nullable VirtualFile file;
 
-    public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
+    ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;
       this.file = file;
     }
   }
 
   private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
-    public ProjectOnlyFileChooserDescriptor() {
+    private ProjectOnlyFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.project"));
     }
   }
@@ -217,19 +217,13 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
     private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
-    public ProjectOrFileChooserDescriptor() {
+    private ProjectOrFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.file.or.project"));
     }
 
     @Override
-    public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
-      return file.isDirectory() ? super.isFileVisible(file, showHiddenFiles) : myStandardDescriptor.isFileVisible(file, showHiddenFiles);
-    }
-
-    @Override
     public boolean isFileSelectable(@Nullable VirtualFile file) {
-      if (file == null) return false;
-      return file.isDirectory() ? super.isFileSelectable(file) : myStandardDescriptor.isFileSelectable(file);
+      return file != null && (file.isDirectory() ? super.isFileSelectable(file) : myStandardDescriptor.isFileSelectable(file));
     }
 
     @Override
