@@ -87,7 +87,9 @@ public class RoomQueryCodeCompletionTest {
       .open(JAVA_FILE)
       .waitUntilErrorAnalysisFinishes()
       .moveBetween("", "word_" )
+      .moveBetween("", "word_" ) // To reduce flakiness
       .pressAndReleaseKey(keyPressInfo);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     JListFixture jListFixture = getLookupList();
     Truth.assertThat(Arrays.stream(jListFixture.contents()).anyMatch(str -> str.contains("word_table"))).isTrue();
