@@ -91,100 +91,110 @@ internal fun StorageGroup(
       )
     }
 
-    Row {
-      Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
+    ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+  }
+}
 
-      InfoOutlineIcon(
-        """
+@Composable
+private fun ExpandedStorage(
+  device: VirtualDevice,
+  state: StorageGroupState,
+  hasPlayStore: Boolean,
+  onDeviceChange: (VirtualDevice) -> Unit,
+) {
+  Row {
+    Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
+
+    InfoOutlineIcon(
+      """
         Custom: The amount of expanded storage available to store data on the AVD. We recommend at least 100 MB in order to use the camera in the emulator.
         Existing image: Choose a file path to an existing expanded storage image. Using an existing image is useful when sharing data (pictures, media, files, etc.) between AVDs. 
         None: No expanded storage on this AVD
         """
-          .trimIndent()
-      )
-    }
+        .trimIndent()
+    )
+  }
 
-    Row(Modifier.testTag("CustomRow")) {
-      RadioButtonRow(
-        ExpandedStorageRadioButton.CUSTOM,
-        state.selectedRadioButton,
-        onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.CUSTOM },
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
-        !hasPlayStore,
-      )
-
-      val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.CUSTOM
-
-      state.custom.minValue =
-        if (hasPlayStore) {
-          VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
-        } else {
-          VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
-        }
-
-      val errorMessage =
-        state.custom.result().customExpandedStorageErrorMessage(hasPlayStore, enabled)
-
-      val isWarningVisible = state.isCustomChangedWarningVisible(errorMessage == null)
-
-      StorageCapacityField(
-        state.custom,
-        errorMessage,
-        Modifier.alignByBaseline(),
-        enabled,
-        when {
-          errorMessage != null -> Outline.Error
-          isWarningVisible -> Outline.Warning
-          else -> Outline.None
-        },
-      )
-
-      if (isWarningVisible) {
-        Icon(
-          StudioIconsCompose.Common.Warning,
-          "Warning",
-          Modifier.align(Alignment.CenterVertically)
-            .padding(start = Padding.MEDIUM, end = Padding.SMALL_MEDIUM),
-        )
-
-        Text("Modifying storage size erases existing content", Modifier.alignByBaseline())
-      }
-    }
-
-    Row {
-      RadioButtonRow(
-        ExpandedStorageRadioButton.EXISTING_IMAGE,
-        state.selectedRadioButton,
-        onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.EXISTING_IMAGE },
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
-        !hasPlayStore,
-      )
-
-      val enabled =
-        state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE && !hasPlayStore
-
-      ExistingImageField(
-        state.existingImage,
-        if (enabled && device.expandedStorage == null) {
-          "The specified image must be a valid file"
-        } else {
-          null
-        },
-        enabled,
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
-    }
-
+  Row(Modifier.testTag("CustomRow")) {
     RadioButtonRow(
-      ExpandedStorageRadioButton.NONE,
+      ExpandedStorageRadioButton.CUSTOM,
       state.selectedRadioButton,
-      onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.NONE },
-      enabled = !hasPlayStore,
+      onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.CUSTOM },
+      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
+      !hasPlayStore,
     )
 
-    LaunchedEffect(Unit) {
-      state.expandedStorageFlow.collect { onDeviceChange(device.copy(expandedStorage = it)) }
+    val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.CUSTOM
+
+    state.custom.minValue =
+      if (hasPlayStore) {
+        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
+      } else {
+        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
+      }
+
+    val errorMessage =
+      state.custom.result().customExpandedStorageErrorMessage(hasPlayStore, enabled)
+
+    val isWarningVisible = state.isCustomChangedWarningVisible(errorMessage == null)
+
+    StorageCapacityField(
+      state.custom,
+      errorMessage,
+      Modifier.alignByBaseline(),
+      enabled,
+      when {
+        errorMessage != null -> Outline.Error
+        isWarningVisible -> Outline.Warning
+        else -> Outline.None
+      },
+    )
+
+    if (isWarningVisible) {
+      Icon(
+        StudioIconsCompose.Common.Warning,
+        "Warning",
+        Modifier.align(Alignment.CenterVertically)
+          .padding(start = Padding.MEDIUM, end = Padding.SMALL_MEDIUM),
+      )
+
+      Text("Modifying storage size erases existing content", Modifier.alignByBaseline())
     }
+  }
+
+  Row {
+    RadioButtonRow(
+      ExpandedStorageRadioButton.EXISTING_IMAGE,
+      state.selectedRadioButton,
+      onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.EXISTING_IMAGE },
+      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
+      !hasPlayStore,
+    )
+
+    val enabled =
+      state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE && !hasPlayStore
+
+    ExistingImageField(
+      state.existingImage,
+      if (enabled && device.expandedStorage == null) {
+        "The specified image must be a valid file"
+      } else {
+        null
+      },
+      enabled,
+      Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+    )
+  }
+
+  RadioButtonRow(
+    ExpandedStorageRadioButton.NONE,
+    state.selectedRadioButton,
+    onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.NONE },
+    enabled = !hasPlayStore,
+  )
+
+  LaunchedEffect(Unit) {
+    state.expandedStorageFlow.collect { onDeviceChange(device.copy(expandedStorage = it)) }
   }
 }
 
