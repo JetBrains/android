@@ -25,9 +25,9 @@ import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
-import com.android.tools.idea.model.MergedManifestManager.Companion.getSnapshot
-import com.android.tools.idea.model.logManifestIndexQueryError
-import com.android.tools.idea.model.queryApplicationDebuggableFromManifestIndex
+import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.ENABLE_APK_PROJECT_SYSTEM
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
@@ -72,13 +72,11 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.kxml2.io.KXmlParser
@@ -273,22 +271,9 @@ class DefaultModuleSystem(override val module: Module) :
   override var isMlModelBindingEnabled: Boolean by UserData(Keys.isMlModelBindingEnabled, false)
 
   override val isDebuggable: Boolean
-    get() {
-      try {
-        return uiSafeRunReadActionInSmartMode(module.project
-        ) {
-          val queryIndex =
-            ThrowableComputable<Boolean?, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
-          SlowOperations.allowSlowOperations(queryIndex)
-        } ?: false
-      } catch (e: IndexNotReadyException) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        logManifestIndexQueryError(e)
-      }
-
-      return module.androidFacet?.let { getSnapshot(it).applicationDebuggable } ?: false
+    get() = when {
+      ENABLE_APK_PROJECT_SYSTEM.get() -> false
+      else -> ApkFacet.getInstance(module)?.configuration?.DEBUGGABLE == "true"
     }
 
   override var applicationRClassConstantIds: Boolean by UserData(Keys.applicationRClassConstantIds, true)

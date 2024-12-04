@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.apk
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -81,6 +82,5 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
 
   override fun getManifestOverrides(): ManifestOverrides = ManifestOverrides()
 
-  override val isDebuggable: Boolean
-    get() = delegate.isDebuggable
+  override val isDebuggable: Boolean = ApkFacet.getInstance(module)?.configuration?.DEBUGGABLE == "true"
 }

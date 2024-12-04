@@ -42,6 +42,7 @@ public class ApkFacetConfiguration implements FacetConfiguration {
 
   @NonNls public String APK_PATH;
   @NonNls public String APP_PACKAGE;
+  @NonNls public String DEBUGGABLE;
   @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
   @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
   @NotNull public Set<String> JAVA_SOURCE_FOLDER_PATHS = new HashSet<>();

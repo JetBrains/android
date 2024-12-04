@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.model
 
-import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForManifestFile
@@ -35,7 +34,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.containers.isEmpty
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 import java.util.stream.Stream
@@ -185,24 +183,6 @@ private fun AndroidFacet.queryUnionSetFromManifestIndex(
       .flatMap { it.getValues().asSequence() }
       .map(overrides::resolvePlaceholders)
       .toSet()
-  }
-}
-
-/**
- * Returns the first non-null application debuggable value, or null if such attribute is not specified,
- * instead of merged results with merging rules applied.
- *
- * Must be called in a smart read action.
- */
-fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIndex { overrides, contributors ->
-  val debuggable = contributors.asSequence()
-    .mapNotNull { manifest -> manifest.debuggable?.let { overrides.resolvePlaceholders(it) } }
-    .firstOrNull()
-  if (debuggable == null) {
-    null
-  }
-  else {
-    debuggable == SdkConstants.VALUE_TRUE
   }
 }
 
