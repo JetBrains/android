@@ -65,7 +65,6 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.DialogManager
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.Label
 import com.intellij.ui.components.dialog
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
@@ -143,7 +142,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     name = "runningOperationLabel"
   }
   private val snapshotImagePanel = ImagePanel(true)
-  private val selectionStateLabel = Label(message("manage.snapshots.label.no.snapshots.selected")).apply {
+  private val selectionStateLabel = JBLabel(message("manage.snapshots.label.no.snapshots.selected")).apply {
     name = "selectionStateLabel"
     verticalTextPosition = SwingConstants.CENTER
     horizontalAlignment = SwingConstants.CENTER

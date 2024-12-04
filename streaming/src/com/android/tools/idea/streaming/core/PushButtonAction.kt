@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -75,14 +76,14 @@ interface PushButtonAction : CustomComponentAction {
       addKeyListener(object : KeyAdapter() {
         override fun keyPressed(keyEvent: KeyEvent) {
           if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createFromAnAction(myAction, keyEvent, myPlace, dataContext)
+            val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
             action.buttonPressed(event)
           }
         }
 
         override fun keyReleased(keyEvent: KeyEvent) {
           if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createFromAnAction(myAction, keyEvent, myPlace, dataContext)
+            val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
             action.buttonReleased(event)
           }
         }
@@ -91,13 +92,13 @@ interface PushButtonAction : CustomComponentAction {
 
     override fun onMousePressed(mouseEvent: MouseEvent) {
       super.onMousePressed(mouseEvent)
-      val event = AnActionEvent.createFromAnAction(myAction, mouseEvent, myPlace, dataContext)
+      val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, mouseEvent)
       action.buttonPressed(event)
     }
 
     override fun onMouseReleased(mouseEvent: MouseEvent) {
       super.onMouseReleased(mouseEvent)
-      val event = AnActionEvent.createFromAnAction(myAction, mouseEvent, myPlace, dataContext)
+      val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, mouseEvent)
       action.buttonReleased(event)
     }
 
