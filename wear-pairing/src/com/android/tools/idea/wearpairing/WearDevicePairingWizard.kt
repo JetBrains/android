@@ -27,7 +27,9 @@ import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
@@ -59,12 +61,17 @@ class WearDevicePairingWizard {
           wizardDialog?.close(CANCEL_EXIT_CODE)
 
           if (project == null) {
-            val actionId = "WelcomeScreen.RunDeviceManager2"
-            ActionManager.getInstance()
-              .getAction(actionId)
-              .actionPerformed(
-                AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
+            val deviceManagerAction =
+              ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager2")
+            val actionEvent =
+              AnActionEvent.createEvent(
+                DataContext.EMPTY_CONTEXT,
+                null,
+                ActionPlaces.UNKNOWN,
+                ActionUiKind.NONE,
+                null,
               )
+            ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           } else {
             // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
             val actionId = "Android.DeviceManager2"
