@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
 class GroupSwitchAction(
@@ -47,8 +48,6 @@ class GroupSwitchAction(
     }
   }
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
     super.update(e)
 
@@ -57,6 +56,7 @@ class GroupSwitchAction(
     val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
     presentation.isVisible = availableGroups.isNotEmpty() && isVisible(e)
     presentation.isEnabled = availableGroups.isNotEmpty() && isEnabled(e)
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
 
     if (presentation.isVisible) {
       presentation.text = previewManager?.groupFilter?.displayName
