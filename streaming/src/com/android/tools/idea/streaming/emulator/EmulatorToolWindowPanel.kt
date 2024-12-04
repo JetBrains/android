@@ -98,7 +98,15 @@ internal class EmulatorToolWindowPanel(
     get() = emulator.emulatorId
 
   override val title: String
-    get() = emulatorId.avdName
+    get() {
+      val avdName = emulatorId.avdName
+      if (avdName.contains(" API ")) {
+        return avdName
+      }
+      val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+      avdManager.findAvdWithFolder(emulatorId.avdFolder)?.let { return it.displayNameWithApi }
+      return if (emulator.connectionState == ConnectionState.CONNECTED) "$avdName API ${emulator.emulatorConfig.api}" else avdName
+    }
 
   override val description: String
     get() = "${emulatorId.avdName} ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"

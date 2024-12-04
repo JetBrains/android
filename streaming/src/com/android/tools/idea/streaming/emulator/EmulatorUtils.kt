@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.ThemingStyle
+import com.android.sdklib.internal.avd.AvdInfo
 import com.intellij.ide.ui.LafManager
 
 /**
@@ -29,3 +30,13 @@ internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
     else -> ThemingStyle.Style.DARK // Darcula and custom themes that are based on Darcula.
   }
 }
+
+/** Returns the AVD name with the appended " API NN" suffix if the AVD name doesn't contain it already. */
+internal val AvdInfo.displayNameWithApi: String
+  get() {
+    val displayName = displayName
+    if (displayName.contains(" API ")) {
+      return displayName;
+    }
+    return "$displayName API ${getAndroidVersion().apiLevel}";
+  }

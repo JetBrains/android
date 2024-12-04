@@ -57,6 +57,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.emulator.displayNameWithApi
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -988,7 +989,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         add(Separator.getInstance())
       }
 
-      val avds = getStartableVirtualDevices().sortedBy { it.displayName }
+      val avds = getStartableVirtualDevices().sortedBy { it.displayNameWithApi }
       if (avds.isNotEmpty()) {
         add(Separator("Virtual Devices"))
         for (avd in avds) {
@@ -1195,7 +1196,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private inner class StartAvdAction(
     private val avd: AvdInfo,
     private val project: Project,
-  ) : DumbAwareAction(avd.displayName, null, avd.icon) {
+  ) : DumbAwareAction(avd.displayNameWithApi, null, avd.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       val contentManager = event.contentManager
