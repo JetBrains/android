@@ -21,7 +21,7 @@ import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
-import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
+import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.associateFileType;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -36,6 +36,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -166,8 +168,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
       }
 
-      FileType type = getKnownFileTypeOrAssociate(file, project);
-      if (type == null) {
+      if (getKnownFileTypeOrAssociate(file) == null) {
         continue;
       }
 
@@ -181,6 +182,21 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
       }
     }
+  }
+
+  private static @Nullable FileType getKnownFileTypeOrAssociate(@NotNull VirtualFile file) {
+    FileType type = file.getFileType();
+    if (type != FileTypes.UNKNOWN) {
+      return type;
+    }
+
+    String fileName = file.getName();
+    type = FileTypeManager.getInstance().getFileTypeByFileName(fileName);
+    if (type != FileTypes.UNKNOWN) {
+      return type;
+    }
+
+    return associateFileType(fileName);
   }
 
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
