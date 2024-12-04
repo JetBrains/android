@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.util.SlowOperations;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +45,11 @@ public class TextViewDecorator extends SceneDecorator {
     @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
     String text = component.getNlComponent().getTagName();
     NlComponent nlc = component.getNlComponent();
+    int size;
 
-    int size = SlowOperations.allowSlowOperations(() -> DrawTextRegion.getFont(nlc));
+    try (AccessToken ignore = SlowOperations.knownIssue("b/382323983")) {
+      size = DrawTextRegion.getFont(nlc);
+    }
 
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);
