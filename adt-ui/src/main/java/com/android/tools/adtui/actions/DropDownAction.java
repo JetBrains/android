@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
@@ -158,7 +159,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   @NotNull
   public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
-    if (displayTextInToolbar()) {
+    if (Boolean.TRUE.equals(presentation.getClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR))) {
       return new ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
     }
     else {
