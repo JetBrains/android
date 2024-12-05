@@ -94,7 +94,7 @@ public class CommonMenu extends JMenu implements PropertyChangeListener {
     boolean isVisible = isPopupMenuVisible();
     if (b != isVisible && (isEnabled() || !b)) {
       ensurePopupMenuCreated();
-      if ((b == true) && isShowing()) {
+      if (b && isShowing()) {
         // Set location of myPopupMenu (pulldown or pullright)
         // STUDIO customization
         // Point p = getCustomMenuLocation();
