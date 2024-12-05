@@ -257,6 +257,11 @@ Task                          : :lib:kaptGenerateStubsDebugKotlin
     PrimaryTaskCategory           : KOTLIN
     SecondaryTaskCategories       : COMPILATION
     Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+Task                          : :lib:mergeDebugAssets
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : UNCATEGORIZED
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugConsumerProguardFiles
     TaskType                      : com.android.build.gradle.internal.tasks.MergeConsumerProguardFilesTask
     PrimaryTaskCategory           : OPTIMIZATION
@@ -277,11 +282,6 @@ Task                          : :lib:mergeDebugJniLibFolders
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugShaders
-    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : UNCATEGORIZED
-    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:packageDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
