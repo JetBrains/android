@@ -20,25 +20,21 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.psi.KtFile
 
 internal class LiveEditCompilerForK1(
   private val project: Project,
-  private val inlineCandidateCache: SourceInlineCandidateCache,
-  private val irClassCache: IrClassCache,
-  private val outputBuilder: LiveEditOutputBuilder
+  private val inlineCandidateCache: SourceInlineCandidateCache
 ) : LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
-  override fun compileKtFile(
-    applicationLiveEditServices: ApplicationLiveEditServices,
-    file: KtFile,
-    inputs: Collection<LiveEditCompilerInput>,
-    output: LiveEditCompilerOutput.Builder
-  ) {
+  override fun compileKtFile(applicationLiveEditServices: ApplicationLiveEditServices,
+                             file: KtFile,
+                             inputs: Collection<LiveEditCompilerInput>): List<OutputFile> {
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
 
-    runWithCompileLock {
+    return runWithCompileLock {
       readActionPrebuildChecks(project, file)
 
       // This is a three-step process:
@@ -94,22 +90,7 @@ internal class LiveEditCompilerForK1(
       } catch (t: Throwable) {
         throw LiveEditUpdateException.internalErrorCodeGenException(file, t)
       }
-
-      // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
-      // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-      validatePsiDiff(inputs, file)
-
-      // 3) Diff the newly generated class files from step 2 with the previously generated class files in order to decide which classes
-      //    we want to send to the device along with what extra meta-information the agent needs.
-      outputBuilder.getGeneratedCode(
-        applicationLiveEditServices,
-        file,
-        generationState.factory.asList(),
-        irClassCache,
-        inlineCandidateCache,
-        output
-      )
-      return@runWithCompileLock
+      generationState.factory.asList()
     }
   }
 }

@@ -16,19 +16,14 @@
 package com.android.tools.idea.run.deployment.liveedit.k2
 
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.run.deployment.liveedit.IrClassCache
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
-import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
-import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -43,35 +38,18 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
 @OptIn(KaExperimentalApi::class)
-internal class LiveEditCompilerForK2(
-  private val project: Project,
-  private val inlineCandidateCache: SourceInlineCandidateCache,
-  private val irClassCache: IrClassCache,
-  private val outputBuilder: LiveEditOutputBuilder,
-  private val module: Module,
-): LiveEditCompiler.LiveEditCompilerForKotlinVersion {
+internal class LiveEditCompilerForK2(private val project: Project,
+                                     private val module: Module) : LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
 
-  override fun compileKtFile(
-    applicationLiveEditServices: ApplicationLiveEditServices,
-    file: KtFile,
-    inputs: Collection<LiveEditCompilerInput>,
-    output: LiveEditCompilerOutput.Builder
-  ) {
-    runWithCompileLock {
-      LOGGER.info("Using Live Edit K2 CodeGen")
-      readActionPrebuildChecks(project, file)
-      val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
-      val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
-
-      // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
-      // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-      validatePsiDiff(inputs, file)
-
-      outputBuilder.getGeneratedCode(applicationLiveEditServices, file, compilerOutput, irClassCache, inlineCandidateCache, output)
-      return@runWithCompileLock
-    }
+  override fun compileKtFile(applicationLiveEditServices: ApplicationLiveEditServices,
+                             file: KtFile,
+                             inputs: Collection<LiveEditCompilerInput>) = runWithCompileLock {
+    LOGGER.info("Using Live Edit K2 CodeGen")
+    readActionPrebuildChecks(project, file)
+    val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
+    return@runWithCompileLock result.output.map { OutputFileForKtCompiledFile(it) }
   }
 }
 
