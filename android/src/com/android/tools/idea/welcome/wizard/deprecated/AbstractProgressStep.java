@@ -22,6 +22,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.Disposer;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +38,11 @@ public abstract class AbstractProgressStep extends FirstRunWizardStep implements
   private final ProgressStepForm myForm;
   private ProgressIndicator myProgressIndicator;
 
-  public AbstractProgressStep(@NotNull Disposable parent, @NotNull String name) {
+  public AbstractProgressStep(@NotNull Disposable parentDisposable, @NotNull String name) {
     super(name);
-    myForm = new ProgressStepForm(parent);
+    myForm = new ProgressStepForm();
     setComponent(myForm.getRoot());
+    Disposer.register(parentDisposable, myForm);
   }
 
   @Override

@@ -21,7 +21,6 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -50,8 +49,8 @@ public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRun
   };
   private final LicenseAgreementModel licenseAgreementModel;
 
-  public InstallComponentsProgressStep(@NotNull FirstRunWizardModel model, @NotNull LicenseAgreementModel licenseAgreementModel, @NotNull Disposable disposable) {
-    super(model, disposable, "Downloading Components");
+  public InstallComponentsProgressStep(@NotNull FirstRunWizardModel model, @NotNull LicenseAgreementModel licenseAgreementModel) {
+    super(model, "Downloading Components");
     this.licenseAgreementModel = licenseAgreementModel;
   }
 

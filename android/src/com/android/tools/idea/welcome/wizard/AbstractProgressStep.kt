@@ -21,7 +21,6 @@ import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.DelegatingProgressIndicator
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -32,8 +31,8 @@ import javax.swing.JComponent
 /**
  * Wizard step with progress bar and "more details" button.
  */
-abstract class AbstractProgressStep<T: WizardModel>(model: T, parent: Disposable, name: String) : ModelWizardStep<T>(model, name), ProgressStep {
-  private val form = ProgressStepForm(parent)
+abstract class AbstractProgressStep<T: WizardModel>(model: T, name: String) : ModelWizardStep<T>(model, name), ProgressStep {
+  private val form = ProgressStepForm()
   private var myProgressIndicator: ProgressIndicator? = null
 
   public override fun getComponent(): JComponent = form.root
@@ -97,6 +96,11 @@ abstract class AbstractProgressStep<T: WizardModel>(model: T, parent: Disposable
   override fun run(runnable: Runnable, progressPortion: Double) {
     val progress = ProgressPortionReporter(getProgressIndicator(), form.fraction, progressPortion)
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress)
+  }
+
+  override fun dispose() {
+    form.dispose()
+    super.dispose()
   }
 
   /**

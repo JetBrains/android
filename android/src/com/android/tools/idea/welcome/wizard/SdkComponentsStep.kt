@@ -37,8 +37,7 @@ class SdkComponentsStep(
   model: FirstRunWizardModel,
   val project: Project?,
   val mode: FirstRunWizardMode,
-  val licenseAgreementStep: LicenseAgreementStep?,
-  parent: Disposable
+  val licenseAgreementStep: LicenseAgreementStep?
 ) : ModelWizardStep<FirstRunWizardModel>(model, "SDK Components Setup") {
   private val form = SdkComponentsStepForm()
   private val rootNode = model.componentTree
@@ -76,7 +75,7 @@ class SdkComponentsStep(
   private val isValid = BoolValueProperty(false)
 
   init {
-    Disposer.register(parent, form)
+    Disposer.register(this, form)
 
     form.path.textField.document.addDocumentListener(object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {

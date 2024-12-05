@@ -36,14 +36,12 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.util.Disposer
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AehdModelWizard(private val installationIntention: AehdSdkComponent.InstallationIntention) {
@@ -54,19 +52,14 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
   val aehdSdkComponent = AehdSdkComponent(installationIntention)
 
   fun showAndGet(): Boolean {
-    val parent = Disposer.newDisposable()
-    try {
-      val modelWizard = buildModelWizard(parent)
-      val wizardDialog: ModelWizardDialog = StudioWizardDialogBuilder(modelWizard, "AEHD")
-        .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
-        .build()
-      return wizardDialog.showAndGet()
-    } finally {
-      Disposer.dispose(parent)
-    }
+    val modelWizard = buildModelWizard()
+    val wizardDialog: ModelWizardDialog = StudioWizardDialogBuilder(modelWizard, "AEHD")
+      .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
+      .build()
+    return wizardDialog.showAndGet()
   }
 
-  private fun buildModelWizard(parent: Disposable): ModelWizard {
+  private fun buildModelWizard(): ModelWizard {
     val modelWizardBuilder = ModelWizard.Builder()
       .addStep(getInstallationStep(installationIntention))
 
@@ -86,7 +79,7 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
       })
     }
 
-    val progressStep = SetupProgressStep(BlankModel(), parent, "Invoking installer")
+    val progressStep = SetupProgressStep(BlankModel(), "Invoking installer")
     modelWizardBuilder.addStep(progressStep)
 
     val modelWizard = modelWizardBuilder.build()
@@ -142,7 +135,8 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
     }
   }
 
-  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, parent: Disposable, name: String): AbstractProgressStep<BlankModel>(model, parent, name) {
+  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, name: String): AbstractProgressStep<BlankModel>(
+    model, name) {
     val isSuccessfullyCompleted = AtomicBooleanProperty(false)
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
 

@@ -25,7 +25,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import java.awt.BorderLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -37,8 +36,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Wizard step with progress bar and "more details" button.
+ *
+ * <p>This class must be registered with a {@link Disposable} to ensure proper
+ * disposal of the editor and prevent memory leaks.
  */
-public class ProgressStepForm {
+public class ProgressStepForm implements Disposable {
   private final ConsoleHighlighter myHighlighter;
   private final EditorEx myConsoleEditor;
   private JPanel myRoot;
@@ -49,13 +51,12 @@ public class ProgressStepForm {
   private JLabel myLabel2;
   private double myFraction = 0;
 
-  public ProgressStepForm(@NotNull Disposable parent) {
+  public ProgressStepForm() {
     myLabel.setText("Installing");
     myConsoleEditor = ConsoleViewUtil.setupConsoleEditor((Project)null, false, false);
     myConsoleEditor.getSettings().setUseSoftWraps(true);
     myConsoleEditor.reinitSettings();
     myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 0));
-    Disposer.register(parent, () -> EditorFactory.getInstance().releaseEditor(myConsoleEditor));
     myHighlighter = new ConsoleHighlighter();
     myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));
     myConsoleEditor.setHighlighter(myHighlighter);
@@ -129,5 +130,10 @@ public class ProgressStepForm {
 
   public @NotNull JProgressBar getProgressBar() {
     return myProgressBar;
+  }
+
+  @Override
+  public void dispose() {
+    EditorFactory.getInstance().releaseEditor(myConsoleEditor);
   }
 }

@@ -51,9 +51,9 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
   private var mainPanel: JComponent? = null
   private var frame: JFrame? = null
   companion object {
-    fun buildWizard(model: FirstRunWizardModel, mode: FirstRunWizardMode, cancelInterceptor: BooleanSupplier, parent: Disposable): ModelWizard {
+    fun buildWizard(model: FirstRunWizardModel, mode: FirstRunWizardMode, cancelInterceptor: BooleanSupplier): ModelWizard {
       val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
-      val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, parent)
+      val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel)
 
       val modelWizard = ModelWizard.Builder().apply {
         if (mode == FirstRunWizardMode.NEW_INSTALL) {
@@ -71,7 +71,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
         val supplier = model.getPackagesToInstallSupplier()
         val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
 
-        addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,parent))
+        addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep))
 
         if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
           addStep(InstallSummaryStep(model, supplier))
@@ -101,7 +101,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
     val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, componentInstallerProvider)
-    modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, this)
+    modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog
