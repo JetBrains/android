@@ -24,7 +24,10 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 
 class ApkProjectSystemProvider : AndroidProjectSystemProvider {
-  override val id: String = "com.android.tools.idea.ApkProjectSystem"
+  companion object {
+    const val ID = "com.android.tools.idea.ApkProjectSystem"
+  }
+  override val id: String = ID
   override fun isApplicable(project: Project) =
     StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() &&
     ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
