@@ -49,6 +49,14 @@ def main(argv):
       dest="vmoptions",
       help="Additional vmoptions to be added to studio.vmoptions.",
   )
+  parser.add_argument(
+      "--env_vars",
+      nargs="*",
+      default=[],
+      action="extend",
+      dest="env_vars",
+      help="Additional environment variables to be passed to studio.",
+  )
 
   args, unknown_args = parser.parse_known_args(argv)
 
@@ -93,6 +101,13 @@ def main(argv):
     for l in properties:
       f.write(l + "\n")
   env["STUDIO_PROPERTIES"] = properties_file
+
+  env_vars = args.env_vars
+  if env_vars:
+    for env_var in env_vars:
+      e = env_var.split("=")
+      if len(e) == 2:
+        env[e[0]] = e[1]
 
   if platform.system() == "Darwin":
     app_dir = os.path.join(script_dir, "Android Studio Preview.app")
