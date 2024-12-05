@@ -18,6 +18,7 @@ package com.android.tools.idea.flags;
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
 import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
+import static com.android.tools.idea.IdeChannel.Channel.STABLE;
 import static com.android.tools.idea.flags.ChannelDefault.enabledUpTo;
 
 import com.android.flags.BooleanFlag;
@@ -1011,8 +1012,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_APK_PROJECT_SYSTEM =
     new BooleanFlag(APK_IDE, "enable.apk.project.system", "Use a dedicated APK project system for debugging or profiling APKs",
                     "If enabled, use the in-development APK project system for project-related services.",
-                    enabledUpTo(CANARY));
-
+                    enabledUpTo(STABLE));
   //endregion
   //endregion
 
