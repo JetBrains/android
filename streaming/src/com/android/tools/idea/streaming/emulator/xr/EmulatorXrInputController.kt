@@ -21,7 +21,10 @@ import com.android.emulator.control.XrInputEvent
 import com.android.emulator.control.XrInputEvent.NavButtonPressEvent
 import com.android.emulator.control.XrInputEvent.RelativeMoveEvent
 import com.android.tools.adtui.util.scaled
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -55,7 +58,8 @@ private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
  */
 internal class EmulatorXrInputController(private val emulator: EmulatorController): Disposable {
 
-  @Volatile var inputMode: XrInputMode = XrInputMode.HAND
+  @Volatile var inputMode: XrInputMode =
+      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.HARDWARE
     @UiThread set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
@@ -387,16 +391,21 @@ internal enum class XrInputMode {
 }
 
 @Service(Service.Level.PROJECT)
-internal class EmulatorXrInputControllerService: Disposable {
+internal class EmulatorXrInputControllerService(project: Project): Disposable {
 
   private val xrControllers = ConcurrentMap<EmulatorController, EmulatorXrInputController>()
+  private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {
     return xrControllers.computeIfAbsent(emulator) {
       Disposer.register(emulator) {
         xrControllers.remove(emulator)
       }
-      return@computeIfAbsent EmulatorXrInputController(emulator)
+      val emulatorXrInputController = EmulatorXrInputController(emulator)
+      if (emulatorXrInputController.inputMode == XrInputMode.HARDWARE) {
+        hardwareInputStateStorage.setHardwareInputEnabled(DeviceId.ofEmulator(emulator.emulatorId), true)
+      }
+      return@computeIfAbsent emulatorXrInputController
     }
   }
 
