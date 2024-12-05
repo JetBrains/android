@@ -204,9 +204,9 @@ class GradleVersionCatalogTest {
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
           "kotlin" to "1.9.0",
-          "material" to "1.5.0",
-          "appcompat" to "1.3.0",
-          "constraintlayout" to "2.1.3",
+          "material" to "1.9.0",
+          "appcompat" to "1.7.0",
+          "constraintlayout" to "2.1.4",
           "junit" to "4.13.2",
           "testchangeversion" to "1.0.0"
         ))
@@ -228,8 +228,8 @@ class GradleVersionCatalogTest {
           "agp" to "7.4.1",
           "kotlin" to "1.9.0",
           "material" to "1.8.0",
-          "appcompat" to "1.3.0",
-          "constraintlayout" to "2.1.3",
+          "appcompat" to "1.7.0",
+          "constraintlayout" to "2.1.4",
           "junit" to "4.13.2",
           "testchangeversion2" to "1.0.0",
           "simpleVariableA" to "1.0.0"
@@ -254,8 +254,8 @@ class GradleVersionCatalogTest {
       "agp" to "7.4.1",
       "kotlin" to "1.9.0",
       "material" to "1.8.0",
-      "appcompat" to "1.3.0",
-      "constraintlayout" to "2.1.3",
+      "appcompat" to "1.7.0",
+      "constraintlayout" to "2.1.4",
       "junit" to "4.13.2",
       "testchangeversion2" to "1.0.0",
       "simpleVariableA" to "1.0.0"
@@ -270,11 +270,11 @@ class GradleVersionCatalogTest {
           Truth.assertThat(
             findDependenciesTable().contents().map { it.toList() })
             .containsAllIn(listOf(
-              listOf("androidx.appcompat:appcompat:1.3.0", "implementation"),
+              listOf("androidx.appcompat:appcompat:1.7.0", "implementation"),
               listOf("com.google.android.material:material:1.8.0", "implementation")
             ))
 
-          findDependenciesTable().cell("androidx.appcompat:appcompat:1.3.0").click()
+          findDependenciesTable().cell("androidx.appcompat:appcompat:1.7.0").click()
           findVersionCombo().run {
             Truth.assertThat(selectedItem()).contains("versions.appcompat")
             guiTest.waitForAllBackgroundTasksToBeCompleted()
