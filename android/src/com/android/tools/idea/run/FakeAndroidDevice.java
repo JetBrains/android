@@ -119,7 +119,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
       if (avdData == null) {
         return null;
       }
-      Path avdFolder = avdData.getNioPath();
+      Path avdFolder = avdData.getAvdFolder();
       if (avdFolder == null) {
         return null;
       }

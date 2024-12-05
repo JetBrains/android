@@ -496,7 +496,7 @@ fun checkSystemImageForAppInspectionCompatibility(
       ?.find { it.serialNumber == serialNumber }
       ?.avdData
       ?.get(1, TimeUnit.SECONDS)
-      ?.nioPath ?: return Compatibility.Compatible
+      ?.avdFolder ?: return Compatibility.Compatible
 
   val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvdWithFolder(avdFolder)
 

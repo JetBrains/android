@@ -79,7 +79,7 @@ interface ShowLogcatListener {
       return if (serialNumber.startsWith("emulator-")) {
         val avdData = avdData.getDoneOrNull()
         val avdName = avdData?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
-        val avdPath = avdData?.nioPath?.pathString ?: avdName
+        val avdPath = avdData?.avdFolder?.pathString ?: avdName
         EmulatorDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, avdName, avdPath)
       }
       else {
