@@ -35,7 +35,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
@@ -56,6 +55,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -88,8 +88,12 @@ class TreeDropDownActionTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(testLoggerRule)!!
 
-  private val scope: CoroutineScope
-    get() = AndroidCoroutineScope(projectRule.testRootDisposable)
+  private lateinit var scope: CoroutineScope
+
+  @Before
+  fun setUp() {
+    scope = AndroidCoroutineScope(projectRule.testRootDisposable)
+  }
 
   private val enabledFlow = MutableStateFlow(true)
 
@@ -99,7 +103,7 @@ class TreeDropDownActionTest {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
-      val flow = MutableSharedFlow<MultiSelection<WithCount<SimpleValue>>>()
+      val flow = MutableSharedFlow<MultiSelection<WithCount<SimpleValue>>>(replay = 1)
 
       val dropdown =
         TreeDropDownAction(
@@ -124,9 +128,6 @@ class TreeDropDownActionTest {
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
-
-      Logger.getInstance(this@TreeDropDownActionTest::class.java)
-        .debug("flow subscription count: ${flow.subscriptionCount.value}")
 
       dropdown.titleState.waitForValue("All values")
 
