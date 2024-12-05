@@ -30,6 +30,7 @@ import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.CategoryTablePersistentStateComponent
 import com.android.tools.adtui.categorytable.CategoryTableStateSerializer
@@ -72,6 +73,9 @@ import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.BorderLayout
+import java.awt.Component
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,8 +90,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
-import java.awt.BorderLayout
-import javax.swing.JPanel
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
 internal class DeviceManagerPanel
@@ -333,7 +335,7 @@ constructor(
   }
 
   private fun <A : DeviceAction> A.toAnAction(
-    action: suspend A.() -> Unit,
+    action: suspend A.(Component?) -> Unit,
     isIconEnabled: Boolean = true,
   ): DumbAwareAction {
     panelScope.launch {
@@ -355,7 +357,7 @@ constructor(
       }
 
       override fun actionPerformed(e: AnActionEvent) {
-        panelScope.launch { action() }
+        panelScope.launch { action(e.componentToRestoreFocusTo()) }
       }
     }
   }

@@ -77,6 +77,7 @@ import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
+import java.awt.Component
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -92,7 +93,7 @@ import org.jetbrains.jewel.ui.component.Icon
  *
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
-suspend fun showAddDeviceDialog(project: Project?): AvdInfo? {
+suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
   if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
     val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
     return withContext(uiThread) {
@@ -105,7 +106,7 @@ suspend fun showAddDeviceDialog(project: Project?): AvdInfo? {
           accelerationCheck = { checkAcceleration(source.sdkHandler) },
           onAdd = { avdInfo = it },
         )
-      val created = wizard.createDialog().showAndGet()
+      val created = wizard.createDialog(parent = parent).showAndGet()
       if (created) {
         UsageTracker.log(
           AndroidStudioEvent.newBuilder()
@@ -134,8 +135,13 @@ internal class AddDeviceWizard(
   val onAdd: (AvdInfo) -> Unit = {},
 ) {
 
-  fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device", minimumSize = DEVICE_DIALOG_MIN_SIZE) {
+  fun createDialog(parent: Component? = null): ComposeWizard {
+    return ComposeWizard(
+      project,
+      "Add Device",
+      parent = parent,
+      minimumSize = DEVICE_DIALOG_MIN_SIZE,
+    ) {
       DeviceGridPage()
     }
   }

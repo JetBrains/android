@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
+import java.awt.Component
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 
@@ -83,13 +84,13 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
 
-  override suspend fun createAvd(): Boolean {
-    return showAddDeviceDialog(project) != null
+  override suspend fun createAvd(parent: Component?): Boolean {
+    return showAddDeviceDialog(project, parent) != null
   }
 
-  override suspend fun editAvd(avdInfo: AvdInfo): Boolean {
+  override suspend fun editAvd(parent: Component?, avdInfo: AvdInfo): Boolean {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      return EditVirtualDeviceDialog.show(project, avdInfo, Mode.EDIT)
+      return EditVirtualDeviceDialog.show(project, parent, avdInfo, Mode.EDIT)
     } else {
       return withContext(uiThread) {
         val avdOptionsModel = AvdOptionsModel(avdInfo)
@@ -99,9 +100,9 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     }
   }
 
-  override suspend fun duplicateAvd(avdInfo: AvdInfo) {
+  override suspend fun duplicateAvd(parent: Component?, avdInfo: AvdInfo) {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      EditVirtualDeviceDialog.show(project, avdInfo, mode = Mode.DUPLICATE)
+      EditVirtualDeviceDialog.show(project, parent, avdInfo, mode = Mode.DUPLICATE)
     } else {
       withContext(uiThread) {
         AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))

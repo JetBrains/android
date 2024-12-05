@@ -62,10 +62,11 @@ import org.jetbrains.jewel.ui.component.Text
 class ComposeWizard(
   val project: Project?,
   title: String,
+  parent: Component? = null,
   private val minimumSize: Dimension = DEFAULT_MIN_SIZE,
   private val preferredSize: Dimension = DEFAULT_PREFERRED_SIZE,
   initialPage: @Composable WizardPageScope.() -> Unit,
-) : DialogWrapper(project) {
+) : DialogWrapper(project, parent, true, IdeModalityType.IDE) {
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
   private val currentPage

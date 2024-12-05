@@ -33,6 +33,7 @@ import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import icons.StudioIcons
+import java.awt.Component
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -154,7 +155,7 @@ internal class FakeDeviceHandle(
   inner class FakeDuplicateAction : com.android.sdklib.deviceprovisioner.DuplicateAction {
     var invoked = 0
 
-    override suspend fun duplicate() {
+    override suspend fun duplicate(parent: Component?) {
       invoked++
     }
 

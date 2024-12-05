@@ -20,6 +20,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
@@ -442,7 +443,7 @@ class AddDeviceDefinitionAction : AnAction() {
     val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project))
 
     coroutineScope.launch(uiThread) {
-      val avdInfo = showAddDeviceDialog(project) ?: return@launch
+      val avdInfo = showAddDeviceDialog(project, e.componentToRestoreFocusTo()) ?: return@launch
       val device = config.settings.createDeviceForAvd(avdInfo) ?: return@launch
       config.setDevice(device, true)
     }
