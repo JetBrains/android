@@ -59,8 +59,7 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
       // We are only adding links for build events that are of severity ERROR. All other types such as warnings and info messages are
       // excluded.
       val event =
-        if (messageEvent != null && messageEvent.kind == MessageEvent.Kind.ERROR
-            && !it.message.startsWith("Unresolved reference:"))
+        if (messageEvent != null && messageEvent.kind == MessageEvent.Kind.ERROR)
         {
           val context = GradleErrorContext(
             gradleTask = extractTaskNameFromId(it.parentId?:""),
