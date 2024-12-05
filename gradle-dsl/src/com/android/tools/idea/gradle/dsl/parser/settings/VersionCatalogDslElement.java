@@ -70,11 +70,11 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
     this.methodName = value;
   }
 
+  // TODO [IDEA-364322] revert the changes in `isFile` once Google team unifies parsing of settings files in Groovy and Kotlin
   public boolean isFile() {
     GradleDslElement element = getPropertyElement(FROM);
     if (element == null) return true; // default catalog
     if (element instanceof GradleDslMethodCall call) {
-      // TODO probably unify parsing of settings files in Groovy and Kotlin
       // Currently, GroovyDslParser and KotlinDslParser process `from(files("..."))` expression differently.
       // - KotlinDslParser omits `from` call, so `getPropertyElement(FROM)` returns a call from its argument - `files("...")`
       // - GroovyDslParser considers `from`, so `getPropertyElement(FROM)` returns an element for `from(...)` call
