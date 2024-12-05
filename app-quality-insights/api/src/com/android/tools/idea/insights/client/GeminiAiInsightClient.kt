@@ -64,6 +64,20 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT =
+  """
+    Explain this exception from my app running on %s with Android version %s.
+    Please reference the provided source code if they are helpful.
+    If you think you can guess which single file the fix for this crash should be performed in,
+    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}file,
+    where file is the fully qualified path of the source file in which you think the fix should likely be performed.
+    Exception:
+    ```
+    %s
+    ```
+  """
+    .trimIndent()
+
 private val CONTEXT_PREAMBLE =
   """
     Respond with a comma separated list of the paths of the files, in descending order of relevance.
@@ -79,6 +93,8 @@ private val CONTEXT_PROMPT =
     ```
   """
     .trimIndent()
+
+const val FILE_PHRASE = "The fix should likely be in "
 
 // Extra space reserved for system preamble
 private const val CONTEXT_WINDOW_PADDING = 150
@@ -155,10 +171,15 @@ class GeminiAiInsightClient(
   }
 
   private fun createPrompt(request: GeminiCrashInsightRequest, context: List<CodeContext>): String {
+    val promptWithContext =
+      if (StudioFlags.SUGGEST_A_FIX.get()) {
+        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT
+      } else {
+        GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT
+      }
     val initialPrompt =
       String.format(
-          if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
-          else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
+          if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else promptWithContext,
           request.deviceName,
           request.apiLevel,
           request.event.prettyStackTrace(),

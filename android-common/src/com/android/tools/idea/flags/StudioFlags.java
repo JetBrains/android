@@ -1896,6 +1896,14 @@ public final class StudioFlags {
       enabledUpTo(CANARY)
     );
 
+  public static final Flag<Boolean> SUGGEST_A_FIX = new BooleanFlag(
+    APP_INSIGHTS,
+    "suggest.a.fix",
+    "Enables suggest a fix button in insights panel",
+    "Allows AQI to provide suggested fix based on the generated insight.",
+    enabledUpTo(CANARY)
+  );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,

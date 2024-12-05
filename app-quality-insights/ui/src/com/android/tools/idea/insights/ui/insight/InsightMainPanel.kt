@@ -27,8 +27,10 @@ import com.intellij.openapi.Disposable
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val MAIN_CARD = "main"
@@ -55,7 +57,9 @@ class InsightMainPanel(
     InsightContentPanel(
       controller,
       scope,
-      controller.state.map { it.currentInsight }.distinctUntilChanged(),
+      controller.state
+        .map { it.currentInsight }
+        .stateIn(scope, SharingStarted.Eagerly, LoadingState.Ready(null)),
       parentDisposable,
       permissionDeniedHandler,
     )

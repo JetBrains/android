@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -31,8 +36,10 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +87,30 @@ class InsightBottomPanelTest {
   }
 
   @Test
+  fun `suggest a fix button state depends on generated insight`() = runBlocking {
+    createInsightBottomPanel()
+    val insight =
+      AiInsight(
+        rawInsight =
+          """
+        This is an insight.
+        
+        The fix should likely be in AndroidManifest.xml.
+      """
+            .trimIndent()
+      )
+    currentInsightFlow.value = LoadingState.Ready(insight)
+
+    val button = fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }!!
+    waitForCondition(5.seconds) { button.text == "Suggest a fix" }
+    assertThat(button.isEnabled).isTrue()
+
+    currentInsightFlow.value = LoadingState.Ready(AiInsight("This is an insight"))
+    waitForCondition(5.seconds) { button.text == "No fix available" }
+    assertThat(button.isEnabled).isFalse()
+  }
+
+  @Test
   fun `test copy action`() = runBlocking {
     val bottomPanel = createInsightBottomPanel()
 
@@ -114,7 +145,14 @@ class InsightBottomPanelTest {
   }
 
   private fun createInsightBottomPanel() =
-    InsightBottomPanel(controllerRule.controller, scope, currentInsightFlow).also {
-      fakeUi = FakeUi(it)
-    }
+    InsightBottomPanel(
+        controllerRule.controller,
+        currentInsightFlow,
+        projectRule.disposable,
+        CodeTransformationDeterminerImpl(
+          projectRule.project,
+          FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
+        ),
+      )
+      .also { fakeUi = FakeUi(it) }
 }

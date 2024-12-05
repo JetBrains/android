@@ -18,18 +18,24 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData.Companion.getContextSharingState
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState.Companion.getContextSharingState
 import com.android.utils.associateWithNotNull
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import java.nio.file.Paths
+import kotlin.io.path.name
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val charCount: Int) {
   companion object {
@@ -47,7 +53,17 @@ data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val c
 
 enum class ContextSharingState {
   DISABLED,
-  ALLOWED,
+  ALLOWED;
+
+  companion object {
+    fun getContextSharingState(project: Project) =
+      if (
+        GeminiPluginApi.getInstance().isAvailable() &&
+          GeminiPluginApi.getInstance().isContextAllowed(project)
+      )
+        ALLOWED
+      else DISABLED
+  }
 }
 
 data class CodeContextData(
@@ -61,14 +77,6 @@ data class CodeContextData(
 
     fun empty(project: Project) =
       CodeContextData(emptyList(), contextSharingState = getContextSharingState(project))
-
-    fun getContextSharingState(project: Project) =
-      if (
-        GeminiPluginApi.getInstance().isAvailable() &&
-          GeminiPluginApi.getInstance().isContextAllowed(project)
-      )
-        ContextSharingState.ALLOWED
-      else ContextSharingState.DISABLED
   }
 
   fun isEmpty() = codeContext.isEmpty()
@@ -96,6 +104,13 @@ interface CodeContextResolver {
    * names.
    */
   suspend fun getSource(fileNames: List<String>): CodeContextData
+
+  /**
+   * Gets a list of [VirtualFile]s that matches the [filePath].
+   *
+   * Note the [filePath] could be fully qualified path or could just be a file name.
+   */
+  suspend fun getSourceVirtualFiles(filePath: String): List<VirtualFile>
 }
 
 class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
@@ -111,25 +126,25 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
   override suspend fun getSource(fileNames: List<String>): CodeContextData {
     val context =
       fileNames
-        .associateWithNotNull { fileName ->
-          val scope = GlobalSearchScope.projectScope(project)
-          val name = fileName.substringAfterLast("/")
-          val candidates = readAction { FilenameIndex.getVirtualFilesByName(name, scope) }
-          if (candidates.isEmpty()) {
-            return@associateWithNotNull null
-          }
-          val candidate =
-            candidates.firstOrNull { it.path.endsWith(fileName) }
-              ?: return@associateWithNotNull null
-          if (GeminiPluginApi.getInstance().isFileExcluded(project, candidate)) {
-            null
-          } else {
-            candidate
-          }
-        }
+        .associateWithNotNull { fileName -> getSourceVirtualFiles(fileName).firstOrNull() }
         .map { (file, virtFile) -> CodeContext(file, virtFile.readText()) }
     return CodeContextData(context, getMetadata(context), getContextSharingState(project))
   }
+
+  override suspend fun getSourceVirtualFiles(filePath: String): List<VirtualFile> =
+    withContext(Dispatchers.IO) {
+      val scope = GlobalSearchScope.projectScope(project)
+      val name = Paths.get(filePath).name
+      val candidates = readAction { FilenameIndex.getVirtualFilesByName(name, scope) }
+      candidates
+        .filter {
+          it.path.endsWith(filePath) && !GeminiPluginApi.getInstance().isFileExcluded(project, it)
+        }
+        .also { files ->
+          Logger.getInstance(CodeContextResolverImpl::class.java)
+            .debug("Found virtual files ${files.map { it.path }}")
+        }
+    }
 
   private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
     contexts.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->

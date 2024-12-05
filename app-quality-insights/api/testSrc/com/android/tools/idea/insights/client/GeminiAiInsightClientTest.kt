@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.insights.CONNECTION1
@@ -37,12 +39,16 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
 class GeminiAiInsightClientTest {
 
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule).around(FlagRule(StudioFlags.SUGGEST_A_FIX, false))
 
   private var expectedPromptText: String = ""
 
@@ -306,6 +312,66 @@ class GeminiAiInsightClientTest {
       |
       |fun helloWorld() {
       |  println("Hello World")
+      |}
+      |```"""
+        .trimMargin()
+    val insight = client.fetchCrashInsight(request)
+
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
+  }
+
+  @Test
+  fun `gemini insight request with suggest a fix prompt`() = runBlocking {
+    StudioFlags.SUGGEST_A_FIX.override(true)
+    val client =
+      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+
+    val request =
+      GeminiCrashInsightRequest(
+        connection = CONNECTION1,
+        issueId = ISSUE1.id,
+        variantId = null,
+        deviceName = "DeviceName",
+        apiLevel = "ApiLevel",
+        event = ISSUE1.sampleEvent,
+      )
+
+    expectedPromptText =
+      """
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+      |Please reference the provided source code if they are helpful.
+      |If you think you can guess which single file the fix for this crash should be performed in,
+      |please include at the end of the response the extract phrase \"The fix should likely be in \${'$'}file,
+      |where file is the fully qualified path of the source file in which you think the fix should likely be performed.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld1.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```
+      |a/b/c/HelloWorld2.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
       |}
       |```"""
         .trimMargin()
