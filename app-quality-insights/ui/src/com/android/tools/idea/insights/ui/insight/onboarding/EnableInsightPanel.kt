@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JButton
@@ -52,7 +51,7 @@ class EnableInsightPanel(
     get() = !StudioFlags.CRASHLYTICS_TITAN_INSIGHT_PROVIDER.get()
 
   val button =
-    JButton("Enable Insights", StudioIcons.StudioBot.LOGO).apply {
+    JButton("Enable Insights").apply {
       addActionListener {
         selectedConnectionStateFlow.value?.let {
           insightsOnboardingProvider.performOnboardingAction(it)
