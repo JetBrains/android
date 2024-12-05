@@ -1337,8 +1337,15 @@ class ComposePreviewRepresentation(
             )
           }
         } catch (t: Throwable) {
-          // Make sure to propagate cancellations
-          if (t is CancellationException) throw t else requestLogger.warn("Request failed", t)
+          if (t is CancellationException) {
+            // We want to make sure the next refresh invalidates if this invalidation didn't happen
+            // Careful though, this needs to be performed here and not in the invokeOnCompletion of
+            // the job that is returned as the invokeOnComplete is run concurrently with the next
+            // refresh request and there can be race conditions.
+            if (invalidateIfCancelled) invalidate()
+            // Make sure to propagate cancellations
+            throw t
+          } else requestLogger.warn("Request failed", t)
         } finally {
           // Force updating toolbar icons after refresh
           ActivityTracker.getInstance().inc()
@@ -1349,7 +1356,6 @@ class ComposePreviewRepresentation(
       requestLogger.debug("Completed")
       launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
-        if (invalidateIfCancelled) invalidate()
         composeWorkBench.onRefreshCancelledByTheUser()
       } else {
         if (it != null) invalidate()
