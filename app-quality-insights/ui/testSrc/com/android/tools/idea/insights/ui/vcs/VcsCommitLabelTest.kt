@@ -27,7 +27,6 @@ class VcsCommitLabelTest {
       infoIconForCommitLabel = null
     } else {
       assertThat(underlyingLabels.size).isEqualTo(2)
-
       noDataLabel = underlyingLabels[0]
       infoIconForCommitLabel = underlyingLabels[1]
     }
@@ -48,6 +47,7 @@ class VcsCommitLabelTest {
     label.refreshUnderlyingLabels()
 
     assertThat(commitLabel?.text).isEqualTo("74081e5f")
+    assertThat(commitLabel?.toolTipText).isEqualTo("Commit ID")
     assertThat(noDataLabel).isNull()
     assertThat(infoIconForCommitLabel).isNull()
     assertThat(tooltip).isNull()
@@ -57,6 +57,7 @@ class VcsCommitLabelTest {
     label.refreshUnderlyingLabels()
 
     assertThat(noDataLabel?.text).isEqualTo("No data")
+    assertThat(noDataLabel?.toolTipText).isEqualTo("Commit ID")
     assertThat(infoIconForCommitLabel).isNotNull()
     assertThat(tooltip).isNotNull()
 
@@ -64,6 +65,7 @@ class VcsCommitLabelTest {
     label.updateOnIssueChange(AppVcsInfo.NONE, project)
     label.refreshUnderlyingLabels()
     assertThat(noDataLabel?.text).isEqualTo("No data")
+    assertThat(noDataLabel?.toolTipText).isEqualTo("Commit ID")
     assertThat(infoIconForCommitLabel).isNotNull()
     assertThat(tooltip).isNotNull()
   }

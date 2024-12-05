@@ -41,6 +41,7 @@ class VcsCommitLabel : JPanel() {
     HyperlinkLabel().apply {
       icon = AllIcons.Vcs.CommitNode
       isFocusable = true
+      toolTipText = "Commit ID"
     }
 
   private val infoIconForCommitLabel = JLabel(StudioIcons.Common.INFO, SwingConstants.LEFT)
@@ -65,7 +66,11 @@ class VcsCommitLabel : JPanel() {
       transparentPanel(BorderLayout()).apply {
         add(
           transparentPanel().apply {
-            add(JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT))
+            add(
+              JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT).apply {
+                toolTipText = "Commit ID"
+              }
+            )
             add(infoIconForCommitLabel)
           },
           BorderLayout.WEST,
