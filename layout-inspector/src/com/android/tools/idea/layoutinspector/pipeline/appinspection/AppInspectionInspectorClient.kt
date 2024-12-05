@@ -490,11 +490,15 @@ fun checkSystemImageForAppInspectionCompatibility(
   }
 
   val adb = AdbUtils.getAdbFuture(project).get()
-  val avdName =
-    adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.get(1, TimeUnit.SECONDS)?.name
-      ?: return Compatibility.Compatible
+  val avdFolder =
+    adb
+      ?.devices
+      ?.find { it.serialNumber == serialNumber }
+      ?.avdData
+      ?.get(1, TimeUnit.SECONDS)
+      ?.nioPath ?: return Compatibility.Compatible
 
-  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
+  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvdWithFolder(avdFolder)
 
   return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
     // We don't support Play Store images on API 29: b/180622424
