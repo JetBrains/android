@@ -726,6 +726,8 @@
                     interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.res.resourceClassToken"
                     interface="com.android.tools.idea.res.ResourceClassToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.manifest.manifestClassToken"
+                    interface="com.android.tools.idea.manifest.ManifestClassToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
