@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder ::class.java))
 private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
-internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
+internal class LiveEditOutputBuilder {
   // The outputs builder is *cumulative* and will include the outputs from *all previously compiled files* during this LiveEdit operation
   // Be extremely careful if you use the state inside the outputs object for any reason (or better yet, don't) - it's very easy to
   // inadvertently re-process classes and break things, especially when running in manual mode
@@ -168,7 +168,8 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     val newClass = IrClass(classBytes)
     val oldClass = irCache[newClass.name] ?: run {
       logger.info("Live Edit: No cache entry for ${newClass.name}; using the APK for class diff")
-      apkClassProvider.getClass(applicationLiveEditServices, sourceFile, newClass.name)
+      val classContent = applicationLiveEditServices.getClassContent(sourceFile.originalFile.virtualFile, newClass.name)
+      classContent?.let { IrClass(it.content) }
     }
 
     output.addIrClass(newClass)

@@ -27,7 +27,6 @@ import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
@@ -108,7 +107,7 @@ class LiveEditServiceImpl(val project: Project,
     Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
     registerWithRunningDevices(project, adapter)
 
-    deployMonitor = LiveEditProjectMonitor(this, project, DefaultApkClassProvider());
+    deployMonitor = LiveEditProjectMonitor(this, project);
 
     // When we change editor, grab a snapshot of the current PSI. We cannot do this in the beforeDocumentChanged
     // callback, as certain editor actions modify the PSI *before* the document callbacks occur. This causes us to

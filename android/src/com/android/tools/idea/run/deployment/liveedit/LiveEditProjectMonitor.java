@@ -223,14 +223,8 @@ public class LiveEditProjectMonitor implements Disposable {
   public static final int NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT = 5;
 
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
-    this(liveEditService, project, new DefaultApkClassProvider());
-  }
-
-  public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService,
-                                @NotNull Project project,
-                                @NotNull ApkClassProvider apkClassProvider) {
     this.project = project;
-    this.compiler = new LiveEditCompiler(project, irClassCache, apkClassProvider);
+    this.compiler = new LiveEditCompiler(project, irClassCache);
     this.adbEventsListener = liveEditService.getAdbEventsListener();
 
     Disposer.register(liveEditService, this);

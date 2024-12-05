@@ -36,9 +36,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.Optional
 
-class LiveEditCompiler(val project: Project,
-                       private val irClassCache: IrClassCache,
-                       apkClassProvider: ApkClassProvider = DefaultApkClassProvider()) {
+class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCache) {
 
   internal interface LiveEditCompilerForKotlinVersion {
     fun compileKtFile(
@@ -56,7 +54,7 @@ class LiveEditCompiler(val project: Project,
   var inlineCandidateCache = SourceInlineCandidateCache()
 
   private var desugarer = LiveEditDesugar()
-  private val outputBuilderWithAnalysis = LiveEditOutputBuilder(apkClassProvider)
+  private val outputBuilderWithAnalysis = LiveEditOutputBuilder()
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
