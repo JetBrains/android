@@ -523,10 +523,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private fun createRefreshJob(
     request: CommonPreviewRefreshRequest,
     refreshProgressIndicator: BackgroundableProcessIndicator,
-    invalidateIfCancelled: AtomicBoolean,
   ) =
     launchWithProgress(refreshProgressIndicator, workerThread) {
       val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to request.requestId))
+      val invalidateIfCancelled = AtomicBoolean(false)
 
       if (DumbService.isDumb(project)) {
         return@launchWithProgress
@@ -590,8 +590,17 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           doRefreshSync(filePreviewElements, refreshProgressIndicator, request.refreshEventBuilder)
         }
       } catch (t: Throwable) {
-        // Make sure to propagate cancellations
-        if (t is CancellationException) throw t else requestLogger.warn("Request failed", t)
+        if (t is CancellationException) {
+          // We want to make sure the next refresh invalidates if this invalidation didn't happen
+          // Careful though, this needs to be performed here and not in the invokeOnCompletion of
+          // the job that is returned as the invokeOnComplete is run concurrently with the next
+          // refresh request and there can be race conditions.
+          if (invalidateIfCancelled.get()) {
+            invalidate()
+          }
+          // Make sure to propagate cancellations
+          throw t
+        } else requestLogger.warn("Request failed", t)
       } finally {
         previewViewModel.refreshFinished()
       }
@@ -641,13 +650,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
     }
 
-    val invalidateIfCancelled = AtomicBoolean(false)
-    val refreshJob = createRefreshJob(request, refreshProgressIndicator, invalidateIfCancelled)
+    val refreshJob = createRefreshJob(request, refreshProgressIndicator)
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
-      if (it is CancellationException && invalidateIfCancelled.get()) {
-        invalidate()
-      }
       // Progress indicators must be disposed in the ui thread
       launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
