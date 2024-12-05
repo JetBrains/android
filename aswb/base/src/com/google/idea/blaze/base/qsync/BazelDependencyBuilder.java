@@ -99,7 +99,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
   public static final BoolExperiment buildGeneratedSrcJars =
-      new BoolExperiment("qsync.build.generated.src.jars", true);
+      new BoolExperiment("qsync.build.generated.src.jars", false);
 
   public static final StringExperiment aspectLocation =
     new StringExperiment("qsync.build.aspect.location");
