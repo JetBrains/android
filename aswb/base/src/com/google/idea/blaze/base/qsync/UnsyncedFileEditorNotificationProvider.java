@@ -100,15 +100,6 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
         .createActionLabel("Sync now", IncrementalSyncProjectAction.ID)
         .addHyperlinkListener(
             event -> EditorNotifications.getInstance(project).updateAllNotifications());
-    panel.createActionLabel(
-        "Enable automatic syncing",
-        () -> {
-          QuerySyncSettings.getInstance().enableSyncOnFileChanges(true);
-          showAutoSyncNotification(project);
-          IncrementalSyncProjectAction.doIncrementalSync(
-              UnsyncedFileEditorNotificationProvider.class, project, null);
-          EditorNotifications.getInstance(project).updateAllNotifications();
-        });
     return panel;
   }
 

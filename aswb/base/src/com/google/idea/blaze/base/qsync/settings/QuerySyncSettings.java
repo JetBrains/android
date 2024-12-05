@@ -85,7 +85,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public boolean buildWorkingSet() {
-    return state.buildWorkingSet;
+    // Force to disable it as it's not a stable feature
+    return false;
   }
 
   public void enableSyncOnFileChanges(boolean syncOnFileChanges) {
@@ -93,7 +94,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public boolean syncOnFileChanges() {
-    return state.syncOnFileChanges;
+    // Force to disable it as it's not a stable feature
+    return false;
   }
 
   @Override

@@ -136,16 +136,6 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                         "Display detailed dependency text in the editor",
                         settings::showDetailedInformationInEditor,
                         settings::enableShowDetailedInformationInEditor);
-                    addCheckBox(
-                        ip,
-                        "Include working set when building dependencies",
-                        settings::buildWorkingSet,
-                        settings::enableBuildWorkingSet);
-                    addCheckBox(
-                        ip,
-                        "Automatically sync project on file changes",
-                        settings::syncOnFileChanges,
-                        settings::enableSyncOnFileChanges);
                     return Unit.INSTANCE;
                   });
           return Unit.INSTANCE;
