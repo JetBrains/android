@@ -610,14 +610,14 @@ class WelcomeScreenWizardTest {
     if (willShowKvmStep()) {
       return "Next"
     }
-    // TODO - get the new wizard to show 'Finish' instead of 'Next'
+    // This is a quirk of the old wizard - it shows 'Finish' on the penultimate step
     return if (isTestingLegacyWizard == true) "Finish" else "Next"
   }
 
   private fun willShowKvmStep() = SystemInfo.isLinux && !HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated()
 
   private fun getKvmStepNextText(): String {
-    // TODO - get the new wizard to show 'Finish' instead of 'Next'
+    // This is a quirk of the old wizard - it shows 'Finish' on the penultimate step
     return if (isTestingLegacyWizard == true) "Finish" else "Next"
   }
 
