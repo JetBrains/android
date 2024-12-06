@@ -73,12 +73,20 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       @Override
       public void onCheckboxUpdated() {
         invokeUpdate(null);
+
+        if (licenseAgreementStep != null) {
+          licenseAgreementStep.reload();
+        }
       }
     });
     myForm.setCellEditor(new SdkComponentsRenderer(tableModel, myForm.getComponentsTable()) {
       @Override
       public void onCheckboxUpdated() {
         invokeUpdate(null);
+
+        if (licenseAgreementStep != null) {
+          licenseAgreementStep.reload();
+        }
       }
     });
 
@@ -129,7 +137,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     if (modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION)) {
       String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
       if (sdkPath != null) {
-        myController.onPathUpdated(sdkPath, ModalityState.stateForComponent(myForm.getContents()));
+        myController.onPathUpdated(sdkPath, ModalityState.defaultModalityState());
       }
     }
     myForm.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(myState.get(mySdkDownloadPathKey)));
