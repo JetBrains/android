@@ -47,11 +47,10 @@ private val SEVERITY_TO_ICON =
  * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
 class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
-  TrafficLightRenderer(file.project, editor.document) {
-  private val severityRegistrar = SeverityRegistrar.getSeverityRegistrar(project)
-  private val severities = severityRegistrar.allSeverities
+  TrafficLightRenderer(file.project, editor) {
+  private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   override val errorCounts = IntArray(severities.size)
-
+  
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(
@@ -83,7 +82,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       errorCounts.indices
         .reversed()
         .filterNot { errorCounts[it] == 0 }
-        .map { severityRegistrar.getSeverityByIndex(it) }
+        .map { SeverityRegistrar.getSeverityRegistrar(project).getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
     if (currentItems.size != nonZeroSeverities.size) {
