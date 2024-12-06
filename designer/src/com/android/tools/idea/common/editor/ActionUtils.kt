@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import java.awt.Component
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 
 /**
  * Helper function to show the popup menu in [DesignSurface]. The popup menu will appear at the
@@ -31,11 +32,16 @@ import java.awt.event.MouseEvent
  * [com.intellij.openapi.actionSystem.AnActionEvent] when
  * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
  * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
- * more information.
+ * more information. An optional [targetComponent] can be passed for propagating a DataContext.
  */
-fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: String) {
+fun DesignSurface<*>.showPopup(
+  event: MouseEvent,
+  group: ActionGroup,
+  place: String,
+  targetComponent: JComponent? = null,
+) {
   val invoker = if (event.source is Component) event.source as Component else this
-  showPopup(this, invoker, event.x, event.y, group, place)
+  showPopup(this, invoker, event.x, event.y, group, place, targetComponent)
 }
 
 /**
@@ -45,7 +51,7 @@ fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: Str
  * [com.intellij.openapi.actionSystem.AnActionEvent] when
  * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
  * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
- * more information.
+ * more information. An optional [targetComponent] can be passed for propagating a DataContext.
  */
 fun showPopup(
   surface: DesignSurface<*>?,
@@ -54,6 +60,7 @@ fun showPopup(
   y: Int,
   group: ActionGroup,
   place: String,
+  targetComponent: JComponent? = null,
 ) {
   if (group.getChildren(null).isEmpty()) {
     return
@@ -61,6 +68,10 @@ fun showPopup(
   val actionManager = ActionManager.getInstance()
   // TODO (b/151315668): Should the place be ActionPlaces.POPUP?
   val popupMenu = actionManager.createActionPopupMenu(place, group)
-  surface?.let { popupMenu.setTargetComponent(it) }
+  if (targetComponent != null) {
+    popupMenu.setTargetComponent(targetComponent)
+  } else {
+    surface?.let { popupMenu.setTargetComponent(it) }
+  }
   popupMenu.component.show(invoker, x, y)
 }

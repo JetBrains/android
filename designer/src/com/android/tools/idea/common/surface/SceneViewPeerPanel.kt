@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.util.ui.JBInsets
@@ -317,16 +316,5 @@ class SceneViewPeerPanel(
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SCENE_VIEW] = sceneView
     sceneView.sceneManager.model.dataProvider?.uiDataSnapshot(sink)
-  }
-
-  companion object {
-    /** Default initial visibility for the SceneView toolbars */
-    internal var defaultToolbarVisibility = false
-  }
-}
-
-private class ShowSceneViewToolbarAction : AnAction("Show SceneView Toolbars") {
-  override fun actionPerformed(e: AnActionEvent) {
-    SceneViewPeerPanel.defaultToolbarVisibility = true
   }
 }

@@ -24,6 +24,8 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionInformation
 import com.android.tools.idea.common.surface.InteractionNonInputEvent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.SceneViewPanel
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -33,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
@@ -89,8 +92,16 @@ class NavigatingInteractionHandler(
           forceHoverUpdate(sceneView, x, y)
         }
       }
+      var targetComponent: JComponent? = null
+      // Set the SceneViewPeerPanel as targetComponent, so the DataContext is specific to
+      // a sceneView, not generic as the DesignSurface.
+      (surface.interactionPane as? SceneViewPanel)
+        ?.components
+        ?.filterIsInstance<SceneViewPeerPanel>()
+        ?.firstOrNull { it.sceneView == sceneView }
+        ?.let { targetComponent = it }
       val actions = surface.actionManager.getPopupMenuActions(component)
-      surface.showPopup(mouseEvent, actions, "Preview")
+      surface.showPopup(mouseEvent, actions, "Preview", targetComponent)
     } else {
       surface.selectionModel.clear()
     }

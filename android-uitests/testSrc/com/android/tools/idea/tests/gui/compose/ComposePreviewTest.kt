@@ -30,7 +30,6 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import icons.StudioIcons
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -232,10 +231,9 @@ class ComposePreviewTest {
 
     composePreview.waitForSceneViewsCount(3)
 
-    composePreview.designSurface.allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+    val sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Interactive Mode")
 
     composePreview.waitForRenderToFinish()
 
@@ -284,12 +282,13 @@ class ComposePreviewTest {
         .waitForRenderToFinish()
         .waitForSceneViewsCount(3)
 
-    val previewToolbar = noAnimationsComposePreview.designSurface.allSceneViews.first().toolbar()
+    var sceneView = noAnimationsComposePreview.designSurface.allSceneViews.first()
+    noAnimationsComposePreview.robot.rightClick(sceneView.target())
 
     try {
       // MultipleComposePreviews does not have animations, so the animation preview button is
       // expected not to be displayed.
-      previewToolbar.clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      sceneView.clickActionByText("Start Animation Preview")
       fail("The animation preview icon is not expected to be found.")
     } catch (_: WaitTimedOutError) {
       // Expected to be thrown
@@ -302,10 +301,10 @@ class ComposePreviewTest {
       openComposePreview(fixture, "Animations.kt").waitForRenderToFinish().waitForSceneViewsCount(2)
 
     // First preview have an animation
-    composePreview.designSurface.allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("GestureAnimationSample", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Animation Preview")
+
     composePreview.waitForAnimationInspectorState(isOpen = true)
 
     // Open the Animation preview in another file
@@ -314,10 +313,9 @@ class ComposePreviewTest {
         .waitForRenderToFinish()
         .waitForSceneViewsCount(1)
 
-    otherComposePreview.designSurface.allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("VerySimpleAnimation", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    sceneView = otherComposePreview.designSurface.allSceneViews.first()
+    otherComposePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Animation Preview")
     otherComposePreview.waitForAnimationInspectorState(isOpen = true)
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
@@ -367,10 +365,9 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    composePreview.designSurface.allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
+    val sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Run Preview")
 
     Wait.seconds(180).expecting("Device received deployPreviewCommand").until {
       deployPreviewCommandIsReceived

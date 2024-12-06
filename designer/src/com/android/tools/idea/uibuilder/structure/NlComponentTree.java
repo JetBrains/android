@@ -585,7 +585,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
             // TODO (b/151315668): extract the hardcoded value "LayoutEditor"
-            ActionUtils.showPopup(mySurface, e, mySurface.getActionManager().getPopupMenuActions((NlComponent) component), "LayoutEditor");
+            ActionUtils.showPopup(
+              mySurface,
+              e,
+              mySurface.getActionManager().getPopupMenuActions((NlComponent) component),
+              "LayoutEditor",
+              null
+            );
           }
           else {
             ActionManager actionManager = ActionManager.getInstance();

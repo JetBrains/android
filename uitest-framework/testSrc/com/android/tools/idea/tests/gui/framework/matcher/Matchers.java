@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.matcher;
 import com.android.tools.adtui.TextAccessors;
 import com.intellij.BundleBase;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.ui.TextAccessor;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.util.Objects;
@@ -37,7 +38,8 @@ public final class Matchers {
       @Override
       protected boolean isMatching(@NotNull T component) {
         // Appearance of MNEMONIC can be platform-dependent, so be careful modifying this.
-        String componentText = TextAccessors.getTextAccessor(component).getText();
+        TextAccessor textAccessor = TextAccessors.getTextAccessor(component);
+        String componentText = textAccessor == null ? "" : textAccessor.getText();
         componentText = componentText == null ? "" : componentText.replaceAll(Character.toString(BundleBase.MNEMONIC), "");
         return text.equals(componentText);
       }

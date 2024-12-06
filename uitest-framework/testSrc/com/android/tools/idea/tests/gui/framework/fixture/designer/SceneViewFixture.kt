@@ -25,11 +25,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.MouseButton
@@ -41,9 +38,7 @@ import org.fest.swing.timing.Wait
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.image.BufferedImage
-import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JMenuItem
 
 private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
@@ -212,25 +207,6 @@ class SceneFixture(private val robot: Robot, private val scene: Scene) {
   }
 }
 
-class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JComponent) {
-  fun findButtonByIcon(icon: Icon, secondsToWait: Long = 10L): ActionButtonFixture {
-    val button = GuiTests.waitUntilShowing(
-      robot, toolbar, object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
-      override fun isMatching(component: ActionButton): Boolean {
-        return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
-      }
-    }, secondsToWait)
-    return ActionButtonFixture(robot, button)
-  }
-
-  fun clickActionByIcon(label: String, actionIcon: Icon) {
-    // Move mouse on top of the toolbar to ensure that is displayed.
-    val toolbarLabel = GuiTests.waitUntilShowing(robot, Matchers.byText(JLabel::class.java, label))
-    robot.moveMouse(toolbarLabel)
-    ActionButtonFixture.findByIcon(actionIcon, robot, toolbar).click()
-  }
-}
-
 class SceneViewFixture(private val robot: Robot,
                        private val sceneView: SceneView) {
   private val componentDriver = ComponentDriver<DesignSurface<*>>(robot)
@@ -247,8 +223,6 @@ class SceneViewFixture(private val robot: Robot,
 
   fun countSceneComponents(): Int = sceneView.scene.sceneComponents.size
 
-  fun toolbar() = SceneViewTopPanelFixture(robot, target().sceneViewTopPanel)
-
   fun target() = robot.finder().find(sceneView.surface) {
     component -> component is SceneViewPeerPanel && component.sceneView == sceneView
   } as SceneViewPeerPanel
@@ -260,4 +234,9 @@ class SceneViewFixture(private val robot: Robot,
    * if it doesn't exist.
    */
   fun image(): BufferedImage? = (sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult?.renderedImage?.copy
+
+  fun clickActionByText(actionText: String) {
+    val actionComponent = GuiTests.waitUntilShowing(robot, Matchers.byText(JComponent::class.java, actionText))
+    robot.click(actionComponent)
+  }
 }

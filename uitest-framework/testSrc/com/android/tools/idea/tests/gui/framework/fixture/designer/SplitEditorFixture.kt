@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.testFramework.runInEdtAndWait
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
@@ -50,9 +51,29 @@ import javax.swing.JComponent
 class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEditor>) :
   ComponentFixture<SplitEditorFixture, JComponent>(SplitEditorFixture::class.java, robot, editor.component) {
 
-  fun setCodeMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
-  fun setSplitMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
-  fun setDesignMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
+  fun setCodeMode() {
+    runInEdtAndWait {
+      if (!editor.isTextMode()) {
+        ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
+      }
+    }
+  }
+
+  fun setSplitMode() {
+    runInEdtAndWait {
+      if (!editor.isSplitMode()) {
+        ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
+      }
+    }
+  }
+
+  fun setDesignMode() {
+    runInEdtAndWait {
+      if (!editor.isDesignMode()) {
+        ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
+      }
+    }
+  }
 
   fun setRepresentation(name: String) {
     val representationSelector = ActionButtonFixture.findByIcon(StudioIcons.LayoutEditor.Palette.LIST_VIEW, robot, target())

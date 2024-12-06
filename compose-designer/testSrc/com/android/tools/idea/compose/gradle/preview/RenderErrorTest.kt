@@ -23,6 +23,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.gradle.waitForRender
@@ -382,14 +383,19 @@ class RenderErrorTest {
     return visibleActions.size
   }
 
-  private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
-    (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
-        as DefaultActionGroup)
+  private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> {
+    val showToolbarActionsActionGroup =
+      (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
+          as DefaultActionGroup)
+        .childActionsOrStubs
+        .single() as SceneViewTopPanel.ShowActionGroupInPopupAction
+    return (showToolbarActionsActionGroup.actionGroup as DefaultActionGroup)
       .childActionsOrStubs
       .filterIsInstance<DefaultActionGroup>()
       .single()
       .childActionsOrStubs
       .toList()
+  }
 
   private suspend fun startUiCheckForModel(model: String) {
     setPreviewModeAndWaitForRefresh(model) {
