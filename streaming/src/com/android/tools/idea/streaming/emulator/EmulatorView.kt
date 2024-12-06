@@ -729,9 +729,11 @@ class EmulatorView(
     val mouseListener = object: MouseAdapter() {
 
       override fun mouseMoved(event: MouseEvent) {
-        rotateVirtualSceneCamera(-(event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
-        referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
-        event.consume()
+        if (referencePoint != null) {
+          rotateVirtualSceneCamera(-(event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
+          referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
+          event.consume()
+        }
       }
 
       override fun mouseDragged(event: MouseEvent) {

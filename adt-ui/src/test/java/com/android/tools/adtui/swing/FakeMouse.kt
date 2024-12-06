@@ -70,20 +70,21 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   fun dragTo(x: Int, y: Int) {
     val cursor = this.cursor ?: throw IllegalStateException("Mouse not pressed. Call press before dragging.")
     val point = fakeUi.targetMouseEvent(x, y)
+    val timestamp = System.currentTimeMillis()
     val target = point?.component
     val focus = this.focus
     if (target !== focus) {
       if (focus != null) {
         val relative = fakeUi.toRelative(focus, x, y)
         val relativePoint = RelativePoint(focus, relative.x, relative.y)
-        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, cursor.button.mask, 0, 1, false, System.currentTimeMillis())
+        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, cursor.button.mask, 0, 1, false, timestamp)
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, cursor.button.mask, 0, 1, false, System.currentTimeMillis())
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, cursor.button.mask, 0, 1, false, timestamp)
       }
     }
     if (target != null) {
-      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false, System.currentTimeMillis())
+      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false, timestamp)
       this.cursor = Cursor(cursor, x, y)
     }
   }
@@ -114,15 +115,24 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     if (target !== focus) {
       if (focus != null) {
         val converted = fakeUi.toRelative(focus, x, y)
-        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 1, false, timestamp)
+        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 0, false, timestamp)
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 1, false, timestamp)
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 0, false, timestamp)
       }
     }
     if (target != null) {
-      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 1, false, timestamp)
+      preprocessMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 0, false, timestamp)
+      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 0, false, timestamp)
     }
+  }
+
+  fun preprocessMouseEvent(
+      point: RelativePoint, eventType: Int, modifiers: Int, button: Int, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
+    val glassPane = fakeUi.glassPane ?: return
+    val event = MouseEvent(point.component, eventType, timestamp, keyboard.toModifiersCode() or modifiers, point.x, point.y, clickCount,
+                           popupTrigger, button)
+    glassPane.dispatch(event)
   }
 
   fun release() {
@@ -136,7 +146,8 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     // The DOWN_MASK bit for released button should be 0 for MOUSE_RELEASED events.
     val modifiers = cursor.button.mask and
         (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK or InputEvent.BUTTON3_DOWN_MASK).inv()
-    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 1, false, timestamp)
+    preprocessMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 0, false, timestamp)
+    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 0, false, timestamp)
   }
 
   /**
@@ -201,6 +212,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   private fun dispatchMouseEvent(eventType: Int, x: Int, y: Int, button: Button, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
     val point = fakeUi.targetMouseEvent(x, y)
     if (point != null) {
+      preprocessMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)
       // Rare, but can happen if, say, a release mouse event closes a component, and then we try to
       // fire a followup clicked event on it.
       dispatchMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)

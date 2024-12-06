@@ -85,6 +85,8 @@ class FakeUi @JvmOverloads constructor(
       }
     }
 
+  val glassPane: IdeGlassPaneImpl?
+
   private var screenScaleInternal: Double = screenScale
 
   init {
@@ -104,6 +106,7 @@ class FakeUi @JvmOverloads constructor(
       }
       wrapInFakeWindow(rootPane, parentDisposable)
     }
+    glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl
 
     if (screenScale != 1.0) {
       ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))

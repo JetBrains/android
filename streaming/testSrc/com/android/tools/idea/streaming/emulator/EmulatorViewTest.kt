@@ -161,7 +161,9 @@ class EmulatorViewTest {
   @Before
   fun setUp() {
     mouseInfo = mockStatic(testRootDisposable)
-    mouseInfo.whenever<PointerInfo> { MouseInfo.getPointerInfo() }.thenReturn(mock<PointerInfo>())
+    val pointerInfo = mock<PointerInfo>()
+    whenever(pointerInfo.location).thenReturn(Point(10, 20))
+    mouseInfo.whenever<PointerInfo> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }
 
@@ -611,13 +613,15 @@ class EmulatorViewTest {
 
     // Move mouse.
     fakeUi.mouse.moveTo(135, 190)
+    var call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
     fakeUi.mouse.press(135, 190)
 
     // Stop operating camera.
     fakeUi.keyboard.release(VK_SHIFT)
 
     // Here we expect the gRPC call from `press()`, as `moveTo()` should not send any gRPC call.
-    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    call = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1118 y: 1989 buttons: 1 }")
   }

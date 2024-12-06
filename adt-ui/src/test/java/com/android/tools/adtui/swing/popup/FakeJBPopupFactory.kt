@@ -319,7 +319,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   }
 
   override fun getParentBalloonFor(c: Component?): Balloon? {
-    TODO("Not yet implemented")
+    return null
   }
 
   override fun <T : Any?> createPopupComponentAdapter(builder: PopupChooserBuilder<T>,
