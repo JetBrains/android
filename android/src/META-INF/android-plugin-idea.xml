@@ -15,6 +15,10 @@
   -->
 <!-- This configuration file is only loaded in IntelliJ IDEA, not in Android Studio. -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- AndroidPluginIdeaInitializer disables UsageTracker and other Studio-specific services that shouldn't be in IntelliJ IDEA. -->
+    <applicationInitializedListener implementation="com.android.tools.idea.startup.AndroidPluginIdeaInitializer" />
+  </extensions>
   <actions>
     <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" keep-content="true" popup="true" overrides="true">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
