@@ -356,7 +356,7 @@
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
       <separator/>
     </group>
-    <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Generate App Bundles / APKs" popup="true">
+    <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Generate App Bundles or APKs" popup="true">
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.GenerateApkAction"/>
       <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.GenerateBundleAction"/>

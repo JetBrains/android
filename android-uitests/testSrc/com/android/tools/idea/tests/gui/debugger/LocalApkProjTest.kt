@@ -128,7 +128,7 @@ class LocalApkProjTest {
 
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
-    ideFrame.invokeAndWaitForBuildAction("Build", "Generate App Bundles / APKs", "Generate APKs")
+    ideFrame.invokeAndWaitForBuildAction("Build", "Generate App Bundles or APKs", "Generate APKs")
 
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
