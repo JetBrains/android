@@ -74,7 +74,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (model.agpVersion.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {
-        options.baselineFile?.let {
+        options?.baselineFile?.let {
           return it
         }
       } catch (_: Throwable) {}
@@ -88,7 +88,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     val model = GradleAndroidModel.get(module) ?: return null
     if (model.agpVersion.isAtLeast(2, 3, 1)) {
       try {
-        return model.androidProject.lintOptions.severityOverrides
+        return model.androidProject.lintOptions?.severityOverrides
       } catch (_: Throwable) {}
     }
     return null

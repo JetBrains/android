@@ -33,7 +33,7 @@ data class IdeAndroidProjectImpl(
   override val bootClasspath: Collection<String>,
   override val signingConfigs: Collection<IdeSigningConfigImpl>,
   override val aaptOptions: IdeAaptOptionsImpl,
-  override val lintOptions: IdeLintOptionsImpl,
+  override val lintOptions: IdeLintOptionsImpl?,
   override val javaCompileOptions: IdeJavaCompileOptionsImpl,
   override val buildFolder: File,
   override val resourcePrefix: String?,

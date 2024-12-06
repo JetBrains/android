@@ -1325,7 +1325,7 @@ internal fun modelCacheV2Impl(
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
-    val lintOptionsCopy: IdeLintOptionsImpl = lintOptionsFrom(androidDsl.lintOptions)
+    val lintOptionsCopy: IdeLintOptionsImpl? = androidDsl?.lintOptions?.let { lintOptionsFrom(it) }
     val javaCompileOptionsCopy = javaCompileOptionsFrom(project.javaCompileOptions)
     val aaptOptionsCopy = aaptOptionsFrom(androidDsl.aaptOptions)
     val dynamicFeaturesCopy: Collection<String> = project.dynamicFeatures?.deduplicateStrings() ?: listOf()
