@@ -64,6 +64,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
         PsModuleType.ANDROID_FEATURE,
         PsModuleType.ANDROID_INSTANTAPP,
         PsModuleType.ANDROID_LIBRARY,
+        PsModuleType.ANDROID_FUSED_LIBRARY,
         PsModuleType.ANDROID_KMP_LIBRARY,
         PsModuleType.ANDROID_TEST -> ModuleKey(ModuleKind.ANDROID, path)
         null,

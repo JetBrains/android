@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("REDUNDANT_ELSE_IN_WHEN")
+
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.v2.dsl.BuildType
@@ -1279,7 +1281,7 @@ internal fun modelCacheV2Impl(
     ProjectType.LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
     ProjectType.TEST -> IdeAndroidProjectType.PROJECT_TYPE_TEST
     ProjectType.DYNAMIC_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
-    else -> error("Unknown Android project type: $projectType")
+    ProjectType.FUSED_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY
   }
 
   fun androidProjectFrom(

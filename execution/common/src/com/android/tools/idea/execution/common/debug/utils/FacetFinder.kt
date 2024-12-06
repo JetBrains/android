@@ -131,7 +131,8 @@ object FacetFinder {
     val moduleSystem = it.getModuleSystem()
     when (moduleSystem.type) {
       AndroidModuleSystem.Type.TYPE_NON_ANDROID -> 0
-      AndroidModuleSystem.Type.TYPE_LIBRARY -> 1
+      AndroidModuleSystem.Type.TYPE_LIBRARY,
+      AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY -> 1
       AndroidModuleSystem.Type.TYPE_TEST -> 2
       AndroidModuleSystem.Type.TYPE_APP,
       AndroidModuleSystem.Type.TYPE_INSTANTAPP,

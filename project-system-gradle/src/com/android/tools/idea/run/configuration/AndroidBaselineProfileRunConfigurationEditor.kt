@@ -60,6 +60,7 @@ class AndroidBaselineProfileRunConfigurationEditor(
 
         AndroidModuleSystem.Type.TYPE_NON_ANDROID,
         AndroidModuleSystem.Type.TYPE_LIBRARY,
+        AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY,
         AndroidModuleSystem.Type.TYPE_TEST,
         AndroidModuleSystem.Type.TYPE_ATOM,
         AndroidModuleSystem.Type.TYPE_INSTANTAPP,

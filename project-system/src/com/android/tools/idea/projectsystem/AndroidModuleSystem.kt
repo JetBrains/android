@@ -48,8 +48,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
     TYPE_ATOM,
     TYPE_INSTANTAPP,
     TYPE_FEATURE,
-    TYPE_DYNAMIC_FEATURE
-
+    TYPE_DYNAMIC_FEATURE,
+    TYPE_FUSED_LIBRARY
   }
 
   val type: Type
@@ -382,19 +382,19 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    */
   fun isValidForAndroidRunConfiguration() = when(type) {
     Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> true
-    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
-    Type.TYPE_NON_ANDROID -> false
-    Type.TYPE_LIBRARY, Type.TYPE_TEST -> false // Valid for AndroidTestRunConfiguration instead.
+
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP, // Legacy not-supported module types.
+    Type.TYPE_LIBRARY, Type.TYPE_FUSED_LIBRARY, Type.TYPE_TEST, Type.TYPE_NON_ANDROID -> false
   }
 
   /**
    * Is this module suitable for use in an [AndroidTestRunConfiguration] editor?
    */
-  fun isValidForAndroidTestRunConfiguration() = when(type) {
-    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> false
+  fun isValidForAndroidTestRunConfiguration() = when (type) {
     Type.TYPE_TEST -> true
-    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
-    Type.TYPE_NON_ANDROID -> false
+
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP, // Legacy not-supported module types.
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY, Type.TYPE_FUSED_LIBRARY, Type.TYPE_NON_ANDROID,  -> false
   }
 }
 

@@ -130,6 +130,7 @@ class GradleModuleSystem(
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> Type.TYPE_FUSED_LIBRARY
       null -> Type.TYPE_NON_ANDROID
     }
 
@@ -360,14 +361,15 @@ class GradleModuleSystem(
       ManifestSystemProperty.Document.PACKAGE to
         (
           when (androidModel.androidProject.projectType) {
-            IdeAndroidProjectType.PROJECT_TYPE_APP -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_ATOM -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> androidModel.applicationId
+            IdeAndroidProjectType.PROJECT_TYPE_APP,
+            IdeAndroidProjectType.PROJECT_TYPE_ATOM,
+            IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP,
+            IdeAndroidProjectType.PROJECT_TYPE_FEATURE,
+            IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE,
             IdeAndroidProjectType.PROJECT_TYPE_TEST -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> getPackageName()
-            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> getPackageName()
+            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+            IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY,
+            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM-> getPackageName()
           }
         )
     )

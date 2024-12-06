@@ -27,6 +27,7 @@ enum class PsModuleType(val androidModuleType: AndroidModuleSystem.Type? = null)
   ANDROID_KMP_LIBRARY(AndroidModuleSystem.Type.TYPE_LIBRARY),
   ANDROID_INSTANTAPP(AndroidModuleSystem.Type.TYPE_INSTANTAPP),
   ANDROID_FEATURE(AndroidModuleSystem.Type.TYPE_FEATURE),
+  ANDROID_FUSED_LIBRARY(AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY),
   ANDROID_DYNAMIC_FEATURE(AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE),
   ANDROID_TEST(AndroidModuleSystem.Type.TYPE_TEST),
   JAVA,
@@ -42,12 +43,14 @@ fun moduleTypeFromAndroidModuleType(androidModuleType: IdeAndroidProjectType?): 
   IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
   IdeAndroidProjectType.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
   IdeAndroidProjectType.PROJECT_TYPE_ATOM -> PsModuleType.UNKNOWN
+  IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> PsModuleType.ANDROID_FUSED_LIBRARY
 }
 
 fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
   "java", "java-library" -> PsModuleType.JAVA
   "com.android.application", "android" -> PsModuleType.ANDROID_APP
   "com.android.library", "android-library" -> PsModuleType.ANDROID_LIBRARY
+  "com.android.fusedlibrary" -> PsModuleType.ANDROID_FUSED_LIBRARY
   "com.android.instantapp" -> PsModuleType.ANDROID_INSTANTAPP
   "com.android.feature" -> PsModuleType.ANDROID_FEATURE
   "com.android.dynamic-feature" -> PsModuleType.ANDROID_DYNAMIC_FEATURE

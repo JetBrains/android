@@ -638,8 +638,7 @@ class LintModelFactory : LintModelModuleLoader {
         sarifOutput = options.sarifOutput,
         checkReleaseBuilds = options.isCheckReleaseBuilds,
       )
-    }
-    else {
+    } else {
       DefaultLintModelLintOptions()
     }
   }
@@ -877,6 +876,7 @@ class LintModelFactory : LintModelModuleLoader {
       return when (typeId) {
         AndroidProjectTypes.PROJECT_TYPE_APP -> LintModelModuleType.APP
         AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> LintModelModuleType.LIBRARY
+        AndroidProjectTypes.PROJECT_TYPE_FUSED_LIBRARY -> LintModelModuleType.FUSED_LIBRARY
         AndroidProjectTypes.PROJECT_TYPE_TEST -> LintModelModuleType.TEST
         AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
         AndroidProjectTypes.PROJECT_TYPE_FEATURE -> LintModelModuleType.FEATURE
@@ -891,6 +891,7 @@ class LintModelFactory : LintModelModuleLoader {
       return when (type) {
         IdeAndroidProjectType.PROJECT_TYPE_APP -> LintModelModuleType.APP
         IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> LintModelModuleType.LIBRARY
+        IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> LintModelModuleType.FUSED_LIBRARY
         IdeAndroidProjectType.PROJECT_TYPE_TEST -> LintModelModuleType.TEST
         IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
         IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> LintModelModuleType.FEATURE
