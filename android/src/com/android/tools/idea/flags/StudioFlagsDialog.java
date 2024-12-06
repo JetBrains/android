@@ -243,8 +243,8 @@ public final class StudioFlagsDialog extends DialogWrapper {
           namePanel.add(id);
           flagPanel.add(namePanel);
           flagPanel.add(description);
-          if (flag.getDefaultValueDescription() != null) {
-            JBLabel defaultValueDescription = new JBLabel(flag.getDefaultValueDescription());
+          if (!flag.getDefault().getExplanation().isEmpty()) {
+            JBLabel defaultValueDescription = new JBLabel(flag.getDefault().getExplanation());
             defaultValueDescription.setIcon(AllIcons.General.BalloonInformation);
             defaultValueDescription.setOpaque(true);
             flagPanel.add(defaultValueDescription);

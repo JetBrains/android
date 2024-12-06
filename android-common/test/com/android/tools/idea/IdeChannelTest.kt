@@ -19,16 +19,22 @@ class IdeChannelTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  private fun IdeChannel.getChannel(version: String): IdeChannel.Channel {
+    // Use the setter rather than just exposing IdeChannel.getChannel(String) directly to
+    // verify this overriding works correctly for functional tests to use.
+    return try { setChannel(version); channel } finally { setChannel(null) }
+  }
+
   @Test
   fun `verify channels from version`() {
-    assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel { formatFullVersion(channel = "dEv") })
-    assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel { formatFullVersion() })
+    assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel(formatFullVersion(channel = "dEv")))
+    assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel(formatFullVersion()))
     // Unit tests return DEV
-    assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel())
-    assertEquals(IdeChannel.Channel.CANARY, IdeChannel.getChannel{ formatFullVersion(channel = "Canary") })
-    assertEquals(IdeChannel.Channel.BETA, IdeChannel.getChannel{ formatFullVersion(channel = "Beta") })
-    assertEquals(IdeChannel.Channel.RC, IdeChannel.getChannel{ formatFullVersion(channel = "RC") })
-    assertEquals(IdeChannel.Channel.STABLE, IdeChannel.getChannel{ formatFullVersion(channel = "Stable") })
+    assertEquals(IdeChannel.Channel.DEV, IdeChannel.channel)
+    assertEquals(IdeChannel.Channel.CANARY, IdeChannel.getChannel(formatFullVersion(channel = "Canary")))
+    assertEquals(IdeChannel.Channel.BETA, IdeChannel.getChannel(formatFullVersion(channel = "Beta")))
+    assertEquals(IdeChannel.Channel.RC, IdeChannel.getChannel(formatFullVersion(channel = "RC")))
+    assertEquals(IdeChannel.Channel.STABLE, IdeChannel.getChannel(formatFullVersion(channel = "Stable")))
   }
 
   @Test

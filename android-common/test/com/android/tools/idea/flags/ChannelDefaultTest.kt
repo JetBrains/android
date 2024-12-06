@@ -17,6 +17,7 @@ package com.android.tools.idea.flags
 
 import com.android.tools.idea.IdeChannel
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -29,62 +30,78 @@ import kotlin.test.assertFailsWith
 @RunWith(JUnit4::class)
 class ChannelDefaultTest {
 
+  private val exampleVersions = listOf("Iguana | 2023.1.1 dev", "Iguana | 2023.1.1 nightly", "Iguana | 2023.1.1 canary", "Iguana | 2023.1.1 beta", "Iguana | 2023.1.1 rc", "Iguana | 2023.1.1" )
+
+
   @Test
   fun dev() {
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 dev" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 nightly" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 canary" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 beta" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 rc" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1 dev" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1 nightly" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1 canary" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1 beta" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1 rc" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV, "Iguana | 2023.1.1" )).isFalse()
   }
 
   @Test
   fun nightly() {
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 dev" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 nightly" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 canary" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 beta" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 rc" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1 dev" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1 nightly" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1 canary" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1 beta" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1 rc" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY, "Iguana | 2023.1.1" )).isFalse()
   }
 
   @Test
   fun canary() {
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 dev" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 nightly" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 canary" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 beta" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 rc" }).isFalse()
-    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1 dev" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1 nightly" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1 canary" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1 beta" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1 rc" )).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY, "Iguana | 2023.1.1" )).isFalse()
   }
 
   @Test
   fun beta() {
-    val failure = assertFailsWith<IllegalStateException> {
-      enabledUpTo(IdeChannel.Channel.BETA) { throw AssertionError("version should be unused") }
+    for (version in exampleVersions) {
+      val failure = assertFailsWith<IllegalStateException> {
+        enabledUpTo(IdeChannel.Channel.BETA, version)
+      }
+      assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
     }
-    assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
   }
 
   @Test
   fun rc() {
-    val failure = assertFailsWith<IllegalStateException> {
-      enabledUpTo(IdeChannel.Channel.RC) { throw AssertionError("version should be unused") }
+    for (version in exampleVersions) {
+      val failure = assertFailsWith<IllegalStateException> {
+        enabledUpTo(IdeChannel.Channel.RC, version)
+      }
+      assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
     }
-    assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
   }
 
   @Test
   fun stable() {
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 dev" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 nightly" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 canary" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 beta" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 rc" }).isTrue()
-    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1 dev" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1 nightly" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1 canary" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1 beta" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1 rc" )).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE, "Iguana | 2023.1.1" )).isTrue()
   }
 
 
-  private fun enabledUpTo(channel: IdeChannel.Channel, versionProvider: () -> String) = ChannelDefault.enabledUpTo(channel, versionProvider).get()
+  private fun enabledUpTo(channel: IdeChannel.Channel, version: String): Boolean {
+    return try {
+      IdeChannel.setChannel(version)
+      ChannelDefault.enabledUpTo(channel).get()
+    } finally {
+      IdeChannel.setChannel(null)
+    }
+  }
+
+
 }
