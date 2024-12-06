@@ -44,6 +44,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
 class JavaKotlinMethodRecordingTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
@@ -277,11 +278,11 @@ class JavaKotlinMethodRecordingTaskHandlerTest(private val myExposureLevel: Expo
   }
 
   @Test
-  fun testSupportsDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     // Java/Kotlin Method Sample requires device with AndroidVersion 0 or above (all devices).
     val minVersionDevice = TaskHandlerTestUtils.createDevice(1)
     val process = TaskHandlerTestUtils.createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
-    assertThat(myJavaKotlinMethodRecordingTaskHandler.supportsDeviceAndProcess(minVersionDevice, process)).isTrue()
+    assertNull(myJavaKotlinMethodRecordingTaskHandler.checkSupportForDeviceAndProcess(minVersionDevice, process))
   }
 
   @Test

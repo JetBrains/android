@@ -16,12 +16,23 @@
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications
 
 import androidx.compose.runtime.Composable
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.DEBUGGABLE_REBUILD_INSTRUCTION_TOOLTIP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_TASK_SELECTION_ERROR_ICON_DESC
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorMessage
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorNotificationText
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import icons.StudioIconsCompose
 
 @Composable
-fun StartTaskError(errorMessage: String, isCollapsed: Boolean) {
-  CollapsibleNotification(mainText = errorMessage, tooltip = null,
-                          iconKey = StudioIconsCompose.Common.Error,
-                          iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC, isCollapsed = isCollapsed)
+fun StartTaskError(error: StartTaskSelectionError) {
+  val errorCode = error.starTaskSelectionErrorCode
+  var subText = error.actionableInfo
+  if (errorCode == StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS) {
+    subText = DEBUGGABLE_REBUILD_INSTRUCTION_TOOLTIP
+  }
+
+  NotificationWithTooltip(notificationText = getStartTaskErrorNotificationText(error),
+                          tooltipMainText = getStartTaskErrorMessage(errorCode), tooltipSubText = subText,
+                          iconKey = StudioIconsCompose.Common.Error, iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC)
 }

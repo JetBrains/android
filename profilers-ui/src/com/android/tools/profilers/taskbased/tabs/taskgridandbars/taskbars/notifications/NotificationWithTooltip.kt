@@ -27,8 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_MAX_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import main.utils.tooltips.TooltipStyleFactory.createTooltipStyle
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -36,55 +37,36 @@ import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 import kotlin.time.Duration
 
-/**
- * The following component controls the UI of a notification in two states, determined by the "isCollapsible" boolean:
- *
- * Non-collapsed:
- *    UI -> [ICON] [MAIN TEXT]
- *    where [ICON] [MAIN TEXT] has an optional tooltip for more details.
- * Collapsed:
- *    UI -> [ICON]
- *    where the icon that has a tooltip that combines the main text and the optional supplied tooltip.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CollapsibleNotification(mainText: String,
-                            tooltip: (@Composable () -> Unit)? = null,
+fun NotificationWithTooltip(notificationText: String,
+                            tooltipMainText: String,
+                            tooltipSubText: String?,
                             iconKey: IntelliJIconKey,
-                            iconDescription: String,
-                            isCollapsed: Boolean) {
-  if (isCollapsed || tooltip != null) {
-    Tooltip(
-      tooltip = {
-        Column(modifier = Modifier.widthIn(max = TOOLTIP_MAX_WIDTH_DP)) {
-          if (isCollapsed) {
-            Text(mainText, fontWeight = if (tooltip != null) FontWeight.SemiBold else null)
-          }
-          if (isCollapsed && tooltip != null) {
-            Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
-          }
-          tooltip?.let { it() }
+                            iconDescription: String) {
+  Tooltip(
+    tooltip = {
+      Column (modifier = Modifier.widthIn(max = TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP)) {
+        Text(text = tooltipMainText, fontWeight = if (tooltipSubText == null) FontWeight.Normal else FontWeight.SemiBold)
+        tooltipSubText?.let {
+          Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
+          Text(text = it)
         }
-      },
-      content = { NotificationIconAndText(mainText, iconKey, iconDescription, isCollapsed) },
-      style = createTooltipStyle(Duration.ZERO)
-    )
-  }
-  else {
-    NotificationIconAndText(mainText, iconKey, iconDescription, isCollapsed)
-  }
+      }
+    },
+    content = { NotificationIconAndText(notificationText, iconKey, iconDescription) },
+    style = createTooltipStyle(Duration.ZERO)
+  )
 }
 
 @Composable
-private fun NotificationIconAndText(mainText: String, iconKey: IntelliJIconKey, iconDescription: String, isCollapsed: Boolean) {
+private fun NotificationIconAndText(notificationText: String, iconKey: IntelliJIconKey, iconDescription: String) {
   Row(verticalAlignment = Alignment.CenterVertically) {
     Icon(
       key = iconKey,
       contentDescription = iconDescription,
     )
-    if (!isCollapsed) {
-      Spacer(modifier = Modifier.width(TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP))
-      Text(mainText)
-    }
+    Spacer(modifier = Modifier.width(TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP))
+    EllipsisText(text = notificationText, enableTooltipOnOverflow = false)
   }
 }

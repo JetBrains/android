@@ -42,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import kotlin.test.assertNull
 
 class LiveTaskHandlerTest {
   private val myTimer = FakeTimer()
@@ -85,16 +86,16 @@ class LiveTaskHandlerTest {
   }
 
   @Test
-  fun testCheckDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
     val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(qDevice, debuggableProcess)).isTrue()
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(pDevice, debuggableProcess)).isTrue()
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess))
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(qDevice, profileableProcess)).isTrue()
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(pDevice, profileableProcess)).isTrue()
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(qDevice, profileableProcess))
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(pDevice, profileableProcess))
   }
 
   @Test

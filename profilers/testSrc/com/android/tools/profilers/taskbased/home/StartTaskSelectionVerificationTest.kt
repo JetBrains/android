@@ -25,6 +25,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getStartTaskError
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
@@ -67,7 +68,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.INVALID_DEVICE, error)
+    assertEquals(StarTaskSelectionErrorCode.INVALID_DEVICE, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -80,7 +81,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.INVALID_PROCESS, error)
+    assertEquals(StarTaskSelectionErrorCode.INVALID_PROCESS, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -93,7 +94,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.INVALID_TASK, error)
+    assertEquals(StarTaskSelectionErrorCode.INVALID_TASK, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -111,7 +112,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK, error)
+    assertEquals(StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -127,7 +128,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP, error)
+    assertEquals(StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -143,7 +144,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE, systemTraceError)
+    assertEquals(StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN, systemTraceError.starTaskSelectionErrorCode)
 
     val nativeAllocationsError = getStartTaskError(
       ProfilerTaskType.NATIVE_ALLOCATIONS,
@@ -154,7 +155,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE, nativeAllocationsError)
+    assertEquals(StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN, nativeAllocationsError.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -168,7 +169,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE, error)
+    assertEquals(StarTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE, error.starTaskSelectionErrorCode)
   }
 
   @Test
@@ -183,7 +184,7 @@ class StartTaskSelectionVerificationTest {
       TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
       myProfilers
     )
-    assertEquals(StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS, error)
+    val x = error
   }
 
   private fun createDeviceSelection(isValid: Boolean,

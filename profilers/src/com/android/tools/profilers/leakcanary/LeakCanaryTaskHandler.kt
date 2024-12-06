@@ -18,6 +18,7 @@ package com.android.tools.profilers.leakcanary
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
@@ -70,5 +71,5 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
   /**
    * Always returns true since leak canary task is available regardless of devices feature level and process
    */
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) = true
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? = null
 }

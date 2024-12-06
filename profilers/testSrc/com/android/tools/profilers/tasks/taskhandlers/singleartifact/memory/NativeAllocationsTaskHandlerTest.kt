@@ -33,6 +33,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
@@ -43,15 +45,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
-class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLevel){
+class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   private val myTimer = FakeTimer()
   private val ideProfilerServices = FakeIdeProfilerServices().apply {
     enableTaskBasedUx(true)
   }
-  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+  private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("NativeAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
@@ -252,17 +257,21 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   }
 
   @Test
-  fun testSupportsDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     // Native Allocations can be done with profileable or debuggable process, as long as the device version is >= Q.
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
     val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
-    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(qDevice, debuggableProcess)).isTrue()
-    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(pDevice, debuggableProcess)).isFalse()
+    assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
+    assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess))
+    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
-    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(qDevice, profileableProcess)).isTrue()
-    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(pDevice, profileableProcess)).isFalse()
+    assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, profileableProcess))
+    assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, profileableProcess))
+    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
   }
 
   @Test

@@ -36,8 +36,9 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.memory.MemoryProfilerTestUtils
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
@@ -48,7 +49,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class JavaKotlinAllocationsTaskHandlerTest {
   private val myTimer = FakeTimer()
@@ -378,15 +382,18 @@ class JavaKotlinAllocationsTaskHandlerTest {
   }
 
   @Test
-  fun testSupportsDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     // Java/Kotlin Allocations task only checks the process support, so device used does not matter in call to supportsDeviceAndProcess.
     val device = TaskHandlerTestUtils.createDevice(1)
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
-    assertThat(myJavaKotlinAllocationsTaskHandler.supportsDeviceAndProcess(device, profileableProcess)).isFalse()
+    assertNotNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
+    assertEquals(
+      myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.starTaskSelectionErrorCode,
+      StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
-    assertThat(myJavaKotlinAllocationsTaskHandler.supportsDeviceAndProcess(device, debuggableProcess)).isTrue()
+    assertNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
   }
 
   @Test

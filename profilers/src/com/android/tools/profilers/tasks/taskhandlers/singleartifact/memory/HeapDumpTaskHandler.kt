@@ -21,6 +21,8 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 
@@ -55,8 +57,15 @@ class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(
 
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = HeapDumpTaskArgs(false, artifact as HprofSessionArtifact)
 
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_HEAP_DUMP)
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_HEAP_DUMP)
+
+    if (isFeatureSupported) {
+      return null
+    }
+
+    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+  }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HprofSessionArtifact
 

@@ -33,11 +33,10 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.buttons.OpenTaskButton
 import com.android.tools.profilers.taskbased.common.buttons.StartTaskButton
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.NOTIFICATION_ICON_SIZE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorMessage
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.STARTUP_TASK_ERRORS
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
@@ -91,8 +90,6 @@ fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerCom
 @Composable
 fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val profilingProcessStartingPoint by taskHomeTabModel.profilingProcessStartingPoint.collectAsState()
-  val isProfilingProcessFromNowEnabled by taskHomeTabModel.isProfilingFromNowOptionEnabled.collectAsState()
-  val isProfilingProcessFromProcessStartEnabled by taskHomeTabModel.isProfilingFromProcessStartOptionEnabled.collectAsState()
   val taskRecordingType by taskHomeTabModel.taskRecordingType.collectAsState()
 
   val taskGridModel = taskHomeTabModel.taskGridModel
@@ -106,14 +103,17 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val profilers = taskHomeTabModel.profilers
 
   val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
-  BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart)) {
+  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP).background(
+    color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)), verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
       val canStartTaskFromProcessStart = canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers)
       val processStartDisabledReason =
         if (canStartTaskFromProcessStart) null else {
           // Only show start task from process start error message if it's a startup task error.
           getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it) }
+                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it.starTaskSelectionErrorCode) }
         }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
                                 isProfilingProcessFromNowEnabled = true, isProfilingProcessFromProcessStartEnabled = true,
@@ -124,21 +124,26 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
       }
     }
 
-    val isCollapsed = maxWidth < TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
     val isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent(selectedTaskType, selectedProcess,
                                                                                   profilingProcessStartingPoint)
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd).background(
-      color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)).padding(TASK_NOTIFICATION_CONTAINER_PADDING_DP),
-        horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
-      if (!canStartTask) {
-        val startTaskError = getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint,
-                                               profilers)
-        val startTaskErrorMessage = getStartTaskErrorMessage(startTaskError)
-        StartTaskError(startTaskErrorMessage, isCollapsed)
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1f)) {
+      BoxWithConstraints(modifier = Modifier.align(Alignment.CenterVertically)) {
+        // Set the minimum width to that of the notification icon, if smaller than that, nothing should be rendered.
+        if (maxWidth > NOTIFICATION_ICON_SIZE_DP) {
+          if (!canStartTask) {
+            val startTaskError = getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint,
+                                                   profilers)
+            StartTaskError(startTaskError)
+          }
+          else if (isProfileablePreferredButNotPresent) {
+            ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers))
+          }
+        }
       }
-      else if (isProfileablePreferredButNotPresent) {
-        ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers), isCollapsed)
-      }
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
       // The start task button.
       StartTaskButton(canStartTask = canStartTask, isPrevTaskStartDone = isPrevTaskStartDone,
                       isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,

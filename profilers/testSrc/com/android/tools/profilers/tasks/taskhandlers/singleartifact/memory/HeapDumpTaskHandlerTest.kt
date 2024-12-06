@@ -34,6 +34,8 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 import com.google.common.truth.Truth.assertThat
@@ -41,14 +43,17 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class HeapDumpTaskHandlerTest {
   private val myTimer = FakeTimer()
   private val ideProfilerServices = FakeIdeProfilerServices().apply {
     enableTaskBasedUx(true)
   }
-  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+  private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("HeapDumpTaskHandlerTestChannel", myTransportService, FakeEventService())
@@ -224,15 +229,18 @@ class HeapDumpTaskHandlerTest {
   }
 
   @Test
-  fun testSupportsDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     // Heap Dump task only checks the process support, so device used does not matter in call to supportsDeviceAndProcess.
     val device = TaskHandlerTestUtils.createDevice(1)
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
-    assertThat(myHeapDumpTaskHandler.supportsDeviceAndProcess(device, profileableProcess)).isFalse()
+    assertNotNull(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
+    assertEquals(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
-    assertThat(myHeapDumpTaskHandler.supportsDeviceAndProcess(device, debuggableProcess)).isTrue()
+    assertNull(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
   }
 
   @Test
