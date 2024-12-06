@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.apk
 
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.intellij.facet.ProjectFacetManager
@@ -27,5 +28,6 @@ class ApkProjectSystemProvider : AndroidProjectSystemProvider {
   override fun isApplicable(project: Project) =
     StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() &&
     ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
-  override fun projectSystemFactory(project: Project) = ApkProjectSystem(project)
+  override fun projectSystemFactory(project: Project) =
+    if (StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get()) ApkProjectSystem(project) else DefaultProjectSystem(project)
 }
