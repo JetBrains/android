@@ -78,6 +78,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import java.io.File
+import java.nio.file.Files
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -409,6 +410,34 @@ class WelcomeScreenWizardTest {
 
     val linkLabel = checkNotNull(fakeUi.findComponent<JEditorPane> { it.text.contains("Follow <a href=\"${LinuxKvmInfoStepForm.KVM_DOCUMENTATION_URL}\">") })
     assertTrue(fakeUi.isShowing(linkLabel))
+  }
+
+  @Test
+  fun progressStep_notShownIfSdkPathIsReadOnly() {
+    mockStatic(Files::class.java, CALLS_REAL_METHODS).use {
+      val readOnlySdk = FileUtil.createTempDirectory("readonly", null)
+      `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL)).thenReturn(readOnlySdk)
+      whenever(Files.isWritable(readOnlySdk.toPath())).thenReturn(false)
+
+      val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
+      navigateToLicenseAgreementStep(fakeUi)
+
+      // There will be no licenses to accept as there are no components to install
+
+      if (willShowKvmStep()) {
+        checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
+
+      assertFalse(checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).isEnabled)
+
+      val finishButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Finish") })
+      assertTrue(finishButton.isEnabled)
+      finishButton.doClick()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+      assertNull(fakeUi.findComponent<JLabel> { it.text.contains("Downloading Components") })
+    }
   }
 
   @Test
