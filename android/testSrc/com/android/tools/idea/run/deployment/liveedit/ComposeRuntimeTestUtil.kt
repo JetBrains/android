@@ -61,10 +61,6 @@ val composeRuntimePath
  * project.
  */
 fun registerComposeCompilerPlugin(project: Project) {
-  // K2 Compose compiler plugin registration is done by KtCompilerPluginsProviderIdeImpl
-  // if it is specified as `-Xplugin=...` option.
-  if (KotlinPluginModeProvider.isK2Mode()) return
-
   // Register the compose compiler plugin much like what Intellij would normally do.
   if (IrGenerationExtension.getInstances(project).find { it is ComposePluginIrGenerationExtension } == null) {
     IrGenerationExtension.registerExtension(project, ComposePluginIrGenerationExtension())

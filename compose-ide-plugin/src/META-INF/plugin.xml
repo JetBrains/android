@@ -172,10 +172,6 @@
     <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
-  </extensions>
-
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.debugger.base.util">
     <classNameCalculator implementation="com.android.tools.compose.debug.ComposeClassNameCalculator"/>
   </extensions>
