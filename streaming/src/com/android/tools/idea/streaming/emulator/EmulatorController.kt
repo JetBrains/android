@@ -79,8 +79,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
-import com.intellij.util.containers.ConcurrentList
-import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.DisposableWrapperList
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
@@ -110,7 +109,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
-  private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
+  private val connectionStateListeners = DisposableWrapperList<ConnectionStateListener>()
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
@@ -142,9 +141,23 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     Disposer.register(parentDisposable, this)
   }
 
+  /** The listener is removed when [disposable] is disposed. */
+  @AnyThread
+  fun addConnectionStateListener(listener: ConnectionStateListener, disposable: Disposable) {
+    connectionStateListeners.add(listener, disposable)
+    listener.connectionStateChanged(this, connectionState)
+  }
+
+  /** If the listener is [Disposable], it is automatically removed upon disposal. */
   @AnyThread
   fun addConnectionStateListener(listener: ConnectionStateListener) {
-    connectionStateListeners.add(listener)
+    if (listener is Disposable) {
+      addConnectionStateListener(listener, listener)
+    }
+    else {
+      connectionStateListeners.add(listener)
+      listener.connectionStateChanged(this, connectionState)
+    }
   }
 
   @AnyThread
