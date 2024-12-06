@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <id>com.android.tools.idea.smali</id>
-  <name>Smali Support</name>
+  <name>Smali Viewer</name>
   <category>Android</category>
   <vendor>JetBrains, Google</vendor>
 
