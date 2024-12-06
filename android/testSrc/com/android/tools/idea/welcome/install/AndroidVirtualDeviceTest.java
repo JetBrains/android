@@ -87,7 +87,7 @@ public final class AndroidVirtualDeviceTest {
     builder.put("hw.camera.front", "emulated");
     builder.put("hw.cpu.arch", "x86_64");
     builder.put("hw.dPad", "no");
-    builder.put("hw.device.hash2", "MD5:3db3250dab5d0d93b29353040181c7e9");
+    builder.put("hw.device.hash2", "MD5:2016577e1656e8e7c2adb0fac972beea");
     builder.put("hw.device.manufacturer", "Generic");
     builder.put("hw.device.name", "medium_phone");
     builder.put("hw.gps", "yes");
@@ -100,7 +100,11 @@ public final class AndroidVirtualDeviceTest {
     builder.put("hw.mainKeys", "no");
     builder.put("hw.ramSize", "2048");
     builder.put("hw.sdCard", "yes");
+    builder.put("hw.gyroscope", "yes");
+    builder.put("hw.sensors.light", "yes");
+    builder.put("hw.sensors.magnetic_field", "yes");
     builder.put("hw.sensors.orientation", "yes");
+    builder.put("hw.sensors.pressure", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
     builder.put("image.sysdir.1", "system-images/android-34/google_apis_playstore/x86_64/");
