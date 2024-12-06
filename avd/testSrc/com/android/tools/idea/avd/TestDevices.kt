@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
 import org.mockito.kotlin.mock
@@ -109,6 +110,31 @@ private const val testDeviceXml =
 """
 
 internal object TestDevices {
+  internal fun mediumPhone() =
+    VirtualDevice(
+      name = "Medium Phone",
+      device = mock(),
+      skin = NoSkin.INSTANCE,
+      defaultSkin = NoSkin.INSTANCE,
+      frontCamera = AvdCamera.EMULATED,
+      rearCamera = AvdCamera.VIRTUAL_SCENE,
+      speed = AvdNetworkSpeed.FULL,
+      latency = AvdNetworkLatency.NONE,
+      orientation = ScreenOrientation.PORTRAIT,
+      defaultBoot = Boot.QUICK,
+      internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB),
+      expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
+      cpuCoreCount = 4,
+      graphicsMode = GraphicsMode.AUTO,
+      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
+      vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB),
+      preferredAbi = null,
+      hasPlaystore = true,
+      isFoldable = false,
+      cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
+      formFactor = FormFactors.PHONE,
+    )
+
   internal fun pixel6(): VirtualDevice {
     val skin =
       DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))

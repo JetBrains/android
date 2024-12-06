@@ -29,16 +29,15 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ConfigureDevicePanelStateTest {
-  private val device = TestDevices.pixel9Pro()
-
   private val skin =
     DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
-
-  private val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
   @Test
   fun initDeviceSkins() {
     // Arrange
+    val device = TestDevices.pixel9Pro()
+    val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
+
     val state =
       ConfigureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
@@ -58,6 +57,9 @@ class ConfigureDevicePanelStateTest {
   @Test
   fun setSkinNotInSkins() {
     // Arrange
+    val device = TestDevices.pixel9Pro()
+    val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
+
     val state =
       ConfigureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
@@ -83,6 +85,9 @@ class ConfigureDevicePanelStateTest {
   @Test
   fun setSkin() {
     // Arrange
+    val device = TestDevices.pixel9Pro()
+    val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
+
     val state =
       ConfigureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
@@ -104,6 +109,9 @@ class ConfigureDevicePanelStateTest {
   @Test
   fun skinsHasPlayStore() {
     // Arrange
+    val device = TestDevices.pixel9Pro()
+    val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
+
     val image = mock<ISystemImage>()
     whenever(image.hasPlayStore()).thenReturn(true)
 
@@ -117,15 +125,36 @@ class ConfigureDevicePanelStateTest {
     state.initDeviceSkins(device.skin.path())
 
     // Act
-    val skins = state.skins()
+    val actualSkins = state.skins()
 
     // Assert
-    assertEquals(listOf(NoSkin.INSTANCE, device.skin), skins)
+    assertEquals(setOf(NoSkin.INSTANCE, device.skin), actualSkins)
+  }
+
+  @Test
+  fun skinsDefaultSkinEqualsNoSkin() {
+    // Arrange
+    val device = TestDevices.mediumPhone()
+
+    val image = mock<ISystemImage>()
+    whenever(image.hasPlayStore()).thenReturn(true)
+
+    val state = ConfigureDevicePanelState(device, listOf(NoSkin.INSTANCE).toImmutableList(), image)
+    state.initDeviceSkins(device.skin.path())
+
+    // Act
+    val actualSkins = state.skins()
+
+    // Assert
+    assertEquals(setOf(NoSkin.INSTANCE), actualSkins)
   }
 
   @Test
   fun skins() {
     // Arrange
+    val device = TestDevices.pixel9Pro()
+    val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
+
     val state =
       ConfigureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),

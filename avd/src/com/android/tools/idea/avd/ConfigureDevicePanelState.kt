@@ -103,7 +103,8 @@ internal constructor(
     device = device.copy(skin = if (skin !in skins()) device.defaultSkin else skin)
   }
 
-  internal fun skins() = if (hasPlayStore()) listOf(NoSkin.INSTANCE, device.defaultSkin) else skins
+  internal fun skins(): Iterable<Skin> =
+    if (hasPlayStore()) setOf(NoSkin.INSTANCE, device.defaultSkin) else skins
 
   private fun getSkin(path: Path): Skin {
     var skin = skins.firstOrNull { it.path() == path }
