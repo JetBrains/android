@@ -20,6 +20,7 @@ import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.res.isInResourceSubdirectory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
+import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
@@ -46,8 +47,8 @@ private val SEVERITY_TO_ICON =
  * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
 internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
-  TrafficLightRenderer(file.project, editor.document) {
-  private val severities = severityRegistrar.allSeverities
+  TrafficLightRenderer(file.project, editor) {
+  private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   private val errorCountArray = IntArray(severities.size)
 
   init {
@@ -62,11 +63,8 @@ internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     )
   }
 
-  override fun refresh(editorMarkupModel: EditorMarkupModel?) {
+  override fun refresh(editorMarkupModel: EditorMarkupModel) {
     super.refresh(editorMarkupModel)
-    if (editorMarkupModel == null) {
-      return
-    }
     errorCountArray.fill(0)
     val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {
@@ -86,7 +84,7 @@ internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       errorCountArray.indices
         .reversed()
         .filterNot { errorCountArray[it] == 0 }
-        .map { severityRegistrar.getSeverityByIndex(it) }
+        .map { SeverityRegistrar.getSeverityRegistrar(project).getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
     if (currentItems.size != nonZeroSeverities.size) {
