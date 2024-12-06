@@ -26,10 +26,12 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -97,13 +99,27 @@ class GeminiAiInsightsOnboardingProviderTest {
   fun `perform action hides button`() =
     runBlocking<Unit> {
       val provider = GeminiAiInsightsOnboardingProvider(projectRule.project)
-      val buttonStateFlow =
-        provider.buttonEnabledState().stateIn(scope, SharingStarted.Eagerly, true)
+      val buttonStateFlow = provider.buttonEnabledState().shareIn(scope, SharingStarted.Eagerly, 1)
+      buttonStateFlow.first { it }
 
-      provider.performOnboardingAction(CONNECTION1)
-      buttonStateFlow.first { !it }
+      // There exists a race condition between the registration of the tool window listener
+      // and the performOnboardingAction call. If the tool window listener is registered
+      // after the call, then we call again after a timeout. This is the workaround
+      // implemented below.
+      retryOnceWithTimeout {
+        provider.performOnboardingAction(CONNECTION1)
+        buttonStateFlow.first { !it }
+      }
 
       geminiToolWindow.hide()
       buttonStateFlow.first { it }
     }
+
+  private suspend fun retryOnceWithTimeout(timeoutMs: Long = 5000, retry: suspend () -> Unit) {
+    try {
+      withTimeout(timeoutMs) { retry() }
+    } catch (_: TimeoutCancellationException) {
+      retry()
+    }
+  }
 }
