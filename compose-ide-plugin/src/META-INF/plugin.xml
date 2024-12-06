@@ -160,12 +160,6 @@
                                     handlerId="compose.state.read" />
   </extensions>
 
-  <projectListeners>
-    <listener class="com.android.tools.compose.ComposeAutoDocumentation$MyLookupManagerListener"
-              topic="com.intellij.codeInsight.lookup.LookupManagerListener"
-              activeInHeadlessMode="false"/>
-  </projectListeners>
-
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
     <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
