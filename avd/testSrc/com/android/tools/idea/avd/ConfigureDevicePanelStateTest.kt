@@ -16,9 +16,9 @@
 package com.android.tools.idea.avd
 
 import com.android.sdklib.ISystemImage
-import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import java.nio.file.Path
 import kotlinx.collections.immutable.toImmutableList
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -29,13 +29,10 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ConfigureDevicePanelStateTest {
-  private val fileSystem = createInMemoryFileSystem()
-  private val device = TestDevices.pixel9Pro(fileSystem)
+  private val device = TestDevices.pixel9Pro()
 
   private val skin =
-    DefaultSkin(
-      fileSystem.getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
-    )
+    DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
 
   private val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
@@ -47,7 +44,6 @@ class ConfigureDevicePanelStateTest {
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         mock(),
-        fileSystem,
       )
 
     val path = device.skin.path()
@@ -67,7 +63,6 @@ class ConfigureDevicePanelStateTest {
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         mock(),
-        fileSystem,
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -93,7 +88,6 @@ class ConfigureDevicePanelStateTest {
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         mock(),
-        fileSystem,
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -118,7 +112,6 @@ class ConfigureDevicePanelStateTest {
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         image,
-        fileSystem,
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -138,7 +131,6 @@ class ConfigureDevicePanelStateTest {
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         mock(),
-        fileSystem,
       )
 
     state.initDeviceSkins(device.skin.path())

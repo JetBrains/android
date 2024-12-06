@@ -31,7 +31,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
-import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -44,16 +43,14 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 @RunWith(JUnit4::class)
 class StorageGroupTest {
-  private val fileSystem = createInMemoryFileSystem()
-
   @get:Rule val composeRule = createStudioComposeTestRule()
   @get:Rule val edtRule = EdtRule()
 
   @Test
   fun internalStorageIsValid() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -71,8 +68,8 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsEmpty() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -90,8 +87,8 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsLessThanMinAndHasPlayStore() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, true, false, onDeviceChange = { device = it }) }
 
@@ -112,8 +109,8 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsLessThanMin() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -131,8 +128,8 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsOverflow() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -150,8 +147,8 @@ class StorageGroupTest {
   @Test
   fun expandedStorageFormFactorDoesNotEqualWearOS() {
     // Arrange
-    var device = TestDevices.pixel9Pro(fileSystem)
-    val state = StorageGroupState(device, fileSystem)
+    var device = TestDevices.pixel9Pro()
+    val state = StorageGroupState(device)
 
     // Act
     setContent { StorageGroup(device, state, false, true, onDeviceChange = { device = it }) }
@@ -163,8 +160,8 @@ class StorageGroupTest {
   @Test
   fun expandedStorageFormFactorEqualsWearOS() {
     // Arrange
-    var device = TestDevices.wearOSSmallRound(fileSystem)
-    val state = StorageGroupState(device, fileSystem)
+    var device = TestDevices.wearOSSmallRound()
+    val state = StorageGroupState(device)
 
     // Act
     setContent { StorageGroup(device, state, false, true, onDeviceChange = { device = it }) }
@@ -176,8 +173,8 @@ class StorageGroupTest {
   @Test
   fun expandedStorage() {
     // Arrange
-    var device = TestDevices.pixel9Pro(fileSystem)
-    val state = StorageGroupState(device, fileSystem)
+    var device = TestDevices.pixel9Pro()
+    val state = StorageGroupState(device)
 
     // Act
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
@@ -189,8 +186,8 @@ class StorageGroupTest {
   @Test
   fun onCustomRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -211,8 +208,8 @@ class StorageGroupTest {
   @Test
   fun onExistingImageRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -231,8 +228,8 @@ class StorageGroupTest {
   @Test
   fun onNoneRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -248,8 +245,8 @@ class StorageGroupTest {
   @Test
   fun customIsValid() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -271,8 +268,8 @@ class StorageGroupTest {
   @Test
   fun customIsEmpty() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -290,8 +287,8 @@ class StorageGroupTest {
   @Test
   fun customIsLessThanMinAndHasPlayStore() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, true, false, onDeviceChange = { device = it }) }
 
@@ -312,8 +309,8 @@ class StorageGroupTest {
   @Test
   fun customIsLessThanMin() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -331,8 +328,8 @@ class StorageGroupTest {
   @Test
   fun customIsOverflow() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6(fileSystem))
-    val state = StorageGroupState(device, fileSystem)
+    var device by mutableStateOf(TestDevices.pixel6())
+    val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
@@ -352,13 +349,13 @@ class StorageGroupTest {
     // Arrange
     var device by
       mutableStateOf(
-        TestDevices.pixel6(fileSystem)
+        TestDevices.pixel6()
           .copy(
             existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
           )
       )
 
-    val state = StorageGroupState(device, fileSystem)
+    val state = StorageGroupState(device)
     setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
 
     // Act

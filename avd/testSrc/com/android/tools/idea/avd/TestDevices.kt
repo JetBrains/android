@@ -24,7 +24,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import java.io.ByteArrayInputStream
-import java.nio.file.FileSystem
+import java.nio.file.Path
 import org.mockito.kotlin.mock
 
 fun readTestDevices() =
@@ -109,11 +109,9 @@ private const val testDeviceXml =
 """
 
 internal object TestDevices {
-  internal fun pixel6(fileSystem: FileSystem): VirtualDevice {
+  internal fun pixel6(): VirtualDevice {
     val skin =
-      DefaultSkin(
-        fileSystem.getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
-      )
+      DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
 
     return VirtualDevice(
       name = "Pixel 6",
@@ -139,16 +137,10 @@ internal object TestDevices {
     )
   }
 
-  internal fun pixel9Pro(fileSystem: FileSystem): VirtualDevice {
+  internal fun pixel9Pro(): VirtualDevice {
     val skin =
       DefaultSkin(
-        fileSystem.getPath(
-          System.getProperty("user.home"),
-          "Android",
-          "Sdk",
-          "skins",
-          "pixel_9_pro",
-        )
+        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro")
       )
 
     return VirtualDevice(
@@ -176,16 +168,10 @@ internal object TestDevices {
     )
   }
 
-  internal fun pixel9ProFold(fileSystem: FileSystem): VirtualDevice {
+  internal fun pixel9ProFold(): VirtualDevice {
     val skin =
       DefaultSkin(
-        fileSystem.getPath(
-          System.getProperty("user.home"),
-          "Android",
-          "Sdk",
-          "skins",
-          "pixel_9_pro_fold",
-        )
+        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold")
       )
 
     return VirtualDevice(
@@ -213,16 +199,10 @@ internal object TestDevices {
     )
   }
 
-  internal fun wearOSSmallRound(fileSystem: FileSystem): VirtualDevice {
+  internal fun wearOSSmallRound(): VirtualDevice {
     val skin =
       DefaultSkin(
-        fileSystem.getPath(
-          System.getProperty("user.home"),
-          "Android",
-          "Sdk",
-          "skins",
-          "wearos_small_round",
-        )
+        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "wearos_small_round")
       )
 
     return VirtualDevice(

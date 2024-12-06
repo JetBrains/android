@@ -54,20 +54,18 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
-  private val fileSystem = createInMemoryFileSystem()
   @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
   fun deviceSkinDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel9Pro(fileSystem)
+    val device = TestDevices.pixel9Pro()
 
     val state =
       ConfigureDevicePanelState(
         device,
         listOf(NoSkin.INSTANCE, device.skin).toImmutableList(),
         null,
-        fileSystem,
       )
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
@@ -85,10 +83,9 @@ class AdditionalSettingsPanelTest {
     // Arrange
     val state =
       ConfigureDevicePanelState(
-        TestDevices.pixel9ProFold(fileSystem),
+        TestDevices.pixel9ProFold(),
         emptyList<Skin>().toImmutableList(),
         null,
-        fileSystem,
       )
 
     // Act
@@ -101,10 +98,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun speedDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel9Pro(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel9Pro()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -119,10 +114,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun orientationDropdownOnClick() {
     // Arrange
-    val device = TestDevices.pixel9Pro(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel9Pro()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -137,19 +130,22 @@ class AdditionalSettingsPanelTest {
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
+    // This uses the default file system
+    val device = TestDevices.pixel6()
 
     val image = mock<ISystemImage>()
     whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
 
+    val fileSystem = createInMemoryFileSystem()
+
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image, fileSystem)
-
-    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
     val mySdCardFileImg = fileSystem.getPath(System.getProperty("user.home"), "mySdCardFile.img")
     Files.createDirectories(mySdCardFileImg.parent)
     Files.createFile(mySdCardFileImg)
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
@@ -171,10 +167,15 @@ class AdditionalSettingsPanelTest {
   @Test
   fun cpuCoresDropdownOnClick() {
     // Arrange
-    val device = TestDevices.pixel9Pro(fileSystem)
+    val device = TestDevices.pixel9Pro()
 
     val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem, 4)
+      ConfigureDevicePanelState(
+        device,
+        emptyList<Skin>().toImmutableList(),
+        null,
+        maxCpuCoreCount = 4,
+      )
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -189,10 +190,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun graphicsAccelerationDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -207,10 +206,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsValid() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -228,10 +225,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsEmpty() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -247,10 +242,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsLessThanMin() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -267,10 +260,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsOverflow() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -286,10 +277,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsValid() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -309,10 +298,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsEmpty() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -330,10 +317,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsLessThanMin() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -351,10 +336,8 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsOverflow() {
     // Arrange
-    val device = TestDevices.pixel6(fileSystem)
-
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+    val device = TestDevices.pixel6()
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 

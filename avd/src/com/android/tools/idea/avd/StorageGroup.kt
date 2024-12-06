@@ -48,6 +48,7 @@ import com.intellij.openapi.project.Project
 import icons.StudioIconsCompose
 import java.awt.Component
 import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -309,7 +310,10 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 }
 
 internal class StorageGroupState
-internal constructor(private val device: VirtualDevice, fileSystem: FileSystem) {
+internal constructor(
+  private val device: VirtualDevice,
+  fileSystem: FileSystem = FileSystems.getDefault(),
+) {
   internal val internalStorage =
     StorageCapacityFieldState(
       requireNotNull(device.internalStorage),

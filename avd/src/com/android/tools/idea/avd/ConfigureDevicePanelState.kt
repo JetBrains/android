@@ -25,6 +25,7 @@ import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.collections.contains
 import kotlin.math.max
@@ -36,7 +37,7 @@ internal constructor(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
-  fileSystem: FileSystem,
+  fileSystem: FileSystem = FileSystems.getDefault(),
   internal val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
   internal var device by mutableStateOf(device)
