@@ -43,6 +43,7 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationHandlerProvider;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandlerProvider;
+import com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandlerProvider;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -111,6 +112,8 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
         registerExtensionPoint(
             BlazeCommandRunConfigurationHandlerProvider.EP_NAME,
             BlazeCommandRunConfigurationHandlerProvider.class);
+    handlerProviderEp.registerExtension(
+      new PendingTargetRunConfigurationHandlerProvider(), testDisposable);
     handlerProviderEp.registerExtension(
         new BlazeJavaRunConfigurationHandlerProvider(), testDisposable);
     handlerProviderEp.registerExtension(

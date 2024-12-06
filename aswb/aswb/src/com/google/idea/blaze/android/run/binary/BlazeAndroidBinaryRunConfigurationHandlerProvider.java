@@ -32,6 +32,11 @@ public class BlazeAndroidBinaryRunConfigurationHandlerProvider
   }
 
   @Override
+  public String getDisplayLabel() {
+    return "Android Binary";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return kind == AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind();
   }
