@@ -19,8 +19,23 @@ import com.android.tools.adtui.swing.FakeUi.RelativePoint
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON2_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseEvent.BUTTON2
+import java.awt.event.MouseEvent.BUTTON3
+import java.awt.event.MouseEvent.MOUSE_CLICKED
+import java.awt.event.MouseEvent.MOUSE_DRAGGED
+import java.awt.event.MouseEvent.MOUSE_ENTERED
+import java.awt.event.MouseEvent.MOUSE_EXITED
+import java.awt.event.MouseEvent.MOUSE_MOVED
+import java.awt.event.MouseEvent.MOUSE_PRESSED
+import java.awt.event.MouseEvent.MOUSE_RELEASED
+import java.awt.event.MouseEvent.MOUSE_WHEEL
 import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 
 /**
  * A fake mouse device that can be used for clicking on / scrolling programmatically in tests.
@@ -54,7 +69,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
 
   private fun press(x: Int, y: Int, button: Button, clickCount: Int, timestamp: Long = System.currentTimeMillis()): Cursor {
     check(cursor == null) { "Mouse already pressed. Call release before pressing again." }
-    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount, button == Button.RIGHT, timestamp)
+    dispatchMouseEvent(MOUSE_PRESSED, x, y, button, clickCount, button == Button.RIGHT, timestamp)
     return Cursor(button, x, y).also { cursor = it }
   }
 
@@ -77,14 +92,14 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
       if (focus != null) {
         val relative = fakeUi.toRelative(focus, x, y)
         val relativePoint = RelativePoint(focus, relative.x, relative.y)
-        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, cursor.button.mask, 0, 1, false, timestamp)
+        dispatchMouseEvent(relativePoint, MOUSE_EXITED, cursor.button.mask, 0, 1, false, timestamp)
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, cursor.button.mask, 0, 1, false, timestamp)
+        dispatchMouseEvent(point, MOUSE_ENTERED, cursor.button.mask, 0, 1, false, timestamp)
       }
     }
     if (target != null) {
-      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false, timestamp)
+      dispatchMouseEvent(MOUSE_DRAGGED, x, y, cursor.button, 1, false, timestamp)
       this.cursor = Cursor(cursor, x, y)
     }
   }
@@ -110,20 +125,20 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
 
   private fun moveTo(x: Int, y: Int, timestamp: Long) {
     val point = fakeUi.targetMouseEvent(x, y)
+    preprocessMouseEvent(point ?: RelativePoint(fakeUi.root, x, y), MOUSE_MOVED, 0, 0, 0, false, timestamp)
     val target = point?.component
     val focus = this.focus
     if (target !== focus) {
       if (focus != null) {
         val converted = fakeUi.toRelative(focus, x, y)
-        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 0, false, timestamp)
+        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MOUSE_EXITED, 0, 0, 0, false, timestamp)
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 0, false, timestamp)
+        dispatchMouseEvent(point, MOUSE_ENTERED, 0, 0, 0, false, timestamp)
       }
     }
     if (target != null) {
-      preprocessMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 0, false, timestamp)
-      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 0, false, timestamp)
+      dispatchMouseEvent(point, eventType = MOUSE_MOVED, 0, 0, 0, false, timestamp)
     }
   }
 
@@ -142,12 +157,16 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   private fun release(timestamp: Long) {
     val cursor = this.cursor ?: throw IllegalStateException("Mouse not pressed. Call press before releasing.")
     this.cursor = null
-    val point = fakeUi.targetMouseEvent(cursor.x, cursor.y) ?: return
+    val x = cursor.x
+    val y = cursor.y
+    val button = cursor.button
+    val point = fakeUi.targetMouseEvent(x, y)
     // The DOWN_MASK bit for released button should be 0 for MOUSE_RELEASED events.
-    val modifiers = cursor.button.mask and
-        (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK or InputEvent.BUTTON3_DOWN_MASK).inv()
-    preprocessMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 0, false, timestamp)
-    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 0, false, timestamp)
+    val modifiers = button.mask and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK).inv()
+    preprocessMouseEvent(point ?: RelativePoint(fakeUi.root, x, y), MOUSE_RELEASED, modifiers, button.code, 0, false, timestamp)
+    if (point != null) {
+      dispatchMouseEvent(point, MOUSE_RELEASED, modifiers, button.code, 0, false, timestamp)
+    }
   }
 
   /**
@@ -167,7 +186,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     val cursor = press(x, y, button, clickCount, timestamp)
     release(timestamp)
     // PRESSED + RELEASED should additionally fire a CLICKED event
-    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false, timestamp)
+    dispatchMouseEvent(MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false, timestamp)
   }
 
   /**
@@ -211,8 +230,9 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
 
   private fun dispatchMouseEvent(eventType: Int, x: Int, y: Int, button: Button, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
     val point = fakeUi.targetMouseEvent(x, y)
+    preprocessMouseEvent(
+        point ?: RelativePoint(fakeUi.root, x, y), eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)
     if (point != null) {
-      preprocessMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)
       // Rare, but can happen if, say, a release mouse event closes a component, and then we try to
       // fire a followup clicked event on it.
       dispatchMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)
@@ -234,26 +254,25 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   private fun dispatchMouseEvent(
       point: RelativePoint, eventType: Int, modifiers: Int, button: Int, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
     val event = MouseEvent(
-        point.component, eventType, timestamp, keyboard.toModifiersCode() or modifiers,
-        point.x, point.y, clickCount, popupTrigger, button)
+        point.component, eventType, timestamp, keyboard.toModifiersCode() or modifiers, point.x, point.y, clickCount, popupTrigger, button)
     point.component.dispatchEvent(event)
-    focus = if (eventType == MouseEvent.MOUSE_EXITED) null else point.component
+    focus = if (eventType == MOUSE_EXITED) null else point.component
   }
 
   private fun dispatchMouseWheelEvent(x: Int, y: Int, rotation: Int) {
     val point = fakeUi.targetMouseEvent(x, y) ?: return
     val event = MouseWheelEvent(
-        point.component, MouseEvent.MOUSE_WHEEL, System.currentTimeMillis(), keyboard.toModifiersCode(),
-        point.x, point.y, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation)
+      point.component, MOUSE_WHEEL, System.currentTimeMillis(), keyboard.toModifiersCode(),
+      point.x, point.y, 0, false, WHEEL_UNIT_SCROLL, 1, rotation)
     point.component.dispatchEvent(event)
     focus = point.component
   }
 
   enum class Button(val code: Int, val mask: Int) {
-    LEFT(MouseEvent.BUTTON1, InputEvent.BUTTON1_DOWN_MASK),
-    CTRL_LEFT(MouseEvent.BUTTON1, InputEvent.BUTTON1_DOWN_MASK or InputEvent.CTRL_DOWN_MASK),
-    RIGHT(MouseEvent.BUTTON3, InputEvent.BUTTON3_DOWN_MASK),
-    MIDDLE(MouseEvent.BUTTON2, InputEvent.BUTTON2_DOWN_MASK)
+    LEFT(BUTTON1, BUTTON1_DOWN_MASK),
+    CTRL_LEFT(BUTTON1, BUTTON1_DOWN_MASK or InputEvent.CTRL_DOWN_MASK),
+    RIGHT(BUTTON3, BUTTON3_DOWN_MASK),
+    MIDDLE(BUTTON2, BUTTON2_DOWN_MASK)
   }
 
   private class Cursor(val button: Button, val x: Int, val y: Int) {
