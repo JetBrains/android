@@ -24,10 +24,8 @@ iml_module(
     iml_files = ["intellij.android.android-material.tests.iml"],
     test_class = "com.android.tools.idea.MaterialTestSuite",
     test_friends = ["//tools/adt/idea/android-material:intellij.android.android-material"],
-    test_srcs = [
-        "testResources",
-        "testSrc",
-    ],
+    test_resources = ["testResources"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

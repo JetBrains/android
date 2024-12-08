@@ -116,10 +116,8 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-8.0",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
-    test_srcs = [
-        "testResources",
-        "testSrc",
-    ],
+    test_resources = ["testResources"],
+    test_srcs = ["testSrc"],
     test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],

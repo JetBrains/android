@@ -8,12 +8,10 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 iml_module(
     name = "intellij.android.build-attribution",
     # do not sort: must match IML order
-    srcs = [
-        "resources",
-        "src",
-    ],
+    srcs = ["src"],
     iml_files = ["intellij.android.build-attribution.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

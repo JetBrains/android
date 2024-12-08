@@ -7,10 +7,10 @@ iml_module(
     srcs = [
         "src",
         "gen",
-        "resources",
     ],
     iml_files = ["intellij.android.lang.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
