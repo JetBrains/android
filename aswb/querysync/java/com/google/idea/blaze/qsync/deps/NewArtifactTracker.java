@@ -66,7 +66,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -305,32 +304,29 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     Map<Label, TargetBuildInfo> uniqueTargetInfo = Maps.newHashMap();
     for (Label t : targetInfoByTarget.keySet()) {
       Set<TargetBuildInfo> targetInfos = Sets.newHashSet(targetInfoByTarget.get(t));
-      if (targetInfos.size() == 1) {
-        uniqueTargetInfo.put(t, Iterables.getOnlyElement(targetInfos));
-      } else {
+      TargetBuildInfo info;
+      // TODO: 376833687 - The idea of conflicting targets is just wrong. We need to track targets per configuration. Work in progress...
+      // For now, ignore any conflicts as different configurations can conflict in any attribute.
+      if (targetInfos.size() > 1) {
         TargetBuildInfo first = Iterables.get(targetInfos, 0);
-        if (targetInfos.stream().skip(1).allMatch(first::equalsIgnoringJarsAndGenSrcsAndConfigurationDifferences)) {
-          JavaArtifactInfo.Builder combinedJava =
-              first.javaInfo().map(JavaArtifactInfo::toBuilder).orElse(null);
-          if (combinedJava != null) {
-            targetInfos.stream()
-                .skip(1)
-                .map(TargetBuildInfo::javaInfo)
-                .flatMap(Optional::stream)
-                .map(JavaArtifactInfo::jars)
-                .forEach(combinedJava.jarsBuilder()::addAll);
-            uniqueTargetInfo.put(t, first.toBuilder().javaInfo(combinedJava.build()).build());
-          } else {
-            uniqueTargetInfo.put(t, first);
-          }
+        JavaArtifactInfo.Builder combinedJava =
+          first.javaInfo().map(JavaArtifactInfo::toBuilder).orElse(null);
+        if (combinedJava != null) {
+          targetInfos.stream()
+            .skip(1)
+            .map(TargetBuildInfo::javaInfo)
+            .flatMap(Optional::stream)
+            .map(JavaArtifactInfo::jars)
+            .forEach(combinedJava.jarsBuilder()::addAll);
+          info = first.toBuilder().javaInfo(combinedJava.build()).build();
         } else {
-          throw new BuildException(
-              String.format(
-                  "Multiple conflicting target info for target %s:\n  %s",
-                  t,
-                  targetInfos.stream().map(Object::toString).collect(Collectors.joining("\n  "))));
+          info = first.toBuilder().build();
         }
       }
+      else {
+        info = Iterables.getOnlyElement(targetInfos);
+      }
+      uniqueTargetInfo.put(t, info);
     }
     return uniqueTargetInfo;
   }

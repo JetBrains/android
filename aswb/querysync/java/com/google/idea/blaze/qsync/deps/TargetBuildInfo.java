@@ -42,22 +42,6 @@ public abstract class TargetBuildInfo {
         .orElseGet(ccInfo().map(CcCompilationInfo::target)::get);
   }
 
-  /**
-   * Compares this to that, but ignoring {@link JavaArtifactInfo#jars()}.
-   *
-   * <p>See {@link NewArtifactTracker#getUniqueTargetBuildInfos} to understand why this exists.
-   * */
-  public boolean equalsIgnoringJarsAndGenSrcsAndConfigurationDifferences(TargetBuildInfo that) {
-    if (this.toBuilder().javaInfo(null).build().equals(that.toBuilder().javaInfo(null).build())
-        && this.javaInfo().isEmpty() == that.javaInfo().isEmpty()) {
-      if (this.javaInfo().isEmpty()) {
-        return true;
-      }
-      return this.javaInfo().get().equalsIgnoringJarsAndGenSrcsAndConfigurationDifferences(that.javaInfo().get());
-    }
-    return false;
-  }
-
   public abstract Builder toBuilder();
 
   public static TargetBuildInfo forJavaTarget(

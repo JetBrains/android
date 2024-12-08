@@ -63,7 +63,10 @@ public interface JavaArtifactMetadata {
                       paths.stream()
                           .collect(
                               ImmutableMap.toImmutableMap(
-                                  p -> p.path().toString(), JarPath::packagePrefix))))
+                                  p -> p.path().toString(),
+                                  JarPath::packagePrefix,
+                                  // TODO: b/376833687 - This is a part of the same problem.
+                                  (a, b) -> b))))
           .build();
     }
   }

@@ -539,50 +539,56 @@ public class NewArtifactTrackerTest {
    * <p>This test covers the case when there are genuine conflicts.
    */
   @Test
-  public void conflicting_targets_throws() throws BuildException {
+  public void conflicting_targets_ignored() throws BuildException {
     when(cache.addAll(any(), any())).thenReturn(Futures.immediateFuture(null));
-    BuildException thrown =
-        assertThrows(
-            BuildException.class,
-            () ->
-                artifactTracker.update(
-                    ImmutableSet.of(Label.of("//test:test_proto")),
-                    OutputInfo.builder()
-                        .setOutputGroups(
-                            ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-                                .putAll(
-                                    OutputGroup.JARS,
-                                    TestOutputArtifact.builder()
-                                        .setArtifactPath(Path.of("out/test_proto.jar"))
-                                        .setDigest("jar_digest")
-                                        .build(),
-                                    TestOutputArtifact.builder()
-                                        .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
-                                        .setDigest("jar2_digest")
-                                        .build())
-                                .build())
-                        .setArtifactInfo(
-                            JavaArtifacts.newBuilder()
-                                .addArtifacts(
-                                    JavaTargetArtifacts.newBuilder()
-                                        .setTarget("//test:test_proto")
-                                        .addJars(fileArtifact("out/test_proto.jar"))
-                                        .addSrcs("test/test.proto")
-                                        .build())
-                                .build(),
-                            JavaArtifacts.newBuilder()
-                                .addArtifacts(
-                                    JavaTargetArtifacts.newBuilder()
-                                        .setTarget("//test:test_proto")
-                                        .addJars(fileArtifact("out/test_proto.jar"))
-                                        .addJars(fileArtifact("out/test_mutable_proto.jar"))
-                                        .build())
-                                .build())
-                        .build(),
-                    new NoopContext()));
-    assertThat(artifactTracker.getStateSnapshot().depsMap().keySet()).isEmpty();
-    assertThat(artifactTracker.getBuiltDeps()).isEmpty();
-    assertThat(thrown.getMessage())
-        .contains("Multiple conflicting target info for target //test:test_proto");
+    artifactTracker.update(
+        ImmutableSet.of(Label.of("//test:test_proto")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_proto.jar"))
+                            .setDigest("jar_digest")
+                            .build(),
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
+                            .setDigest("jar2_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .addArtifacts(
+                        JavaTargetArtifacts.newBuilder()
+                            .setTarget("//test:test_proto")
+                            .addJars(fileArtifact("out/test_proto.jar"))
+                            .addSrcs("test/test.proto")
+                            .build())
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .addArtifacts(
+                        JavaTargetArtifacts.newBuilder()
+                            .setTarget("//test:test_proto")
+                            .addJars(fileArtifact("out/test_proto.jar"))
+                            .addJars(fileArtifact("out/test_mutable_proto.jar"))
+                            .build())
+                    .build())
+            .build(),
+        new NoopContext());
+    assertThat(artifactTracker.getStateSnapshot().depsMap().keySet()).containsExactly(Label.of("//test:test_proto"));
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    assertThat(
+      getOnlyElement(builtDeps).javaInfo().orElseThrow().jars()
+    ).containsExactly(
+      BuildArtifact.create(
+        "jar_digest",
+        Path.of("out/test_proto.jar"),
+        Label.of("//test:test_proto")),
+      BuildArtifact.create(
+        "jar2_digest",
+        Path.of("out/test_mutable_proto.jar"),
+        Label.of("//test:test_proto"))
+    );
   }
 }
