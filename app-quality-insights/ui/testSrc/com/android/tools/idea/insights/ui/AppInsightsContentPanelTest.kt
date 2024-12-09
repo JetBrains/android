@@ -60,7 +60,7 @@ class AppInsightsContentPanelTest {
       .around(FlagRule(StudioFlags.CRASHLYTICS_INSIGHT_IN_TOOLWINDOW, true))
 
   private val fakeToolWindowList =
-    mutableListOf<ToolWindowDefinition<AppInsightsToolWindowContext>>().apply {
+    mutableListOf<AppInsightsToolWindowDefinition>().apply {
       add(createMockToolWindow("Insights"))
       add(createMockToolWindow("Details"))
       add(createMockToolWindow("Notes"))
@@ -160,7 +160,7 @@ class AppInsightsContentPanelTest {
   }
 
   private fun createMockToolWindow(name: String) =
-    mock<ToolWindowDefinition<AppInsightsToolWindowContext>>().apply {
+    mock<AppInsightsToolWindowDefinition>().apply {
       doReturn(name).whenever(this).name
       doReturn(name).whenever(this).title
       doReturn(StudioIcons.AppQualityInsights.DETAILS).whenever(this).icon

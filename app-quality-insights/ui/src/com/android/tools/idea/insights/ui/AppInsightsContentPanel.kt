@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
@@ -42,7 +41,7 @@ class AppInsightsContentPanel(
   parentDisposable: Disposable,
   cellRenderer: AppInsightsTableCellRenderer,
   name: String,
-  secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
+  secondaryToolWindows: List<AppInsightsToolWindowDefinition>,
   tableMouseListener: MouseListener? = null,
   workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = {
     WorkBench(project, name, null, it)

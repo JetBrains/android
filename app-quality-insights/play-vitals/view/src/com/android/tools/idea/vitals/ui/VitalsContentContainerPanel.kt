@@ -16,7 +16,6 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
@@ -24,7 +23,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
-import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
+import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
 import com.android.tools.idea.insights.ui.DistributionToolWindow
 import com.android.tools.idea.insights.ui.insight.InsightToolWindow
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
@@ -101,7 +100,7 @@ class VitalsContentContainerPanel(
     add(selectProjectTextPanel, GET_STARTED)
 
     val toolWindowList =
-      mutableListOf<ToolWindowDefinition<AppInsightsToolWindowContext>>().apply {
+      mutableListOf<AppInsightsToolWindowDefinition>().apply {
         if (StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
           add(
             InsightToolWindow.create(

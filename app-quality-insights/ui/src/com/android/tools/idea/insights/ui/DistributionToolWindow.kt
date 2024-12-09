@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.adtui.workbench.AutoHide
-import com.android.tools.adtui.workbench.Side
-import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.insights.AppInsightsState
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -32,17 +28,11 @@ object DistributionToolWindow {
     name: String,
     scope: CoroutineScope,
     state: Flow<AppInsightsState>,
-  ): ToolWindowDefinition<AppInsightsToolWindowContext> {
-    return ToolWindowDefinition(
+  ): AppInsightsToolWindowDefinition {
+    return AppInsightsToolWindowDefinition(
       "Details",
       StudioIcons.AppQualityInsights.DETAILS,
       name,
-      Side.RIGHT,
-      Split.TOP,
-      AutoHide.DOCKED,
-      ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
-      ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-      ToolWindowDefinition.ALLOW_BASICS,
     ) {
       DetailsToolWindowContent(scope, state)
     }
