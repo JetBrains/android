@@ -20,8 +20,8 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
-/** Groups together all XR input mode actions. */
-internal class EmulatorXrInputModeGroup : DefaultActionGroup() {
+/** Groups XR-specific actions. */
+internal class EmulatorXrOnlyGroup : DefaultActionGroup() {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

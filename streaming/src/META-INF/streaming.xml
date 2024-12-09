@@ -268,17 +268,21 @@
       <reference ref="android.device.overview.button"/>
       <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
-      <group id="android.emulator.xr.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeGroup">
-        <reference ref="android.emulator.xr.hand.tracking"/>
-        <reference ref="android.emulator.xr.eye.tracking"/>
-        <reference ref="android.streaming.hardware.input"/>
-        <reference ref="android.emulator.xr.view.direction"/>
-        <reference ref="android.emulator.xr.location.in.space.xy"/>
-        <reference ref="android.emulator.xr.location.in.space.z"/>
-        <separator/>
+      <group id="android.emulator.xr.navigation.group" class="com.android.tools.idea.streaming.emulator.actions.XrMainToolbarGroup">
+        <group id="android.emulator.xr.input.mode.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
+          <reference ref="android.emulator.xr.hand.tracking"/>
+          <reference ref="android.emulator.xr.eye.tracking"/>
+          <reference ref="android.streaming.hardware.input"/>
+          <reference ref="android.emulator.xr.view.direction"/>
+          <reference ref="android.emulator.xr.location.in.space.xy"/>
+          <reference ref="android.emulator.xr.location.in.space.z"/>
+          <separator/>
+        </group>
+        <group id="android.emulator.xr.recenter.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
+          <reference ref="android.emulator.xr.recenter"/>
+          <separator/>
+        </group>
       </group>
-      <reference ref="android.emulator.xr.recenter"/>
-      <separator/>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
       <group id="android.emulator.wear.health.services"/>

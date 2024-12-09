@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator.actions
+package com.android.tools.idea.streaming.emulator.actions;
 
-import com.android.emulator.control.InputEvent
-import com.android.emulator.control.XrCommand
-import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 
-/** Resets the view on an XR AVD to its initial state. */
-class EmulatorXrRecenterAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.XR }) {
-
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulator = getEmulatorController(event) ?: return
-    val message = InputEvent.newBuilder().setXrCommand(XrCommand.newBuilder().setAction(XrCommand.Action.RECENTER))
-    emulator.getOrCreateInputEventSender().onNext(message.build())
-  }
+class XrMainToolbarGroup : DefaultActionGroup() {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isEnabledAndVisible = !StudioFlags.EMBEDDED_EMULATOR_XR_FLOATING_TOOLBAR.get()
+  }
 }
