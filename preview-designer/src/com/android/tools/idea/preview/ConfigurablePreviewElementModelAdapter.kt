@@ -16,14 +16,14 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.NlDataProviderHolder
+import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.applyTo
 
 /** Base model adapter for [ConfigurablePreviewElement]s. */
 interface ConfigurablePreviewElementModelAdapter<
   T : ConfigurablePreviewElement<*>,
-  M : NlDataProviderHolder,
+  M : DataContextHolder,
 > : PreviewElementModelAdapter<T, M> {
   override fun applyToConfiguration(previewElement: T, configuration: Configuration) {
     previewElement.applyTo(configuration)

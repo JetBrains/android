@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.tools.idea.common.model.NlDataProviderBuilder
-import com.android.tools.idea.common.model.NlDataProviderHolder
+import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.preview.MethodPreviewElement
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 
 /** Base model adapter for [MethodPreviewElement]s. */
-abstract class MethodPreviewElementModelAdapter<
-  T : MethodPreviewElement<*>,
-  M : NlDataProviderHolder,
->(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
+abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement<*>, M : DataContextHolder>(
+  private val elementKey: DataKey<T>
+) : PreviewElementModelAdapter<T, M> {
   override fun calcAffinity(el1: T, el2: T?): Int {
     if (el2 == null) return 3
 
@@ -48,15 +47,15 @@ abstract class MethodPreviewElementModelAdapter<
 
   override fun modelToElement(model: M): T? =
     if (!Disposer.isDisposed(model)) {
-      model.dataProvider?.getData(elementKey)
+      model.dataContext.getData(elementKey)
     } else null
 
   /**
    * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
    * [modelToElement] call against that model.
    */
-  override fun createDataProvider(previewElement: T) =
-    NlDataProviderBuilder().add(elementKey, previewElement).build()
+  override fun createDataContext(previewElement: T) =
+    SimpleDataContext.builder().add(elementKey, previewElement).build()
 
   override fun toLogString(previewElement: T): String =
     """

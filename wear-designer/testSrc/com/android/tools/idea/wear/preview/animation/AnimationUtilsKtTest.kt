@@ -18,7 +18,6 @@ package com.android.tools.idea.wear.preview.animation
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
@@ -34,6 +33,7 @@ import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
@@ -70,10 +70,10 @@ class AnimationUtilsKtTest {
   fun `detectAnimations - preview element not found`() {
     val layoutlibSceneManager = mock<LayoutlibSceneManager>()
     val model = mock<NlModel>()
-    val dataProvider = NlDataProviderBuilder().add(PREVIEW_ELEMENT_INSTANCE, null).build()
+    val dataContext = SimpleDataContext.builder().add(PREVIEW_ELEMENT_INSTANCE, null).build()
 
     whenever(layoutlibSceneManager.model).thenReturn(model)
-    whenever(model.dataProvider).thenReturn(dataProvider)
+    whenever(model.dataContext).thenReturn(dataContext)
 
     detectAnimations(layoutlibSceneManager)
 
@@ -94,9 +94,9 @@ class AnimationUtilsKtTest {
           }
         }
       )
-    val dataProvider = NlDataProviderBuilder().add(PREVIEW_ELEMENT_INSTANCE, previewElement).build()
     val model = nlComponent.model
-    whenever(model.dataProvider).thenReturn(dataProvider)
+    whenever(model.dataContext)
+      .thenReturn(SimpleDataContext.getSimpleContext(PREVIEW_ELEMENT_INSTANCE, previewElement))
 
     whenever(layoutlibSceneManager.model).thenReturn(model)
     whenever(layoutlibSceneManager.scene).thenReturn(scene)
@@ -151,9 +151,10 @@ class AnimationUtilsKtTest {
           }
         }
       )
-    val dataProvider = NlDataProviderBuilder().add(PREVIEW_ELEMENT_INSTANCE, previewElement).build()
     val model = nlComponent.model
-    whenever(model.dataProvider).thenReturn(dataProvider)
+    whenever(model.dataContext)
+      .thenReturn(SimpleDataContext.getSimpleContext(PREVIEW_ELEMENT_INSTANCE, previewElement))
+
     whenever(layoutlibSceneManager.model).thenReturn(model)
     whenever(layoutlibSceneManager.scene).thenReturn(scene)
     whenever(scene.root).thenReturn(root)

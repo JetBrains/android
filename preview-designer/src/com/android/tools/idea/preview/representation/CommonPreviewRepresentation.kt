@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.representation
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.model.DefaultModelUpdater
-import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
@@ -95,6 +94,7 @@ import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
@@ -219,7 +219,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   val navigationHandler =
     DefaultNavigationHandler { sceneView, _, _, _, _ ->
         val model = sceneView.sceneManager.model
-        val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
+        val previewElement = model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)
 
         previewElement?.previewElementDefinition?.element?.navigationElement
           as? NavigatablePsiElement
@@ -341,17 +341,18 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
-      override fun createDataProvider(previewElement: T) =
-        NlDataProviderBuilder()
-          .withDelegate(previewElementModelAdapterDelegate.createDataProvider(previewElement))
-          .add(PREVIEW_ELEMENT_INSTANCE, previewElement)
-          .add(CommonDataKeys.PROJECT, project)
-          .add(PreviewModeManager.KEY, this@CommonPreviewRepresentation)
-          .add(PreviewGroupManager.KEY, previewFlowManager)
-          .add(PreviewFlowManager.KEY, previewFlowManager)
-          .add(FastPreviewSurface.KEY, this@CommonPreviewRepresentation)
-          .add(PreviewInvalidationManager.KEY, this@CommonPreviewRepresentation)
-          .build()
+      override fun createDataContext(previewElement: T) =
+        CustomizedDataContext.withSnapshot(
+          previewElementModelAdapterDelegate.createDataContext(previewElement)
+        ) { sink ->
+          sink[PREVIEW_ELEMENT_INSTANCE] = previewElement
+          sink[CommonDataKeys.PROJECT] = project
+          sink[PreviewModeManager.KEY] = this@CommonPreviewRepresentation
+          sink[PreviewGroupManager.KEY] = previewFlowManager
+          sink[PreviewFlowManager.KEY] = previewFlowManager
+          sink[FastPreviewSurface.KEY] = this@CommonPreviewRepresentation
+          sink[PreviewInvalidationManager.KEY] = this@CommonPreviewRepresentation
+        }
     }
 
   private val previewModeManager = CommonPreviewModeManager()

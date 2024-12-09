@@ -98,8 +98,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
       }
       .withShapePolicy(
         if (
-          manager.model.dataProvider
-            ?.getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
             ?.displaySettings
             ?.showDecoration == true
         )

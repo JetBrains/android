@@ -17,7 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.SdkConstants
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.NlDataProviderHolder
+import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
@@ -35,7 +35,7 @@ private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<PsiGlancePreviewElement>("$PREFIX.PreviewElement")
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
-abstract class GlancePreviewElementModelAdapter<M : NlDataProviderHolder> :
+abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
   ConfigurablePreviewElementModelAdapter<PsiGlancePreviewElement, M>,
   MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(
     PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE

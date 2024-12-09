@@ -155,7 +155,7 @@ class WearTilePreviewRepresentationTest {
 
         val previewElements =
           preview.previewView.mainSurface.models.mapNotNull {
-            it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
+            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
           }
         assertThat(previewElements).hasSize(1)
         assertThat(previewElements.map { it.methodFqn })
@@ -277,7 +277,7 @@ class WearTilePreviewRepresentationTest {
         val sceneViewWithNormalPreviewAnnotation =
           preview.previewView.mainSurface.sceneManagers
             .first {
-              it.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
                 "tilePreview3 - preview3"
             }
             .sceneViews
@@ -305,7 +305,7 @@ class WearTilePreviewRepresentationTest {
         val sceneViewWithMultiPreviewAnnotation =
           preview.previewView.mainSurface.sceneManagers
             .first {
-              it.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
                 "tilePreview3 - multipreview preview"
             }
             .sceneViews
@@ -407,7 +407,7 @@ class WearTilePreviewRepresentationTest {
 
     val previewElements =
       preview.previewView.mainSurface.models.mapNotNull {
-        it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
+        it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
       }
     assertThat(previewElements).containsExactly(previewElement)
     assertThat(preview.previewView.galleryMode).isNotNull()

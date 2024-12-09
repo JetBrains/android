@@ -70,8 +70,7 @@ object ComposeAnimationToolbarUpdater {
     layoutlibSceneManager: LayoutlibSceneManager,
     animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker,
   ) {
-    val previewElementInstance =
-      layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
+    val previewElementInstance = layoutlibSceneManager.model.dataContext.previewElement() ?: return
     val viewObj = layoutlibSceneManager.scene.root?.nlComponent?.viewInfo?.viewObject ?: return
     update(viewObj, previewManager, previewElementInstance, animationToolingUsageTrackerFactory)
   }

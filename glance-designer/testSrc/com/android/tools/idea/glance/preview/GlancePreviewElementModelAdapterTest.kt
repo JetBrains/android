@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.common.model.NlDataProvider
-import com.android.tools.idea.common.model.NlDataProviderHolder
+import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.ApplicationRule
@@ -30,7 +30,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-internal class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
+internal class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
 }
 
@@ -82,7 +82,7 @@ class GlancePreviewElementModelAdapterTest {
 
     val element = glancePreviewElement(methodFqn = "foo")
 
-    val model = TestModel(adapter.createDataProvider(element))
+    val model = TestModel(adapter.createDataContext(element))
     Disposer.register(rootDisposable, model)
 
     assertEquals(element, adapter.modelToElement(model))

@@ -20,7 +20,6 @@ import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.compose.isValidPreviewLocation
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposeViewInfo
@@ -83,9 +82,6 @@ fun isFastPreviewAvailable(project: Project) =
     !PreviewEssentialsModeManager.isEssentialsModeEnabled
 
 fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
-  getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-
-fun NlDataProvider.previewElement(): PsiComposePreviewElementInstance? =
   getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
 /**

@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.Result.Status
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
@@ -38,6 +37,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -121,8 +121,12 @@ class WearTileAnimationPreviewTest {
         psiFile.virtualFile,
       )
 
-    model.dataProvider =
-      NlDataProviderBuilder().add(PREVIEW_ELEMENT_INSTANCE, wearTilePreviewElement).build()
+    model.dataContext = DataContext {
+      if (it == PREVIEW_ELEMENT_INSTANCE.name) {
+        return@DataContext wearTilePreviewElement
+      }
+      return@DataContext null
+    }
 
     val successfulRenderResultMock =
       Mockito.mock(RenderResult::class.java).apply {

@@ -49,7 +49,7 @@ class WearTileAnimationPreview(
     sceneManagerProvider = getter@{
         val modelForElement =
           surface.models.find {
-            it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) == wearPreviewElement
+            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) == wearPreviewElement
           } ?: return@getter null
         surface.getSceneManager(modelForElement)
       },

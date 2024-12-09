@@ -16,10 +16,10 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.NlDataProvider
-import com.android.tools.idea.common.model.NlDataProviderHolder
+import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -39,7 +39,7 @@ private class TestMethodPreviewElement(
   override val hasAnimations: Boolean = false,
 ) : MethodPreviewElement<Unit>
 
-private class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
+private class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
 }
 
@@ -95,7 +95,7 @@ class MethodPreviewElementModelAdapterTest {
 
     val element = TestMethodPreviewElement(methodFqn = "foo")
 
-    val model = TestModel(adapter.createDataProvider(element))
+    val model = TestModel(adapter.createDataContext(element))
     Disposer.register(disposableRule.disposable, model)
 
     Assert.assertEquals(element, adapter.modelToElement(model))

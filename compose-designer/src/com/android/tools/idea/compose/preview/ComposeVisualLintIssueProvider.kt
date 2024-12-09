@@ -58,7 +58,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 
   override fun customizeIssue(issue: VisualLintRenderIssue) {
     val model = issue.models.firstOrNull() ?: return
-    val previewElement = model.dataProvider?.previewElement() ?: return
+    val previewElement = model.dataContext.previewElement() ?: return
 
     issue.customizeIsSuppressed {
       val suppressedTypes = runReadAction {

@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.model.NlDataProviderBuilder
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -31,6 +30,7 @@ import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.createDeviceInstance
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Rectangle
@@ -79,8 +79,12 @@ class ComposeScreenViewProvidersTest {
         displayName = "displayName",
         showDecorations = true,
       )
-    model.dataProvider =
-      NlDataProviderBuilder().add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement).build()
+    model.dataContext = DataContext {
+      when (it) {
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        else -> null
+      }
+    }
 
     val composeScreenViewProvider = ComposeScreenViewProvider(NopComposePreviewManager())
 
@@ -99,8 +103,6 @@ class ComposeScreenViewProvidersTest {
         displayName = "displayName",
         showDecorations = false,
       )
-    model.dataProvider =
-      NlDataProviderBuilder().add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement).build()
     assertTrue(
       composeScreenViewProvider
         .createPrimarySceneView(surface, surface.getSceneManager(model)!!)

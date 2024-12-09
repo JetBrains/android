@@ -32,7 +32,7 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -40,13 +40,13 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Model for an XML file
@@ -59,11 +59,10 @@ import org.jetbrains.android.facet.AndroidFacet
  *   custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have
  *   implicit). This provider should provide us with [XmlFile] representation of the VirtualFile fed
  *   to the model.
- * @param dataProvider Returns the [UiDataProvider] associated to this model. The [UiDataProvider]
- *   allows storing information that is specific to this model but is not part of it. For example,
- *   context information about how the model should be represented in a specific surface. The
- *   [UiDataProvider] might change at any point so make sure you always call this method to obtain
- *   the latest data.
+ * @param dataContext Returns the [DataContext] associated to this model. The [DataContext] allows
+ *   storing information that is specific to this model but is not part of it. For example, context
+ *   information about how the model should be represented in a specific surface. The [DataContext]
+ *   might change at any point so make sure you always call this method to obtain the latest data.
  */
 open class NlModel
 @VisibleForTesting
@@ -74,8 +73,10 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
-  override var dataProvider: NlDataProvider?,
-) : ModificationTracker, NlDataProviderHolder {
+  // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
+  //   A data-context must not be queried during another data-context creation.
+  override var dataContext: DataContext,
+) : ModificationTracker, DataContextHolder {
 
   val treeWriter =
     NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
@@ -367,7 +368,7 @@ protected constructor(
       BiFunction { project, virtualFile ->
         getDefaultFile(project, virtualFile)
       }
-    private var dataProvider: NlDataProvider? = null
+    private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
 
     fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): Builder = also {
       this.componentRegistrar = componentRegistrar
@@ -378,9 +379,7 @@ protected constructor(
         this.xmlFileProvider = xmlFileProvider
       }
 
-    fun withDataProvider(dataProvider: NlDataProvider): Builder = also {
-      this.dataProvider = dataProvider
-    }
+    fun withDataContext(dataContext: DataContext): Builder = also { this.dataContext = dataContext }
 
     /** Instantiate a new [NlModel]. */
     @Slow
@@ -392,7 +391,7 @@ protected constructor(
         configuration,
         componentRegistrar,
         xmlFileProvider,
-        dataProvider,
+        dataContext,
       )
   }
 }

@@ -285,7 +285,7 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
 
-    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
     val problemsView = ProblemsView.getToolWindow(project)!!
 
@@ -622,7 +622,7 @@ class ComposePreviewRepresentationTest {
       createPreviewAndCompile(preview)
 
       // Start UI Check mode
-      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
       val uiCheckElement = previewElements[1]
 
       run {
@@ -782,7 +782,7 @@ class ComposePreviewRepresentationTest {
         preview.uiCheckFilterFlow.value
       )
 
-      val uiCheckElement = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }[0]
+      val uiCheckElement = mainSurface.models.mapNotNull { it.dataContext.previewElement() }[0]
       val problemsView = ProblemsView.getToolWindow(project)!!
 
       val contentManager = runBlocking(uiThread) { problemsView.contentManager }
