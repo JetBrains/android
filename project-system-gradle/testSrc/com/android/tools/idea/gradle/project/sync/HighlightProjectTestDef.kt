@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.PathUtil
 import org.jetbrains.android.augment.ResourceLightField
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 data class HighlightProjectTestDef(
@@ -144,16 +145,29 @@ data class HighlightProjectTestDef(
     private fun validateNonTransitiveRClass(fixture: JavaCodeInsightTestFixture) {
       val unresolvedReferenceWarnings =
         fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }.filter { it.startsWith("[UNRESOLVED_REFERENCE]") }
-      assertThat(unresolvedReferenceWarnings).containsExactly("[UNRESOLVED_REFERENCE] Unresolved reference: R")
+      val expectedWarnings = if (KotlinPluginModeProvider.isK2Mode()) {
+        "[UNRESOLVED_REFERENCE] Unresolved reference 'R'."
+      } else {
+        "[UNRESOLVED_REFERENCE] Unresolved reference: R"
+      }
+      assertThat(unresolvedReferenceWarnings).containsExactly(expectedWarnings)
     }
 
     private fun validateNonTransitiveRClassTrue(fixture: JavaCodeInsightTestFixture) {
       val unresolvedReferenceWarnings =
         fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }.filter { it.startsWith("[UNRESOLVED_REFERENCE]") }
-      assertThat(unresolvedReferenceWarnings).containsExactly(
-        "[UNRESOLVED_REFERENCE] Unresolved reference: R",
-        "[UNRESOLVED_REFERENCE] Unresolved reference: view_in_lib"
-      )
+      val expectedWarnings = if (KotlinPluginModeProvider.isK2Mode()) {
+        arrayOf(
+          "[UNRESOLVED_REFERENCE] Unresolved reference 'R'.",
+          "[UNRESOLVED_REFERENCE] Unresolved reference 'view_in_lib'."
+        )
+      } else {
+        arrayOf(
+          "[UNRESOLVED_REFERENCE] Unresolved reference: R",
+          "[UNRESOLVED_REFERENCE] Unresolved reference: view_in_lib"
+        )
+      }
+      assertThat(unresolvedReferenceWarnings).containsExactly(*expectedWarnings)
     }
 
     private fun validateRClassResolutionInKmpAndroid(fixture: JavaCodeInsightTestFixture) {
