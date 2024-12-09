@@ -217,6 +217,9 @@
     <androidTestConfigurationProducerToken implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerGradleToken"/>
     <androidRunConfigurationToken implementation="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.screenshot">
+    <screenshotTestRunConfigurationToken implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestRunConfigurationGradleToken"/>
+  </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.ui.resourcemanager.importer">
     <createDefaultResDirectoryToken implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
   </extensions>
