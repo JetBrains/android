@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
+import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final  ComponentInstallerProvider myComponentInstallerProvider;
+  @NotNull private final SdkComponentInstallerProvider mySdkComponentInstallerProvider;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -95,10 +95,10 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
-  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode, @NotNull ComponentInstallerProvider componentInstallerProvider) {
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode, @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider) {
     super(new BorderLayout());
     myMode = mode;
-    myComponentInstallerProvider = componentInstallerProvider;
+    mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -121,7 +121,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   private void setupWizard() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      DynamicWizard wizard = new FirstRunWizard(this, myMode, myComponentInstallerProvider);
+      DynamicWizard wizard = new FirstRunWizard(this, myMode, mySdkComponentInstallerProvider);
       wizard.init();
       add(wizard.getContentPane(), BorderLayout.CENTER);
     }, ModalityState.any());

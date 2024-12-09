@@ -72,7 +72,7 @@ class SdkComponentsStepTest {
     licenseAgreementStep = mock(LicenseAgreementStep::class.java)
     mode = FirstRunWizardMode.NEW_INSTALL
     sdkPath = FileUtil.createTempDirectory("sdk", null).toPath()
-    model = spy(FirstRunWizardModel(mode, sdkPath, true, ComponentInstallerProvider()))
+    model = spy(FirstRunWizardModel(mode, sdkPath, true, SdkComponentInstallerProvider()))
 
     val root =
       SdkComponentCategoryTreeNode(

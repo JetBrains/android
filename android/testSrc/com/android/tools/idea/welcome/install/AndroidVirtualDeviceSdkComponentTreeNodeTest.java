@@ -66,9 +66,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-/** Tests for {@link AndroidVirtualDeviceSdkComponent}. */
+/** Tests for {@link AndroidVirtualDeviceSdkComponentTreeNode}. */
 @RunsInEdt
-public final class AndroidVirtualDeviceSdkComponentTest {
+public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
   private static final String DEVICE_SKIN =  "1080x2400";
 
   private static Map<String, String> getReferenceMap() {
@@ -161,7 +161,8 @@ public final class AndroidVirtualDeviceSdkComponentTest {
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(34);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(remotePlatform), true);
+    AndroidVirtualDeviceSdkComponentTreeNode
+      avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(remotePlatform), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
@@ -188,14 +189,14 @@ public final class AndroidVirtualDeviceSdkComponentTest {
   public void testNoAvdIsCreatedIfThereAreExistingOnes() throws Exception {
     createPlaceholderAvd();
 
-    AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNull();
   }
 
   @Test
   public void testRequiredSysimgPath() {
-    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
 
     assertEquals("system-images;android-34;google_apis_playstore;x86_64", avd.getRequiredSysimgPath(false));
@@ -221,7 +222,8 @@ public final class AndroidVirtualDeviceSdkComponentTest {
     platformDetailsType.setExtensionLevel(3);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
 
-    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
+    AndroidVirtualDeviceSdkComponentTreeNode
+      avd = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
     avd.sdkHandler = sdkHandler;
 
     // The selected image should be the base one.
@@ -231,7 +233,7 @@ public final class AndroidVirtualDeviceSdkComponentTest {
 
   @Test
   public void testSelectedByDefault() throws Exception {
-    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(), true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
@@ -241,7 +243,7 @@ public final class AndroidVirtualDeviceSdkComponentTest {
     assertTrue(avd.isSelectedByDefault());
 
     // SDK installed, System image, but no AVD -> Selected by default
-    avd = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
+    avd = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 
@@ -387,7 +389,7 @@ public final class AndroidVirtualDeviceSdkComponentTest {
   }
 
   private @Nullable AvdInfo createAvdIfNeeded(
-    @NotNull AndroidVirtualDeviceSdkComponent avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+    @NotNull AndroidVirtualDeviceSdkComponentTreeNode avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
     if (!avdCreator.isAvdCreationNeeded(sdkHandler)) {
       return null;
     }

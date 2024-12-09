@@ -455,10 +455,10 @@ class WelcomeScreenWizardTest {
       // Resume once cancel has been triggered
       cancelTriggered.get()
     }
-    val mockInstallerProvider = mock(ComponentInstallerProvider::class.java)
+    val mockInstallerProvider = mock(SdkComponentInstallerProvider::class.java)
     whenever(mockInstallerProvider.getComponentInstaller(any())).thenReturn(mockInstaller)
 
-    val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL, componentInstallerProvider = mockInstallerProvider)
+    val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL, sdkComponentInstallerProvider = mockInstallerProvider)
     navigateToProgressStep(fakeUi)
 
     val progressLabel = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Downloading Components") })
@@ -529,7 +529,7 @@ class WelcomeScreenWizardTest {
       cancelTriggered.get()
     }
 
-    val mockInstallerProvider = mock(ComponentInstallerProvider::class.java)
+    val mockInstallerProvider = mock(SdkComponentInstallerProvider::class.java)
     whenever(mockInstallerProvider.getComponentInstaller(any())).thenReturn(mockInstaller)
 
     val installHandoffData = InstallerData(sdkPath, true, "timestamp", "1234")
@@ -566,14 +566,14 @@ class WelcomeScreenWizardTest {
 
   private fun createWizard(
     wizardMode: FirstRunWizardMode,
-    componentInstallerProvider: ComponentInstallerProvider? = null,
+    sdkComponentInstallerProvider: SdkComponentInstallerProvider? = null,
     installHandoffData: InstallerData? = null
   ): FakeUi {
     if (installHandoffData != null) {
       installerData = installHandoffData
     }
 
-    val installer = componentInstallerProvider ?: ComponentInstallerProvider()
+    val installer = sdkComponentInstallerProvider ?: SdkComponentInstallerProvider()
     val welcomeScreen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(useNewWizard = !isTestingLegacyWizard!!, wizardMode, installer)
     Disposer.register(projectRule.testRootDisposable, welcomeScreen)
 

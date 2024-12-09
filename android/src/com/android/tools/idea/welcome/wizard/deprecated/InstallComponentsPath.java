@@ -36,20 +36,20 @@ import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.AndroidSdkComponent;
-import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponent;
+import com.android.tools.idea.welcome.install.AndroidSdkComponentTreeNode;
+import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.CheckSdkOperation;
 import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
 import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.AehdSdkComponent;
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallSdkComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponent;
+import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.WizardException;
-import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
+import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.google.common.base.Function;
@@ -82,7 +82,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private SdkComponentTreeNode myComponentTree;
   private final AbstractProgressStep myProgressStep;
-  @NotNull private final ComponentInstallerProvider myComponentInstallerProvider;
+  @NotNull private final SdkComponentInstallerProvider mySdkComponentInstallerProvider;
   private final boolean myInstallUpdates;
   private SdkComponentsStep myComponentsStep;
   @Nullable private LicenseAgreementStep myLicenseAgreementStep;
@@ -90,7 +90,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
                                @NotNull AbstractProgressStep progressStep,
-                               @NotNull ComponentInstallerProvider componentInstallerProvider,
+                               @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
                                boolean installUpdates) {
     myMode = mode;
 
@@ -98,14 +98,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandlerProperty = new ObjectValueProperty<>(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkLocation.toPath()));
 
     myProgressStep = progressStep;
-    myComponentInstallerProvider = componentInstallerProvider;
+    mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
     myInstallUpdates = installUpdates;
   }
 
   private SdkComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
                                                    boolean createAvd) {
     List<SdkComponentTreeNode> components = new ArrayList<>();
-    components.add(new AndroidSdkComponent(myInstallUpdates));
+    components.add(new AndroidSdkComponentTreeNode(myInstallUpdates));
 
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
     RepoManager sdkManager = localHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
@@ -114,16 +114,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                     new StudioDownloader(), StudioSettingsController.getInstance());
 
     Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
-    components.add(AndroidPlatformSdkComponent.Companion.createSubtree(remotePackages, myInstallUpdates));
+    components.add(AndroidPlatformSdkComponentTreeNode.Companion.createSubtree(remotePackages, myInstallUpdates));
 
-    AehdSdkComponent.InstallationIntention installationIntention =
-      myInstallUpdates ? AehdSdkComponent.InstallationIntention.INSTALL_WITH_UPDATES
-                                                    : AehdSdkComponent.InstallationIntention.INSTALL_WITHOUT_UPDATES;
-    if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponent.InstallerInfo.canRun()) {
-      components.add(new AehdSdkComponent(installationIntention));
+    AehdSdkComponentTreeNode.InstallationIntention installationIntention =
+      myInstallUpdates ? AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
+                                                    : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
+    if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.InstallerInfo.canRun()) {
+      components.add(new AehdSdkComponentTreeNode(installationIntention));
     }
     if (createAvd) {
-      AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(remotePackages, myInstallUpdates);
+      AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(remotePackages, myInstallUpdates);
       if (avdCreator.isAvdCreationNeeded(localHandler)) {
         components.add(avdCreator);
       }
@@ -145,7 +145,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Supplier<Collection<RemotePackage>> supplier = () -> {
       Iterable<InstallableSdkComponentTreeNode> components = myComponentTree.getChildrenToInstall();
       try {
-        return myComponentInstallerProvider.getComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
+        return mySdkComponentInstallerProvider.getComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
       }
       catch (SdkQuickfixUtils.PackageResolutionException e) {
         Logger.getInstance(InstallComponentsPath.class).warn(e);
@@ -192,7 +192,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     installComponents(
       myComponentTree.getChildrenToInstall(),
       new InstallContext(createTempDir(), myProgressStep),
-      myComponentInstallerProvider.getComponentInstaller(localHandler),
+      mySdkComponentInstallerProvider.getComponentInstaller(localHandler),
       myMode.getInstallerTimestamp(),
       ModalityState.stateForComponent(myWizard.getContentPane()),
       localHandler,

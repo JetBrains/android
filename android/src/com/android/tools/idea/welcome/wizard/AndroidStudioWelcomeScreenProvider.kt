@@ -46,18 +46,18 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       checkInternetConnection()
     }
     val wizardMode = wizardMode!!
-    val componentInstallerProvider = ComponentInstallerProvider()
+    val sdkComponentInstallerProvider = SdkComponentInstallerProvider()
 
     val useNewWizard = StudioFlags.NPW_FIRST_RUN_WIZARD.get()
-    return createWelcomeScreen(useNewWizard, wizardMode, componentInstallerProvider)
+    return createWelcomeScreen(useNewWizard, wizardMode, sdkComponentInstallerProvider)
   }
 
   @VisibleForTesting
-  fun createWelcomeScreen(useNewWizard: Boolean, wizardMode: FirstRunWizardMode, componentInstallerProvider: ComponentInstallerProvider): WelcomeScreen {
+  fun createWelcomeScreen(useNewWizard: Boolean, wizardMode: FirstRunWizardMode, sdkComponentInstallerProvider: SdkComponentInstallerProvider): WelcomeScreen {
     // This means isAvailable was false! Why are we even called?
     ourWasShown = true
     return if (useNewWizard)
-      StudioFirstRunWelcomeScreen(wizardMode, componentInstallerProvider) else FirstRunWizardHost(wizardMode, componentInstallerProvider)
+      StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstallerProvider) else FirstRunWizardHost(wizardMode, sdkComponentInstallerProvider)
   }
 
   override fun isAvailable(): Boolean {

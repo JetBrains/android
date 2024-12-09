@@ -54,7 +54,7 @@ import java.nio.file.Path
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDeviceSdkComponent(private val androidVersion: AndroidVersion?, installUpdates: Boolean) : InstallableSdkComponentTreeNode(
+class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: AndroidVersion?, installUpdates: Boolean) : InstallableSdkComponentTreeNode(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
@@ -188,7 +188,7 @@ class AndroidVirtualDeviceSdkComponent(private val androidVersion: AndroidVersio
   }
 
   companion object {
-    val LOG = Logger.getInstance(AndroidVirtualDeviceSdkComponent::class.java)
+    val LOG = Logger.getInstance(AndroidVirtualDeviceSdkComponentTreeNode::class.java)
     private const val DEFAULT_DEVICE_ID = "medium_phone"
     private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis_playstore", "Google Play")
     private val ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC")

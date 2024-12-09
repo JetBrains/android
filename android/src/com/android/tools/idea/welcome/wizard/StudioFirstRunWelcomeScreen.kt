@@ -25,7 +25,6 @@ import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
@@ -46,7 +45,7 @@ import javax.swing.JPanel
  * Android Studio to ask them to pick from some initial, useful options. Once the wizard is complete, it will bring the  user to the
  * initial "Welcome Screen" UI (with a list of projects and options to start a new project, etc.)
  */
-class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private val componentInstallerProvider: ComponentInstallerProvider) : WelcomeScreen {
+class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private val sdkComponentInstallerProvider: SdkComponentInstallerProvider) : WelcomeScreen {
   private lateinit var modelWizard: ModelWizard
   private var mainPanel: JComponent? = null
   private var frame: JFrame? = null
@@ -100,7 +99,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
-    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, componentInstallerProvider)
+    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, sdkComponentInstallerProvider)
     modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel

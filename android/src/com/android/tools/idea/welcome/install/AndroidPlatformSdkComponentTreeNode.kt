@@ -35,7 +35,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
  *  * If SDK does not have any platforms installed (or this is a new
  * SDK installation), then only the latest platform will be installed.
  */
-class AndroidPlatformSdkComponent(
+class AndroidPlatformSdkComponentTreeNode(
   name: String,
   description: String,
   private val myVersion: AndroidVersion,
@@ -89,17 +89,17 @@ class AndroidPlatformSdkComponent(
   public override fun isSelectedByDefault(): Boolean = false
 
   companion object {
-    private fun getPlatformToInstall(remotePackages: Collection<RemotePackage>, installUpdates: Boolean, api: Int): AndroidPlatformSdkComponent {
+    private fun getPlatformToInstall(remotePackages: Collection<RemotePackage>, installUpdates: Boolean, api: Int): AndroidPlatformSdkComponentTreeNode {
       val version =  AndroidVersion(api, null, AndroidVersion.getBaseExtensionLevel(api).takeIf { it > 0 }, true)
       val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
       val description = "Android platform libraries for targeting platform: $versionName"
-      return AndroidPlatformSdkComponent(versionName, description, version, !version.isPreview, installUpdates)
+      return AndroidPlatformSdkComponentTreeNode(versionName, description, version, !version.isPreview, installUpdates)
     }
 
     private fun getInstalledPlatformVersions(handler: AndroidSdkHandler?): List<AndroidVersion> {
       val result = mutableListOf<AndroidVersion>()
       if (handler != null) {
-        val packages = handler.getSdkManager(StudioLoggerProgressIndicator(AndroidPlatformSdkComponent::class.java)).packages
+        val packages = handler.getSdkManager(StudioLoggerProgressIndicator(AndroidPlatformSdkComponentTreeNode::class.java)).packages
         for (p in packages.localPackages.values) {
           if (p.typeDetails is DetailsTypes.PlatformDetailsType) {
             result.add((p.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion)

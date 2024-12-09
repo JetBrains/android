@@ -26,7 +26,7 @@ import org.junit.Test
 class AndroidSdkTest {
   @Test
   fun `get required SDK packages doesn't return emulator on Chrome OS`() {
-    val sdk = AndroidSdkComponent(true).apply {
+    val sdk = AndroidSdkComponentTreeNode(true).apply {
       updateState(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, TestUtils.getSdk()))
     }
     val packages = sdk.getRequiredSdkPackages(true)
@@ -36,9 +36,9 @@ class AndroidSdkTest {
   @Test
   fun `AEHD is only compatible with Windows`() {
     if (SystemInfo.isWindows) {
-      assertThat(AehdSdkComponent.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
+      assertThat(AehdSdkComponentTreeNode.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     } else {
-      assertThat(AehdSdkComponent.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
+      assertThat(AehdSdkComponentTreeNode.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     }
   }
 }

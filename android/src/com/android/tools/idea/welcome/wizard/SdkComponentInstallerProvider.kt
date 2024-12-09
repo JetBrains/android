@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 
-class ComponentInstallerProvider {
+class SdkComponentInstallerProvider {
 
   fun getComponentInstaller(handler: AndroidSdkHandler): SdkComponentInstaller {
     return SdkComponentInstaller(handler)

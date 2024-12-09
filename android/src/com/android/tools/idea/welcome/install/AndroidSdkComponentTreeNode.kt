@@ -24,7 +24,7 @@ import com.google.common.annotations.VisibleForTesting
 /**
  * Android SDK installable component.
  */
-class AndroidSdkComponent(installUpdates: Boolean) : InstallableSdkComponentTreeNode(
+class AndroidSdkComponentTreeNode(installUpdates: Boolean) : InstallableSdkComponentTreeNode(
   "Android SDK", """
     The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your apps.
     The setup wizard will update your current Android SDK installation (if necessary) or install a new version.

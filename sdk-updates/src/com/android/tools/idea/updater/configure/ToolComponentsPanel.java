@@ -21,7 +21,7 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.tools.idea.welcome.install.AehdSdkComponent;
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.HashMultimap;
@@ -60,7 +60,7 @@ public class ToolComponentsPanel {
 
   // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
   private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
-    ImmutableSet.of(SdkConstants.FD_EMULATOR, AehdSdkComponent.InstallerInfo.getRepoPackagePath());
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, AehdSdkComponentTreeNode.InstallerInfo.getRepoPackagePath());
 
   private static final String TOOLS_DETAILS_CHECKBOX_SELECTED = "updater.configure.tools.details.checkbox.selected";
 

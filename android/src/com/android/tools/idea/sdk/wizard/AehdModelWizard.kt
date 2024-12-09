@@ -24,7 +24,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
-import com.android.tools.idea.welcome.install.AehdSdkComponent
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.wizard.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep
@@ -44,12 +44,12 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import java.util.concurrent.atomic.AtomicBoolean
 
-class AehdModelWizard(private val installationIntention: AehdSdkComponent.InstallationIntention) {
+class AehdModelWizard(private val installationIntention: AehdSdkComponentTreeNode.InstallationIntention) {
   companion object {
     var LOG: Logger = Logger.getInstance(AehdModelWizard::class.java)
   }
 
-  val aehdSdkComponent = AehdSdkComponent(installationIntention)
+  val myAehdSdkComponentTreeNode = AehdSdkComponentTreeNode(installationIntention)
 
   fun showAndGet(): Boolean {
     val modelWizard = buildModelWizard()
@@ -63,7 +63,7 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
     val modelWizardBuilder = ModelWizard.Builder()
       .addStep(getInstallationStep(installationIntention))
 
-    if (installationIntention != AehdSdkComponent.InstallationIntention.UNINSTALL) {
+    if (installationIntention != AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL) {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
       // Ensure the SDK handler is loaded
@@ -72,10 +72,10 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
         .getSdkManager(progressIndicator)
         .loadSynchronously(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
-      aehdSdkComponent.updateState(sdkHandler)
+      myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
       modelWizardBuilder.addStep(LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location)) {
-        resolvePackagesToInstall(sdkHandler, aehdSdkComponent)
+        resolvePackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode)
       })
     }
 
@@ -95,7 +95,7 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
     modelWizard.addResultListener(object : ModelWizard.WizardListener {
       override fun onWizardFinished(result: ModelWizard.WizardResult) {
         if (!progressStep.isSuccessfullyCompleted.get()) {
-          AehdWizardUtils.handleCancel(installationIntention, aehdSdkComponent, javaClass, LOG)
+          AehdWizardUtils.handleCancel(installationIntention, myAehdSdkComponentTreeNode, javaClass, LOG)
         }
       }
     })
@@ -103,19 +103,19 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
     return modelWizard
   }
 
-  private fun getInstallationStep(installationIntention: AehdSdkComponent.InstallationIntention): ModelWizardStep.WithoutModel {
+  private fun getInstallationStep(installationIntention: AehdSdkComponentTreeNode.InstallationIntention): ModelWizardStep.WithoutModel {
     return when (installationIntention) {
-      AehdSdkComponent.InstallationIntention.UNINSTALL -> AehdUninstallInfoStep()
-      AehdSdkComponent.InstallationIntention.INSTALL_WITH_UPDATES,
-      AehdSdkComponent.InstallationIntention.INSTALL_WITHOUT_UPDATES,
-      AehdSdkComponent.InstallationIntention.CONFIGURE_ONLY -> AehdInstallInfoStep()
+      AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL -> AehdUninstallInfoStep()
+      AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
+      AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES,
+      AehdSdkComponentTreeNode.InstallationIntention.CONFIGURE_ONLY -> AehdInstallInfoStep()
     }
   }
 
-  private fun resolvePackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponent: AehdSdkComponent): Collection<RemotePackage> {
+  private fun resolvePackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode): Collection<RemotePackage> {
     try {
       val componentInstaller = SdkComponentInstaller(sdkHandler)
-      return componentInstaller.getPackagesToInstall(listOf(aehdSdkComponent))
+      return componentInstaller.getPackagesToInstall(listOf(aehdSdkComponentTreeNode))
     }
     catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)
@@ -153,8 +153,8 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponent.Instal
       val task: Task.Backgroundable = object : Task.Backgroundable(null, "AEHD Installation", true) {
         override fun run(indicator: ProgressIndicator) {
           try {
-            AehdWizardUtils.setupAehd(aehdSdkComponent, this@SetupProgressStep, progressIndicator)
-            isSuccessfullyCompleted.set(aehdSdkComponent.isInstallerSuccessfullyCompleted)
+            AehdWizardUtils.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
+            isSuccessfullyCompleted.set(myAehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted)
           }
           catch (e: Exception) {
             LOG.warn("Exception caught while trying to configure AEHD", e)
