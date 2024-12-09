@@ -21,6 +21,7 @@ import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
@@ -159,6 +160,7 @@ class ProjectDumper(
     this
       .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
       .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
+      .replaceJdkPath()
       .replace("/transformed/jetified-", "/transformed/")
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
@@ -276,6 +278,14 @@ class ProjectDumper(
   fun String.replaceJdkVersion(): String {
     return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION")
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+  }
+
+  fun String.replaceJdkPath() = when(this) {
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"
+    else -> this
   }
 
   fun String.replaceMatchingVersion(version: String?): String =

@@ -26,7 +26,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
@@ -123,9 +122,6 @@ public final class EmbeddedDistributionPaths {
   private static Path getSystemSpecificJdkPath(Path jdkRootPath) {
     if (SystemInfo.isMac) {
       jdkRootPath = jdkRootPath.resolve(MAC_JDK_CONTENT_PATH);
-    }
-    if (!Files.isDirectory(jdkRootPath)) {
-      throw new Error(String.format("Incomplete or corrupted installation - \"%s\" directory does not exist", jdkRootPath));
     }
     return jdkRootPath;
   }
