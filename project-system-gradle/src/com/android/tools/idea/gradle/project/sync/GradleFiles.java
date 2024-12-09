@@ -40,6 +40,8 @@ import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.GlobalSearchScopes;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
@@ -79,6 +81,8 @@ public class GradleFiles implements Disposable.Default {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  @NotNull private final GlobalSearchScope myScope;
+
   @NotNull private final GradleFilesUpdater myUpdater;
 
   @NotNull
@@ -90,6 +94,14 @@ public class GradleFiles implements Disposable.Default {
     myProject = project;
 
     myUpdater = GradleFilesUpdater.getInstance(project);
+
+    VirtualFile baseDir = myProject.getBaseDir();
+    if (baseDir == null) {
+      myScope = GlobalSearchScope.everythingScope(myProject);
+    }
+    else {
+      myScope = GlobalSearchScopes.directoryScope(myProject, baseDir, true);
+    }
 
     GradleFileChangeListener fileChangeListener = new GradleFileChangeListener(this);
     myFileEditorListener = new FileEditorManagerListener() {
@@ -125,6 +137,7 @@ public class GradleFiles implements Disposable.Default {
 
     Callable<GradleFileState> fileStateCallable = () -> {
       if (!file.isValid()) return new GradleFileState(false, false);
+      if (!myScope.contains(file)) return new GradleFileState(false, false);
 
       PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
       if (psiFile == null) {
@@ -425,6 +438,10 @@ public class GradleFiles implements Disposable.Default {
       }
 
       if (myGradleFiles.myProject != psiFile.getProject()) {
+        return;
+      }
+
+      if (!myGradleFiles.myScope.contains(psiFile.getVirtualFile())) {
         return;
       }
 
