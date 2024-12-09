@@ -247,7 +247,7 @@ iml_module(
         "runs_gradle_snapshots": {
             "test_filter": ".runsGradleSnapshots",
             "tags": ["cpu:4"],
-            "shard_count": 3,
+            "shard_count": 5,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
