@@ -170,4 +170,29 @@ class ConfigureDevicePanelStateTest {
     // Assert
     assertEquals(skins, actualSkins)
   }
+
+  @Test
+  fun resetPlayStoreFields() {
+    // Arrange
+    val device = TestDevices.pixel9Pro()
+
+    val image = mock<ISystemImage>()
+    whenever(image.hasPlayStore()).thenReturn(true)
+
+    val state =
+      ConfigureDevicePanelState(
+        device,
+        listOf(NoSkin.INSTANCE, device.defaultSkin).toImmutableList(),
+        image,
+      )
+
+    state.initDeviceSkins(device.defaultSkin.path())
+    state.device = state.device.copy(skin = NoSkin.INSTANCE)
+
+    // Act
+    state.resetPlayStoreFields()
+
+    // Assert
+    assertEquals(NoSkin.INSTANCE, state.device.skin)
+  }
 }

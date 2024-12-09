@@ -110,8 +110,11 @@ private const val testDeviceXml =
 """
 
 internal object TestDevices {
-  internal fun mediumPhone() =
-    VirtualDevice(
+  internal fun mediumPhone(): VirtualDevice {
+    val ram = StorageCapacity(2, StorageCapacity.Unit.GB)
+    val vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB)
+
+    return VirtualDevice(
       name = "Medium Phone",
       device = mock(),
       skin = NoSkin.INSTANCE,
@@ -126,18 +129,24 @@ internal object TestDevices {
       expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
       cpuCoreCount = 4,
       graphicsMode = GraphicsMode.AUTO,
-      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
-      vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB),
+      ram = ram,
+      defaultRam = ram,
+      vmHeapSize = vmHeapSize,
+      defaultVmHeapSize = vmHeapSize,
       preferredAbi = null,
       hasPlaystore = true,
       isFoldable = false,
       cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
       formFactor = FormFactors.PHONE,
     )
+  }
 
   internal fun pixel6(): VirtualDevice {
     val skin =
       DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
+
+    val ram = StorageCapacity(2, StorageCapacity.Unit.GB)
+    val vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB)
 
     return VirtualDevice(
       name = "Pixel 6",
@@ -154,8 +163,10 @@ internal object TestDevices {
       expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
       cpuCoreCount = 4,
       graphicsMode = GraphicsMode.AUTO,
-      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
-      vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB),
+      ram = ram,
+      defaultRam = ram,
+      vmHeapSize = vmHeapSize,
+      defaultVmHeapSize = vmHeapSize,
       preferredAbi = null,
       isFoldable = false,
       cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
@@ -168,6 +179,9 @@ internal object TestDevices {
       DefaultSkin(
         Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro")
       )
+
+    val ram = StorageCapacity(2, StorageCapacity.Unit.GB)
+    val vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB)
 
     return VirtualDevice(
       name = "Pixel 9 Pro",
@@ -184,8 +198,10 @@ internal object TestDevices {
       expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
       cpuCoreCount = 4,
       graphicsMode = GraphicsMode.AUTO,
-      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
-      vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
+      ram = ram,
+      defaultRam = ram,
+      vmHeapSize = vmHeapSize,
+      defaultVmHeapSize = vmHeapSize,
       preferredAbi = null,
       hasPlaystore = true,
       isFoldable = false,
@@ -199,6 +215,9 @@ internal object TestDevices {
       DefaultSkin(
         Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold")
       )
+
+    val ram = StorageCapacity(2, StorageCapacity.Unit.GB)
+    val vmHeapSize = StorageCapacity(288, StorageCapacity.Unit.MB)
 
     return VirtualDevice(
       name = "Pixel 9 Pro Fold",
@@ -215,8 +234,10 @@ internal object TestDevices {
       expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
       cpuCoreCount = 4,
       graphicsMode = GraphicsMode.AUTO,
-      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
-      vmHeapSize = StorageCapacity(288, StorageCapacity.Unit.MB),
+      ram = ram,
+      defaultRam = ram,
+      vmHeapSize = vmHeapSize,
+      defaultVmHeapSize = vmHeapSize,
       preferredAbi = null,
       hasPlaystore = true,
       isFoldable = true,
@@ -230,6 +251,9 @@ internal object TestDevices {
       DefaultSkin(
         Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "wearos_small_round")
       )
+
+    val ram = StorageCapacity(512, StorageCapacity.Unit.MB)
+    val vmHeapSize = StorageCapacity(48, StorageCapacity.Unit.MB)
 
     return VirtualDevice(
       name = "Wear OS Small Round",
@@ -246,8 +270,10 @@ internal object TestDevices {
       expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
       cpuCoreCount = 4,
       graphicsMode = GraphicsMode.AUTO,
-      ram = StorageCapacity(512, StorageCapacity.Unit.MB),
-      vmHeapSize = StorageCapacity(48, StorageCapacity.Unit.MB),
+      ram = ram,
+      defaultRam = ram,
+      vmHeapSize = vmHeapSize,
+      defaultVmHeapSize = vmHeapSize,
       preferredAbi = null,
       hasPlaystore = true,
       isFoldable = false,

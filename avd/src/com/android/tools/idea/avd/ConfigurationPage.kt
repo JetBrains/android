@@ -149,9 +149,7 @@ internal fun WizardPageScope.ConfigurationPage(
   updateSystemImageSelection(state.systemImageTableSelectionState, filteredImageState)
 
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
-
   val coroutineScope = rememberCoroutineScope()
-  val component = LocalComponent.current
 
   Column {
     if (!state.validity.isPreferredAbiValid) {
@@ -179,11 +177,11 @@ internal fun WizardPageScope.ConfigurationPage(
     if (state.isValid) {
       WizardAction {
         runWithModalProgressBlocking(
-          ModalTaskOwner.component(component),
+          ModalTaskOwner.component(parent),
           "Creating AVD",
           TaskCancellation.nonCancellable(),
         ) {
-          state.resetPlayStoreFields(resolveDefaultSkin(state.device, sdkHandler, fileSystem))
+          state.resetPlayStoreFields()
 
           withContext(AndroidDispatchers.uiThread) {
             finish(

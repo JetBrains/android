@@ -117,17 +117,16 @@ internal constructor(
     return skin
   }
 
-  internal fun resetPlayStoreFields(skin: Path) {
+  internal fun resetPlayStoreFields() {
     if (!hasPlayStore()) return
 
     device =
       device.copy(
-        skin = getSkin(skin),
         expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit()),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
-        ram = EmulatedProperties.defaultRamSize(device.device).toStorageCapacity(),
-        vmHeapSize = EmulatedProperties.defaultVmHeapSize(device.device).toStorageCapacity(),
+        ram = device.defaultRam,
+        vmHeapSize = device.defaultVmHeapSize,
       )
   }
 }

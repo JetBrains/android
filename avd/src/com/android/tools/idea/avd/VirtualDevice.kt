@@ -70,7 +70,11 @@ internal constructor(
   internal val cpuCoreCount: Int,
   internal val graphicsMode: GraphicsMode,
   internal val ram: StorageCapacity?,
+  internal val defaultRam: StorageCapacity =
+    EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
   internal val vmHeapSize: StorageCapacity?,
+  internal val defaultVmHeapSize: StorageCapacity =
+    EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity(),
   internal val preferredAbi: String?,
   private val hasPlaystore: Boolean = device.hasPlayStore(),
   internal val isFoldable: Boolean = device.defaultHardware.screen.isFoldable,
