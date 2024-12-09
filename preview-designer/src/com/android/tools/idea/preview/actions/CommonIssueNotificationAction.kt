@@ -148,10 +148,11 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
             return@registerDataProvider when (dataId) {
               PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
                 DataProvider { dataContext.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER) }
-              PlatformCoreDataKeys.PROJECT.name,
-              PlatformCoreDataKeys.MODULE.name,
-              PlatformCoreDataKeys.EDITOR.name,
-              PlatformCoreDataKeys.CONTEXT_COMPONENT.name,
+              PlatformCoreDataKeys.PROJECT.name -> dataContext.getData(PlatformCoreDataKeys.PROJECT)
+              PlatformCoreDataKeys.MODULE.name -> dataContext.getData(PlatformCoreDataKeys.MODULE)
+              PlatformCoreDataKeys.EDITOR.name -> dataContext.getData(PlatformCoreDataKeys.EDITOR)
+              PlatformCoreDataKeys.CONTEXT_COMPONENT.name ->
+                dataContext.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
               PlatformCoreDataKeys.FILE_EDITOR.name ->
                 dataContext.getData(PlatformCoreDataKeys.FILE_EDITOR)
               else -> null
