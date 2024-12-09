@@ -24,12 +24,21 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.bottom
 import com.android.tools.idea.streaming.core.right
 import com.android.tools.idea.streaming.core.scaledUnbiased
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -49,7 +58,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val MAX_BECOME_READY_DURATION = 2.seconds
+private val MAX_BECOME_READY_DURATION = 10.seconds
+private val KEY_EVENT_DELAY = 100.milliseconds
 private val LOG = Logger.getInstance(DeviceAdapter::class.java)
 
 private fun Int.isEven() = this % 2 == 0
@@ -102,25 +112,6 @@ fun Color.isReddish() = red > 0xE0 && green < 0x1F && blue < 0x1F
 fun Color.isGreenish() = red < 0x1F && green > 0xE0 && blue < 0x1F
 
 fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
-
-private fun AbstractDisplayView.press(keyCode: Int) {
-  keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
-  keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_RELEASED)
-}
-
-private fun AbstractDisplayView.type(keyChar: Char) {
-  keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
-}
-
-private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar: Char, id: Int) {
-  UIUtil.invokeLaterIfNeeded {
-    dispatchEvent(KeyEvent(this, id, System.currentTimeMillis(), 0, keyCode, keyChar))
-  }
-}
-
-private fun AbstractDisplayView.typeNumber(n: Int) {
-  n.toString().forEach { type(it) }
-}
 
 private fun AbstractDisplayView.click(
   location: Point,
@@ -226,6 +217,7 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
     .map { it.first() }
     .take(numPoints)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class DeviceAdapter(
   private val project: Project,
   private val target: StreamingBenchmarkTarget,
@@ -248,6 +240,7 @@ internal class DeviceAdapter(
     if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
   private val numLatencyRegions =
     if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
+  private val keyEventDispatchChannel = Channel<() -> Unit>(Channel.UNLIMITED)
 
   @GuardedBy("this") private var appState = AppState.INITIALIZING
 
@@ -274,8 +267,18 @@ internal class DeviceAdapter(
     require(bitsPerChannel in 0..8) {
       "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]"
     }
+
+    coroutineScope.launch {
+      for (keyEventDispatch in keyEventDispatchChannel) {
+        withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+          keyEventDispatch()
+        }
+        delay(KEY_EVENT_DELAY)
+      }
+    }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Synchronized
   override fun frameRendered(
     frameNumber: UInt,
@@ -293,8 +296,11 @@ internal class DeviceAdapter(
         }
         if (displayImage.isInitializationFrame()) {
           keyConfigIntoApp()
-          appState = AppState.DISPLAYING_TOUCHABLE_AREA
+          appState = AppState.KEYING_IN_CONFIG
         }
+      }
+      AppState.KEYING_IN_CONFIG -> {
+        if (keyEventDispatchChannel.isEmpty) appState = AppState.DISPLAYING_TOUCHABLE_AREA
       }
       AppState.DISPLAYING_TOUCHABLE_AREA -> {
         if (displayImage.isInitializationFrame()) return
@@ -369,6 +375,30 @@ internal class DeviceAdapter(
       typeNumber(bitsPerChannel)
       press(KeyEvent.VK_ENTER)
     }
+  }
+
+  private fun AbstractDisplayView.press(keyCode: Int) {
+    keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
+    keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_RELEASED)
+  }
+
+  private fun AbstractDisplayView.type(keyChar: Char) {
+    keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
+  }
+
+  private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar: Char, id: Int) {
+    val event = KeyEvent(this, id, System.currentTimeMillis(), 0, keyCode, keyChar)
+    runBlocking {
+      val keyEventDispatch = {
+        LOG.info("Dispatching event: $event")
+        dispatchEvent(event)
+      }
+      keyEventDispatchChannel.send(keyEventDispatch)
+    }
+  }
+
+  private fun AbstractDisplayView.typeNumber(n: Int) {
+    n.toString().forEach { type(it) }
   }
 
   @Synchronized
@@ -494,6 +524,7 @@ internal class DeviceAdapter(
 
   private enum class AppState {
     INITIALIZING,
+    KEYING_IN_CONFIG,
     DISPLAYING_TOUCHABLE_AREA,
     READY,
   }
