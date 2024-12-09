@@ -18,8 +18,10 @@
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$">
+    <content url="file://$MODULE_DIR$/resources">
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
+    </content>
+    <content url="file://$MODULE_DIR$/src">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
