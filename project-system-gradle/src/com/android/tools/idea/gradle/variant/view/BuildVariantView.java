@@ -315,7 +315,6 @@ public class BuildVariantView {
       });
 
       setExpandableItemsEnabled(false);
-      TableSpeedSearch.installOn(this);
     }
 
     /**
