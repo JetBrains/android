@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,53 +14,51 @@
  * limitations under the License.
  */
 plugins {
-  id 'com.android.application'
-  id 'org.jetbrains.kotlin.android'
-  id 'org.jetbrains.kotlin.plugin.compose'
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace "google.simpleapplication"
-    compileSdk 35
-    useLibrary 'org.apache.http.legacy'
+  namespace 'google.simpleapplication'
+  compileSdk 35  // compileSdk version will be replaced by AndroidGradleTestCase
 
-    defaultConfig {
-        applicationId "google.simpleapplication"
-        minSdkVersion 21
-        targetSdkVersion 35
-        versionCode 1
-        versionName "1.0"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    lintOptions {
-        abortOnError false
-    }
+  defaultConfig {
+    applicationId "google.simpleapplication"
+    minSdk 23
+    targetSdk 34 // targetSdk version will be replaced by AndroidGradleTestCase
+    versionCode 1
+    versionName "1.0"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += [
-          "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
-        ]
-    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
+  }
+  kotlinOptions {
+    jvmTarget = '11'
+  }
+  buildFeatures {
+    compose true
+  }
 }
 
 dependencies {
   implementation fileTree(dir: 'libs', include: ['*.jar'])
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-  implementation 'androidx.appcompat:appcompat:1.7.0'
-  implementation 'androidx.core:core-ktx:1.15.0'
-  implementation 'androidx.activity:activity-compose:1.9.3'
-  implementation 'androidx.compose.ui:ui:1.7.5'
-  implementation 'androidx.compose.material:material:1.8.0-alpha06'
-  implementation 'androidx.compose.ui:ui-tooling:1.8.0-alpha06'
-  implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+  implementation libs.kotlin.stdlib.jdk7
+  implementation libs.androidx.appcompat
+  implementation libs.androidx.core.ktx
+  implementation libs.androidx.activity.compose
+  implementation libs.ui
+  implementation libs.material
+  implementation libs.ui.tooling
+  implementation libs.androidx.lifecycle.runtime.ktx
 }

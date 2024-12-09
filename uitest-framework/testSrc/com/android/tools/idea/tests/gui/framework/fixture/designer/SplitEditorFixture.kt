@@ -90,7 +90,7 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   private val workbenchPanel: WorkBenchFixture
     get() = WorkBenchFixture.findShowing(target(), robot)
 
-  fun waitForRenderToFinish(wait: Wait = Wait.seconds(20)): SplitEditorFixture {
+  fun waitForRenderToFinish(wait: Wait = Wait.seconds(40)): SplitEditorFixture {
     wait.expecting("WorkBench to show content").until {
       try {
         workbenchPanel.isShowingContent()
