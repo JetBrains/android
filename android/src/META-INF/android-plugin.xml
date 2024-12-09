@@ -216,7 +216,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings$SettingsV1"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.EmulatorSettings"/>
-<!--    <projectService serviceImplementation="com.android.tools.idea.streaming.MirroringManager"/>-->
     <applicationService serviceImplementation="com.android.tools.idea.res.ResourceUpdateTraceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
