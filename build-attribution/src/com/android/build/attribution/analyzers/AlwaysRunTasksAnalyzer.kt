@@ -37,12 +37,9 @@ class AlwaysRunTasksAnalyzer(
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      (event.result as TaskSuccessResult).executionReasons?.forEach {
-        when (it) {
-          AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS.message -> alwaysRunTasksSet.add(
-            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))
-          AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE.message -> alwaysRunTasksSet.add(
-            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
+      (event.result as TaskSuccessResult).executionReasons?.forEach { reasonMessage ->
+        AlwaysRunTaskData.Reason.findMatchingReason(reasonMessage)?.let {
+          alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it))
         }
       }
     }

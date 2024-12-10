@@ -15,12 +15,22 @@
  */
 package com.android.build.attribution.data
 
-import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
-
 data class AlwaysRunTaskData(val taskData: TaskData, val rerunReason: Reason) {
 
-  enum class Reason(val message: String) {
-    NO_OUTPUTS_WITH_ACTIONS(DefaultTaskExecutionMode.noOutputs().rebuildReason.get()),
-    UP_TO_DATE_WHEN_FALSE((DefaultTaskExecutionMode.upToDateWhenFalse().rebuildReason.get())),
+  enum class Reason() {
+    NO_OUTPUTS_WITH_ACTIONS,
+    UP_TO_DATE_WHEN_FALSE;
+
+    companion object {
+      /**
+       * Finds corresponding reason by the message that is defined in Gradle [org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode].
+       */
+      fun findMatchingReason(message: String): Reason? = when(message) {
+        // Do not use DefaultTaskExecutionMode directly as it sometimes leads to class loading issues (see b/366173283).
+        "Task has not declared any outputs despite executing actions." -> NO_OUTPUTS_WITH_ACTIONS
+        "Task.upToDateWhen is false." -> UP_TO_DATE_WHEN_FALSE
+        else -> null
+      }
+    }
   }
 }
