@@ -114,8 +114,13 @@ class AppInsightsIssuesTableView(
                 table.tableEmptyText.apply {
                   clear()
                   appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
-                  appendSecondaryText(
-                    "It can take 24-48 hours for crashes to appear",
+                  appendLine(
+                    "No issues found within the selected time range and filters.",
+                    EMPTY_STATE_TEXT_FORMAT,
+                    null,
+                  )
+                  appendLine(
+                    "It can take 24-48 hours for issues to appear.",
                     EMPTY_STATE_TEXT_FORMAT,
                     null,
                   )
