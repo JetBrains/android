@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.Companion.detectRepository
 import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
@@ -26,6 +27,7 @@ import org.gradle.util.GradleVersion
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import java.net.URI
 
 class DownloadsAnalyzerUnitTest {
 
@@ -182,6 +184,16 @@ class DownloadsAnalyzerUnitTest {
     )
 
     return analyzer.result
+  }
+
+  @Test
+  fun testEmptyURIAuthorityInEvents() {
+    // b/366172000
+    val uri = URI("file:///foo/bar")
+    Truth.assertThat(uri.authority).isNull()
+
+    val repository = detectRepository(uri)
+    Truth.assertThat(repository).isEqualTo(DownloadsAnalyzer.OtherRepository(host = ""))
   }
 
   @Test
