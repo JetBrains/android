@@ -21,13 +21,10 @@ import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.wizard.AehdModelWizard;
-import com.android.tools.idea.sdk.wizard.AehdWizardController;
+import com.android.tools.idea.sdk.wizard.AehdWizardService;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.wizard.AehdWizard;
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
@@ -217,20 +214,7 @@ public class AccelerationErrorSolution {
       case REINSTALL_AEHD:
         return () -> {
           try {
-            if (!StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-              AehdWizard wizard = new AehdWizard(
-                AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
-                new AehdWizardController()
-              );
-              wizard.init();
-              myChangesMade = wizard.showAndGet();
-            } else {
-              AehdModelWizard wizard = new AehdModelWizard(
-                AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
-                new AehdWizardController()
-              );
-              myChangesMade = wizard.showAndGet();
-            }
+            myChangesMade = AehdWizardService.getInstance().showAndGet(AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES);
           }
           finally {
             reportBack();
