@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
@@ -46,7 +47,8 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
 
   protected abstract fun execute()
 
-  /** Returns progress indicator that will report the progress to this wizard step. */
+  /** Returns the progress indicator that will report the progress to this wizard step. */
+  @AnyThread
   @Synchronized
   override fun getProgressIndicator(): ProgressIndicator {
     if (myProgressIndicator == null) {
@@ -55,16 +57,18 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
     return myProgressIndicator!!
   }
 
-  override fun isCanceled(): Boolean = getProgressIndicator().isCanceled
+  /** Returns true if the operation associated with this progress step has been cancelled. */
+  @AnyThread override fun isCanceled(): Boolean = getProgressIndicator().isCanceled
 
   fun isRunning(): Boolean = getProgressIndicator().isRunning
 
   /**
    * Output text to the console pane.
    *
-   * @param s text to print
-   * @param contentType attributes of the text to output
+   * @param s The text to print
+   * @param contentType Attributes of the text to output
    */
+  @AnyThread
   override fun print(s: String, contentType: ConsoleViewContentType) {
     form.print(s, contentType)
   }
@@ -75,8 +79,9 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
    * Note: current version does not support collecting user input. We may reconsider this at a later
    * point.
    *
-   * @param processHandler process to track
+   * @param processHandler The process to track
    */
+  @AnyThread
   override fun attachToProcess(processHandler: ProcessHandler) {
     form.attachToProcess(processHandler)
   }
@@ -85,8 +90,14 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
   fun showConsole() = form.showConsole()
 
   /**
-   * Runs the computable under progress manager but only gives a portion of the progress bar to it.
+   * Executes a runnable under a progress indicator, allocating a specific portion of the overall
+   * progress to this runnable.
+   *
+   * @param runnable The code to execute.
+   * @param progressPortion The fraction of the overall progress bar to allocate to this runnable
+   *   (between 0.0 and 1.0).
    */
+  @AnyThread
   override fun run(runnable: Runnable, progressPortion: Double) {
     val progress = ProgressPortionReporter(getProgressIndicator(), form.fraction, progressPortion)
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress)
