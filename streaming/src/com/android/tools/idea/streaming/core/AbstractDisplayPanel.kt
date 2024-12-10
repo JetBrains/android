@@ -124,7 +124,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     floatingToolbarLayerPane.removeAll()
     if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId &&
         StudioFlags.EMBEDDED_EMULATOR_XR_FLOATING_TOOLBAR.get()) {
-      val toolbar = FloatingToolbarContainer(horizontal = false).apply {
+      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5).apply {
         val actionGroup1 = ActionManager.getInstance().getAction("android.emulator.xr.input.mode.group") as ActionGroup
         addToolbar("FloatingToolbar", actionGroup1, collapsible = true)
 
