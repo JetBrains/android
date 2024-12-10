@@ -1,3 +1,8 @@
+load(
+    "@rules_android//android:rules.bzl",
+    "android_binary",
+)
+
 PACKAGE = "com.android.tools.eventlogger"
 
 MANIFEST = "app/src/main/AndroidManifest.xml"

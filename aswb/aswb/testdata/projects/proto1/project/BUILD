@@ -2,6 +2,7 @@ load(
     "//tools/adt/idea/aswb/aswb/testdata/projects:test_projects.bzl",
     "test_project_package",
 )
+load("@rules_android//rules:rules.bzl", "android_library")
 
 package(
     default_visibility = ["//src:__subpackages__"],
