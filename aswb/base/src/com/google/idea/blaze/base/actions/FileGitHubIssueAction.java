@@ -51,8 +51,10 @@ public final class FileGitHubIssueAction extends BlazeProjectAction {
 
   private static final String BASE_URL = "https://github.com/bazelbuild/intellij/issues/new";
 
+  // TODO(b/383187717): Enable this action after modifying it to open bugs under
+  // Android Public Tracker > App Development > Android Studio instead of github.
   private static final BoolExperiment enabled =
-      new BoolExperiment("github.issue.filing.enabled", true);
+      new BoolExperiment("github.issue.filing.enabled", false);
 
   /**
    * A rough heuristic to detect if the machine is a Google-corp machine by executing 'glogin
