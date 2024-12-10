@@ -19,6 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -80,6 +81,25 @@ class FloatingToolbarContainerTest {
 
     fakeUi.mouse.moveTo(0, 0)
     assertAppearance("NonCollapsibleVerticalInactive")
+  }
+
+  @Test
+  fun testEmptyToolbar() {
+    val panel = createHostPanel()
+    fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.8).apply {
+      addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
+      addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
+    }
+    panel.add(toolbar, BorderLayout.EAST)
+    fakeUi.updateToolbars()
+    // Empty toolbar should not be visible.
+    val image = fakeUi.render()
+    for (y in 0 until image.height) {
+      for (x in 0 until image.width) {
+        assertThat(image.getRGB(x, y)).isEqualTo(panel.background.rgb)
+      }
+    }
   }
 
   private fun createHostPanel(): BorderLayoutPanel {
