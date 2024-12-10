@@ -55,7 +55,7 @@ class GalleryModeProperty(private val content: JPanel, private val mainSurface: 
     if (value == null) {
       content.add(mainSurface, BorderLayout.CENTER)
     } else {
-      value.component.border =  ActionsToolbar.BORDER
+      value.component.border = ActionsToolbar.BORDER
       value.component.background = Colors.DEFAULT_BACKGROUND_COLOR
       add(value.component, BorderLayout.NORTH)
       add(mainSurface, BorderLayout.CENTER)
