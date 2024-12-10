@@ -44,7 +44,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import java.util.concurrent.atomic.AtomicBoolean
 
-class AehdModelWizard(private val installationIntention: AehdSdkComponentTreeNode.InstallationIntention) {
+class AehdModelWizard(
+  private val installationIntention: AehdSdkComponentTreeNode.InstallationIntention,
+  private val aehdWizardController: AehdWizardController
+) {
   companion object {
     var LOG: Logger = Logger.getInstance(AehdModelWizard::class.java)
   }
@@ -95,7 +98,7 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponentTreeNod
     modelWizard.addResultListener(object : ModelWizard.WizardListener {
       override fun onWizardFinished(result: ModelWizard.WizardResult) {
         if (!progressStep.isSuccessfullyCompleted.get()) {
-          AehdWizardUtils.handleCancel(installationIntention, myAehdSdkComponentTreeNode, javaClass, LOG)
+          aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, javaClass, LOG)
         }
       }
     })
@@ -153,8 +156,8 @@ class AehdModelWizard(private val installationIntention: AehdSdkComponentTreeNod
       val task: Task.Backgroundable = object : Task.Backgroundable(null, "AEHD Installation", true) {
         override fun run(indicator: ProgressIndicator) {
           try {
-            AehdWizardUtils.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
-            isSuccessfullyCompleted.set(myAehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted)
+            val success = aehdWizardController.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
+            isSuccessfullyCompleted.set(success)
           }
           catch (e: Exception) {
             LOG.warn("Exception caught while trying to configure AEHD", e)

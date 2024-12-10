@@ -25,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.AehdModelWizard;
+import com.android.tools.idea.sdk.wizard.AehdWizardController;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.wizard.AehdWizard;
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
@@ -217,11 +218,17 @@ public class AccelerationErrorSolution {
         return () -> {
           try {
             if (!StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-              AehdWizard wizard = new AehdWizard(AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES);
+              AehdWizard wizard = new AehdWizard(
+                AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
+                new AehdWizardController()
+              );
               wizard.init();
               myChangesMade = wizard.showAndGet();
             } else {
-              AehdModelWizard wizard = new AehdModelWizard(AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES);
+              AehdModelWizard wizard = new AehdModelWizard(
+                AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
+                new AehdWizardController()
+              );
               myChangesMade = wizard.showAndGet();
             }
           }

@@ -16,9 +16,6 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import static com.android.tools.idea.sdk.wizard.AehdWizardUtils.handleCancel;
-import static com.android.tools.idea.sdk.wizard.AehdWizardUtils.setupAehd;
-
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
@@ -42,11 +39,13 @@ import org.jetbrains.annotations.NotNull;
 public class AehdWizard extends DynamicWizard {
   @NotNull private final AehdPath myAehdPath;
   @NotNull private final AehdSdkComponentTreeNode.InstallationIntention myInstallationIntention;
+  @NotNull private final AehdWizardController myAehdWizardController;
 
-  public AehdWizard(AehdSdkComponentTreeNode.InstallationIntention installationIntention) {
+  public AehdWizard(@NotNull AehdSdkComponentTreeNode.InstallationIntention installationIntention, @NotNull AehdWizardController aehdWizardController) {
     super(null, null, "AEHD");
     myInstallationIntention = installationIntention;
     myAehdPath = new AehdPath();
+    myAehdWizardController = aehdWizardController;
     addPath(myAehdPath);
   }
 
@@ -62,7 +61,7 @@ public class AehdWizard extends DynamicWizard {
       return;
     }
 
-    handleCancel(myInstallationIntention, myAehdPath.myAehdSdkComponentTreeNode, getClass(), LOG);
+    myAehdWizardController.handleCancel(myInstallationIntention, myAehdPath.myAehdSdkComponentTreeNode, getClass(), LOG);
     super.doCancelAction();
   }
 
@@ -91,14 +90,17 @@ public class AehdWizard extends DynamicWizard {
     @NotNull private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     @NotNull private DynamicWizardHost myHost;
     @NotNull private StudioLoggerProgressIndicator myProgressIndicator;
+    @NotNull private final AehdWizardController myAehdWizardController;
 
     SetupProgressStep(@NotNull Disposable parentDisposable,
                       @NotNull AehdSdkComponentTreeNode aehdSdkComponentTreeNode,
-                      @NotNull DynamicWizardHost host) {
+                      @NotNull DynamicWizardHost host,
+                      @NotNull AehdWizardController aehdWizardController) {
       super(parentDisposable, "Invoking installer");
       myAehdSdkComponentTreeNode = aehdSdkComponentTreeNode;
       myHost = host;
       myProgressIndicator = new StudioLoggerProgressIndicator(getClass());
+      myAehdWizardController = aehdWizardController;
     }
 
     @Override
@@ -112,8 +114,8 @@ public class AehdWizard extends DynamicWizard {
     protected void execute() {
       myHost.runSensitiveOperation(getProgressIndicator(), true, () -> {
         try {
-          setupAehd(myAehdSdkComponentTreeNode, this, myProgressIndicator);
-          myIsSuccessfullyCompleted.set(myAehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted());
+          boolean success = myAehdWizardController.setupAehd(myAehdSdkComponentTreeNode, this, myProgressIndicator);
+          myIsSuccessfullyCompleted.set(success);
         }
         catch (Exception e) {
           LOG.warn("Exception caught while trying to configure AEHD", e);
@@ -146,7 +148,12 @@ public class AehdWizard extends DynamicWizard {
                                                             AndroidSdks.getInstance()::tryToChooseSdkHandler)
         );
       }
-      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myAehdSdkComponentTreeNode, AehdWizard.this.myHost);
+      mySetupProgressStep = new SetupProgressStep(
+        getWizard().getDisposable(),
+        myAehdSdkComponentTreeNode,
+        AehdWizard.this.myHost,
+        myAehdWizardController
+      );
       addStep(mySetupProgressStep);
     }
 

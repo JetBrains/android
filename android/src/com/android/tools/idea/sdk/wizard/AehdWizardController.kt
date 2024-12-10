@@ -41,10 +41,9 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PlatformUtils
 import java.io.File
 
-object AehdWizardUtils {
+class AehdWizardController {
 
-  @JvmStatic
-  fun setupAehd(aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, progressStep: ProgressStep, progressIndicator: ProgressIndicator) {
+  fun setupAehd(aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, progressStep: ProgressStep, progressIndicator: ProgressIndicator): Boolean {
     val tmpDir = FileUtil.createTempDirectory(PlatformUtils.getPlatformPrefix(), "AEHD", true)
     val installContext = InstallContext(tmpDir, progressStep)
 
@@ -95,9 +94,10 @@ object AehdWizardUtils {
       }
     }
     installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT)
+
+    return aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted
   }
 
-  @JvmStatic
   fun handleCancel(installationIntention: InstallationIntention, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, aClass: Class<*>, logger: Logger) {
     // The wizard was invoked to install, but installer invocation failed or was cancelled.
     // Have to ensure the SDK package is removed
