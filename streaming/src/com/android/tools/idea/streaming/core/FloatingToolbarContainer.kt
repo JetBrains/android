@@ -65,7 +65,7 @@ import kotlin.math.min
  */
 internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiveAlpha: Double = 1.0) : JPanel() {
 
-  @MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()])
+  @Orientation
   private val orientation = if (horizontal) HORIZONTAL else VERTICAL
   private val actionToolbars = mutableListOf<ActionToolbar>()
 
@@ -475,6 +475,9 @@ private class ToolbarPanel(private val toolbar: ActionToolbar, val collapsible: 
   class Extent(val offset: Int, val size: Int)
 }
 
+@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()])
+private annotation class Orientation
+
 @Suppress("SameParameterValue")
 private fun createRoundRectangle(x: Int, y: Int, w: Int, h: Int, cornerRadius: Int): RoundRectangle2D =
     RoundRectangle2D.Double(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), cornerRadius.toDouble(), cornerRadius.toDouble())
@@ -485,7 +488,7 @@ private fun Component.preferredSize(collapsed: Boolean): Dimension =
 private fun Component.collapsedSize(): Dimension =
     if (this is ToolbarPanel && collapsible) collapsedSize else ZERO_DIMENSION
 
-private fun Dimension.combine(@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) orientation: Int, other: Dimension) {
+private fun Dimension.combine(@Orientation orientation: Int, other: Dimension) {
   if (orientation == HORIZONTAL) {
     width += other.width
     height = max(height, other.height)
@@ -496,7 +499,7 @@ private fun Dimension.combine(@MagicConstant(intValues = [HORIZONTAL.toLong(), V
   }
 }
 
-private fun Dimension.increment(@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) orientation: Int, value: Int) {
+private fun Dimension.increment(@Orientation orientation: Int, value: Int) {
   if (orientation == HORIZONTAL) {
     width += value
   }
@@ -505,7 +508,7 @@ private fun Dimension.increment(@MagicConstant(intValues = [HORIZONTAL.toLong(),
   }
 }
 
-private operator fun Dimension.set(@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) orientation: Int, value: Int) {
+private operator fun Dimension.set(@Orientation orientation: Int, value: Int) {
   if (orientation == HORIZONTAL) {
     width = value
   }
@@ -514,7 +517,7 @@ private operator fun Dimension.set(@MagicConstant(intValues = [HORIZONTAL.toLong
   }
 }
 
-private operator fun Dimension.get(@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) orientation: Int): Int =
+private operator fun Dimension.get(@Orientation orientation: Int): Int =
     if (orientation == HORIZONTAL) width else height
 
 private operator fun Dimension.minus(insets: Insets): Dimension =
@@ -523,7 +526,7 @@ private operator fun Dimension.minus(insets: Insets): Dimension =
 private operator fun Dimension.plus(insets: Insets): Dimension =
     Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
-private operator fun Point.get(@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) orientation: Int): Int =
+private operator fun Point.get(@Orientation orientation: Int): Int =
     if (orientation == HORIZONTAL) x else y
 
 private operator fun Point.minus(point: Point): Point =
