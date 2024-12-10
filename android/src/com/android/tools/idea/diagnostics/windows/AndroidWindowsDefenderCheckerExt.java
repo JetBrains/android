@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidWindowsDefenderCheckerExt implements WindowsDefenderChecker.Extension {
   @Override
-  public @NotNull Collection<Path> getPaths(@NotNull Project project, @Nullable Path projectPath) {
+  public @NotNull Collection<Path> getPaths(@Nullable Project project, @Nullable Path projectPath) {
     List<Path> paths = new ArrayList<>();
     // Note: Do not include ".android" because
     // 1) the location cannot be customized by the user and
