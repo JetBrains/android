@@ -20,15 +20,14 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
-import kotlinx.coroutines.sync.Semaphore
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.phaser.PhaseConfig
@@ -207,34 +206,25 @@ private object CompileScopeImpl : CompileScope {
 
     val compilerConfiguration = getCompilerConfiguration(moduleForAllInputs, input.first())
 
-    val generationStateBuilder = GenerationState.Builder(project,
-                                                         ClassBuilderFactories.BINARIES,
-                                                         analysisResult.moduleDescriptor,
-                                                         analysisResult.bindingContext,
-                                                         input,
-                                                         compilerConfiguration)
-
-    generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
+    val codegenFactory = JvmIrCodegenFactory(
       compilerConfiguration,
-      PhaseConfig(),
       jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
         override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
           val psiSourceFile =
             descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
           return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
         }
-        },
+      },
       ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
-    ))
-
-    val generationState = generationStateBuilder.build()
+    )
+    val generationState = GenerationState(project, analysisResult.moduleDescriptor, compilerConfiguration)
     inlineClassRequest?.forEach {
       it.fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices)
       it.fillInlineCache(generationState.inlineCache)
     }
 
     try {
-      KotlinCodegenFacade.compileCorrectFiles(generationState)
+      KotlinCodegenFacade.compileCorrectFiles(input, generationState, analysisResult.bindingContext, codegenFactory)
     } catch (e: Throwable) {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
