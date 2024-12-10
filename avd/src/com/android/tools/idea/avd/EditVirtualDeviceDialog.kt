@@ -99,14 +99,13 @@ internal class EditVirtualDeviceDialog(
         avdBuilder.avdFolder = avdManager.uniquifyAvdFolder(avdBuilder.avdName)
       }
     }
-    val newAvdInfo =
-      withContext(AndroidDispatchers.diskIoThread) {
-        when (mode) {
-          Mode.EDIT -> avdManager.editAvd(avdInfo, avdBuilder)
-          Mode.DUPLICATE -> avdManager.duplicateAvd(avdInfo, avdBuilder)
-        }
+    withContext(AndroidDispatchers.diskIoThread) {
+      when (mode) {
+        Mode.EDIT -> avdManager.editAvd(avdInfo, avdBuilder)
+        Mode.DUPLICATE -> avdManager.duplicateAvd(avdInfo, avdBuilder)
       }
-    return newAvdInfo != null
+    }
+    return true
   }
 
   companion object {

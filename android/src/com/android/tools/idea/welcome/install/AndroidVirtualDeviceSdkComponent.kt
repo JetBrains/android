@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManagerException
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
@@ -92,7 +93,7 @@ class AndroidVirtualDeviceSdkComponent(private val androidVersion: AndroidVersio
   }
 
   @Throws(WizardException::class)
-  fun createAvd(sdkHandler: AndroidSdkHandler): AvdInfo? {
+  fun createAvd(sdkHandler: AndroidSdkHandler): AvdInfo {
     val avdManager = IdeAvdManagers.getAvdManager(sdkHandler)
     val device = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
@@ -122,7 +123,11 @@ class AndroidVirtualDeviceSdkComponent(private val androidVersion: AndroidVersio
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     avdBuilder.cpuCoreCount = if (supportsSmp) AvdWizardUtils.getMaxCpuCores() else 1
 
-    return avdManager.createAvd(avdBuilder)
+    try {
+      return avdManager.createAvd(avdBuilder)
+    } catch (e: AvdManagerException) {
+      throw WizardException(e.message ?: "Unable to create AVD", e)
+    }
   }
 
   @VisibleForTesting
@@ -151,8 +156,7 @@ class AndroidVirtualDeviceSdkComponent(private val androidVersion: AndroidVersio
       installContext.progressIndicator.isIndeterminate = true
       installContext.progressIndicator.text = "Creating Android virtual device"
       installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
-      val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
-      val avd = createAvd(sdkHandler) ?: throw WizardException("Unable to create Android virtual device")
+      val avd = createAvd(sdkHandler)
       val successMessage = "Android virtual device ${avd.name} was successfully created\n"
       installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
     }
