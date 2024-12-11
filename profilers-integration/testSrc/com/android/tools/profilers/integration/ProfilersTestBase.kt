@@ -335,6 +335,10 @@ open class ProfilersTestBase {
     studio.executeAction("Android.OpenProfilersPastRecordingsTab")
   }
 
+  protected fun exportRecording(studio: AndroidStudio) {
+    studio.executeAction("Android.ProfilerExportRecording")
+  }
+
   protected fun profileAction(studio: AndroidStudio) {
     studio.executeAction("Android.Profile")
   }

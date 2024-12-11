@@ -314,7 +314,7 @@ iml_test(
 )
 
 iml_test(
-    name = "ImportTraceFileTest",
+    name = "ImportAndExportTraceTest",
     timeout = "long",
     data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
@@ -324,7 +324,7 @@ iml_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.taskbased.ImportTraceFileTest",
+    test_class = "com.android.tools.profilers.integration.taskbased.ImportAndExportTraceTest",
 )
 
 maven_repository(

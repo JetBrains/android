@@ -83,6 +83,8 @@
     </action>
     <action id="Android.OpenProfilersPastRecordingsTab" class="com.android.tools.idea.profilers.actions.OpenProfilersPastRecordingsTabAction">
     </action>
+    <action id="Android.ProfilerExportRecording" class="com.android.tools.idea.profilers.actions.ExportRecordingAction">
+    </action>
     <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">
     </action>
   </actions>

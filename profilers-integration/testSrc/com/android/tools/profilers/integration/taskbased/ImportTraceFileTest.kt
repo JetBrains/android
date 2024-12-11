@@ -16,10 +16,12 @@
 package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.profilers.integration.ProfilersTestBase
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import java.io.File
 import kotlin.io.path.name
 
-class ImportTraceFileTest : ProfilersTestBase() {
+class ImportAndExportTraceTest : ProfilersTestBase() {
 
   /**
    * Validate Importing trace files are working along with opening a recording from recordings tab.
@@ -31,15 +33,18 @@ class ImportTraceFileTest : ProfilersTestBase() {
    *  4. Open a memory recording.
    *  5. Open recordings tab.
    *  6. Open the last recording from the past recordings list.
+   *  7. Export the last recording.
    *
    * Test Verifications:
    *  1. Verify if the profiler tool window is opened.
    *  2. Verify if the CPU trace is opened.
    *  3. Verify if the memory trace is opened.
    *  4. Verify if the trace can be opened from the past recordings list.
+   *  5. Verify if the recording is exported.
+   *  6. Verify that the exported and imported trace file sizes are the same.
    */
   @Test
-  fun testOpeningTraceFiles() {
+  fun test() {
     setupProjectWithoutEmulator(
       testFunction = { studio, project ->
         invokeProfilerToolWindow(studio)
@@ -63,6 +68,17 @@ class ImportTraceFileTest : ProfilersTestBase() {
         // Verifying CpuAnalysisSummaryTab component, since the last recording listed should be cpu-simpleperf.trace,
         // as this was the first one opened in the test.
         studio.waitForComponentByClass("CpuAnalysisSummaryTab", "UsageInstructionsView")
+
+        // Export recording
+        openPastRecordingsTab(studio)
+        selectLastRecordingFromRecordingList(studio)
+        exportRecording(studio)
+        // Verify successful export by comparing the size of the exported trace file
+        // with the size of the last recording (cpu-simpleperf).
+        val importedFile = File(project.targetProject.toFile().absolutePath + "/sampleTaskRecordings/cpu-simpleperf.trace")
+        val exportedFile = File(project.targetProject.toFile().absolutePath + "/ExportedTraceFile.trace")
+        assertThat(exportedFile.exists()).isTrue()
+        assertThat(exportedFile.length()).isEqualTo(importedFile.length())
       }
     )
   }
