@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Selection
@@ -34,7 +34,7 @@ data class IssueToggled(
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     if ((issueState == IssueState.OPEN || issueState == IssueState.CLOSED) && !isUndo) {

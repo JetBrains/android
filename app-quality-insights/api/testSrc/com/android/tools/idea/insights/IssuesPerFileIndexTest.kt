@@ -27,15 +27,15 @@ class IssuesPerFileIndexTest {
   @Test
   fun testSeparateIndicesPerInsightProvider() {
     val index = IssuesPerFileIndex(projectRule.project)
-    val firstProviderKey = InsightsProviderKey("firstProviderKey")
-    val secondProviderKey = InsightsProviderKey("secondProviderKey")
-    index.updateIssueIndex(createIssues(listOf(ISSUE1, ISSUE2)), firstProviderKey)
+    val firstProviderName = "firstProviderKey"
+    val secondProviderName = "secondProviderKey"
+    index.updateIssueIndex(createIssues(listOf(ISSUE1, ISSUE2)), firstProviderName)
 
-    val firstIssuesPerFileName = index.getIssuesPerFilename(firstProviderKey)
+    val firstIssuesPerFileName = index.getIssuesPerFilename(firstProviderName)
     assertThat(firstIssuesPerFileName.size()).isEqualTo(6)
 
-    index.updateIssueIndex(createIssues(emptyList()), secondProviderKey)
-    val secondIssuesPerFileName = index.getIssuesPerFilename(secondProviderKey)
+    index.updateIssueIndex(createIssues(emptyList()), secondProviderName)
+    val secondIssuesPerFileName = index.getIssuesPerFilename(secondProviderName)
     assertThat(secondIssuesPerFileName.isEmpty).isTrue()
   }
 

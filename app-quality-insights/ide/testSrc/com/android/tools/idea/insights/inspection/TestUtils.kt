@@ -45,7 +45,7 @@ internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight 
     issue = issue,
     stackFrame = frame,
     cause = mock<Cause.Frame>(),
-    provider = mock(),
+    providerName = "",
     markAsSelectedCallback = mock(),
   )
 }

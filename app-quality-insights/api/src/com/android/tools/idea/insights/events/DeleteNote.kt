@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
@@ -31,7 +31,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     check(!isCreatingNoteInProgress()) {
@@ -63,7 +63,7 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     return StateTransition(
@@ -94,7 +94,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->

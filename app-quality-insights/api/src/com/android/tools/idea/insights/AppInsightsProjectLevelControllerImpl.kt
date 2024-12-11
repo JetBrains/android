@@ -77,7 +77,7 @@ private data class ProjectState(
 )
 
 class AppInsightsProjectLevelControllerImpl(
-  override val key: InsightsProviderKey,
+  override val provider: InsightsProvider,
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
@@ -115,7 +115,7 @@ class AppInsightsProjectLevelControllerImpl(
   val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
 
   private val settings: InsightsFilterSettings?
-    get() = project.service<AppInsightsSettings>().tabSettings[key.displayName]
+    get() = project.service<AppInsightsSettings>().tabSettings[provider.displayName]
 
   /** Restores persisted settings on the first non empty connections list. */
   private val connectionsFlow = flow {
@@ -156,11 +156,11 @@ class AppInsightsProjectLevelControllerImpl(
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
-          val (newState, action) = event.transition(currentState, tracker, key, cache)
+          val (newState, action) = event.transition(currentState, tracker, provider, cache)
           if (currentState.issues != newState.issues) {
             project
               .service<IssuesPerFileIndex>()
-              .updateIssueIndex(newState.issues.map { it.value }, key)
+              .updateIssueIndex(newState.issues.map { it.value }, provider.displayName)
           }
           if (currentState.mode != newState.mode) {
             offlineStatusManager.enterMode(newState.mode)
@@ -280,7 +280,7 @@ class AppInsightsProjectLevelControllerImpl(
     val issues =
       project
         .service<IssuesPerFileIndex>()
-        .getIssuesPerFilename(key)
+        .getIssuesPerFilename(provider.displayName)
         .get(file.virtualFile.name)
         .toList()
 
@@ -296,7 +296,7 @@ class AppInsightsProjectLevelControllerImpl(
         issue = issueInFrame.issue,
         stackFrame = issueInFrame.crashFrame.frame,
         cause = issueInFrame.crashFrame.cause,
-        provider = key,
+        providerName = provider.displayName,
         markAsSelectedCallback = selectIssueCallback,
       )
     }
@@ -314,5 +314,5 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private fun wrapAdapters(event: ChangeEvent) =
-    PersistSettingsAdapter(SafeFiltersAdapter(event), project, key)
+    PersistSettingsAdapter(SafeFiltersAdapter(event), project, provider.displayName)
 }

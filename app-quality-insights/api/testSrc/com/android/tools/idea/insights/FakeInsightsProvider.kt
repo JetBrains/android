@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-val VITALS_KEY = InsightsProviderKey("Android Vitals")
-val CRASHLYTICS_KEY = InsightsProviderKey("Firebase Crashlytics")
-
-// Use Crashlytics in testing because it exposes more functionality.
-val TEST_KEY = CRASHLYTICS_KEY
-
-/** Represents the identifier of the source of the issue data, e.g. Crashlytics, Play Vitals etc. */
-data class InsightsProviderKey(val displayName: String) : Comparable<InsightsProviderKey> {
-  override fun compareTo(other: InsightsProviderKey): Int {
-    return compareValuesBy(this, other) { it.displayName }
-  }
-}
+class FakeInsightsProvider(
+  override val displayName: String = "Firebase Crashlytics",
+  override val supportsMultipleEvents: Boolean = true,
+) : InsightsProvider

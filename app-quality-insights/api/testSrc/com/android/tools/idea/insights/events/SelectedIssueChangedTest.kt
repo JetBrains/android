@@ -18,14 +18,13 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
-import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -46,7 +45,12 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider(),
+          AppInsightsCacheImpl(),
+        )
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)
@@ -78,13 +82,18 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider(),
+          AppInsightsCacheImpl(),
+        )
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
   }
 
   @Test
-  fun `selecting an issue in Vitals causes event to immediately update, and does not include notes and variants actions`() {
+  fun `provider does not support multiple events causes event to immediately update, and does not include notes and variants actions`() {
     val currentState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -94,7 +103,12 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, VITALS_KEY, AppInsightsCacheImpl())
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider("name", false),
+          AppInsightsCacheImpl(),
+        )
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)

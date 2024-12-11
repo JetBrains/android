@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -35,10 +36,8 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.TEST_FILTERS
-import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
@@ -111,7 +110,14 @@ class IssuesChangedTest {
         currentState,
       )
 
-    with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())) {
+    with(
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
+    ) {
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
       assertThat(newState.currentNotes).isEqualTo(LoadingState.Ready(null))
       assertThat(action).isEqualTo(Action.NONE)
@@ -143,7 +149,14 @@ class IssuesChangedTest {
         currentState,
       )
 
-    with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())) {
+    with(
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
+    ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
@@ -183,7 +196,14 @@ class IssuesChangedTest {
         currentState,
       )
 
-    with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())) {
+    with(
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
+    ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE2)
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
@@ -227,7 +247,12 @@ class IssuesChangedTest {
       )
 
     val resultState =
-      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
 
     // These filters should remain untouched
     assertThat(resultState.newState.filters.timeInterval).isEqualTo(TEST_FILTERS.timeInterval)
@@ -283,7 +308,12 @@ class IssuesChangedTest {
       )
 
     val result =
-      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
 
     // These filters are untouched
     assertThat(result.newState.filters.timeInterval).isEqualTo(currentFilters.timeInterval)
@@ -302,7 +332,7 @@ class IssuesChangedTest {
   }
 
   @Test
-  fun `vitals transition updates event immediately, and does not include variants and notes actions`() {
+  fun `provider that does not support multiple events updates event immediately, and does not include variants and notes actions`() {
     val clock = FakeClock()
     val currentState =
       AppInsightsState(
@@ -327,7 +357,12 @@ class IssuesChangedTest {
       )
 
     with(
-      event.transition(currentState, TestAppInsightsTracker, VITALS_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider("name", false),
+        AppInsightsCacheImpl(),
+      )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)

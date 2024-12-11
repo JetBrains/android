@@ -118,7 +118,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
           .range(TextRange(startLineOffset, startLineOffset))
           .gutterIconRenderer(
             AppInsightsGutterRenderer(crashes) { insight ->
-              AppInsightsToolWindowFactory.show(file.project, insight.provider.displayName) {
+              AppInsightsToolWindowFactory.show(file.project, insight.providerName) {
                 insight.markAsSelected()
               }
             }
@@ -144,7 +144,9 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
             model.controller.insightsInFile(file).also {
-              logger.debug("Found ${it.size} ${model.controller.key} insights for ${file.name}")
+              logger.debug(
+                "Found ${it.size} ${model.controller.provider.displayName} insights for ${file.name}"
+              )
             }
           }
           AppInsightsModel.Unauthenticated -> {

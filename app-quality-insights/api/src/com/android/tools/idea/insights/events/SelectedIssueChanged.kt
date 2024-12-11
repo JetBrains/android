@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -35,7 +35,7 @@ data class SelectedIssueChanged(
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (issue == state.selectedIssue) {
@@ -72,7 +72,7 @@ data class SelectedIssueChanged(
           },
         currentEvents =
           if (issue != null && state.issues is LoadingState.Ready) {
-            transitionEventForKey(key, issue.sampleEvent)
+            transitionEvent(provider, issue.sampleEvent)
           } else {
             LoadingState.Ready(null)
           },
@@ -91,7 +91,7 @@ data class SelectedIssueChanged(
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)
-          actionsForSelectedIssue(key, issue.id, issue.issueDetails.fatality, issue.sampleEvent)
+          actionsForSelectedIssue(provider, issue)
         else Action.NONE,
     )
   }

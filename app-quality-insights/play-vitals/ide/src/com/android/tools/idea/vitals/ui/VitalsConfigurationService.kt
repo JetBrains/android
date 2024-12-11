@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.ai.AiInsightToolkitImpl
 import com.android.tools.idea.insights.ai.GeminiAiInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
@@ -38,6 +37,7 @@ import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
@@ -222,7 +222,7 @@ class VitalsConfigurationManager(
           }
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
-            key = VITALS_KEY,
+            provider = VitalsInsightsProvider,
             uiScope,
             AndroidDispatchers.workerThread,
             clientDeferred.await(),

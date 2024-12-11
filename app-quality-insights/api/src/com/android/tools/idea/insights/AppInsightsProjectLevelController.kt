@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.Flow
 /** The source-based controller which provides lifecycle and App Insights state data. */
 interface AppInsightsProjectLevelController {
   /** The source of insights data this controller is for. */
-  val key: InsightsProviderKey
+  val provider: InsightsProvider
 
   /**
    * This flow represents the App Insights state of a host Android app module.

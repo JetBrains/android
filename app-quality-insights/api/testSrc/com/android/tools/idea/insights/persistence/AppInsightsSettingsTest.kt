@@ -57,7 +57,7 @@ class AppInsightsSettingsTest {
     get() =
       projectRule.project
         .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.key.displayName]!!
+        .tabSettings[controllerRule.controller.provider.displayName]!!
 
   @Test
   fun `settings is only applied to the first non empty ConnectionsChanged event`() =
@@ -69,7 +69,7 @@ class AppInsightsSettingsTest {
       // Mock settings
       projectRule.project
         .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.key.displayName] =
+        .tabSettings[controllerRule.controller.provider.displayName] =
         InsightsFilterSettings(
           connection = CONNECTION1.toSetting(),
           timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
@@ -156,7 +156,7 @@ class AppInsightsSettingsTest {
     runBlocking<Unit> {
       projectRule.project
         .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.key.displayName] =
+        .tabSettings[controllerRule.controller.provider.displayName] =
         InsightsFilterSettings(
           connection = CONNECTION1.toSetting(),
           timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
@@ -187,7 +187,7 @@ class AppInsightsSettingsTest {
     // Mock settings for a connection that does not exist.
     projectRule.project
       .service<AppInsightsSettings>()
-      .tabSettings[controllerRule.controller.key.displayName] =
+      .tabSettings[controllerRule.controller.provider.displayName] =
       InsightsFilterSettings(
         connection = CONNECTION1.toSetting(),
         timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,

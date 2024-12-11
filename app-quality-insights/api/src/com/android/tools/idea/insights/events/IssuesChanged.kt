@@ -19,7 +19,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -46,7 +46,7 @@ data class IssuesChanged(
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
@@ -135,7 +135,7 @@ data class IssuesChanged(
         currentIssueDetails =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents =
-          if (newSelectedIssue != null) transitionEventForKey(key, newSelectedIssue.sampleEvent)
+          if (newSelectedIssue != null) transitionEvent(provider, newSelectedIssue.sampleEvent)
           else LoadingState.Ready(null),
         currentNotes =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
@@ -144,13 +144,7 @@ data class IssuesChanged(
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
-        if (newSelectedIssue != null)
-          actionsForSelectedIssue(
-            key,
-            newSelectedIssue.id,
-            newSelectedIssue.issueDetails.fatality,
-            newSelectedIssue.sampleEvent,
-          )
+        if (newSelectedIssue != null) actionsForSelectedIssue(provider, newSelectedIssue)
         else Action.NONE,
     )
   }

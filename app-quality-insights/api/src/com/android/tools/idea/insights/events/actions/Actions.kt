@@ -215,6 +215,9 @@ sealed class Action {
     }
   }
 
+  infix fun and(others: Collection<Action>): Action =
+    others.fold(this) { acc, next -> acc and next }
+
   val isNoop: Boolean
     get() = this is Multiple && this.actions.isEmpty()
 

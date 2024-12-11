@@ -38,7 +38,12 @@ class EventsChangedTest {
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(eventList, "")))
     val transition =
-      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
     assertThat(transition.action)
@@ -59,7 +64,12 @@ class EventsChangedTest {
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event2")), "")))
     val transition =
-      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(
         LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 0, ""))
@@ -79,7 +89,12 @@ class EventsChangedTest {
     val failure = LoadingState.NetworkFailure("failed")
     val event = EventsChanged(failure)
     val transition =
-      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+      event.transition(
+        currentState,
+        TestAppInsightsTracker,
+        FakeInsightsProvider(),
+        AppInsightsCacheImpl(),
+      )
     assertThat(transition.newState.currentEvents).isEqualTo(failure)
     assertThat(transition.action).isEqualTo(Action.NONE)
   }

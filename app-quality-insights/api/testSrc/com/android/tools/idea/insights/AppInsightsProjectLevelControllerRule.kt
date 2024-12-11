@@ -58,20 +58,20 @@ private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(
 
 class AppInsightsProjectLevelControllerRule(
   private val projectProvider: () -> Project,
-  private val key: InsightsProviderKey,
+  private val provider: InsightsProvider,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
 ) : NamedExternalResource() {
   constructor(
     projectRule: ProjectRule,
-    key: InsightsProviderKey = TEST_KEY,
+    provider: InsightsProvider = FakeInsightsProvider(),
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
-  ) : this({ projectRule.project }, key, onErrorAction)
+  ) : this({ projectRule.project }, provider, onErrorAction)
 
   constructor(
     androidProjectRule: AndroidProjectRule,
-    key: InsightsProviderKey = TEST_KEY,
+    provider: InsightsProvider = FakeInsightsProvider(),
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
-  ) : this({ androidProjectRule.project }, key, onErrorAction)
+  ) : this({ androidProjectRule.project }, provider, onErrorAction)
 
   private val disposableRule = DisposableRule()
   val disposable: Disposable
@@ -105,7 +105,7 @@ class AppInsightsProjectLevelControllerRule(
     )
     controller =
       AppInsightsProjectLevelControllerImpl(
-        key,
+        provider,
         scope,
         AndroidDispatchers.workerThread,
         client,
@@ -155,14 +155,14 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
-        if (key == VITALS_KEY) {
-          client.completeFetchInsightCallWith(insightState)
-        } else {
+        if (provider.supportsMultipleEvents) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
+        } else {
+          client.completeFetchInsightCallWith(insightState)
         }
       }
-      if (key != VITALS_KEY) {
+      if (provider.supportsMultipleEvents) {
         consumeNext()
         consumeNext()
         consumeNext()

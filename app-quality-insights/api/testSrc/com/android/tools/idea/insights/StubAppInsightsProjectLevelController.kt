@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import org.mockito.Mockito.mock
 
 open class StubAppInsightsProjectLevelController(
-  override val key: InsightsProviderKey = InsightsProviderKey("Fake provider"),
+  override val provider: InsightsProvider = FakeInsightsProvider(),
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },

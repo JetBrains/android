@@ -85,7 +85,7 @@ class AppInsightsGutterIconAction(
             }
           panel.add(hintText, BorderLayout.WEST)
 
-          if (insights.groupBy { it.provider }.size == 1 && insights.size > 1) {
+          if (insights.groupBy { it.providerName }.size == 1 && insights.size > 1) {
             val eventsTotal = insights.sumOf { it.issue.issueDetails.eventsCount }
             val usersTotal = insights.sumOf { it.issue.issueDetails.impactedDevicesCount }
             val eventsComponent =
@@ -162,15 +162,15 @@ class AppInsightsGutterIconAction(
 
   private fun generateRenderInstructions(insights: List<AppInsight>) =
     insights
-      .groupBy { it.provider }
+      .groupBy { it.providerName }
       .toSortedMap()
-      .mapValues { (provider, insights) ->
+      .mapValues { (displayName, insights) ->
         // Map each insight to a RenderItem and insert a HeaderItem at the head of the list.
-        listOf(HeaderInstruction(provider.displayName)) +
+        listOf(HeaderInstruction(displayName)) +
           insights.map { insight -> InsightInstruction(insight) }
       }
       .toList()
-      .fold(emptyList<RenderInstruction>()) { acc, (provider, insightsByProvider) ->
+      .fold(emptyList<RenderInstruction>()) { acc, (_, insightsByProvider) ->
         // Insert a divider item when there are two or more categories.
         if (acc.isEmpty()) {
           insightsByProvider
