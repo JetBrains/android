@@ -123,8 +123,6 @@ internal class EmulatorToolWindowPanel(
   override val deviceType: DeviceType
     get() = emulator.emulatorConfig.deviceType
 
-  override val isClosable: Boolean = true
-
   override val preferredFocusableComponent: JComponent
     get() = primaryDisplayView ?: this
 

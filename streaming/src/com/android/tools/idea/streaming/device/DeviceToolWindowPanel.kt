@@ -89,8 +89,6 @@ internal class DeviceToolWindowPanel(
   override val deviceType: DeviceType
     get() = deviceClient.deviceConfig.deviceType
 
-  override val isClosable: Boolean = true
-
   val component: JComponent
     get() = this
 

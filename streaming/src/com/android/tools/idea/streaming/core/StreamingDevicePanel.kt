@@ -56,7 +56,6 @@ abstract class StreamingDevicePanel(
   internal abstract val description: String
   internal abstract val icon: Icon
   internal abstract val deviceType: DeviceType
-  internal abstract val isClosable: Boolean
   internal abstract val preferredFocusableComponent: JComponent
 
   internal abstract var zoomToolbarVisible: Boolean
