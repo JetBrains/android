@@ -12,6 +12,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.exportSignedPackage.NewKeyForm;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +35,7 @@ public class ChooseKeyDialog extends DialogWrapper {
   private final char[] myKeyStorePassword;
   private final List<String> myExistingKeys;
 
+  @Contract(mutates = "param4")
   public ChooseKeyDialog(@NotNull Project project,
                          @NotNull String keyStorePath,
                          @NotNull char[] password,
@@ -45,7 +47,7 @@ public class ChooseKeyDialog extends DialogWrapper {
     myKeyStorePath = keyStorePath;
     myKeyStorePassword = password;
     myExistingKeys = existingKeys;
-    myKeyCombo.setModel(new CollectionComboBoxModel(existingKeys, existingKeys.get(0)));
+    myKeyCombo.setModel(new CollectionComboBoxModel(existingKeys));
 
     if (keyToSelect != null && existingKeys.contains(keyToSelect)) {
       myKeyCombo.setSelectedItem(keyToSelect);
