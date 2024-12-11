@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
@@ -281,7 +282,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   private static FontFamily createRobotoFontFamily() {
     return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
-      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
+      new MutableFontDetail(700, 100f, ITALICS, "https://fonts.google.com/roboto700i", "", false, false)));
   }
 
   public void testDownloadedFontFamily() {

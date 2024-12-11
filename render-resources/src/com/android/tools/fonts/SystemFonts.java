@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 
 /**
@@ -101,7 +102,7 @@ public class SystemFonts {
   private static FontFamily findFont(@NonNull FontLoader fontLoader,
                                      @NonNull String systemFontName,
                                      @NonNull String name,
-                                     int width,
+                                     float width,
                                      int... weights) {
     FontFamily family = fontLoader.findFont(FontProvider.GOOGLE_PROVIDER, name);
     if (family == null) {
@@ -112,7 +113,7 @@ public class SystemFonts {
       .map(FontDetail::toMutableFontDetail)
       .collect(Collectors.toList());
 
-    MutableFontDetail wanted = new MutableFontDetail(400, width, false);
+    MutableFontDetail wanted = new MutableFontDetail(400, width, NORMAL);
     FontDetail best = wanted.findBestMatch(family.getFonts());
     if (best == null) {
       return null;

@@ -35,6 +35,8 @@ import java.util.Map;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 
 /**
  * Parse a font xml file.
@@ -115,9 +117,9 @@ public class FontFamilyParser {
         case FONT:
           String fontName = getAttributeValue(attributes, ATTR_FONT);
           int weight = parseInt(getAttributeValue(attributes, ATTR_FONT_WEIGHT), -1);
-          int width = parseInt(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
+          float width = parseFloat(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
           String fontStyle = getAttributeValue(attributes, ATTR_FONT_STYLE);
-          boolean italics = parseFontStyle(fontStyle);
+          float italics = parseFontStyle(fontStyle);
           boolean hasExplicitStyle = fontStyle != null;
           myResult = addFont(fontName, weight, width, italics, hasExplicitStyle);
           break;
@@ -165,7 +167,7 @@ public class FontFamilyParser {
       return QueryParser.parseDownloadableFont(authority, query);
     }
 
-    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
+    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
       if (myResult instanceof ParseErrorResult) {
         return myResult;
       }
@@ -196,7 +198,7 @@ public class FontFamilyParser {
       return myFonts;
     }
 
-    private void addFont(@NonNull String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
+    private void addFont(@NonNull String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
       myFonts.put(fontName, new MutableFontDetail(weight, width, italics, hasExplicitStyle));
     }
   }
@@ -206,14 +208,26 @@ public class FontFamilyParser {
       return defaultValue;
     }
     try {
-      return Math.round(Float.parseFloat(intAsString));
+      return Integer.parseInt(intAsString);
     }
     catch (NumberFormatException ex) {
       return defaultValue;
     }
   }
 
-  static boolean parseFontStyle(@Nullable String fontStyle) {
-    return fontStyle != null && fontStyle.startsWith("italic");
+  static float parseFloat(@Nullable String floatAsString, float defaultValue) {
+    if (floatAsString == null) {
+      return defaultValue;
+    }
+    try {
+      return Float.parseFloat(floatAsString);
+    }
+    catch (NumberFormatException ex) {
+      return defaultValue;
+    }
+  }
+
+  static float parseFontStyle(@Nullable String fontStyle) {
+    return fontStyle != null && fontStyle.startsWith("italic") ? ITALICS : NORMAL;
   }
 }

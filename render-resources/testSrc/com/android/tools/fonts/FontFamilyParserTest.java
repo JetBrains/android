@@ -25,6 +25,8 @@ import java.io.*;
 import java.util.Iterator;
 import org.junit.Test;
 
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.google.common.truth.Truth.assertThat;
 
 public class FontFamilyParserTest {
@@ -51,11 +53,11 @@ public class FontFamilyParserTest {
     MutableFontDetail italics = compoundResult.getFonts().get("@font/a_bee_zee_italics");
 
     assertThat(regular.getWeight()).isEqualTo(400);
-    assertThat(regular.getWidth()).isEqualTo(100);
-    assertThat(regular.getItalics()).isFalse();
+    assertThat(regular.getWidth()).isEqualTo(100f);
+    assertThat(regular.getItalics()).isEqualTo(NORMAL);
     assertThat(italics.getWeight()).isEqualTo(700);
-    assertThat(italics.getWidth()).isEqualTo(100);
-    assertThat(italics.getItalics()).isTrue();
+    assertThat(italics.getWidth()).isEqualTo(100f);
+    assertThat(italics.getItalics()).isEqualTo(ITALICS);
   }
 
   @Test
@@ -77,8 +79,8 @@ public class FontFamilyParserTest {
 
     MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
     assertThat(fontDetail.getWeight()).isEqualTo(400);
-    assertThat(fontDetail.getWidth()).isEqualTo(100);
-    assertThat(fontDetail.getItalics()).isFalse();
+    assertThat(fontDetail.getWidth()).isEqualTo(100f);
+    assertThat(fontDetail.getItalics()).isEqualTo(NORMAL);
   }
 
   @Test
@@ -100,8 +102,8 @@ public class FontFamilyParserTest {
 
     MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
     assertThat(fontDetail.getWeight()).isEqualTo(400);
-    assertThat(fontDetail.getWidth()).isEqualTo(100);
-    assertThat(fontDetail.getItalics()).isFalse();
+    assertThat(fontDetail.getWidth()).isEqualTo(100f);
+    assertThat(fontDetail.getItalics()).isEqualTo(NORMAL);
   }
 
   @Test
@@ -123,8 +125,8 @@ public class FontFamilyParserTest {
 
     MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
     assertThat(fontDetail.getWeight()).isEqualTo(800);
-    assertThat(fontDetail.getWidth()).isEqualTo(70);
-    assertThat(fontDetail.getItalics()).isTrue();
+    assertThat(fontDetail.getWidth()).isEqualTo(70f);
+    assertThat(fontDetail.getItalics()).isEqualTo(ITALICS);
   }
 
   @Test
@@ -146,19 +148,19 @@ public class FontFamilyParserTest {
 
     MutableFontDetail aladin = fonts.get("Aladin").iterator().next();
     assertThat(aladin.getWeight()).isEqualTo(800);
-    assertThat(aladin.getWidth()).isEqualTo(70);
-    assertThat(aladin.getItalics()).isFalse();
+    assertThat(aladin.getWidth()).isEqualTo(70f);
+    assertThat(aladin.getItalics()).isEqualTo(NORMAL);
 
     Iterator<MutableFontDetail> iterator = fonts.get("Roboto").iterator();
     MutableFontDetail roboto1 = iterator.next();
     assertThat(roboto1.getWeight()).isEqualTo(400);
-    assertThat(roboto1.getWidth()).isEqualTo(100);
-    assertThat(roboto1.getItalics()).isFalse();
+    assertThat(roboto1.getWidth()).isEqualTo(100f);
+    assertThat(roboto1.getItalics()).isEqualTo(NORMAL);
 
     MutableFontDetail roboto2 = iterator.next();
     assertThat(roboto2.getWeight()).isEqualTo(700);
-    assertThat(roboto2.getWidth()).isEqualTo(100);
-    assertThat(roboto2.getItalics()).isTrue();
+    assertThat(roboto2.getWidth()).isEqualTo(100f);
+    assertThat(roboto2.getItalics()).isEqualTo(ITALICS);
   }
 
   private QueryParser.ParseResult parseFontFamilyXml(@NotNull @Language("XML") String content) {

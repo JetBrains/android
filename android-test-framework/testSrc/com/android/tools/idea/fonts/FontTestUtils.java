@@ -38,7 +38,7 @@ public final class FontTestUtils {
   }
 
   @NotNull
-  public static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
+  public static FontDetail createFontDetail(@NotNull String fontName, int weight, float width, float italics) {
     String folderName = DownloadableFontCacheServiceImpl.convertNameToFilename(fontName);
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",

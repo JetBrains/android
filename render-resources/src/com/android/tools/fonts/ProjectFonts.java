@@ -17,6 +17,7 @@ package com.android.tools.fonts;
 
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 
 import com.android.annotations.NonNull;
@@ -315,14 +316,14 @@ public class ProjectFonts {
   private void createEmbeddedFontFamily(@NonNull String name, @NonNull String fileName) {
     String fontName = StringsKt.removePrefix(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
-    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false, false);
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL, fileUrl, "", false, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
   }
 
   private FontFamily createUnresolvedFontFamily(@NonNull String name) {
     String fontName = StringsKt.removePrefix(name, "@font/");
-    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false);
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, "", "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
     return family;
@@ -330,7 +331,7 @@ public class ProjectFonts {
 
   private FontFamily createSynonym(@NonNull String name, @NonNull List<FontDetail> details) {
     assert !details.isEmpty();
-    MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
+    MutableFontDetail wanted = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL);
     FontDetail best = wanted.findBestMatch(details);
     assert best != null;
     FontProvider provider = best.getFamily().getProvider();
@@ -343,7 +344,7 @@ public class ProjectFonts {
   private FontFamily createCompoundFamily(@NonNull String name, @NonNull List<FontDetail> fonts) {
     assert !fonts.isEmpty();
     String fontName = StringsKt.removePrefix(name, "@font/");
-    MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
+    MutableFontDetail wanted = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL);
     FontDetail best = wanted.findBestMatch(fonts);
     assert best != null;
     FontFamily original = best.getFamily();

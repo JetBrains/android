@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.android.tools.idea.fonts.FontTestUtils.createFontDetail;
 import static com.android.tools.idea.fonts.FontTestUtils.getResourceFileContent;
@@ -59,7 +61,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   public void testCreateFontUsingAppCompat() throws Exception {
     setMinSdk("25");
 
-    FontDetail font = createFontDetail("Roboto", 400, 100, false);
+    FontDetail font = createFontDetail("Roboto", 400, 100f, NORMAL);
     String newValue = myCreator.createFontFamily(font, "roboto", true);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(newValue).isEqualTo("@font/roboto");
@@ -115,7 +117,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   public void testCreateFontUsingFrameworkFonts() throws Exception {
     setMinSdk(String.valueOf(FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK));
 
-    FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80, true);
+    FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS);
     String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(newValue).isEqualTo("@font/alegreya_sans_sc");
@@ -133,9 +135,9 @@ public class FontFamilyCreatorTest extends FontTestCase {
   public void testCreateMultipleFiles() throws Exception {
     setMinSdk("28");
 
-    myCreator.createFontFamily(createFontDetail("Roboto", 400, 100, false), "roboto", true);
-    myCreator.createFontFamily(createFontDetail("Alegreya Sans SC", 900, 80, true), "alegreya_sans_sc", true);
-    myCreator.createFontFamily(createFontDetail("Aladin", 400, 100, false), "aladin", true);
+    myCreator.createFontFamily(createFontDetail("Roboto", 400, 100f, NORMAL), "roboto", true);
+    myCreator.createFontFamily(createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS), "alegreya_sans_sc", true);
+    myCreator.createFontFamily(createFontDetail("Aladin", 400, 100f, NORMAL), "aladin", true);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(getFontFileContent("roboto.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
@@ -208,7 +210,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
 
   public void testCreateEmbeddedFont() throws Exception {
     addFontFileToFontCache("raleway", "v6", "other.ttf");
-    FontDetail font = createFontDetail("Raleway", 700, 100, true);
+    FontDetail font = createFontDetail("Raleway", 700, 100f, ITALICS);
     String newValue = myCreator.createFontFamily(font, "raleway_bold_italic", false);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(newValue).isEqualTo("@font/raleway_bold_italic");
@@ -216,7 +218,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   }
 
   public void testGetFontName() {
-    FontDetail font = createFontDetail("Raleway", 700, 100, true);
+    FontDetail font = createFontDetail("Raleway", 700, 100f, ITALICS);
     assertThat(FontFamilyCreator.getFontName(font)).isEqualTo("raleway_bold_italic");
   }
 

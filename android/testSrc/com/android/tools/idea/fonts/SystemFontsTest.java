@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
-import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.SystemFonts;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -63,6 +63,6 @@ public class SystemFontsTest extends FontTestCase {
     assertThat(family.getName()).isEqualTo(fontName);
     FontDetail firstDetail = family.getFonts().get(0);
     assertThat(firstDetail.getWeight()).named(fontName).isEqualTo(expectedWeight);
-    assertThat(firstDetail.getItalics()).named(fontName).isFalse();
+    assertThat(firstDetail.getItalics()).named(fontName).isEqualTo(NORMAL);
   }
 }
