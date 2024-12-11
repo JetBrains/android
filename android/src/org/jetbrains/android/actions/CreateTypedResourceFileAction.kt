@@ -13,303 +13,281 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.android.actions
 
-package org.jetbrains.android.actions;
+import com.android.AndroidXConstants
+import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.res.IdeResourceNameValidator
+import com.android.tools.idea.res.IdeResourceNameValidator.Companion.forFilename
+import com.android.tools.idea.res.createFileResource
+import com.android.tools.idea.res.isResourceSubdirectory
+import com.android.tools.idea.util.dependsOn
+import com.android.tools.rendering.parsers.LayoutPullParsers
+import com.intellij.CommonBundle
+import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.ide.projectView.ProjectView
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileTypes.FileTypeRegistry
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.InputValidator
+import com.intellij.openapi.ui.InputValidatorEx
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.xml.XmlFile
+import com.intellij.util.PsiNavigateUtil
+import com.intellij.xml.refactoring.XmlTagInplaceRenamer
+import org.jetbrains.android.dom.font.FontFamilyDomFileDescription
+import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
+import org.jetbrains.android.dom.transition.TransitionDomUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.android.util.AndroidUtils
+import java.util.Collections
 
-import com.android.AndroidXConstants;
-import com.android.SdkConstants;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.resources.usage.ResourceUsageModel;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectView;
-import com.android.tools.idea.util.DependencyManagementUtil;
-import com.android.tools.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.intellij.CommonBundle;
-import com.intellij.ide.IdeView;
-import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.CaretModel;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.InputValidatorEx;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiPlainTextFile;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.PsiNavigateUtil;
-import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
-import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
-import org.jetbrains.android.dom.transition.TransitionDomUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class CreateTypedResourceFileAction extends CreateResourceActionBase {
-
-  protected final ResourceFolderType myResourceFolderType;
-  protected final String myResourcePresentableName;
-  private final boolean myValuesResourceFile;
-  private boolean myChooseTagName;
-
-  public CreateTypedResourceFileAction(@NotNull String resourcePresentableName,
-                                       @NotNull ResourceFolderType resourceFolderType,
-                                       boolean valuesResourceFile,
-                                       boolean chooseTagName) {
-    super(AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
-          AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
-    myResourceFolderType = resourceFolderType;
-    myResourcePresentableName = resourcePresentableName;
-    myValuesResourceFile = valuesResourceFile;
-    myChooseTagName = chooseTagName;
+open class CreateTypedResourceFileAction(
+  @JvmField protected val myResourcePresentableName: String,
+  val resourceFolderType: ResourceFolderType,
+  private val myValuesResourceFile: Boolean,
+  val isChooseTagName: Boolean
+) : CreateResourceActionBase(
+  AndroidBundle.message(
+    "new.typed.resource.action.title",
+    myResourcePresentableName
+  ),
+  AndroidBundle.message(
+    "new.typed.resource.action.description",
+    myResourcePresentableName
+  ), XmlFileType.INSTANCE.getIcon()
+) {
+  protected fun createValidator(project: Project?, directory: PsiDirectory?): InputValidator {
+    return CreateTypedResourceFileAction.MyValidator(project, directory)
   }
 
-  @NotNull
-  public ResourceFolderType getResourceFolderType() {
-    return myResourceFolderType;
-  }
-
-  protected InputValidator createValidator(Project project, PsiDirectory directory) {
-    return new MyValidator(project, directory);
-  }
-
-  @NotNull
-  @Override
-  protected PsiElement[] invokeDialog(@NotNull Project project, @NotNull DataContext dataContext) {
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+  override fun invokeDialog(project: Project, dataContext: DataContext): Array<PsiElement?>? {
+    val view = LangDataKeys.IDE_VIEW.getData(dataContext)
     if (view != null) {
       // If you're in the Android View, we want to ask you not just the filename but also let you
       // create other resource folder configurations
-      AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane.getId().equals(AndroidProjectView.ID)) {
-        return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
+      val pane = ProjectView.getInstance(project).getCurrentProjectViewPane()
+      if (pane.getId() == ID) {
+        return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext)
       }
 
-      final PsiDirectory directory = view.getOrChooseDirectory();
+      val directory = view.getOrChooseDirectory()
       if (directory != null) {
-        InputValidator validator = createValidator(project, directory);
-        Messages.showInputDialog(project, AndroidBundle.message("new.file.dialog.text"),
-                                 AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
-                                 Messages.getQuestionIcon(), "", validator);
+        val validator = createValidator(project, directory)
+        Messages.showInputDialog(
+          project, AndroidBundle.message("new.file.dialog.text"),
+          AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
+          Messages.getQuestionIcon(), "", validator
+        )
       }
     }
-    return PsiElement.EMPTY_ARRAY;
+    return PsiElement.EMPTY_ARRAY
   }
 
-  @NotNull
-  @Override
-  protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
-    Module module = ModuleUtilCore.findModuleForPsiElement(directory);
-    return doCreateAndNavigate(newName, directory, getDefaultRootTag(module), myChooseTagName, true);
+  @Throws(Exception::class)
+  public override fun create(newName: String, directory: PsiDirectory): Array<PsiElement?> {
+    val module = ModuleUtilCore.findModuleForPsiElement(directory)
+    return doCreateAndNavigate(newName, directory, getDefaultRootTag(module), this.isChooseTagName, true)
   }
 
-  PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
-    throws Exception {
-    final Project project = directory.getProject();
-    if (myResourceFolderType == ResourceFolderType.RAW) {
-      FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(newName);
-      final PsiFile psiFile = WriteCommandAction.writeCommandAction(project)
-        .compute(() -> {
-          directory.checkCreateFile(newName);
-          PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(newName, fileType, "");
-          return (PsiFile)directory.add(file);
-        });
+  @Throws(Exception::class)
+  fun doCreateAndNavigate(
+    newName: String,
+    directory: PsiDirectory,
+    rootTagName: String,
+    chooseTagName: Boolean,
+    navigate: Boolean
+  ): Array<PsiElement?> {
+    val project = directory.getProject()
+    if (this.resourceFolderType == ResourceFolderType.RAW) {
+      val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(newName)
+      val psiFile = WriteCommandAction.writeCommandAction(project)
+        .compute<PsiFile?, RuntimeException?>(ThrowableComputable {
+          directory.checkCreateFile(newName)
+          val file = PsiFileFactory.getInstance(project).createFileFromText(newName, fileType, "")
+          directory.add(file) as PsiFile?
+        })
       if (navigate) {
-        doNavigate(psiFile);
+        doNavigate(psiFile)
       }
-      return new PsiElement[]{psiFile};
+      return arrayOf<PsiElement?>(psiFile)
     }
 
-    final XmlFile xmlFile = IdeResourcesUtil
-      .createFileResource(newName, directory, rootTagName, myResourceFolderType.getName(), myValuesResourceFile);
+    val xmlFile = createFileResource(newName, directory, rootTagName, resourceFolderType.getName(), myValuesResourceFile)
 
     if (navigate) {
-      doNavigate(xmlFile);
+      doNavigate(xmlFile)
     }
     if (chooseTagName) {
-      XmlDocument document = xmlFile.getDocument();
+      val document = xmlFile.getDocument()
       if (document != null) {
-        XmlTag rootTag = document.getRootTag();
+        val rootTag = document.getRootTag()
         if (rootTag != null) {
-          final Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+          val editor = FileEditorManager.getInstance(project).getSelectedTextEditor()
           if (editor != null) {
-            CaretModel caretModel = editor.getCaretModel();
-            caretModel.moveToOffset(rootTag.getTextOffset() + 1);
-            XmlTagInplaceRenamer.rename(editor, rootTag);
+            val caretModel = editor.getCaretModel()
+            caretModel.moveToOffset(rootTag.getTextOffset() + 1)
+            XmlTagInplaceRenamer.rename(editor, rootTag)
           }
         }
       }
     }
-    return new PsiElement[]{xmlFile};
+    return arrayOf<PsiElement>(xmlFile)
   }
 
-  protected void doNavigate(PsiFile psiFile) {
-    if (psiFile instanceof XmlFile xmlFile && xmlFile.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(xmlFile))) {
-      VirtualFile virtualFile = xmlFile.getVirtualFile();
+  protected fun doNavigate(psiFile: PsiFile?) {
+    if (psiFile is XmlFile && psiFile.isValid() && LayoutPullParsers.isSupported(PsiXmlFile(psiFile))) {
+      val virtualFile = psiFile.getVirtualFile()
       if (virtualFile != null && virtualFile.isValid()) {
-        new OpenFileDescriptor(xmlFile.getProject(), virtualFile).navigate(true);
+        OpenFileDescriptor(psiFile.getProject(), virtualFile).navigate(true)
       }
     } else {
-      PsiNavigateUtil.navigate(psiFile);
+      PsiNavigateUtil.navigate(psiFile)
     }
   }
 
-  @Override
-  protected boolean isAvailable(DataContext context) {
-    return super.isAvailable(context) && doIsAvailable(context, myResourceFolderType.getName());
+  override fun isAvailable(context: DataContext): Boolean {
+    return super.isAvailable(context) && doIsAvailable(context, resourceFolderType.getName())
   }
 
-  public boolean isChooseTagName() {
-    return myChooseTagName;
+  open fun getAllowedTagNames(facet: AndroidFacet): MutableList<String?> {
+    return mutableListOf<String?>(getDefaultRootTag(facet.getModule()))
   }
 
-  @NotNull
-  public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-    return Collections.singletonList(getDefaultRootTag(facet.getModule()));
+  fun getSortedAllowedTagNames(facet: AndroidFacet): MutableList<String?> {
+    val result: MutableList<String?> = ArrayList<String?>(getAllowedTagNames(facet))
+    Collections.sort<String?>(result)
+    return result
   }
 
-  @NotNull
-  public final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
-    final List<String> result = new ArrayList<>(getAllowedTagNames(facet));
-    Collections.sort(result);
-    return result;
+  fun getDefaultRootTag(module: Module?): String {
+    return if (this.resourceFolderType == ResourceFolderType.RAW)
+      ""
+    else
+      getDefaultRootTagByResourceType(module, this.resourceFolderType)
   }
 
-  public String getDefaultRootTag(@Nullable Module module) {
-    return myResourceFolderType == ResourceFolderType.RAW
-           ? ""
-           : getDefaultRootTagByResourceType(module, myResourceFolderType);
+  override fun getErrorTitle(): String? {
+    return CommonBundle.getErrorTitle()
   }
 
-  static boolean doIsAvailable(DataContext context, final String resourceType) {
-    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
-    if (element == null || AndroidFacet.getInstance(element) == null) {
-      // Requires a given PsiElement.
-      return false;
+  override fun getCommandName(): String {
+    return AndroidBundle.message("new.typed.resource.command.name", this.resourceFolderType)
+  }
+
+  override fun getActionName(directory: PsiDirectory?, newName: String?): String? {
+    return CreateResourceFileAction.doGetActionName(directory, newName)
+  }
+
+  override fun toString(): String {
+    return myResourcePresentableName
+  }
+
+  private inner class MyValidator(project: Project?, directory: PsiDirectory?) : MyInputValidator(project, directory), InputValidatorEx {
+    private val myNameValidator: IdeResourceNameValidator
+
+    init {
+      myNameValidator = forFilename(this.resourceFolderType, SdkConstants.DOT_XML)
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      PsiElement e = element;
-      while (e != null) {
-        if (e instanceof PsiDirectory && IdeResourcesUtil.isResourceSubdirectory((PsiDirectory)e, resourceType, true)) {
-          // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
-          return true;
-        }
-        e = e.getParent();
+    override fun getErrorText(inputString: String?): String? {
+      return myNameValidator.getErrorText(inputString)
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun doIsAvailable(context: DataContext, resourceType: String?): Boolean {
+      val element = CommonDataKeys.PSI_ELEMENT.getData(context)
+      if (element == null || AndroidFacet.getInstance(element) == null) {
+        // Requires a given PsiElement.
+        return false
       }
-      return false;
-    });
-  }
 
-  @Override
-  protected String getErrorTitle() {
-    return CommonBundle.getErrorTitle();
-  }
-
-  @Override
-  protected String getCommandName() {
-    return AndroidBundle.message("new.typed.resource.command.name", myResourceFolderType);
-  }
-
-  @Nullable
-  @Override
-  protected String getActionName(PsiDirectory directory, String newName) {
-    return CreateResourceFileAction.doGetActionName(directory, newName);
-  }
-
-  @Override
-  public String toString() {
-    return myResourcePresentableName;
-  }
-
-  @NotNull
-  public static String getDefaultRootTagByResourceType(@Nullable Module module, @NotNull ResourceFolderType resourceType) {
-    switch (resourceType) {
-      case XML -> {
-        if (module != null) {
-          if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_PREFERENCE)) {
-            return AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX.newName();
+      return ApplicationManager.getApplication().runReadAction<Boolean?>(Computable {
+        var e: PsiElement? = element
+        while (e != null) {
+          if (e is PsiDirectory && isResourceSubdirectory(e, resourceType, true)) {
+            // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
+            return@Computable true
           }
+          e = e.getParent()
         }
-        return "PreferenceScreen";
-      }
-      case DRAWABLE, COLOR -> {
-        return "selector";
-      }
-      case VALUES -> {
-        return "resources";
-      }
-      case MENU -> {
-        return "menu";
-      }
-      case ANIM, ANIMATOR -> {
-        return "set";
-      }
-      case LAYOUT -> {
-        if (module != null) {
-          if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-            return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
-          }
-          else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-            return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
-          }
-        }
-        return AndroidUtils.TAG_LINEAR_LAYOUT;
-      }
-      case TRANSITION -> {
-        return TransitionDomUtil.DEFAULT_ROOT;
-      }
-      case FONT -> {
-        return FontFamilyDomFileDescription.TAG_NAME;
-      }
-      case NAVIGATION -> {
-        return NavigationDomFileDescription.DEFAULT_ROOT_TAG;
-      }
-      default -> throw new IllegalArgumentException("Incorrect resource folder type");
-
-    }
-  }
-
-  private class MyValidator extends MyInputValidator implements InputValidatorEx {
-    @NotNull
-    private final IdeResourceNameValidator myNameValidator;
-
-    public MyValidator(Project project, PsiDirectory directory) {
-      super(project, directory);
-      myNameValidator = IdeResourceNameValidator.forFilename(myResourceFolderType, SdkConstants.DOT_XML);
+        false
+      })
     }
 
-    @Override
-    public String getErrorText(String inputString) {
-      return myNameValidator.getErrorText(inputString);
+    @JvmStatic
+    fun getDefaultRootTagByResourceType(module: Module?, resourceType: ResourceFolderType): String {
+      when (resourceType) {
+        ResourceFolderType.XML -> {
+          if (module != null) {
+            if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_PREFERENCE)) {
+              return AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
+            }
+          }
+          return "PreferenceScreen"
+        }
+
+        ResourceFolderType.DRAWABLE, ResourceFolderType.COLOR -> {
+          return "selector"
+        }
+
+        ResourceFolderType.VALUES -> {
+          return "resources"
+        }
+
+        ResourceFolderType.MENU -> {
+          return "menu"
+        }
+
+        ResourceFolderType.ANIM, ResourceFolderType.ANIMATOR -> {
+          return "set"
+        }
+
+        ResourceFolderType.LAYOUT -> {
+          if (module != null) {
+            if (module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
+              return AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+            } else if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
+              return AndroidXConstants.CONSTRAINT_LAYOUT.newName()
+            }
+          }
+          return AndroidUtils.TAG_LINEAR_LAYOUT
+        }
+
+        ResourceFolderType.TRANSITION -> {
+          return TransitionDomUtil.DEFAULT_ROOT
+        }
+
+        ResourceFolderType.FONT -> {
+          return FontFamilyDomFileDescription.TAG_NAME
+        }
+
+        ResourceFolderType.NAVIGATION -> {
+          return NavigationDomFileDescription.DEFAULT_ROOT_TAG
+        }
+
+        else -> throw IllegalArgumentException("Incorrect resource folder type")
+      }
     }
   }
 }

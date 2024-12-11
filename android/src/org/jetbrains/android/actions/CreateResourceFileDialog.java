@@ -259,7 +259,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
 
     String rootElement = getRootElement();
     if (!action.isChooseTagName() &&
-        action.myResourceFolderType != ResourceFolderType.RAW &&
+        action.resourceFolderType != ResourceFolderType.RAW &&
         (rootElement == null || rootElement.isEmpty())) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
       return;
