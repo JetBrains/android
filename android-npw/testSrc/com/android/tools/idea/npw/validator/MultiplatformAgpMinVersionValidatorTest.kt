@@ -54,7 +54,7 @@ class MultiplatformAgpMinVersionValidatorTest {
     val result = moduleValidator.validate(version)
     Assert.assertSame(result.message, Validator.Severity.ERROR, result.severity)
     Assert.assertEquals(
-      "Android Gradle Plugin version should be higher than or equal to 8.8.0-beta02",
+      "Android Gradle Plugin version 8.8.0-beta02 or later is required",
       result.message,
     )
   }
