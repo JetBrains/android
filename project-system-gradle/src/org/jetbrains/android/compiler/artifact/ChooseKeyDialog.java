@@ -16,6 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.exportSignedPackage.NewKeyForm;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ public class ChooseKeyDialog extends DialogWrapper {
   private final char[] myKeyStorePassword;
   private final List<String> myExistingKeys;
 
+  @Contract(mutates = "param4")
   public ChooseKeyDialog(@NotNull Project project,
                          @NotNull String keyStorePath,
                          @NotNull char[] password,

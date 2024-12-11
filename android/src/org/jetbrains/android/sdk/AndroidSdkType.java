@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import icons.StudioIcons;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import javax.swing.Icon;
 import org.jdom.Element;
@@ -122,7 +123,7 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
       }
     }
 
-    AndroidNewSdkDialog dialog = new AndroidNewSdkDialog(null, Arrays.asList(targetNames),
+    AndroidNewSdkDialog dialog = new AndroidNewSdkDialog(null, new ArrayList<>(Arrays.asList(targetNames)),
                                                          newestPlatform != null ? newestPlatform : targetNames[0]);
     if (!dialog.showAndGet()) {
       return false;
