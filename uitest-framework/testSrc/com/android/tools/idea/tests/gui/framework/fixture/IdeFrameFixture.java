@@ -169,7 +169,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public BuildStatus invokeRebuildProject(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Clean and Assemble Project"));
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Clean and Assemble Project with Tests"));
   }
 
   @NotNull
