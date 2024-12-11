@@ -18,21 +18,30 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.descendantsOfType
-import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
+import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+
+/**
+ * Returns a list of the names of user-declared classes in a given [KtFile]. This will include the
+ * name of the facade class that contains top-level method declarations. Class names will be fully-qualified
+ * and in the form `foo.bar.MyClassName`
+ */
+internal fun getDeclaredClassNames(sourceFile: KtFile): Set<String> {
+  val names = sourceFile.declarations.filterIsInstance<KtClass>().mapNotNull { it.kotlinFqName?.asString() }.toMutableSet()
+  val fileClassInfo = getFileClassInfoNoResolve(sourceFile)
+  names.add(fileClassInfo.facadeClassFqName.asString())
+  names.add(fileClassInfo.fileClassFqName.asString())
+  return names
+}
 
 internal fun validatePsiDiff(inputs: Collection<LiveEditCompilerInput>, file: KtFile) {
   val oldState = inputs.first().oldState // All these should be the same; they all refer to the same file. This will get refactored.
