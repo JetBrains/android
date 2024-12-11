@@ -411,6 +411,7 @@ filegroup(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
+        "//tools/adt/idea/as-driver:librunfiles",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/logcat:logcat-proto",

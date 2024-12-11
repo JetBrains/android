@@ -79,6 +79,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/as-driver:librunfiles[test]",
     ],
 )
 
@@ -131,4 +132,11 @@ iml_module(
         "@intellij//:com.jetbrains.performancePlugin",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
     ],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "librunfiles",
+    jars = ["//tools/base/bazel:librunfiles.jar"],
+    visibility = ["//visibility:public"],
 )

@@ -15,8 +15,8 @@
  */
 package com.android.tools.asdriver.tests.base;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.TestFileSystem;
+import com.android.tools.asdriver.tests.Workspace;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -49,7 +49,7 @@ public class IntelliJInstallation extends IdeInstallation<IntelliJ> {
   static IntelliJInstallation fromZip(String platform, TestFileSystem testFileSystem) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "intellij");
     System.out.println("workDir: " + workDir);
-    Path zipPath = TestUtils.getWorkspaceRoot(platform).resolve(platform + "-dist.zip");
+    Path zipPath = Workspace.getRoot(platform).resolve(platform + "-dist.zip");
     Path studioDir = workDir.resolve(platform);
     Files.createDirectories(studioDir);
     unzip(zipPath, studioDir);
