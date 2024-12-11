@@ -310,13 +310,13 @@ void AudioStreamer::StopAudioCapture() {
 }
 
 void AudioStreamer::DeleteAudioStreamAndBuilder() {
-  if (stream_builder_ != nullptr) {
-    AAudioStreamBuilder_delete(stream_builder_);
-    stream_builder_ = nullptr;
-  }
   if (stream_ != nullptr) {
     AAudioStream_close(stream_);
     stream_ = nullptr;
+  }
+  if (stream_builder_ != nullptr) {
+    AAudioStreamBuilder_delete(stream_builder_);
+    stream_builder_ = nullptr;
   }
 }
 
