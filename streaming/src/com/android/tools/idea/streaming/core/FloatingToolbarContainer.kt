@@ -70,7 +70,7 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
   private val orientation = if (horizontal) HORIZONTAL else VERTICAL
   private val actionToolbars = mutableListOf<ActionToolbar>()
 
-  private var disposable: Disposable? = null
+  private var visibilityDisposable: Disposable? = null
   private var listeningToMouseEvents = false
   private var activationAnimator: Animator? = null
   private var deactivationAnimator: Animator? = null
@@ -113,7 +113,7 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
         field = value
         if (value) {
           expansionFactor = activationFactor
-          disposable?.let { setUpMouseListener(it) }
+          visibilityDisposable?.let { setUpMouseListener(it) }
         }
       }
     }
@@ -208,19 +208,36 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
 
   override fun addNotify() {
     super.addNotify()
-    val disposable = Disposer.newDisposable("FloatingToolbarContainer").also { this.disposable = it }
-    if (hasCollapsibleToolbar || inactiveAlpha < 1.0) {
-      setUpMouseListener(disposable)
-    }
+    onVisibilityChanged()
   }
 
   override fun removeNotify() {
     super.removeNotify()
-    activationAnimator?.dispose()
-    deactivationAnimator?.dispose()
-    disposable?.let { Disposer.dispose(it) }
-    disposable = null
-    listeningToMouseEvents = false
+    onVisibilityChanged()
+  }
+
+  override fun setVisible(visible: Boolean) {
+    val wasVisible = isVisible
+    super.setVisible(visible)
+    if (visible != wasVisible) {
+      onVisibilityChanged()
+    }
+  }
+
+  private fun onVisibilityChanged() {
+    if (isShowing) {
+      val disposable = visibilityDisposable ?: Disposer.newDisposable("FloatingToolbarContainer").also { visibilityDisposable = it }
+      if (hasCollapsibleToolbar || inactiveAlpha < 1.0) {
+        setUpMouseListener(disposable)
+      }
+    }
+    else {
+      activationAnimator?.dispose()
+      deactivationAnimator?.dispose()
+      visibilityDisposable?.let { Disposer.dispose(it) }
+      visibilityDisposable = null
+      listeningToMouseEvents = false
+    }
   }
 
   private inner class ActivationAnimator(durationMillis: Int)
