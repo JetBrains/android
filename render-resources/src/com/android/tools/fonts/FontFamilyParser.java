@@ -199,7 +199,7 @@ public class FontFamilyParser {
     }
 
     private void addFont(@NonNull String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
-      myFonts.put(fontName, new MutableFontDetail(weight, width, italics, hasExplicitStyle));
+      myFonts.put(fontName, new MutableFontDetail(fontName, weight, width, italics, hasExplicitStyle));
     }
   }
 

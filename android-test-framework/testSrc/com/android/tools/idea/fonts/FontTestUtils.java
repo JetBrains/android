@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_EXACT;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.android.ide.common.fonts.FontDetail;
@@ -43,7 +44,7 @@ public final class FontTestUtils {
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
                                        Collections.singletonList(
-                                         new MutableFontDetail(weight, width, italics, urlStart + "other.ttf", "", false, false)));
+                                         new MutableFontDetail(fontName, weight, width, italics, DEFAULT_EXACT, urlStart + "other.ttf", "", false)));
     return family.getFonts().get(0);
   }
 

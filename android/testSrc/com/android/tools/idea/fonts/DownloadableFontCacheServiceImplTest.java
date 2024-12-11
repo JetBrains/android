@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_EXACT;
 import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
 import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
@@ -103,6 +104,6 @@ public class DownloadableFontCacheServiceImplTest {
                                              @NotNull String menuUrl,
                                              @NotNull String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName, Collections.singletonList(
-      new MutableFontDetail(400, 100f, NORMAL, "https://fonts.com/roboto/v15/qrs.ttf", "", false, false)));
+      new MutableFontDetail(name, 400, 100f, NORMAL, DEFAULT_EXACT, "https://fonts.com/roboto/v15/qrs.ttf", "", false)));
   }
 }

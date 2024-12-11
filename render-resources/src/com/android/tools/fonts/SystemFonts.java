@@ -113,7 +113,7 @@ public class SystemFonts {
       .map(FontDetail::toMutableFontDetail)
       .collect(Collectors.toList());
 
-    MutableFontDetail wanted = new MutableFontDetail(400, width, NORMAL);
+    MutableFontDetail wanted = new MutableFontDetail(name, 400, width, NORMAL, false);
     FontDetail best = wanted.findBestMatch(family.getFonts());
     if (best == null) {
       return null;
