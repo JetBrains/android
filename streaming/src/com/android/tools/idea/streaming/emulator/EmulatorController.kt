@@ -115,7 +115,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   var emulatorConfig: EmulatorConfiguration
     get() {
-      return emulatorConfigInternal ?: throwNotYetConnected()
+      return emulatorConfigInternal ?: throw IllegalStateException("Emulator configuration has not been loaded")
     }
     private inline set(value) {
       emulatorConfigInternal = value
@@ -191,13 +191,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   @Slow
   fun connect() {
-    val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
-    if (config == null) {
+    if (emulatorConfigInternal == null) {
+      loadEmulatorConfiguration()
+    }
+    val config = emulatorConfig
+    if (!config.isValid) {
       // The error has already been logged.
       updateConnectionState(ConnectionState.NOT_INITIALIZED, ConnectionState.DISCONNECTED)
       return
     }
-    emulatorConfig = config
     try {
       loadSkins(config)
     }
@@ -210,6 +212,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         max(config.displayWidth * config.displayHeight, config.additionalDisplays.values.maxOfOrNull { it.width * it.height } ?: 0)
     val maxInboundMessageSize = maxDisplayPixels * 3 + 100 // Three bytes per pixel plus some overhead.
     connectGrpcOrIncreaseMaxInboundMessageSize(maxInboundMessageSize)
+  }
+
+  /** Loads emulator configuration from disk. Returns true if successful. */
+  @Slow
+  fun loadEmulatorConfiguration(): Boolean {
+    emulatorConfig = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder) ?:
+        EmulatorConfiguration.createStub(emulatorId.avdName, emulatorId.avdFolder)
+    return emulatorConfig.isValid
   }
 
   private fun loadSkins(config: EmulatorConfiguration) {

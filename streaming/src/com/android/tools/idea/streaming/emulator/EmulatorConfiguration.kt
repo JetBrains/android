@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
@@ -43,26 +42,29 @@ import javax.swing.Icon
  * Represents configuration of a running Emulator.
  */
 class EmulatorConfiguration private constructor(
-  val avdName: String,
   val avdFolder: Path,
+  val avdName: String,
+  val deviceType: DeviceType,
+  val api: Int,
   val displaySize: Dimension,
   val density: Int,
   val additionalDisplays: Map<Int, Dimension>,
   val skinFolder: Path?,
-  val deviceType: DeviceType,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
-  val initialOrientation: SkinRotation,
+  val initialOrientationQuadrants: Int,
   val displayModes: List<DisplayMode>,
   val postures: List<PostureDescriptor>,
-  val api: Int,
 ) {
 
-  val displayWidth
+  val displayWidth: Int
     get() = displaySize.width
 
-  val displayHeight
+  val displayHeight: Int
     get() = displaySize.height
+
+  val isValid: Boolean
+    get() = displaySize.width > 0 && displaySize.height > 0 && api > 0
 
   companion object {
     /**
@@ -90,8 +92,8 @@ class EmulatorConfiguration private constructor(
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
       val initialOrientation = when {
-        "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> SkinRotation.LANDSCAPE
-        else -> SkinRotation.PORTRAIT
+        "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
+        else -> 0
       }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]
@@ -184,19 +186,24 @@ class EmulatorConfiguration private constructor(
         }
       }
 
-      return EmulatorConfiguration(avdName = avdName,
-                                   avdFolder = avdFolder,
+      return EmulatorConfiguration(avdFolder = avdFolder,
+                                   avdName = avdName,
+                                   deviceType = deviceType,
+                                   api = api,
                                    displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
                                    additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
                                    skinFolder = skinPath,
-                                   deviceType = deviceType,
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
-                                   initialOrientation = initialOrientation,
+                                   initialOrientationQuadrants = initialOrientation,
                                    displayModes = displayModes,
-                                   postures = postures,
-                                   api = api)
+                                   postures = postures)
+    }
+
+    fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
+      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, 0, Dimension(), 0, emptyMap(), null, false, false, 0,
+                                   emptyList(), emptyList())
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {

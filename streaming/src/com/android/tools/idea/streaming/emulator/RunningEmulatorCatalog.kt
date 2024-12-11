@@ -195,6 +195,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
                     thisLogger().info("Discovered emulator $emulatorId")
                   }
                   emulator = EmulatorController(emulatorId, this)
+                  if (emulatorId.isEmbedded) {
+                    emulator.loadEmulatorConfiguration()
+                  }
                   created = true
                 }
                 if (!isDisposing) {

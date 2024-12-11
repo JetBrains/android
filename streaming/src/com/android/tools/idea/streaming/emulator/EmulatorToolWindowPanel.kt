@@ -119,7 +119,6 @@ internal class EmulatorToolWindowPanel(
       return ExecutionUtil.getLiveIndicator(icon)
     }
 
-  /** Device type is available only after the connection to the emulator is established. */
   override val deviceType: DeviceType
     get() = emulator.emulatorConfig.deviceType
 

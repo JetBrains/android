@@ -692,7 +692,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
-    if (emulator.emulatorId.isEmbedded) {
+    if (emulator.emulatorId.isEmbedded && emulator.emulatorConfig.isValid) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentShown && emulators.add(emulator)) {
           addEmulatorPanel(emulator)

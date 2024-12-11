@@ -43,7 +43,6 @@ class EmulatorDisplayPanel(
   deviceFrameVisible: Boolean = false,
 ) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), UiDataProvider, ConnectionStateListener {
 
-  /** Device type is available only after the connection to the emulator is established. */
   override val deviceType: DeviceType
     get() = displayView.emulator.emulatorConfig.deviceType
 

@@ -25,7 +25,6 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Posture.PostureValue
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
@@ -218,7 +217,7 @@ class EmulatorView(
   private val screenshotShape: DisplayShape
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
   private val initialOrientation: Int
-    get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation.number else SkinRotation.PORTRAIT.number
+    get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientationQuadrants else 0
   private val deviceDisplayRegion: Rectangle
     get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
   internal val displayMode: DisplayMode?
