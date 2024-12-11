@@ -19,6 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.ide.common.resources.usage.ResourceUsageModel;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -34,10 +35,13 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -48,6 +52,9 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiPlainTextFile;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -126,18 +133,32 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
     throws Exception {
-    final XmlFile file = IdeResourcesUtil
+    final Project project = directory.getProject();
+    if (myResourceFolderType == ResourceFolderType.RAW) {
+      FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(newName);
+      final PsiFile psiFile = WriteCommandAction.writeCommandAction(project)
+        .compute(() -> {
+          directory.checkCreateFile(newName);
+          PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(newName, fileType, "");
+          return (PsiFile)directory.add(file);
+        });
+      if (navigate) {
+        doNavigate(psiFile);
+      }
+      return new PsiElement[]{psiFile};
+    }
+
+    final XmlFile xmlFile = IdeResourcesUtil
       .createFileResource(newName, directory, rootTagName, myResourceFolderType.getName(), myValuesResourceFile);
 
     if (navigate) {
-      doNavigate(file);
+      doNavigate(xmlFile);
     }
     if (chooseTagName) {
-      XmlDocument document = file.getDocument();
+      XmlDocument document = xmlFile.getDocument();
       if (document != null) {
         XmlTag rootTag = document.getRootTag();
         if (rootTag != null) {
-          final Project project = file.getProject();
           final Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
           if (editor != null) {
             CaretModel caretModel = editor.getCaretModel();
@@ -147,17 +168,17 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
         }
       }
     }
-    return new PsiElement[]{file};
+    return new PsiElement[]{xmlFile};
   }
 
-  protected void doNavigate(XmlFile file) {
-    if (file.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(file))) {
-      VirtualFile virtualFile = file.getVirtualFile();
+  protected void doNavigate(PsiFile psiFile) {
+    if (psiFile instanceof XmlFile xmlFile && xmlFile.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(xmlFile))) {
+      VirtualFile virtualFile = xmlFile.getVirtualFile();
       if (virtualFile != null && virtualFile.isValid()) {
-        new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
+        new OpenFileDescriptor(xmlFile.getProject(), virtualFile).navigate(true);
       }
     } else {
-      PsiNavigateUtil.navigate(file);
+      PsiNavigateUtil.navigate(psiFile);
     }
   }
 
@@ -183,7 +204,9 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   public String getDefaultRootTag(@Nullable Module module) {
-    return getDefaultRootTagByResourceType(module, myResourceFolderType);
+    return myResourceFolderType == ResourceFolderType.RAW
+           ? ""
+           : getDefaultRootTagByResourceType(module, myResourceFolderType);
   }
 
   static boolean doIsAvailable(DataContext context, final String resourceType) {

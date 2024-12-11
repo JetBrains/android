@@ -157,7 +157,11 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     updateOkAction();
     updateRootElementTextField();
 
-    if (rootElement != null) {
+    if (folderType == ResourceFolderType.RAW) {
+      myRootElementLabel.setVisible(false);
+      myRootElementFieldWrapper.setVisible(false);
+      myRootElementField.setVisible(false);
+    } else if (rootElement != null) {
       myRootElementLabel.setVisible(false);
       myRootElementFieldWrapper.setVisible(false);
       myRootElementField.setText(rootElement);
@@ -254,7 +258,9 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
 
     String rootElement = getRootElement();
-    if (!action.isChooseTagName() && rootElement.isEmpty()) {
+    if (!action.isChooseTagName() &&
+        action.myResourceFolderType != ResourceFolderType.RAW &&
+        (rootElement == null || rootElement.isEmpty())) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
@@ -316,9 +322,9 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     return myDirectoryNameTextField.getText().trim();
   }
 
-  @NotNull
+  @Nullable
   protected String getRootElement() {
-    return myRootElementField.getText().trim();
+    return myRootElementField == null ? null : myRootElementField.getText().trim();
   }
 
 

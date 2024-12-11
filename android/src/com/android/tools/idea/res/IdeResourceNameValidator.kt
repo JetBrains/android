@@ -121,9 +121,15 @@ private constructor(
           ValueResourceNameValidator.getErrorText(inputString, inputType.type)
         is InputType.FileName -> {
           val inputWithoutExtension =
-            if (inputType.implicitExtension != null)
-              inputString.removeSuffix(inputType.implicitExtension)
-            else inputString
+            when {
+              inputType.type == ResourceFolderType.RAW ->
+                inputString.lastIndexOf('.').takeIf { it != -1 }?.let(inputString::take)
+                  ?: inputString
+              inputType.implicitExtension != null ->
+                inputString.removeSuffix(inputType.implicitExtension)
+              else -> inputString
+            }
+
           FileResourceNameValidator.getErrorTextForNameWithoutExtension(
             inputWithoutExtension,
             inputType.type,
