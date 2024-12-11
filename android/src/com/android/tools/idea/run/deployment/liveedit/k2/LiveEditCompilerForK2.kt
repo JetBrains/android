@@ -31,6 +31,7 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
@@ -77,10 +78,8 @@ internal class LiveEditCompilerForK2(
 
 @OptIn(KaExperimentalApi::class)
 fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
-  module.let {
-    if (file.module != it) {
-      throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
-    }
+  if (ModuleUtilCore.findModuleForFile(file) != module) {
+    throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
   }
 
   // Since K2 compile AA reports syntax error, this may be unnecessary, but it throws an exception early when it has a syntax error.

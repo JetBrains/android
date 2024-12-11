@@ -16,10 +16,10 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 internal class LiveEditCompilerForK1(
@@ -62,7 +62,7 @@ internal class LiveEditCompilerForK1(
             project,
             analysisResult,
             inputFiles,
-            inputFiles.first().module!!,
+            ModuleUtilCore.findModuleForFile(inputFiles.first())!!,
             inlineCandidates
           )
         }
@@ -85,7 +85,7 @@ internal class LiveEditCompilerForK1(
             project,
             newAnalysisResult,
             inputFiles,
-            inputFiles.first().module!!,
+            ModuleUtilCore.findModuleForFile(inputFiles.first())!!,
             inlineCandidates
           )
         }
