@@ -36,7 +36,7 @@ fun parseAny(text: String): Annotated<ParsedValue<Any>> =
                            DslText.Literal).annotated()
 
 fun parseString(text: String): Annotated<ParsedValue<String>> =
-  if (text == "")
+  if (text.isEmpty())
     ParsedValue.NotSet.annotated()
   else
     ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
@@ -98,11 +98,6 @@ fun parseLanguageLevel(text: String): Annotated<ParsedValue<LanguageLevel>> =
     ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
       .annotateWithError("'$text' is not a valid language level")
 
-fun parseHashString(text: String) =
-  if (text.isEmpty()) ParsedValue.NotSet.annotated()
-  else ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
-
-
 fun parseGradleVersion(text: String): Annotated<ParsedValue<Version>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
@@ -134,8 +129,10 @@ fun formatAny(value: Any): String {
 
 fun formatUnit(value: Unit): String = ""
 
-fun matchHashStrings(mode: Any?, parsed: String?, resolved: String) =
+fun matchHashStrings(parsed: String?, resolved: String) =
   AndroidTargetHash.getPlatformVersion(parsed.orEmpty())?.featureLevel == AndroidTargetHash.getPlatformVersion(resolved)?.featureLevel
+
+fun matchHashStrings(model: Any?, parsed: String?, resolved: String) = matchHashStrings(parsed, resolved)
 
 fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =
   parsed?.let { rootDir?.resolve(parsed) } == resolved

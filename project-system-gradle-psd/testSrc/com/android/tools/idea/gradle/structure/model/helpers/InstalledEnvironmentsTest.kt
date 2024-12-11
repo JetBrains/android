@@ -77,9 +77,9 @@ class InstalledEnvironmentsTest {
         installedEnvironments(sdkManager, targets).androidSdks,
         equalTo(
             listOf(
-                ValueDescriptor(24, "API 24 (\"Nougat\"; Android 7.0)"),
-                ValueDescriptor(26, "API 26 (\"Oreo\"; Android 8.0)"),
-                ValueDescriptor(27, "API 27 (\"Oreo\"; Android 8.1)")
+                ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
+                ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
+                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)")
             )))
 
   }

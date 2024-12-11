@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -110,7 +111,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
 
       val buildEnvironmentMinSdkVersion = BuildEnvironment.getInstance().minSdkVersion
-      assertThat(minSdkVersion.resolved.asTestValue(), equalTo(buildEnvironmentMinSdkVersion))
+      assertThat(matchHashStrings(minSdkVersion.resolved.asTestValue(), buildEnvironmentMinSdkVersion), equalTo(true))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(buildEnvironmentMinSdkVersion))
 
       assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
@@ -120,7 +121,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
       val latestAgpVersionDescriptorTargetSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk
-      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(latestAgpVersionDescriptorTargetSdk))
+      assertThat(matchHashStrings(targetSdkVersion.resolved.asTestValue(), latestAgpVersionDescriptorTargetSdk), equalTo(true))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(latestAgpVersionDescriptorTargetSdk))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
@@ -275,10 +276,10 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
         assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
-        assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
+        assertThat(matchHashStrings(null, minSdkVersion.parsedValue.asTestValue(), minSdkVersion.resolved.asTestValue()!!), equalTo(true))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
-        assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
+        assertThat(matchHashStrings(null, targetSdkVersion.parsedValue.asTestValue(), targetSdkVersion.resolved.asTestValue()!!), equalTo(true))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
         assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))

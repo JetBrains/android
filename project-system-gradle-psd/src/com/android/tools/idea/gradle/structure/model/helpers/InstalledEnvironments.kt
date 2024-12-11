@@ -27,7 +27,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel
 
 data class InstalledEnvironments(
   val buildTools: List<ValueDescriptor<String>>,
-  val androidSdks: List<ValueDescriptor<Int>>,
+  val androidSdks: List<ValueDescriptor<String>>,
   val compiledApis: List<ValueDescriptor<String>>,
   val ndks: List<ValueDescriptor<String>>)
 
@@ -45,7 +45,7 @@ fun installedEnvironments(): InstalledEnvironments {
 fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidTarget>): InstalledEnvironments {
   fun platformName(target: IAndroidTarget) =
     if (target.isPlatform)
-      if (target.version.isPreview) AndroidTargetHash.getPlatformHashString(target.version) else target.version.apiString
+      if (target.version.isPreview) AndroidTargetHash.getPlatformHashString(target.version) else target.version.apiStringWithExtension
     else
       AndroidTargetHash.getAddonHashString(target.vendor, target.name, target.version)
 
@@ -53,7 +53,7 @@ fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidT
   val ndkLocalPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_NDK_SIDE_BY_SIDE)
 
   val buildToolsMap = buildToolsLocalPackages.map { it.version.toString() }.toSet()
-  val apisMap = targets.filter { it.isPlatform }.associate { it.version.apiLevel to getTargetLabel(it) }
+  val apisMap = targets.filter { it.isPlatform }.associate { platformName(it) to getTargetLabel(it) }
   val compiledApisMap = targets.associate { platformName(it) to getTargetLabel(it) }
   val ndksMap = ndkLocalPackages.map { it.version.toString() }.toSet()
 
