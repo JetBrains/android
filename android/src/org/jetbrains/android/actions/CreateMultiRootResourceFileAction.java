@@ -2,12 +2,9 @@
 
 package org.jetbrains.android.actions;
 
-import com.android.AndroidXConstants;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.navigator.AndroidProjectView;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -76,7 +73,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
 
   @NotNull
   @Override
-  protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
+  protected PsiElement @NotNull [] create(@NotNull String newName, @NotNull PsiDirectory directory) {
     Module module = ModuleUtilCore.findModuleForPsiElement(directory);
     final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag(module);
     return doCreateAndNavigate(newName, directory, rootTag, false, true);
@@ -85,7 +82,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   @NotNull
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-    assert resourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
+    assert getResourceFolderType() == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
     return getPossibleRoots(facet);
   }
 
@@ -106,7 +103,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     protected MyDialog(@NotNull AndroidFacet facet, @Nullable InputValidator validator) {
       super(facet.getModule().getProject());
       myValidator = validator;
-      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName));
+      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", resourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
       myRootElementField = new TextFieldWithAutoCompletion<String>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);

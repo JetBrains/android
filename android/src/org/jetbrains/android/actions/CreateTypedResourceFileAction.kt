@@ -32,7 +32,6 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -43,14 +42,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PsiNavigateUtil
+import com.intellij.util.application
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
@@ -58,236 +57,183 @@ import org.jetbrains.android.dom.transition.TransitionDomUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import java.util.Collections
 
 open class CreateTypedResourceFileAction(
-  @JvmField protected val myResourcePresentableName: String,
+  @JvmField protected val resourcePresentableName: String,
   val resourceFolderType: ResourceFolderType,
-  private val myValuesResourceFile: Boolean,
-  val isChooseTagName: Boolean
-) : CreateResourceActionBase(
-  AndroidBundle.message(
-    "new.typed.resource.action.title",
-    myResourcePresentableName
-  ),
-  AndroidBundle.message(
-    "new.typed.resource.action.description",
-    myResourcePresentableName
-  ), XmlFileType.INSTANCE.getIcon()
-) {
-  protected fun createValidator(project: Project?, directory: PsiDirectory?): InputValidator {
-    return CreateTypedResourceFileAction.MyValidator(project, directory)
+  private val valuesResourceFile: Boolean,
+  val isChooseTagName: Boolean,
+) :
+  CreateResourceActionBase(
+    AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
+    AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName),
+    XmlFileType.INSTANCE.icon,
+  ) {
+  protected fun createValidator(project: Project, directory: PsiDirectory): InputValidator {
+    return MyValidator(project, directory)
   }
 
-  override fun invokeDialog(project: Project, dataContext: DataContext): Array<PsiElement?>? {
-    val view = LangDataKeys.IDE_VIEW.getData(dataContext)
-    if (view != null) {
-      // If you're in the Android View, we want to ask you not just the filename but also let you
-      // create other resource folder configurations
-      val pane = ProjectView.getInstance(project).getCurrentProjectViewPane()
-      if (pane.getId() == ID) {
-        return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext)
-      }
-
-      val directory = view.getOrChooseDirectory()
-      if (directory != null) {
-        val validator = createValidator(project, directory)
-        Messages.showInputDialog(
-          project, AndroidBundle.message("new.file.dialog.text"),
-          AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
-          Messages.getQuestionIcon(), "", validator
-        )
-      }
+  override fun invokeDialog(project: Project, dataContext: DataContext): Array<PsiElement> {
+    val view = LangDataKeys.IDE_VIEW.getData(dataContext) ?: return PsiElement.EMPTY_ARRAY
+    // If you're in the Android View, we want to ask you not just the filename but also let you
+    // create other resource folder configurations
+    if (ProjectView.getInstance(project).currentProjectViewPane.id == com.android.tools.idea.navigator.ID) {
+      return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext)
     }
+
+    val directory = view.getOrChooseDirectory() ?: return PsiElement.EMPTY_ARRAY
+
+    val validator = createValidator(project, directory)
+    Messages.showInputDialog(
+      project,
+      AndroidBundle.message("new.file.dialog.text"),
+      AndroidBundle.message("new.typed.resource.dialog.title", resourcePresentableName),
+      Messages.getQuestionIcon(),
+      "",
+      validator,
+    )
     return PsiElement.EMPTY_ARRAY
   }
 
-  @Throws(Exception::class)
-  public override fun create(newName: String, directory: PsiDirectory): Array<PsiElement?> {
+  override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
     val module = ModuleUtilCore.findModuleForPsiElement(directory)
-    return doCreateAndNavigate(newName, directory, getDefaultRootTag(module), this.isChooseTagName, true)
+    return doCreateAndNavigate(
+      newName,
+      directory,
+      getDefaultRootTag(module),
+      this.isChooseTagName,
+      true,
+    )
   }
 
-  @Throws(Exception::class)
   fun doCreateAndNavigate(
     newName: String,
     directory: PsiDirectory,
     rootTagName: String,
     chooseTagName: Boolean,
-    navigate: Boolean
-  ): Array<PsiElement?> {
-    val project = directory.getProject()
-    if (this.resourceFolderType == ResourceFolderType.RAW) {
+    navigate: Boolean,
+  ): Array<PsiElement> {
+    val project = directory.project
+    if (resourceFolderType == ResourceFolderType.RAW) {
       val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(newName)
-      val psiFile = WriteCommandAction.writeCommandAction(project)
-        .compute<PsiFile?, RuntimeException?>(ThrowableComputable {
+      val psiFile =
+        WriteCommandAction.writeCommandAction(project).compute<PsiFile, RuntimeException> {
           directory.checkCreateFile(newName)
           val file = PsiFileFactory.getInstance(project).createFileFromText(newName, fileType, "")
-          directory.add(file) as PsiFile?
-        })
-      if (navigate) {
-        doNavigate(psiFile)
-      }
-      return arrayOf<PsiElement?>(psiFile)
-    }
-
-    val xmlFile = createFileResource(newName, directory, rootTagName, resourceFolderType.getName(), myValuesResourceFile)
-
-    if (navigate) {
-      doNavigate(xmlFile)
-    }
-    if (chooseTagName) {
-      val document = xmlFile.getDocument()
-      if (document != null) {
-        val rootTag = document.getRootTag()
-        if (rootTag != null) {
-          val editor = FileEditorManager.getInstance(project).getSelectedTextEditor()
-          if (editor != null) {
-            val caretModel = editor.getCaretModel()
-            caretModel.moveToOffset(rootTag.getTextOffset() + 1)
-            XmlTagInplaceRenamer.rename(editor, rootTag)
-          }
+          directory.add(file) as PsiFile
         }
-      }
+      if (navigate) doNavigate(psiFile)
+      return arrayOf(psiFile)
     }
-    return arrayOf<PsiElement>(xmlFile)
+
+    val xmlFile =
+      createFileResource(
+        newName,
+        directory,
+        rootTagName,
+        resourceFolderType.getName(),
+        valuesResourceFile,
+      )
+
+    if (navigate) doNavigate(xmlFile)
+    if (chooseTagName) doChooseTagName(xmlFile)
+
+    return arrayOf(xmlFile)
   }
 
-  protected fun doNavigate(psiFile: PsiFile?) {
-    if (psiFile is XmlFile && psiFile.isValid() && LayoutPullParsers.isSupported(PsiXmlFile(psiFile))) {
-      val virtualFile = psiFile.getVirtualFile()
-      if (virtualFile != null && virtualFile.isValid()) {
-        OpenFileDescriptor(psiFile.getProject(), virtualFile).navigate(true)
-      }
+  private fun doChooseTagName(xmlFile: XmlFile) {
+    val rootTag = xmlFile.document?.rootTag ?: return
+    val editor = FileEditorManager.getInstance(xmlFile.project).selectedTextEditor ?: return
+    editor.caretModel.moveToOffset(rootTag.textOffset + 1)
+    XmlTagInplaceRenamer.rename(editor, rootTag)
+  }
+
+  protected fun doNavigate(file: PsiFile) {
+    if (file is XmlFile && file.isValid && LayoutPullParsers.isSupported(PsiXmlFile(file))) {
+      val virtualFile = file.virtualFile.takeIf { it.isValid } ?: return
+      OpenFileDescriptor(file.project, virtualFile).navigate(true)
     } else {
-      PsiNavigateUtil.navigate(psiFile)
+      PsiNavigateUtil.navigate(file)
     }
   }
 
-  override fun isAvailable(context: DataContext): Boolean {
-    return super.isAvailable(context) && doIsAvailable(context, resourceFolderType.getName())
-  }
+  override fun isAvailable(context: DataContext) =
+    super.isAvailable(context) && doIsAvailable(context, resourceFolderType.name)
 
-  open fun getAllowedTagNames(facet: AndroidFacet): MutableList<String?> {
-    return mutableListOf<String?>(getDefaultRootTag(facet.getModule()))
-  }
+  open fun getAllowedTagNames(facet: AndroidFacet) = listOf(getDefaultRootTag(facet.module))
 
-  fun getSortedAllowedTagNames(facet: AndroidFacet): MutableList<String?> {
-    val result: MutableList<String?> = ArrayList<String?>(getAllowedTagNames(facet))
-    Collections.sort<String?>(result)
-    return result
-  }
+  fun getSortedAllowedTagNames(facet: AndroidFacet) = getAllowedTagNames(facet).sorted()
 
-  fun getDefaultRootTag(module: Module?): String {
-    return if (this.resourceFolderType == ResourceFolderType.RAW)
-      ""
-    else
-      getDefaultRootTagByResourceType(module, this.resourceFolderType)
-  }
+  fun getDefaultRootTag(module: Module?) =
+    if (resourceFolderType == ResourceFolderType.RAW) ""
+    else getDefaultRootTagByResourceType(module, resourceFolderType)
 
-  override fun getErrorTitle(): String? {
-    return CommonBundle.getErrorTitle()
-  }
+  override fun getErrorTitle(): String = CommonBundle.getErrorTitle()
 
-  override fun getCommandName(): String {
-    return AndroidBundle.message("new.typed.resource.command.name", this.resourceFolderType)
-  }
+  override fun getCommandName(): String? =
+    AndroidBundle.message("new.typed.resource.command.name", resourceFolderType)
 
-  override fun getActionName(directory: PsiDirectory?, newName: String?): String? {
-    return CreateResourceFileAction.doGetActionName(directory, newName)
-  }
+  override fun getActionName(directory: PsiDirectory, newName: String): String =
+    CreateResourceFileAction.doGetActionName(directory, newName)
 
-  override fun toString(): String {
-    return myResourcePresentableName
-  }
+  override fun toString() = resourcePresentableName
 
-  private inner class MyValidator(project: Project?, directory: PsiDirectory?) : MyInputValidator(project, directory), InputValidatorEx {
-    private val myNameValidator: IdeResourceNameValidator
+  private inner class MyValidator(project: Project, directory: PsiDirectory) :
+    MyInputValidator(project, directory), InputValidatorEx {
+    private val nameValidator: IdeResourceNameValidator =
+      forFilename(resourceFolderType, SdkConstants.DOT_XML)
 
-    init {
-      myNameValidator = forFilename(this.resourceFolderType, SdkConstants.DOT_XML)
-    }
+    override fun getErrorText(inputString: String?) = nameValidator.getErrorText(inputString)
 
-    override fun getErrorText(inputString: String?): String? {
-      return myNameValidator.getErrorText(inputString)
-    }
+    override fun checkInput(inputString: String?) = super<MyInputValidator>.checkInput(inputString)
+
+    override fun canClose(inputString: String?) = super<MyInputValidator>.canClose(inputString)
   }
 
   companion object {
     @JvmStatic
     fun doIsAvailable(context: DataContext, resourceType: String?): Boolean {
-      val element = CommonDataKeys.PSI_ELEMENT.getData(context)
-      if (element == null || AndroidFacet.getInstance(element) == null) {
-        // Requires a given PsiElement.
-        return false
-      }
+      // Requires a given PsiElement.
+      val element =
+        CommonDataKeys.PSI_ELEMENT.getData(context)?.takeIf { AndroidFacet.getInstance(it) != null }
+          ?: return false
 
-      return ApplicationManager.getApplication().runReadAction<Boolean?>(Computable {
-        var e: PsiElement? = element
-        while (e != null) {
-          if (e is PsiDirectory && isResourceSubdirectory(e, resourceType, true)) {
-            // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
-            return@Computable true
-          }
-          e = e.getParent()
-        }
-        false
-      })
+      return application.runReadAction<Boolean> {
+        // Verify the given PsiElement is a directory within a valid resource type folder (e.g:
+        // .../res/color).
+        element.parents(withSelf = true).any { it is PsiDirectory && isResourceSubdirectory(it, resourceType, true) }
+      }
     }
 
     @JvmStatic
-    fun getDefaultRootTagByResourceType(module: Module?, resourceType: ResourceFolderType): String {
+    fun getDefaultRootTagByResourceType(module: Module?, resourceType: ResourceFolderType) =
       when (resourceType) {
         ResourceFolderType.XML -> {
-          if (module != null) {
-            if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_PREFERENCE)) {
-              return AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
-            }
+          if (module?.dependsOn(GoogleMavenArtifactId.ANDROIDX_PREFERENCE) == true) {
+            AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
+          } else {
+            "PreferenceScreen"
           }
-          return "PreferenceScreen"
         }
-
-        ResourceFolderType.DRAWABLE, ResourceFolderType.COLOR -> {
-          return "selector"
-        }
-
-        ResourceFolderType.VALUES -> {
-          return "resources"
-        }
-
-        ResourceFolderType.MENU -> {
-          return "menu"
-        }
-
-        ResourceFolderType.ANIM, ResourceFolderType.ANIMATOR -> {
-          return "set"
-        }
-
-        ResourceFolderType.LAYOUT -> {
-          if (module != null) {
-            if (module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-              return AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
-            } else if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-              return AndroidXConstants.CONSTRAINT_LAYOUT.newName()
-            }
+        ResourceFolderType.DRAWABLE,
+        ResourceFolderType.COLOR -> "selector"
+        ResourceFolderType.VALUES -> "resources"
+        ResourceFolderType.MENU -> "menu"
+        ResourceFolderType.ANIM,
+        ResourceFolderType.ANIMATOR -> "set"
+        ResourceFolderType.LAYOUT ->
+          when {
+            module == null -> AndroidUtils.TAG_LINEAR_LAYOUT
+            module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ->
+              AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+            module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT) ->
+              AndroidXConstants.CONSTRAINT_LAYOUT.newName()
+            else -> AndroidUtils.TAG_LINEAR_LAYOUT
           }
-          return AndroidUtils.TAG_LINEAR_LAYOUT
-        }
-
-        ResourceFolderType.TRANSITION -> {
-          return TransitionDomUtil.DEFAULT_ROOT
-        }
-
-        ResourceFolderType.FONT -> {
-          return FontFamilyDomFileDescription.TAG_NAME
-        }
-
-        ResourceFolderType.NAVIGATION -> {
-          return NavigationDomFileDescription.DEFAULT_ROOT_TAG
-        }
-
+        ResourceFolderType.TRANSITION -> TransitionDomUtil.DEFAULT_ROOT
+        ResourceFolderType.FONT -> FontFamilyDomFileDescription.TAG_NAME
+        ResourceFolderType.NAVIGATION -> NavigationDomFileDescription.DEFAULT_ROOT_TAG
         else -> throw IllegalArgumentException("Incorrect resource folder type")
       }
-    }
   }
 }

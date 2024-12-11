@@ -142,12 +142,12 @@ public abstract class CreateResourceActionBase extends AnAction {
     }
 
     @Override
-    public PsiElement[] create(String newName) throws Exception {
+    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
       return CreateResourceActionBase.this.create(newName, myDirectory);
     }
 
     @Override
-    public String getActionName(String newName) {
+    public @NotNull String getActionName(@NotNull String newName) {
       return CreateResourceActionBase.this.getActionName(myDirectory, newName);
     }
 
