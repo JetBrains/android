@@ -251,7 +251,7 @@ class StreamingToolWindowManagerTest {
     // Start the emulator.
     emulator.start()
 
-    val controllers = RunningEmulatorCatalog.getInstance().updateNow().get()
+    val controllers = runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
     waitForCondition(3.seconds) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
     assertThat(controllers).isNotEmpty()
@@ -676,7 +676,7 @@ class StreamingToolWindowManagerTest {
     val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
     val tablet = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(avdRoot))
     tablet.start(standalone = true)
-    RunningEmulatorCatalog.getInstance().updateNow().get()
+    runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
     val popup = triggerAddDevicePopup()
     assertThat(popup.actions.toString()).isEqualTo(

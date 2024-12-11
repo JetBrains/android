@@ -20,7 +20,6 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.actions.AbstractStreamingAction
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.ShowLogAction
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnAction
@@ -32,11 +31,8 @@ import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
 import com.intellij.ui.dsl.builder.components.DslLabel
 import com.intellij.ui.dsl.builder.components.DslLabelType
-import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import kotlinx.coroutines.cancelFutureOnCancellation
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
@@ -50,38 +46,11 @@ import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-/**
- * Coroutine-friendly version of [ListenableFuture.get].
- */
-suspend fun <T> ListenableFuture<T>.suspendingGet(): T {
-  if (isDone) {
-    @Suppress("BlockingMethodInNonBlockingContext")
-    return get()
-  }
-
-  return suspendCancellableCoroutine { continuation ->
-    continuation.cancelFutureOnCancellation(this)
-    val listener = Runnable {
-      val value = try {
-        get()
-      }
-      catch (e: Throwable) {
-        continuation.resumeWithException(e)
-        return@Runnable
-      }
-      continuation.resume(value)
-    }
-    addListener(listener, SameThreadExecutor.INSTANCE)
-  }
-}
 
 fun ByteBuffer.getUInt(): UInt =
    getInt().toUInt()

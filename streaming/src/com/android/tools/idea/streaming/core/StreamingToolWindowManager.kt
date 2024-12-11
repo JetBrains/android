@@ -32,7 +32,6 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -118,7 +117,6 @@ import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.util.Alarm
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
@@ -128,7 +126,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -362,14 +359,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     recentAttentionRequests.put(serialNumber, activation)
     alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
     if (isLocalEmulator(serialNumber)) {
-      val future = RunningEmulatorCatalog.getInstance().updateNow()
-      future.addCallback(EdtExecutorService.getInstance(),
-                         success = { emulators ->
-                           if (emulators != null) {
-                             onEmulatorHeadsUp(serialNumber, emulators, activation)
-                           }
-                         },
-                         failure = {})
+      val deferred = RunningEmulatorCatalog.getInstance().updateNow()
+      toolWindowScope.launch(Dispatchers.EDT) {
+        try {
+          val emulators = deferred.await()
+          onEmulatorHeadsUp(serialNumber, emulators, activation)
+        }
+        catch (_: Exception) {
+        }
+      }
     }
   }
 
@@ -1309,7 +1307,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
       if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
         return false
       }
-      val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
+      val emulators = RunningEmulatorCatalog.getInstance().updateNow().await()
       val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
       if (emulator == null || emulator.emulatorId.isEmbedded) {
         return false

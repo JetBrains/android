@@ -80,6 +80,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -1137,7 +1138,7 @@ class EmulatorToolWindowPanelTest {
     emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)

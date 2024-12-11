@@ -199,7 +199,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   private fun getControllerOf(testRoot: Path, emulator: Emulator): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
     catalog.overrideRegistrationDirectory(testRoot.resolve("home/.android/avd/running"))
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.single { emulator.serialNumber == it.emulatorId.serialNumber }
     return emulatorController
   }

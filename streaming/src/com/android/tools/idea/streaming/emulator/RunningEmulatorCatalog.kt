@@ -20,8 +20,6 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -32,6 +30,8 @@ import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
@@ -76,7 +76,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("dataLock")
   private var updateInterval: Long = Long.MAX_VALUE
   @GuardedBy("dataLock")
-  private var pendingFutures: MutableList<SettableFuture<Set<EmulatorController>>> = mutableListOf()
+  private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("dataLock")
   private var registrationDirectory: Path? = computeRegistrationDirectory()
 
@@ -142,14 +142,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   /**
-   * Triggers an immediate update and returns a future for the updated set of running emulators.
+   * Triggers an immediate update and returns a [Deferred] for the updated set of running emulators.
    */
-  fun updateNow(): ListenableFuture<Set<EmulatorController>> {
+  fun updateNow(): Deferred<Set<EmulatorController>> {
     synchronized(dataLock) {
-      val future: SettableFuture<Set<EmulatorController>> = SettableFuture.create()
-      pendingFutures.add(future)
+      val deferredResult = CompletableDeferred<Set<EmulatorController>>()
+      pendingUpdateResults.add(deferredResult)
       scheduleUpdate(0)
-      return future
+      return deferredResult
     }
   }
 
@@ -157,18 +157,18 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun update() {
     if (isDisposing) return
 
-    val futures: List<SettableFuture<Set<EmulatorController>>>
+    val updateResults: List<CompletableDeferred<Set<EmulatorController>>>
     val directory: Path
 
     synchronized(dataLock) {
       nextScheduledUpdateTime = Long.MAX_VALUE
 
-      if (pendingFutures.isEmpty()) {
-        futures = emptyList()
+      if (pendingUpdateResults.isEmpty()) {
+        updateResults = emptyList()
       }
       else {
-        futures = pendingFutures
-        pendingFutures = mutableListOf()
+        updateResults = pendingUpdateResults
+        pendingUpdateResults = mutableListOf()
       }
 
       directory = registrationDirectory ?: return
@@ -224,8 +224,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
         lastUpdateDuration = System.currentTimeMillis() - start
         emulators = ImmutableSet.copyOf(newEmulators.values)
         listenersSnapshot = listeners
-        for (future in futures) {
-          future.set(emulators)
+        for (result in updateResults) {
+          result.complete(emulators)
         }
         if (!isDisposing) {
           scheduleUpdate(updateInterval)
@@ -260,8 +260,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
       thisLogger().error("Running Emulator detection failed", e)
 
       synchronized(dataLock) {
-        for (future in futures) {
-          future.setException(e)
+        for (result in updateResults) {
+          result.completeExceptionally(e)
         }
         if (!isDisposing) {
           // TODO: Implement exponential backoff for retries.

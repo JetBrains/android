@@ -160,7 +160,7 @@ class EmulatorAdbReadyServiceTest {
 
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     return EmulatorToolWindowPanel(disposable, project, emulatorController)

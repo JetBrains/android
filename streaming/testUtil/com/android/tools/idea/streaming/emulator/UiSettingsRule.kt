@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.disposable
 import com.intellij.testFramework.ProjectRule
 import com.jetbrains.rd.util.forEachReversed
+import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -150,7 +151,7 @@ class UiSettingsRule : ExternalResource() {
 
   fun getControllerOf(emulator: FakeEmulator): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.single { emulator.serialNumber == it.emulatorId.serialNumber }
     return emulatorController
   }
