@@ -1118,10 +1118,6 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
     "Enables running an XR AVD in the Running Devices tool window",
     enabledUpTo(DEV));
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_FLOATING_TOOLBAR = new BooleanFlag(
-    EMBEDDED_EMULATOR, "xr.floating.toolbar", "Use floating toolbar for XR navigation actions",
-    "Places XR navigation actions in a floating toolbar",
-    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
     EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
     "Enables hand tracking input mode for XR AVDs",

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -117,6 +118,10 @@ internal class EmulatorToolWindowPanel(
       val icon = avd?.icon ?: StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
       return ExecutionUtil.getLiveIndicator(icon)
     }
+
+  /** Device type is available only after the connection to the emulator is established. */
+  override val deviceType: DeviceType
+    get() = emulator.emulatorConfig.deviceType
 
   override val isClosable: Boolean = true
 

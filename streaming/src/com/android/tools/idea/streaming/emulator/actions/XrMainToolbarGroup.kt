@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.streaming.emulator.actions;
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.components.service
 
 class XrMainToolbarGroup : DefaultActionGroup() {
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = !StudioFlags.EMBEDDED_EMULATOR_XR_FLOATING_TOOLBAR.get()
+    event.presentation.isEnabledAndVisible = !service<FloatingXrToolbarState>().floatingXrToolbarEnabled
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

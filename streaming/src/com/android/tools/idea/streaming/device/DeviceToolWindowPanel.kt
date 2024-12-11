@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
@@ -84,6 +85,9 @@ internal class DeviceToolWindowPanel(
 
   override val icon: Icon
     get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceConfig.deviceProperties.icon)
+
+  override val deviceType: DeviceType
+    get() = deviceClient.deviceConfig.deviceType
 
   override val isClosable: Boolean = true
 

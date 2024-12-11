@@ -32,8 +32,9 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
@@ -43,6 +44,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_S
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
+import com.android.tools.idea.streaming.emulator.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.android.tools.idea.streaming.executeStreamingAction
@@ -420,6 +422,10 @@ class EmulatorToolWindowPanelTest {
     ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Show Taskbar" })
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { action: SHOW_TASKBAR }")
 
+    val toggleAction = ToggleFloatingXrToolbarAction()
+    toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
+    assertAppearance(ui, "XrToolbarActions2", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
@@ -524,6 +530,13 @@ class EmulatorToolWindowPanelTest {
         .isEqualTo("xr_input_event { nav_event { right_held: true up_held: true } }")
 
     // Switching to Hardware Input resets state of the navigation keys.
+    val toolbar = ui.getComponent<FloatingToolbarContainer>()
+    // Trigger expansion of the floating toolbar.
+    ui.mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
+    ui.layoutAndDispatchEvents()
+    waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
+    ui.layoutAndDispatchEvents()
+
     ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
     ui.keyboard.release(VK_D)

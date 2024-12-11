@@ -18,11 +18,13 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
@@ -91,6 +93,14 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   init {
     Disposer.register(disposableParent, this)
 
+    ApplicationManager.getApplication().messageBus.connect(this).subscribe(
+        FloatingXrToolbarState.Listener.TOPIC,
+        object : FloatingXrToolbarState.Listener {
+          override fun floatingXrToolbarStateChanged(enabled: Boolean) {
+            xrNavigationToolbar?.isVisible = enabled
+          }
+        })
+
     background = primaryPanelBackground
 
     floatingToolbarLayerPane = BorderLayoutPanel().apply {
@@ -122,17 +132,22 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   protected fun createFloatingToolbar() {
     floatingToolbarLayerPane.removeAll()
-    if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId &&
-        StudioFlags.EMBEDDED_EMULATOR_XR_FLOATING_TOOLBAR.get()) {
+    if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId) {
       val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5).apply {
-        val actionGroup1 = ActionManager.getInstance().getAction("android.emulator.xr.input.mode.group") as ActionGroup
-        addToolbar("FloatingToolbar", actionGroup1, collapsible = true)
+        val actionManager = ActionManager.getInstance()
+        val inputModeGroup = actionManager.getAction("android.emulator.xr.input.mode.group") as? ActionGroup
+        if (inputModeGroup != null) {
+          addToolbar("FloatingToolbar", inputModeGroup, collapsible = true)
+        }
 
-        val actionGroup2 = ActionManager.getInstance().getAction("android.emulator.xr.recenter.group") as ActionGroup
-        addToolbar("FloatingToolbar", actionGroup2, collapsible = false)
+        val recenterGroup = actionManager.getAction("android.emulator.xr.recenter.group") as? ActionGroup
+        if (recenterGroup != null) {
+          addToolbar("FloatingToolbar", recenterGroup, collapsible = false)
+        }
       }
 
       toolbar.setTargetComponent(this)
+      toolbar.isVisible = service<FloatingXrToolbarState>().floatingXrToolbarEnabled
       floatingToolbarLayerPane.add(toolbar, BorderLayout.EAST)
       xrNavigationToolbar = toolbar
     }

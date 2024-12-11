@@ -23,7 +23,9 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.DumbAware
+import com.intellij.ui.content.Content
 
 internal abstract class AbstractStreamingAction<T : AnAction, U : AnAction>(
   protected val virtualDeviceAction: T,
@@ -61,3 +63,11 @@ internal open class StreamingAction(virtualDeviceAction: AnAction, physicalDevic
 
 internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
     event.getData(DISPLAY_VIEW_KEY)
+
+internal val AnActionEvent.toolWindowContents: List<Content>
+  get() {
+    val toolWindow = getData(PlatformDataKeys.TOOL_WINDOW) ?: return emptyList()
+    val contentManager = toolWindow.contentManagerIfCreated ?: return emptyList()
+    return contentManager.contentsRecursively
+  }
+

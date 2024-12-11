@@ -45,6 +45,7 @@ import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.actions.toolWindowContents
 import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
@@ -57,6 +58,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.emulator.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.emulator.displayNameWithApi
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
@@ -135,6 +137,7 @@ import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.util.function.Supplier
+import javax.swing.JComponent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -169,7 +172,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private val project
     @AnyThread get() = toolWindow.project
-  private val properties = PropertiesComponent.getInstance(project)
+  private val projectProperties = PropertiesComponent.getInstance(project)
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
   private val deviceProvisioner
@@ -260,9 +263,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private var deviceFrameVisible
-    get() = properties.getBoolean(DEVICE_FRAME_VISIBLE_PROPERTY, DEVICE_FRAME_VISIBLE_DEFAULT)
+    get() = projectProperties.getBoolean(DEVICE_FRAME_VISIBLE_PROPERTY, DEVICE_FRAME_VISIBLE_DEFAULT)
     set(value) {
-      properties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
+      projectProperties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
           (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.setDeviceFrameVisible(value)
@@ -271,9 +274,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
   private var zoomToolbarIsVisible
-    get() = properties.getBoolean(ZOOM_TOOLBAR_VISIBLE_PROPERTY, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
+    get() = projectProperties.getBoolean(ZOOM_TOOLBAR_VISIBLE_PROPERTY, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
     set(value) {
-      properties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
+      projectProperties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
           (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.zoomToolbarVisible = value
@@ -408,6 +411,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
       val actionGroup = DefaultActionGroup()
       actionGroup.addAction(ToggleZoomToolbarAction())
+      actionGroup.addAction(ToggleFloatingXrToolbarAction())
       actionGroup.addAction(ToggleDeviceFrameAction())
       toolWindow.setAdditionalGearActions(actionGroup)
       adoptContentManager(toolWindow.contentManager)
@@ -1070,6 +1074,18 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       zoomToolbarIsVisible = state
+    }
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      // Enabled only for non-XR devices.
+      event.presentation.isEnabledAndVisible =
+          event.toolWindowContents.find { it.isSelected &&it.component.isNonXrDevicePanel() } != null
+    }
+
+    private fun JComponent.isNonXrDevicePanel(): Boolean {
+      this as? StreamingDevicePanel ?: return false
+      return deviceType != DeviceType.XR
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

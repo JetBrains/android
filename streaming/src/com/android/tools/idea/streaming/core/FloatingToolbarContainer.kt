@@ -36,6 +36,7 @@ import com.intellij.util.ui.JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.intellij.lang.annotations.MagicConstant
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
 import java.awt.Container
@@ -76,8 +77,9 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
   private var pendingDeactivation = false
 
   /** Zero means inactive, one means active. */
-  private var activationFactor: Double = 0.0
-    set(value) {
+  @VisibleForTesting
+  internal var activationFactor: Double = 0.0
+    private set(value) {
       if (field != value) {
         field = value
         if (hasCollapsibleToolbar) {
@@ -167,10 +169,6 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
       override fun mouseMoved(event: MouseEvent) {
         controlActivation(event)
       }
-
-      private fun controlActivation(event: MouseEvent) {
-        controlActivation(event.locationOnScreen - locationOnScreen)
-      }
     }
     val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     glass.addMousePreprocessor(mouseListener, disposable)
@@ -178,7 +176,8 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     listeningToMouseEvents = true
   }
 
-  private fun controlActivation(mouseLocation: Point) {
+  private fun controlActivation(event: MouseEvent) {
+    val mouseLocation = event.locationOnScreen - locationOnScreen
     if (mouseLocation.x >= 0 && mouseLocation.y >= 0 && mouseLocation.x < width && mouseLocation.y < height &&
         componentCount != 0 && mouseLocation[orientation] >= getComponent(0).location[orientation]) {
       triggerActivation()

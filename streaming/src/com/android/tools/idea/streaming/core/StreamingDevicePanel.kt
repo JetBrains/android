@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
@@ -54,6 +55,7 @@ abstract class StreamingDevicePanel(
   /** An HTML string containing detailed information about the device. */
   internal abstract val description: String
   internal abstract val icon: Icon
+  internal abstract val deviceType: DeviceType
   internal abstract val isClosable: Boolean
   internal abstract val preferredFocusableComponent: JComponent
 
