@@ -133,7 +133,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   protected fun createFloatingToolbar() {
     floatingToolbarLayerPane.removeAll()
     if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId) {
-      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5).apply {
+      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.7).apply {
         val actionManager = ActionManager.getInstance()
         val inputModeGroup = actionManager.getAction("android.emulator.xr.input.mode.group") as? ActionGroup
         if (inputModeGroup != null) {
