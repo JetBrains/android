@@ -17,6 +17,7 @@ package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
 import com.android.backup.BackupException
+import com.android.backup.BackupMetadata
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupProgressListener.Step
 import com.android.backup.BackupResult
@@ -148,7 +149,7 @@ internal constructor(
       ?.normalize()
   }
 
-  override suspend fun getApplicationId(backupFile: Path): String? {
+  override suspend fun getMetadata(backupFile: Path): BackupMetadata? {
     try {
       return BackupService.validateBackupFile(backupFile)
     } catch (e: Exception) {

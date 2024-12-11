@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
+import com.android.backup.BackupMetadata
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupResult
 import com.android.tools.idea.run.RunConfigSection
@@ -91,10 +92,10 @@ interface BackupManager {
    * Gets the application id of the associated app
    *
    * @param backupFile The path of a backup file to validate
-   * @return The application id of the associated app
+   * @return The metadata from the backup file
    * @throws Exception `backupFile` is not valid
    */
-  suspend fun getApplicationId(backupFile: Path): String?
+  suspend fun getMetadata(backupFile: Path): BackupMetadata?
 
   /** Gets the application id of the foreground on the device with the serial number provided. */
   suspend fun getForegroundApplicationId(serialNumber: String): String

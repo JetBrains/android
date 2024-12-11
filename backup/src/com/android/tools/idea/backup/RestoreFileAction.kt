@@ -82,7 +82,7 @@ internal class RestoreFileAction(
     val backupManager = BackupManager.getInstance(project)
 
     // Check application id
-    val fileApplicationId = backupManager.getApplicationId(backupFile)
+    val fileApplicationId = backupManager.getMetadata(backupFile)?.applicationId
     when {
       fileApplicationId == null ->
         return Invalid(message("error.invalid.file", backupFile.pathString))

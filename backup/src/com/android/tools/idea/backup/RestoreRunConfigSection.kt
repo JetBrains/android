@@ -102,7 +102,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     }
 
     try {
-      val fileApplicationId = BackupService.validateBackupFile(path)
+      val fileApplicationId = BackupService.validateBackupFile(path).applicationId
       val packageName = projectSystem.getApplicationIdProvider(runConfiguration)?.packageName
       if (packageName != null && fileApplicationId != packageName) {
         return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))

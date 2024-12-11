@@ -123,7 +123,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
     val settings =
       runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
-    val applicationId = BackupService.getApplicationId(backupPath)
+    val applicationId = BackupService.getMetadata(backupPath).applicationId
     val module = findModule(applicationId)
     if (module != null) {
       val config = settings.configuration as AndroidRunConfiguration
@@ -139,7 +139,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun getRunConfigSettings(): List<RunnerAndConfigurationSettings> {
     val runManager = RunManager.getInstance(project)
-    val applicationId = BackupService.getApplicationId(backupPath)
+    val applicationId = BackupService.getMetadata(backupPath).applicationId
     val selectedConfiguration = runManager.selectedConfiguration
     return buildList {
       if (selectedConfiguration?.isApplicable(applicationId) == true) {
