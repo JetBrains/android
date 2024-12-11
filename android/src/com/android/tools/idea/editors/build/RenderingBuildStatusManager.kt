@@ -20,7 +20,6 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
@@ -47,8 +46,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SlowOperations
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -129,10 +126,6 @@ interface RenderingBuildStatusManager {
      * @param psiFile the file in the editor to track changes and the build status. If the project
      *   has not been built since it was open, this file is used to find if there are any existing
      *   .class files that indicate that has been built before.
-     * @param dispatcher default [CoroutineDispatcher] to process the events of the
-     *   [RenderingBuildStatusManager].
-     * @param scope [CoroutineScope] to run the execution of the initialization of this
-     *   ProjectBuildStatusManager.
      * @param onReady called once the [ProjectBuildStatus] transitions from
      *   [RenderingBuildStatus.NotReady] to any other state or immediately if the the status is
      *   different from [RenderingBuildStatus.NotReady]. This wil happen after the project is synced
@@ -141,11 +134,9 @@ interface RenderingBuildStatusManager {
     fun create(
       parentDisposable: Disposable,
       psiFile: PsiFile,
-      dispatcher: CoroutineDispatcher = workerThread,
-      scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, dispatcher),
       onReady: (RenderingBuildStatus) -> Unit = {},
     ): RenderingBuildStatusManager =
-      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, onReady)
   }
 }
 
@@ -157,13 +148,13 @@ interface RenderingBuildStatusManagerForTests {
 private class RenderingBuildStatusManagerImpl(
   parentDisposable: Disposable,
   psiFile: PsiFile,
-  scope: CoroutineScope,
-  private val onReady: (RenderingBuildStatus) -> Unit,
-  private val dispatcher: CoroutineDispatcher,
+  onReady: (RenderingBuildStatus) -> Unit,
 ) : RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
+
+  private val scope = AndroidCoroutineScope(parentDisposable)
 
   private val editorFile: PsiFile?
     get() = runReadAction { editorFilePtr.element }
@@ -254,7 +245,7 @@ private class RenderingBuildStatusManagerImpl(
   }
 
   init {
-    scope.launch(dispatcher) {
+    scope.launch {
       combine(
           PsiCodeFileOutOfDateStatusReporter.getInstance(project).fileUpdatesFlow,
           projectBuildStatusFlow,

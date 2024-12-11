@@ -35,20 +35,15 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.AppExecutorUtil
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private fun RenderingBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
@@ -56,23 +51,19 @@ private fun RenderingBuildStatusManager.awaitReady(timeout: Duration = 5.seconds
   }
 }
 
-private fun RenderingBuildStatusManager.awaitNeedsBuild(
-    message: String? = null,
-    timeout: Duration = 5.seconds
-) = runBlocking {
-  statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) {
-    it == RenderingBuildStatus.NeedsBuild
+private fun RenderingBuildStatusManager.awaitNeedsBuild(timeout: Duration = 5.seconds) =
+  runBlocking {
+    statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) {
+      it == RenderingBuildStatus.NeedsBuild
+    }
   }
-}
 
-private fun RenderingBuildStatusManager.awaitOutOfDate(
-    message: String? = null,
-    timeout: Duration = 5.seconds
-) = runBlocking {
-  statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) {
-    it is RenderingBuildStatus.OutOfDate
+private fun RenderingBuildStatusManager.awaitOutOfDate(timeout: Duration = 5.seconds) =
+  runBlocking {
+    statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) {
+      it is RenderingBuildStatus.OutOfDate
+    }
   }
-}
 
 class RenderingBuildStatusManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -80,20 +71,11 @@ class RenderingBuildStatusManagerTest {
     get() = projectRule.project
 
   private val buildServices = FakeBuildSystemFilePreviewServices()
-  private val execution = AppExecutorUtil.createBoundedApplicationPoolExecutor("Test", 1)
-  private lateinit var dispatcher: CoroutineDispatcher
 
   @Before
   fun setUp() {
     buildServices.register(projectRule.testRootDisposable)
     Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
-    dispatcher = execution.asCoroutineDispatcher()
-  }
-
-  @After
-  fun tearDown() {
-    execution.shutdown()
-    execution.awaitTermination(1, TimeUnit.MINUTES)
   }
 
   @Test
@@ -102,16 +84,13 @@ class RenderingBuildStatusManagerTest {
 
     val blockingDaemon = BlockingDaemonClient()
     val fastPreviewManager =
-        FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
-          Disposer.register(projectRule.fixture.testRootDisposable, it)
-        }
+      FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
+        Disposer.register(projectRule.fixture.testRootDisposable, it)
+      }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
     val statusManager =
-        RenderingBuildStatusManager.create(
-            projectRule.fixture.testRootDisposable,
-            psiFile,
-        )
+      RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
 
     runBlocking {
       val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
@@ -133,9 +112,7 @@ class RenderingBuildStatusManagerTest {
         }
       }
       asyncScope.launch(AndroidDispatchers.workerThread) {
-        repeat(10) {
-          blockingDaemon.completeOneRequest()
-        }
+        repeat(10) { blockingDaemon.completeOneRequest() }
       }
       latch.await()
       Assert.assertFalse(statusManager.isBuilding)
@@ -147,17 +124,15 @@ class RenderingBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-        RenderingBuildStatusManager.create(
-            projectRule.fixture.testRootDisposable,
-            psiFile,
-            dispatcher = dispatcher,
-        )
+      RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+      buildServices.simulateArtifactBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
+      )
 
       statusManager.awaitReady()
 
@@ -174,17 +149,15 @@ class RenderingBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-        RenderingBuildStatusManager.create(
-            projectRule.fixture.testRootDisposable,
-            psiFile,
-            dispatcher = dispatcher,
-        )
+      RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
+      buildServices.simulateArtifactBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED
+      )
 
       statusManager.awaitNeedsBuild()
 
@@ -202,17 +175,15 @@ class RenderingBuildStatusManagerTest {
     val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
 
     val statusManager =
-        RenderingBuildStatusManager.create(
-            projectRule.fixture.testRootDisposable,
-            psiFile,
-            dispatcher = dispatcher,
-        )
+      RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+      buildServices.simulateArtifactBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
+      )
 
       statusManager.awaitReady()
 

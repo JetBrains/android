@@ -41,10 +41,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.utils.vfs.createFile
-import java.util.concurrent.Executor
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -89,7 +86,6 @@ class RenderingBuildStatusManagerTest {
       RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
         onReady = { onReadyCalled = true },
       )
     statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) {
@@ -113,11 +109,7 @@ class RenderingBuildStatusManagerTest {
     val newFile = runReadAction { PsiManager.getInstance(project).findFile(newVirtualFile) }!!
 
     val newStatusManager =
-      RenderingBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        newFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
-      )
+      RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, newFile)
     newStatusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
       it == RenderingBuildStatus.NeedsBuild
     }
@@ -177,7 +169,6 @@ class RenderingBuildStatusManagerTest {
       RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
       )
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
       it == RenderingBuildStatus.NeedsBuild

@@ -50,8 +50,7 @@ class RenderingBuildStatusManagerResourcesTest {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
     val statusManager = RenderingBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
-      psiFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+      psiFile,)
 
     // Simulate a successful build
     buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
