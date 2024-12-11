@@ -22,10 +22,12 @@ import com.android.sdklib.AndroidVersion.VersionCodes.R
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_XR
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_XR
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
@@ -35,6 +37,7 @@ import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
 import com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG
 import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
 import com.android.sdklib.SystemImageTags.WEAR_TAG
+import com.android.sdklib.SystemImageTags.XR_TAG
 import com.android.sdklib.repository.IdDisplay
 import icons.StudioIllustrations.FormFactors
 import javax.swing.Icon
@@ -101,6 +104,16 @@ enum class FormFactor(
     FormFactors.CAR,
     FormFactors.CAR_LARGE,
     listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG),
+  ),
+  XR(
+    "XR",
+    "XR",
+    LOWEST_ACTIVE_API_XR,
+    LOWEST_ACTIVE_API_XR,
+    HIGHEST_KNOWN_API_XR,
+    FormFactors.MOBILE,
+    FormFactors.MOBILE_LARGE,
+    listOf(XR_TAG),
   );
 
   override fun toString(): String = displayName

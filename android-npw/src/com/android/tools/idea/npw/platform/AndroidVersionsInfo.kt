@@ -317,6 +317,7 @@ private fun FormFactor.defaultTag() = when (this) {
   FormFactor.WEAR -> SystemImageTags.WEAR_TAG
   FormFactor.TV -> SystemImageTags.ANDROID_TV_TAG
   FormFactor.AUTOMOTIVE -> SystemImageTags.AUTOMOTIVE_TAG
+  FormFactor.XR -> SystemImageTags.XR_TAG
 }
 
 private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
