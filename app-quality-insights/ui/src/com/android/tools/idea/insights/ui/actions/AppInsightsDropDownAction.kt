@@ -17,12 +17,18 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.insights.Selection
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.ui.awt.RelativePoint
+import java.awt.Point
 import javax.swing.Icon
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +47,7 @@ open class AppInsightsDropDownAction<T>(
   private val getIconForValue: ((T) -> Icon?)?,
   private val onSelect: (T) -> Unit,
   private val getDisplayTitle: (T?) -> String = { it.toString() },
+  private val toolbarProvider: () -> ActionToolbar? = { null },
 ) : DropDownAction(text, description, icon) {
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
@@ -61,4 +68,19 @@ open class AppInsightsDropDownAction<T>(
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
     component.repaint()
   }
+
+  override fun showPopupMenu(eve: AnActionEvent, button: ActionButton) {
+    val popUpMenu = ActionManager.getInstance().createActionPopupMenu(eve.place, this)
+
+    val buttonHeight = button.height.div(2) + button.border.getBorderInsets(button).bottom
+    val toolbarHeight = toolbarProvider()?.getTotalHeight() ?: 0
+
+    JBPopupMenu.showAt(
+      RelativePoint(button, Point(0, buttonHeight + toolbarHeight)),
+      popUpMenu.component,
+    )
+  }
+
+  private fun ActionToolbar.getTotalHeight() =
+    component.height.div(2) + component.border.getBorderInsets(component).bottom
 }

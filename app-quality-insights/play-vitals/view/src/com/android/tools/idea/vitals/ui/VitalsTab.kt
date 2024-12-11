@@ -110,7 +110,7 @@ class VitalsTab(
     add(VitalsContentContainerPanel(projectController, project, tracker, this))
   }
 
-  private fun addActionsToGroup(group: DefaultActionGroup) {
+  private fun addActionsToGroup(group: DefaultActionGroup, toolbar: ActionToolbar) {
     group.apply {
       @Suppress("UNCHECKED_CAST")
       add(
@@ -145,7 +145,9 @@ class VitalsTab(
           intervals,
           null,
           projectController::selectTimeInterval,
-        )
+        ) {
+          toolbar
+        }
       )
       add(
         AppInsightsDropDownAction(
@@ -155,7 +157,9 @@ class VitalsTab(
           visibilityTypes,
           null,
           projectController::selectVisibilityType,
-        )
+        ) {
+          toolbar
+        }
       )
       add(
         TreeDropDownAction(
@@ -245,7 +249,7 @@ class VitalsTab(
         }
       }
     }
-    addActionsToGroup(group)
+    addActionsToGroup(group, actionToolbar)
     return actionToolbar
   }
 
