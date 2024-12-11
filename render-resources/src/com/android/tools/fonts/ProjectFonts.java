@@ -23,12 +23,13 @@ import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.fonts.DownloadableParseResult;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.fonts.MutableFontDetail;
-import com.android.ide.common.fonts.QueryParser;
+import com.android.ide.common.fonts.ParseResult;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -64,7 +65,7 @@ public class ProjectFonts {
   private final ResourceRepositoryManager myResourceRepository;
   private final ResourceIdResolver myResourceIdResolver;
   private final Map<String, FontFamily> myProjectFonts;
-  private final Map<String, QueryParser.ParseResult> myParseResults;
+  private final Map<String, ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
   public ProjectFonts(
@@ -158,9 +159,9 @@ public class ProjectFonts {
       }
       return family;
     }
-    QueryParser.ParseResult result = myParseResults.get(name);
-    if (result instanceof QueryParser.DownloadableParseResult) {
-      return resolveDownloadableFont(name, (QueryParser.DownloadableParseResult)result);
+    ParseResult result = myParseResults.get(name);
+    if (result instanceof DownloadableParseResult) {
+      return resolveDownloadableFont(name, (DownloadableParseResult)result);
     }
     if (result instanceof FontFamilyParser.CompoundFontResult) {
       return resolveCompoundFont(name, (FontFamilyParser.CompoundFontResult)result);
@@ -168,7 +169,7 @@ public class ProjectFonts {
     return createUnresolvedFontFamily(name);
   }
 
-  private FontFamily resolveDownloadableFont(@NonNull String name, @NonNull QueryParser.DownloadableParseResult result) {
+  private FontFamily resolveDownloadableFont(@NonNull String name, @NonNull DownloadableParseResult result) {
     String authority = result.getAuthority();
     List<FontDetail> details = new ArrayList<>();
     for (Map.Entry<String, Collection<MutableFontDetail>> entry : result.getFonts().asMap().entrySet()) {
@@ -261,7 +262,7 @@ public class ProjectFonts {
       }
 
       InputStream is = new ByteArrayInputStream(fileBytes);
-      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(is, value);
+      ParseResult result = FontFamilyParser.parseFontFamily(is, value);
       if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
         return;
@@ -293,7 +294,7 @@ public class ProjectFonts {
   }
 
   private boolean checkDependencies(@NonNull String name) {
-    QueryParser.ParseResult result = myParseResults.get(name);
+    ParseResult result = myParseResults.get(name);
     if (result == null) {
       return false;
     }

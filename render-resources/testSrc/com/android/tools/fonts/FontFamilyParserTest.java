@@ -15,8 +15,9 @@
  */
 package com.android.tools.fonts;
 
+import com.android.ide.common.fonts.DownloadableParseResult;
 import com.android.ide.common.fonts.MutableFontDetail;
-import com.android.ide.common.fonts.QueryParser;
+import com.android.ide.common.fonts.ParseResult;
 import com.google.common.collect.Multimap;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ public class FontFamilyParserTest {
                  "        android:fontWeight=\"700\"\n" +
                  "        android:font=\"@font/a_bee_zee_italics\" />" +
                  "</font-family>\n";
-    QueryParser.ParseResult result = parseFontFamilyXml(xml);
+    ParseResult result = parseFontFamilyXml(xml);
     assertThat(result).isInstanceOf(FontFamilyParser.CompoundFontResult.class);
     FontFamilyParser.CompoundFontResult compoundResult = (FontFamilyParser.CompoundFontResult)result;
     assertThat(compoundResult.getFonts().keySet()).containsExactly("@font/a_bee_zee_regular", "@font/a_bee_zee_italics").inOrder();
@@ -68,9 +69,9 @@ public class FontFamilyParserTest {
                  "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"Aladin\">\n" +
                  "</font-family>\n";
-    QueryParser.ParseResult result = parseFontFamilyXml(xml);
-    assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
-    QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
+    ParseResult result = parseFontFamilyXml(xml);
+    assertThat(result).isInstanceOf(DownloadableParseResult.class);
+    DownloadableParseResult downloadableResult = (DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
@@ -91,9 +92,9 @@ public class FontFamilyParserTest {
                  "    app:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    app:fontProviderQuery=\"Aladin\">\n" +
                  "</font-family>\n";
-    QueryParser.ParseResult result = parseFontFamilyXml(xml);
-    assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
-    QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
+    ParseResult result = parseFontFamilyXml(xml);
+    assertThat(result).isInstanceOf(DownloadableParseResult.class);
+    DownloadableParseResult downloadableResult = (DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
@@ -114,9 +115,9 @@ public class FontFamilyParserTest {
                  "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"name=Aladin&amp;weight=800&amp;width=70&amp;italic=1\">\n" +
                  "</font-family>\n";
-    QueryParser.ParseResult result = parseFontFamilyXml(xml);
-    assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
-    QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
+    ParseResult result = parseFontFamilyXml(xml);
+    assertThat(result).isInstanceOf(DownloadableParseResult.class);
+    DownloadableParseResult downloadableResult = (DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
@@ -137,9 +138,9 @@ public class FontFamilyParserTest {
                  "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"Roboto:r,700i|Aladin:800:wdth70.0\">\n" +
                  "</font-family>\n";
-    QueryParser.ParseResult result = parseFontFamilyXml(xml);
-    assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
-    QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
+    ParseResult result = parseFontFamilyXml(xml);
+    assertThat(result).isInstanceOf(DownloadableParseResult.class);
+    DownloadableParseResult downloadableResult = (DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
@@ -163,7 +164,7 @@ public class FontFamilyParserTest {
     assertThat(roboto2.getItalics()).isEqualTo(ITALICS);
   }
 
-  private QueryParser.ParseResult parseFontFamilyXml(@NotNull @Language("XML") String content) {
+  private ParseResult parseFontFamilyXml(@NotNull @Language("XML") String content) {
     return FontFamilyParser.parseFontFamily(new ByteArrayInputStream(content.getBytes()), "example.xml");
   }
 }
