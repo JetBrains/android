@@ -39,41 +39,69 @@ import com.android.sdklib.repository.IdDisplay
 import icons.StudioIllustrations.FormFactors
 import javax.swing.Icon
 
-/**
- * Representations of all Android hardware devices we can target when building an app.
- */
+/** Representations of all Android hardware devices we can target when building an app. */
 enum class FormFactor(
   val id: String,
   val displayName: String,
   val defaultApi: Int,
   /**
-   * The minimum API level supported by this form factor, as known at compile time.
-   * Only used if offline; if we are online, we will query SDK Manager for
-   * available system images.
+   * The minimum API level supported by this form factor, as known at compile time. Only used if
+   * offline; if we are online, we will query SDK Manager for available system images.
    */
   val minOfflineApiLevel: Int,
   /**
-   * The maximum API level supported by this form factor, as known at compile time.
-   * Only used if offline; if we are online, we will query SDK Manager for
-   * available system images.
+   * The maximum API level supported by this form factor, as known at compile time. Only used if
+   * offline; if we are online, we will query SDK Manager for available system images.
    *
-   * If the form factor [hasUpperLimitForMinimumSdkSelection], this value is also
-   * used to clamp the known target versions, whether online or offline. That list
-   * is used to populate the minimum SDK dropdown in new module wizards.
+   * If the form factor [hasUpperLimitForMinimumSdkSelection], this value is also used to clamp the
+   * known target versions, whether online or offline. That list is used to populate the minimum SDK
+   * dropdown in new module wizards.
    */
   val maxOfflineApiLevel: Int,
   val icon: Icon,
   val largeIcon: Icon,
-  private val apiTags: List<IdDisplay> = listOf()
+  private val apiTags: List<IdDisplay> = listOf(),
 ) {
-  MOBILE("Mobile", "Phone and Tablet", RECOMMENDED_MIN_SDK_VERSION, LOWEST_ACTIVE_API, HIGHEST_KNOWN_STABLE_API, FormFactors.MOBILE,
-         FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
-  WEAR("Wear", "Wear OS", R, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
-       FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
-  TV("TV", "Television", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
-     FormFactors.TV_LARGE, listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG)),
-  AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API_AUTO, FormFactors.CAR,
-             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG));
+  MOBILE(
+    "Mobile",
+    "Phone and Tablet",
+    RECOMMENDED_MIN_SDK_VERSION,
+    LOWEST_ACTIVE_API,
+    HIGHEST_KNOWN_STABLE_API,
+    FormFactors.MOBILE,
+    FormFactors.MOBILE_LARGE,
+    listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG),
+  ),
+  WEAR(
+    "Wear",
+    "Wear OS",
+    R,
+    LOWEST_ACTIVE_API_WEAR,
+    HIGHEST_KNOWN_API_WEAR,
+    FormFactors.WEAR,
+    FormFactors.WEAR_LARGE,
+    listOf(WEAR_TAG),
+  ),
+  TV(
+    "TV",
+    "Television",
+    LOLLIPOP,
+    LOWEST_ACTIVE_API_TV,
+    HIGHEST_KNOWN_API_TV,
+    FormFactors.TV,
+    FormFactors.TV_LARGE,
+    listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG),
+  ),
+  AUTOMOTIVE(
+    "Automotive",
+    "Automotive",
+    VersionCodes.P,
+    VersionCodes.P,
+    HIGHEST_KNOWN_API_AUTO,
+    FormFactors.CAR,
+    FormFactors.CAR_LARGE,
+    listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG),
+  );
 
   override fun toString(): String = displayName
 
@@ -84,9 +112,11 @@ enum class FormFactor(
     return apiTags.isEmpty() || tag in apiTags
   }
 
-  // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
+  // Currently all form factors have emulators, but we keep this method to ease introduction of new
+  // form factors
   fun hasEmulator(): Boolean = true
 
   // We want to expose new SDKs when creating new mobile projects.
-  val hasUpperLimitForMinimumSdkSelection: Boolean get() = this != MOBILE
+  val hasUpperLimitForMinimumSdkSelection: Boolean
+    get() = this != MOBILE
 }
