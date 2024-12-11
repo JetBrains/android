@@ -13,44 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.actions;
+package org.jetbrains.android.actions
 
-import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import java.util.Collections;
-import org.jetbrains.android.AndroidTestCase;
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.psi.PsiDirectory
+import junit.framework.TestCase
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.actions.CreateTypedResourceFileAction.Companion.doIsAvailable
+import org.jetbrains.android.actions.CreateTypedResourceFileAction.Companion.getDefaultRootTagByResourceType
 
-public final class CreateTypedResourceFileActionTest extends AndroidTestCase {
-
-  public void testDoIsAvailableForTypedResourceDirectory() {
-    SimpleDataContext.Builder dataContext = SimpleDataContext.builder();
-    for (ResourceFolderType folderType: ResourceFolderType.values()) {
-      String filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml";
-      dataContext.add(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject(filePath, "").getParent());
-      assertTrue("Failed for " + folderType.name(), CreateTypedResourceFileAction.doIsAvailable(dataContext.build(), folderType.getName()));
+class CreateTypedResourceFileActionTest : AndroidTestCase() {
+  fun testDoIsAvailableForTypedResourceDirectory() {
+    val dataContext = SimpleDataContext.builder()
+    for (folderType in ResourceFolderType.entries) {
+      val filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml"
+      dataContext.add<PsiDirectory?>(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject(filePath, "").getParent())
+      assertTrue("Failed for " + folderType.name, doIsAvailable(dataContext.build(), folderType.getName()))
     }
 
-    VirtualFile resDir = myFixture.findFileInTempDir("res");
-    PsiDirectory psiResDir = myFixture.getPsiManager().findDirectory(resDir);
-    dataContext.add(CommonDataKeys.PSI_ELEMENT, psiResDir);
+    val resDir = myFixture.findFileInTempDir("res")
+    val psiResDir = myFixture.getPsiManager().findDirectory(resDir)
+    dataContext.add<PsiDirectory?>(CommonDataKeys.PSI_ELEMENT, psiResDir)
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
-    assertFalse(CreateTypedResourceFileAction.doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE.getName()));
+    assertFalse(doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE.getName()))
   }
 
-  public void testAddPreferencesScreenAndroidxPreferenceLibraryHandling() {
+  fun testAddPreferencesScreenAndroidxPreferenceLibraryHandling() {
     // First check without having androidx.preference as a library
-    assertEquals("PreferenceScreen", CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML));
+    TestCase.assertEquals("PreferenceScreen", getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML))
 
     // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
-    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
-    testProjectSystem.useInTests();
-    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, myFacet.getModule(), new GradleVersion(1, 1));
-    assertEquals("androidx.preference.PreferenceScreen", CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML));
+    val testProjectSystem = TestProjectSystem(getProject(), mutableListOf<GradleCoordinate>())
+    testProjectSystem.useInTests()
+    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, myFacet.getModule(), GradleVersion(1, 1))
+    TestCase.assertEquals("androidx.preference.PreferenceScreen", getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML))
   }
 }
