@@ -2489,6 +2489,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : me.monori.gradleprojectpathissue
         testApplicationId             : me.monori.gradleprojectpathissue.test
@@ -3598,6 +3599,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
         buildType                     : debug
@@ -4673,6 +4675,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
         buildType                     : debug
@@ -5669,6 +5672,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : test.test
         buildType                     : debug
@@ -5973,6 +5977,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug

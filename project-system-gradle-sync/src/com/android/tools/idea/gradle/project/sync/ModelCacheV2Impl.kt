@@ -1269,6 +1269,7 @@ internal fun modelCacheV2Impl(
       useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX),
       dataBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.DATA_BINDING_ENABLED
         .getValue(flags, legacyAndroidGradlePluginProperties?.dataBindingEnabled),
+      generateManifestClass = AndroidGradlePluginProjectFlags.BooleanFlag.GENERATE_MANIFEST_CLASS.getValue(flags, gradlePropertiesModel.generateManifestClass)
     )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {

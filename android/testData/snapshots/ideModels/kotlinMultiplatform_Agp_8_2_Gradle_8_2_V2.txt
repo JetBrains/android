@@ -1154,6 +1154,7 @@ MODULE                        : kotlinMultiPlatform.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.kotlin
         testApplicationId             : com.example.android.kotlin.test
@@ -2247,6 +2248,7 @@ MODULE                        : kotlinMultiPlatform.module2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.test.multiproject.module2.test
         buildType                     : debug

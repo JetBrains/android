@@ -57,4 +57,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether android resource data binding is enabled in this project. */
   val dataBindingEnabled: Boolean
+
+  /** Whether to generate manifest classes. */
+  val generateManifestClass: Boolean
 }

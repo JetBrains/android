@@ -1241,6 +1241,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>,
     gradlePropertiesModel: GradlePropertiesModel,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+    parsedModelVersion: AgpVersion?,
   ): IdeAndroidGradlePluginProjectFlagsImpl {
     return IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
@@ -1254,6 +1255,16 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
       useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
       dataBindingEnabled = legacyAndroidGradlePluginProperties?.dataBindingEnabled ?: false,
+      generateManifestClass = when {
+        // Probably an ancient AGP version.
+        parsedModelVersion == null -> true
+        // AAPT1
+        parsedModelVersion < AgpVersion.parse("4.0.0-alpha01") -> true
+        // AAPT2, behaviour changed silently, no support for Gradle property
+        parsedModelVersion < AgpVersion.parse("4.2.0-alpha01") -> false
+        // Gradle property respected, implicitly defaulting to `false`
+        else -> gradlePropertiesModel.generateManifestClass ?: false
+      }
     )
   }
 
@@ -1346,7 +1357,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // AndroidProject#isBaseSplit is always non null.
     val isBaseSplit = copyNewProperty({ project.isBaseSplit }, false)
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl =
-      createIdeAndroidGradlePluginProjectFlagsImpl(projectFlags?.booleanFlagMap ?: emptyMap(), gradlePropertiesModel, legacyAndroidGradlePluginProperties)
+      createIdeAndroidGradlePluginProjectFlagsImpl(projectFlags?.booleanFlagMap ?: emptyMap(), gradlePropertiesModel, legacyAndroidGradlePluginProperties, parsedModelVersion)
     return ModelResult.create {
       IdeAndroidProjectImpl(
         agpVersion = project.modelVersion,

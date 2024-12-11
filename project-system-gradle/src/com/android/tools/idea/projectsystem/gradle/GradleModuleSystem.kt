@@ -478,6 +478,7 @@ class GradleModuleSystem(
 
   private data class AgpBuildGlobalFlags(
     val useAndroidX: Boolean,
+    val generateManifestClass: Boolean
   )
 
   /**
@@ -517,6 +518,7 @@ class GradleModuleSystem(
         ?: return CachedValueProvider.Result(null, tracker)
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+        generateManifestClass = gradleAndroidModel.androidProject.agpFlags.generateManifestClass,
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -581,6 +583,8 @@ class GradleModuleSystem(
    * and cached on the idea module corresponding to the root of that gradle build.
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
+
+  override val generateManifestClass: Boolean get() = agpBuildGlobalFlags.generateManifestClass
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
@@ -652,7 +656,8 @@ class GradleModuleSystem(
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
-      useAndroidX = true
+      useAndroidX = true,
+      generateManifestClass = false,
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
   }

@@ -1282,6 +1282,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.alruiz.transitive_dependencies
         testApplicationId             : com.example.alruiz.transitive_dependencies.test
@@ -1925,6 +1926,7 @@ MODULE                        : project.library1
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library1.test
         buildType                     : debug
@@ -2476,6 +2478,7 @@ MODULE                        : project.library2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library2.test
         buildType                     : debug

@@ -2908,6 +2908,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
@@ -3954,6 +3955,7 @@ MODULE                        : project.dyn_feature
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
         buildType                     : debug
@@ -4279,6 +4281,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
         buildType                     : debug
@@ -4789,6 +4792,7 @@ MODULE                        : project.nested1
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
         buildType                     : debug
@@ -5098,6 +5102,7 @@ MODULE                        : project.nested1.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
         buildType                     : debug
@@ -5417,6 +5422,7 @@ MODULE                        : project.nested2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
         buildType                     : debug
@@ -5860,6 +5866,7 @@ MODULE                        : project.nested2.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
         buildType                     : debug
@@ -6181,6 +6188,7 @@ MODULE                        : project.nested2.trans.deep2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
         buildType                     : debug

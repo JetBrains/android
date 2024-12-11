@@ -959,6 +959,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : true
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : true
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test

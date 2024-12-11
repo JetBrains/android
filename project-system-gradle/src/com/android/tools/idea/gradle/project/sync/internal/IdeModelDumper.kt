@@ -774,6 +774,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
         prop("AndroidResourcesEnabled") { agpFlags.androidResourcesEnabled.toString() }
         prop("DataBindingEnabled") { agpFlags.dataBindingEnabled.toString() }
+        prop("GenerateManifestClass") { agpFlags.generateManifestClass.toString() }
       }
     }
 

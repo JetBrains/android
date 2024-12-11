@@ -23,4 +23,7 @@ interface GradlePropertiesModel {
 
   /** Whether constraints for library components are disabled */
   val excludeLibraryComponentsFromConstraints: Boolean?
+
+  /** Whether to generate manifest classes. */
+  val generateManifestClass: Boolean?
 }

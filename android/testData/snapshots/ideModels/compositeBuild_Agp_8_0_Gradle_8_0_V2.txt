@@ -1133,6 +1133,7 @@ MODULE                        : TestCompositeLib1.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite1
         testApplicationId             : com.test.composite1.test
@@ -2257,6 +2258,7 @@ MODULE                        : TestCompositeLib1.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite1.test
         buildType                     : debug
@@ -3775,6 +3777,7 @@ MODULE                        : TestCompositeLib3.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite3
         testApplicationId             : com.test.composite3.test
@@ -4877,6 +4880,7 @@ MODULE                        : TestCompositeLib3.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite3.test
         buildType                     : debug
@@ -6733,6 +6737,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.compositeapp
         testApplicationId             : com.test.compositeapp.test
@@ -7861,6 +7866,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
         buildType                     : debug

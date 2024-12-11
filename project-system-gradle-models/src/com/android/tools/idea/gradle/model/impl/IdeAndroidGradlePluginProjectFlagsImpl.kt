@@ -64,4 +64,6 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   override val dataBindingEnabled: Boolean,
 
+  override val generateManifestClass: Boolean,
+
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

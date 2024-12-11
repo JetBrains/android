@@ -741,6 +741,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     unifiedTestPlatformEnabled = true,
     useAndroidX = false,
     dataBindingEnabled = false,
+    generateManifestClass = true,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
