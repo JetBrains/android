@@ -375,7 +375,7 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
-    val projectStatus = renderingBuildStatusManager.statusFlow.value
+    val projectStatus = renderingBuildStatusManager.status
     log.debug("ProjectStatus: $projectStatus")
     when (projectStatus) {
       RenderingBuildStatus.NeedsBuild -> {

@@ -78,17 +78,14 @@ class RenderingBuildStatusManagerTest {
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
-    var onReadyCalled = false
     val statusManager =
       RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
-        onReady = { onReadyCalled = true },
       )
     statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) {
       it == RenderingBuildStatus.Ready
     }
-    assertTrue(onReadyCalled)
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     statusManager.statusFlow.awaitStatus(
       "Builds status is not Ready after successful build",

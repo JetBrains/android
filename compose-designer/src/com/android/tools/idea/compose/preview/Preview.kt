@@ -99,6 +99,7 @@ import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
+import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
@@ -350,21 +351,7 @@ class ComposePreviewRepresentation(
   fun renderedPreviewElementsInstancesFlowForTest() =
     composePreviewFlowManager.renderedPreviewElementsFlow
 
-  private val renderingBuildStatusManager =
-    RenderingBuildStatusManager.create(
-      this,
-      psiFile,
-      onReady = {
-        // When the preview is opened we must trigger an initial refresh. We wait for the
-        // project to be smart and synced to do it.
-        when (it) {
-          // Do not refresh if we still need to build the project. Instead, only update the
-          // empty panel and editor notifications if needed.
-          RenderingBuildStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
-          else -> requestRefresh()
-        }
-      },
-    )
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not
@@ -617,12 +604,13 @@ class ComposePreviewRepresentation(
   }
 
   private fun updateAnimationPanelVisibility() {
+    if (!hasRenderedAtLeastOnce.get()) return
+
     // Always hide currentAnimationPreview if it's not PreviewMode.AnimationInspection even if
     // preview is not rendered yet.
     if (mode.value !is PreviewMode.AnimationInspection) {
       composeWorkBench.bottomPanel = null
     }
-    if (!hasRenderedAtLeastOnce.get()) return
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
@@ -810,6 +798,20 @@ class ComposePreviewRepresentation(
         if (!PreviewEssentialsModeManager.isEssentialsModeEnabled) requestRefresh()
       }
     }
+
+    // When the preview is opened we must trigger an initial refresh. We wait for the
+    // project to be smart and synced to do it.
+    project.runWhenSmartAndSynced(
+      this,
+      {
+        when (renderingBuildStatusManager.status) {
+          // Do not refresh if we still need to build the project. Instead, only update the
+          // empty panel and editor notifications if needed.
+          RenderingBuildStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
+          else -> requestRefresh()
+        }
+      },
+    )
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
@@ -1180,6 +1182,8 @@ class ComposePreviewRepresentation(
   ) = requestRefresh(type, completableDeferred)
 
   private fun requestVisibilityAndNotificationsUpdate() {
+    if (!hasRenderedAtLeastOnce.get()) return
+
     composePreviewFlowManager.run {
       this@ComposePreviewRepresentation.updateVisibilityAndNotifications(
         ::updateAnimationPanelVisibility

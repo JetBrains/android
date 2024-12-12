@@ -31,7 +31,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Co
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
@@ -126,17 +126,9 @@ interface RenderingBuildStatusManager {
      * @param psiFile the file in the editor to track changes and the build status. If the project
      *   has not been built since it was open, this file is used to find if there are any existing
      *   .class files that indicate that has been built before.
-     * @param onReady called once the [ProjectBuildStatus] transitions from
-     *   [RenderingBuildStatus.NotReady] to any other state or immediately if the the status is
-     *   different from [RenderingBuildStatus.NotReady]. This wil happen after the project is synced
-     *   and has been indexed.
      */
-    fun create(
-      parentDisposable: Disposable,
-      psiFile: PsiFile,
-      onReady: (RenderingBuildStatus) -> Unit = {},
-    ): RenderingBuildStatusManager =
-      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, onReady)
+    fun create(parentDisposable: Disposable, psiFile: PsiFile): RenderingBuildStatusManager =
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile)
   }
 }
 
@@ -145,11 +137,8 @@ interface RenderingBuildStatusManagerForTests {
   @TestOnly fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
-private class RenderingBuildStatusManagerImpl(
-  parentDisposable: Disposable,
-  psiFile: PsiFile,
-  onReady: (RenderingBuildStatus) -> Unit,
-) : RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
+private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiFile: PsiFile) :
+  RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
@@ -309,24 +298,19 @@ private class RenderingBuildStatusManagerImpl(
       }
 
     LOG.debug("waiting for smart and synced")
-    project.runWhenSmartAndSyncedOnEdt(
+    project.runWhenSmartAndSynced(
       parentDisposable,
       {
-        scope.launch {
+        if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
+          // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow
+          // method).
+          val newState =
+            if (editorHasExistingClassFile()) ProjectBuildStatus.Built
+            else ProjectBuildStatus.NeedsBuild
+          // Only update the status if we are still in NotReady.
           if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
-            // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow
-            // method).
-            val newState =
-              if (editorHasExistingClassFile()) ProjectBuildStatus.Built
-              else ProjectBuildStatus.NeedsBuild
-            // Only update the status if we are still in NotReady.
-            if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
-              projectBuildStatusFlow.value = newState
-            }
+            projectBuildStatusFlow.value = newState
           }
-
-          // Once the initial state has been set, call the onReady callback
-          onReady(statusFlow.value)
         }
       },
     )
