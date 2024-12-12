@@ -43,7 +43,6 @@ import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
-import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.android.tools.idea.testing.executeCapturingLoggedWarnings
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
@@ -755,7 +754,7 @@ internal class DeviceViewTest {
     agent.crashOnStart = true
     errorMessage.text = ""
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Let all ongoing activity finish before attempting to reconnect.
-    val loggedErrors = executeCapturingLoggedErrors {
+    val loggedWarnings = executeCapturingLoggedWarnings {
       fakeUi.clickOn(button)
       waitForCondition(5, SECONDS) { extractText(errorMessage.text).isNotEmpty() }
       for (i in 1 until 3) {
@@ -765,7 +764,7 @@ internal class DeviceViewTest {
     }
     assertThat(extractText(errorMessage.text)).isEqualTo("Failed to initialize the device agent. See log for details.")
     assertThat(button.text).isEqualTo("Retry")
-    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+    assertThat(loggedWarnings).containsExactly("terminated with code 139", "Failed to initialize the screen sharing agent")
 
     mirroringSessions = usageTrackerRule.deviceMirroringSessions()
     assertThat(mirroringSessions.size).isEqualTo(2)
@@ -874,13 +873,13 @@ internal class DeviceViewTest {
   fun testConnectionTimeout() {
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.overrideForTest(200, testRootDisposable)
     agent.startDelayMillis = 500
-    val loggedErrors = executeCapturingLoggedErrors {
+    val loggedWarnings = executeCapturingLoggedWarnings {
       createDeviceViewWithoutWaitingForAgent(500, 1000, screenScale = 1.0)
       val errorMessage = fakeUi.getComponent<JEditorPane>()
       waitForCondition(2.seconds) { fakeUi.isShowing(errorMessage) }
       assertThat(extractText(errorMessage.text)).isEqualTo("Device agent is not responding")
     }
-    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+    assertThat(loggedWarnings).containsExactly("Failed to initialize the screen sharing agent")
   }
 
   @Test

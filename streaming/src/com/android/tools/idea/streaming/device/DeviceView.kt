@@ -318,7 +318,7 @@ internal class DeviceView(
       val reconnector: Reconnector
       when (frameNumber) {
         0u -> {
-          thisLogger().error("Failed to initialize the screen sharing agent", exception)
+          thisLogger().warn("Failed to initialize the screen sharing agent", exception)
           message = getConnectionErrorMessage(exception)
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
