@@ -43,6 +43,10 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
   }
 
+  override fun getAccessorsForAllCatalogs(context: PsiElement): Map<String, PsiClass> {
+    return emptyMap()
+  }
+
   fun getDefaultCatalogName(project: Project): String {
     return runReadAction {
       val settingsModel = ProjectBuildModel.get(project).projectSettingsModel
