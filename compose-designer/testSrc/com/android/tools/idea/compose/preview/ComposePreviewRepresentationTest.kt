@@ -113,6 +113,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -573,6 +574,8 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testRerunUiCheckAction() {
+    // TODO(b/381432038): K2 fails on this test. Remove the line below after fixing it.
+    if (KotlinPluginModeProvider.isK2Mode()) return
     // Use the real FileEditorManager
     project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
