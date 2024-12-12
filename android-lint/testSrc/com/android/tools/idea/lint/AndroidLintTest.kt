@@ -1653,7 +1653,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // to
     // `<error descr="Call requires API level 35 (current min is 1): java.util.List#removeFirst
     // (Prior to API level 35, this call would resolve to a Kotlin stdlib extension function. You
-    // can use remove(index) instead.)">`
+    // can use removeAt(0) instead.)">`
     // (and the corresponding </warning> markers to </error>)
     doTestWithFix(
       AndroidLintNewApiInspection(),
