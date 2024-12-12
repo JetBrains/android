@@ -40,12 +40,15 @@ class ComposeShowFilterActionTest {
   fun testShowFilter() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.uiDataSnapshot(any())).thenAnswer(object : Answer<Unit> {
-      override fun answer(invocation: InvocationOnMock) {
-        val sink = invocation.arguments[0] as DataSink
-        sink[COMPOSE_PREVIEW_MANAGER] = manager
-      }
-    })
+    whenever(surface.uiDataSnapshot(any()))
+      .thenAnswer(
+        object : Answer<Unit> {
+          override fun answer(invocation: InvocationOnMock) {
+            val sink = invocation.arguments[0] as DataSink
+            sink[COMPOSE_PREVIEW_MANAGER] = manager
+          }
+        }
+      )
     manager.isFilterEnabled = false
 
     val action = ComposeShowFilterAction()

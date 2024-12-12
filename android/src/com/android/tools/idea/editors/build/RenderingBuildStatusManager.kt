@@ -60,8 +60,8 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /**
- * This represents the build status of the project artifacts used to render previews without taking into account any file
- * modifications.
+ * This represents the build status of the project artifacts used to render previews without taking
+ * into account any file modifications.
  */
 private enum class ProjectBuildStatus {
   /** The project is indexing or not synced yet */
@@ -74,10 +74,10 @@ private enum class ProjectBuildStatus {
   Building,
 
   /** The project is compiled and up to date */
-  Built
+  Built,
 }
 
-/** The status of the project artifacts used to render previews*/
+/** The status of the project artifacts used to render previews */
 sealed class RenderingBuildStatus {
   /** The project is indexing or not synced yet */
   object NotReady : RenderingBuildStatus()
@@ -97,10 +97,10 @@ sealed class RenderingBuildStatus {
    *
    * @param areResourcesOutOfDate true if resources might be out of date.
    */
-  sealed class OutOfDate
-  private constructor(val areResourcesOutOfDate: Boolean) :
+  sealed class OutOfDate private constructor(val areResourcesOutOfDate: Boolean) :
     RenderingBuildStatus() {
     object Code : OutOfDate(false)
+
     object Resources : OutOfDate(true)
   }
 
@@ -129,12 +129,14 @@ interface RenderingBuildStatusManager {
      * @param psiFile the file in the editor to track changes and the build status. If the project
      *   has not been built since it was open, this file is used to find if there are any existing
      *   .class files that indicate that has been built before.
-     * @param dispatcher default [CoroutineDispatcher] to process the events of the [RenderingBuildStatusManager].
+     * @param dispatcher default [CoroutineDispatcher] to process the events of the
+     *   [RenderingBuildStatusManager].
      * @param scope [CoroutineScope] to run the execution of the initialization of this
      *   ProjectBuildStatusManager.
-     * @param onReady called once the [ProjectBuildStatus] transitions from [RenderingBuildStatus.NotReady]
-     *   to any other state or immediately if the the status is different from
-     *   [RenderingBuildStatus.NotReady]. This wil happen after the project is synced and has been indexed.
+     * @param onReady called once the [ProjectBuildStatus] transitions from
+     *   [RenderingBuildStatus.NotReady] to any other state or immediately if the the status is
+     *   different from [RenderingBuildStatus.NotReady]. This wil happen after the project is synced
+     *   and has been indexed.
      */
     fun create(
       parentDisposable: Disposable,
@@ -149,8 +151,7 @@ interface RenderingBuildStatusManager {
 
 interface RenderingBuildStatusManagerForTests {
   /** Returns the internal [ResourceChangeListener] to be used by tests. */
-  @TestOnly
-  fun getResourcesListenerForTest(): ResourceChangeListener
+  @TestOnly fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
 private class RenderingBuildStatusManagerImpl(
@@ -168,8 +169,10 @@ private class RenderingBuildStatusManagerImpl(
     get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
-  private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot get build target reference for: $psiFile")
-  private val buildSystemFilePreviewServices = buildTargetReference.getBuildSystemFilePreviewServices()
+  private val buildTargetReference =
+    BuildTargetReference.from(psiFile) ?: error("Cannot get build target reference for: $psiFile")
+  private val buildSystemFilePreviewServices =
+    buildTargetReference.getBuildSystemFilePreviewServices()
 
   private val projectBuildStatusFlow = MutableStateFlow(ProjectBuildStatus.NotReady)
   private val areResourcesOutOfDateFlow = MutableStateFlow(false)
@@ -180,65 +183,71 @@ private class RenderingBuildStatusManagerImpl(
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
         FastPreviewManager.getInstance(project).isCompiling
 
-  private val myPsiCodeFileUpToDateStatusRecorder = PsiCodeFileUpToDateStatusRecorder.getInstance(project)
+  private val myPsiCodeFileUpToDateStatusRecorder =
+    PsiCodeFileUpToDateStatusRecorder.getInstance(project)
   private val buildListener =
     object : BuildListener {
       @UiThread
       override fun buildStarted(
         buildMode: BuildMode,
-        buildResult: ListenableFuture<BuildListener.BuildResult>
+        buildResult: ListenableFuture<BuildListener.BuildResult>,
       ) {
         val preparedMarkUpToDateAction = myPsiCodeFileUpToDateStatusRecorder.prepareMarkUpToDate()
 
-        projectBuildStatusFlow.value = when (buildMode) {
-          // For a clean build, we know the project will need a build
-          BuildMode.CLEAN -> ProjectBuildStatus.NeedsBuild
-          BuildMode.COMPILE -> {
-            val previousState = projectBuildStatusFlow.value
-            fun handleFailure(): ProjectBuildStatus = when (previousState) {
-              // If the project was ready before, we keep it as Ready since it was just the new
-              // build
-              // that failed.
-              ProjectBuildStatus.Built -> ProjectBuildStatus.Built
-              // If the project was not ready, then it needs a build since this one failed.
-              else -> ProjectBuildStatus.NeedsBuild
-            }
+        projectBuildStatusFlow.value =
+          when (buildMode) {
+            // For a clean build, we know the project will need a build
+            BuildMode.CLEAN -> ProjectBuildStatus.NeedsBuild
+            BuildMode.COMPILE -> {
+              val previousState = projectBuildStatusFlow.value
+              fun handleFailure(): ProjectBuildStatus =
+                when (previousState) {
+                  // If the project was ready before, we keep it as Ready since it was just the new
+                  // build
+                  // that failed.
+                  ProjectBuildStatus.Built -> ProjectBuildStatus.Built
+                  // If the project was not ready, then it needs a build since this one failed.
+                  else -> ProjectBuildStatus.NeedsBuild
+                }
 
-
-            fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
-              SlowOperations.allowSlowOperations(ThrowableComputable {
-                preparedMarkUpToDateAction.markUpToDate(scope)
-              })
-              // Clear the resources out of date flag
-              areResourcesOutOfDateFlow.value = false
-              return ProjectBuildStatus.Built
-            }
-
-            fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
-              when (result.status) {
-                BuildStatus.SUCCESS -> handleSuccess(result.scope)
-                BuildStatus.FAILED -> handleFailure()
-                BuildStatus.UNKNOWN -> previousState
-                BuildStatus.CANCELLED -> previousState
+              fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
+                SlowOperations.allowSlowOperations(
+                  ThrowableComputable { preparedMarkUpToDateAction.markUpToDate(scope) }
+                )
+                // Clear the resources out of date flag
+                areResourcesOutOfDateFlow.value = false
+                return ProjectBuildStatus.Built
               }
 
-            scope.launch {
-              val result = runCatching { buildResult.await() }
-                .getOrElse { BuildListener.BuildResult(BuildStatus.FAILED, EverythingGlobalScope()) }
-              withContext(AndroidDispatchers.uiThread) {
-                projectBuildStatusFlow.value = handleBuildResult(result)
+              fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
+                when (result.status) {
+                  BuildStatus.SUCCESS -> handleSuccess(result.scope)
+                  BuildStatus.FAILED -> handleFailure()
+                  BuildStatus.UNKNOWN -> previousState
+                  BuildStatus.CANCELLED -> previousState
+                }
+
+              scope.launch {
+                val result =
+                  runCatching { buildResult.await() }
+                    .getOrElse {
+                      BuildListener.BuildResult(BuildStatus.FAILED, EverythingGlobalScope())
+                    }
+                withContext(AndroidDispatchers.uiThread) {
+                  projectBuildStatusFlow.value = handleBuildResult(result)
+                }
               }
+              ProjectBuildStatus.Building
             }
-            ProjectBuildStatus.Building
           }
-        }
       }
     }
 
   private val resourceChangeListener = ResourceChangeListener { reason ->
     LOG.debug("ResourceNotificationManager resourceChange ${reason.joinToString()} ")
-    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT) ||
-      reason.contains(ResourceNotificationManager.Reason.EDIT)
+    if (
+      reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT) ||
+        reason.contains(ResourceNotificationManager.Reason.EDIT)
     ) {
       areResourcesOutOfDateFlow.value = true
     }
@@ -247,21 +256,25 @@ private class RenderingBuildStatusManagerImpl(
   init {
     scope.launch(dispatcher) {
       combine(
-        PsiCodeFileOutOfDateStatusReporter.getInstance(project).fileUpdatesFlow,
-        projectBuildStatusFlow,
-        areResourcesOutOfDateFlow,
-        fastPreviewCompileFlow(project, parentDisposable)
-      ) { outOfDateFiles, currentProjectBuildStatus, areResourcesOutOfDate, isFastPreviewCompiling ->
-        val isCodeOutOfDate = outOfDateFiles.isNotEmpty()
-        when {
-          currentProjectBuildStatus == ProjectBuildStatus.NotReady -> RenderingBuildStatus.NotReady
-          currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling -> RenderingBuildStatus.Building
-          currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> RenderingBuildStatus.NeedsBuild
-          areResourcesOutOfDate -> RenderingBuildStatus.OutOfDate.Resources
-          isCodeOutOfDate -> RenderingBuildStatus.OutOfDate.Code
-          else -> RenderingBuildStatus.Ready
+          PsiCodeFileOutOfDateStatusReporter.getInstance(project).fileUpdatesFlow,
+          projectBuildStatusFlow,
+          areResourcesOutOfDateFlow,
+          fastPreviewCompileFlow(project, parentDisposable),
+        ) { outOfDateFiles, currentProjectBuildStatus, areResourcesOutOfDate, isFastPreviewCompiling
+          ->
+          val isCodeOutOfDate = outOfDateFiles.isNotEmpty()
+          when {
+            currentProjectBuildStatus == ProjectBuildStatus.NotReady ->
+              RenderingBuildStatus.NotReady
+            currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling ->
+              RenderingBuildStatus.Building
+            currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild ->
+              RenderingBuildStatus.NeedsBuild
+            areResourcesOutOfDate -> RenderingBuildStatus.OutOfDate.Resources
+            isCodeOutOfDate -> RenderingBuildStatus.OutOfDate.Code
+            else -> RenderingBuildStatus.Ready
+          }
         }
-      }
         .distinctUntilChanged()
         .collect {
           LOG.debug("New status $it ${this@RenderingBuildStatusManagerImpl} ")
@@ -280,11 +293,11 @@ private class RenderingBuildStatusManagerImpl(
 
           override fun onCompilationComplete(
             result: CompilationResult,
-            files: Collection<PsiFile>
+            files: Collection<PsiFile>,
           ) {
             if (result.isSuccess) myPsiCodeFileUpToDateStatusRecorder.markAsUpToDate(files)
           }
-        }
+        },
       )
 
     // Register listener
@@ -324,7 +337,7 @@ private class RenderingBuildStatusManagerImpl(
           // Once the initial state has been set, call the onReady callback
           onReady(statusFlow.value)
         }
-      }
+      },
     )
   }
 
@@ -332,7 +345,9 @@ private class RenderingBuildStatusManagerImpl(
 
   fun editorHasExistingClassFile(): Boolean {
     val psiClassOwner = editorFile as? PsiClassOwner ?: return false
-    val classFileFinder by lazy { buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder }
+    val classFileFinder by lazy {
+      buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
+    }
     return runReadAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
       .firstNotNullOfOrNull { classFileFinder?.findClassFile(it) } != null
   }
