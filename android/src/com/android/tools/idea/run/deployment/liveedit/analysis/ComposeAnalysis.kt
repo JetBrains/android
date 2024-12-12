@@ -18,12 +18,12 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.SdkConstants
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
-import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.FieldInsnNode
+import org.objectweb.asm.tree.IntInsnNode
 import org.objectweb.asm.tree.LdcInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
@@ -173,8 +173,11 @@ private data class ComposableLambdaValue(val key: Int, val block: Type) : BasicV
 private val COMPOSABLE_LAMBDA_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambda")
 private val COMPOSABLE_LAMBDA_N_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambdaN")
 private val COMPOSABLE_LAMBDA_TYPES = setOf(COMPOSABLE_LAMBDA_TYPE, COMPOSABLE_LAMBDA_N_TYPE)
-private val GROUP_START_METHOD_NAMES = setOf("startRestartGroup", "startReplaceableGroup", "startReplaceGroup", "startMovableGroup",
-                                             "startReusableGroup")
+
+// Map of Compose compiler API calls that start groups to the stack position of the group key when the method is invoked, zero
+// being the most recently pushed stack item.
+private val GROUP_START_METHOD_NAMES = mapOf("startRestartGroup" to 0, "startReplaceableGroup" to 0, "startReplaceGroup" to 0,
+                                             "startMovableGroup" to 1, "startReusableGroup" to 1)
 
 private fun analyzeMethod(
   analyzer: ComposeAnalyzer,
@@ -196,8 +199,18 @@ private fun analyzeMethod(
           groupTable.restartLambdas[clazz] = method
         }
 
-        if (methodInstr.owner == "androidx/compose/runtime/Composer" && methodInstr.name in GROUP_START_METHOD_NAMES) {
-          val key = (frame.getStackValue(0) as IntValue).value
+        if (methodInstr.owner == "androidx/compose/runtime/Composer") {
+          val idParamStackOffset = GROUP_START_METHOD_NAMES[methodInstr.name]
+          if (idParamStackOffset == null) {
+            continue
+          }
+
+          val stackValue = frame.getStackValue(idParamStackOffset)
+          if (stackValue !is IntValue) {
+            throw IllegalStateException(
+              "While analyzing call to Composer.${methodInstr.name + methodInstr.desc} in $method, analysis expected stack value @ $idParamStackOffset to be an integer.")
+          }
+          val key = stackValue.value
 
           // Ignore groups that were not specified in the FunctionKeyMeta information that we parsed; we use that as the source of truth for
           // which group keys we need to care about.
@@ -279,6 +292,21 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
           return IntValue(value)
         }
       }
+
+      // I'm not sure if "proper" Compose code will ever use these to load a group key, but I've caused it to happen in tests; thus,
+      // adding a branch to handle this case so we don't get unexpected casting errors in the future.
+      BIPUSH, SIPUSH -> {
+        val value = (instr as IntInsnNode).operand
+        return IntValue(value)
+      }
+
+      ICONST_M1 -> return IntValue(-1)
+      ICONST_0 -> return IntValue(0)
+      ICONST_1 -> return IntValue(1)
+      ICONST_2 -> return IntValue(2)
+      ICONST_3 -> return IntValue(3)
+      ICONST_4 -> return IntValue(4)
+      ICONST_5 -> return IntValue(5)
     }
     return super.newOperation(instr)
   }
