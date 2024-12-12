@@ -134,10 +134,7 @@ class SyncFailureUsageReporter {
 
   fun collectUnprocessedGradleError(rootProjectPath: @SystemIndependent String, gradleError: Throwable?) {
     extractGradleFailureDetails(gradleError)?.let { gradleFailureDetails ->
-      val previousValue = collectedFailureDetailsByProjectPath.put(rootProjectPath, gradleFailureDetails)
-      if (previousValue != null) {
-        LOG.warn("Multiple sync exceptions reported. Discarding: $previousValue")
-      }
+      collectedFailureDetailsByProjectPath.put(rootProjectPath, gradleFailureDetails)
     }
   }
 
