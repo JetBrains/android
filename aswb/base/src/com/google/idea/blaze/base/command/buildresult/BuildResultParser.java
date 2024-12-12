@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.collect.Interner;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BepParser;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
@@ -38,7 +39,7 @@ public final class BuildResultParser {
     BuildEventStreamProvider bepStream, Interner<String> stringInterner)
     throws BuildResultHelper.GetArtifactsException {
     try {
-      return ParsedBepOutput.parseBepArtifacts(bepStream, stringInterner);
+      return BepParser.parseBepArtifacts(bepStream, stringInterner);
     } catch (BuildEventStreamProvider.BuildEventStreamException e) {
       BuildResultHelper.logger.error(e);
       throw new BuildResultHelper.GetArtifactsException(String.format(
