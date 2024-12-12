@@ -289,7 +289,7 @@ class SceneViewPanel(
    * the Compose for Desktop components. [setNoComposeHeadersForTests] allows to use test
    * non-compose component [createTestOrganizationHeader] instead of compose
    * [createOrganizationHeader] for these tests. Should ONLY be used if a FakeUI test is failing
-   * with same b/346722476 error.
+   * with same b/346722476 error. The method will be removed once issue is resolved b/383713655.
    */
   @TestOnly
   fun setNoComposeHeadersForTests() {
