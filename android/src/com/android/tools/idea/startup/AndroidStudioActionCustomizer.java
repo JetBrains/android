@@ -43,11 +43,6 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     Actions.hideAction(actionManager, "NewHtmlFile");
     Actions.hideAction(actionManager, "NewPackageInfo");
 
-    // Hide designer actions
-    Actions.hideAction(actionManager, "NewForm");
-    Actions.hideAction(actionManager, "NewDialog");
-    Actions.hideAction(actionManager, "NewFormSnapshot");
-
     // Hide individual actions that aren't part of a group
     Actions.hideAction(actionManager, "Groovy.NewClass");
     Actions.hideAction(actionManager, "Groovy.NewScript");
