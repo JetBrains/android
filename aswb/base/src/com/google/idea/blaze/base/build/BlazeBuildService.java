@@ -32,15 +32,12 @@ import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.experiments.ExperimentScope;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ScopedFunction;
 import com.google.idea.blaze.base.scope.ScopedTask;
@@ -58,7 +55,7 @@ import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder;
@@ -68,13 +65,9 @@ import com.google.idea.blaze.base.util.SaveUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import java.util.List;
 import java.util.concurrent.Future;
 import javax.annotation.Nullable;
-import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 /** Utility to build various collections of targets. */
 public class BlazeBuildService {
@@ -276,7 +269,7 @@ public class BlazeBuildService {
           public void onSuccess(@Nullable Void unused) {
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
           }
 
           @Override
@@ -285,7 +278,7 @@ public class BlazeBuildService {
             // print logs as required.
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
           }
         },
         MoreExecutors.directExecutor());

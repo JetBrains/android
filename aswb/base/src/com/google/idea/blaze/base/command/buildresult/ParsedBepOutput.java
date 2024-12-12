@@ -41,7 +41,6 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Wor
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.IntExperiment;

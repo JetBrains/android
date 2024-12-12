@@ -24,8 +24,8 @@ import static com.google.idea.blaze.base.bazel.BazelExitCodeException.ThrowOptio
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
-import com.google.idea.blaze.base.sync.aspects.BuildResult.Status;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.exception.BuildException;
 
 /**

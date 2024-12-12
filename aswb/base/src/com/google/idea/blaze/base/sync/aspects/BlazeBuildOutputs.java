@@ -25,9 +25,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.command.buildresult.BepArtifactData;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.sync.aspects.BuildResult.Status;
+import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,7 +56,7 @@ public class BlazeBuildOutputs {
   }
 
   public static BlazeBuildOutputs fromParsedBepOutput(
-      BuildResult result, ParsedBepOutput parsedOutput) {
+    BuildResult result, ParsedBepOutput parsedOutput) {
     ImmutableMap<String, BuildResult> buildIdWithResult =
         parsedOutput.buildId != null
             ? ImmutableMap.of(parsedOutput.buildId, result)
