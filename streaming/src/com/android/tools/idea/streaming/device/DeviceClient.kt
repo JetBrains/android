@@ -412,14 +412,8 @@ internal class DeviceClient(
 
   private val isEmulator = deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true
 
-  private fun startAgent(
-    connection: Connection,
-    deviceSelector: DeviceSelector,
-    adbSession: AdbSession,
-    socketName: String,
-    maxVideoSize: Dimension,
-    initialDisplayOrientation: Int,
-    startVideoStream: Boolean) {
+  private fun startAgent(connection: Connection, deviceSelector: DeviceSelector, adbSession: AdbSession, socketName: String,
+                         maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
