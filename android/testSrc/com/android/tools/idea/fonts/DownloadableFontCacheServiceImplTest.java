@@ -18,6 +18,7 @@ package com.android.tools.idea.fonts;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.FontDownloader;
@@ -104,6 +105,6 @@ public class DownloadableFontCacheServiceImplTest {
                                              @NotNull String menuUrl,
                                              @NotNull String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName, Collections.singletonList(
-      new MutableFontDetail(name, 400, 100f, NORMAL, DEFAULT_EXACT, "https://fonts.com/roboto/v15/qrs.ttf", "", false)));
+      new MutableFontDetail(name, FontType.SINGLE, 400, 100f, NORMAL, DEFAULT_EXACT, "https://fonts.com/roboto/v15/qrs.ttf", "", false)));
   }
 }

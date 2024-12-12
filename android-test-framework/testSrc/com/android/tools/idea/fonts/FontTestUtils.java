@@ -22,6 +22,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
@@ -44,7 +45,7 @@ public final class FontTestUtils {
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
                                        Collections.singletonList(
-                                         new MutableFontDetail(fontName, weight, width, italics, DEFAULT_EXACT, urlStart + "other.ttf", "", false)));
+                                         new MutableFontDetail(fontName, FontType.SINGLE, weight, width, italics, DEFAULT_EXACT, urlStart + "other.ttf", "", false)));
     return family.getFonts().get(0);
   }
 

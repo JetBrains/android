@@ -28,6 +28,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.ParseResult;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -318,7 +319,7 @@ public class ProjectFonts {
   private void createEmbeddedFontFamily(@NonNull String name, @NonNull String fileName) {
     String fontName = StringsKt.removePrefix(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
-    MutableFontDetail detail = new MutableFontDetail(name, DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL, DEFAULT_EXACT, fileUrl, "", false);
+    MutableFontDetail detail = new MutableFontDetail(name, FontType.SINGLE, DEFAULT_WEIGHT, DEFAULT_WIDTH, NORMAL, DEFAULT_EXACT, fileUrl, "", false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
   }
