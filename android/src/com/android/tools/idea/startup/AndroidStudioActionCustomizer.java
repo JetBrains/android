@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup;
 
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,11 +36,6 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
     Actions.hideAction(actionManager, "Images.ShowThumbnails");
-    // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
-    // TODO(144579193): Remove this workaround when it's no longer necessary.
-    //  Eg: When ShowServicesAction can decide whether it's enabled or not.
-    AnAction servicesAction = actionManager.getAction("ServiceView.ShowServices");
-    Actions.replaceAction(actionManager, "ServiceView.ShowServices", servicesAction);
   }
 
   // Remove popup actions that we don't use
