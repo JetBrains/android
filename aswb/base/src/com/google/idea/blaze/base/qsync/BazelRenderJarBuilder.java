@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.FutureCallback;
@@ -178,7 +179,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
 
   private RenderJarInfo createRenderJarInfo(BlazeBuildOutputs blazeBuildOutputs) {
     ImmutableList<OutputArtifact> renderJars =
-      blazeBuildOutputs.getOutputGroupArtifacts(s -> s.contains("render_jars"));
+      blazeBuildOutputs.getOutputGroupArtifacts("render_jars");
     // TODO(b/283283123): Update the aspect to only return the render jar of the required target.
     // TODO(b/283280194): To setup fqcn -> target and target -> render jar mappings that would
     // increase the count of render jars but help with the performance by reducing the size of the

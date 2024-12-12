@@ -175,7 +175,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   private static ImmutableSet<OutputArtifact> getTrackedOutputs(
       BlazeBuildOutputs buildOutput, Predicate<String> outputGroupFilter) {
     Predicate<String> pathFilter = AspectStrategy.ASPECT_OUTPUT_FILE_PREDICATE.negate();
-    return buildOutput.getOutputGroupArtifacts(outputGroupFilter).stream()
+    return buildOutput.getOutputGroupArtifactsLegacySyncOnly(outputGroupFilter).stream()
         .filter(a -> pathFilter.test(a.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
@@ -204,7 +204,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     Collection<OutputArtifact> files =
         buildResult
             .getBuildResult()
-            .getOutputGroupArtifacts(group -> group.startsWith(OutputGroup.INFO.prefix))
+            .getOutputGroupArtifactsLegacySyncOnly(group -> group.startsWith(OutputGroup.INFO.prefix))
             .stream()
             .filter(f -> ideInfoPredicate.test(f.getBazelOutRelativePath()))
             .distinct()
@@ -296,7 +296,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
           ImmutableList<OutputArtifact> resolveOutputs =
               buildResult
                   .getBuildResult()
-                  .getOutputGroupArtifacts(group -> group.startsWith(OutputGroup.RESOLVE.prefix));
+                  .getOutputGroupArtifactsLegacySyncOnly(group -> group.startsWith(OutputGroup.RESOLVE.prefix));
           prefetchGenfiles(context, resolveOutputs);
         });
     return state;

@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.qsync;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
@@ -79,7 +80,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
 
   private AppInspectorInfo createAppInspectorInfo(BlazeBuildOutputs blazeBuildOutputs) {
     ImmutableList<OutputArtifact> appInspectorJars =
-        blazeBuildOutputs.getOutputGroupArtifacts(s -> s.contains("default"));
+        blazeBuildOutputs.getOutputGroupArtifacts("default");
 
     return AppInspectorInfo.create(appInspectorJars, blazeBuildOutputs.buildResult.exitCode);
   }

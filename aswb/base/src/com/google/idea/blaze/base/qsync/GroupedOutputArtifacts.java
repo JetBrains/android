@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.qsync;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
@@ -41,7 +42,7 @@ public class GroupedOutputArtifacts {
     ImmutableListMultimap.Builder<OutputGroup, OutputArtifact> builder = builder();
     for (OutputGroup group : outputGroups) {
       ImmutableList<OutputArtifact> artifacts =
-        buildOutputs.getOutputGroupArtifacts(group.outputGroupName()::equals);
+        buildOutputs.getOutputGroupArtifacts(group.outputGroupName());
       builder.putAll(group, artifacts);
     }
     return builder.build();

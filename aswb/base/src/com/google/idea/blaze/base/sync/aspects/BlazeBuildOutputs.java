@@ -107,12 +107,20 @@ public class BlazeBuildOutputs {
   }
 
   @VisibleForTesting
-  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(
-      Predicate<String> outputGroupFilter) {
+  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
     return artifacts.values().stream()
-        .filter(a -> a.outputGroups.stream().anyMatch(outputGroupFilter))
+        .filter(a -> a.outputGroups.contains(outputGroup))
         .map(a -> a.artifact)
         .collect(toImmutableList());
+  }
+
+  @VisibleForTesting
+  public ImmutableList<OutputArtifact> getOutputGroupArtifactsLegacySyncOnly(
+    Predicate<String> outputGroupFilter) {
+    return artifacts.values().stream()
+      .filter(a -> a.outputGroups.stream().anyMatch(outputGroupFilter))
+      .map(a -> a.artifact)
+      .collect(toImmutableList());
   }
 
   public ImmutableSet<String> getTargetsWithErrors() {
