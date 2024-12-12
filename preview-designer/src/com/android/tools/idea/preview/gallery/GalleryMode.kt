@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.gallery
 
 import com.android.tools.idea.concurrency.asCollection
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -56,13 +55,11 @@ class GalleryMode(rootComponent: JComponent) {
     }
   }
 
-  private val galleryView: Gallery<PreviewElementKey> =
-    if (StudioFlags.GALLERY_PREVIEW.get())
-      GalleryView(rootComponent, selectedProvider, keysProvider, selectionListener)
-    else GalleryTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
+  private val galleryTabs =
+    GalleryTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
 
-  /** [JPanel] for [GalleryView]. */
-  val component: JComponent = galleryView.component
+  /** [JPanel] for [GalleryTabs]. */
+  val component: JComponent = galleryTabs.component
 
   /**
    * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
@@ -75,5 +72,5 @@ class GalleryMode(rootComponent: JComponent) {
 
   @get:TestOnly
   val selectedKey: PreviewElementKey?
-    get() = galleryView.selectedKey
+    get() = galleryTabs.selectedKey
 }

@@ -65,9 +65,9 @@ internal class GalleryTabs<Key : TitledKey>(
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
   private val tabChangeListener: (DataContext, Key?) -> Unit,
-) : JPanel(BorderLayout()), Gallery<Key> {
+) : JPanel(BorderLayout()) {
 
-  override val component: JComponent = this
+  val component: JComponent = this
 
   companion object {
     private const val MAX_TITLE_LENGTH = 50
@@ -200,7 +200,7 @@ internal class GalleryTabs<Key : TitledKey>(
     }
   }
 
-  override var selectedKey: Key? = null
+  var selectedKey: Key? = null
     private set
 
   /**

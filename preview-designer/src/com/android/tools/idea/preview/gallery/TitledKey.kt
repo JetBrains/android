@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.gallery
 
-/** A key for each element in [GalleryView]. */
+/** A key for each element in [GalleryTabs]. */
 interface TitledKey {
-  /** A title of the element in [GalleryView]. */
+  /** A title of the element in [GalleryTabs]. */
   val title: String
 }

@@ -23,9 +23,6 @@ import java.util.stream.Collectors
 /** Find [ActionToolbarImpl] corresponding to [GalleryTabs]. */
 fun findGalleryTabs(parent: Component) = findToolbar(parent, "Gallery Tabs")
 
-/** Find [ActionToolbarImpl] corresponding to [GalleryView]. */
-fun findGalleryView(parent: Component) = findToolbar(parent, "Select Preview")
-
 private fun findToolbar(parent: Component, place: String): ActionToolbarImpl =
   TreeWalker(parent)
     .descendantStream()
