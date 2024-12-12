@@ -126,7 +126,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
       "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
       "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        android:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
+      "        android:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
       "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
       "</font-family>%n"
     ));
@@ -153,7 +153,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
       "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
       "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
+      "        app:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
       "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
       "</font-family>%n"
     ));

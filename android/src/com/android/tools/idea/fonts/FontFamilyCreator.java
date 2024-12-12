@@ -189,7 +189,7 @@ public class FontFamilyCreator {
         "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
         "        android:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        android:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery()) + "\"%n" +
+        "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQueryV12()) + "\"%n" +
         "        android:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
@@ -199,7 +199,7 @@ public class FontFamilyCreator {
         "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
         "        app:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        app:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        app:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery()) + "\"%n" +
+        "        app:fontProviderQuery=\"" + escapeXmlValue(font.generateQueryV12()) + "\"%n" +
         "        app:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
