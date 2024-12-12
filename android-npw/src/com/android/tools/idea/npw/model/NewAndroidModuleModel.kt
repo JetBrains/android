@@ -30,6 +30,7 @@ import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomo
 import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
+import com.android.tools.idea.npw.module.recipes.xrModule.generateXRModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -186,8 +187,7 @@ class NewAndroidModuleModel(
     override val recipe: Recipe
       get() =
         when (formFactor.get()) {
-          FormFactor.Mobile,
-          FormFactor.XR -> { data: TemplateData ->
+          FormFactor.Mobile -> { data: TemplateData ->
               generateAndroidModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
@@ -219,6 +219,14 @@ class NewAndroidModuleModel(
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
+          FormFactor.XR -> { data: TemplateData ->
+            generateXRModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              useKts = useGradleKts.get(),
+              useVersionCatalog = useVersionCatalog.get(),
+            )
+          }
           FormFactor.Generic -> { data: TemplateData ->
               generateGenericModule(data as ModuleTemplateData)
             }

@@ -90,7 +90,7 @@ fun RecipeExecutor.generateAndroidModule(
   }
 }
 
-private fun getBackupRules() =
+fun getBackupRules() =
   """
 <?xml version="1.0" encoding="utf-8"?>
 <!--
@@ -108,7 +108,7 @@ private fun getBackupRules() =
 </full-backup-content>
 """
 
-private fun getDataExtractionRules() =
+fun getDataExtractionRules() =
   """
 <?xml version="1.0" encoding="utf-8"?>
 <!--
