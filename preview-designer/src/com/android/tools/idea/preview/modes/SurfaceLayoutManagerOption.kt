@@ -19,6 +19,7 @@ import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
@@ -42,7 +43,10 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     SceneViewAlignment.LEFT,
   )
 
-/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+/**
+ * Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups.
+ * Grouping is done by Composable.
+ */
 val GRID_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("grid.layout.title"),
@@ -55,6 +59,10 @@ val GRID_LAYOUT_OPTION =
     SceneViewAlignment.LEFT,
   )
 
+/**
+ * If organization is enabled - previews are grouped by UI Check type - for example "Screen sizes",
+ * "Font scales". See [UiCheckModeFilter] for different types of checks.
+ */
 val UI_CHECK_LAYOUT_OPTION =
   SurfaceLayoutOption(
     displayName = message("grid.layout.title"),
