@@ -51,6 +51,8 @@ public:
   int32_t ReadFixed32();
   std::unique_ptr<std::u16string> ReadString16();
 
+  int32_t BufferedBytesAvailable() const { return data_end_ - offset_; }
+
   class StreamFormatException : public IoException {
   public:
     StreamFormatException(const char* message)

@@ -252,7 +252,7 @@ void Controller::Run() {
         SendPendingDisplayEvents();
       }
 
-      if (!WaitForIncomingData(socket_timeout, socket_fd_)) {
+      if (input_stream_.BufferedBytesAvailable() == 0 && !WaitForIncomingData(socket_timeout, socket_fd_)) {
         continue;
       }
 
