@@ -253,8 +253,8 @@ internal class DeviceToolWindowPanel(
           val displays = try {
             deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
           }
-          catch (e: TimeoutException) {
-            thisLogger().warn("Unable to get device display configurations", e)
+          catch (_: TimeoutException) {
+            thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
             return@launch
           }
           if (displays.isEmpty()) {
