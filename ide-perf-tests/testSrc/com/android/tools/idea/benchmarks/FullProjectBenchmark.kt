@@ -32,6 +32,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -448,6 +449,7 @@ abstract class FullProjectBenchmark {
   }
 
   fun measureLintInspections(projectName: String,
+                             maxFiles: Int? = null,
                              doWarmup: Boolean = true,
                              doLogging: Boolean = true) {
     // Setup
@@ -459,12 +461,31 @@ abstract class FullProjectBenchmark {
         toolWrappers.add(tool.tool)
       }
     }
-    val context = createGlobalContextForTool(AnalysisScope(project), project, toolWrappers)
+    val scopeProvider: () -> AnalysisScope = {
+      if (maxFiles == null) {
+        AnalysisScope(project)
+      }
+      else {
+        val allFiles = mutableListOf<VirtualFile>()
+        // take up to maxFiles from each file type
+        for (fileType in listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType)) {
+          val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).filter {
+            it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true
+          }
+            .take(maxFiles)
+          assert(files.isNotEmpty())
+          allFiles.addAll(files)
+        }
+        AnalysisScope(project, allFiles)
+      }
+    }
+
+    val context = createGlobalContextForTool(scopeProvider.invoke(), project, toolWrappers)
 
     // Warmup
     if (doWarmup) {
       @Suppress("UnstableApiUsage")
-      context.doInspections(AnalysisScope(project))
+      context.doInspections(scopeProvider.invoke())
 
       do {
         UIUtil.dispatchAllInvocationEvents()
@@ -478,7 +499,7 @@ abstract class FullProjectBenchmark {
     // Measure
     val timeMs = measureElapsedMillis {
       @Suppress("UnstableApiUsage")
-      context.doInspections(AnalysisScope(project))
+      context.doInspections(scopeProvider.invoke())
     }
 
     do {

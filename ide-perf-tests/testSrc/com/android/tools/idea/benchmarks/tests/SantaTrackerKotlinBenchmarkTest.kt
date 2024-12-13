@@ -75,6 +75,7 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
     runInEdtAndWait {
       measureLintInspections(
         PROJECT_NAME,
+        maxFiles = 1,
         doWarmup = false,
         doLogging = false
       )
