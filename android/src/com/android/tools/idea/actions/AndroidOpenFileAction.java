@@ -64,7 +64,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   public AndroidOpenFileAction(@NotNull String text) {
-    super(text);
+    super(text, null, AllIcons.Actions.MenuOpen);
     getTemplatePresentation().setApplicationScope(true);
   }
 

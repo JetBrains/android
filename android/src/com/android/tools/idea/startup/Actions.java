@@ -36,9 +36,7 @@ public final class Actions {
   }
 
   public static void replaceAction(@NotNull ActionManager actionManager, @NotNull String actionId, @NotNull AnAction newAction) {
-    AnAction oldAction = actionManager.getAction(actionId);
-    if (oldAction != null) {
-      newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
+    if (actionManager.getActionOrStub(actionId) != null) {
       actionManager.replaceAction(actionId, newAction);
     }
     else {

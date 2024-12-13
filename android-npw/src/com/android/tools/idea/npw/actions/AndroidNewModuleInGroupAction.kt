@@ -17,13 +17,14 @@
 package com.android.tools.idea.npw.actions
 
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY
 import com.intellij.openapi.actionSystem.ActionPlaces.MAIN_MENU
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 
-class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a new module to the project", null) {
+class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a new module to the project", AllIcons.Nodes.Module) {
   override fun update(e: AnActionEvent) {
     super.update(e)
 
