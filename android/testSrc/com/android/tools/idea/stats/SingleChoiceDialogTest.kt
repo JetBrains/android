@@ -174,7 +174,7 @@ class SingleChoiceDialogTest {
   }
 
   private fun createSingleChoiceDialog(survey: Survey, logger: ChoiceLogger): SingleChoiceDialog {
-    val dialog = createDialog(survey, logger, false) as? SingleChoiceDialog
+    val dialog = createDialog(survey, logger) as? SingleChoiceDialog
     assertNotNull(dialog)
     Disposer.register(disposable, dialog.disposable)
     return dialog
