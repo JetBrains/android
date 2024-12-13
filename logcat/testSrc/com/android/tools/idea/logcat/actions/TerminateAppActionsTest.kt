@@ -2,6 +2,7 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.deviceProperties
+import com.android.adblib.isOnline
 import com.android.adblib.serialNumber
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerProvider
@@ -310,9 +311,12 @@ class TerminateAppActionsTest {
         device.release,
         device.sdk.toString(),
         USB,
-      )
+      ).also {
+        it.deviceStatus = DeviceState.DeviceStatus.DEVICE
+      }
     adbSession.connectedDevicesTracker.connectedDevices.waitFor {
-      it.serialNumber == device.serialNumber
+      it.serialNumber == device.serialNumber &&
+      it.isOnline
     }
     return deviceState
   }
