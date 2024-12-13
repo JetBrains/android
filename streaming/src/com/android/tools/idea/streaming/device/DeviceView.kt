@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -204,9 +205,11 @@ internal class DeviceView(
 
   init {
     Disposer.register(disposableParent, this)
+    thisLogger().info("$simpleId created") // b/364541401
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
+        thisLogger().info("$simpleId.componentShown: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight") // b/364541401
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
@@ -226,6 +229,7 @@ internal class DeviceView(
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
     val resized = width != this.width || height != this.height
+    thisLogger().info("$simpleId.setBounds($x, $y, $width, $height): resized=$resized isVisible=$isVisible") // b/364541401
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
       if (connectionState == ConnectionState.INITIAL) {
@@ -235,6 +239,12 @@ internal class DeviceView(
         updateVideoSize()
       }
     }
+  }
+
+  override fun addNotify() {
+    thisLogger().info( // b/364541401
+        "$simpleId.addNotify: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight isVisible=$isVisible")
+    super.addNotify()
   }
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
