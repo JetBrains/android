@@ -585,14 +585,17 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       }
     }
 
-    if (shouldRecenter) {
+    Dimension size = getViewSize();
+    Dimension visibleSize = getExtentSize();
+    int scrollPositionX = (size.width - visibleSize.width) / 2;
+    int scrollPositionY = (size.height - visibleSize.height) / 2;
+    // Ensure the scroll position is never at point (0,0) when re-centering. NavDesignSurface previews are always
+    // centered on the screen, with horizontal and vertical scrolling and center shouldn't be on the top left of the screen.
+    if (shouldRecenter && (scrollPositionX != 0 || scrollPositionY != 0)) {
       // The navigation design surface differs from the other design surfaces in that there are
       // still scroll bars visible after doing a zoom to fit. As a result we need to explicitly
       // center the viewport.
-      Dimension visibleSize = getExtentSize();
-      Dimension size = getViewSize();
-
-      setScrollPosition((size.width - visibleSize.width) / 2, (size.height - visibleSize.height) / 2);
+      setScrollPosition(scrollPositionX, scrollPositionY);
     }
   }
 
