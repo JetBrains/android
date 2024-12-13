@@ -1989,6 +1989,12 @@ public final class StudioFlags {
                     "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_INCLUDES_LAST_ACTION =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.include.last.action",
+                    "Include the last user action in the code completion request",
+                    "When enabled, the type of the last user action is included in inline code completion requests.",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new MendelFlag(STUDIOBOT, "compiler.error.context.enabled", 97695187,
                 "Enable sending context with compiler error queries.",
