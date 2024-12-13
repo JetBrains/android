@@ -79,7 +79,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
                .onSuccess(dataContext -> {
                  final XmlFile newFile =
                    CreateResourceFileAction
-                     .createFileResource(myFacet, myResourceType, myResourceName + ".xml", null, null, myChooseResName, null,
+                     .createFileResource(myFacet, myResourceType, getDefaultFilename(), null, null, myChooseResName, null,
                                          null, dataContext);
                  if (newFile != null) {
                    UndoUtil.markPsiFileForUndo(myFile);
@@ -118,5 +118,12 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     catch (Exception e) {
       LOG.error(e);
     }
+  }
+
+  private String getDefaultFilename() {
+    if (myResourceType == ResourceFolderType.RAW) {
+      return myResourceName;
+    }
+    return myResourceName + ".xml";
   }
 }
