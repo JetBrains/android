@@ -323,7 +323,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
                                      if (project == toolWindow.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
                                        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-                                         showLiveIndicator()
                                          if (requestType != RequestType.INDIRECT) {
                                            onEmulatorHeadsUp(avd.name, ActivationLevel.ACTIVATE_TAB)
                                          }
@@ -566,11 +565,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
-    if (placeholderContent != null) {
-      placeholderContent.removeAndDispose() // Remove the placeholder panel.
-      showLiveIndicator()
-      hideToolWindowName()
-    }
+    placeholderContent?.removeAndDispose() // Remove the placeholder panel.
+
+    showLiveIndicator()
+    hideToolWindowName()
 
     return content
   }
@@ -835,7 +833,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     logger.info( // b/364541401
         "$simpleId.startMirroring($serialNumber, ${deviceClient.simpleId}, ${deviceHandle.simpleId}, $activation, ...)")
     if (serialNumber in onlineDevices) {
-      showLiveIndicator()
       if (contentShown) {
         updateMirroringHandlesFlow()
         deviceClient.establishAgentConnectionWithoutVideoStreamAsync(project) // Start the agent and connect to it proactively.
