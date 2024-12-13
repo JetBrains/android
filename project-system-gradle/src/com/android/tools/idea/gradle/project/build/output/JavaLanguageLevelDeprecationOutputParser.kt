@@ -62,6 +62,8 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
   private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported\\. Use (\\S+) or later\\.")
 
   companion object {
+    //The difference from above is that this is resulting BOW message pattern
+    val notSupportedMessagePattern = Pattern.compile("(Source|Target) option (\\S+) is no longer supported\\. Use (\\S+) or later\\.")
     // AGP 8.4 Pattern
     val javaVersionRemovedPattern = Pattern.compile(
       "Java compiler version (\\d+) has removed support for compiling with source/target version (\\d+)\\.?"

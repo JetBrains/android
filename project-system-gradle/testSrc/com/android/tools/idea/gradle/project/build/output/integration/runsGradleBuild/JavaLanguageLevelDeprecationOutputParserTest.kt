@@ -50,7 +50,6 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
    * -Open<Source|Target>CompatibilityLinkQuickFix
    * -OpenJavaLanguageSpecQuickFix
    */
-  @Ignore("b/380871304")
   @Test
   fun testJava6CausesError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
@@ -189,7 +188,6 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
     verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
   }
 
-  @Ignore("b/380871304")
   @Test
   fun testJava7OnJDK21WithJavaLib() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)

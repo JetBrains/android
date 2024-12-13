@@ -24,6 +24,8 @@ object BuildOutputParserUtils {
     const val MESSAGE_GROUP_WARNING_SUFFIX = " warnings"
     const val MESSAGE_GROUP_ERROR_SUFFIX = " errors"
     const val BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception."
+    //TODO (b/362959090): This is part of the new Gradle output for multiple failures. Need to adjust all parsers.
+    const val BUILD_COMPLETED_WITH_FAILURES_LINE = "FAILURE: Build completed with "
 
     fun consumeRestOfOutput(reader: BuildOutputInstantReader) {
       while (true) {

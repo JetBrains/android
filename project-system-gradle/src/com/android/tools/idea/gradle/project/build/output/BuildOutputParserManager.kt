@@ -44,7 +44,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       JavaLanguageLevelDeprecationOutputParser(),
                                                       AndroidGradlePluginOutputParser(),
                                                       DataBindingOutputParser(),
-                                                      JavacOutputParser(),
+                                                      JavacFilteringOutputParser(),
                                                       KotlincWithQuickFixesParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
