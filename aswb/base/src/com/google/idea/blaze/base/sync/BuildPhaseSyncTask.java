@@ -254,7 +254,7 @@ public final class BuildPhaseSyncTask {
         getBlazeBuildResult(context, viewSet, shardedTargets, syncBuildInvoker, parallel);
     resultBuilder.setBuildResult(blazeBuildResult);
     buildStats
-        .setBuildResult(blazeBuildResult.buildResult)
+        .setBuildResult(blazeBuildResult.buildResult())
         .setBuildIds(blazeBuildResult.getBuildIds())
         .setBuildBinaryType(syncBuildInvoker.getType())
         .setBepBytesConsumed(blazeBuildResult.bepBytesConsumed);
@@ -262,10 +262,10 @@ public final class BuildPhaseSyncTask {
     if (context.isCancelled()) {
       throw new SyncCanceledException();
     }
-    String invocationResultMsg = "Build invocation result: " + blazeBuildResult.buildResult.status;
-    if (blazeBuildResult.buildResult.status == BuildResult.Status.FATAL_ERROR) {
+    String invocationResultMsg = "Build invocation result: " + blazeBuildResult.buildResult().status;
+    if (blazeBuildResult.buildResult().status == BuildResult.Status.FATAL_ERROR) {
       context.setHasError();
-      if (blazeBuildResult.buildResult.outOfMemory()) {
+      if (blazeBuildResult.buildResult().outOfMemory()) {
         SuggestBuildShardingNotification.syncOutOfMemoryError(project, context);
       }
 

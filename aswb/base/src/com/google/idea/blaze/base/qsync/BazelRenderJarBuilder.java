@@ -20,7 +20,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.FutureCallback;
@@ -99,7 +98,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
 
       BlazeBuildOutputs outputs =
           invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
-      BazelExitCodeException.throwIfFailed(builder, outputs.buildResult);
+      BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
       // Building render jar also involves building the dependencies of the file,
       // (as discussed in b/309154453#comment5). So we also invoke the full QuerySync to build the
       // dependencies and notify the sync listeners.
@@ -126,7 +125,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
           public void onSuccess(@Nullable Boolean unused) {
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
           }
 
           @Override
@@ -135,7 +134,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
             // print logs as required.
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
           }
         },
         MoreExecutors.directExecutor());
@@ -185,7 +184,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
     // increase the count of render jars but help with the performance by reducing the size of the
     // render jar loaded by the class loader.
     // TODO(b/336633197): Investigate performance impact of large number of render jars
-    return RenderJarInfo.create(renderJars, blazeBuildOutputs.buildResult.exitCode);
+    return RenderJarInfo.create(renderJars, blazeBuildOutputs.buildResult().exitCode);
   }
 }
 

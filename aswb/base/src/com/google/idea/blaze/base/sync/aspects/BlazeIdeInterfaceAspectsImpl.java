@@ -191,8 +191,8 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       @Nullable AspectSyncProjectData oldProjectData) {
     // If there was a partial error, make a best-effort attempt to sync. Retain
     // any old state that we have in an attempt not to lose too much code.
-    if (buildResult.getBuildResult().buildResult.status == BuildResult.Status.BUILD_ERROR
-        || buildResult.getBuildResult().buildResult.status == Status.FATAL_ERROR) {
+    if (buildResult.getBuildResult().buildResult().status == BuildResult.Status.BUILD_ERROR
+        || buildResult.getBuildResult().buildResult().status == Status.FATAL_ERROR) {
       mergeWithOldState = true;
     }
 
@@ -648,7 +648,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                             outputGroups,
                             additionalBlazeFlags,
                             invokeParallel);
-                    if (result.buildResult.outOfMemory()) {
+                    if (result.buildResult().outOfMemory()) {
                       logger.warn(
                           String.format(
                               "Build shard failed with OOM error build-id=%s",
@@ -661,7 +661,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                               ? result
                               : combinedResult.get().updateOutputs(result));
                     }
-                    return result.buildResult;
+                    return result.buildResult();
                   } catch (BuildException e) {
                     context.handleException("Failed to build targets", e);
                     return BuildResult.FATAL_ERROR;
@@ -683,14 +683,14 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   /* Prints summary only for failed shards */
   private void printShardFinishedSummary(
       BlazeContext context, String taskName, BlazeBuildOutputs result, BuildInvoker invoker) {
-    if (result.buildResult.status == Status.SUCCESS) {
+    if (result.buildResult().status == Status.SUCCESS) {
       return;
     }
     StringBuilder outputText = new StringBuilder();
     outputText.append(
         String.format(
             "%s finished with %s errors. ",
-            taskName, result.buildResult.status == Status.BUILD_ERROR ? "build" : "fatal"));
+            taskName, result.buildResult().status == Status.BUILD_ERROR ? "build" : "fatal"));
     String invocationId =
         Iterables.getOnlyElement(
             result.getBuildIds(),

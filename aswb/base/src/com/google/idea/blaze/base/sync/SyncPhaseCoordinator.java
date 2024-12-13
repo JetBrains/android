@@ -524,7 +524,7 @@ final class SyncPhaseCoordinator {
     if (buildOutputs == null || !syncBuildResult.hasValidOutputs()) {
       return SyncResult.FAILURE;
     }
-    if (buildOutputs.buildResult.status == Status.FATAL_ERROR) {
+    if (buildOutputs.buildResult().status == Status.FATAL_ERROR) {
       if (BuildPhaseSyncTask.continueSyncOnOom.getValue()) {
         context.output(
             PrintOutput.error(
@@ -535,7 +535,7 @@ final class SyncPhaseCoordinator {
         return SyncResult.FAILURE;
       }
     }
-    if (buildOutputs.buildResult.status == BuildResult.Status.BUILD_ERROR) {
+    if (buildOutputs.buildResult().status == BuildResult.Status.BUILD_ERROR) {
       String buildSystem = Blaze.buildSystemName(project);
       String message =
           String.format(

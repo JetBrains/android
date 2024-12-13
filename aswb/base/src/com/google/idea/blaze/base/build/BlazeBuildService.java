@@ -246,7 +246,7 @@ public class BlazeBuildService {
 
                     refreshFileCachesAndNotifyListeners(context, buildOutputs, project);
 
-                    if (buildOutputs.buildResult.status != BuildResult.Status.SUCCESS) {
+                    if (buildOutputs.buildResult().status != BuildResult.Status.SUCCESS) {
                       context.setHasError();
                     }
                     return null;
@@ -269,7 +269,7 @@ public class BlazeBuildService {
           public void onSuccess(@Nullable Void unused) {
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
           }
 
           @Override
@@ -278,7 +278,7 @@ public class BlazeBuildService {
             // print logs as required.
             BlazeBuildListener.EP_NAME
                 .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult));
+                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
           }
         },
         MoreExecutors.directExecutor());

@@ -69,7 +69,7 @@ public class BlazeBuildOutputs {
         parsedOutput.getBepBytesConsumed());
   }
 
-  public final BuildResult buildResult;
+  private final BuildResult buildResult;
   // Maps build id to the build result of individual shards
   private final ImmutableMap<String, BuildResult> buildShardResults;
   private final ImmutableSet<String> targetsWithErrors;
@@ -164,7 +164,7 @@ public class BlazeBuildOutputs {
       }
     }
     return new BlazeBuildOutputs(
-        BuildResult.combine(buildResult, nextOutputs.buildResult),
+        BuildResult.combine(buildResult(), nextOutputs.buildResult()),
         combined,
         Stream.concat(
                 nextOutputs.buildShardResults.entrySet().stream(),
@@ -185,5 +185,9 @@ public class BlazeBuildOutputs {
     return !buildShardResults.isEmpty()
         && buildShardResults.values().stream()
             .allMatch(result -> result.status == Status.FATAL_ERROR);
+  }
+
+  public BuildResult buildResult() {
+    return buildResult;
   }
 }

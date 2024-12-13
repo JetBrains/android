@@ -72,7 +72,7 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
     command = blazeCommandBuilder.build();
     try {
       BlazeBuildOutputs blazeBuildOutputs = resultsFunction.runBuild(buildResultHelper);
-      int exitCode = blazeBuildOutputs.buildResult.exitCode;
+      int exitCode = blazeBuildOutputs.buildResult().exitCode;
       BuildDepsStatsScope.fromContext(context).ifPresent(stats -> stats.setBazelExitCode(exitCode));
       return blazeBuildOutputs;
     } catch (GetArtifactsException e) {

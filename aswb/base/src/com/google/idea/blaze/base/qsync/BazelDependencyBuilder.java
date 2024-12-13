@@ -222,7 +222,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
       BazelExitCodeException.throwIfFailed(
           builder,
-          outputs.buildResult,
+          outputs.buildResult(),
           ThrowOption.ALLOW_PARTIAL_SUCCESS,
           ThrowOption.ALLOW_BUILD_FAILURE);
 
@@ -339,15 +339,15 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             getOnlyElement(blazeBuildOutputs.getBuildIds()), buildTime);
 
     return OutputInfo.create(
-        allArtifacts,
-        artifactInfoFilesBuilder.build(),
-        ccInfoBuilder.build(),
-        blazeBuildOutputs.getTargetsWithErrors().stream()
+      allArtifacts,
+      artifactInfoFilesBuilder.build(),
+      ccInfoBuilder.build(),
+      blazeBuildOutputs.getTargetsWithErrors().stream()
             .map(Object::toString)
             .map(Label::of)
             .collect(toImmutableSet()),
-        blazeBuildOutputs.buildResult.exitCode,
-        buildContext);
+      blazeBuildOutputs.buildResult().exitCode,
+      buildContext);
   }
 
   @FunctionalInterface
