@@ -839,6 +839,21 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testCatalogWithNonStandardNamePropertySetter() {
+    writeToSettingsFile("""
+        dependencyResolutionManagement {
+          defaultLibrariesExtensionName.set("dep")
+        }
+      """.trimIndent())
+    writeToVersionCatalogFile("")
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    assertContainsElements(vcModel.catalogNames(), "dep")
+    assertNotNull(vcModel.versions("dep"))
+  }
+
+  @Test
   fun testCatalogWithNonStandardNameAndMultiCatalog() {
     val gradlePath = myProjectBasePath.findChild("gradle")!!
     var myVersionCatalogFile: VirtualFile? = null
