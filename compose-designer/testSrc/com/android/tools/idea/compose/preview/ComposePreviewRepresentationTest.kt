@@ -113,7 +113,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -574,8 +573,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testRerunUiCheckAction() {
-    // TODO(b/381432038): K2 fails on this test. Remove the line below after fixing it.
-    if (KotlinPluginModeProvider.isK2Mode()) return
     // Use the real FileEditorManager
     project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
@@ -586,7 +583,10 @@ class ComposePreviewRepresentationTest {
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
 
     val testPsiFile = runWriteActionAndWait {
-      fixture.addFileToProjectAndInvalidate(
+      // Do not use addFileToProjectAndInvalidate(..) here. It generates/caches a document with null
+      // virtual file, which results in the inconsistency with the document for the PSI virtual file
+      // after updating PSI. See b/381432038 for further information.
+      fixture.addFileToProject(
         "Test.kt",
         // language=kotlin
         """
