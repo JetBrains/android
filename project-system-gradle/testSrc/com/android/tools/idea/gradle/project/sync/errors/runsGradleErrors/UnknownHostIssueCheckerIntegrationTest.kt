@@ -38,6 +38,7 @@ class UnknownHostIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains("Unknown host 'my host'. You may need to adjust the proxy settings in Gradle.")
     assertThat(buildIssue.quickFixes).hasSize(2)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
+    assertThat((buildIssue.quickFixes.first() as ToggleOfflineModeQuickFix).enableOfflineMode).isTrue()
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
 
   }

@@ -293,14 +293,14 @@ class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
   }
 }
 
-class ToggleOfflineModeQuickFix(private val myEnableOfflineMode: Boolean) : BuildIssueQuickFix {
+class ToggleOfflineModeQuickFix(val enableOfflineMode: Boolean) : BuildIssueQuickFix {
   override val id = "enable.disable.offline.mode"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
-      GradleSettings.getInstance(project).isOfflineWork = myEnableOfflineMode
+      GradleSettings.getInstance(project).isOfflineWork = enableOfflineMode
       val trigger = GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED
       GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
       future.complete(null)
