@@ -131,7 +131,19 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     SemanticsDescription description = effect.semantics;
     ExternalNameSyntax syntax = element.getExternalSyntax();
     if (syntax == ASSIGNMENT) {
-      if (description != VAR && description != VWO && description != VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
+      if (description == GRADLE_PROPERTY) {
+        // this is slightly too lenient.  In Groovy, Gradle Property<T> has always supported assignment.  In Kotlin Script, however,
+        // that support is only available since Gradle 8.2.  Here we are going to assume that we are parsing something valid
+        // for the project's context.
+        //
+        // At the moment, we have support for knowing what version of AGP the project is configured to run with.  That's a partial
+        // proxy for the version of Gradle -- but it's only partial, and only applies if the project is using AGP at all.  We should
+        // probably also include the version of Gradle in our context.  (We would also then need to do something different based not
+        // only on the version of Gradle but also depending on which Dsl language is in use, which is awkward here.  So...
+        //
+        // (do nothing here for now: allow parsing assignment.)
+      }
+      else if (description != VAR && description != VWO && description != VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
         // we are maybe-renaming a property involved in an assignment, which only makes sense if the property has a writer (i.e.
         // it is a property and not a read-only VAL)
         return;

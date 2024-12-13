@@ -346,6 +346,23 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertSize(2, repositories);
     assertEquals("Google", repositories.get(0).name().forceString());
     assertEquals("BintrayJCenter2", repositories.get(1).name().forceString());
+
+    assertEquals("FAIL_ON_PROJECT_REPOS", dependencyResolutionManagementModel.repositoriesMode().getRepositoriesMode());
+  }
+
+  @Test
+  public void testParseDependencyResolutionManagementPropertyAssignment() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT_PROPERTY_ASSIGNMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
+
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertSize(2, repositories);
+    assertEquals("Google", repositories.get(0).name().forceString());
+    assertEquals("BintrayJCenter2", repositories.get(1).name().forceString());
+
+    assertEquals("FAIL_ON_PROJECT_REPOS", dependencyResolutionManagementModel.repositoriesMode().getRepositoriesMode());
   }
 
   @Test
@@ -492,7 +509,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_EXPECTED);
-
   }
 
   @Test
@@ -675,6 +691,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_INCLUDE_AT_THE_END("addIncludeAtTheEnd"),
     ADD_INCLUDE_AT_THE_END_EXPECTED("addIncludeAtTheEndExpected"),
     PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT("parseDependencyResolutionManagement"),
+    PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT_PROPERTY_ASSIGNMENT("parseDependencyResolutionManagementPropertyAssignment"),
     ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("addAndApplyDependencyResolutionManagement"),
     ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("addAndApplyDependencyResolutionManagementExpected"),
     EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("editAndApplyDependencyResolutionManagement"),

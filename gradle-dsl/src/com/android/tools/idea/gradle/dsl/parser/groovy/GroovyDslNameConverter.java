@@ -150,7 +150,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
         if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
         if (semantics == GRADLE_PROPERTY) {
-          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, SET_METHOD);
+          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT);
         }
         if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER).contains(semantics)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
