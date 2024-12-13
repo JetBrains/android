@@ -2206,7 +2206,7 @@ fun createFileResource(
   fileName: String,
   resSubdir: PsiDirectory,
   rootTagName: String,
-  resourceType: String,
+  resourceType: ResourceType?,
   valuesResourceFile: Boolean,
 ): XmlFile {
   val manager = FileTemplateManager.getInstance(resSubdir.project)
@@ -2216,7 +2216,7 @@ fun createFileResource(
   if (!valuesResourceFile) {
     properties.setProperty(ROOT_TAG_PROPERTY, rootTagName)
   }
-  if (ResourceType.LAYOUT.getName() == resourceType) {
+  if (ResourceType.LAYOUT == resourceType) {
     val module = ModuleUtilCore.findModuleForPsiElement(resSubdir)
     val platform = if (module != null) getInstance(module) else null
     val apiLevel = platform?.apiLevel ?: -1
@@ -2231,7 +2231,7 @@ fun createFileResource(
 }
 
 private fun getTemplateName(
-  resourceType: String,
+  resourceType: ResourceType?,
   valuesResourceFile: Boolean,
   rootTagName: String,
 ): String {
@@ -2239,7 +2239,7 @@ private fun getTemplateName(
     return AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE
   }
   if (
-    ResourceType.LAYOUT.getName() == resourceType &&
+    ResourceType.LAYOUT == resourceType &&
       SdkConstants.TAG_LAYOUT != rootTagName &&
       SdkConstants.VIEW_MERGE != rootTagName
   ) {
@@ -2247,7 +2247,7 @@ private fun getTemplateName(
       AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE
     else AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE
   }
-  return if (ResourceType.NAVIGATION.getName() == resourceType) {
+  return if (ResourceType.NAVIGATION == resourceType) {
     AndroidFileTemplateProvider.NAVIGATION_RESOURCE_FILE_TEMPLATE
   } else AndroidFileTemplateProvider.RESOURCE_FILE_TEMPLATE
 }
@@ -2299,7 +2299,7 @@ fun findOrCreateStateListFiles(
             fileName,
             directory,
             CreateTypedResourceFileAction.getDefaultRootTagByResourceType(module, folderType),
-            resourceType.getName(),
+            resourceType,
             false,
           )
           file = dir.findChild(fileName)

@@ -509,7 +509,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   public void testCreateFrameLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createFileResource("linear", getLayoutFolder(), FRAME_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    XmlFile file = IdeResourcesUtil.createFileResource("linear", getLayoutFolder(), FRAME_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("linear.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -519,7 +519,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   public void testCreateLinearLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createFileResource("linear", getLayoutFolder(), LINEAR_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    XmlFile file = IdeResourcesUtil.createFileResource("linear", getLayoutFolder(), LINEAR_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("linear.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -530,7 +530,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   public void testCreateLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createFileResource("layout", getLayoutFolder(), TAG_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    XmlFile file = IdeResourcesUtil.createFileResource("layout", getLayoutFolder(), TAG_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("layout.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
@@ -539,7 +539,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   public void testCreateMergeFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createFileResource("merge", getLayoutFolder(), VIEW_MERGE, ResourceType.LAYOUT.getName(), false);
+    XmlFile file = IdeResourcesUtil.createFileResource("merge", getLayoutFolder(), VIEW_MERGE, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("merge.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
@@ -549,7 +549,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
 
   public void testCreateNavigationFileResource() throws Exception {
     XmlFile file =
-      IdeResourcesUtil.createFileResource("nav", getLayoutFolder(), TAG_NAVIGATION, ResourceType.NAVIGATION.getName(), false);
+      IdeResourcesUtil.createFileResource("nav", getLayoutFolder(), TAG_NAVIGATION, ResourceType.NAVIGATION, false);
     assertThat(file.getName()).isEqualTo("nav.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

@@ -254,7 +254,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
         resourceFileName,
         valuesDir,
         rootTagName = "",
-        ResourceType.STRING.name,
+        ResourceType.STRING,
         valuesResourceFile = true,
       )
     } catch (e: Exception) {

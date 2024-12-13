@@ -106,17 +106,13 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     PsiDirectory resSubdir = psiResDir.findSubdirectory(resDirName);
 
     if (resSubdir == null) {
-      resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
-        @Override
-        public PsiDirectory compute() {
-          return psiResDir.createSubdirectory(resDirName);
-        }
-      });
+      resSubdir = ApplicationManager.getApplication().runWriteAction(
+        (Computable<PsiDirectory>)() -> psiResDir.createSubdirectory(resDirName));
     }
 
     try {
       IdeResourcesUtil.createFileResource(
-        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myFacet.getModule(), myResourceType), resDirName, false);
+        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myFacet.getModule(), myResourceType), myResourceType.getResourceType(), false);
       UndoUtil.markPsiFileForUndo(myFile);
     }
     catch (Exception e) {

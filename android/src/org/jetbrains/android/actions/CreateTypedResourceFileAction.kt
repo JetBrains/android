@@ -131,7 +131,7 @@ open class CreateTypedResourceFileAction(
         newName,
         directory,
         rootTagName,
-        resourceFolderType.getName(),
+        resourceFolderType.resourceType,
         valuesResourceFile,
       )
 
