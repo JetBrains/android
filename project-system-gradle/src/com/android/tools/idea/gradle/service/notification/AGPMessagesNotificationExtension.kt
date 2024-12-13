@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.notification
 import com.android.tools.idea.gradle.project.build.output.JavaLanguageLevelDeprecationOutputParser
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension
+import com.intellij.util.ExceptionUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /**
@@ -35,6 +36,18 @@ class AGPMessagesNotificationExtension: ExternalSystemNotificationExtension {
   override fun getTargetExternalSystemId(): ProjectSystemId = GradleConstants.SYSTEM_ID
 
   override fun isInternalError(error: Throwable): Boolean {
+    return isXmlProcessorError(error)
+           || isJavaLanguageLevelDeprecationError(error)
+  }
+
+  private fun isXmlProcessorError(error: Throwable): Boolean {
+    // See b/280524982
+    val rootCause = ExceptionUtil.getRootCause(error)
+    return rootCause is javax.xml.stream.XMLStreamException
+           && rootCause.stackTrace.any { it.className == "com.android.aaptcompiler.XmlProcessor" }
+  }
+
+  private fun isJavaLanguageLevelDeprecationError(error: Throwable): Boolean {
     val firstLine = error.message?.lineSequence()?.firstOrNull()
     return firstLine != null && JavaLanguageLevelDeprecationOutputParser.javaVersionRemovedPattern.matcher(firstLine).matches()
   }
