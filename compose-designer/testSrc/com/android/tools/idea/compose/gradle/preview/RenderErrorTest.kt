@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
+import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.gradle.waitForRender
@@ -393,11 +394,10 @@ class RenderErrorTest {
           as DefaultActionGroup)
         .childActionsOrStubs
         .single() as SceneViewTopPanel.ShowActionGroupInPopupAction
-    return (showToolbarActionsActionGroup.actionGroup as DefaultActionGroup)
-      .childActionsOrStubs
-      .filterIsInstance<DefaultActionGroup>()
+    return showToolbarActionsActionGroup.actionGroup.childActionsOrStubs
+      .filterIsInstance<ShowGroupUnderConditionWrapper>()
       .single()
-      .childActionsOrStubs
+      .getChildren(null)
       .toList()
   }
 

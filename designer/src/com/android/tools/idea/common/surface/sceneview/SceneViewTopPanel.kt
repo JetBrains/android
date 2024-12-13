@@ -16,9 +16,11 @@
 package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -121,7 +123,7 @@ class SceneViewTopPanel(
 
   /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */
   @VisibleForTesting
-  class ShowActionGroupInPopupAction(val actionGroup: ActionGroup) :
+  class ShowActionGroupInPopupAction(val actionGroup: DefaultActionGroup) :
     AnAction("Show Toolbar Actions", null, StudioIcons.Common.OVERFLOW) {
     override fun actionPerformed(e: AnActionEvent) {
       val popup =
@@ -141,5 +143,15 @@ class SceneViewTopPanel(
       }
       popup.showInBestPositionFor(e.dataContext)
     }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      // Check if the underlying action group is visible, and hide the action if it is.
+      (actionGroup.childActionsOrStubs.filterIsInstance<ShowGroupUnderConditionWrapper>())
+        .singleOrNull()
+        ?.let { e.presentation.isVisible = it.isVisible(e.dataContext) }
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 }

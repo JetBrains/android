@@ -16,8 +16,10 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.SCENE_VIEW
-import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.util.EnableUnderConditionWrapper
+import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
+import com.android.tools.idea.common.util.ShowUnderConditionWrapper
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -32,13 +34,10 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
@@ -87,23 +86,14 @@ inline fun <reified T> FileEditor.getPreviewManager(): T? =
     else -> null
   }
 
-private class PreviewNonInteractiveActionWrapper(actions: List<AnAction>) :
-  DefaultActionGroup(actions) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-
-    e.getData(PreviewModeManager.KEY)?.let { e.presentation.isVisible = it.mode.value.isNormal }
-  }
-}
-
 /**
  * Makes the given list of actions only visible when the preview is not in interactive or animation
  * modes. Returns an [ActionGroup] that handles the visibility.
  */
 fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
-  PreviewNonInteractiveActionWrapper(this)
+  ShowGroupUnderConditionWrapper(DefaultActionGroup(this)) {
+    it.getData(PreviewModeManager.KEY)?.mode?.value?.isNormal == true
+  }
 
 /**
  * Makes the given action only visible when the preview is not in interactive or animation modes.
@@ -141,22 +131,6 @@ private fun DataContext.projectNeedsBuild() = getData(CommonDataKeys.PROJECT)?.n
 private fun DataContext.isRefreshing() = isPreviewRefreshing(this)
 
 private fun DataContext.hasErrors() = isPreviewHasErrors(this) || hasSceneViewErrors(this)
-
-/** Wrapper that delegates whether the given action is visible or not to the passed condition. */
-private class ShowUnderConditionWrapper(
-  delegate: AnAction,
-  private val isVisible: (DataContext) -> Boolean,
-) : AnActionWrapper(delegate), CustomComponentAction {
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    val curVisibleStatus = e.presentation.isVisible
-    e.presentation.isVisible = curVisibleStatus && isVisible(e.dataContext)
-  }
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(delegate, presentation, place)
-}
 
 /**
  * Wraps each action to control its enabled state.
@@ -198,47 +172,6 @@ fun isPreviewHasErrors(dataContext: DataContext) =
 
 fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
-
-/**
- * Wraps an [AnAction] to conditionally control its enabled state as well as control whether the
- * action can be performed.
- *
- * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a
- * reason using [reasonForDisabling]. The wrapped [AnAction] will only be able to be performed
- * through the [actionPerformed] method if [isEnabled] returns `true`.
- *
- * @param delegate The original action.
- * @param isEnabled Determines if the action should be enabled.
- * @param reasonForDisabling Optionally provides a reason for disabling.
- */
-private class EnableUnderConditionWrapper(
-  delegate: AnAction,
-  private val isEnabled: (context: DataContext) -> Boolean,
-  private val reasonForDisabling: (context: DataContext) -> String? = { null },
-) : AnActionWrapper(delegate), CustomComponentAction {
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    val delegateEnabledStatus = e.presentation.isEnabled
-    e.presentation.isEnabled = delegateEnabledStatus && isEnabled(e.dataContext)
-    if (!e.presentation.isEnabled) {
-      reasonForDisabling(e.dataContext)?.let { e.presentation.description = it }
-    }
-  }
-
-  override fun actionPerformed(e: AnActionEvent) {
-    // It sometimes takes a second or so for the action to update its presentation enabled
-    // state, meaning the action can still be enabled when isEnabled returns false.
-    // In those cases, we want to  prevent the user from performing the action.
-    if (!isEnabled(e.dataContext)) {
-      return
-    }
-    super.actionPerformed(e)
-  }
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(delegate, presentation, place)
-}
 
 // TODO(b/292057010) Enable group filtering for Gallery mode.
 private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
