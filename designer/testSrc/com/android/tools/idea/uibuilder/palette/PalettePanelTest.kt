@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Dependency
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -49,7 +48,6 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -63,23 +61,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
-import org.intellij.lang.annotations.Language
-import org.junit.After
-import org.junit.Assert.assertFalse
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyCollection
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.isNull
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
-import org.mockito.kotlin.eq
 import java.awt.Point
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
@@ -92,6 +73,22 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.KeyStroke
 import javax.swing.TransferHandler
+import org.intellij.lang.annotations.Language
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.isNull
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 private const val BUTTON_CATEGORY_INDEX = 2
 private const val CHECKBOX_ITEM_INDEX = 2
@@ -392,12 +389,7 @@ public class MyWebView extends android.webkit.WebView {
     assertThat(myPanel!!.itemList.selectedValue.tagName).isEqualTo(SdkConstants.AD_VIEW)
     val event: AnActionEvent = mock()
     val presentation = myPanel!!.addToDesignAction.templatePresentation.clone()
-    val gradleDependencyManager = GradleDependencyManager.getInstance(projectRule.project)
     `when`(event.presentation).thenReturn(presentation)
-    `when`(
-        gradleDependencyManager.findMissingDependencies(any(Module::class.java), anyCollection())
-      )
-      .thenReturn(listOf(Dependency.parse(SdkConstants.ADS_ARTIFACT)))
 
     // This statement would fail if the user is asked if they want to add a dependency on
     // play-services-ads:
