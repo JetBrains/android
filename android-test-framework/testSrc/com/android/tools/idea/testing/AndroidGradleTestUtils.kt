@@ -2229,9 +2229,7 @@ private fun <T> openPreparedProject(
           // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
           // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
           // run faster.
-          val ep = WorkspaceFileIndexImpl.EP_NAME
-          val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-          ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+          disableKtsIndexing(disposable)
         }
 
         var afterCreateCalled = false
@@ -2633,4 +2631,10 @@ private fun Project.maybeOutputDiagnostics() {
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
     // Nothing is needed right now.
   }
+}
+
+fun disableKtsIndexing(disposable: Disposable) {
+  val ep = WorkspaceFileIndexImpl.EP_NAME
+  val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+  ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 }

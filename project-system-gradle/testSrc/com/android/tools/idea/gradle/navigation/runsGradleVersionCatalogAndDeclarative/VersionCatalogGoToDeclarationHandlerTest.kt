@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.navigation.runsGradleVersionCatalogAndDecl
 import com.android.tools.idea.gradle.navigation.VersionCatalogGoToDeclarationHandler
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.disableKtsIndexing
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.ExtensionTestUtil
-import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,10 +35,7 @@ class VersionCatalogGoToDeclarationHandlerTest {
 
   @Test
   fun testGoToDeclarationInToml() {
-    val disposable = projectRule.fixture.testRootDisposable
-    val ep = WorkspaceFileIndexImpl.EP_NAME
-    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+    disableKtsIndexing(projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     // Check Go To Declaration within the TOML file
@@ -83,10 +78,7 @@ class VersionCatalogGoToDeclarationHandlerTest {
 
   @Test
   fun testGotoCatalogDeclarationInKts() {
-    val disposable = projectRule.fixture.testRootDisposable
-    val ep = WorkspaceFileIndexImpl.EP_NAME
-    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+    disableKtsIndexing(projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
     checkUsage(
