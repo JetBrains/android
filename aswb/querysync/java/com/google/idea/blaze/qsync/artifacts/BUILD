@@ -16,6 +16,7 @@ java_library(
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
+        "@maven//:com.google.protobuf.protobuf-java",
         "@maven//:io.grpc.grpc-protobuf-lite",
     ],
 )
