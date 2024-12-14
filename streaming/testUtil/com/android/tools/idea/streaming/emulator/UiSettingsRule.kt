@@ -19,6 +19,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -132,7 +133,7 @@ class UiSettingsRule : ExternalResource() {
   }
 
   fun createAndStartEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = api)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)
@@ -141,7 +142,7 @@ class UiSettingsRule : ExternalResource() {
   }
 
   fun createAndStartWatchEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = api)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)

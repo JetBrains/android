@@ -38,5 +38,5 @@ internal val AvdInfo.displayNameWithApi: String
     if (displayName.contains(" API ")) {
       return displayName;
     }
-    return "$displayName API ${getAndroidVersion().apiLevel}";
+    return "$displayName API ${androidVersion.apiStringWithoutExtension}";
   }

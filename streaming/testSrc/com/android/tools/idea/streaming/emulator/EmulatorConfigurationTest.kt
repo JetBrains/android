@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
@@ -39,7 +40,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testPhone() {
     // Prepare.
-    val avdFolder = FakeEmulator.createPhoneAvd(avdParentFolder, sdkFolder, api = 29)
+    val androidVersion = AndroidVersion(35, "Baklava", 3, true)
+    val avdFolder = FakeEmulator.createPhoneAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -47,9 +49,9 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
-    assertThat(config?.avdName).isEqualTo("Pixel 3 XL API 29")
+    assertThat(config?.avdName).isEqualTo("Pixel 3 XL API Baklava")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.api).isEqualTo(29)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(1440)
     assertThat(config?.displayHeight).isEqualTo(2960)
     assertThat(config?.density).isEqualTo(480)
@@ -66,7 +68,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testTablet() {
     // Prepare.
-    val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder, api = 29)
+    val androidVersion = AndroidVersion(29)
+    val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -76,7 +79,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Nexus 10 API 29")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.api).isEqualTo(29)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(1600)
     assertThat(config?.displayHeight).isEqualTo(2560)
     assertThat(config?.density).isEqualTo(320)
@@ -92,7 +95,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testAutomotive() {
     // Prepare.
-    val avdFolder = FakeEmulator.createAutomotiveAvd(avdParentFolder, sdkFolder, api = 32)
+    val androidVersion = AndroidVersion(32)
+    val avdFolder = FakeEmulator.createAutomotiveAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -102,7 +106,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Automotive 1024p landscape API 32")
     assertThat(config?.deviceType).isEqualTo(DeviceType.AUTOMOTIVE)
-    assertThat(config?.api).isEqualTo(32)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(1024)
     assertThat(config?.displayHeight).isEqualTo(768)
     assertThat(config?.density).isEqualTo(160)
@@ -118,7 +122,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testWatch() {
     // Prepare.
-    val avdFolder = FakeEmulator.createWatchAvd(avdParentFolder, sdkFolder, api = 30)
+    val androidVersion = AndroidVersion(30)
+    val avdFolder = FakeEmulator.createWatchAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -128,7 +133,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Android Wear Round API 30")
     assertThat(config?.deviceType).isEqualTo(DeviceType.WEAR)
-    assertThat(config?.api).isEqualTo(30)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(320)
     assertThat(config?.displayHeight).isEqualTo(320)
     assertThat(config?.density).isEqualTo(240)
@@ -144,7 +149,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testXr() {
     // Prepare.
-    val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, api = 34)
+    val androidVersion = AndroidVersion(34)
+    val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -154,7 +160,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("XR Device API 34")
     assertThat(config?.deviceType).isEqualTo(DeviceType.XR)
-    assertThat(config?.api).isEqualTo(34)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(2560)
     assertThat(config?.displayHeight).isEqualTo(2368)
     assertThat(config?.density).isEqualTo(320)
@@ -180,7 +186,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Pixel Fold API 33")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.api).isEqualTo(33)
+    assertThat(config?.androidVersion).isEqualTo(AndroidVersion(33))
     assertThat(config?.displayWidth).isEqualTo(2208)
     assertThat(config?.displayHeight).isEqualTo(1840)
     assertThat(config?.density).isEqualTo(420)
@@ -199,7 +205,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testRollable() {
     // Prepare.
-    val avdFolder = FakeEmulator.createRollableAvd(avdParentFolder, sdkFolder, api = 31)
+    val androidVersion = AndroidVersion(31)
+    val avdFolder = FakeEmulator.createRollableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -209,7 +216,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("7.4 Rollable API 31")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.api).isEqualTo(31)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(1600)
     assertThat(config?.displayHeight).isEqualTo(2428)
     assertThat(config?.density).isEqualTo(420)
@@ -228,7 +235,8 @@ class EmulatorConfigurationTest {
   @Test
   fun testResizable() {
     // Prepare.
-    val avdFolder = FakeEmulator.createResizableAvd(avdParentFolder, sdkFolder, api = 32)
+    val androidVersion = AndroidVersion(32)
+    val avdFolder = FakeEmulator.createResizableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -238,7 +246,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Resizable API 32")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.api).isEqualTo(32)
+    assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(1080)
     assertThat(config?.displayHeight).isEqualTo(2340)
     assertThat(config?.density).isEqualTo(420)

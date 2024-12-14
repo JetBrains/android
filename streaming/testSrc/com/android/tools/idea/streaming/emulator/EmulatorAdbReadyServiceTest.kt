@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
 import com.android.testutils.delayUntilCondition
@@ -152,7 +153,7 @@ class EmulatorAdbReadyServiceTest {
   }
 
   private fun createFakeEmulator(): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = 34)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(34))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     return emulator

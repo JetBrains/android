@@ -104,9 +104,7 @@ internal class EmulatorToolWindowPanel(
       if (avdName.contains(" API ")) {
         return avdName
       }
-      val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-      avdManager.findAvdWithFolder(emulatorId.avdFolder)?.let { return it.displayNameWithApi }
-      return if (emulator.connectionState == ConnectionState.CONNECTED) "$avdName API ${emulator.emulatorConfig.api}" else avdName
+      return "$avdName API ${emulator.emulatorConfig.androidVersion.apiStringWithoutExtension}"
     }
 
   override val description: String

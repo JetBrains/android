@@ -19,6 +19,7 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -237,7 +238,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActionsApi30() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(30))
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -298,7 +299,7 @@ class EmulatorToolWindowPanelTest {
   }
   @Test
   fun testWearToolbarActionsApi28() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 28)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(28))
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -331,7 +332,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActionsApi26() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 26)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(26))
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -630,7 +631,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAutomotiveToolbarActions() {
-    val avdFolder = FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, api = 32)
+    val avdFolder = FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(32))
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -823,7 +824,7 @@ class EmulatorToolWindowPanelTest {
   /** Checks a large container size resulting in a scale greater than 1:1. */
   @Test
   fun testZoomLargeScale() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(30))
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 

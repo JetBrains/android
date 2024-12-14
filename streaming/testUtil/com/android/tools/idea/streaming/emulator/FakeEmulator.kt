@@ -52,6 +52,7 @@ import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
@@ -252,7 +253,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         try {
           Files.delete(registrationFile)
         }
-        catch (ignore: NoSuchFileException) {
+        catch (_: NoSuchFileException) {
         }
         if (grpcSemaphore.availablePermits() == 0) {
           resumeGrpc()
@@ -261,7 +262,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         try {
           grpcServer.awaitTermination(10, TimeUnit.SECONDS)
         }
-        catch (e: InterruptedException) {
+        catch (_: InterruptedException) {
           thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
         }
         startTime = 0
@@ -282,7 +283,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         try {
           grpcServer.awaitTermination(10, TimeUnit.SECONDS)
         }
-        catch (e: InterruptedException) {
+        catch (_: InterruptedException) {
           thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
         }
         startTime = 0
@@ -903,7 +904,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createPhoneAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 29): Path {
+    fun createPhoneAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29)): Path {
+      val api = androidVersion.apiStringWithoutExtension
       val avdId = "Pixel_3_XL_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -980,7 +983,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=google_apis
           SystemImage.TagDisplay=Google APIs
@@ -989,7 +991,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -997,7 +999,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createAvdWithSkinButtons(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 26): Path {
+    fun createAvdWithSkinButtons(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(26)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Nexus_One_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1074,7 +1078,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86 with Google APIs.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86
           SystemImage.TagId=google_apis
           SystemImage.TagDisplay=Google APIs
@@ -1083,7 +1086,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1091,7 +1094,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Nexus 10" AVD. The skin path in config.ini is relative.
      */
     @JvmStatic
-    fun createTabletAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 29): Path {
+    fun createTabletAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Nexus_10_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1170,7 +1175,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google Play.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=google_apis_playstore
           SystemImage.TagDisplay=Google Play
@@ -1179,7 +1183,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1187,7 +1191,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Pixel Fold" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 33): Path {
+    fun createFoldableAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(33)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1294,7 +1300,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=google_apis
           SystemImage.TagDisplay=Google APIs
@@ -1303,7 +1308,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1311,7 +1316,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake 7.4 "Rollable" AVD.
      */
     @JvmStatic
-    fun createRollableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 31): Path {
+    fun createRollableAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(31)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "7.4_Rollable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1429,7 +1436,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=google_apis
           SystemImage.TagDisplay=Google APIs
@@ -1438,7 +1444,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1446,7 +1452,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Resizable" AVD.
      */
     @JvmStatic
-    fun createResizableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 32): Path {
+    fun createResizableAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Resizable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1535,7 +1543,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
           Pkg.Revision=1
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=google_apis
           SystemImage.TagDisplay=Google APIs
@@ -1544,7 +1551,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1552,10 +1559,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Android Wear Round" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createWatchAvd(parentFolder: Path,
-                       sdkFolder: Path = getSdkFolder(parentFolder),
-                       api: Int = 30,
-                       skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
+    fun createWatchAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(30),
+        skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Android_Wear_Round_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1633,20 +1640,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Pkg.Desc=Android SDK Platform
           Pkg.UserSrc=false
           Pkg.Revision=8
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86
           SystemImage.GpuSupport=true
           SystemImage.TagId=android-wear
           SystemImage.TagDisplay=Wear OS
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /** Creates a fake XR AVD. */
     @JvmStatic
-    fun createXrAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 34): Path {
+    fun createXrAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "XR_Device_API_$api"
       val abi = "x86_64"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1726,14 +1734,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Pkg.Desc=Android XR SDK System Image $abi
           Pkg.UserSrc=false
           Pkg.Revision=2
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=$abi
           SystemImage.GpuSupport=true
           SystemImage.TagId=android-xr
           SystemImage.TagDisplay=Android XR System Image
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -1741,7 +1748,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake Automotive AVD.
      */
     @JvmStatic
-    fun createAutomotiveAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 32): Path {
+    fun createAutomotiveAvd(
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32)): Path {
+      val api = androidVersion.apiLevel
       val avdId = "Automotive_1024p_landscape_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1833,7 +1842,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google Play Store.
-          AndroidVersion.ApiLevel=$api
           SystemImage.Abi=x86_64
           SystemImage.TagId=android-automotive-playstore
           SystemImage.TagDisplay=Automotive with Play Store
@@ -1842,11 +1850,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, api, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    private fun createSystemImage(systemImageFolder: Path, api: Int, sourceProperties: String) {
+    private fun createSystemImage(systemImageFolder: Path, androidVersion: AndroidVersion, sourceProperties: String) {
       if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
         return
       }
@@ -1857,7 +1865,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/01">
             <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
               <type-details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns:sysImgDetailsType">
-                <api-level>$api</api-level>
+                <api-level>${androidVersion.apiLevel}</api-level>
                 <tag><id>google_apis</id><display>Google APIs</display></tag>
                 <vendor><id>google</id><display>Google Inc.</display></vendor>
                 <abi>$abi</abi>
@@ -1868,7 +1876,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           </ns:sdk-sys-img>
           """.trimIndent()
       Files.writeString(systemImageFolder.resolve("package.xml"), packageContents)
-      Files.writeString(systemImageFolder.resolve("source.properties"), sourceProperties)
+      Files.writeString(systemImageFolder.resolve("source.properties"), sourceProperties + '\n' + androidVersion.sourceProperties)
       Files.createFile(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))
     }
 
@@ -1923,6 +1931,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }
 }
+
+private val AndroidVersion.sourceProperties: String
+  get() {
+    val result = StringBuilder()
+    result.append("AndroidVersion.ApiLevel=$apiLevel\n")
+    if (codename != null) {
+      result.append("AndroidVersion.CodeName=$codename\n")
+    }
+    if (extensionLevel != null) {
+      result.append("AndroidVersion.ExtensionLevel=$extensionLevel\n")
+    }
+    result.append("AndroidVersion.IsBaseSdk=$isBaseExtension")
+    return result.toString()
+  }
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
