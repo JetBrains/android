@@ -37,8 +37,10 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ANDROIDX_RELEASE_LOCATION
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_FOUND_KEY
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_MAY_CAUSE_APP_CRASH_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient.Companion.determineArtifactCoordinate
@@ -385,7 +387,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(
-        COMPOSE_JAR_FOUND_FOUND_KEY,
+        COMPOSE_JAR_FOUND_KEY,
         file,
         StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.id,
       ),
@@ -421,10 +423,43 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(
-        COMPOSE_JAR_FOUND_FOUND_KEY,
+        COMPOSE_JAR_FOUND_KEY,
         file,
         StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.id,
       ),
+      AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND,
+      isRunningFromSources = false,
+    )
+  }
+
+  @Test
+  fun inspectorCouldNotFindComposeInspectorJarWithinAndroidx() = runBlocking {
+    val folder = ANDROIDX_RELEASE_LOCATION
+    val file = "$folder/compose-ui-inspection.jar"
+    StudioFlags.APP_INSPECTION_USE_DEV_JAR.override(true)
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.override(folder)
+    val artifactService = mock<InspectorArtifactService>()
+    whenever(artifactService.getOrResolveInspectorArtifact(any(), any()))
+      .thenReturn(Paths.get("/foo/bar"))
+    ApplicationManager.getApplication()
+      .registerServiceInstance(InspectorArtifactService::class.java, artifactService)
+    val apiServices = mock<AppInspectionApiServices>()
+    whenever(apiServices.launchInspector(any()))
+      .thenThrow(
+        TransportNonExistingFileException(
+          "File $file could not be found for device emulator-123",
+          file,
+        )
+      )
+    val target = mock<AppInspectionTarget>()
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatibilityInfo(mock(), mock(), "1.3.0", "")))
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
+      .thenReturn(target)
+
+    checkLaunch(
+      apiServices,
+      LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY),
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND,
       isRunningFromSources = false,
     )

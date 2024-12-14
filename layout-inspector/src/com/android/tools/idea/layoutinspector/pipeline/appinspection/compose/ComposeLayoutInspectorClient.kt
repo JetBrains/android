@@ -102,9 +102,14 @@ const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.cr
 
 @VisibleForTesting const val MAVEN_DOWNLOAD_PROBLEM = "maven.download.problem"
 
-@VisibleForTesting const val COMPOSE_JAR_FOUND_FOUND_KEY = "compose.jar.not.found"
+@VisibleForTesting const val COMPOSE_JAR_FOUND_KEY = "compose.jar.not.found"
+
+@VisibleForTesting const val COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY = "androidx.compose.jar.not.found"
 
 @VisibleForTesting const val LAUNCH_UNKNOWN_ERROR = "compose.inspector.launch.unknown.error"
+
+@VisibleForTesting
+const val ANDROIDX_RELEASE_LOCATION = "#studio/../../../../../../out/dist/inspection"
 
 private const val PROGUARD_LEARN_MORE =
   "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
@@ -466,11 +471,18 @@ class ComposeLayoutInspectorClient(
           AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND -> {
             Logger.getInstance(ComposeLayoutInspectorClient::class.java)
               .warn("not found: ${error.args["path"]}")
-            LayoutInspectorBundle.message(
-              COMPOSE_JAR_FOUND_FOUND_KEY,
-              error.args["path"]!!,
-              inspectorFolderFlag(isRunningFromSourcesInTests),
-            )
+            if (
+              StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get() ==
+                ANDROIDX_RELEASE_LOCATION
+            ) {
+              LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY)
+            } else {
+              LayoutInspectorBundle.message(
+                COMPOSE_JAR_FOUND_KEY,
+                error.args["path"]!!,
+                inspectorFolderFlag(isRunningFromSourcesInTests),
+              )
+            }
           }
           AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR -> {
             LayoutInspectorBundle.message(LAUNCH_UNKNOWN_ERROR)
