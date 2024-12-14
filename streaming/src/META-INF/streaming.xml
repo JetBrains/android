@@ -135,14 +135,6 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.show.taskbar"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrShowTaskbarAction"
-              icon="StudioIcons.Emulator.XR.TASKBAR"
-              text="Show Taskbar" description="Show the taskbar">
-        <keyboard-shortcut first-keystroke="control B" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X 10.5+"/>
-      </action>
       <action id="android.emulator.xr.hand.tracking"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HandTracking"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
@@ -266,7 +258,6 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
-      <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
       <group id="android.emulator.xr.navigation.group" class="com.android.tools.idea.streaming.emulator.actions.XrMainToolbarGroup">
         <group id="android.emulator.xr.input.mode.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">

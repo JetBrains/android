@@ -396,7 +396,6 @@ class EmulatorToolWindowPanelTest {
 
     // Check XR-specific actions.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
@@ -419,9 +418,6 @@ class EmulatorToolWindowPanelTest {
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
-
-    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Show Taskbar" })
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { action: SHOW_TASKBAR }")
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
