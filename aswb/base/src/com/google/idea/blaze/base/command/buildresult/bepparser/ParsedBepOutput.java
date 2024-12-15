@@ -37,7 +37,6 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Bui
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.File;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.NamedSetOfFiles;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.OutputGroup;
-import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.WorkspaceStatus.Item;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
@@ -100,7 +99,6 @@ public final class ParsedBepOutput {
           "build-id",
           null,
           ImmutableMap.of(),
-          ImmutableMap.of(),
           ImmutableSetMultimap.of(),
           0,
           0,
@@ -138,7 +136,6 @@ public final class ParsedBepOutput {
       ImmutableSet.Builder<String> targetsWithErrors = ImmutableSet.builder();
       String localExecRoot = null;
       String buildId = null;
-      ImmutableMap<String, String> workspaceStatus = ImmutableMap.of();
       long startTimeMillis = 0L;
       int buildResult = 0;
       boolean emptyBuildEventStream = true;
@@ -148,10 +145,6 @@ public final class ParsedBepOutput {
         switch (event.getId().getIdCase()) {
           case WORKSPACE:
             localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
-            continue;
-          case WORKSPACE_STATUS:
-            workspaceStatus =
-              event.getWorkspaceStatus().getItemList().stream().collect(toImmutableMap(Item::getKey, Item::getValue));
             continue;
           case CONFIGURATION:
             configIdToMnemonic.put(
@@ -216,7 +209,6 @@ public final class ParsedBepOutput {
       return new ParsedBepOutput(
         buildId,
         localExecRoot,
-        workspaceStatus,
         filesMap,
         targetToFileSets.build(),
         startTimeMillis,
@@ -274,8 +266,6 @@ public final class ParsedBepOutput {
   /** A path to the local execroot */
   @Nullable private final String localExecRoot;
 
-  final ImmutableMap<String, String> workspaceStatus;
-
   /** A map from file set ID to file set, with the same ordering as the BEP stream. */
   private final ImmutableMap<String, FileSet> fileSets;
 
@@ -291,7 +281,6 @@ public final class ParsedBepOutput {
   private ParsedBepOutput(
     @Nullable String buildId,
     @Nullable String localExecRoot,
-    ImmutableMap<String, String> workspaceStatus,
     ImmutableMap<String, FileSet> fileSets,
     ImmutableSetMultimap<String, String> targetFileSets,
     long syncStartTimeMillis,
@@ -300,7 +289,6 @@ public final class ParsedBepOutput {
     ImmutableSet<String> targetsWithErrors) {
     this.buildId = buildId;
     this.localExecRoot = localExecRoot;
-    this.workspaceStatus = workspaceStatus;
     this.fileSets = fileSets;
     this.targetFileSets = targetFileSets;
     this.syncStartTimeMillis = syncStartTimeMillis;
@@ -313,15 +301,6 @@ public final class ParsedBepOutput {
   @Nullable
   public String getLocalExecRoot() {
     return localExecRoot;
-  }
-
-  /**
-   * Returns URI of the source that the build consumed, if available. The format will be VCS
-   * specific. If present, the value will be can be used with {@link
-   * com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler#vcsStateForSourceUri(String)}.
-   */
-  public ImmutableMap<String, String> getWorkspaceStatus() {
-    return workspaceStatus;
   }
 
   /** Returns the build result. */
