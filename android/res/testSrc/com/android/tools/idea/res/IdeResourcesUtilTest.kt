@@ -13,613 +13,620 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.FRAME_LAYOUT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.TAG_LAYOUT;
-import static com.android.SdkConstants.TAG_NAVIGATION;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VIEW_MERGE;
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.google.common.truth.Truth.assertThat;
+import com.android.AndroidProjectTypes
+import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
+import com.android.testutils.ImageDiffUtil.assertImageSimilar
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
+import com.android.tools.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.MergedManifestModificationListener.Companion.ensureSubscribed
+import com.android.tools.idea.model.TestAndroidModel.Companion.namespaced
+import com.android.tools.idea.util.toVirtualFile
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Sets
+import com.google.common.truth.Truth
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.ColorsIcon
+import junit.framework.TestCase
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.File
+import java.io.IOException
+import java.nio.file.Path
+import javax.imageio.ImageIO
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
-import com.android.testutils.ImageDiffUtil;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.MergedManifestModificationListener;
-import com.android.tools.idea.model.TestAndroidModel;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.ColorsIcon;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.dom.manifest.Permission;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class IdeResourcesUtilTest extends AndroidTestCase {
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    MergedManifestModificationListener.ensureSubscribed(getProject());
+class IdeResourcesUtilTest : AndroidTestCase() {
+  @Throws(Exception::class)
+  override fun setUp() {
+    super.setUp()
+    ensureSubscribed(getProject())
   }
 
-  public void testIsValueBasedResourceType() {
-    assertTrue(IdeResourcesUtil.isValueBased(ResourceType.STRING));
-    assertTrue(IdeResourcesUtil.isValueBased(ResourceType.DIMEN));
-    assertTrue(IdeResourcesUtil.isValueBased(ResourceType.ID));
+  fun testIsValueBasedResourceType() {
+    assertTrue(ResourceType.STRING.isValueBased())
+    assertTrue(ResourceType.DIMEN.isValueBased())
+    assertTrue(ResourceType.ID.isValueBased())
 
-    assertFalse(IdeResourcesUtil.isValueBased(ResourceType.LAYOUT));
+    assertFalse(ResourceType.LAYOUT.isValueBased())
 
     // These can be both:
-    assertTrue(IdeResourcesUtil.isValueBased(ResourceType.DRAWABLE));
-    assertTrue(IdeResourcesUtil.isValueBased(ResourceType.COLOR));
+    assertTrue(ResourceType.DRAWABLE.isValueBased())
+    assertTrue(ResourceType.COLOR.isValueBased())
   }
 
-  public void testStyleToTheme() {
-    assertEquals("Foo", IdeResourcesUtil.styleToTheme("Foo"));
-    assertEquals("Theme", IdeResourcesUtil.styleToTheme("@android:style/Theme"));
-    assertEquals("LocalTheme", IdeResourcesUtil.styleToTheme("@style/LocalTheme"));
-    assertEquals("LocalTheme", IdeResourcesUtil.styleToTheme("@foo.bar:style/LocalTheme"));
+  fun testStyleToTheme() {
+    TestCase.assertEquals("Foo", styleToTheme("Foo"))
+    TestCase.assertEquals("Theme", styleToTheme("@android:style/Theme"))
+    TestCase.assertEquals("LocalTheme", styleToTheme("@style/LocalTheme"))
+    TestCase.assertEquals("LocalTheme", styleToTheme("@foo.bar:style/LocalTheme"))
   }
 
-  public void testGetFolderConfiguration() {
-    PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
-    PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");
+  fun testGetFolderConfiguration() {
+    val file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>")
+    val file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>")
 
-    assertEquals("layout-land", IdeResourcesUtil.getFolderConfiguration(file1).getFolderName(ResourceFolderType.LAYOUT));
-    assertEquals("menu-en-rUS", IdeResourcesUtil.getFolderConfiguration(file2).getFolderName(ResourceFolderType.MENU));
-    assertEquals("layout-land", IdeResourcesUtil.getFolderConfiguration(file1.getVirtualFile()).getFolderName(ResourceFolderType.LAYOUT));
-    assertEquals("menu-en-rUS", IdeResourcesUtil.getFolderConfiguration(file2.getVirtualFile()).getFolderName(ResourceFolderType.MENU));
+    TestCase.assertEquals("layout-land", getFolderConfiguration(file1)!!.getFolderName(ResourceFolderType.LAYOUT))
+    TestCase.assertEquals("menu-en-rUS", getFolderConfiguration(file2)!!.getFolderName(ResourceFolderType.MENU))
+    TestCase.assertEquals("layout-land", getFolderConfiguration(file1.getVirtualFile())!!.getFolderName(ResourceFolderType.LAYOUT))
+    TestCase.assertEquals("menu-en-rUS", getFolderConfiguration(file2.getVirtualFile())!!.getFolderName(ResourceFolderType.MENU))
   }
 
-  public void testDisabledStateListStates() {
-    StateListState disabled = new StateListState("value", ImmutableMap.of("state_enabled", false), null);
-    StateListState disabledPressed =
-      new StateListState("value", ImmutableMap.of("state_enabled", false, "state_pressed", true), null);
-    StateListState pressed = new StateListState("value", ImmutableMap.of("state_pressed", true), null);
-    StateListState enabledPressed =
-      new StateListState("value", ImmutableMap.of("state_enabled", true, "state_pressed", true), null);
-    StateListState enabled = new StateListState("value", ImmutableMap.of("state_enabled", true), null);
-    StateListState selected = new StateListState("value", ImmutableMap.of("state_selected", true), null);
-    StateListState selectedPressed =
-      new StateListState("value", ImmutableMap.of("state_selected", true, "state_pressed", true), null);
-    StateListState enabledSelectedPressed =
-      new StateListState("value", ImmutableMap.of("state_enabled", true, "state_selected", true, "state_pressed", true),
-                         null);
-    StateListState notFocused = new StateListState("value", ImmutableMap.of("state_focused", false), null);
-    StateListState notChecked = new StateListState("value", ImmutableMap.of("state_checked", false), null);
-    StateListState checkedNotPressed =
-      new StateListState("value", ImmutableMap.of("state_checked", true, "state_pressed", false), null);
+  fun testDisabledStateListStates() {
+    val disabled = StateListState("value", ImmutableMap.of<String, Boolean>("state_enabled", false), null)
+    val disabledPressed =
+      StateListState("value", ImmutableMap.of<String, Boolean>("state_enabled", false, "state_pressed", true), null)
+    val pressed = StateListState("value", ImmutableMap.of<String, Boolean>("state_pressed", true), null)
+    val enabledPressed =
+      StateListState("value", ImmutableMap.of<String, Boolean>("state_enabled", true, "state_pressed", true), null)
+    val enabled = StateListState("value", ImmutableMap.of<String, Boolean>("state_enabled", true), null)
+    val selected = StateListState("value", ImmutableMap.of<String, Boolean>("state_selected", true), null)
+    val selectedPressed =
+      StateListState("value", ImmutableMap.of<String, Boolean>("state_selected", true, "state_pressed", true), null)
+    val enabledSelectedPressed =
+      StateListState(
+        "value", ImmutableMap.of<String, Boolean>("state_enabled", true, "state_selected", true, "state_pressed", true),
+        null
+      )
+    val notFocused = StateListState("value", ImmutableMap.of<String, Boolean>("state_focused", false), null)
+    val notChecked = StateListState("value", ImmutableMap.of<String, Boolean>("state_checked", false), null)
+    val checkedNotPressed =
+      StateListState("value", ImmutableMap.of<String, Boolean>("state_checked", true, "state_pressed", false), null)
 
-    StateList stateList = new StateList("stateList", "colors");
-    stateList.addState(pressed);
-    stateList.addState(disabled);
-    stateList.addState(selected);
-    assertThat(stateList.getDisabledStates()).containsExactly(disabled);
+    var stateList = StateList("stateList", "colors")
+    stateList.addState(pressed)
+    stateList.addState(disabled)
+    stateList.addState(selected)
+    Truth.assertThat(stateList.disabledStates).containsExactly(disabled)
 
-    stateList.addState(disabledPressed);
-    assertThat(stateList.getDisabledStates()).containsExactly(disabled, disabledPressed);
+    stateList.addState(disabledPressed)
+    Truth.assertThat(stateList.disabledStates).containsExactly(disabled, disabledPressed)
 
-    stateList = new StateList("stateList", "colors");
-    stateList.addState(enabled);
-    stateList.addState(pressed);
-    stateList.addState(selected);
-    stateList.addState(enabledPressed); // Not reachable
-    stateList.addState(disabled);
-    assertThat(stateList.getDisabledStates()).containsExactly(pressed, selected, enabledPressed, disabled);
+    stateList = StateList("stateList", "colors")
+    stateList.addState(enabled)
+    stateList.addState(pressed)
+    stateList.addState(selected)
+    stateList.addState(enabledPressed) // Not reachable
+    stateList.addState(disabled)
+    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, selected, enabledPressed, disabled)
 
-    stateList = new StateList("stateList", "colors");
-    stateList.addState(enabledPressed);
-    stateList.addState(pressed);
-    stateList.addState(selected);
-    stateList.addState(disabled);
-    assertThat(stateList.getDisabledStates()).containsExactly(pressed, disabled);
+    stateList = StateList("stateList", "colors")
+    stateList.addState(enabledPressed)
+    stateList.addState(pressed)
+    stateList.addState(selected)
+    stateList.addState(disabled)
+    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, disabled)
 
-    stateList.addState(selectedPressed);
-    assertThat(stateList.getDisabledStates()).containsExactly(pressed, disabled, selectedPressed);
+    stateList.addState(selectedPressed)
+    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, disabled, selectedPressed)
 
-    stateList = new StateList("stateList", "colors");
-    stateList.addState(enabledSelectedPressed);
-    stateList.addState(pressed);
-    stateList.addState(selected);
-    stateList.addState(disabled);
-    stateList.addState(selectedPressed);
-    assertThat(stateList.getDisabledStates()).containsExactly(disabled, selectedPressed);
+    stateList = StateList("stateList", "colors")
+    stateList.addState(enabledSelectedPressed)
+    stateList.addState(pressed)
+    stateList.addState(selected)
+    stateList.addState(disabled)
+    stateList.addState(selectedPressed)
+    Truth.assertThat(stateList.disabledStates).containsExactly(disabled, selectedPressed)
 
-    stateList = new StateList("stateList", "colors");
-    stateList.addState(enabledPressed);
-    stateList.addState(notChecked);
-    stateList.addState(checkedNotPressed);
-    stateList.addState(selected);
-    stateList.addState(notFocused);
-    assertThat(stateList.getDisabledStates()).containsExactly(selected, notFocused);
+    stateList = StateList("stateList", "colors")
+    stateList.addState(enabledPressed)
+    stateList.addState(notChecked)
+    stateList.addState(checkedNotPressed)
+    stateList.addState(selected)
+    stateList.addState(notFocused)
+    Truth.assertThat(stateList.disabledStates).containsExactly(selected, notFocused)
   }
 
-  public void testResolveAsIconFromColorReference() {
-    VirtualFile file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+  fun testResolveAsIconFromColorReference() {
+    val file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml")
 
-    ResourceUrl url = ResourceUrl.parse("@color/myColor2");
-    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
-    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
-    ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
-    assertEquals(new ColorIcon(16, new Color(0xEEDDCC)), icon);
+    val url = ResourceUrl.parse("@color/myColor2")
+    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
+    val value = rr.getResolvedResource(reference!!)
+    val icon = rr.resolveAsIcon(value, myFacet)
+    assertEquals(ColorIcon(16, Color(0xEEDDCC)), icon)
   }
 
-  public void testResolveAsIconFromColorStateList() {
-    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
-    VirtualFile file = myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
+  fun testResolveAsIconFromColorStateList() {
+    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml")
+    val file = myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml")
 
-    ResourceUrl url = ResourceUrl.parse("@color/my_state_list");
-    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
-    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
-    ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
-    assertEquals(new ColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
+    val url = ResourceUrl.parse("@color/my_state_list")
+    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
+    val value = rr.getResolvedResource(reference!!)
+    val icon = rr.resolveAsIcon(value, myFacet)
+    assertEquals(ColorsIcon(16, Color(0xEEDDCC), Color(0x33123456, true)), icon)
   }
 
-  public void testResolveAsIconFromDrawable() throws IOException {
-    VirtualFile file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
-    ResourceUrl url = ResourceUrl.parse("@android:drawable/ic_delete");
-    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
-    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
-    ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
-    @SuppressWarnings("UndesirableClassUsage")
-    BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-    icon.paintIcon(null, image.getGraphics(), 0, 0);
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/resourceHelper/ic_delete.png"));
-    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
+  @Throws(IOException::class)
+  fun testResolveAsIconFromDrawable() {
+    val file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml")
+    val url = ResourceUrl.parse("@android:drawable/ic_delete")
+    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
+    val value = rr.getResolvedResource(reference!!)
+    val icon = rr.resolveAsIcon(value, myFacet)
+    val image = BufferedImage(icon!!.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB)
+    icon.paintIcon(null, image.getGraphics(), 0, 0)
+    val goldenImage = ImageIO.read(File(getTestDataPath() + "/resourceHelper/ic_delete.png"))
+    assertImageSimilar("ic_delete", goldenImage, image, ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT)
   }
 
-  public void testResolveAsIconFromStateListDrawable() {
-    myFixture.copyFileToProject("resourceHelper/ic_delete.png", "res/drawable/ic_delete.png");
-    VirtualFile file = myFixture.copyFileToProject("resourceHelper/icon_state_list.xml", "res/drawable/icon_state_list.xml");
-    ResourceUrl url = ResourceUrl.parse("@drawable/icon_state_list");
-    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
-    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
-    ResourceValue value = rr.getResolvedResource(reference);
-    VirtualFile iconFile = IdeResourcesUtil.resolveDrawable(rr, value, getProject());
-    assertThat(iconFile.getName()).isEqualTo("ic_delete.png");
-    assertThat(iconFile.exists()).isTrue();
+  fun testResolveAsIconFromStateListDrawable() {
+    myFixture.copyFileToProject("resourceHelper/ic_delete.png", "res/drawable/ic_delete.png")
+    val file = myFixture.copyFileToProject("resourceHelper/icon_state_list.xml", "res/drawable/icon_state_list.xml")
+    val url = ResourceUrl.parse("@drawable/icon_state_list")
+    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
+    val value = rr.getResolvedResource(reference!!)
+    val iconFile = rr.resolveDrawable(value, getProject())
+    Truth.assertThat(iconFile!!.getName()).isEqualTo("ic_delete.png")
+    Truth.assertThat(iconFile.exists()).isTrue()
   }
 
-  public void testResolveEmptyStatelist() {
-    VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
-    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
-    assertNotNull(rr);
-    ResourceValue rv = rr.getResolvedResource(
-      new ResourceReference(RES_AUTO, ResourceType.COLOR, "empty_state_list"));
-    assertNotNull(rv);
-    assertNull(IdeResourcesUtil.resolveColor(rr, rv, myModule.getProject()));
+  fun testResolveEmptyStatelist() {
+    val file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml")
+    val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
+    assertNotNull(rr)
+    val rv = rr.getResolvedResource(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "empty_state_list")
+    )
+    assertNotNull(rv)
+    assertNull(rr.resolveColor(rv, myModule.getProject()))
   }
 
-  public void testResolve() {
-    ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
-    setProjectNamespace(appNs);
+  fun testResolve() {
+    val appNs = ResourceNamespace.fromPackageName("com.example.app")
+    setProjectNamespace(appNs)
 
-    PsiFile innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>");
-    PsiFile innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>");
-    String outerFileContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                              "<FrameLayout xmlns:app=\""+ appNs.getXmlNamespaceUri() +"\">\n" +
-                              "\n" +
-                              "    <include\n" +
-                              "        layout=\"@app:layout/inner\"\n" +
-                              "        android:layout_width=\"wrap_content\"\n" +
-                              "        android:layout_height=\"wrap_content\" />\n" +
-                              "\n" +
-                              "</FrameLayout>";
-    XmlFile outerFile = (XmlFile)myFixture.addFileToProject("layout/outer.xml", outerFileContent);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.getVirtualFile());
-    XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
-    ResourceValue resolved =
-      IdeResourcesUtil
-        .resolve(configuration.getResourceResolver(), ResourceUrl.parse(include.getAttribute("layout").getValue()), include);
-    assertEquals(innerFileLand.getVirtualFile().getPath(), resolved.getValue());
-    configuration.setDeviceState(configuration.getDevice().getState("Portrait"));
-    resolved = IdeResourcesUtil
-      .resolve(configuration.getResourceResolver(), ResourceUrl.parse(include.getAttribute("layout").getValue()), include);
-    assertEquals(innerFilePort.getVirtualFile().getPath(), resolved.getValue());
+    val innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>")
+    val innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>")
+    val outerFileContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<FrameLayout xmlns:app=\"" + appNs.getXmlNamespaceUri() + "\">\n" +
+      "\n" +
+      "    <include\n" +
+      "        layout=\"@app:layout/inner\"\n" +
+      "        android:layout_width=\"wrap_content\"\n" +
+      "        android:layout_height=\"wrap_content\" />\n" +
+      "\n" +
+      "</FrameLayout>"
+    val outerFile = myFixture.addFileToProject("layout/outer.xml", outerFileContent) as XmlFile
+    val configuration: Configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.getVirtualFile())
+    val include = outerFile.getRootTag()!!.findFirstSubTag("include")
+    var resolved =
+      configuration.getResourceResolver().resolve(ResourceUrl.parse(include!!.getAttribute("layout")!!.getValue()!!)!!, include)
+    TestCase.assertEquals(innerFileLand.getVirtualFile().getPath(), resolved!!.getValue())
+    configuration.setDeviceState(configuration.getDevice()!!.getState("Portrait"))
+    resolved = configuration.getResourceResolver().resolve(ResourceUrl.parse(include.getAttribute("layout")!!.getValue()!!)!!, include)
+    TestCase.assertEquals(innerFilePort.getVirtualFile().getPath(), resolved!!.getValue())
   }
 
-  @Language("XML")
-  private static final String LAYOUT_FILE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<LinearLayout xmlns:framework=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    framework:orientation=\"vertical\"\n" +
-    "    framework:layout_width=\"fill_parent\"\n" +
-    "    framework:layout_height=\"fill_parent\">\n" +
-    "\n" +
-    "    <TextView xmlns:newtools=\"http://schemas.android.com/tools\"\n" +
-    "        framework:layout_width=\"fill_parent\"\n" +
-    "        framework:layout_height=\"wrap_content\"\n" +
-    "        newtools:text=\"Hello World, MyActivity\" />\n" +
-    "</LinearLayout>\n";
+  fun testGetResourceResolverFromXmlTag_namespacesEnabled() {
+    setProjectNamespace(ResourceNamespace.fromPackageName("com.example.app"))
 
-  public void testGetResourceResolverFromXmlTag_namespacesEnabled() {
-    setProjectNamespace(ResourceNamespace.fromPackageName("com.example.app"));
+    val file = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
+    val layout = file.getRootTag()
+    val textview = layout!!.findFirstSubTag("TextView")
 
-    XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
-    XmlTag layout = file.getRootTag();
-    XmlTag textview = layout.findFirstSubTag("TextView");
+    var resolver = getNamespaceResolver(layout)
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isNull()
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
+    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
+    Truth.assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
 
-    ResourceNamespace.Resolver resolver = IdeResourcesUtil.getNamespaceResolver(layout);
-    assertThat(resolver.uriToPrefix(TOOLS_URI)).isNull();
-    assertThat(resolver.uriToPrefix(ANDROID_URI)).isEqualTo("framework");
-    assertThat(resolver.prefixToUri("newtools")).isNull();
-    assertThat(resolver.prefixToUri("framework")).isEqualTo(ANDROID_URI);
-
-    resolver = IdeResourcesUtil.getNamespaceResolver(textview);
-    assertThat(resolver.uriToPrefix(TOOLS_URI)).isEqualTo("newtools");
-    assertThat(resolver.uriToPrefix(ANDROID_URI)).isEqualTo("framework");
-    assertThat(resolver.prefixToUri("newtools")).isEqualTo(TOOLS_URI);
-    assertThat(resolver.prefixToUri("framework")).isEqualTo(ANDROID_URI);
+    resolver = getNamespaceResolver(textview!!)
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("newtools")
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
+    Truth.assertThat(resolver.prefixToUri("newtools")).isEqualTo(SdkConstants.TOOLS_URI)
+    Truth.assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
   }
 
-  private void setProjectNamespace(ResourceNamespace appNs) {
-    CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      AndroidModel.set(myFacet, TestAndroidModel.namespaced(myFacet));
-      Manifest.getMainManifest(myFacet).getPackage().setValue(appNs.getPackageName());
-    }));
+  private fun setProjectNamespace(appNs: ResourceNamespace) {
+    CommandProcessor.getInstance().runUndoTransparentAction(Runnable {
+      ApplicationManager.getApplication().runWriteAction(Runnable {
+        AndroidModel.set(myFacet, namespaced(myFacet))
+        Manifest.getMainManifest(myFacet)!!.getPackage().setValue(appNs.getPackageName())
+      })
+    })
   }
 
-  public void testGetResourceResolverFromXmlTag_namespacesDisabled() {
-    XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
-    XmlTag layout = file.getRootTag();
-    XmlTag textview = layout.findFirstSubTag("TextView");
+  fun testGetResourceResolverFromXmlTag_namespacesDisabled() {
+    val file = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
+    val layout = file.getRootTag()
+    val textview = layout!!.findFirstSubTag("TextView")
 
-    ResourceNamespace.Resolver resolver = IdeResourcesUtil.getNamespaceResolver(layout);
+    var resolver = getNamespaceResolver(layout)
 
     // "tools" is implicitly defined in non-namespaced projects.
-    assertThat(resolver.uriToPrefix(TOOLS_URI)).isEqualTo("tools");
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
 
     // Proper namespacing doesn't work in non-namespaced projects, so within XML attributes, only "android" works.
     // TODO(b/74426748)
-    assertThat(resolver.uriToPrefix(ANDROID_URI)).isNull();
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
 
-    assertThat(resolver.prefixToUri("newtools")).isNull();
-    assertThat(resolver.prefixToUri("framework")).isNull();
+    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
+    Truth.assertThat(resolver.prefixToUri("framework")).isNull()
 
-    resolver = IdeResourcesUtil.getNamespaceResolver(textview);
-    assertThat(resolver.uriToPrefix(TOOLS_URI)).isEqualTo("tools");
-    assertThat(resolver.uriToPrefix(ANDROID_URI)).isNull();
-    assertThat(resolver.prefixToUri("newtools")).isNull();
-    assertThat(resolver.prefixToUri("framework")).isNull();
+    resolver = getNamespaceResolver(textview!!)
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
+    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
+    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
+    Truth.assertThat(resolver.prefixToUri("framework")).isNull()
   }
 
-  public void testPsiElementGetNamespace() {
+  fun testPsiElementGetNamespace() {
     // Project XML:
-    XmlFile layoutFile = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
-    assertThat(IdeResourcesUtil.getResourceNamespace(layoutFile)).isEqualTo(RES_AUTO);
-    assertThat(IdeResourcesUtil.getResourceNamespace(layoutFile.getRootTag())).isEqualTo(RES_AUTO);
+    val layoutFile = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
+    Truth.assertThat<ResourceNamespace?>(layoutFile.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    Truth.assertThat<ResourceNamespace?>(layoutFile.getRootTag()!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project class:
-    PsiClass projectClass = myFixture.addClass("package com.example; public class Hello {}");
-    assertThat(IdeResourcesUtil.getResourceNamespace(projectClass)).isEqualTo(RES_AUTO);
+    val projectClass = myFixture.addClass("package com.example; public class Hello {}")
+    Truth.assertThat<ResourceNamespace?>(projectClass.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project R class:
-    PsiClass rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope());
-    assertThat(IdeResourcesUtil.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
+    val rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope())
+    Truth.assertThat<ResourceNamespace?>(rClass!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project manifest:
-    Manifest manifest = Manifest.getMainManifest(myFacet);
-    assertThat(IdeResourcesUtil.getResourceNamespace(manifest.getXmlElement())).isEqualTo(RES_AUTO);
-    assertThat(IdeResourcesUtil.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
+    val manifest = Manifest.getMainManifest(myFacet)
+    Truth.assertThat<ResourceNamespace?>(manifest!!.getXmlElement()!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    Truth.assertThat<ResourceNamespace?>(manifest.getXmlElement()!!.getContainingFile().resourceNamespace)
+      .isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project Manifest class:
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-      Permission newPermission = manifest.addPermission();
-      newPermission.getName().setValue("p1.p2.NEW_PERMISSION");
-    });
-    PsiClass manifestClass = myFixture.getJavaFacade().findClass("p1.p2.Manifest", projectClass.getResolveScope());
-    assertThat(IdeResourcesUtil.getResourceNamespace(manifestClass)).isEqualTo(RES_AUTO);
+    WriteCommandAction.runWriteCommandAction(getProject(), Runnable {
+      val newPermission = manifest.addPermission()
+      newPermission.getName().setValue("p1.p2.NEW_PERMISSION")
+    })
+    val manifestClass = myFixture.getJavaFacade().findClass("p1.p2.Manifest", projectClass.getResolveScope())
+    Truth.assertThat<ResourceNamespace?>(manifestClass!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Framework class:
-    PsiClass frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity");
-    assertThat(IdeResourcesUtil.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
+    val frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity")
+    Truth.assertThat<ResourceNamespace?>(frameworkClass.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> appIconResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
-      .getFrameworkResources(ImmutableSet.of())
-      .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
+    val appIconResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
+      .getFrameworkResources(com.google.common.collect.ImmutableSet.of<kotlin.String>())!!
+      .getResources(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon")
 
-    for (ResourceItem appIconResourceItem : appIconResourceItems) {
-      XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(toVirtualFile(appIconResourceItem.getSource()));
-      assertThat(IdeResourcesUtil.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
-      assertThat(IdeResourcesUtil.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+    for (appIconResourceItem in appIconResourceItems) {
+      val appIcon = PsiManager.getInstance(getProject()).findFile(appIconResourceItem.getSource().toVirtualFile()!!) as XmlFile?
+      Truth.assertThat<ResourceNamespace?>(appIcon!!.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
+      Truth.assertThat<ResourceNamespace?>(appIcon.getRootTag()!!.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
     }
   }
 
-  @Override
-  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                            @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY);
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture?>,
+    modules: MutableList<MyAdditionalModuleData?>
+  ) {
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
-  public void testCaseSensitivityInChangeColorResource() {
-    VirtualFile xmlFile = myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
-    VirtualFile resDir = xmlFile.getParent().getParent();
-    List<String> dirNames = ImmutableList.of("values");
-    assertTrue(IdeResourcesUtil.changeValueResource(getProject(), resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
-                                                    dirNames, false));
-    assertFalse(IdeResourcesUtil.changeValueResource(getProject(), resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
-                                                     dirNames, false));
-    myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
+  fun testCaseSensitivityInChangeColorResource() {
+    val xmlFile = myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml")
+    val resDir = xmlFile.getParent().getParent()
+    val dirNames: MutableList<String?> = ImmutableList.of<String?>("values")
+    assertTrue(
+      changeValueResource(
+        getProject(), resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
+        dirNames, false
+      )
+    )
+    assertFalse(
+      changeValueResource(
+        getProject(), resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
+        dirNames, false
+      )
+    )
+    myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true)
   }
 
-  public void testFindResourceFields() {
-    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
+  fun testFindResourceFields() {
+    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml")
 
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(myFacet, "string", "hello");
-    assertEquals(1, fields.length);
-    PsiField field = fields[0];
-    assertEquals("hello", field.getName());
-    assertEquals("string", field.getContainingClass().getName());
-    assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
+    val fields = findResourceFields(myFacet, "string", "hello")
+    TestCase.assertEquals(1, fields.size)
+    val field = fields[0]
+    TestCase.assertEquals("hello", field.getName())
+    TestCase.assertEquals("string", field.getContainingClass()!!.getName())
+    TestCase.assertEquals("p1.p2.R", field.getContainingClass()!!.getContainingClass()!!.getQualifiedName())
   }
 
-  public void testFindResourceFieldsWithMultipleResourceNames() {
-    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
+  fun testFindResourceFieldsWithMultipleResourceNames() {
+    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml")
 
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(
-      myFacet, "string", ImmutableList.of("hello", "goodbye"));
+    val fields = findResourceFields(
+      myFacet, "string", ImmutableList.of<String>("hello", "goodbye")
+    )
 
-    Set<String> fieldNames = Sets.newHashSet();
-    for (PsiField field : fields) {
-      fieldNames.add(field.getName());
-      assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
+    val fieldNames: MutableSet<String?> = Sets.newHashSet<String?>()
+    for (field in fields) {
+      fieldNames.add(field.getName())
+      TestCase.assertEquals("p1.p2.R", field.getContainingClass()!!.getContainingClass()!!.getQualifiedName())
     }
-    assertEquals(ImmutableSet.of("hello", "goodbye"), fieldNames);
-    assertEquals(2, fields.length);
+    assertEquals(ImmutableSet.of<String?>("hello", "goodbye"), fieldNames)
+    TestCase.assertEquals(2, fields.size)
   }
 
-  /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */
-  public void testFindResourceFieldsWithInheritance() throws Exception {
-    Module libModule = myAdditionalModules.get(0);
+  /** Tests that "inherited" resource references are found (R fields in generated in dependent modules).  */
+  @Throws(Exception::class)
+  fun testFindResourceFieldsWithInheritance() {
+    val libModule = myAdditionalModules.get(0)
     // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
-    deleteManifest(libModule);
+    deleteManifest(libModule)
 
-    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml")
 
     // Add some lib string resources.
-    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
+    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml")
 
-    AndroidFacet facet = AndroidFacet.getInstance(libModule);
-    assertThat(facet).isNotNull();
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello");
+    val facet = AndroidFacet.getInstance(libModule)
+    Truth.assertThat(facet).isNotNull()
+    val fields = findResourceFields(facet!!, "string", "lib_hello")
 
-    Set<String> packages = Sets.newHashSet();
-    for (PsiField field : fields) {
-      assertEquals("lib_hello", field.getName());
-      packages.add(StringUtil.getPackageName(field.getContainingClass().getContainingClass().getQualifiedName()));
+    val packages: MutableSet<String?> = Sets.newHashSet<String?>()
+    for (field in fields) {
+      TestCase.assertEquals("lib_hello", field.getName())
+      packages.add(StringUtil.getPackageName(field.getContainingClass()!!.getContainingClass()!!.getQualifiedName()!!))
     }
-    assertEquals(ImmutableSet.of("p1.p2", "p1.p2.lib"), packages);
-    assertEquals(2, fields.length);
+    assertEquals(ImmutableSet.of<String?>("p1.p2", "p1.p2.lib"), packages)
+    TestCase.assertEquals(2, fields.size)
   }
 
-  /** Tests that a module without an Android Manifest can still import a lib's R class */
-  public void testIsRJavaFileImportedNoManifest() throws Exception {
-    Module libModule = myAdditionalModules.get(0);
+  /** Tests that a module without an Android Manifest can still import a lib's R class  */
+  @Throws(Exception::class)
+  fun testIsRJavaFileImportedNoManifest() {
+    val libModule = myAdditionalModules.get(0)
     // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
-    deleteManifest(libModule);
-    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    deleteManifest(libModule)
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml")
 
     // Add some lib string resources.
-    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
+    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml")
     // Remove the manifest from the main module.
-    deleteManifest(myModule);
+    deleteManifest(myModule)
 
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertThat(facet).isNotNull();
-    PsiField[] mainFields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello"  /* onlyInOwnPackages */);
-    assertEmpty(mainFields);
+    val facet = AndroidFacet.getInstance(myModule)
+    Truth.assertThat(facet).isNotNull()
+    val mainFields = findResourceFields(facet!!, "string", "lib_hello" /* onlyInOwnPackages */)
+    assertEmpty(mainFields)
 
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
     // (e.g., for goto navigation).
-    PsiFile javaFile =
-      myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
-    PsiClass libRClass =
-      myFixture.getJavaFacade().findClass("p1.p2.lib.R", javaFile.getResolveScope());
-    assertNotNull(libRClass);
-    assertTrue(IdeResourcesUtil.isRJavaClass(libRClass));
+    val javaFile =
+      myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}")
+    val libRClass =
+      myFixture.getJavaFacade().findClass("p1.p2.lib.R", javaFile.getResolveScope())
+    assertNotNull(libRClass)
+    assertTrue(isRJavaClass(libRClass!!))
   }
 
-  public void testEnsureNamespaceImportedAddAuto() {
-    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", AUTO_URI, null);
-    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  fun testEnsureNamespaceImportedAddAuto() {
+    val xmlFile = ensureNamespaceImported("<LinearLayout/>", SdkConstants.AUTO_URI, null)
+    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
-  public void testEnsureNamespaceImportedAddAutoWithPrefixSuggestion() {
-    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", AUTO_URI, "sherpa");
-    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:sherpa=\"http://schemas.android.com/apk/res-auto\" />");
+  fun testEnsureNamespaceImportedAddAutoWithPrefixSuggestion() {
+    val xmlFile = ensureNamespaceImported("<LinearLayout/>", SdkConstants.AUTO_URI, "sherpa")
+    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:sherpa=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
-  public void testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThere() {
-    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
-    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", AUTO_URI, null);
-    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  fun testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThere() {
+    val xmlFile =
+      ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", SdkConstants.AUTO_URI, null)
+    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
-  public void testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThereWithPrefixSuggestion() {
-    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
-    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", AUTO_URI, "sherpa");
-    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  fun testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThereWithPrefixSuggestion() {
+    val xmlFile =
+      ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", SdkConstants.AUTO_URI, "sherpa")
+    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
-  public void testEnsureNamespaceImportedAddEmptyNamespaceForStyleAttribute() {
-    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", "", null);
-    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout/>");
+  fun testEnsureNamespaceImportedAddEmptyNamespaceForStyleAttribute() {
+    val xmlFile = ensureNamespaceImported("<LinearLayout/>", "", null)
+    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout/>")
   }
 
-  private XmlFile ensureNamespaceImported(@Language("XML") @NotNull String text, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", text);
+  private fun ensureNamespaceImported(@Language("XML") text: String, namespaceUri: String, suggestedPrefix: String?): XmlFile {
+    val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", text) as XmlFile
 
-    CommandProcessor.getInstance().executeCommand(getProject(), () -> ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeResourcesUtil.ensureNamespaceImported(xmlFile, namespaceUri, suggestedPrefix);
-    }), "", "");
+    CommandProcessor.getInstance().executeCommand(getProject(), Runnable {
+      ApplicationManager.getApplication().runWriteAction(Runnable {
+        ensureNamespaceImported(xmlFile, namespaceUri, suggestedPrefix)
+      })
+    }, "", "")
 
-    return xmlFile;
+    return xmlFile
   }
 
-  public void testCreateRawFileResource() {
-    String fileName = "my_great_raw_file.foobar";
-    String rawDirName = "raw";
-    PsiFile file = IdeResourcesUtil.createRawFileResource(fileName, getResDirectory(rawDirName));
-    assertThat(file.getContainingDirectory().getName()).isEqualTo(rawDirName);
-    assertThat(file.getName()).isEqualTo(fileName);
-    assertThat(file.getText()).isEmpty();
+  fun testCreateRawFileResource() {
+    val fileName = "my_great_raw_file.foobar"
+    val rawDirName = "raw"
+    val file = createRawFileResource(fileName, getResDirectory(rawDirName))
+    Truth.assertThat(file.getContainingDirectory().getName()).isEqualTo(rawDirName)
+    Truth.assertThat(file.getName()).isEqualTo(fileName)
+    Truth.assertThat(file.getText()).isEmpty()
   }
 
-  public void testCreateFrameLayoutFileResource() {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getResDirectory("layout"), FRAME_LAYOUT, ResourceType.LAYOUT, false);
-    assertThat(file.getName()).isEqualTo("linear.xml");
-    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    android:layout_width=\"match_parent\"\n" +
-                                         "    android:layout_height=\"match_parent\">\n" +
-                                         "\n" +
-                                         "</FrameLayout>");
+  fun testCreateFrameLayoutFileResource() {
+    val file = createXmlFileResource("linear", getResDirectory("layout"), SdkConstants.FRAME_LAYOUT, ResourceType.LAYOUT, false)
+    Truth.assertThat(file.getName()).isEqualTo("linear.xml")
+    Truth.assertThat(file.getText()).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:layout_width=\"match_parent\"\n" +
+        "    android:layout_height=\"match_parent\">\n" +
+        "\n" +
+        "</FrameLayout>"
+    )
   }
 
-  public void testCreateLinearLayoutFileResource() {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getResDirectory("layout"), LINEAR_LAYOUT, ResourceType.LAYOUT, false);
-    assertThat(file.getName()).isEqualTo("linear.xml");
-    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    android:orientation=\"vertical\"\n" +
-                                         "    android:layout_width=\"match_parent\"\n" +
-                                         "    android:layout_height=\"match_parent\">\n" +
-                                         "\n" +
-                                         "</LinearLayout>");
+  fun testCreateLinearLayoutFileResource() {
+    val file = createXmlFileResource("linear", getResDirectory("layout"), SdkConstants.LINEAR_LAYOUT, ResourceType.LAYOUT, false)
+    Truth.assertThat(file.getName()).isEqualTo("linear.xml")
+    Truth.assertThat(file.getText()).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:orientation=\"vertical\"\n" +
+        "    android:layout_width=\"match_parent\"\n" +
+        "    android:layout_height=\"match_parent\">\n" +
+        "\n" +
+        "</LinearLayout>"
+    )
   }
 
-  public void testCreateLayoutFileResource() {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("layout", getResDirectory("layout"), TAG_LAYOUT, ResourceType.LAYOUT, false);
-    assertThat(file.getName()).isEqualTo("layout.xml");
-    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                         "\n" +
-                                         "</layout>");
+  fun testCreateLayoutFileResource() {
+    val file = createXmlFileResource("layout", getResDirectory("layout"), SdkConstants.TAG_LAYOUT, ResourceType.LAYOUT, false)
+    Truth.assertThat(file.getName()).isEqualTo("layout.xml")
+    Truth.assertThat(file.getText()).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+        "\n" +
+        "</layout>"
+    )
   }
 
-  public void testCreateMergeFileResource() {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("merge", getResDirectory("layout"), VIEW_MERGE, ResourceType.LAYOUT, false);
-    assertThat(file.getName()).isEqualTo("merge.xml");
-    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                         "\n" +
-                                         "</merge>");
+  fun testCreateMergeFileResource() {
+    val file = createXmlFileResource("merge", getResDirectory("layout"), SdkConstants.VIEW_MERGE, ResourceType.LAYOUT, false)
+    Truth.assertThat(file.getName()).isEqualTo("merge.xml")
+    Truth.assertThat(file.getText()).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+        "\n" +
+        "</merge>"
+    )
   }
 
-  public void testCreateNavigationFileResource() {
-    XmlFile file =
-      IdeResourcesUtil.createXmlFileResource("nav", getResDirectory("navigation"), TAG_NAVIGATION, ResourceType.NAVIGATION, false);
-    assertThat(file.getName()).isEqualTo("nav.xml");
-    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                                         "    android:id=\"@+id/nav\">\n" +
-                                         "\n" +
-                                         "</navigation>");
+  fun testCreateNavigationFileResource() {
+    val file =
+      createXmlFileResource("nav", getResDirectory("navigation"), SdkConstants.TAG_NAVIGATION, ResourceType.NAVIGATION, false)
+    Truth.assertThat(file.getName()).isEqualTo("nav.xml")
+    Truth.assertThat(file.getText()).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+        "    android:id=\"@+id/nav\">\n" +
+        "\n" +
+        "</navigation>"
+    )
   }
 
-  public void testBuildResourceNameFromStringValue_simpleName() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string");
+  fun testBuildResourceNameFromStringValue_simpleName() {
+    Truth.assertThat(buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string")
   }
 
-  public void testBuildResourceNameFromStringValue_nameWithSurroundingSpaces() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string");
+  fun testBuildResourceNameFromStringValue_nameWithSurroundingSpaces() {
+    Truth.assertThat(buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string")
   }
 
-  public void testBuildResourceNameFromStringValue_nameWithDigits() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number");
+  fun testBuildResourceNameFromStringValue_nameWithDigits() {
+    Truth.assertThat(buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number")
   }
 
-  public void testBuildResourceNameFromStringValue_nameShouldNotStartWithNumber() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things");
+  fun testBuildResourceNameFromStringValue_nameShouldNotStartWithNumber() {
+    Truth.assertThat(buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things")
   }
 
-  public void testBuildResourceNameFromStringValue_emptyString() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("")).isNull();
+  fun testBuildResourceNameFromStringValue_emptyString() {
+    Truth.assertThat(buildResourceNameFromStringValue("")).isNull()
   }
 
-  public void testBuildResourceNameFromStringValue_stringHasPunctuation() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why");
+  fun testBuildResourceNameFromStringValue_stringHasPunctuation() {
+    Truth.assertThat(buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why")
   }
 
-  public void testBuildResourceNameFromStringValue_stringIsOnlyPunctuation() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("!!#^??")).isNull();
+  fun testBuildResourceNameFromStringValue_stringIsOnlyPunctuation() {
+    Truth.assertThat(buildResourceNameFromStringValue("!!#^??")).isNull()
   }
 
-  public void testBuildResourceNameFromStringValue_stringStartsAndEndsWithPunctuation() {
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation");
-    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("<tag>")).isEqualTo("tag");
+  fun testBuildResourceNameFromStringValue_stringStartsAndEndsWithPunctuation() {
+    Truth.assertThat(buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation")
+    Truth.assertThat(buildResourceNameFromStringValue("<tag>")).isEqualTo("tag")
   }
 
-  @NotNull
-  private PsiDirectory getResDirectory(String dirName) {
-    VirtualFile virtualFileDir =
-      VirtualFileManager.getInstance().findFileByNioPath(Path.of(myFixture.getTempDirPath()));
-    assertThat(virtualFileDir).isNotNull();
-    PsiDirectory dir = PsiManager.getInstance(getProject()).findDirectory(virtualFileDir);
-    assertThat(dir).isNotNull();
-    return findOrCreateSubdirectory(findOrCreateSubdirectory(dir, "res"), dirName);
+  private fun getResDirectory(dirName: String): PsiDirectory {
+    val virtualFileDir =
+      VirtualFileManager.getInstance().findFileByNioPath(Path.of(myFixture.getTempDirPath()))
+    Truth.assertThat(virtualFileDir).isNotNull()
+    val dir = PsiManager.getInstance(getProject()).findDirectory(virtualFileDir!!)
+    Truth.assertThat(dir).isNotNull()
+    return findOrCreateSubdirectory(Companion.findOrCreateSubdirectory(dir!!, "res"), dirName)
   }
 
-  private static @NotNull PsiDirectory findOrCreateSubdirectory(@NotNull PsiDirectory parent, @NotNull String subdirName) {
-    final PsiDirectory sub = parent.findSubdirectory(subdirName);
-    return sub == null ? WriteAction.compute(() -> parent.createSubdirectory(subdirName)) : sub;
+  companion object {
+    @Language("XML")
+    private val LAYOUT_FILE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<LinearLayout xmlns:framework=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    framework:orientation=\"vertical\"\n" +
+      "    framework:layout_width=\"fill_parent\"\n" +
+      "    framework:layout_height=\"fill_parent\">\n" +
+      "\n" +
+      "    <TextView xmlns:newtools=\"http://schemas.android.com/tools\"\n" +
+      "        framework:layout_width=\"fill_parent\"\n" +
+      "        framework:layout_height=\"wrap_content\"\n" +
+      "        newtools:text=\"Hello World, MyActivity\" />\n" +
+      "</LinearLayout>\n"
+
+    private fun findOrCreateSubdirectory(parent: PsiDirectory, subdirName: String): PsiDirectory {
+      val sub = parent.findSubdirectory(subdirName)
+      return if (sub == null) WriteAction.compute<PsiDirectory, RuntimeException?>(ThrowableComputable {
+        parent.createSubdirectory(
+          subdirName
+        )
+      }) else sub
+    }
   }
 }
