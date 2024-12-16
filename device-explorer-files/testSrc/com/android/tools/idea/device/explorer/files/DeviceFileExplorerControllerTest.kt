@@ -38,8 +38,10 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -1681,7 +1683,7 @@ class DeviceFileExplorerControllerTest {
     }
 
     private fun createContentMenuItemEvent(): AnActionEvent {
-      return AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, { dataId -> null })
+      return createEvent({ dataId: String -> null }, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     }
 
     private fun getActionByText(actionGroup: ActionGroup, text: String): AnAction? {

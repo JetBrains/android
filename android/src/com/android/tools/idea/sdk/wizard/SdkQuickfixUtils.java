@@ -42,6 +42,7 @@ import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -148,7 +149,7 @@ public final class SdkQuickfixUtils {
 
   public static void showAndroidSdkManager() {
     ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
-      AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+      AnActionEvent.createEvent(dataId -> null, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
   }
 
   private static AndroidSdkHandler getSdkHandler() {

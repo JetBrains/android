@@ -19,7 +19,8 @@ import com.android.testutils.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -118,7 +119,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
       }
     }
     val presentation = Presentation()
-    val event = AnActionEvent.createFromDataContext("", presentation, dataContext)
+    val event = createEvent(dataContext, presentation, "", ActionUiKind.NONE, null)
 
     dataContext.files = arrayOf(resFolder)
     action.update(event)

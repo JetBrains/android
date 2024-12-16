@@ -47,6 +47,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
@@ -457,7 +458,7 @@ public class IdeSdks {
 
     AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
     if (sdkManagerAction != null) {
-      sdkManagerAction.update(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+      sdkManagerAction.update(AnActionEvent.createEvent(dataId -> null, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
     }
   }
 

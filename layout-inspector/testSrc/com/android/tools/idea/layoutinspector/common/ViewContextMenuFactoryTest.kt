@@ -34,7 +34,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
@@ -347,4 +349,4 @@ class ViewContextMenuFactoryLegacyTest {
 }
 
 private fun createFakeEvent(): AnActionEvent =
-  AnActionEvent.createFromDataContext("", null, DataContext.EMPTY_CONTEXT)
+  createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)

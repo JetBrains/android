@@ -50,7 +50,8 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.HelpTooltip
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.diagnostic.Logger
@@ -157,7 +158,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       isEnabled = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
-        AnActionEvent.createFromDataContext("", null, dataContext))
+        createEvent(dataContext, null, "", ActionUiKind.NONE, null)
+      )
     }
     border = BorderFactory.createEmptyBorder()
     isBorderPainted = false

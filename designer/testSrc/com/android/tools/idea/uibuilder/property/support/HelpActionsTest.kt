@@ -40,7 +40,8 @@ import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.documentation.DocumentationEditorPane
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
@@ -136,7 +137,7 @@ class HelpActionsTest {
           listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) }),
         )
         .build()
-    val event = AnActionEvent.createFromDataContext("", null, context)
+    val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     HelpActions.help.actionPerformed(event)
     waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()

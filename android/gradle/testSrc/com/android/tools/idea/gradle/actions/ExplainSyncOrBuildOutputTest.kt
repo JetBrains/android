@@ -34,8 +34,9 @@ import com.intellij.build.events.MessageEventResult
 import com.intellij.build.events.impl.FailureImpl
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.ide.util.treeView.NodeDescriptor
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -140,7 +141,7 @@ class ExplainSyncOrBuildOutputTest {
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -181,7 +182,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -220,7 +221,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -240,7 +241,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -263,7 +264,7 @@ Explain this error and how to fix it.
     val panel = createTree()
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     assertTrue(event.presentation.isEnabled)
     // no selection
