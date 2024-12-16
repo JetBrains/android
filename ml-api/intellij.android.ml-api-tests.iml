@@ -16,6 +16,8 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.indexing" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.indexing.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.ml-api" />
