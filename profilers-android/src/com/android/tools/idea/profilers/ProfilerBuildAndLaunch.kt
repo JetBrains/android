@@ -25,8 +25,9 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
@@ -65,7 +66,7 @@ object ProfilerBuildAndLaunch {
   private fun doBuildAndLaunchAction(action: AnAction) {
     // This is the only way to acquire the data context without providing a JComponent or AnActionEvent.
     DataManager.getInstance().dataContextFromFocusAsync.onSuccess {
-      val event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, it)
+      val event = createEvent(action, it, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
       action.actionPerformed(event)
     }.onError {
       getLogger().error(it.message)

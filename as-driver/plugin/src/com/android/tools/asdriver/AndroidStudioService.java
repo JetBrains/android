@@ -32,6 +32,7 @@ import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -192,7 +193,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
           return;
         }
 
-        AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
+        AnActionEvent event = AnActionEvent.createEvent(action, dataContext, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null);
         ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
       } catch (Throwable e) {
@@ -814,7 +815,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
             return;
           }
 
-          openFileEvent = AnActionEvent.createFromAnAction(openFileAction, null, ActionPlaces.UNKNOWN, dataContext);
+          openFileEvent = AnActionEvent.createEvent(openFileAction, dataContext, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null);
         }
         finally {
           actionInvoked.release();

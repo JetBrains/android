@@ -26,7 +26,8 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.ui.customization.CustomActionsSchema
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
@@ -81,10 +82,10 @@ class EndReservationActionTest {
           }
 
           override val presentation = MutableStateFlow(defaultPresentation)
-        }
+        },
       )
     val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
-    val event = AnActionEvent.createFromAnAction(endReservationAction, null, "", dataContext)
+    val event = createEvent(endReservationAction, dataContext, null, "", ActionUiKind.NONE, null)
     // No reservation available.
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
@@ -92,7 +93,9 @@ class EndReservationActionTest {
 
     // Reservation with ERROR state.
     stateFlow.update {
-      it.copy(reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now(), null))
+      it.copy(
+        reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now(), null)
+      )
     }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
@@ -110,7 +113,9 @@ class EndReservationActionTest {
 
     // Active reservation.
     stateFlow.update {
-      it.copy(reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX, null))
+      it.copy(
+        reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX, null)
+      )
     }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()

@@ -30,8 +30,10 @@ import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.customization.CustomActionsSchema
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
@@ -42,6 +44,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,7 +53,6 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.JPanel
 
 @RunsInEdt
 class ToggleLayoutInspectorActionTest {
@@ -224,7 +226,7 @@ class ToggleLayoutInspectorActionTest {
       }
     }
 
-    return AnActionEvent.createFromAnAction(this, null, "", dataContext)
+    return createEvent(this, dataContext, null, "", ActionUiKind.NONE, null)
   }
 
   private fun getFakeAction(): AnAction {

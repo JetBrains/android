@@ -26,8 +26,9 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -138,7 +139,7 @@ class ToggleIssueActionTest {
     ToggleIssueAction(mockController, mockAppInsightState, issue)
 
   private fun createAnActionEvent(action: AnAction, issue: AppInsightsIssue) =
-    AnActionEvent.createFromAnAction(action, null, "") {}
+    createEvent(action, { it: String -> }, null, "", ActionUiKind.NONE, null)
 
   private fun createAppInsightIssue(state: IssueState) =
     AppInsightsIssue(

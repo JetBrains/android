@@ -34,7 +34,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManagerConfigurable
 import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.testFramework.ExtensionTestUtil
@@ -212,12 +213,19 @@ class InsightActionTest {
     updateCustomComponent(button, templatePresentation)
 
   private fun createTestEvent() =
-    AnActionEvent.createFromAnAction(InsightAction, null, "") { dataId ->
-      when {
-        REQUEST_SOURCE_KEY.`is`(dataId) -> GeminiPluginApi.RequestSource.CRASHLYTICS
-        SELECTED_EVENT_KEY.`is`(dataId) -> eventList[eventIdx]
-        CommonDataKeys.PROJECT.`is`(dataId) -> projectRule.project
-        else -> null
-      }
-    }
+    createEvent(
+      InsightAction,
+      { dataId: String ->
+        when {
+          REQUEST_SOURCE_KEY.`is`(dataId) -> GeminiPluginApi.RequestSource.CRASHLYTICS
+          SELECTED_EVENT_KEY.`is`(dataId) -> eventList[eventIdx]
+          CommonDataKeys.PROJECT.`is`(dataId) -> projectRule.project
+          else -> null
+        }
+      },
+      null,
+      "",
+      ActionUiKind.NONE,
+      null,
+    )
 }

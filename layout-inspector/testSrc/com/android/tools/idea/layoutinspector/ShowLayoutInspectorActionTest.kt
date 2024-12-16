@@ -22,8 +22,9 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -109,12 +110,19 @@ class ShowLayoutInspectorActionTest {
 }
 
 private fun createFakeEvent(project: Project, anAction: AnAction) =
-  AnActionEvent.createFromAnAction(anAction, null, "") {
-    when (it) {
-      CommonDataKeys.PROJECT.name -> project
-      else -> null
-    }
-  }
+  createEvent(
+    anAction,
+    { it: String ->
+      when (it) {
+        CommonDataKeys.PROJECT.name -> project
+        else -> null
+      }
+    },
+    null,
+    "",
+    ActionUiKind.NONE,
+    null,
+  )
 
 private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
   var runningDevicesToolWindow = FakeToolWindow(project)

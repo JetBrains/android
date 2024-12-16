@@ -68,8 +68,9 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -786,7 +787,7 @@ class StreamingToolWindowManagerTest {
 
     windowFactory.createToolWindowContent(project, toolWindow)
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
-    windowAction.actionPerformed(AnActionEvent.createFromAnAction(windowAction, null, "", dataContext))
+    windowAction.actionPerformed(createEvent(windowAction, dataContext, null, "", ActionUiKind.NONE, null))
 
     assertThat(toolWindow.type).isEqualTo(ToolWindowType.WINDOWED)
   }
@@ -797,13 +798,13 @@ class StreamingToolWindowManagerTest {
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
 
     toolWindow.setType(ToolWindowType.FLOATING) {}
-    AnActionEvent.createFromAnAction(windowAction, null, "", dataContext).also(windowAction::update).let {
+    createEvent(windowAction, dataContext, null, "", ActionUiKind.NONE, null).also(windowAction::update).let {
       assertThat(it.presentation.isVisible).isFalse()
       assertThat(it.presentation.isEnabled).isFalse()
     }
 
     toolWindow.setType(ToolWindowType.WINDOWED) {}
-    AnActionEvent.createFromAnAction(windowAction, null, "", dataContext).also(windowAction::update).let {
+    createEvent(windowAction, dataContext, null, "", ActionUiKind.NONE, null).also(windowAction::update).let {
       assertThat(it.presentation.isVisible).isFalse()
       assertThat(it.presentation.isEnabled).isFalse()
     }

@@ -31,10 +31,11 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
 import java.awt.Point
@@ -627,7 +628,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
         mockDatabaseInspectorProjectService,
       )
     anActionEvent =
-      TestActionEvent.createFromAnAction(anAction, mouseEvent, "", DataContext.EMPTY_CONTEXT)
+      createEvent(anAction, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, mouseEvent)
   }
 
   private fun setUpJavaFixture(sqlStatement: String) {

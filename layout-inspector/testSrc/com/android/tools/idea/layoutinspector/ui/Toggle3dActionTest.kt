@@ -37,8 +37,10 @@ import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -235,11 +237,18 @@ class Toggle3dActionTest {
   }
 
   private fun createFakeEvent(anAction: AnAction): AnActionEvent {
-    return AnActionEvent.createFromAnAction(anAction, null, "") {
-      when (it) {
-        LAYOUT_INSPECTOR_DATA_KEY.name -> layoutInspector
-        else -> null
-      }
-    }
+    return createEvent(
+      anAction,
+      { it: String ->
+        when (it) {
+          LAYOUT_INSPECTOR_DATA_KEY.name -> layoutInspector
+          else -> null
+        }
+      },
+      null,
+      "",
+      ActionUiKind.NONE,
+      null,
+    )
   }
 }

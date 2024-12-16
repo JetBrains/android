@@ -49,8 +49,9 @@ import com.intellij.ide.actions.DeleteAction
 import com.intellij.ide.actions.PasteAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
@@ -427,7 +428,7 @@ class NavActionManagerTest : NavTestCase() {
         .add(PASTE_PROVIDER, surfaceActionProvider)
         .add(DELETE_ELEMENT_PROVIDER, surfaceActionProvider)
         .build()
-    val event = AnActionEvent.createFromAnAction(item, null, ActionPlaces.UNKNOWN, dataContext)
+    val event = createEvent(item, dataContext, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     item.update(event)
     assertInstanceOf(item, c)
     assertEquals(name, event.presentation.text)
