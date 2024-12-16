@@ -2202,7 +2202,7 @@ private fun findViewTag(tag: XmlTag, target: String): String? {
   return null
 }
 
-fun createFileResource(
+fun createXmlFileResource(
   fileName: String,
   resSubdir: PsiDirectory,
   rootTagName: String,
@@ -2295,7 +2295,7 @@ fun findOrCreateStateListFiles(
           val directory =
             manager.findDirectory(dir)
               ?: throw IOException("cannot find " + resDir + File.separatorChar + dirName)
-          createFileResource(
+          createXmlFileResource(
             fileName,
             directory,
             CreateTypedResourceFileAction.getDefaultRootTagByResourceType(module, folderType),

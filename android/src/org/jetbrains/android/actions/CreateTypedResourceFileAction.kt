@@ -22,7 +22,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.IdeResourceNameValidator.Companion.forFilename
-import com.android.tools.idea.res.createFileResource
+import com.android.tools.idea.res.createXmlFileResource
 import com.android.tools.idea.res.isResourceSubdirectory
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.rendering.parsers.LayoutPullParsers
@@ -127,7 +127,7 @@ open class CreateTypedResourceFileAction(
     }
 
     val xmlFile =
-      createFileResource(
+      createXmlFileResource(
         newName,
         directory,
         rootTagName,
