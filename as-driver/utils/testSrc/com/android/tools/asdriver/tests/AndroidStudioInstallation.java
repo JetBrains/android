@@ -227,7 +227,7 @@ public class AndroidStudioInstallation {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
       try {
         Path jvmtiAgent = TestUtils.resolveWorkspacePath(
-          "_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath();
+          "tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so").toRealPath();
         writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
         writer.append(String.format("-Denable.bleak=true%n"));
         writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
