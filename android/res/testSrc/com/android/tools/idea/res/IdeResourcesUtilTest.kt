@@ -27,19 +27,18 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.MergedManifestModificationListener.Companion.ensureSubscribed
+import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.model.TestAndroidModel.Companion.namespaced
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDirectory
@@ -47,6 +46,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import junit.framework.TestCase
@@ -62,10 +62,9 @@ import java.nio.file.Path
 import javax.imageio.ImageIO
 
 class IdeResourcesUtilTest : AndroidTestCase() {
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    ensureSubscribed(getProject())
+    MergedManifestModificationListener.ensureSubscribed(project)
   }
 
   fun testIsValueBasedResourceType() {
@@ -81,20 +80,20 @@ class IdeResourcesUtilTest : AndroidTestCase() {
   }
 
   fun testStyleToTheme() {
-    TestCase.assertEquals("Foo", styleToTheme("Foo"))
-    TestCase.assertEquals("Theme", styleToTheme("@android:style/Theme"))
-    TestCase.assertEquals("LocalTheme", styleToTheme("@style/LocalTheme"))
-    TestCase.assertEquals("LocalTheme", styleToTheme("@foo.bar:style/LocalTheme"))
+    assertEquals("Foo", styleToTheme("Foo"))
+    assertEquals("Theme", styleToTheme("@android:style/Theme"))
+    assertEquals("LocalTheme", styleToTheme("@style/LocalTheme"))
+    assertEquals("LocalTheme", styleToTheme("@foo.bar:style/LocalTheme"))
   }
 
   fun testGetFolderConfiguration() {
     val file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>")
     val file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>")
 
-    TestCase.assertEquals("layout-land", getFolderConfiguration(file1)!!.getFolderName(ResourceFolderType.LAYOUT))
-    TestCase.assertEquals("menu-en-rUS", getFolderConfiguration(file2)!!.getFolderName(ResourceFolderType.MENU))
-    TestCase.assertEquals("layout-land", getFolderConfiguration(file1.getVirtualFile())!!.getFolderName(ResourceFolderType.LAYOUT))
-    TestCase.assertEquals("menu-en-rUS", getFolderConfiguration(file2.getVirtualFile())!!.getFolderName(ResourceFolderType.MENU))
+    assertEquals("layout-land", getFolderConfiguration(file1)?.getFolderName(ResourceFolderType.LAYOUT))
+    assertEquals("menu-en-rUS", getFolderConfiguration(file2)?.getFolderName(ResourceFolderType.MENU))
+    assertEquals("layout-land", getFolderConfiguration(file1.virtualFile)?.getFolderName(ResourceFolderType.LAYOUT))
+    assertEquals("menu-en-rUS", getFolderConfiguration(file2.virtualFile)?.getFolderName(ResourceFolderType.MENU))
   }
 
   fun testDisabledStateListStates() {
@@ -122,10 +121,10 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     stateList.addState(pressed)
     stateList.addState(disabled)
     stateList.addState(selected)
-    Truth.assertThat(stateList.disabledStates).containsExactly(disabled)
+    assertThat(stateList.disabledStates).containsExactly(disabled)
 
     stateList.addState(disabledPressed)
-    Truth.assertThat(stateList.disabledStates).containsExactly(disabled, disabledPressed)
+    assertThat(stateList.disabledStates).containsExactly(disabled, disabledPressed)
 
     stateList = StateList("stateList", "colors")
     stateList.addState(enabled)
@@ -133,17 +132,17 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     stateList.addState(selected)
     stateList.addState(enabledPressed) // Not reachable
     stateList.addState(disabled)
-    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, selected, enabledPressed, disabled)
+    assertThat(stateList.disabledStates).containsExactly(pressed, selected, enabledPressed, disabled)
 
     stateList = StateList("stateList", "colors")
     stateList.addState(enabledPressed)
     stateList.addState(pressed)
     stateList.addState(selected)
     stateList.addState(disabled)
-    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, disabled)
+    assertThat(stateList.disabledStates).containsExactly(pressed, disabled)
 
     stateList.addState(selectedPressed)
-    Truth.assertThat(stateList.disabledStates).containsExactly(pressed, disabled, selectedPressed)
+    assertThat(stateList.disabledStates).containsExactly(pressed, disabled, selectedPressed)
 
     stateList = StateList("stateList", "colors")
     stateList.addState(enabledSelectedPressed)
@@ -151,7 +150,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     stateList.addState(selected)
     stateList.addState(disabled)
     stateList.addState(selectedPressed)
-    Truth.assertThat(stateList.disabledStates).containsExactly(disabled, selectedPressed)
+    assertThat(stateList.disabledStates).containsExactly(disabled, selectedPressed)
 
     stateList = StateList("stateList", "colors")
     stateList.addState(enabledPressed)
@@ -159,14 +158,14 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     stateList.addState(checkedNotPressed)
     stateList.addState(selected)
     stateList.addState(notFocused)
-    Truth.assertThat(stateList.disabledStates).containsExactly(selected, notFocused)
+    assertThat(stateList.disabledStates).containsExactly(selected, notFocused)
   }
 
   fun testResolveAsIconFromColorReference() {
     val file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml")
 
     val url = ResourceUrl.parse("@color/myColor2")
-    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val reference = url?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
     val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
     val value = rr.getResolvedResource(reference!!)
     val icon = rr.resolveAsIcon(value, myFacet)
@@ -178,7 +177,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     val file = myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml")
 
     val url = ResourceUrl.parse("@color/my_state_list")
-    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val reference = url?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
     val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
     val value = rr.getResolvedResource(reference!!)
     val icon = rr.resolveAsIcon(value, myFacet)
@@ -189,12 +188,12 @@ class IdeResourcesUtilTest : AndroidTestCase() {
   fun testResolveAsIconFromDrawable() {
     val file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml")
     val url = ResourceUrl.parse("@android:drawable/ic_delete")
-    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val reference = url?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
     val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
     val value = rr.getResolvedResource(reference!!)
-    val icon = rr.resolveAsIcon(value, myFacet)
-    val image = BufferedImage(icon!!.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB)
-    icon.paintIcon(null, image.getGraphics(), 0, 0)
+    val icon = rr.resolveAsIcon(value, myFacet)!!
+    val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    icon.paintIcon(null, image.graphics, 0, 0)
     val goldenImage = ImageIO.read(File(getTestDataPath() + "/resourceHelper/ic_delete.png"))
     assertImageSimilar("ic_delete", goldenImage, image, ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT)
   }
@@ -203,12 +202,12 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     myFixture.copyFileToProject("resourceHelper/ic_delete.png", "res/drawable/ic_delete.png")
     val file = myFixture.copyFileToProject("resourceHelper/icon_state_list.xml", "res/drawable/icon_state_list.xml")
     val url = ResourceUrl.parse("@drawable/icon_state_list")
-    val reference = url!!.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+    val reference = url?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
     val rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver()
     val value = rr.getResolvedResource(reference!!)
-    val iconFile = rr.resolveDrawable(value, getProject())
-    Truth.assertThat(iconFile!!.getName()).isEqualTo("ic_delete.png")
-    Truth.assertThat(iconFile.exists()).isTrue()
+    val iconFile = rr.resolveDrawable(value, project)
+    assertThat(iconFile?.name).isEqualTo("ic_delete.png")
+    assertThat(iconFile?.exists()).isTrue()
   }
 
   fun testResolveEmptyStatelist() {
@@ -219,7 +218,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "empty_state_list")
     )
     assertNotNull(rv)
-    assertNull(rr.resolveColor(rv, myModule.getProject()))
+    assertNull(rr.resolveColor(rv, myModule.project))
   }
 
   fun testResolve() {
@@ -228,143 +227,145 @@ class IdeResourcesUtilTest : AndroidTestCase() {
 
     val innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>")
     val innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>")
-    val outerFileContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<FrameLayout xmlns:app=\"" + appNs.getXmlNamespaceUri() + "\">\n" +
-      "\n" +
-      "    <include\n" +
-      "        layout=\"@app:layout/inner\"\n" +
-      "        android:layout_width=\"wrap_content\"\n" +
-      "        android:layout_height=\"wrap_content\" />\n" +
-      "\n" +
-      "</FrameLayout>"
+    // language=xml
+    val outerFileContent =
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <FrameLayout xmlns:app="${appNs.xmlNamespaceUri}">
+          <include
+              layout="@app:layout/inner"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+      </FrameLayout>
+      """.trimIndent()
     val outerFile = myFixture.addFileToProject("layout/outer.xml", outerFileContent) as XmlFile
-    val configuration: Configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.getVirtualFile())
-    val include = outerFile.getRootTag()!!.findFirstSubTag("include")
+    val configuration: Configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.virtualFile)
+    val include = outerFile.rootTag?.findFirstSubTag("include")
     var resolved =
-      configuration.getResourceResolver().resolve(ResourceUrl.parse(include!!.getAttribute("layout")!!.getValue()!!)!!, include)
-    TestCase.assertEquals(innerFileLand.getVirtualFile().getPath(), resolved!!.getValue())
-    configuration.setDeviceState(configuration.getDevice()!!.getState("Portrait"))
-    resolved = configuration.getResourceResolver().resolve(ResourceUrl.parse(include.getAttribute("layout")!!.getValue()!!)!!, include)
-    TestCase.assertEquals(innerFilePort.getVirtualFile().getPath(), resolved!!.getValue())
+      configuration.getResourceResolver().resolve(ResourceUrl.parse(include?.getAttribute("layout")?.value!!)!!, include)
+    assertEquals(innerFileLand.virtualFile.path, resolved?.getValue())
+    configuration.deviceState = configuration.getDevice()?.getState("Portrait")
+    resolved = configuration.getResourceResolver().resolve(ResourceUrl.parse(include.getAttribute("layout")?.value!!)!!, include)
+    assertEquals(innerFilePort.virtualFile.path, resolved?.getValue())
   }
 
   fun testGetResourceResolverFromXmlTag_namespacesEnabled() {
     setProjectNamespace(ResourceNamespace.fromPackageName("com.example.app"))
 
     val file = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
-    val layout = file.getRootTag()
-    val textview = layout!!.findFirstSubTag("TextView")
+    val layout = file.rootTag
+    val textview = layout?.findFirstSubTag("TextView")!!
 
     var resolver = getNamespaceResolver(layout)
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isNull()
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
-    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
-    Truth.assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
+    assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isNull()
+    assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
+    assertThat(resolver.prefixToUri("newtools")).isNull()
+    assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
 
-    resolver = getNamespaceResolver(textview!!)
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("newtools")
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
-    Truth.assertThat(resolver.prefixToUri("newtools")).isEqualTo(SdkConstants.TOOLS_URI)
-    Truth.assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
+    resolver = getNamespaceResolver(textview)
+    assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("newtools")
+    assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isEqualTo("framework")
+    assertThat(resolver.prefixToUri("newtools")).isEqualTo(SdkConstants.TOOLS_URI)
+    assertThat(resolver.prefixToUri("framework")).isEqualTo(SdkConstants.ANDROID_URI)
   }
 
   private fun setProjectNamespace(appNs: ResourceNamespace) {
     CommandProcessor.getInstance().runUndoTransparentAction(Runnable {
       ApplicationManager.getApplication().runWriteAction(Runnable {
         AndroidModel.set(myFacet, namespaced(myFacet))
-        Manifest.getMainManifest(myFacet)!!.getPackage().setValue(appNs.getPackageName())
+        Manifest.getMainManifest(myFacet)!!.getPackage().value = appNs.packageName
       })
     })
   }
 
   fun testGetResourceResolverFromXmlTag_namespacesDisabled() {
     val file = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
-    val layout = file.getRootTag()
-    val textview = layout!!.findFirstSubTag("TextView")
+    val layout = file.rootTag
+    val textview = layout?.findFirstSubTag("TextView")!!
 
     var resolver = getNamespaceResolver(layout)
 
     // "tools" is implicitly defined in non-namespaced projects.
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
+    assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
 
     // Proper namespacing doesn't work in non-namespaced projects, so within XML attributes, only "android" works.
     // TODO(b/74426748)
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
+    assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
 
-    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
-    Truth.assertThat(resolver.prefixToUri("framework")).isNull()
+    assertThat(resolver.prefixToUri("newtools")).isNull()
+    assertThat(resolver.prefixToUri("framework")).isNull()
 
-    resolver = getNamespaceResolver(textview!!)
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
-    Truth.assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
-    Truth.assertThat(resolver.prefixToUri("newtools")).isNull()
-    Truth.assertThat(resolver.prefixToUri("framework")).isNull()
+    resolver = getNamespaceResolver(textview)
+    assertThat(resolver.uriToPrefix(SdkConstants.TOOLS_URI)).isEqualTo("tools")
+    assertThat(resolver.uriToPrefix(SdkConstants.ANDROID_URI)).isNull()
+    assertThat(resolver.prefixToUri("newtools")).isNull()
+    assertThat(resolver.prefixToUri("framework")).isNull()
   }
 
   fun testPsiElementGetNamespace() {
     // Project XML:
     val layoutFile = myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE) as XmlFile
-    Truth.assertThat<ResourceNamespace?>(layoutFile.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
-    Truth.assertThat<ResourceNamespace?>(layoutFile.getRootTag()!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    assertThat<ResourceNamespace?>(layoutFile.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    assertThat<ResourceNamespace?>(layoutFile.rootTag?.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project class:
     val projectClass = myFixture.addClass("package com.example; public class Hello {}")
-    Truth.assertThat<ResourceNamespace?>(projectClass.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    assertThat<ResourceNamespace?>(projectClass.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project R class:
-    val rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope())
-    Truth.assertThat<ResourceNamespace?>(rClass!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    val rClass = myFixture.javaFacade.findClass("p1.p2.R", projectClass.resolveScope)
+    assertThat<ResourceNamespace?>(rClass?.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project manifest:
-    val manifest = Manifest.getMainManifest(myFacet)
-    Truth.assertThat<ResourceNamespace?>(manifest!!.getXmlElement()!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
-    Truth.assertThat<ResourceNamespace?>(manifest.getXmlElement()!!.getContainingFile().resourceNamespace)
+    val manifest = Manifest.getMainManifest(myFacet)!!
+    assertThat<ResourceNamespace?>(manifest.xmlElement?.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    assertThat<ResourceNamespace?>(manifest.xmlElement?.containingFile?.resourceNamespace)
       .isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Project Manifest class:
-    WriteCommandAction.runWriteCommandAction(getProject(), Runnable {
+    WriteCommandAction.runWriteCommandAction(project, Runnable {
       val newPermission = manifest.addPermission()
-      newPermission.getName().setValue("p1.p2.NEW_PERMISSION")
+      newPermission.getName().value = "p1.p2.NEW_PERMISSION"
     })
-    val manifestClass = myFixture.getJavaFacade().findClass("p1.p2.Manifest", projectClass.getResolveScope())
-    Truth.assertThat<ResourceNamespace?>(manifestClass!!.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
+    val manifestClass = myFixture.javaFacade.findClass("p1.p2.Manifest", projectClass.resolveScope)
+    assertThat<ResourceNamespace?>(manifestClass?.resourceNamespace).isEqualTo(ResourceNamespace.RES_AUTO)
 
     // Framework class:
-    val frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity")
-    Truth.assertThat<ResourceNamespace?>(frameworkClass.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
+    val frameworkClass = myFixture.javaFacade.findClass("android.app.Activity")
+    assertThat<ResourceNamespace?>(frameworkClass.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
     val appIconResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
-      .getFrameworkResources(com.google.common.collect.ImmutableSet.of<kotlin.String>())!!
+      .getFrameworkResources(ImmutableSet.of<String>())!!
       .getResources(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon")
 
     for (appIconResourceItem in appIconResourceItems) {
-      val appIcon = PsiManager.getInstance(getProject()).findFile(appIconResourceItem.getSource().toVirtualFile()!!) as XmlFile?
-      Truth.assertThat<ResourceNamespace?>(appIcon!!.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
-      Truth.assertThat<ResourceNamespace?>(appIcon.getRootTag()!!.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
+      val appIcon = PsiManager.getInstance(project).findFile(appIconResourceItem.getSource().toVirtualFile()!!) as XmlFile?
+      assertThat<ResourceNamespace?>(appIcon?.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
+      assertThat<ResourceNamespace?>(appIcon?.rootTag?.resourceNamespace).isEqualTo(ResourceNamespace.ANDROID)
     }
   }
 
   override fun configureAdditionalModules(
-    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture?>,
-    modules: MutableList<MyAdditionalModuleData?>
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: List<MyAdditionalModuleData>
   ) {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
   fun testCaseSensitivityInChangeColorResource() {
     val xmlFile = myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml")
-    val resDir = xmlFile.getParent().getParent()
-    val dirNames: MutableList<String?> = ImmutableList.of<String?>("values")
+    val resDir = xmlFile.parent.parent
+    val dirNames = listOf("values")
     assertTrue(
       changeValueResource(
-        getProject(), resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
+        project, resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
         dirNames, false
       )
     )
     assertFalse(
       changeValueResource(
-        getProject(), resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
+        project, resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
         dirNames, false
       )
     )
@@ -377,9 +378,9 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     val fields = findResourceFields(myFacet, "string", "hello")
     TestCase.assertEquals(1, fields.size)
     val field = fields[0]
-    TestCase.assertEquals("hello", field.getName())
-    TestCase.assertEquals("string", field.getContainingClass()!!.getName())
-    TestCase.assertEquals("p1.p2.R", field.getContainingClass()!!.getContainingClass()!!.getQualifiedName())
+    TestCase.assertEquals("hello", field.name)
+    TestCase.assertEquals("string", field.containingClass?.name)
+    TestCase.assertEquals("p1.p2.R", field.containingClass?.containingClass?.qualifiedName)
   }
 
   fun testFindResourceFieldsWithMultipleResourceNames() {
@@ -391,8 +392,8 @@ class IdeResourcesUtilTest : AndroidTestCase() {
 
     val fieldNames: MutableSet<String?> = Sets.newHashSet<String?>()
     for (field in fields) {
-      fieldNames.add(field.getName())
-      TestCase.assertEquals("p1.p2.R", field.getContainingClass()!!.getContainingClass()!!.getQualifiedName())
+      fieldNames.add(field.name)
+      TestCase.assertEquals("p1.p2.R", field.containingClass?.containingClass?.qualifiedName)
     }
     assertEquals(ImmutableSet.of<String?>("hello", "goodbye"), fieldNames)
     TestCase.assertEquals(2, fields.size)
@@ -401,7 +402,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
   /** Tests that "inherited" resource references are found (R fields in generated in dependent modules).  */
   @Throws(Exception::class)
   fun testFindResourceFieldsWithInheritance() {
-    val libModule = myAdditionalModules.get(0)
+    val libModule = myAdditionalModules[0]
     // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule)
 
@@ -411,13 +412,13 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml")
 
     val facet = AndroidFacet.getInstance(libModule)
-    Truth.assertThat(facet).isNotNull()
+    assertThat(facet).isNotNull()
     val fields = findResourceFields(facet!!, "string", "lib_hello")
 
     val packages: MutableSet<String?> = Sets.newHashSet<String?>()
     for (field in fields) {
-      TestCase.assertEquals("lib_hello", field.getName())
-      packages.add(StringUtil.getPackageName(field.getContainingClass()!!.getContainingClass()!!.getQualifiedName()!!))
+      TestCase.assertEquals("lib_hello", field.name)
+      packages.add(StringUtil.getPackageName(field.containingClass?.containingClass?.qualifiedName!!))
     }
     assertEquals(ImmutableSet.of<String?>("p1.p2", "p1.p2.lib"), packages)
     TestCase.assertEquals(2, fields.size)
@@ -426,7 +427,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
   /** Tests that a module without an Android Manifest can still import a lib's R class  */
   @Throws(Exception::class)
   fun testIsRJavaFileImportedNoManifest() {
-    val libModule = myAdditionalModules.get(0)
+    val libModule = myAdditionalModules[0]
     // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule)
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml")
@@ -438,7 +439,7 @@ class IdeResourcesUtilTest : AndroidTestCase() {
 
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
     val facet = AndroidFacet.getInstance(myModule)
-    Truth.assertThat(facet).isNotNull()
+    assertThat(facet).isNotNull()
     val mainFields = findResourceFields(facet!!, "string", "lib_hello" /* onlyInOwnPackages */)
     assertEmpty(mainFields)
 
@@ -448,42 +449,42 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     val javaFile =
       myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}")
     val libRClass =
-      myFixture.getJavaFacade().findClass("p1.p2.lib.R", javaFile.getResolveScope())
+      myFixture.javaFacade.findClass("p1.p2.lib.R", javaFile.resolveScope)
     assertNotNull(libRClass)
     assertTrue(isRJavaClass(libRClass!!))
   }
 
   fun testEnsureNamespaceImportedAddAuto() {
     val xmlFile = ensureNamespaceImported("<LinearLayout/>", SdkConstants.AUTO_URI, null)
-    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
+    assertThat(xmlFile.text).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
   fun testEnsureNamespaceImportedAddAutoWithPrefixSuggestion() {
     val xmlFile = ensureNamespaceImported("<LinearLayout/>", SdkConstants.AUTO_URI, "sherpa")
-    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:sherpa=\"http://schemas.android.com/apk/res-auto\" />")
+    assertThat(xmlFile.text).isEqualTo("<LinearLayout xmlns:sherpa=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
   fun testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThere() {
     val xmlFile =
       ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", SdkConstants.AUTO_URI, null)
-    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
+    assertThat(xmlFile.text).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
   fun testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThereWithPrefixSuggestion() {
     val xmlFile =
       ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", SdkConstants.AUTO_URI, "sherpa")
-    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
+    assertThat(xmlFile.text).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />")
   }
 
   fun testEnsureNamespaceImportedAddEmptyNamespaceForStyleAttribute() {
     val xmlFile = ensureNamespaceImported("<LinearLayout/>", "", null)
-    Truth.assertThat(xmlFile.getText()).isEqualTo("<LinearLayout/>")
+    assertThat(xmlFile.text).isEqualTo("<LinearLayout/>")
   }
 
   private fun ensureNamespaceImported(@Language("XML") text: String, namespaceUri: String, suggestedPrefix: String?): XmlFile {
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", text) as XmlFile
 
-    CommandProcessor.getInstance().executeCommand(getProject(), Runnable {
+    CommandProcessor.getInstance().executeCommand(project, Runnable {
       ApplicationManager.getApplication().runWriteAction(Runnable {
         ensureNamespaceImported(xmlFile, namespaceUri, suggestedPrefix)
       })
@@ -496,137 +497,145 @@ class IdeResourcesUtilTest : AndroidTestCase() {
     val fileName = "my_great_raw_file.foobar"
     val rawDirName = "raw"
     val file = createRawFileResource(fileName, getResDirectory(rawDirName))
-    Truth.assertThat(file.getContainingDirectory().getName()).isEqualTo(rawDirName)
-    Truth.assertThat(file.getName()).isEqualTo(fileName)
-    Truth.assertThat(file.getText()).isEmpty()
+    assertThat(file.containingDirectory.name).isEqualTo(rawDirName)
+    assertThat(file.name).isEqualTo(fileName)
+    assertThat(file.text).isEmpty()
   }
 
   fun testCreateFrameLayoutFileResource() {
     val file = createXmlFileResource("linear", getResDirectory("layout"), SdkConstants.FRAME_LAYOUT, ResourceType.LAYOUT, false)
-    Truth.assertThat(file.getName()).isEqualTo("linear.xml")
-    Truth.assertThat(file.getText()).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\">\n" +
-        "\n" +
-        "</FrameLayout>"
+    assertThat(file.name).isEqualTo("linear.xml")
+    assertThat(file.text).isEqualTo(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+      </FrameLayout>
+      """.trimIndent()
     )
   }
 
   fun testCreateLinearLayoutFileResource() {
     val file = createXmlFileResource("linear", getResDirectory("layout"), SdkConstants.LINEAR_LAYOUT, ResourceType.LAYOUT, false)
-    Truth.assertThat(file.getName()).isEqualTo("linear.xml")
-    Truth.assertThat(file.getText()).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:orientation=\"vertical\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\">\n" +
-        "\n" +
-        "</LinearLayout>"
+    assertThat(file.name).isEqualTo("linear.xml")
+    assertThat(file.text).isEqualTo(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:orientation="vertical"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+      </LinearLayout>
+      """.trimIndent()
     )
   }
 
   fun testCreateLayoutFileResource() {
     val file = createXmlFileResource("layout", getResDirectory("layout"), SdkConstants.TAG_LAYOUT, ResourceType.LAYOUT, false)
-    Truth.assertThat(file.getName()).isEqualTo("layout.xml")
-    Truth.assertThat(file.getText()).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-        "\n" +
-        "</layout>"
+    assertThat(file.name).isEqualTo("layout.xml")
+    assertThat(file.text).isEqualTo(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+      </layout>
+      """.trimIndent()
     )
   }
 
   fun testCreateMergeFileResource() {
     val file = createXmlFileResource("merge", getResDirectory("layout"), SdkConstants.VIEW_MERGE, ResourceType.LAYOUT, false)
-    Truth.assertThat(file.getName()).isEqualTo("merge.xml")
-    Truth.assertThat(file.getText()).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-        "\n" +
-        "</merge>"
+    assertThat(file.name).isEqualTo("merge.xml")
+    assertThat(file.text).isEqualTo(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+      </merge>
+      """.trimIndent()
     )
   }
 
   fun testCreateNavigationFileResource() {
     val file =
       createXmlFileResource("nav", getResDirectory("navigation"), SdkConstants.TAG_NAVIGATION, ResourceType.NAVIGATION, false)
-    Truth.assertThat(file.getName()).isEqualTo("nav.xml")
-    Truth.assertThat(file.getText()).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-        "    android:id=\"@+id/nav\">\n" +
-        "\n" +
-        "</navigation>"
+    assertThat(file.name).isEqualTo("nav.xml")
+    assertThat(file.text).isEqualTo(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:id="@+id/nav">
+
+      </navigation>
+      """.trimIndent()
     )
   }
 
   fun testBuildResourceNameFromStringValue_simpleName() {
-    Truth.assertThat(buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string")
+    assertThat(buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string")
   }
 
   fun testBuildResourceNameFromStringValue_nameWithSurroundingSpaces() {
-    Truth.assertThat(buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string")
+    assertThat(buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string")
   }
 
   fun testBuildResourceNameFromStringValue_nameWithDigits() {
-    Truth.assertThat(buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number")
+    assertThat(buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number")
   }
 
   fun testBuildResourceNameFromStringValue_nameShouldNotStartWithNumber() {
-    Truth.assertThat(buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things")
+    assertThat(buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things")
   }
 
   fun testBuildResourceNameFromStringValue_emptyString() {
-    Truth.assertThat(buildResourceNameFromStringValue("")).isNull()
+    assertThat(buildResourceNameFromStringValue("")).isNull()
   }
 
   fun testBuildResourceNameFromStringValue_stringHasPunctuation() {
-    Truth.assertThat(buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why")
+    assertThat(buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why")
   }
 
   fun testBuildResourceNameFromStringValue_stringIsOnlyPunctuation() {
-    Truth.assertThat(buildResourceNameFromStringValue("!!#^??")).isNull()
+    assertThat(buildResourceNameFromStringValue("!!#^??")).isNull()
   }
 
   fun testBuildResourceNameFromStringValue_stringStartsAndEndsWithPunctuation() {
-    Truth.assertThat(buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation")
-    Truth.assertThat(buildResourceNameFromStringValue("<tag>")).isEqualTo("tag")
+    assertThat(buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation")
+    assertThat(buildResourceNameFromStringValue("<tag>")).isEqualTo("tag")
   }
 
   private fun getResDirectory(dirName: String): PsiDirectory {
     val virtualFileDir =
-      VirtualFileManager.getInstance().findFileByNioPath(Path.of(myFixture.getTempDirPath()))
-    Truth.assertThat(virtualFileDir).isNotNull()
-    val dir = PsiManager.getInstance(getProject()).findDirectory(virtualFileDir!!)
-    Truth.assertThat(dir).isNotNull()
-    return findOrCreateSubdirectory(Companion.findOrCreateSubdirectory(dir!!, "res"), dirName)
+      kotlin.test.assertNotNull(VirtualFileManager.getInstance().findFileByNioPath(Path.of(myFixture.tempDirPath)))
+    val dir = kotlin.test.assertNotNull(PsiManager.getInstance(project).findDirectory(virtualFileDir))
+    return findOrCreateSubdirectory(findOrCreateSubdirectory(dir, "res"), dirName)
   }
 
   companion object {
-    @Language("XML")
-    private val LAYOUT_FILE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<LinearLayout xmlns:framework=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    framework:orientation=\"vertical\"\n" +
-      "    framework:layout_width=\"fill_parent\"\n" +
-      "    framework:layout_height=\"fill_parent\">\n" +
-      "\n" +
-      "    <TextView xmlns:newtools=\"http://schemas.android.com/tools\"\n" +
-      "        framework:layout_width=\"fill_parent\"\n" +
-      "        framework:layout_height=\"wrap_content\"\n" +
-      "        newtools:text=\"Hello World, MyActivity\" />\n" +
-      "</LinearLayout>\n"
+    // language=xml
+    private val LAYOUT_FILE =
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout xmlns:framework="http://schemas.android.com/apk/res/android"
+          framework:orientation="vertical"
+          framework:layout_width="fill_parent"
+          framework:layout_height="fill_parent">
 
-    private fun findOrCreateSubdirectory(parent: PsiDirectory, subdirName: String): PsiDirectory {
-      val sub = parent.findSubdirectory(subdirName)
-      return if (sub == null) WriteAction.compute<PsiDirectory, RuntimeException?>(ThrowableComputable {
-        parent.createSubdirectory(
-          subdirName
-        )
-      }) else sub
-    }
+          <TextView xmlns:newtools="http://schemas.android.com/tools"
+              framework:layout_width="fill_parent"
+              framework:layout_height="wrap_content"
+              newtools:text="Hello World, MyActivity" />
+      </LinearLayout>
+      """.trimIndent()
+
+    private fun findOrCreateSubdirectory(parent: PsiDirectory, subdirName: String) =
+      parent.findSubdirectory(subdirName)
+      ?: WriteAction.compute<PsiDirectory, IncorrectOperationException>{
+        parent.createSubdirectory(subdirName)
+      }
   }
 }
