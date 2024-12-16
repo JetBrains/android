@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
@@ -22,6 +23,8 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
+import com.android.tools.idea.welcome.wizard.deprecated.CancelableWelcomeWizard
+import com.android.tools.idea.welcome.wizard.deprecated.WelcomeScreenWindowListener
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
@@ -30,9 +33,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
-import java.awt.Window
-import java.awt.event.WindowEvent
-import java.awt.event.WindowListener
 import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -153,15 +153,27 @@ class StudioFirstRunWelcomeScreen(
   override fun setupFrame(frame: JFrame) {
     this.frame = frame
 
-    // Intercept windowClosing event, to show the closing confirmation dialog
-    val oldIdeaListeners = removeAllWindowListeners(frame)
     frame.run {
       title =
         if (IdeInfo.getInstance().isAndroidStudio) message("android.as.wizard.welcome.dialog.title")
         else message("android.ij.wizard.welcome.dialog.title")
       pack()
       setLocationRelativeTo(null)
-      addWindowListener(DelegatingListener(oldIdeaListeners))
+
+      // Intercept windowClosing event, to show the closing confirmation dialog
+      WelcomeScreenWindowListener.install(
+        this,
+        object : CancelableWelcomeWizard {
+          @UiThread
+          override fun cancel() {
+            modelWizard.cancel()
+          }
+
+          @get:UiThread
+          override val isActive: Boolean
+            get() = !modelWizard.isFinished
+        },
+      )
     }
 
     modelWizard.addResultListener(
@@ -201,57 +213,6 @@ class StudioFirstRunWelcomeScreen(
         true
       }
       else -> throw RuntimeException("Invalid Close result") // Unknown option
-    }
-  }
-
-  private fun removeAllWindowListeners(frame: Window): Array<WindowListener> {
-    frame.windowListeners.forEach { frame.removeWindowListener(it) }
-    return frame.windowListeners
-  }
-
-  /** This code is needed to avoid breaking IntelliJ native event processing. */
-  private inner class DelegatingListener(private val myIdeaListeners: Array<WindowListener>) :
-    WindowListener {
-    override fun windowOpened(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowOpened(e)
-      }
-    }
-
-    override fun windowClosed(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowClosed(e)
-      }
-    }
-
-    override fun windowIconified(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowIconified(e)
-      }
-    }
-
-    override fun windowClosing(e: WindowEvent) {
-      // Don't let listener get this event, as it will shut down Android Studio completely. Instead,
-      // just delegate to the model wizard.
-      modelWizard.cancel()
-    }
-
-    override fun windowDeiconified(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowDeiconified(e)
-      }
-    }
-
-    override fun windowActivated(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowActivated(e)
-      }
-    }
-
-    override fun windowDeactivated(e: WindowEvent) {
-      for (listener in myIdeaListeners) {
-        listener.windowDeactivated(e)
-      }
     }
   }
 }

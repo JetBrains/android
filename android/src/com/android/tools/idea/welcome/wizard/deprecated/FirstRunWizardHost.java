@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
@@ -71,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated use {@link StudioFirstRunWelcomeScreen}
  */
 @Deprecated
-public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
+public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost, CancelableWelcomeWizard {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final SdkComponentInstallerProvider mySdkComponentInstallerProvider;
@@ -388,6 +389,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     }
   }
 
+  @UiThread
+  @Override
   public boolean isActive() {
     return myIsActive;
   }
@@ -395,6 +398,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   /**
    * Cancels the wizard.
    */
+  @UiThread
+  @Override
   public void cancel() {
     ProgressIndicator indicator = myCurrentProgressIndicator.get();
     if (indicator == null) {
