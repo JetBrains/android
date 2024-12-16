@@ -36,9 +36,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 class DeclarativeGradleModelProvider : ProjectImportModelProvider {
-  override fun getPhase(): GradleModelFetchPhase {
-    return GradleModelFetchPhase.PROJECT_LOADED_PHASE
-  }
 
   override fun populateBuildModels(
     controller: BuildController,
@@ -52,7 +49,7 @@ class DeclarativeGradleModelProvider : ProjectImportModelProvider {
           consumer.consumeBuildModel(buildModel, schemaModel.convertSettings(), SettingsSchemas::class.java)
         }
     }
-    catch (ex: org.gradle.tooling.UnknownModelException) {
+    catch (ex: Exception) {
       LOG.warn(ExternalSystemException("Incompatible version of Gradle. Cannot import declarative schema.", ex))
     }
   }
@@ -90,11 +87,11 @@ private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
   }.toSet()
   val properties = properties.mapNotNull { dataProp ->
     dataProp.valueType.convert()?.let {
-      DataProperty(dataProp.name, it, schema)
+      DataProperty(dataProp.name, it)
     }
   }
   val memberFunctions = memberFunctions.mapNotNull { it.convert(schema) }
-  return ClassModel(memberFunctions, FullName(name.qualifiedName), properties, supertypes, schema)
+  return ClassModel(memberFunctions, FullName(name.qualifiedName), properties, supertypes)
 }
 
 private fun EnumClass.convert(): EnumModel =
@@ -105,7 +102,7 @@ private fun FunctionSemantics.convert(): FunctionSemantic? = when (this) {
     when (val type = accessor.objectType) {
       is Name -> BlockFunction(type.convert())
       is Type -> (type.dataType as? DataClass)?.let { BlockFunction(DataClassRef(FullName(it.name.qualifiedName))) }
-   }
+    }
   is FunctionSemantics.Pure -> returnValueType.convert()?.let { PlainFunction(it) }
   is FunctionSemantics.AddAndConfigure -> {
     val configType = configuredType.convert()
@@ -124,7 +121,7 @@ private fun SchemaMemberFunction.convert(schema: BuildDeclarativeSchema): Schema
   val parameters = parameters.mapNotNull { it.convert() }
   val convertedReceiver = (receiver as? Name)?.convert() ?: return null
   val convertedSemantics = semantics.convert() ?: return null
-  return SchemaFunction(convertedReceiver, simpleName, parameters, convertedSemantics, schema)
+  return SchemaFunction(convertedReceiver, simpleName, parameters, convertedSemantics)
 }
 
 private fun DataParameter.convert() =

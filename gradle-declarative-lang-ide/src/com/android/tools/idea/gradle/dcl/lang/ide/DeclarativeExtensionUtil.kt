@@ -30,13 +30,11 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
-import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
@@ -68,6 +66,7 @@ fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve:
             .filterIsInstance<DataClassRef>()
             .any { it.fqName == type.fqName }) FACTORY_VALUE
         else ElementType.PROPERTY
+
       is EnumModel -> ENUM
       else -> BLOCK
     }
@@ -80,20 +79,20 @@ fun getType(type: SchemaFunction): ElementType = when (type.semantic) {
   is BlockFunction -> if (type.parameters.isNotEmpty()) FACTORY_BLOCK else BLOCK
 }
 
-fun getType(type: Entry, rootFunction: List<PlainFunction>): ElementType = when (type) {
-  is SchemaFunction -> getType(type)
-  is DataProperty -> getType(type.valueType, rootFunction, type::resolveRef)
+fun getType(entry: EntryWithContext, rootFunction: List<PlainFunction>): ElementType = when (entry.entry) {
+  is SchemaFunction -> getType(entry.entry)
+  is DataProperty -> getType(entry.entry.valueType, rootFunction, entry::resolveRef)
 }
 
-fun getEnumConstants(type: Entry?): List<String> {
-  if (type is DataProperty && type.valueType is DataClassRef) {
-    val enumEntity = type.resolveRef((type.valueType as DataClassRef).fqName)
+fun getEnumConstants(entryWithContext: EntryWithContext?): List<String> {
+  val entry = entryWithContext?.entry
+  if (entry is DataProperty && entry.valueType is DataClassRef) {
+    val enumEntity = entryWithContext.resolveRef((entry.valueType as DataClassRef).fqName)
     if (enumEntity is EnumModel)
       return enumEntity.entryNames
   }
   return listOf()
 }
-
 
 fun getSimpleType(type: SimpleDataType): ElementType = when (type) {
   SimpleDataType.INT -> INTEGER
@@ -117,18 +116,21 @@ fun PsiElement.getElementType(): ElementType? = when (this) {
           is Long -> LONG
           else -> ENUM
         }
+
       is DeclarativeFactory -> FACTORY_VALUE
       else -> null
     }
+
   else -> null
 }
 
 // getting all service function like `uri(string)`
 fun getRootFunctions(parent: PsiElement, schemas: BuildDeclarativeSchemas): List<SchemaFunction> =
   schemas.getTopLevelEntries(parent.containingFile.name)
+    .map { it.entry }
     .filterIsInstance<SchemaFunction>()
     .filter { function ->
-      when(val semantic = function.semantic) {
+      when (val semantic = function.semantic) {
         is PlainFunction -> semantic.returnValue != SimpleTypeRef(SimpleDataType.UNIT)
         else -> false
       }

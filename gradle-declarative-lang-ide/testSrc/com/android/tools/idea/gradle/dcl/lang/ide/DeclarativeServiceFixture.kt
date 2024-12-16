@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchema
-import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
 import com.android.tools.idea.gradle.dcl.lang.sync.convert
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project

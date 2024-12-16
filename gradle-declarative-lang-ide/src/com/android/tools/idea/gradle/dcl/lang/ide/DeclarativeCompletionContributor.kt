@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
-import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
@@ -362,7 +361,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val path = getPath(parent, false) + suggestion.name
         val nextSuggestion = getSuggestionEntries(path, parent.containingFile.name, schemas)
         if (nextSuggestion.size == 1) {
-          val nextEntry = nextSuggestion.first()
+          val nextEntry = nextSuggestion.first().entry
           (nextEntry as? DataProperty)?.let {
             if (it.valueType == SimpleTypeRef(SimpleDataType.STRING)) {
               document.insertString(context.tailOffset, ".${it.name} = \"\"")
@@ -391,35 +390,39 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return nextLeaf
   }
 
-  private fun Entry.toSuggestionPair(rootFunction: List<PlainFunction>) = this to Suggestion(simpleName, getType(this, rootFunction))
+
+  private fun EntryWithContext.toSuggestionPair(rootFunction: List<PlainFunction>) =
+    this.entry to Suggestion(entry.simpleName, getType(this, rootFunction))
 
   private fun getEnumList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
     val suggestions = getSuggestionEntries(identifier, schemas)
     val rootFunctions = getRootPlainFunctions(identifier, schemas)
-    val enum = suggestions.find { it.simpleName == identifier.name && getType(it, rootFunctions) == ENUM }
+    val enum = suggestions.find { it.entry.simpleName == identifier.name && getType(it, rootFunctions) == ENUM }
     return getEnumConstants(enum).map { Suggestion(it, ElementType.ENUM_CONSTANT) }
   }
 
-  private fun getSuggestionEntries(parent: PsiElement, schemas: BuildDeclarativeSchemas, includeCurrent: Boolean = false): List<Entry> {
+  private fun getSuggestionEntries(parent: PsiElement, schemas: BuildDeclarativeSchemas, includeCurrent: Boolean = false): List<EntryWithContext> {
     val path = getPath(parent, includeCurrent)
     val fileName = parent.containingFile.name
     return getSuggestionEntries(path, fileName, schemas)
   }
 
-  private fun getSuggestionEntries(path: List<String>, fileName: String, schemas: BuildDeclarativeSchemas): List<Entry> {
+  private fun getSuggestionEntries(path: List<String>, fileName: String, schemas: BuildDeclarativeSchemas): List<EntryWithContext> {
     // TODO fix case for settings root - need to get InternalSettings
     if (path.isEmpty()) return schemas.getTopLevelEntries(fileName)
     var index = 0
-    var receivers: List<Entry> = schemas.getTopLevelEntriesByName(path[index], fileName)
+    var receivers: List<EntryWithContext> = schemas.getTopLevelEntriesByName(path[index], fileName)
     while (index < path.size - 1) {
       index += 1
       receivers = receivers.flatMap { it.getNextLevel(path[index]) }
     }
     receivers = receivers.flatMap { it.getNextLevel() }
-    return receivers.distinct()
+    return receivers.distinctBy { it.entry }
   }
 
-  private fun getSuggestionList(parent: PsiElement, schemas: BuildDeclarativeSchemas, includeCurrent: Boolean = false): List<Pair<Entry,Suggestion>> =
+  private fun getSuggestionList(parent: PsiElement,
+                                schemas: BuildDeclarativeSchemas,
+                                includeCurrent: Boolean = false): List<Pair<Entry, Suggestion>> =
     getSuggestionEntries(parent, schemas, includeCurrent).map { it.toSuggestionPair(getRootPlainFunctions(parent, schemas)) }.distinct()
 
   // create path - list of identifiers from root element to parent

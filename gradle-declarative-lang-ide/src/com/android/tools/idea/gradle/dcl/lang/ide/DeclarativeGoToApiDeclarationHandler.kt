@@ -79,8 +79,8 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
   val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
   val fileName = element.containingFile.name
 
-  fun extractFqName(receivers: List<Entry>): String? =
-    receivers.firstNotNullOf {
+  fun extractFqName(receivers: List<EntryWithContext>): String? =
+    receivers.map { it.entry }.firstNotNullOf {
       when (it) {
         is SchemaFunction ->
           when (val semantic = it.semantic) {

@@ -322,8 +322,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
        }
      }
      """,
-                     "settings.gradle.dcl",
-                     """
+     "settings.gradle.dcl", """
      dependencyResolutionManagement {
        repositories {
          maven {
@@ -431,24 +430,28 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     val knownPaths = listOf(listOf("rootProject", "name"))
     val schema = DeclarativeService.getInstance(fixture.project).getDeclarativeSchema() ?: return
 
-    fun Entry.check() {
-      if (this is DataProperty && valueType is DataClassRef)
-        getNextLevel().forEach { nextLevelElement ->
-          if (nextLevelElement is DataProperty) {
-            Truth.assertThat(listOf(name, nextLevelElement.name)).isIn(knownPaths)
+    fun EntryWithContext.check() {
+      val maybeDataProperty = entry
+      if (maybeDataProperty is DataProperty) {
+        val type = maybeDataProperty.valueType
+        if (type is DataClassRef)
+          getNextLevel().forEach { nextLevelElement ->
+            (nextLevelElement.entry as? DataProperty)?.let{
+              Truth.assertThat(listOf(maybeDataProperty.name, it.name)).isIn(knownPaths)
+            }
           }
-        }
+      }
     }
 
-    fun Entry.iterate(seen: List<Entry>) {
+    fun EntryWithContext.iterate(seen: List<Entry>) {
       check()
       getNextLevel().forEach {
-        if (!seen.contains(it)) it.iterate(seen + it)
+        if (!seen.contains(it.entry)) it.iterate(seen + it.entry)
       }
     }
 
     // looking for root properties that has simple props like rootProject.name
-    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it)) }
+    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry)) }
   }
 
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {

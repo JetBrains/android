@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
@@ -120,7 +119,7 @@ class DeclarativeAnnotator : Annotator {
   private fun searchForType(path: List<String>, schema: BuildDeclarativeSchemas, fileName: String): List<SearchResult> {
     if (path.isEmpty()) return listOf()
 
-    var receivers: List<Entry> = schema.getTopLevelEntriesByName(path[0], fileName)
+    var receivers: List<EntryWithContext> = schema.getTopLevelEntriesByName(path[0], fileName)
     val last = path.size - 1
     for (index in 1..last) {
       if (receivers.isEmpty()) {
@@ -131,9 +130,9 @@ class DeclarativeAnnotator : Annotator {
     }
 
     return receivers.flatMap { receiver ->
-      when (receiver) {
-        is SchemaFunction -> listOf(FoundFunction(receiver))
-        is DataProperty -> when (val type = receiver.valueType) {
+      when (val entry = receiver.entry) {
+        is SchemaFunction -> listOf(FoundFunction(entry))
+        is DataProperty -> when (val type = entry.valueType) {
           is DataClassRef -> receiver.resolveRef(type.fqName)?.let {
             listOf(
               when (it) {

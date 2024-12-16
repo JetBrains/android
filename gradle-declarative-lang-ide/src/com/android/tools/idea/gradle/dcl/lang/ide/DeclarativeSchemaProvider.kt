@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
-import com.google.common.base.Objects
+import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchema
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -48,4 +50,33 @@ class DeclarativeService(val project: Project) {
     }
     return null
   }
+}
+data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, val projects: Set<BuildDeclarativeSchema>) : Serializable {
+  fun merge(schema: BuildDeclarativeSchemas) =
+    BuildDeclarativeSchemas(this.settings + schema.settings, this.projects + schema.projects)
+
+  fun getTopLevelEntries(fileName: String): List<EntryWithContext> =
+    getSchemas(fileName).flatMap { schema -> schema.getRootEntries().map { EntryWithContext(it, schema) } }
+
+  private fun getSchemas(fileName: String) =
+    if (isSettings(fileName)) settings else projects
+
+  fun getTopLevelEntriesByName(name: String, fileName: String): List<EntryWithContext> =
+    getSchemas(fileName).flatMap { schema ->
+      schema.getRootEntries { existingName: String -> name == existingName }.map {
+        EntryWithContext(it, schema)
+      }
+    }
+
+  private fun isSettings(name: String) = name == "settings.gradle.dcl"
+}
+
+data class EntryWithContext(val entry: Entry, val schema: BuildDeclarativeSchema){
+  fun resolveRef(fqName: FullName): ClassType? = schema.resolveRef(fqName)
+
+  fun getNextLevel(name: String): List<EntryWithContext> = entry.getNextLevel(schema, name).map {
+    EntryWithContext(it, schema)
+  }
+
+  fun getNextLevel(): List<EntryWithContext> = entry.getNextLevel(schema).map { EntryWithContext(it, schema) }
 }
