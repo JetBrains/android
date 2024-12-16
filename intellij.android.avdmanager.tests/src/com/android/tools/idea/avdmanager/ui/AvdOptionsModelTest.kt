@@ -102,7 +102,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     myNonPlayAvdInfo = anAvdInfo(systemImage = nonPlayImage!!, properties = myPropertiesMap)
 
     // Get a phone device that supports Google Play
-    val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger())
+    val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger(), { true })
     myGooglePlayDevice = devMgr.getDevice("Nexus 5", "Google")
 
     // Make a phone device that does not support Google Play

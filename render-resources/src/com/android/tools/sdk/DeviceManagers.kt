@@ -15,11 +15,37 @@
  */
 package com.android.tools.sdk
 
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.environment.Logger
 import com.android.tools.log.LogWrapper
 import com.android.utils.ILogger
+import com.intellij.openapi.application.ApplicationManager
+
+/**
+ * Service that allows certain [Device]s to be excluded from the device manager.
+ * Currently only used to exclude the XR devices on the stable Android Studio version.
+ */
+interface DeviceManagerDeviceFilter {
+  /**
+   * For a [Device] return if it should be exposed by the [DeviceManager].
+   */
+  fun isSupportedDevice(device: Device): Boolean
+
+  companion object {
+    /**
+     * Default filter when the [DeviceManager] is running outside of Android Studio.
+     */
+    private val NO_FILTER = object: DeviceManagerDeviceFilter {
+      override fun isSupportedDevice(device: Device): Boolean = true
+    }
+
+    @JvmStatic
+    fun getInstance(): DeviceManagerDeviceFilter =
+      ApplicationManager.getApplication()?.getService(DeviceManagerDeviceFilter::class.java) ?: NO_FILTER
+  }
+}
 
 class DeviceManagerCache(val logger: ILogger) {
   private val deviceManagers = mutableMapOf<AndroidSdkHandler, DeviceManager>()
@@ -27,7 +53,9 @@ class DeviceManagerCache(val logger: ILogger) {
   fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager =
     synchronized(deviceManagers) {
       deviceManagers.computeIfAbsent(sdkHandler) {
-        DeviceManager.createInstance(sdkHandler, logger)
+        DeviceManager.createInstance(sdkHandler, logger) { device ->
+          DeviceManagerDeviceFilter.getInstance().isSupportedDevice(device)
+        }
       }
     }
 }

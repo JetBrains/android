@@ -79,7 +79,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
       assertFalse(managedVirtualDeviceCatalogService.state.isCacheFresh())
       managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
+      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
       verify(mockRepoManager).packages
     }
   }
@@ -94,7 +94,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
       managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       // The only time we invoked mockDeviceManager and mockRepoManager is when freshManagedVirtualDeviceCatalogState is syncing
-      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
+      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
       verify(mockRepoManager, times(1)).packages
     }
   }

@@ -1736,6 +1736,13 @@ public final class StudioFlags {
     "Post MVP Virtual Device Dialog Features Enabled",
     "Enable miscellaneous Add/Edit Device dialog features for post MVP",
     false);
+
+  public static final Flag<Boolean> XR_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "xr.device.support.enabled",
+      "XR Device Support Enabled",
+      "Enable the support of XR device in the device manager",
+    enabledUpTo(CANARY));
   // endregion
 
   //region DDMLIB

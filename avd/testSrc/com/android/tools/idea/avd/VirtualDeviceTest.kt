@@ -42,7 +42,7 @@ import org.mockito.kotlin.whenever
 class VirtualDeviceTest {
   @Test
   fun withDefaults() {
-    val devices = VendorDevices(NullLogger()).apply { init() }
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
     with(VirtualDevice.withDefaults(pixel8)) {
@@ -56,7 +56,7 @@ class VirtualDeviceTest {
 
   @Test
   fun avdBuilderToVirtualDevice() {
-    val devices = VendorDevices(NullLogger()).apply { init() }
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
     val avdBuilder =
@@ -100,7 +100,7 @@ class VirtualDeviceTest {
 
   @Test
   fun virtualDeviceToAvdBuilder() {
-    val devices = VendorDevices(NullLogger()).apply { init() }
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
     val avdBuilder =
       AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
@@ -145,6 +145,13 @@ class VirtualDeviceTest {
       assertThat(bootMode).isEqualTo(ColdBoot)
       assertThat(userSettings[UserSettingsKey.PREFERRED_ABI]).isEqualTo(SdkConstants.ABI_RISCV64)
     }
+  }
+
+  @Test
+  fun deviceFilter() {
+    val devices = VendorDevices(NullLogger()).apply { init { device -> device.id != "pixel_8" } }
+    assertThat(devices.getDevice("pixel_8", "Google")).isNull()
+    assertThat(devices.getDevice("pixel_9", "Google")).isNotNull()
   }
 
   private fun mockSystemImage(): ISystemImage =

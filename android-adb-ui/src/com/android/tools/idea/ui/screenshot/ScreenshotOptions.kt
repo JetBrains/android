@@ -65,7 +65,7 @@ class ScreenshotOptions(
     val framingOptions = mutableListOf<DeviceFramingOption>()
     val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
     val devices = deviceManager.getDevices(
-        EnumSet.of(DeviceManager.DeviceFilter.USER, DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
+        EnumSet.of(DeviceManager.DeviceCategory.USER, DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
     val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }
     if (device != null) {
       val skinFolder = device.skinFolder

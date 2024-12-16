@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager.ui;
 
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.DeviceManager.DeviceFilter;
+import com.android.sdklib.devices.DeviceManager.DeviceCategory;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Collection;
@@ -44,7 +44,7 @@ final class DeviceSupplier {
   @NotNull
   Collection<Device> get() {
     var connection = myGetDefaultDeviceManagerConnection.get();
-    var systemImageFilter = EnumSet.of(DeviceFilter.SYSTEM_IMAGES);
+    var systemImageFilter = EnumSet.of(DeviceCategory.SYSTEM_IMAGES);
 
     var systemImageDevices = connection.getDevices(systemImageFilter).stream()
       .filter(Predicate.not(DeviceSupplier::isDeprecatedWearOsDevice));

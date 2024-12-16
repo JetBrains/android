@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.devices.DeviceManager.DeviceFilter;
+import com.android.sdklib.devices.DeviceManager.DeviceCategory;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -92,7 +92,7 @@ public class DeviceManagerConnection {
   }
 
   @NotNull
-  public Collection<Device> getDevices(@NotNull Collection<DeviceFilter> filters) {
+  public Collection<Device> getDevices(@NotNull Collection<DeviceCategory> filters) {
     if (!hasDeviceManager()) {
       return List.of();
     }
@@ -121,7 +121,7 @@ public class DeviceManagerConnection {
     if (!hasDeviceManager()) {
       return baseId;
     }
-    var devices = deviceManager.getDevices(DeviceFilter.USER);
+    var devices = deviceManager.getDevices(DeviceCategory.USER);
     String candidate = baseId;
     int i = 0;
     while (anyIdMatches(candidate, devices)) {
@@ -200,7 +200,7 @@ public class DeviceManagerConnection {
       return false;
     }
 
-    return deviceManager.getDevices(DeviceFilter.USER).stream()
+    return deviceManager.getDevices(DeviceCategory.USER).stream()
       .map(Device::getId)
       .anyMatch(device.getId()::equalsIgnoreCase);
   }

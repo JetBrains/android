@@ -19,6 +19,8 @@
                         serviceImplementation="com.android.tools.idea.concurrency.StudioIoManager"/>
     <applicationService serviceInterface="com.android.tools.idea.gservices.DevServicesCompatibilityProvider"
                         serviceImplementation="com.android.tools.idea.gservices.FlagBasedDevServicesCompatibilityProvider" />
+    <applicationService serviceInterface="com.android.tools.sdk.DeviceManagerDeviceFilter"
+                        serviceImplementation="com.android.tools.sdk.StudioDeviceManagerDeviceFilter" />
     <registryKey key="gradle.declarative.studio.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>
 </idea-plugin>
