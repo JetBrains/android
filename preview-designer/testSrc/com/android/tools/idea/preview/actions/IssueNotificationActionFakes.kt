@@ -16,52 +16,20 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.status.InformationPopup
-import com.android.tools.adtui.status.IssueNotificationAction
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.PresentationFactory
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.Alarm
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-fun ProjectRule.createFakeActionEvent(
-  issueNotificationAction: IssueNotificationAction
-): AnActionEvent {
-  val dataContext =
-    object : DataContext {
-      var files: Array<VirtualFile> = arrayOf()
-
-      override fun getData(dataId: String): Any {
-        return project
-      }
-
-      override fun <T> getData(key: DataKey<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return when (key) {
-          CommonDataKeys.PROJECT -> project as T
-          else -> null
-        }
-      }
-    }
-
+fun ProjectRule.createFakeActionEvent(): AnActionEvent {
+  val dataContext = SimpleDataContext.getProjectContext(project)
   val mouseEvent = createFakeMouseEvent()
-  createEvent(
-    ActionToolbar.getDataContextFor(mouseEvent.component),
-    PresentationFactory().getPresentation(issueNotificationAction),
-    ActionPlaces.EDITOR_POPUP,
-    ActionUiKind.TOOLBAR,
-    mouseEvent,
-  )
   return createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, mouseEvent)
 }
 

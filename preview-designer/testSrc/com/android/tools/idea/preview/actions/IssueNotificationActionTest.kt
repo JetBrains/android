@@ -37,7 +37,7 @@ class IssueNotificationActionTest {
       )
       .also {
         // Adding a fake action event with the action event that contains our fake [DataContext]
-        it.actionEventCreator = { _, _ -> projectRule.createFakeActionEvent(it) }
+        it.actionEventCreator = { _, _ -> projectRule.createFakeActionEvent() }
       }
 
   @Test
