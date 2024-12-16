@@ -23,11 +23,23 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated\\$"],
 )
 
+debugger_test(
+    name = "evaluate-expression",
+    expected_to_fail_art = "evaluate-expression-art.txt",
+    expected_to_fail_jvm = "evaluate-expression-jvm.txt",
+    shard_count = 50,
+    test_exclude_filter = [
+        # Flaky
+        "K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Uncategorized.testAnnotationValue",
+    ],
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinEvaluateExpressionTestGenerated\\$"],
+)
+
 # A convenience target for running a single test for debugging. To use this, replace the filter
 # with whatever test desired.
 debugger_test(
     name = "single",
-    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Coroutines.testSequenceNested2"],
+    test_include_filter = ["K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Uncategorized.testAnnotationValue"],
 )
 
 debugger_test(
