@@ -49,7 +49,9 @@ internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
 
   override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
     val backupManager = BackupManager.getInstance(project)
-    val serialNumber = getDeviceSerialNumber(e)
+    val serialNumber =
+      withContext(uiThread) { getDeviceSerialNumber(e) }
+        ?: return Disabled(message("error.device.not.ready"))
     val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
     val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
     return when (found) {
@@ -61,7 +63,7 @@ internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val backupManager = BackupManager.getInstance(project)
-    val serialNumber = getDeviceSerialNumber(e)
+    val serialNumber = getDeviceSerialNumber(e) ?: return
     val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     deviceProvisioner.scope.launch {
       val handle =
@@ -75,8 +77,7 @@ internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
     }
   }
 
-  private fun getDeviceSerialNumber(e: AnActionEvent): String {
+  private fun getDeviceSerialNumber(e: AnActionEvent): String? {
     return SERIAL_NUMBER_KEY.getData(e.dataContext)
-      ?: throw RuntimeException("SERIAL_NUMBER_KEY not found in ActionEvent")
   }
 }
