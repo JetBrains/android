@@ -68,6 +68,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorNavigatable;
@@ -433,16 +434,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     NlDesignSurface surface = tree.getDesignSurface();
     assertThat(surface).isNotNull();
     AnAction gotoDeclaration = new GotoComponentAction();
-    DataContext context = new DataContext() {
-      @Override
-      public @Nullable Object getData(@NotNull String dataId) {
-        if (dataId.equals(DESIGN_SURFACE.getName())) {
-          return surface;
-        } else {
-          return null;
-        }
-      }
-    };
+    DataContext context = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface);
     gotoDeclaration.actionPerformed(TestActionEvent.createTestEvent(context));
     checkEditor(fileManager, "relative.xml", 9, "<Button");
   }
@@ -493,16 +485,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     assertThat(action).isNotNull();
 
-    DataContext context = new DataContext() {
-      @Override
-      public @Nullable Object getData(@NotNull String dataId) {
-        if (dataId.equals(CommonDataKeys.PROJECT.getName())) {
-          return getProject();
-        } else {
-          return null;
-        }
-      }
-    };
+    DataContext context = SimpleDataContext.getProjectContext(getProject());
     AnActionEvent event = TestActionEvent.createTestEvent(context);
 
     SelectionModel selectionModel = model.getSurface().getSelectionModel();

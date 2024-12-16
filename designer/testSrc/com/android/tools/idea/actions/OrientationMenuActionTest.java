@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
@@ -114,14 +115,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     VirtualFile file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(file);
-    return new DataContext() {
-      @Override
-      public @Nullable Object getData(@NotNull String dataId) {
-        if (CONFIGURATIONS.is(dataId)) {
-          return List.of(configuration);
-        }
-        return null;
-      }
-    };
+    return SimpleDataContext.getSimpleContext(CONFIGURATIONS, List.of(configuration));
   }
 }

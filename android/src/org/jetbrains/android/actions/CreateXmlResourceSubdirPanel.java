@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -125,17 +126,10 @@ public class CreateXmlResourceSubdirPanel {
     }
 
     final VirtualFileDeleteProvider provider = new VirtualFileDeleteProvider();
-    provider.deleteElement(dataId -> {
-      if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
-        return new VirtualFile[]{selectedDir};
-      }
-      else if (CommonDataKeys.PROJECT.is(dataId)) {
-        return myProject;
-      }
-      else {
-        return null;
-      }
-    });
+    provider.deleteElement(SimpleDataContext.builder()
+                             .add(CommonDataKeys.PROJECT, myProject)
+                             .add(CommonDataKeys.VIRTUAL_FILE_ARRAY, new VirtualFile[]{selectedDir})
+                             .build());
     updateDirectories(false, resourceDir);
   }
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,12 +41,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
     Project project = getProject();
     PsiElement activity =
       JavaPsiFacade.getInstance(project).findClass("google.MainActivity", GlobalSearchScope.allScope(project));
-    DataContext context = dataId -> {
-      if (LangDataKeys.TARGET_MODULE.is(dataId)) {
-        return TestModuleUtil.findModule(getProject(), "library");
-      }
-      return null;
-    };
+    DataContext context = SimpleDataContext.getSimpleContext(LangDataKeys.TARGET_MODULE, TestModuleUtil.findModule(getProject(), "library"));
 
     new AndroidModularizeHandler().invoke(project, new PsiElement[]{activity}, context);
 
