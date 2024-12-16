@@ -22,6 +22,7 @@ import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.perflogger.Benchmark;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.system.CpuArch;
@@ -30,6 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +49,8 @@ public class AndroidStudio implements AutoCloseable {
   private final ProcessHandle process;
   private final AndroidStudioInstallation install;
   private final Instant creationTime;
+
+  private final String PAST_DEADLINE = "Studio quitting thread is still alive at deadline in quit().";
 
   private VideoStitcher videoStitcher = null;
 
@@ -221,11 +226,41 @@ public class AndroidStudio implements AutoCloseable {
    */
   public void quit(boolean force) {
     ASDriver.QuitRequest rq = ASDriver.QuitRequest.newBuilder().setForce(force).build();
+
+    // gRPC may not return from the call when Studio shuts down. So we need to place a timer on the shutdown and check the state
+    // of shutdown using alternative methods in case the gRPC call doesn't return by the deadline.
+    Ref<Throwable> throwableRef = new Ref<>(null);
+    Thread thread = new Thread(() -> {
+      try {
+        ASDriver.QuitResponse ignore = androidStudio.quit(rq);
+      }
+      catch (StatusRuntimeException ignored) {
+        // This is normally what gRPC will throw when the other end disconnects.
+      }
+      catch (Throwable t) {
+        throwableRef.set(t);
+      }
+    }, "gRPC Studio Shutdown");
+    thread.start();
+
     try {
-      ASDriver.QuitResponse ignore = androidStudio.quit(rq);
+      thread.join(TimeUnit.SECONDS.toMillis(30));
+      if (thread.isAlive()) {
+        throw new RuntimeException(PAST_DEADLINE);
+      }
+      Throwable t = throwableRef.get();
+      if (t != null) {
+        System.out.printf(
+          "%s Studio quitting has thrown an error: %s",
+          LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+          t.getMessage());
+        throw new RuntimeException(t);
+      }
     }
-    catch (StatusRuntimeException e) {
-      // Expected as the process is killed.
+    catch (InterruptedException e) {
+      thread.interrupt();
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Quitting Studio was interrupted.", e);
     }
   }
 
@@ -261,10 +296,24 @@ public class AndroidStudio implements AutoCloseable {
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
-    System.out.println("Quitting Studio...");
+    System.out.printf("%s Quitting Studio...", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     waitToWorkAroundWindowsIssue();
-    quit(false);
-    install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
+    try {
+      quit(false);
+      try {
+        install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        // Sometimes, it just doesn't print the shutdown.
+        System.out.printf("%s VFS dispose did not occur/complete during shutdown.", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+      }
+    }
+    catch (Throwable t) {
+      if (t.getMessage() == PAST_DEADLINE) {
+        install.getStdout().waitForMatchingLine(".*Exiting Studio.", 10, TimeUnit.SECONDS);
+        return;
+      }
+      throw t;
+    }
   }
 
   public boolean showToolWindow(String toolWindow) {

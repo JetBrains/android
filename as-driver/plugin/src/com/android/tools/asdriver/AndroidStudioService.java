@@ -71,6 +71,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -160,9 +162,11 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   @Override
   public void quit(ASDriver.QuitRequest request, StreamObserver<ASDriver.QuitResponse> responseObserver) {
     if (request.getForce()) {
+      System.out.printf("%s Force quitting Studio.%n", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
       System.exit(0);
     }
     else {
+      System.out.printf("%s Exiting Studio.", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
       ((ApplicationEx)ApplicationManager.getApplication()).exit(true, true);
     }
   }
