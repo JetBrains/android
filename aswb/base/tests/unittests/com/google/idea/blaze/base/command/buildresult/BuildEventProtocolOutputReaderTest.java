@@ -39,6 +39,10 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Tar
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.TargetConfigured;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.TestResult;
 import com.google.idea.blaze.base.BlazeTestCase;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BepArtifactData;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules.RuleTypes;
 import com.google.idea.blaze.base.model.primitives.Kind;
@@ -95,7 +99,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     ExtensionPointImpl<OutputArtifactParser> parserEp =
         registerExtensionPoint(OutputArtifactParser.EP_NAME, OutputArtifactParser.class);
-    parserEp.registerExtension(new OutputArtifactParser.LocalFileParser());
+    parserEp.registerExtension(new LocalFileParser());
   }
 
   @Test
@@ -292,7 +296,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     ImmutableSet<OutputArtifact> parsedFilenames =
         ParsedBepOutput.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)))
-            .getDirectArtifactsForTarget(Label.create("//some:target"), path -> true);
+            .getDirectArtifactsForTarget("//some:target", path -> true);
 
     assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
         .containsExactlyElementsIn(allFiles)
@@ -332,7 +336,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     ImmutableSet<OutputArtifact> parsedFilenames =
         ParsedBepOutput.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)))
-            .getDirectArtifactsForTarget(Label.create("//some:target"), path -> true);
+            .getDirectArtifactsForTarget("//some:target", path -> true);
 
     assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
         .containsExactlyElementsIn(allFiles)

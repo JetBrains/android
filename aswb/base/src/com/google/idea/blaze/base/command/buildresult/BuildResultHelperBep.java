@@ -15,11 +15,9 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
-import static com.google.idea.blaze.base.command.buildresult.ParsedBepOutput.parseBepArtifacts;
+import static com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput.parseBepArtifacts;
 
-import com.google.common.collect.Interner;
-import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.BufferedInputStream;

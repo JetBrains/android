@@ -16,6 +16,8 @@
 package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.collect.Interner;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 
 /**

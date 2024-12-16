@@ -26,6 +26,7 @@ java_library(
     resources = glob(["src/resources/**/*"]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/actions",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/settings",
@@ -364,7 +365,6 @@ java_library(
     testonly = 1,
     srcs = [
         "src/com/google/idea/blaze/base/async/FutureUtil.java",
-        "src/com/google/idea/blaze/base/command/buildresult/OutputArtifactParser.java",
         "src/com/google/idea/blaze/base/command/buildresult/RemoteOutputArtifact.java",
         "src/com/google/idea/blaze/base/ideinfo/ProtoWrapper.java",
         "src/com/google/idea/blaze/base/prefetch/DefaultPrefetcher.java",
@@ -374,6 +374,7 @@ java_library(
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
         ":base",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/plugin_api",
@@ -454,11 +455,12 @@ java_library(
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         ":base",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
+        "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/testing:lib",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto:build_event_stream_java_proto",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
@@ -504,6 +506,7 @@ intellij_unit_test_suite(
     deps = [
         ":base",
         ":unit_test_utils",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/common/util:process",

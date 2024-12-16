@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.command.buildresult;
+package com.google.idea.blaze.base.command.buildresult.bepparser;
 
 import com.google.common.io.CountingInputStream;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;

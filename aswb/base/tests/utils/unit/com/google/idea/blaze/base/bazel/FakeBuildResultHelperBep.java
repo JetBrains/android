@@ -15,19 +15,18 @@
  */
 package com.google.idea.blaze.base.bazel;
 
-import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.*;
+import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEvent;
+import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId;
+import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildFinished;
+import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildStarted;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Interner;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.BuildFinishedId;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.BuildStartedId;
-import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider;
-import com.google.idea.blaze.base.command.buildresult.BuildFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;

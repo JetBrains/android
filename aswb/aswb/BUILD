@@ -116,6 +116,7 @@ java_library(
     ),
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp",
         "//tools/adt/idea/aswb/java",

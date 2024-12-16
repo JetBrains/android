@@ -25,7 +25,7 @@ import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
-import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
@@ -52,7 +52,7 @@ public class BlazeApkDeployInfoProtoHelper {
     ParsedBepOutput bepOutput;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
       bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
-      outputArtifacts = bepOutput.getDirectArtifactsForTarget(target, pathFilter).asList();
+      outputArtifacts = bepOutput.getDirectArtifactsForTarget(target.toString(), pathFilter).asList();
     } catch (GetArtifactsException e) {
       throw new GetDeployInfoException(e.getMessage());
     }
@@ -66,7 +66,7 @@ public class BlazeApkDeployInfoProtoHelper {
       }
       log.warn("All local artifacts for " + target + ":");
       List<OutputArtifact> allBuildArtifacts =
-        bepOutput.getDirectArtifactsForTarget(target, path1 -> true).asList();
+        bepOutput.getDirectArtifactsForTarget(target.toString(), path1 -> true).asList();
       List<File> allLocalFiles = LocalFileArtifact.getLocalFiles(allBuildArtifacts);
       for (File file : allLocalFiles) {
         String path = file.getPath();

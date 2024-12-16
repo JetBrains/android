@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.command.buildresult;
+package com.google.idea.blaze.base.command.buildresult.bepparser;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -39,8 +39,7 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Nam
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.OutputGroup;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.WorkspaceStatus.Item;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.IntExperiment;
@@ -104,7 +103,7 @@ public final class ParsedBepOutput {
           ImmutableMap.of(),
           ImmutableSetMultimap.of(),
           0,
-          BuildResult.SUCCESS,
+          0,
           0,
           ImmutableSet.of());
 
@@ -136,12 +135,12 @@ public final class ParsedBepOutput {
       Set<String> topLevelFileSets = new HashSet<>();
       Map<String, FileSet.Builder> fileSets = new LinkedHashMap<>();
       ImmutableSetMultimap.Builder<String, String> targetToFileSets = ImmutableSetMultimap.builder();
-      ImmutableSet.Builder<Label> targetsWithErrors = ImmutableSet.builder();
+      ImmutableSet.Builder<String> targetsWithErrors = ImmutableSet.builder();
       String localExecRoot = null;
       String buildId = null;
       ImmutableMap<String, String> workspaceStatus = ImmutableMap.of();
       long startTimeMillis = 0L;
-      BuildResult buildResult = BuildResult.SUCCESS;
+      int buildResult = 0;
       boolean emptyBuildEventStream = true;
 
       while ((event = stream.getNext()) != null) {
@@ -168,7 +167,7 @@ public final class ParsedBepOutput {
           case ACTION_COMPLETED:
             Preconditions.checkState(event.hasAction());
             if (!event.getAction().getSuccess()) {
-              targetsWithErrors.add(Label.create(event.getId().getActionCompleted().getLabel()));
+              targetsWithErrors.add(event.getId().getActionCompleted().getLabel());
             }
             break;
           case TARGET_COMPLETED:
@@ -201,7 +200,7 @@ public final class ParsedBepOutput {
             startTimeMillis = event.getStarted().getStartTimeMillis();
             continue;
           case BUILD_FINISHED:
-            buildResult = BuildResult.fromExitCode(event.getFinished().getExitCode().getCode());
+            buildResult = event.getFinished().getExitCode().getCode();
             continue;
           default: // continue
         }
@@ -285,9 +284,9 @@ public final class ParsedBepOutput {
 
   final long syncStartTimeMillis;
 
-  private final BuildResult buildResult;
+  private final int buildResult;
   private final long bepBytesConsumed;
-  private final ImmutableSet<Label> targetsWithErrors;
+  private final ImmutableSet<String> targetsWithErrors;
 
   private ParsedBepOutput(
     @Nullable String buildId,
@@ -296,9 +295,9 @@ public final class ParsedBepOutput {
     ImmutableMap<String, FileSet> fileSets,
     ImmutableSetMultimap<String, String> targetFileSets,
     long syncStartTimeMillis,
-    BuildResult buildResult,
+    int buildResult,
     long bepBytesConsumed,
-    ImmutableSet<Label> targetsWithErrors) {
+    ImmutableSet<String> targetsWithErrors) {
     this.buildId = buildId;
     this.localExecRoot = localExecRoot;
     this.workspaceStatus = workspaceStatus;
@@ -326,7 +325,7 @@ public final class ParsedBepOutput {
   }
 
   /** Returns the build result. */
-  public BuildResult getBuildResult() {
+  public int getBuildResult() {
     return buildResult;
   }
 
@@ -345,8 +344,8 @@ public final class ParsedBepOutput {
 
   /** Returns the set of artifacts directly produced by the given target. */
   public ImmutableSet<OutputArtifact> getDirectArtifactsForTarget(
-      Label label, Predicate<String> pathFilter) {
-    return targetFileSets.get(label.toString()).stream()
+      String label, Predicate<String> pathFilter) {
+    return targetFileSets.get(label).stream()
         .map(s -> fileSets.get(s).parsedOutputs)
         .flatMap(List::stream)
         .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
@@ -382,7 +381,7 @@ public final class ParsedBepOutput {
   }
 
   /** Returns the set of build targets that had an error. */
-  public ImmutableSet<Label> getTargetsWithErrors() {
+  public ImmutableSet<String> getTargetsWithErrors() {
     return targetsWithErrors;
   }
 

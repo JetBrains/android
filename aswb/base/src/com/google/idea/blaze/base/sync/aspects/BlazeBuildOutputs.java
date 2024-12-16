@@ -24,11 +24,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
-import com.google.idea.blaze.base.command.buildresult.BepArtifactData;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BepArtifactData;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -75,7 +74,7 @@ public class BlazeBuildOutputs {
   public final BuildResult buildResult;
   // Maps build id to the build result of individual shards
   private final ImmutableMap<String, BuildResult> buildShardResults;
-  private final ImmutableSet<Label> targetsWithErrors;
+  private final ImmutableSet<String> targetsWithErrors;
   public final long bepBytesConsumed;
 
   public final ImmutableMap<String, String> workspaceStatus;
@@ -93,7 +92,7 @@ public class BlazeBuildOutputs {
     BuildResult buildResult,
     Map<String, BepArtifactData> artifacts,
       ImmutableMap<String, BuildResult> buildShardResults,
-    ImmutableSet<Label> targetsWithErrors,
+    ImmutableSet<String> targetsWithErrors,
     long bepBytesConsumed,
     ImmutableMap<String, String> workspaceStatus) {
     this.buildResult = buildResult;
@@ -122,7 +121,7 @@ public class BlazeBuildOutputs {
         .collect(toImmutableList());
   }
 
-  public ImmutableSet<Label> getTargetsWithErrors() {
+  public ImmutableSet<String> getTargetsWithErrors() {
     return targetsWithErrors;
   }
 

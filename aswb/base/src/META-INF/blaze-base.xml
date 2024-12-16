@@ -445,7 +445,7 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.BuildResultHelperProvider"
                     interface="com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputArtifactParser"
-                    interface="com.google.idea.blaze.base.command.buildresult.OutputArtifactParser"/>
+                    interface="com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.RemoteOutputArtifactParser"
                     interface="com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact$Parser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BuildBatchingService"
@@ -618,7 +618,7 @@
         implementation="com.google.idea.blaze.base.run.producers.AllInDirectoryRecursiveTestContextProvider"
         id="AllInDirectoryRecursiveTestContextProvider"
         order="last"/>
-    <OutputArtifactParser implementation="com.google.idea.blaze.base.command.buildresult.OutputArtifactParser$LocalFileParser"/>
+    <OutputArtifactParser implementation="com.google.idea.blaze.base.command.buildresult.LocalFileParser"/>
     <BuildBatchingService implementation="com.google.idea.blaze.base.sync.sharding.LexicographicTargetSharder" order="last"/>
     <TargetShardSizeLimit implementation="com.google.idea.blaze.base.sync.sharding.ArgMaxShardSizeLimit"/>
     <VcsSyncListener implementation="com.google.idea.blaze.base.prefetch.PrefetchVcsSyncListener"/>
