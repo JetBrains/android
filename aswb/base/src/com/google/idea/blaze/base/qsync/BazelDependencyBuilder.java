@@ -333,18 +333,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       context.output(
         PrintOutput.log(String.format("Fetched and parsed artifact info files in %d ms", elapsed)));
     }
-    Optional<VcsState> vcsState = Optional.empty();
-    if (vcsHandler.isPresent()) {
-      try {
-        vcsState = vcsHandler.get().vcsStateForWorkspaceStatus(blazeBuildOutputs.workspaceStatus);
-      } catch (BuildException e) {
-        context.handleExceptionAsWarning("Failed to get VCS state", e);
-      }
-    }
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(
             // getOnlyElement should be safe since we never shard querysync builds:
-            getOnlyElement(blazeBuildOutputs.getBuildIds()), buildTime, vcsState);
+            getOnlyElement(blazeBuildOutputs.getBuildIds()), buildTime);
 
     return OutputInfo.create(
         allArtifacts,

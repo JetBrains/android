@@ -47,7 +47,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -155,7 +154,7 @@ public class AddProjectGenSrcsTest {
                             .withMetadata(new JavaSourcePackage("com.org"))))
                 .build(),
             DependencyBuildContext.create(
-                "abc-def", Instant.now().minusSeconds(60), Optional.empty()));
+                "abc-def", Instant.now().minusSeconds(60)));
 
     Label genSrc2Label = testData.getAssumedOnlyLabel().siblingWithName("genSrc2");
     TargetBuildInfo genSrc2 =
@@ -169,7 +168,7 @@ public class AddProjectGenSrcsTest {
                                 genSrc2Label)
                             .withMetadata(new JavaSourcePackage("com.org"))))
                 .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+            DependencyBuildContext.create("abc-def", Instant.now()));
 
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.create(
@@ -242,7 +241,7 @@ public class AddProjectGenSrcsTest {
                             .withMetadata(new JavaSourcePackage("com.org"))))
                 .build(),
             DependencyBuildContext.create(
-                "abc-def", Instant.now().minusSeconds(60), Optional.empty()));
+                "abc-def", Instant.now().minusSeconds(60)));
 
     Label genSrc2Label = testData.getAssumedOnlyLabel().siblingWithName("genSrc2");
     TargetBuildInfo genSrc2 =
@@ -256,7 +255,7 @@ public class AddProjectGenSrcsTest {
                                 genSrc2Label)
                             .withMetadata(new JavaSourcePackage("com.org"))))
                 .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+            DependencyBuildContext.create("abc-def", Instant.now()));
 
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.create(

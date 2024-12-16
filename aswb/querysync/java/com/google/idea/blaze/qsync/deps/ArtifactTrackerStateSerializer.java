@@ -77,9 +77,6 @@ public class ArtifactTrackerStateSerializer {
               .addBuildContextsBuilder()
               .setStartTimeMillis(buildContext.startTime().toEpochMilli())
               .setBuildId(buildContext.buildId());
-      buildContext
-          .vcsState()
-          .ifPresent(vcs -> SnapshotSerializer.visitVcsState(vcs, builder.getVcsStateBuilder()));
     }
   }
 

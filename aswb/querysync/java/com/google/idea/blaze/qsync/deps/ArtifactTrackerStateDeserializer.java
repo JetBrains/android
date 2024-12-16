@@ -71,16 +71,11 @@ public class ArtifactTrackerStateDeserializer {
   }
 
   private void visitBuildContext(ArtifactTrackerProto.BuildContext buildContext) {
-    Optional<VcsState> vcsState = Optional.empty();
-    if (buildContext.hasVcsState()) {
-      vcsState = Optional.of(SnapshotDeserializer.convertVcsState(buildContext.getVcsState()));
-    }
     buildContexts.put(
         buildContext.getBuildId(),
         DependencyBuildContext.create(
             buildContext.getBuildId(),
-            Instant.ofEpochMilli(buildContext.getStartTimeMillis()),
-            vcsState));
+            Instant.ofEpochMilli(buildContext.getStartTimeMillis())));
   }
 
   private void visitTargetBuildInfo(Map.Entry<String, ArtifactTrackerProto.TargetBuildInfo> entry) {

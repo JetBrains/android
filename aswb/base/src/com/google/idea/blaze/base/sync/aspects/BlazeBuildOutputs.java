@@ -40,7 +40,7 @@ public class BlazeBuildOutputs {
 
   public static BlazeBuildOutputs noOutputs(BuildResult buildResult) {
     return new BlazeBuildOutputs(
-      buildResult, ImmutableMap.of(), ImmutableMap.of(), ImmutableSet.of(), 0L, ImmutableMap.of());
+      buildResult, ImmutableMap.of(), ImmutableMap.of(), ImmutableSet.of(), 0L);
   }
 
   @VisibleForTesting
@@ -50,8 +50,7 @@ public class BlazeBuildOutputs {
         ImmutableMap.of(),
         ImmutableMap.of(buildId, buildResult),
         ImmutableSet.of(),
-        0L,
-        ImmutableMap.of());
+        0L);
   }
 
   public static BlazeBuildOutputs fromParsedBepOutput(
@@ -67,8 +66,7 @@ public class BlazeBuildOutputs {
             : parsedOutput.getFullArtifactData(),
         buildIdWithResult,
         parsedOutput.getTargetsWithErrors(),
-        parsedOutput.getBepBytesConsumed(),
-        parsedOutput.getWorkspaceStatus());
+        parsedOutput.getBepBytesConsumed());
   }
 
   public final BuildResult buildResult;
@@ -76,8 +74,6 @@ public class BlazeBuildOutputs {
   private final ImmutableMap<String, BuildResult> buildShardResults;
   private final ImmutableSet<String> targetsWithErrors;
   public final long bepBytesConsumed;
-
-  public final ImmutableMap<String, String> workspaceStatus;
 
   /**
    * {@link BepArtifactData} by {@link OutputArtifact#getBazelOutRelativePath()} for all artifacts from a
@@ -93,14 +89,12 @@ public class BlazeBuildOutputs {
     Map<String, BepArtifactData> artifacts,
       ImmutableMap<String, BuildResult> buildShardResults,
     ImmutableSet<String> targetsWithErrors,
-    long bepBytesConsumed,
-    ImmutableMap<String, String> workspaceStatus) {
+    long bepBytesConsumed) {
     this.buildResult = buildResult;
     this.artifacts = ImmutableMap.copyOf(artifacts);
     this.buildShardResults = buildShardResults;
     this.targetsWithErrors = targetsWithErrors;
     this.bepBytesConsumed = bepBytesConsumed;
-    this.workspaceStatus = workspaceStatus;
 
     ImmutableSetMultimap.Builder<String, OutputArtifact> perTarget = ImmutableSetMultimap.builder();
     artifacts.values().forEach(a -> a.topLevelTargets.forEach(t -> perTarget.put(t, a.artifact)));
@@ -171,8 +165,7 @@ public class BlazeBuildOutputs {
                 // On duplicate buildIds, preserve most recent result
                 toImmutableMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1)),
       Sets.union(targetsWithErrors, nextOutputs.targetsWithErrors).immutableCopy(),
-      bepBytesConsumed + nextOutputs.bepBytesConsumed,
-      workspaceStatus);
+      bepBytesConsumed + nextOutputs.bepBytesConsumed);
   }
 
   public ImmutableList<String> getBuildIds() {

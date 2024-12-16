@@ -91,7 +91,7 @@ message JavaArtifacts {
 message BuildContext {
   string build_id = 1;
   int64 start_time_millis = 2;
-  VcsState vcs_state = 3;
+  reserved 3;
 }
 
 message CcCompilationInfo {

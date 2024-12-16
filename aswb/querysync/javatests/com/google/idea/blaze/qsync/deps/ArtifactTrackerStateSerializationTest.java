@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.ArtifactTrackerState;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
@@ -34,7 +33,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -71,8 +69,7 @@ public class ArtifactTrackerStateSerializationTest {
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(
             "abc-def",
-            Instant.ofEpochMilli(1000),
-            Optional.of(new VcsState("workspaceId", "12345", ImmutableSet.of(), Optional.empty())));
+            Instant.ofEpochMilli(1000));
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(
             Label.of("//my/package:target"),
@@ -110,8 +107,7 @@ public class ArtifactTrackerStateSerializationTest {
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(
             "abc-def",
-            Instant.ofEpochMilli(1000),
-            Optional.of(new VcsState("workspaceId", "12345", ImmutableSet.of(), Optional.empty())));
+            Instant.ofEpochMilli(1000));
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(
             Label.of("//my/package:target"),
@@ -172,8 +168,7 @@ public class ArtifactTrackerStateSerializationTest {
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(
             "abc-def",
-            Instant.ofEpochMilli(1000),
-            Optional.of(new VcsState("workspaceId", "12345", ImmutableSet.of(), Optional.empty())));
+            Instant.ofEpochMilli(1000));
     TargetBuildInfo.Builder targetInfo =
         TargetBuildInfo.forJavaTarget(
             JavaArtifactInfo.empty(Label.of("//my/package:target")).toBuilder()
