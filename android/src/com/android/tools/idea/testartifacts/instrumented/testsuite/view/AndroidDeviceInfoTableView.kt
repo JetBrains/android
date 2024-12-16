@@ -67,7 +67,7 @@ private class AndroidDeviceInfoTableViewModel :
   fun setAndroidDevice(device: AndroidDevice) {
     val itemsBuilder = mutableListOf(
       AndroidDeviceInfoItem("Device Name", device.getName()),
-      AndroidDeviceInfoItem("OS Version", device.version.apiString))
+      AndroidDeviceInfoItem("OS Version", device.version.apiStringWithExtension))
     itemsBuilder.addAll(device.additionalInfo.asSequence()
       .map { (key, value) -> AndroidDeviceInfoItem(key, value) })
     items = itemsBuilder
