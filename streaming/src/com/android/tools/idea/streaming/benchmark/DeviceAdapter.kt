@@ -177,8 +177,7 @@ private fun BufferedImage.findTouchableArea(): Rectangle? {
   val left = (0 until width).find { extract(it, center.y).isGreenish() } ?: return null
   val right = (0 until width).reversed().find { extract(it, center.y).isGreenish() } ?: return null
   val top = (0 until height).find { extract(center.x, it).isGreenish() } ?: return null
-  val bottom =
-    (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
+  val bottom = (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
 
   val width = right - left + 1
   val height = bottom - top + 1
@@ -217,7 +216,6 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
     .map { it.first() }
     .take(numPoints)
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class DeviceAdapter(
   private val project: Project,
   private val target: StreamingBenchmarkTarget,
@@ -228,18 +226,14 @@ internal class DeviceAdapter(
   private val spikiness: Int = 1,
   private val readyIndicator: ProgressIndicator? = null,
   private val timeSource: TimeSource = TimeSource.Monotonic,
-  private val installer: StreamingBenchmarkerAppInstaller =
-    StreamingBenchmarkerAppInstaller(project, target.serialNumber),
+  private val installer: StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstaller(project, target.serialNumber),
   private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
 ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
   private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize
-  private val maxBits: Int =
-    ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
-  private val numRegionsPerCoordinate =
-    if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
-  private val numLatencyRegions =
-    if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
+  private val maxBits: Int = ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
+  private val numRegionsPerCoordinate = if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
+  private val numLatencyRegions = if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
   private val keyEventDispatchChannel = Channel<() -> Unit>(Channel.UNLIMITED)
 
   @GuardedBy("this") private var appState = AppState.INITIALIZING
@@ -249,12 +243,10 @@ internal class DeviceAdapter(
   @Volatile private lateinit var adapterCallbacks: Adapter.Callbacks<Point>
   @Volatile private lateinit var startedGettingReady: TimeMark
 
-  private val pointsToTouch: Iterator<Point> by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       touchableArea.scribble(maxTouches, step, spikiness).iterator()
     }
-  private val numPointsToTouch by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       min(touchableArea.width * touchableArea.height, maxTouches)
     }
 
@@ -264,9 +256,7 @@ internal class DeviceAdapter(
     require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
     require(step > 0) { "Must specify a positive value for step!" }
     require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
-    require(bitsPerChannel in 0..8) {
-      "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]"
-    }
+    require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]" }
 
     coroutineScope.launch {
       for (keyEventDispatch in keyEventDispatchChannel) {
@@ -289,9 +279,7 @@ internal class DeviceAdapter(
     when (appState) {
       AppState.INITIALIZING -> {
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
-          adapterCallbacks.onFailedToBecomeReady(
-            "Failed to detect initialized app within $MAX_BECOME_READY_DURATION"
-          )
+          adapterCallbacks.onFailedToBecomeReady("Failed to detect initialized app within $MAX_BECOME_READY_DURATION")
           return
         }
         if (displayImage.isInitializationFrame()) {
@@ -299,9 +287,7 @@ internal class DeviceAdapter(
           appState = AppState.KEYING_IN_CONFIG
         }
       }
-      AppState.KEYING_IN_CONFIG -> {
-        if (keyEventDispatchChannel.isEmpty) appState = AppState.DISPLAYING_TOUCHABLE_AREA
-      }
+      AppState.KEYING_IN_CONFIG -> if (keyEventDispatchChannel.isEmpty) appState = AppState.DISPLAYING_TOUCHABLE_AREA
       AppState.DISPLAYING_TOUCHABLE_AREA -> {
         if (displayImage.isInitializationFrame()) return
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
@@ -326,7 +312,7 @@ internal class DeviceAdapter(
   }
 
   override fun setCallbacks(callbacks: Adapter.Callbacks<Point>) {
-    this.adapterCallbacks = callbacks
+    adapterCallbacks = callbacks
   }
 
   override fun inputs(): Iterator<Point> = pointsToTouch
@@ -422,9 +408,7 @@ internal class DeviceAdapter(
       .map { it.toDisplayViewCoordinates() ?: return null }
       // Now add each of these opposite points to the newly created Rectangle.
       .forEach(displayViewRectangle::add)
-    LOG.info(
-      "Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle"
-    )
+    LOG.info("Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle")
     return imageRectangle to displayViewRectangle
   }
 
@@ -496,8 +480,7 @@ internal class DeviceAdapter(
 
   private fun Point.toDisplayViewCoordinates(): Point? {
     val displayRectangle = target.view.displayRectangle ?: return null
-    val imageSize =
-      displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
+    val imageSize = displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
     val p2 = scaledUnbiased(deviceDisplaySize, imageSize)
     val inverseScreenScale = 1.0 / target.view.screenScalingFactor
     val viewCoordinates = Point()
@@ -530,8 +513,4 @@ internal class DeviceAdapter(
   }
 }
 
-data class StreamingBenchmarkTarget(
-  val name: String,
-  val serialNumber: String,
-  val view: AbstractDisplayView,
-)
+data class StreamingBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)
