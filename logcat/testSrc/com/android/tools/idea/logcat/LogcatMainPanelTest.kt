@@ -103,15 +103,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
-import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -125,6 +116,15 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.any
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatMainPanel] */
 class LogcatMainPanelTest {
@@ -1485,11 +1485,10 @@ class LogcatMainPanelTest {
   fun countFilterMatches_excludesSystemMessages() {
     val logcatMainPanel = logcatMainPanel()
     val messageBacklog = logcatMainPanel.messageBacklog.get()
-    val messages = messageBacklog.messages
     val filter = StringFilter("Foo", TAG, matchCase = true, EMPTY_RANGE)
     messageBacklog.addAll(listOf(logcatMessage(tag = "Foo"), LogcatMessage(SYSTEM_HEADER, "")))
 
-    assertThat(LogcatMasterFilter(filter).filter(messages)).hasSize(2)
+    assertThat(LogcatMasterFilter(filter).filter(messageBacklog.messages)).hasSize(2)
     assertThat(logcatMainPanel.countFilterMatches(filter)).isEqualTo(1)
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
@@ -92,9 +91,9 @@ class MessageBacklogTest {
   }
 
   @Test
-  fun messages_isUnmodifiable() {
-    val mutableList = MessageBacklog(20).messages as MutableList<LogcatMessage>
+  fun messages_isCopy() {
+    val messageBacklog = MessageBacklog(20).apply { addAll(listOf(message1, message2)) }
 
-    assertThrows(UnsupportedOperationException::class.java, mutableList::clear)
+    assertThat(messageBacklog.messages === messageBacklog.messages).isFalse()
   }
 }
