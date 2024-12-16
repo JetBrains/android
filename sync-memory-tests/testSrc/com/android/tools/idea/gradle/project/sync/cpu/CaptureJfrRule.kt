@@ -19,9 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.project.Project
 import org.junit.rules.ExternalResource
 import java.io.File
@@ -33,15 +30,11 @@ import javax.management.ObjectName
 
 class CaptureJfrRule : ExternalResource() {
 
-  interface ListenerWithGradleDaemonProgress: GradleSyncListenerWithRoot, ExternalSystemTaskNotificationListener
-
-  val listener  = object : ListenerWithGradleDaemonProgress {
-    // Gradle daemon finished
-    override fun onSuccess(id: ExternalSystemTaskId) {
+  val listener  = object : GradleSyncListenerWithRoot {
+    // Invoked when each sync attempt starts
+    override fun syncStarted(project: Project, rootProjectPath: String) {
       startJavaFlightRecording()
     }
-
-    // Entire sync finished
     override fun syncSucceeded(project: Project, rootProjectPath: String) {
       stopJavaFlightRecording()
     }
@@ -52,14 +45,12 @@ class CaptureJfrRule : ExternalResource() {
     mutateGradleProperties {
       setJvmArgs("$jvmArgs -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -XX:FlightRecorderOptions=stackdepth=512")
     }
-    ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(listener)
   }
 
   override fun after() {
     File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "jfr" }.forEach { jfrFile ->
       Files.move(jfrFile.toPath(), TestUtils.getTestOutputDir().resolve(jfrFile.name))
     }
-    ExternalSystemProgressNotificationManager.getInstance().removeNotificationListener(listener)
   }
 
   private fun startJavaFlightRecording() {
