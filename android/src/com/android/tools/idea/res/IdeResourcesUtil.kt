@@ -97,9 +97,11 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
@@ -112,12 +114,14 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.ide.progress.ModalTaskOwner.project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.PsiReferenceExpression
@@ -2200,6 +2204,16 @@ private fun findViewTag(tag: XmlTag, target: String): String? {
     }
   }
   return null
+}
+
+fun createRawFileResource(fileName: String, resSubdir: PsiDirectory): PsiFile {
+  val project = resSubdir.project
+  val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName)
+  return WriteCommandAction.writeCommandAction(project).compute<PsiFile, RuntimeException> {
+    resSubdir.checkCreateFile(fileName)
+    val file = PsiFileFactory.getInstance(project).createFileFromText(fileName, fileType, "")
+    resSubdir.add(file) as PsiFile
+  }
 }
 
 fun createXmlFileResource(

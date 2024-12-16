@@ -49,11 +49,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
@@ -69,6 +72,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -217,7 +222,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
   }
 
-  public void testResolveAsIconFromStateListDrawable() throws IOException {
+  public void testResolveAsIconFromStateListDrawable() {
     myFixture.copyFileToProject("resourceHelper/ic_delete.png", "res/drawable/ic_delete.png");
     VirtualFile file = myFixture.copyFileToProject("resourceHelper/icon_state_list.xml", "res/drawable/icon_state_list.xml");
     ResourceUrl url = ResourceUrl.parse("@drawable/icon_state_list");
@@ -499,7 +504,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   private XmlFile ensureNamespaceImported(@Language("XML") @NotNull String text, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
-    XmlFile xmlFile = (XmlFile)myFixture.configureByText("res/layout/layout.xml", text);
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", text);
 
     CommandProcessor.getInstance().executeCommand(getProject(), () -> ApplicationManager.getApplication().runWriteAction(() -> {
       IdeResourcesUtil.ensureNamespaceImported(xmlFile, namespaceUri, suggestedPrefix);
@@ -508,29 +513,40 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     return xmlFile;
   }
 
-  public void testCreateFrameLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getLayoutFolder(), FRAME_LAYOUT, ResourceType.LAYOUT, false);
+  public void testCreateRawFileResource() {
+    String fileName = "my_great_raw_file.foobar";
+    String rawDirName = "raw";
+    PsiFile file = IdeResourcesUtil.createRawFileResource(fileName, getResDirectory(rawDirName));
+    assertThat(file.getContainingDirectory().getName()).isEqualTo(rawDirName);
+    assertThat(file.getName()).isEqualTo(fileName);
+    assertThat(file.getText()).isEmpty();
+  }
+
+  public void testCreateFrameLayoutFileResource() {
+    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getResDirectory("layout"), FRAME_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("linear.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    android:layout_width=\"match_parent\" android:layout_height=\"match_parent\">\n" +
+                                         "    android:layout_width=\"match_parent\"\n" +
+                                         "    android:layout_height=\"match_parent\">\n" +
                                          "\n" +
                                          "</FrameLayout>");
   }
 
-  public void testCreateLinearLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getLayoutFolder(), LINEAR_LAYOUT, ResourceType.LAYOUT, false);
+  public void testCreateLinearLayoutFileResource() {
+    XmlFile file = IdeResourcesUtil.createXmlFileResource("linear", getResDirectory("layout"), LINEAR_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("linear.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    android:orientation=\"vertical\" android:layout_width=\"match_parent\"\n" +
+                                         "    android:orientation=\"vertical\"\n" +
+                                         "    android:layout_width=\"match_parent\"\n" +
                                          "    android:layout_height=\"match_parent\">\n" +
                                          "\n" +
                                          "</LinearLayout>");
   }
 
-  public void testCreateLayoutFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("layout", getLayoutFolder(), TAG_LAYOUT, ResourceType.LAYOUT, false);
+  public void testCreateLayoutFileResource() {
+    XmlFile file = IdeResourcesUtil.createXmlFileResource("layout", getResDirectory("layout"), TAG_LAYOUT, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("layout.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
@@ -538,8 +554,8 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                                          "</layout>");
   }
 
-  public void testCreateMergeFileResource() throws Exception {
-    XmlFile file = IdeResourcesUtil.createXmlFileResource("merge", getLayoutFolder(), VIEW_MERGE, ResourceType.LAYOUT, false);
+  public void testCreateMergeFileResource() {
+    XmlFile file = IdeResourcesUtil.createXmlFileResource("merge", getResDirectory("layout"), VIEW_MERGE, ResourceType.LAYOUT, false);
     assertThat(file.getName()).isEqualTo("merge.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
@@ -547,13 +563,14 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                                          "</merge>");
   }
 
-  public void testCreateNavigationFileResource() throws Exception {
+  public void testCreateNavigationFileResource() {
     XmlFile file =
-      IdeResourcesUtil.createXmlFileResource("nav", getLayoutFolder(), TAG_NAVIGATION, ResourceType.NAVIGATION, false);
+      IdeResourcesUtil.createXmlFileResource("nav", getResDirectory("navigation"), TAG_NAVIGATION, ResourceType.NAVIGATION, false);
     assertThat(file.getName()).isEqualTo("nav.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\">\n" +
+                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                         "    android:id=\"@+id/nav\">\n" +
                                          "\n" +
                                          "</navigation>");
   }
@@ -592,18 +609,17 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   }
 
   @NotNull
-  private PsiDirectory getLayoutFolder() {
-    PsiFile file = myFixture.configureByText("res/layout/main.xml", "<LinearLayout/>");
-    PsiDirectory folder = file.getParent();
-    assertThat(folder).isNotNull();
-    return folder;
+  private PsiDirectory getResDirectory(String dirName) {
+    VirtualFile virtualFileDir =
+      VirtualFileManager.getInstance().findFileByNioPath(Path.of(myFixture.getTempDirPath()));
+    assertThat(virtualFileDir).isNotNull();
+    PsiDirectory dir = PsiManager.getInstance(getProject()).findDirectory(virtualFileDir);
+    assertThat(dir).isNotNull();
+    return findOrCreateSubdirectory(findOrCreateSubdirectory(dir, "res"), dirName);
   }
 
-  @NotNull
-  private PsiDirectory getNavigationFolder() {
-    PsiFile file = myFixture.configureByText("res/navigation/main.xml", "<navigation/>");
-    PsiDirectory folder = file.getParent();
-    assertThat(folder).isNotNull();
-    return folder;
+  private static @NotNull PsiDirectory findOrCreateSubdirectory(@NotNull PsiDirectory parent, @NotNull String subdirName) {
+    final PsiDirectory sub = parent.findSubdirectory(subdirName);
+    return sub == null ? WriteAction.compute(() -> parent.createSubdirectory(subdirName)) : sub;
   }
 }

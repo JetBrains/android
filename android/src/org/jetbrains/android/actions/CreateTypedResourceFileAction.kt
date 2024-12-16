@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.IdeResourceNameValidator.Companion.forFilename
+import com.android.tools.idea.res.createRawFileResource
 import com.android.tools.idea.res.createXmlFileResource
 import com.android.tools.idea.res.isResourceSubdirectory
 import com.android.tools.idea.util.dependsOn
@@ -42,6 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.ui.Messages
+import com.intellij.patterns.XmlPatterns.xmlFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -113,20 +115,9 @@ open class CreateTypedResourceFileAction(
     chooseTagName: Boolean,
     navigate: Boolean,
   ): Array<PsiElement> {
-    val project = directory.project
-    if (resourceFolderType == ResourceFolderType.RAW) {
-      val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(newName)
-      val psiFile =
-        WriteCommandAction.writeCommandAction(project).compute<PsiFile, RuntimeException> {
-          directory.checkCreateFile(newName)
-          val file = PsiFileFactory.getInstance(project).createFileFromText(newName, fileType, "")
-          directory.add(file) as PsiFile
-        }
-      if (navigate) doNavigate(psiFile)
-      return arrayOf(psiFile)
-    }
-
-    val xmlFile =
+    val psiFile = if (resourceFolderType == ResourceFolderType.RAW) {
+      createRawFileResource(newName, directory)
+    } else {
       createXmlFileResource(
         newName,
         directory,
@@ -134,11 +125,12 @@ open class CreateTypedResourceFileAction(
         resourceFolderType.resourceType,
         valuesResourceFile,
       )
+    }
 
-    if (navigate) doNavigate(xmlFile)
-    if (chooseTagName) doChooseTagName(xmlFile)
+    if (navigate) doNavigate(psiFile)
+    if (psiFile is XmlFile && chooseTagName) doChooseTagName(psiFile)
 
-    return arrayOf(xmlFile)
+    return arrayOf(psiFile)
   }
 
   private fun doChooseTagName(xmlFile: XmlFile) {
