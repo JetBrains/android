@@ -19,6 +19,8 @@ import com.android.tools.idea.common.actions.RefreshRenderAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
@@ -69,11 +71,12 @@ class RefreshRenderActionTest {
     ApplicationManager.getApplication()
       .replaceService(IdeFocusManager::class.java, customFocusManager, projectRule.disposable)
     val event =
-      TestActionEvent.createFromInputEvent(
-        KeyEvent(textField, 0, 0, 0, 0, '0', 0),
-        "",
-        null,
+      createEvent(
         SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
+        null,
+        "",
+        ActionUiKind.NONE,
+        KeyEvent(textField, 0, 0, 0, 0, '0', 0),
       )
     renderAction.update(event)
 
