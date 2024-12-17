@@ -95,11 +95,11 @@ private class RootsChangedDumbModeTask(private val project: Project, parent: Dis
     Disposer.register(parent, this)
   }
 
-  val log = Logger.getInstance(AndroidProjectRootListener::class.java)
+  private val log = Logger.getInstance(RootsChangedDumbModeTask::class.java)
 
   override fun performInDumbMode(indicator: ProgressIndicator) {
     if (project.isDisposed) {
-      log.warn("RootsChangedDumbModeTask: Project is disposed, skipping resource update.")
+      log.warn("Project is disposed, skipping resource update.")
       return
     }
 
@@ -107,7 +107,7 @@ private class RootsChangedDumbModeTask(private val project: Project, parent: Dis
     for (module in ModuleManager.getInstance(project).modules) {
       indicator.checkCanceled() // Check for cancellation before each module
       if (project.isDisposed) {
-        log.warn("RootsChangedDumbModeTask: Project is disposed, aborting resource update.")
+        log.warn("Project is disposed, aborting resource update.")
         return
       }
       moduleRootsOrDependenciesChanged(module)
