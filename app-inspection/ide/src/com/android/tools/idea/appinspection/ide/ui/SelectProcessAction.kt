@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 import javax.swing.JComponent
@@ -191,8 +192,6 @@ class SelectProcessAction(
     return true
   }
 
-  override fun displayTextInToolbar() = true
-
   class StopPresentation(
     val text: String = AppInspectionBundle.message("action.stop.inspectors"),
     val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"),
@@ -213,6 +212,7 @@ class SelectProcessAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       customProcessAttribution(processDescriptor, event)
     }
   }
@@ -221,8 +221,6 @@ class SelectProcessAction(
     DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
 
     override fun getActionUpdateThread() = BGT
-
-    override fun displayTextInToolbar() = true
 
     init {
       val (preferredProcesses, otherProcesses) =
@@ -247,6 +245,7 @@ class SelectProcessAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       customDeviceAttribution(device, event)
     }
   }

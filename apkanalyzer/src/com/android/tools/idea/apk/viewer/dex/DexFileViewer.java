@@ -54,6 +54,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -832,12 +833,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
 
     @Override
-    public boolean displayTextInToolbar() {
-      return true;
-    }
-
-    @Override
     public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
       if (myProguardMappings != null) {
         e.getPresentation().setText("Change Proguard mappings...");
       }
