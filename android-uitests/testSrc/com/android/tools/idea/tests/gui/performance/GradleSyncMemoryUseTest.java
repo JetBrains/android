@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.performance;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -48,15 +49,15 @@ public class GradleSyncMemoryUseTest {
   public void changeCompileSdkVersion() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      String currentVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
-      String previousVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API - 1);
+      int currentVersion = Integer.parseInt(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.getCompileSdk());
+      int previousVersion = currentVersion - 1;
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
             it.getEditor()
               .open("app/build.gradle")
               .select("compileSdkVersion (" + currentVersion + ")")
-              .enterText(previousVersion)
+              .enterText("" + previousVersion)
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")
@@ -65,7 +66,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("compileSdkVersion (" + previousVersion + ")")
-              .enterText(currentVersion)
+              .enterText("" + currentVersion)
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")
@@ -78,7 +79,7 @@ public class GradleSyncMemoryUseTest {
   public void changeCompileSdkVersionFail() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      String currentVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
+      String currentVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.getCompileSdk();
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
