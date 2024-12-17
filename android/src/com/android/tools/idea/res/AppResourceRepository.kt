@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.res.LocalResourceRepository
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
@@ -38,7 +37,6 @@ private constructor(
     parentDisposable,
     facet.module.name + " with modules and libraries",
   ) {
-  private val LOG = Logger.getInstance(AppResourceRepository::class.java)
   private val resourceMapLock = Any()
 
   /** Resource directories. Computed lazily. */
@@ -64,10 +62,6 @@ private constructor(
   }
 
   override fun refreshChildren() {
-    if (facet.module.project.isDisposed) {
-      LOG.warn("Project is disposed")
-      return
-    }
     val manager = StudioResourceRepositoryManager.getInstance(facet)
     refreshChildren(computeLocalRepositories(manager), computeLibraryResources(manager))
   }
