@@ -25,7 +25,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
 const val GRADLE_SNAPSHOT_VERSION = "8.12-20241210012659+0000"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.1.20-dev-2943"
+const val KOTLIN_SNAPSHOT_VERSION = "2.1.20-Beta1-28"
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
