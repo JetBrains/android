@@ -65,7 +65,6 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   private void updatePresentation(@NotNull AnActionEvent e) {
-    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     Project project = e.getProject();
     Presentation presentation = e.getPresentation();
