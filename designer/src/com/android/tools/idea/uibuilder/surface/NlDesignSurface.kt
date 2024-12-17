@@ -55,14 +55,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.google.common.collect.ImmutableList
@@ -529,13 +527,12 @@ internal constructor(
     val layoutManager = sceneViewLayoutManager.currentLayout.value.layoutManager
 
     // If layout is grouped grid layout.
-    val isGroupedGridLayout =
-      layoutManager is GroupedGridSurfaceLayoutManager || layoutManager is GridLayoutManager
+    val isGroupedGridLayout = layoutManager is GridLayoutManager
 
     if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =
         createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
-    } else if (layoutManager !is GridSurfaceLayoutManager) {
+    } else {
       if (focusPoint.x < 0 || focusPoint.y < 0) {
         focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
       }

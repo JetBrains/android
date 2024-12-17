@@ -20,9 +20,7 @@ import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import com.intellij.openapi.Disposable
@@ -61,8 +59,6 @@ class PreviewCanvasTrackerImpl(
         when (layout) {
           is GalleryLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GALLERY
           is SingleDirectionLayoutManager -> ComposePreviewCanvasEvent.LayoutName.LIST
-          is GridSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GRID
-          is GroupedGridSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GROUPED_GRID
           is GridLayoutManager -> ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
           else -> ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
         }
