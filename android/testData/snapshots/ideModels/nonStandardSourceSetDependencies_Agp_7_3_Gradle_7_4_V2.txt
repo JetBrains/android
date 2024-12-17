@@ -111,24 +111,24 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/R.txt
-    - library                     : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/aidl [-]
-        artifact                      : <M2>/androidx/arch/core/core-runtime/2.1.0/core-runtime-2.1.0.aar
-        artifactAddress               : androidx.arch.core:core-runtime:2.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-        component                     : androidx.arch.core:core-runtime:2.1.0
-        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0
-        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/R.txt
+    - library                     : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/<KOTLIN_VERSION_FOR_TESTS>/core-runtime-<KOTLIN_VERSION_FOR_TESTS>.aar
+        artifactAddress               : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/R.txt
     - library                     : androidx.core:core:1.5.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/aidl
         artifact                      : <M2>/androidx/core/core/1.5.0/core-1.5.0.aar
@@ -609,10 +609,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
         artifactAddress               : androidx.annotation:annotation:1.2.0@jar
         component                     : androidx.annotation:annotation:1.2.0
-    - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-        artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
-        component                     : androidx.arch.core:core-common:2.1.0
+    - library                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
+        artifactAddress               : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+        component                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
     - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
         artifactAddress               : androidx.collection:collection:1.1.0@jar
@@ -2777,13 +2777,13 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -2802,7 +2802,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -2810,8 +2810,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -2840,9 +2840,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -2869,7 +2869,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -2904,7 +2904,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/jars/classes.jar
-                    - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
@@ -2923,7 +2923,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
                     - class                       : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
-                    - class                       : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+                    - class                       : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
                     - class                       : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
                     - class                       : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
                 ApplicationId                 : me.monori.gradleprojectpathissue
@@ -3048,13 +3048,13 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -3073,7 +3073,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3081,8 +3081,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3111,9 +3111,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -3143,7 +3143,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3191,7 +3191,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/jars/classes.jar
-                    - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
@@ -3212,7 +3212,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
                     - class                       : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
-                    - class                       : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+                    - class                       : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
                     - class                       : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
                     - class                       : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -3858,7 +3858,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3908,12 +3908,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3940,7 +3940,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3967,13 +3967,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -3992,7 +3992,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4000,8 +4000,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4030,9 +4030,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -4058,7 +4058,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4107,7 +4107,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4157,12 +4157,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4189,7 +4189,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4218,13 +4218,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -4243,7 +4243,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4251,8 +4251,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4281,9 +4281,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -4309,7 +4309,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4368,7 +4368,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4418,12 +4418,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4450,7 +4450,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4479,13 +4479,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -4504,7 +4504,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4512,8 +4512,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4542,9 +4542,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
@@ -4570,7 +4570,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar

@@ -32,7 +32,7 @@ MODULE                        : MultiFlavor.app
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                     androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
                     androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
-                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
                     androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
@@ -43,11 +43,11 @@ MODULE                        : MultiFlavor.app
                     androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
                     androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
                     androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
-                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                     androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
                     androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
                     androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
                     androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
@@ -59,7 +59,7 @@ MODULE                        : MultiFlavor.app
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                     androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
                     androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
-                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
                     androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
@@ -70,11 +70,11 @@ MODULE                        : MultiFlavor.app
                     androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
                     androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
                     androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
-                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                     androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
                     androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
                     androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
                     androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
@@ -90,7 +90,7 @@ MODULE                        : MultiFlavor.app
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                     androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
                     androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
-                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
                     androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
@@ -101,11 +101,11 @@ MODULE                        : MultiFlavor.app
                     androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
                     androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
                     androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
-                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                     androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
                     androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
                     androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
                     androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
@@ -120,7 +120,7 @@ MODULE                        : MultiFlavor.app
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                     androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
                     androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
-                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
                     androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
@@ -131,11 +131,11 @@ MODULE                        : MultiFlavor.app
                     androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
                     androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
                     androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
-                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                     androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                     androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
                     androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
                     androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
                     androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
@@ -157,7 +157,7 @@ MODULE                        : MultiFlavor.app
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                 androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
                 androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
-                androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                androidx.arch.core:core-common          : null => androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
                 androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                 androidx.collection:collection          : null => androidx.collection:collection:1.1.0
                 androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
@@ -168,11 +168,11 @@ MODULE                        : MultiFlavor.app
                 androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
                 androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
                 androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
-                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                 androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                 androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
                 androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
                 androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
                 androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
@@ -196,7 +196,7 @@ MODULE                        : MultiFlavor.app
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
                 androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
                 androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0@aar
                 androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.2@aar
@@ -345,10 +345,10 @@ MODULE                        : MultiFlavor.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/proguard.txt
                 ResolvedCoordinates           : androidx.appcompat:appcompat:1.1.0
-            LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:2.1.0)
-                - JarFiles                    : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                Identifier                    : androidx.arch.core:core-common:2.1.0
-                ResolvedCoordinates           : androidx.arch.core:core-common:2.1.0
+            LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>)
+                - JarFiles                    : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
+                Identifier                    : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+                ResolvedCoordinates           : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
             LintModelLibrary              : AndroidLibrary(androidx.arch.core:core-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
                 Identifier                    : androidx.arch.core:core-runtime:2.0.0@aar
@@ -453,10 +453,10 @@ MODULE                        : MultiFlavor.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.interpolator:interpolator:1.0.0
-            LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:2.1.0)
-                - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar
-                Identifier                    : androidx.lifecycle:lifecycle-common:2.1.0
-                ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:2.1.0
+            LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>)
+                - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/<KOTLIN_VERSION_FOR_TESTS>/lifecycle-common-<KOTLIN_VERSION_FOR_TESTS>.jar
+                Identifier                    : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata-core:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
                 Identifier                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
@@ -481,30 +481,30 @@ MODULE                        : MultiFlavor.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata:2.0.0
-            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:2.1.0)
-                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
-                Identifier                    : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
-                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
-                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
-                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/assets [-]
-                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/public.txt [-]
-                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/R.txt
-                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/annotations.zip [-]
-                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/proguard.txt
-                ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:2.1.0
-            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:2.1.0)
-                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
-                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
-                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
-                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
-                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
-                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/assets [-]
-                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/public.txt [-]
-                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/R.txt
-                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/annotations.zip [-]
-                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/proguard.txt
-                ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:2.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>
             LintModelLibrary              : AndroidLibrary(androidx.loader:loader:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
                 Identifier                    : androidx.loader:loader:1.0.0@aar

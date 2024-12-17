@@ -177,7 +177,7 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
@@ -199,15 +199,15 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
             Scope                         : Test
@@ -361,7 +361,7 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
@@ -372,11 +372,11 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS> [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
@@ -495,7 +495,7 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
@@ -517,15 +517,15 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
             Scope                         : Test
@@ -575,8 +575,8 @@ PROJECT                       : MultiFlavor
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0
-            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
@@ -610,20 +610,20 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0
-            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
+            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/<KOTLIN_VERSION_FOR_TESTS>/lifecycle-common-<KOTLIN_VERSION_FOR_TESTS>.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/

@@ -151,7 +151,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.9.23",
-        "@maven//:org.jetbrains.kotlin.kotlin-build-common_2.1.0-RC",
+        "@maven//:org.jetbrains.kotlin.kotlin-build-common_2.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.23",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.4.32",

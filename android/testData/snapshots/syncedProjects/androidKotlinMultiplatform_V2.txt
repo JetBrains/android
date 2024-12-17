@@ -843,7 +843,7 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.4.1 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0 [=]
             Scope                         : Test
@@ -1960,8 +1960,8 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/res
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0
-            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
