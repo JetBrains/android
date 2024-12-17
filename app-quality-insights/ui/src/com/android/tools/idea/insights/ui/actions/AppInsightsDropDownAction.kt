@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.ui.getTotalHeight
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -80,7 +81,4 @@ open class AppInsightsDropDownAction<T>(
       popUpMenu.component,
     )
   }
-
-  private fun ActionToolbar.getTotalHeight() =
-    component.height.div(2) + component.border.getBorderInsets(component).bottom
 }
