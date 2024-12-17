@@ -39,9 +39,9 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -141,7 +141,7 @@ class ExplainSyncOrBuildOutputTest {
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -182,7 +182,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -221,7 +221,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -241,7 +241,7 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
@@ -264,7 +264,7 @@ Explain this error and how to fix it.
     val panel = createTree()
     val action = ExplainSyncOrBuildOutput()
     val event =
-      createEvent(TestDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     assertTrue(event.presentation.isEnabled)
     // no selection
@@ -282,21 +282,10 @@ Explain this error and how to fix it.
     assertThat(geminiPluginApi.stagedPrompt)
   }
 
-  inner class TestDataContext(val panel: Tree) : DataContext {
-
-    override fun getData(dataId: String): Any? {
-      throw NotImplementedError()
-    }
-
-    override fun <T> getData(key: DataKey<T>): T? {
-      @Suppress("UNCHECKED_CAST")
-      return when (key) {
-        CommonDataKeys.PROJECT -> project as T
-        PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
-        else -> null
-      }
-    }
-  }
+  fun testDataContext(panel: Tree): DataContext = SimpleDataContext.builder()
+    .add(CommonDataKeys.PROJECT, project)
+    .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
+    .build()
 
   @Test
   fun testActionUpdateThread() {
