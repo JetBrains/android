@@ -114,7 +114,7 @@ abstract class AbstractDisplayView(
 
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
-  protected open val hardwareInput: HardwareInput = HardwareInput()
+  protected abstract val hardwareInput: HardwareInput
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   protected open val project: Project?
@@ -264,10 +264,6 @@ abstract class AbstractDisplayView(
     frameListeners.remove(listener)
   }
 
-  internal fun interface FrameListener {
-    fun frameRendered(frameNumber: UInt, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
-  }
-
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {
     val displayRectangle = displayRectangle ?: return null
     val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)
@@ -355,6 +351,10 @@ abstract class AbstractDisplayView(
       get() = if (wheelRotation != 0) wheelRotation.toDouble() else preciseWheelRotation
   }
 
+  internal fun interface FrameListener {
+    fun frameRendered(frameNumber: UInt, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
+  }
+
   protected open class HardwareInput {
 
     private var pressedModifierKeys = 0
@@ -394,7 +394,7 @@ abstract class AbstractDisplayView(
     }
   }
 
- /** Attempts to restore a lost device connection. */
+  /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */

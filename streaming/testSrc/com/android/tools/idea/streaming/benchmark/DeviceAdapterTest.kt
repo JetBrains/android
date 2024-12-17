@@ -465,6 +465,7 @@ class DeviceAdapterTest {
     override val displayOrientationQuadrants = 0
     override val apiLevel: Int
       get() = 0
+    override val hardwareInput = HardwareInput()
 
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
 
