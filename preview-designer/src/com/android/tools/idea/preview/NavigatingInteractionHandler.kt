@@ -18,6 +18,7 @@ package com.android.tools.idea.preview
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
@@ -34,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
@@ -55,13 +57,49 @@ class NavigatingInteractionHandler(
 
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
-    // then
-    // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
+    // then no navigation will happen. Only selection may be affected (see
+    // mouseReleaseWhenNoInteraction)
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Highlight the clicked widget but keep focus in DesignSurface.
       clickPreview(x, y, false)
     }
+  }
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    val componentToSceneView: MutableMap<NlComponent, SceneView> = mutableMapOf()
+    for (sceneView in surface.sceneViews) {
+      if (sceneView.firstComponent != null) {
+        componentToSceneView.put(sceneView.firstComponent!!, sceneView)
+      }
+    }
+    var selectedComponent =
+      componentToSceneView.keys
+        .filter { componentToSceneView[it]!!.selectionModel.isSelected(it) }
+        .firstOrNull()
+    if (selectedComponent == null) {
+      return super.keyPressedWithoutInteraction(keyEvent)
+    }
+
+    val otherComponentsInView =
+      componentToSceneView.entries
+        .filter { !it.key.equals(selectedComponent) }
+        // Filter components that are in closed sections of the grid view
+        .filter { it.value.x > -1 && it.value.y > -1 }
+        .mapNotNull { it.key }
+
+    when (keyEvent.keyCode) {
+      KeyEvent.VK_LEFT ->
+        selectComponentToTheLeft(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_UP ->
+        selectComponentToTheTop(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_RIGHT ->
+        selectComponentToTheRight(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_DOWN ->
+        selectComponentToTheBottom(selectedComponent, otherComponentsInView, componentToSceneView)
+    }
+    surface.repaint()
+    return super.keyPressedWithoutInteraction(keyEvent)
   }
 
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {
@@ -159,6 +197,97 @@ class NavigatingInteractionHandler(
     if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
       super.mouseExited()
     }
+  }
+
+  private fun selectComponentToTheLeft(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    var toSelectInCurrentRow =
+      otherComponents
+        .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+        .filter { componentToSceneView[it]!!.x < componentToSceneView[selectedComponent]!!.x }
+    if ((toSelectInCurrentRow.isNotEmpty()))
+      return componentToSceneView[toSelectInCurrentRow.last()]!!.selectComponent(
+        toSelectInCurrentRow.last(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
+    var toSelectPreviousRow =
+      otherComponents.filter {
+        componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y
+      }
+    if (toSelectPreviousRow.isNotEmpty()) {
+      componentToSceneView[toSelectPreviousRow.last()]!!.selectComponent(
+        toSelectPreviousRow.lastOrNull(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
+    }
+  }
+
+  private fun selectComponentToTheRight(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    var toSelectInCurrentRow =
+      otherComponents
+        .filter { componentToSceneView[it]!!.x > componentToSceneView[selectedComponent]!!.x }
+        .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+    if ((toSelectInCurrentRow.isNotEmpty()))
+      return componentToSceneView[toSelectInCurrentRow.first()]!!.selectComponent(
+        toSelectInCurrentRow.first(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
+    var toSelectNextRow =
+      otherComponents.filter {
+        componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y
+      }
+    if (toSelectNextRow.isNotEmpty()) {
+      componentToSceneView[toSelectNextRow.first()]!!.selectComponent(
+        toSelectNextRow.first(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
+    }
+  }
+
+  private fun selectComponentToTheBottom(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    var toSelect =
+      otherComponents
+        .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+        .filter { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
+
+    if (toSelect.isNotEmpty())
+      componentToSceneView[toSelect.first()]!!.selectComponent(
+        toSelect.first(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
+  }
+
+  private fun selectComponentToTheTop(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    var toSelect =
+      otherComponents
+        .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+        .filter { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
+    if (toSelect.isNotEmpty())
+      componentToSceneView[toSelect.last()]!!.selectComponent(
+        toSelect.last(),
+        allowToggle = false,
+        ignoreIfAlreadySelected = true,
+      )
   }
 
   /**
