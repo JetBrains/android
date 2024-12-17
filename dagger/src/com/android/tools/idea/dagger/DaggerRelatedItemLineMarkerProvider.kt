@@ -84,12 +84,13 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       val gotoItems = daggerElement.getGotoItems()
       if (gotoItems.isEmpty()) return
 
+      val tooltip = getTooltip(daggerElement.psiElement, gotoItems)
       lineMarkerInfo =
         RelatedItemLineMarkerInfo(
           element,
           element.textRange,
           daggerElement.getIcon(),
-          { getTooltip(daggerElement.psiElement, gotoItems) },
+          { tooltip },
           NavigationHandler(gotoItems, metricsType),
           GutterIconRenderer.Alignment.RIGHT,
           { gotoItems },
