@@ -135,7 +135,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     viewSettings: RenderSettings,
     treeSettings: TreeSettings,
   ) {
-    val owner = findFilteredOwner(treeSettings) ?: return
+    val owner = unfilteredOwner
     // Draw the outline of the border (the white border around the main view border) if necessary.
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
