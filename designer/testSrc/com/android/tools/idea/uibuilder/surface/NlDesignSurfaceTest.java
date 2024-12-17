@@ -184,13 +184,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertNotNull(button3);
   }
 
-  public void testHandlerIsDisposedWhenSurfaceIsDisposed() {
-    DesignSurfaceActionHandler handler = defaultActionHandlerProvider(mySurface);
-    assertFalse(Disposer.isDisposed(handler));
-    Disposer.dispose(mySurface);
-    assertTrue(Disposer.isDisposed(handler));
-  }
-
   /**
    * Cut a component and check that the id of the new component has been conserved
    */

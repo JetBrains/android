@@ -98,7 +98,10 @@ internal constructor(
       >,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
-  actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler,
+  actionHandlerProvider:
+    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
+        DesignSurface<LayoutlibSceneManager>
+      >,
   private val delegateDataProvider: DataProvider?,
   selectionModel: SelectionModel,
   zoomControlsPolicy: ZoomControlsPolicy,

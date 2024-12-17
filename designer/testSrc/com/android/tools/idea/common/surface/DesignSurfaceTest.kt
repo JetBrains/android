@@ -409,7 +409,8 @@ class TestLayoutManager : PositionableContentLayoutManager() {
   }
 }
 
-class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
+class TestActionHandler<T : SceneManager>(surface: DesignSurface<T>) :
+  DesignSurfaceActionHandler<DesignSurface<T>>(surface) {
   override val pasteTarget: NlComponent? = null
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean = false

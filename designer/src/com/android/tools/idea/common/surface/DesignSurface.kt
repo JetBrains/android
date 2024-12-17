@@ -83,10 +83,6 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
 import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Color
@@ -102,6 +98,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -116,6 +113,10 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
@@ -148,7 +149,8 @@ abstract class DesignSurface<T : SceneManager>(
   positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open. "open" can be removed if we remove the mocks.
-  open val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler,
+  open val actionHandlerProvider:
+    (DesignSurface<T>) -> DesignSurfaceActionHandler<DesignSurface<T>>,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
@@ -163,6 +165,9 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
   protected val scope = AndroidCoroutineScope(this)
+
+  /** Stores whether this surface is disposed */
+  private val _isDisposed = AtomicBoolean(false)
 
   /** The expected bitwise mask value for when we want to restore the zoom. */
   private val expectedRestoreZoomMask: Int =
@@ -364,7 +369,7 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   fun registerIndicator(indicator: ProgressIndicator) {
-    if (project.isDisposed || Disposer.isDisposed(this)) {
+    if (project.isDisposed || isDisposed()) {
       return
     }
     synchronized(progressIndicators) {
@@ -388,7 +393,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** The editor has been activated */
   open fun activate() {
-    if (Disposer.isDisposed(this)) {
+    if (isDisposed()) {
       // Prevent activating a disposed surface.
       return
     }
@@ -1285,7 +1290,7 @@ abstract class DesignSurface<T : SceneManager>(
     sink[ZOOMABLE_KEY] = zoomController
     sink[CONFIGURATIONS] = configurations
 
-    val handler: DesignSurfaceActionHandler = actionHandlerProvider(this)
+    val handler: DesignSurfaceActionHandler<DesignSurface<T>> = actionHandlerProvider(this)
     sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = handler
     sink[PlatformDataKeys.CUT_PROVIDER] = handler
     sink[PlatformDataKeys.COPY_PROVIDER] = handler
@@ -1317,7 +1322,13 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
+  /** Returns true if this [DesignSurface] is disposed. */
+  fun isDisposed(): Boolean {
+    return _isDisposed.get()
+  }
+
   override fun dispose() {
+    _isDisposed.set(true)
     clearListeners()
     guiInputHandler.stopListening()
     Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)

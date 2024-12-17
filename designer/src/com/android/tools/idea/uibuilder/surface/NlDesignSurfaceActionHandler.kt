@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
@@ -30,13 +31,14 @@ import java.awt.datatransfer.DataFlavor
 class NlDesignSurfaceActionHandler
 @JvmOverloads
 constructor(
-  surface: DesignSurface<*>,
+  surface: DesignSurface<LayoutlibSceneManager>,
   @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance(),
-) : DesignSurfaceActionHandler(surface, copyPasteManager) {
+) : DesignSurfaceActionHandler<DesignSurface<LayoutlibSceneManager>>(surface, copyPasteManager) {
 
   override fun deleteElement(dataContext: DataContext) {
+    val surface = surfaceOrNull ?: return
     // For layout editor we may delete selected constraints.
-    if (ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
+    if (ConstraintComponentUtilities.clearSelectedConstraint(surface)) {
       return
     }
     super.deleteElement(dataContext)
@@ -46,9 +48,10 @@ constructor(
 
   override val pasteTarget: NlComponent?
     get() {
-      val sceneView = mySurface.focusedSceneView ?: return null
+      val surface = surfaceOrNull ?: return null
+      val sceneView = surface.focusedSceneView ?: return null
 
-      val selection = mySurface.selectionModel.selection
+      val selection = surface.selectionModel.selection
       if (selection.size > 1) {
         return null
       }
