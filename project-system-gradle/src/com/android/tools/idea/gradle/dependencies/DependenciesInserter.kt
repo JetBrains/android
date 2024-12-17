@@ -40,22 +40,46 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
    *
    * The plugin is applied to each of the modules in [buildModels]
    */
-  open fun addPlugin(pluginId: String,
-                classpathDependency: String,
-                buildModels: List<GradleBuildModel>,
-                pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
-                classpathMatcher: DependencyMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME,
-                                                                                 classpathDependency)): Set<PsiFile> {
-    val dependency = Dependency.parse(classpathDependency)
-    require(dependency.version != null) { "Classpath $classpathDependency version is empty" }
-    val version = dependency.version!!.toString()
+  open fun addPluginOrClasspath(
+    pluginId: String,
+    classpathModule: String,
+    version: String,
+    buildModels: List<GradleBuildModel>,
+    pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
+    classpathMatcher: DependencyMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version")
+  ): Set<PsiFile> {
+    val classpathInfo = PluginClasspathInfo("$classpathModule:$version", classpathMatcher)
+    return  findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, pluginMatcher, classpathInfo)
+  }
+
+  open fun findPlaceAndAddPlugin(pluginId: String,
+                     version: String,
+                     buildModels: List<GradleBuildModel>,
+                     pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile> =
+    findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, pluginMatcher, null)
+
+  data class PluginClasspathInfo(val dependency: String, val matcher: DependencyMatcher)
+
+
+  private fun findPlaceAndAddPluginOrClasspath(
+    pluginId: String,
+    version: String,
+    buildModels: List<GradleBuildModel>,
+    pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
+    classpathInfo: PluginClasspathInfo?,
+  ): Set<PsiFile> {
     val projectBuildModel = projectModel.projectBuildModel ?: error("Build model for root project not found")
     val updatedFiles = mutableSetOf<PsiFile>()
-    if (!hasPlugin(pluginMatcher, classpathMatcher)) {
+    if (!hasPlugin(pluginMatcher, classpathInfo?.matcher)) {
       val result = sequenceOf(
         lazy { tryAddToPluginsManagementBlock(pluginId, version, projectBuildModel, pluginMatcher) },
         lazy { tryAddToPluginsBlock(pluginId, version, projectBuildModel, pluginMatcher) },
-        lazy { tryAddToBuildscriptDependencies(classpathDependency, projectBuildModel, classpathMatcher) }
+        lazy {
+          if (classpathInfo != null)
+            tryAddToBuildscriptDependencies(classpathInfo.dependency, projectBuildModel, classpathInfo.matcher)
+          else
+            TryAddResult.failed()
+        }
       ).firstOrNull { it.value.succeed }?.value
 
       // in case there is nothing - we force adding plugin to root project plugins block
@@ -143,7 +167,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
    */
   private fun hasPlugin(
     pluginMatcher: PluginMatcher,
-    classpathMatcher: DependencyMatcher
+    classpathMatcher: DependencyMatcher?
   ): Boolean {
     val pluginManagementPlugins =
       projectModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()
@@ -153,7 +177,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     if (projectModel.projectBuildModel?.plugins()?.any { pluginMatcher.match(it) } == true) {
       return true
     }
-    if (projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true) {
+    if (classpathMatcher!=null && projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true) {
       return true
     }
     return false

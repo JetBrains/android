@@ -730,8 +730,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
 
-             val changed = helper.addPlugin("com.google.gms.google-services",
-                                            "com.google.gms:google-services:4.3.14",
+             val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
+                                            "com.google.gms:google-services",
+                                                       "4.3.14",
                                             listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
@@ -769,8 +770,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
 
-             val changed = helper.addPlugin("com.google.gms.google-services",
-                                            "com.google.gms:google-services:4.3.14",
+             val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
+                                            "com.google.gms:google-services",
+                                                       "4.3.14",
                                             listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
@@ -810,9 +812,10 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              assertThat(projectModel).isNotNull()
 
              val changed =
-               helper.addPlugin(
+               helper.addPluginOrClasspath(
                  "com.android.application",
-                 "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+                 "com.android.tools.build:gradle",
+                 env.gradlePluginVersion,
                  listOf(moduleModel)
                )
              assertThat(changed.size).isEqualTo(0)
@@ -856,9 +859,10 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              assertThat(projectModel).isNotNull()
 
              val changed =
-               helper.addPlugin(
+               helper.addPluginOrClasspath(
                  "com.android.application",
-                 "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+                 "com.android.tools.build:gradle",
+                 env.gradlePluginVersion,
                  listOf(moduleModel)
                )
              assertThat(changed.size).isEqualTo(0)
@@ -879,9 +883,34 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSmartAddPluginNoCatalogPluginsBlock() {
     doTest(MIGRATE_BUILD_CONFIG,
            { _, moduleModel, helper ->
-             val changed = helper.addPlugin("com.google.gms.google-services",
-                                            "com.google.gms:google-services:4.3.14",
+             val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
+                                            "com.google.gms:google-services",
+                                                       "4.3.14",
                                             listOf(moduleModel))
+             assertThat(changed.size).isEqualTo(2)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             val regex = "id 'com.google.gms.google-services' version '4.3.14' apply false".toRegex()
+             assertThat(regex.findAll(projectBuildContent).toList().size).isEqualTo(1)
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(projectBuildContent).doesNotContain("classpath")
+
+             // root project plugins block
+             val moduleBuildContent = project.getTextForFile("app/build.gradle")
+             val regex2 = "id 'com.google.gms.google-services'".toRegex()
+             assertThat(regex2.findAll(moduleBuildContent).toList().size).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testFindPlaceAndAddPluginNoCatalogPluginsBlock() {
+    doTest(MIGRATE_BUILD_CONFIG,
+           { _, moduleModel, helper ->
+             val changed = helper.findPlaceAndAddPlugin("com.google.gms.google-services",
+                                                       "4.3.14",
+                                                       listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
            {
@@ -903,8 +932,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSmartAddPluginWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             val changed = helper.addPlugin("com.google.gms.google-services",
-                                            "com.google.gms:google-services:4.3.14",
+             val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
+                                            "com.google.gms:google-services",
+                                                       "4.3.14",
                                             listOf(moduleModel))
              assertThat(changed.size).isEqualTo(3)
            },
@@ -929,8 +959,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSmartAddPluginToNewProject() {
     doTest(MINIMAL_CATALOG_APPLICATION,
            { _, moduleModel, helper ->
-             val changed = helper.addPlugin("com.google.gms.google-services",
-                                            "com.google.gms:google-services:4.3.14",
+             val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
+                                            "com.google.gms:google-services",
+                                                       "4.3.14",
                                             listOf(moduleModel))
              assertThat(changed.size).isEqualTo(3)
            },

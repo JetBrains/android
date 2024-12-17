@@ -69,9 +69,10 @@ class AddComposeCompilerGradlePluginProcessor(
     val projectBuildModel = ProjectBuildModel.get(myProject)
     val moduleBuildModels = affectedModules.mapNotNull { projectBuildModel.getModuleBuildModel(it) }
     DependenciesHelper.withModel(projectBuildModel)
-      .addPlugin(
+      .addPluginOrClasspath(
         "org.jetbrains.kotlin.plugin.compose",
-        "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion",
+        "org.jetbrains.kotlin:compose-compiler-gradle-plugin",
+        kotlinVersion,
         moduleBuildModels
       )
 

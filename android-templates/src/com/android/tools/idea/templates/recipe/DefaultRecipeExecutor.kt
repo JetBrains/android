@@ -192,8 +192,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel: GradleBuildModel,
   ) {
     val projectModel = projectBuildModel ?: return
+    val dependency = Dependency.parse(classpath)
     val dependenciesHelper = DependenciesHelper.withModel(projectModel)
-    dependenciesHelper.addPlugin(plugin, classpath, listOf(buildModel))
+    dependenciesHelper.addPluginOrClasspath(plugin, dependency.module.toString(), dependency.version.toString(), listOf(buildModel))
   }
 
   private fun applyPluginInBuildModel(
@@ -216,22 +217,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
-    // applyFlag is either of false or null in this context because the gradle dsl
-    // [PluginsModel#applyPlugin]
-    // takes a nullable Boolean that means:
-    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
-    //  - The flag being null means nothing is appended
-    maybeGetPluginsFromSettings()?.let {
-      dependenciesHelper.addPlugin(plugin, resolvedVersion, null, it, buildModel)
-    }
-      ?: maybeGetPluginsFromProject()?.let {
-        dependenciesHelper.addPlugin(plugin, resolvedVersion, false, it, buildModel)
-      }
-      ?: run {
-        // When the revision is specified, but plugins block isn't defined in the settings nor the
-        // project level build file, just apply the plugin without a revision.
-        dependenciesHelper.addPlugin(plugin, buildModel)
-      }
+    dependenciesHelper.findPlaceAndAddPlugin(plugin, resolvedVersion, listOf(buildModel))
   }
 
   override fun addClasspathDependency(
