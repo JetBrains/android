@@ -217,20 +217,11 @@ class GradleTaskFinderWorker private constructor(
         }
       }
 
+      // This check need to be before isGradleJavaModule as KMP modules can(?) be both and we don't want to fall back to default tasks as
+      // sometimes, these aren't even registered and can result in build failures; Also, they would invoke much slower tasks.
+      // https://youtrack.jetbrains.com/issue/KT-67553/Expose-a-new-API-to-know-how-to-build-KMP-modules
       moduleToProcess.isKmpModule -> {
-        when (moduleToProcess.buildMode) {
-          BuildMode.ASSEMBLE -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = emptySet(),
-            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
-          )
-          BuildMode.REBUILD -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = setOf(GradleBuilds.CLEAN_TASK_NAME),
-            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
-          )
-          else -> null
-        }
+        null
       }
 
       moduleToProcess.isGradleJavaModule -> {

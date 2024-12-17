@@ -1201,8 +1201,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpFirstLib.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpFirstLib:assemble
-                REBUILD                       : :kmpFirstLib:assemble, :kmpFirstLib:clean
     MODULE                        : Kotlin_Multiplatform.kmpFirstLib.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1287,8 +1285,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform.kmpFirstLib.commonTest
         BUILD_TASKS
-                ASSEMBLE                      : :kmpFirstLib:assemble
-                REBUILD                       : :kmpFirstLib:assemble, :kmpFirstLib:clean
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleVersion         : unspecified
@@ -1312,8 +1308,6 @@ PROJECT                       : Kotlin Multiplatform
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.commonMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1372,8 +1366,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpJvmOnly.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1437,8 +1429,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1499,8 +1489,6 @@ PROJECT                       : Kotlin Multiplatform
             -                             : file://<PROJECT>/kmpJvmOnly/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmpJvmOnly/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.jvmTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1567,8 +1555,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.kmpSecondLib
@@ -1763,8 +1749,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpSecondLib.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1828,8 +1812,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1890,8 +1872,6 @@ PROJECT                       : Kotlin Multiplatform
             -                             : file://<PROJECT>/kmpSecondLib/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmpSecondLib/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1958,8 +1938,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : Kotlin_Multiplatform.app
@@ -2104,8 +2082,8 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:assembleAndroidMain
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
+            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpSecondLib:assembleAndroidMain
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
             COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:compileAndroidMain, <PROJECT>::kmpFirstLib:compileAndroidUnitTest, <PROJECT>::kmpSecondLib:compileAndroidMain
             SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
