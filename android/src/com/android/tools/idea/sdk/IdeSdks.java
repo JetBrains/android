@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -458,7 +459,7 @@ public class IdeSdks {
 
     AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
     if (sdkManagerAction != null) {
-      sdkManagerAction.update(AnActionEvent.createEvent(dataId -> null, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
+      sdkManagerAction.update(AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
     }
   }
 
