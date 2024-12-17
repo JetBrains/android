@@ -181,9 +181,6 @@ import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
 import com.android.emulator.control.Notification as EmulatorNotification
 
-/** Number of device pixels per single tick of the mouse wheel. */
-private const val MOUSE_WHEEL_FACTOR = 120
-
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
