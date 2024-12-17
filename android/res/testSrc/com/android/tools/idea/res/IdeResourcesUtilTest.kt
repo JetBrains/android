@@ -35,8 +35,6 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -62,7 +60,6 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
-import junit.framework.TestCase
 import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
@@ -859,11 +856,10 @@ class IdeResourcesUtilAdditionalModulesTest : AndroidTestCase() {
    * Tests that "inherited" resource references are found (R fields in generated in dependent
    * modules).
    */
-  @Throws(Exception::class)
   fun testFindResourceFieldsWithInheritance() {
-    val libModule = myAdditionalModules[0]
-    // Remove the current manifest (has wrong package name) and copy a manifest with proper package
-    // into the lib module.
+    // Remove the current lib manifest (has wrong package name) and copy a manifest with proper
+    // package into the lib module.
+    val libModule = myAdditionalModules.single()
     deleteManifest(libModule)
 
     myFixture.copyFileToProject(
@@ -877,28 +873,23 @@ class IdeResourcesUtilAdditionalModulesTest : AndroidTestCase() {
       "additionalModules/lib/res/values/strings.xml",
     )
 
-    val facet = AndroidFacet.getInstance(libModule)
-    assertThat(facet).isNotNull()
-    val fields = findResourceFields(facet!!, "string", "lib_hello")
+    val facet = kotlin.test.assertNotNull(AndroidFacet.getInstance(libModule))
+    val fields = findResourceFields(facet, "string", "lib_hello")
+    assertThat(fields).hasLength(2)
 
-    val packages: MutableSet<String?> = Sets.newHashSet<String?>()
-    for (field in fields) {
-      TestCase.assertEquals("lib_hello", field.name)
-      packages.add(
-        StringUtil.getPackageName(field.containingClass?.containingClass?.qualifiedName!!)
-      )
-    }
-    assertEquals(ImmutableSet.of<String?>("p1.p2", "p1.p2.lib"), packages)
-    TestCase.assertEquals(2, fields.size)
+    val packages =
+      fields
+        .mapNotNull { it.containingClass?.containingClass?.qualifiedName }
+        .map(StringUtil::getPackageName)
+    assertThat(packages).containsExactly("p1.p2", "p1.p2.lib")
   }
 
   /** Tests that a module without an Android Manifest can still import a lib's R class */
-  @Throws(Exception::class)
   fun testIsRJavaFileImportedNoManifest() {
-    val libModule = myAdditionalModules[0]
     // Remove the current lib manifest (has wrong package name) and copy a manifest with proper
     // package into the lib module.
-    deleteManifest(libModule)
+    deleteManifest(myAdditionalModules.single())
+
     myFixture.copyFileToProject(
       "util/lib/AndroidManifest.xml",
       "additionalModules/lib/AndroidManifest.xml",
@@ -913,10 +904,9 @@ class IdeResourcesUtilAdditionalModulesTest : AndroidTestCase() {
     deleteManifest(myModule)
 
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
-    val facet = AndroidFacet.getInstance(myModule)
-    assertThat(facet).isNotNull()
-    val mainFields = findResourceFields(facet!!, "string", "lib_hello" /* onlyInOwnPackages */)
-    assertEmpty(mainFields)
+    val facet = kotlin.test.assertNotNull(AndroidFacet.getInstance(myModule))
+    val mainFields = findResourceFields(facet, "string", "lib_hello" /* onlyInOwnPackages */)
+    assertThat(mainFields).isEmpty()
 
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
@@ -924,7 +914,7 @@ class IdeResourcesUtilAdditionalModulesTest : AndroidTestCase() {
     val javaFile =
       myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}")
     val libRClass = myFixture.javaFacade.findClass("p1.p2.lib.R", javaFile.resolveScope)
-    assertNotNull(libRClass)
-    assertTrue(isRJavaClass(libRClass!!))
+    kotlin.test.assertNotNull(libRClass)
+    assertThat(isRJavaClass(libRClass)).isTrue()
   }
 }
