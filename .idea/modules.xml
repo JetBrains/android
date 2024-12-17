@@ -375,6 +375,7 @@
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" filepath="$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" />
+      <module fileurl="file://$PROJECT_DIR$/settings-sync/intellij.android.settings-sync.iml" filepath="$PROJECT_DIR$/settings-sync/intellij.android.settings-sync.iml" />
       <module fileurl="file://$PROJECT_DIR$/smali/intellij.android.smali.iml" filepath="$PROJECT_DIR$/smali/intellij.android.smali.iml" />
       <module fileurl="file://$PROJECT_DIR$/streaming/intellij.android.streaming.iml" filepath="$PROJECT_DIR$/streaming/intellij.android.streaming.iml" />
       <module fileurl="file://$PROJECT_DIR$/streaming/intellij.android.streaming.integration.iml" filepath="$PROJECT_DIR$/streaming/intellij.android.streaming.integration.iml" />

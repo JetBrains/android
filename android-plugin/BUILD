@@ -77,6 +77,7 @@ iml_module(
         "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation",
         "//tools/adt/idea/android/editing/metrics:intellij.android.core.editing.metrics",
         "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
+        "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
     ],
     # do not sort: must match IML order
     deps = [

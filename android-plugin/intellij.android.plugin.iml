@@ -76,5 +76,6 @@
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.metrics" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.studio-labs" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.settings-sync" scope="RUNTIME" />
   </component>
 </module>

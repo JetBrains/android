@@ -266,6 +266,7 @@ studio_plugin(
             "//tools/adt/idea/completion:intellij.android.completion",
             "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
             "//tools/adt/idea/gmaven:intellij.android.gmaven",
+            "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
