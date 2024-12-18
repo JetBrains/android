@@ -10,5 +10,11 @@ kotlin {
     namespace = "com.example.kmpsecondlib"
     compileSdk = 33
     minSdk = 22
+
+    compilations.all {
+      compilerOptions.configure {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+      }
+    }
   }
 }

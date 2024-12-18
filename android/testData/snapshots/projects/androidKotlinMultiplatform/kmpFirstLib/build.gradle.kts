@@ -22,6 +22,12 @@ kotlin {
       instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    compilations.all {
+      compilerOptions.configure {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+      }
+    }
+
     sourceSets.getByName("androidMain") {
       dependencies {
         api(project(":androidLib"))
