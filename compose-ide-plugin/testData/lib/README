@@ -3,3 +3,7 @@ compose-runtime-1.4.0-SNAPSHOT.jar:
 This JAR is only used in Live Edit unit test since the Compose compiler
 would not compile @Composable code without the runtime being in the
 input CLASSPATH.
+
+compose-runtime-desktop-1.7.0.jar:
+
+This JAR is only used in K2 Live Edit unit test.

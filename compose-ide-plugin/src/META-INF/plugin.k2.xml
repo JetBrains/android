@@ -19,6 +19,7 @@
     <callHighlighterExtension implementation="com.android.tools.compose.aa.ComposableCallHighlighterExtension"/>
     <codeinsight.quickfix.registrar implementation="com.android.tools.compose.aa.intentions.ComposeIdePluginQuickFixRegistrar"/>
     <extractFunctionDescriptorModifier implementation="com.android.tools.compose.aa.ComposableFunctionExtractableAnalyser"/>
+    <bundledFirCompilerPluginProvider implementation="com.android.tools.compose.aa.Pre2Point0CompatableComposeCompilerPluginProviderForK2"/>
     <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
     <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>

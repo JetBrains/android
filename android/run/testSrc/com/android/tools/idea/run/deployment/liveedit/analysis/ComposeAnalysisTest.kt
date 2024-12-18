@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Assert.*
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,6 +115,18 @@ class ComposeAnalysisTest {
 
   @Test
   fun `composable with content`() {
+    // TODO(386111622): We have exception related to a few compose compiler
+    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
+    //  does not create a composer param for nested lambda argument for
+    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
+    //  The parameter mismatch causes an exception. `isNestedScope` defined in
+    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
+    //  composer parameter creation, but the upstream KT compiler makes the
+    //  lambda argument as a value of `get-lambda` function call, so it does
+    //  not have this issue. We can re-enable this test when the upstream
+    //  KT compiler is merged.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       @Composable
@@ -157,6 +170,18 @@ class ComposeAnalysisTest {
 
   @Test
   fun `nested composable with captures`() {
+    // TODO(386111622): We have exception related to a few compose compiler
+    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
+    //  does not create a composer param for nested lambda argument for
+    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
+    //  The parameter mismatch causes an exception. `isNestedScope` defined in
+    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
+    //  composer parameter creation, but the upstream KT compiler makes the
+    //  lambda argument as a value of `get-lambda` function call, so it does
+    //  not have this issue. We can re-enable this test when the upstream
+    //  KT compiler is merged.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       @Composable
@@ -209,6 +234,10 @@ class ComposeAnalysisTest {
         return state
       }
       """)
+
+    // TODO(386111622): Check compose calls for K2.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     ensureComposeCalls(output, START_REPLACEABLE_GROUP)
     val groupTable = computeGroupTableForTest(output)
 
@@ -220,6 +249,18 @@ class ComposeAnalysisTest {
 
   @Test
   fun `restartable, replaceable, reusable, and movable groups`() {
+    // TODO(386111622): We have exception related to a few compose compiler
+    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
+    //  does not create a composer param for nested lambda argument for
+    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
+    //  The parameter mismatch causes an exception. `isNestedScope` defined in
+    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
+    //  composer parameter creation, but the upstream KT compiler makes the
+    //  lambda argument as a value of `get-lambda` function call, so it does
+    //  not have this issue. We can re-enable this test when the upstream
+    //  KT compiler is merged.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       import androidx.compose.runtime.remember
