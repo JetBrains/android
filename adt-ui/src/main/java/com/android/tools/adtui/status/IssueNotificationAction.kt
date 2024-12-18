@@ -223,7 +223,7 @@ open class IssueNotificationAction(
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       // Whenever the mouse is inside the popup we cancel the existing alarms via callback
       newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
-      getDisposableParentForPopup(e)?.let { newPopup.showPopup(it, e.inputEvent!!.component as JComponent) } ?: newPopup.showPopup(this, e.inputEvent!!.component as JComponent)
+      newPopup.showPopup(getDisposableParentForPopup(e) ?: this, e.inputEvent!!.component as JComponent)
     }
   }
 
