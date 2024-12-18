@@ -55,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -101,6 +103,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
   private final PropertyChangeListener myMyPropertyChangeListener = this::handlePropertyEvent;
+  private final List<WorkBenchToolWindowListener<T>> myWorkBenchToolWindowListeners;
   private FileEditor myFileEditor;
   private boolean isDisposed = false;
 
@@ -354,6 +357,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     setFocusCycleRoot(true);
     setFocusTraversalPolicyProvider(true);
     setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    myWorkBenchToolWindowListeners = new CopyOnWriteArrayList<>();
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -577,7 +581,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel model, @NotNull SideModel.EventType type) {
+  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel<T> model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
         mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));
@@ -592,6 +596,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
         break;
 
       case LOCAL_UPDATE:
+        break;
+
+      case UPDATE:
+        notifyWorkBenchToolWindowListeners();
+        myWorkBenchManager.updateOtherWorkBenches(this);
         break;
 
       case UPDATE_TOOL_ORDER:
@@ -615,6 +624,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     setDefaultOrderIfMissing(tools);
     restoreToolOrder(tools);
     myModel.setTools(tools);
+    notifyWorkBenchToolWindowListeners();
+  }
+
+  private void notifyWorkBenchToolWindowListeners() {
+    myWorkBenchToolWindowListeners
+      .forEach(t -> t.visibleToolWindowsChanged(
+        myModel
+          .getAllTools()
+          .stream()
+          .filter(w -> !w.isMinimized())
+          .map(AttachedToolWindow::getToolName)
+          .collect(Collectors.toSet()))
+      );
   }
 
   /**
@@ -735,6 +757,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public void addWorkBenchToolWindowListener(WorkBenchToolWindowListener<T> listener) {
+    myWorkBenchToolWindowListeners.add(listener);
   }
 
   @TestOnly

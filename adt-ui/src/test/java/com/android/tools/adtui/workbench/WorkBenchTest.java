@@ -51,6 +51,8 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -440,6 +442,26 @@ public class WorkBenchTest extends WorkBenchTestCase {
     assertThat(myToolWindow1.isMinimized()).isFalse();
     assertThat(myToolWindow2.isMinimized()).isFalse();
     assertThat(myToolWindow3.isMinimized()).isFalse();
+  }
+
+  public void testWorkBenchToolWindowListener() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    myWorkBench.addWorkBenchToolWindowListener(
+      visibleToolWindowNames -> {
+        assertThat(visibleToolWindowNames.size()).isEqualTo(1);
+        assertThat(visibleToolWindowNames).containsExactly(myToolWindow1.getToolName());
+        latch.countDown();
+      }
+    );
+
+    myWorkBench.setContext("toolWindowListener");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    assertThat(myModel.getAllTools().stream().allMatch(AttachedToolWindow::isMinimized)).isTrue();
+
+    myToolWindow1.setMinimized(false);
+    myModel.update(myToolWindow1, PropertyType.MINIMIZED);
+
+    assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
   }
 
   @SuppressWarnings("SameParameterValue")
