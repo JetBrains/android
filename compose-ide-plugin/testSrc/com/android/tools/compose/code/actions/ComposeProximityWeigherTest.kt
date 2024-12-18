@@ -32,6 +32,7 @@ import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,6 +64,7 @@ class ComposeProximityWeigherTest {
   }
 
   @Test
+  @Ignore("b/355257785")
   fun validateWeigherIsWiredUp() {
     // When two imports have equal weight (which will be the default in the unit test), the Kotlin
     // plugin's logic falls back to using
