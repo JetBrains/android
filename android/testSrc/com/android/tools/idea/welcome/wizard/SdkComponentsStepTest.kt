@@ -35,7 +35,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.table.JBTable
-import java.io.File
+import java.nio.file.Path
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 import kotlin.test.assertTrue
@@ -47,7 +47,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.nio.file.Path
 
 @RunsInEdt
 class SdkComponentsStepTest {
@@ -80,7 +79,7 @@ class SdkComponentsStepTest {
         "Root node that is not supposed to appear in the UI",
         listOf(
           FakeOptionalInstallableSdkComponent("Optional component"),
-          FakeOptionalInstallableSdkComponent("Another optional component")
+          FakeOptionalInstallableSdkComponent("Another optional component"),
         ),
       )
     whenever(model.componentTree).thenReturn(root)
