@@ -7,6 +7,7 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -90,6 +91,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected Module myModule;
   protected List<Module> myAdditionalModules;
 
+  private final @NotNull AndroidVersion myAndroidVersion;
   protected AndroidFacet myFacet;
   protected CodeStyleSettings mySettings;
 
@@ -101,6 +103,14 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private ComponentStack myProjectComponentStack;
   private IdeComponents myIdeComponents;
   private ThreadingCheckerHookTestImpl threadingCheckerHook;
+
+  protected AndroidTestCase() {
+    this(Sdks.getLatestAndroidPlatform());
+  }
+
+  protected AndroidTestCase(@NotNull AndroidVersion version) {
+    myAndroidVersion = version;
+  }
 
   @Override
   protected void setUp() throws Exception {
@@ -150,7 +160,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacetAndSdk(myModule);
+    myFacet = addAndroidFacetAndSdk(myModule, true, myAndroidVersion);
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
     myFixture.copyDirectoryToProject(getResDir(), "res");
@@ -159,7 +169,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     for (MyAdditionalModuleData data : modules) {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      AndroidFacet facet = addAndroidFacetAndSdk(additionalModule);
+      AndroidFacet facet = addAndroidFacetAndSdk(additionalModule, true, myAndroidVersion);
       removeFacetOn(myFixture.getProjectDisposable(), facet);
       facet.getConfiguration().setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
@@ -399,12 +409,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public static AndroidFacet addAndroidFacetAndSdk(Module module, boolean attachSdk) {
+    return addAndroidFacetAndSdk(module, attachSdk, Sdks.getLatestAndroidPlatform());
+  }
+
+  public static AndroidFacet addAndroidFacetAndSdk(Module module, boolean attachSdk, @NotNull AndroidVersion androidVersion) {
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
     if (attachSdk) {
       Disposable earlyDisposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
-      Sdks.addLatestAndroidSdk(earlyDisposable, module);
+      Sdks.addAndroidSdk(earlyDisposable, module, androidVersion);
     }
     return facet;
   }
