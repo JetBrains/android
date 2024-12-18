@@ -44,7 +44,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -243,12 +242,12 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
         TemplateManager.getInstance(module.project).startTemplate(editor, template, false, null, object : TemplateEditingAdapter() {
             override fun waitingForInput(template: Template?) {
                 // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
-                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
+                ShortenReferencesFacility.getInstance().shorten(file, marker.textRange)
             }
 
             override fun beforeTemplateFinished(state: TemplateState, template: Template?) {
                 // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
-                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
+                ShortenReferencesFacility.getInstance().shorten(file, marker.textRange)
             }
         })
     }
