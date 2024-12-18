@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
-import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
+import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.RenderService
@@ -41,7 +41,6 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.io.File
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -49,7 +48,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** Default Kotlin version used for Compose projects using this rule. */
-internal const val DEFAULT_KOTLIN_VERSION = "1.7.20"
+internal const val DEFAULT_KOTLIN_VERSION = "1.9.23"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
@@ -61,20 +60,15 @@ private class ComposeGradleProjectRuleImpl(
   private val projectRule: AndroidGradleProjectRule,
 ) : NamedExternalResource() {
   override fun before(description: Description) {
-    registerComposeCompilerPlugin(projectRule.project)
-
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
-    projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion))
+    projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion).withCompileSdk("35"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue(
-        "The project must compile correctly for the test to pass",
-        isBuildSuccessful,
-      )
+      assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)

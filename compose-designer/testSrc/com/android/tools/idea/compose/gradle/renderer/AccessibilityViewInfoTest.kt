@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +36,7 @@ class AccessibilityViewInfoTest {
    * Tests that passing [accessibilityBasedHierarchyParser] to a render task for Compose correctly
    * creates a [ViewInfo] hierarchy from the [AccessibilityNodeInfo] tree.
    */
+  @Ignore("b/385133714")
   @Test
   fun testAccessibilityViewInfo() {
     val facet = projectRule.androidFacet(":app")

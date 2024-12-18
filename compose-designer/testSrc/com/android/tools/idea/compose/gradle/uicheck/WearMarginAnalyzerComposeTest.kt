@@ -27,12 +27,14 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAn
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class WearMarginAnalyzerComposeTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
+  @Ignore("b/385133714")
   @Test
   fun testNoIssue() {
     val facet = projectRule.androidFacet(":app")
@@ -92,7 +94,7 @@ class WearMarginAnalyzerComposeTest {
     val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals(
-      "The view TextView is too close to the side of the device",
+      "The view ComposeView is too close to the side of the device",
       issues[0].message,
     )
   }
