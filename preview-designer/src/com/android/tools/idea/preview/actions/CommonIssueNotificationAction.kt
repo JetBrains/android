@@ -147,7 +147,7 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
           DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
             return@registerDataProvider when (dataId) {
               PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
-                DataProvider { dataContext.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER) }
+                DataProvider { dataContext.getData(it) }
               PlatformCoreDataKeys.PROJECT.name -> dataContext.getData(PlatformCoreDataKeys.PROJECT)
               PlatformCoreDataKeys.MODULE.name -> dataContext.getData(PlatformCoreDataKeys.MODULE)
               PlatformCoreDataKeys.EDITOR.name -> dataContext.getData(PlatformCoreDataKeys.EDITOR)
