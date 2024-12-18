@@ -48,6 +48,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.wm.WelcomeScreen
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -58,15 +60,20 @@ import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.table.JBTable
 import com.intellij.ui.treeStructure.Tree
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowListener
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JRadioButton
 import javax.swing.JTextPane
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import org.jetbrains.eval4j.checkNull
 import org.junit.After
@@ -83,9 +90,16 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito.CALLS_REAL_METHODS
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.never
 import org.mockito.Mockito.`when`
+import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
@@ -634,6 +648,96 @@ class WelcomeScreenWizardTest {
     assertTrue(fakeUi.isShowing(title))
   }
 
+  @Test
+  fun frameNotClosed_whenUserClosesWindowAndDoesNotConfirmClose() {
+    mockStatic(ConfirmFirstRunWizardCloseDialog::class.java).use { confirmCloseDialog ->
+      whenever(ConfirmFirstRunWizardCloseDialog.show())
+        .thenReturn(ConfirmFirstRunWizardCloseDialog.Result.DoNotClose)
+
+      val listeners = arrayOf<WindowListener?>(object : WindowAdapter() {})
+      val mockFrame = configureFrameMock(listeners)
+
+      val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen.setupFrame(mockFrame)
+
+      val listener = listeners[0]
+      assertNotNull(listener)
+      listener.windowClosing(null)
+
+      confirmCloseDialog.verify { ConfirmFirstRunWizardCloseDialog.show() }
+
+      verify(mockFrame, times(0)).dispose()
+    }
+  }
+
+  @Test
+  fun frameClosed_whenUserClosesWindowAndConfirmsClose() {
+    mockStatic(ConfirmFirstRunWizardCloseDialog::class.java).use { confirmCloseDialog ->
+      whenever(ConfirmFirstRunWizardCloseDialog.show())
+        .thenReturn(ConfirmFirstRunWizardCloseDialog.Result.Skip)
+
+      val listeners = arrayOf<WindowListener?>(object : WindowAdapter() {})
+      val mockFrame = configureFrameMock(listeners)
+
+      val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen.setupFrame(mockFrame)
+
+      val listener = listeners[0]
+      assertNotNull(listener)
+      listener.windowClosing(null)
+
+      confirmCloseDialog.verify { ConfirmFirstRunWizardCloseDialog.show() }
+
+      verify(mockFrame, atLeastOnce()).dispose()
+    }
+  }
+
+  @Test
+  fun existingNonWelcomeFrameWindowListeners_areNotRemovedWhenSettingUpFrame() {
+    mockStatic(ConfirmFirstRunWizardCloseDialog::class.java).use { confirmCloseDialog ->
+      whenever(ConfirmFirstRunWizardCloseDialog.show())
+        .thenReturn(ConfirmFirstRunWizardCloseDialog.Result.Skip)
+
+      val listeners = arrayOf<WindowListener?>(object : WindowAdapter() {})
+      val mockFrame = configureFrameMock(listeners)
+
+      val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen.setupFrame(mockFrame)
+
+      verify(mockFrame, never()).removeWindowListener(any())
+    }
+  }
+
+  @Test
+  fun welcomeFrameWindowListener_removedAndWrappedByNewWindowListener() {
+    mockStatic(ConfirmFirstRunWizardCloseDialog::class.java).use { confirmCloseDialog ->
+      whenever(ConfirmFirstRunWizardCloseDialog.show())
+        .thenReturn(ConfirmFirstRunWizardCloseDialog.Result.Skip)
+
+      val listeners = arrayOf<WindowListener?>(object : WindowAdapter() {})
+      val mockFrame = configureFrameMock(listeners)
+      WelcomeFrame.setupCloseAction(mockFrame)
+
+      val welcomeFrameListener = listeners[0]
+      assertNotNull(welcomeFrameListener)
+      val welcomeFrameListenerSpy = spy(welcomeFrameListener)
+      listeners[0] = welcomeFrameListenerSpy
+
+      val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen.setupFrame(mockFrame)
+
+      val listener = listeners[0]
+      assertNotNull(listener)
+      assertNotEquals(welcomeFrameListenerSpy, listener)
+
+      listener.windowClosing(null)
+      verify(welcomeFrameListenerSpy, never()).windowClosing(any())
+
+      listener.windowClosed(null)
+      verify(welcomeFrameListenerSpy, times(1)).windowClosed(anyOrNull())
+    }
+  }
+
   private fun getExistingSdkPath(): File {
     return AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()!!
   }
@@ -643,6 +747,16 @@ class WelcomeScreenWizardTest {
     sdkComponentInstallerProvider: SdkComponentInstallerProvider? = null,
     installHandoffData: InstallerData? = null,
   ): FakeUi {
+    val welcomeScreen =
+      createWelcomeScreen(wizardMode, sdkComponentInstallerProvider, installHandoffData)
+    return FakeUi(welcomeScreen.welcomePanel, createFakeWindow = true)
+  }
+
+  private fun createWelcomeScreen(
+    wizardMode: FirstRunWizardMode,
+    sdkComponentInstallerProvider: SdkComponentInstallerProvider? = null,
+    installHandoffData: InstallerData? = null,
+  ): WelcomeScreen {
     if (installHandoffData != null) {
       installerData = installHandoffData
     }
@@ -651,10 +765,12 @@ class WelcomeScreenWizardTest {
     val welcomeScreen =
       AndroidStudioWelcomeScreenProvider()
         .createWelcomeScreen(useNewWizard = !isTestingLegacyWizard!!, wizardMode, installer)
-    Disposer.register(projectRule.testRootDisposable, welcomeScreen)
 
-    val welcomePanel = welcomeScreen.welcomePanel
-    return FakeUi(welcomePanel, createFakeWindow = true)
+    Disposer.register(projectRule.testRootDisposable, welcomeScreen)
+    welcomeScreen
+      .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
+
+    return welcomeScreen
   }
 
   private fun navigateToSdkComponentsStep(fakeUi: FakeUi) {
@@ -740,5 +856,15 @@ class WelcomeScreenWizardTest {
     remotePackage.license = license
 
     return remotePackage
+  }
+
+  private fun configureFrameMock(listeners: Array<WindowListener?>): JFrame {
+    val mockFrame = mock(JFrame::class.java)
+    whenever(mockFrame.getListeners<WindowListener>(any())).thenReturn(listeners)
+    whenever(mockFrame.addWindowListener(any())).thenAnswer { invocation: InvocationOnMock ->
+      listeners[0] = invocation.getArgument(0)
+      null
+    }
+    return mockFrame
   }
 }

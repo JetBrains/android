@@ -138,14 +138,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     }
     frame.setSize(myPreferredWindowSize);
     frame.setMinimumSize(myMinimumWindowSize);
+    frame.setLocationRelativeTo(null);
 
-    Rectangle screenBounds = frame.getGraphicsConfiguration() != null
-                             ? frame.getGraphicsConfiguration().getBounds()
-                             : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration()
-                               .getBounds();
-    int x = (screenBounds.width - myPreferredWindowSize.width) / 2;
-    int y = (screenBounds.height - myPreferredWindowSize.height) / 2;
-    frame.setLocation(screenBounds.x + x, screenBounds.y + y);
     JButton defaultButton = myActionToButtonMap.get(myFinishAction);
     if (!defaultButton.isEnabled()) {
       defaultButton = myActionToButtonMap.get(myNextAction);
