@@ -68,8 +68,10 @@ class AndroidProjectRootListener private constructor(private val project: Projec
 
   /** Called when module roots have changed in the associated [project]. */
   private fun moduleRootsOrDependenciesChanged() {
-    if (!project.isDisposed) {
-      RootsChangedDumbModeTask(project, this).queue(project)
+    runReadAction {
+      if (!project.isDisposed) {
+        RootsChangedDumbModeTask(project, this).queue(project)
+      }
     }
   }
 
