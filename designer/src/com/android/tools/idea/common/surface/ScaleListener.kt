@@ -36,13 +36,10 @@ interface ScaleListener {
  *   coordinates of (-1, -1), meaning that when the scale was changed, no focus coordinates were
  *   expressed. In such case we need to calculate the coordinates by checking the window size.
  * @param isAnimating Scale change is requested by an animation.
- * @param shouldStoreScale if true, stores the scale in persistent settings, delete the stored scale
- *   otherwise.
  */
 data class ScaleChange(
   val previousScale: Double,
   val newScale: Double,
   val focusPoint: Point = Point(-1, -1),
   val isAnimating: Boolean = false,
-  val shouldStoreScale: Boolean = true,
 )

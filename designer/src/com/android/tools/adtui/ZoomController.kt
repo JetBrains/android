@@ -40,15 +40,12 @@ interface ZoomController : Zoomable {
    *   below 0 means zoom to fit).
    * @param x the horizontal coordinate to where to focus the scaling.
    * @param y the vertical coordinate to where to focus the scaling.
-   * @param doStoreScale if true, stores the scale in persistent settings, delete the stored scale
-   *   otherwise.
    * @return True if the scaling was changed, false otherwise.
    */
   fun setScale(
     @SurfaceScale scale: Double,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    doStoreScale: Boolean = true,
   ): Boolean
 
   /**

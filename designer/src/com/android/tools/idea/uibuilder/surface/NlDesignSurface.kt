@@ -373,6 +373,13 @@ internal constructor(
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher
 
+  override val shouldStoreScale: Boolean
+    // Because Gallery LayoutType sets zoom-to-fit at every opening,
+    // there is no need to store the scale in the settings preferences.
+    get() =
+      sceneViewLayoutManager.currentLayoutOption.value.layoutType !=
+        SurfaceLayoutOption.LayoutType.Gallery
+
   override fun scrollToCenter(list: List<NlComponent>) {
     val view = focusedSceneView ?: return
     if (list.isEmpty()) {

@@ -98,15 +98,12 @@ abstract class DesignSurfaceZoomController(
    *   below 0 means zoom to fit) This value doesn't consider DPI.
    * @param x The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y The Y coordinate to center the scale to (in the Viewport's view coordinate system)
-   * @param doStoreScale if true, stores the scale in persistent settings, delete the stored scale
-   *   otherwise.
    * @return True if the scaling was changed, false if this was a noop.
    */
   override fun setScale(
     @SurfaceScale scale: Double,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    doStoreScale: Boolean,
   ): Boolean {
     @SurfaceScale val newScale: Double = getBoundedScale(scale)
     if (isScaleSame(currentScale, newScale)) {
@@ -123,7 +120,6 @@ abstract class DesignSurfaceZoomController(
             newScale = scaleIncrement,
             focusPoint = Point(x, y),
             isAnimating = isAnimating,
-            shouldStoreScale = doStoreScale,
           )
         )
       }
@@ -131,12 +127,7 @@ abstract class DesignSurfaceZoomController(
       val previewsScale = currentScale
       currentScale = newScale
       scaleListener?.onScaleChange(
-        ScaleChange(
-          previousScale = previewsScale,
-          newScale = newScale,
-          focusPoint = Point(x, y),
-          shouldStoreScale = doStoreScale,
-        )
+        ScaleChange(previousScale = previewsScale, newScale = newScale, focusPoint = Point(x, y))
       )
     }
     return true
@@ -253,10 +244,7 @@ abstract class DesignSurfaceZoomController(
           setScale(newScale, newX, newY)
         }
         ZoomType.ACTUAL -> setScale(1.0 / screenScalingFactor)
-        // We don't store the scale when zoom-to-fit and delete the existing store scale.
-        // In this way, when we apply zoom-to-fit when the layout option changes or when we try to
-        // restore a zoom that previously was set as zoom-to-fit.
-        ZoomType.FIT -> setScale(getFitScale(), -1, -1, doStoreScale = false)
+        ZoomType.FIT -> setScale(getFitScale())
         else -> throw UnsupportedOperationException("Not yet implemented: $type")
       }
 

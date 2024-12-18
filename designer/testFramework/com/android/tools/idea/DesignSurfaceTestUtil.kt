@@ -40,6 +40,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
+import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
+import javax.swing.JLayeredPane
+import javax.swing.JPanel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -47,10 +51,6 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import java.util.concurrent.CompletableFuture
-import javax.swing.JLayeredPane
-import javax.swing.JPanel
 
 object DesignSurfaceTestUtil {
 
@@ -170,7 +170,7 @@ object DesignSurfaceTestUtil {
       override val maxScale: Double
         get() = 10.0
 
-      override fun setScale(scale: Double, x: Int, y: Int, doStoreScale: Boolean) = true
+      override fun setScale(scale: Double, x: Int, y: Int) = true
 
       override fun zoomToFit(): Boolean = true
 

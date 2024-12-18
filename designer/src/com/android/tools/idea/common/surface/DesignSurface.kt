@@ -688,14 +688,8 @@ abstract class DesignSurface<T : SceneManager>(
       revalidateScrollArea()
       return
     }
-    if (update.shouldStoreScale) {
+    if (shouldStoreScale) {
       models.firstOrNull()?.let { storeCurrentScale(it) }
-    } else {
-      // If we shouldn't store the scale we remove the existing one.
-      models.firstOrNull()?.let {
-        val state = getInstance(project).surfaceState
-        state.saveFileScale(project, it.virtualFile, null)
-      }
     }
     revalidateScrollArea()
     notifyScaleChanged(update.previousScale, update.newScale)
@@ -751,6 +745,12 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** When not null, returns a [JPanel] to be rendered next to the primary panel of the editor. */
   open val accessoryPanel: JPanel? = null
+
+  /**
+   * When true, it allows to store the scale change in the settings preferences, it doesn't store
+   * any scale change if it's false.
+   */
+  open val shouldStoreScale: Boolean = true
 
   /**
    * Scroll to the center of a list of given components. Usually the center of the area containing
