@@ -101,8 +101,16 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateActionGroups(layoutType: DesignerEditorFileType) {
     toolbarComponent.removeAll()
     toolbarActionGroups?.let { Disposer.dispose(it) }
+
     toolbarActionGroups =
-      layoutType.getToolbarActionGroups(surface).apply { Disposer.register(parent, this) }
+      layoutType.getToolbarActionGroups(surface).apply {
+        if (!Disposer.tryRegister(parent, this)) {
+          // The parent object has been disposed so no more updates are needed.
+          // Dispose the newly created ToolbarActionGroups and return.
+          Disposer.dispose(this)
+          return@updateActionGroups
+        }
+      }
 
     northToolbar =
       createActionToolbar("NlConfigToolbar", surface, toolbarActionGroups!!.northGroup).apply {
