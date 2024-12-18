@@ -25,12 +25,13 @@ import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.IdeView
 import com.intellij.ide.actions.TestDialogBuilder
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.project.Project
@@ -57,8 +58,7 @@ class NewVersionCatalogActionTest {
       assertThat(p.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")).isNull()
       val dataContext = createTestDataContext(p, "libs")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
-      val event = AnActionEvent(null, dataContext, "", Presentation(), manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, null)
       CommandProcessor.getInstance().executeCommand(p, { action.actionPerformed(event) }, "New Version Catalog", null)
 
       val libs = p.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")
@@ -79,8 +79,7 @@ class NewVersionCatalogActionTest {
       assertThat(p.baseDir?.findChild("gradle")?.findChild("foo.versions.toml")).isNull()
       val dataContext = createTestDataContext(p, "foo")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
-      val event = AnActionEvent(null, dataContext, "", Presentation(), manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, null)
       CommandProcessor.getInstance().executeCommand(p, { action.actionPerformed(event) }, "New Version Catalog", null)
 
       val foo = p.baseDir?.findChild("gradle")?.findChild("foo.versions.toml")
@@ -102,8 +101,7 @@ class NewVersionCatalogActionTest {
       assertThat(p.baseDir?.findChild("gradle")?.findChild("x.versions.toml")).isNull()
       val dataContext = createTestDataContext(p, "x")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
-      val event = AnActionEvent(null, dataContext, "", Presentation(), manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, null)
       try {
         CommandProcessor.getInstance().executeCommand(p, { action.actionPerformed(event) }, "New Version Catalog", null)
         fail()
@@ -127,8 +125,7 @@ class NewVersionCatalogActionTest {
       assertThat(p.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")).isNotNull()
       val dataContext = createTestDataContext(p, "libs")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
-      val event = AnActionEvent(null, dataContext, "", Presentation(), manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, null)
       try {
         CommandProcessor.getInstance().executeCommand(p, { action.actionPerformed(event) }, "New Version Catalog", null)
         fail()
@@ -170,8 +167,7 @@ class NewVersionCatalogActionTest {
       assertThat(p.baseDir?.findChild("gradle")?.findChild("foo.versions.toml")).isNull()
       val dataContext = createTestDataContext(p, "foo")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
-      val event = AnActionEvent(null, dataContext, "", Presentation(), manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, Presentation(), "", ActionUiKind.NONE, null)
       CommandProcessor.getInstance().executeCommand(p, { action.actionPerformed(event) }, "New Version Catalog", null)
       val foo = p.baseDir?.findChild("gradle")?.findChild("foo.versions.toml")
       val fooText = VfsUtil.loadText(foo!!)
@@ -191,10 +187,9 @@ class NewVersionCatalogActionTest {
     preparedProject.open { p ->
       val dataContext = createTestDataContext(p, "foo")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
       val presentation = Presentation()
       presentation.isEnabledAndVisible = true
-      val event = AnActionEvent(null, dataContext, "", presentation, manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, presentation, "", ActionUiKind.NONE, null)
       action.update(event)
       assertThat(presentation.isEnabled).isTrue()
       assertThat(presentation.isVisible).isTrue()
@@ -209,27 +204,24 @@ class NewVersionCatalogActionTest {
     preparedProject.open { p ->
       val dataContext = createTestDataContext(p, "foo")
       val action = NewVersionCatalogAction()
-      val manager = ActionManager.getInstance()
       val presentation = Presentation()
       presentation.isEnabledAndVisible = true
-      val event = AnActionEvent(null, dataContext, "", presentation, manager, 0)
+      val event = AnActionEvent.createEvent(dataContext, presentation, "", ActionUiKind.NONE, null)
       action.update(event)
       assertThat(presentation.isEnabled).isFalse()
       assertThat(presentation.isVisible).isFalse()
     }
   }
 
-  private fun PreparedTestProject.Context.createTestDataContext(project: Project, name: String): DataContext = DataContext {
-    when (it) {
-      TestDialogBuilder.TestAnswers.KEY.name -> TestDialogBuilder.TestAnswers(name, NewVersionCatalogAction.VERSION_CATALOG_TEMPLATE)
-      LangDataKeys.IDE_VIEW.name -> object : IdeView {
+  private fun PreparedTestProject.Context.createTestDataContext(project: Project, name: String): DataContext =
+    SimpleDataContext.builder()
+      .add(TestDialogBuilder.TestAnswers.KEY, TestDialogBuilder.TestAnswers(name, NewVersionCatalogAction.VERSION_CATALOG_TEMPLATE))
+      .add(LangDataKeys.IDE_VIEW, object : IdeView {
         val directory = PsiManager.getInstance(project).findDirectory(project.baseDir)!!
         override fun getDirectories(): Array<PsiDirectory> = Array(1) { directory }
         override fun getOrChooseDirectory(): PsiDirectory? = directory
-      }
-      CommonDataKeys.PROJECT.name -> project
-      CommonDataKeys.EDITOR.name -> fixture.editor
-      else -> null
-    }
-  }
+      })
+      .add(CommonDataKeys.PROJECT, project)
+      .add(CommonDataKeys.EDITOR, fixture.editor)
+      .build()
 }
