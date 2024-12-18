@@ -142,6 +142,8 @@ abstract class AbstractDisplayView(
 
   protected val contextMenuHandler: PopupHandler? = createContextMenuHandler(contextMenuActionGroupId)
 
+  protected val deviceInputListenerManager = project.service<DeviceInputListenerManager>()
+
   protected open val project: Project?
     get() = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 

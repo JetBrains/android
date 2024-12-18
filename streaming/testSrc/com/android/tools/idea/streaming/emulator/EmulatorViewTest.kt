@@ -37,6 +37,9 @@ import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.core.AndroidInputEvent
+import com.android.tools.idea.streaming.core.DeviceInputListener
+import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
@@ -180,6 +183,14 @@ class EmulatorViewTest {
   fun testResizingRotationAndMouseInput() {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 2.0)
+    val inputEvents: MutableList<AndroidInputEvent> = mutableListOf()
+    val inputListener = object: DeviceInputListener {
+      override fun eventSent(event: AndroidInputEvent) {
+        inputEvents.add(event)
+      }
+    }
+    val inputListenerManager = emulatorViewRule.project.getService(DeviceInputListenerManager::class.java)
+    inputListenerManager.addDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
     // Check initial appearance.
     fakeUi.root.size = Dimension(200, 300)
@@ -262,12 +273,39 @@ class EmulatorViewTest {
     val inputEventCall = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(inputEventCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 35 y: 61 buttons: 1 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).hasSize(1)
+        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(35, 61, 0))
+      }
 
     fakeUi.mouse.dragTo(215, 48)
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 buttons: 1 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).hasSize(1)
+        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(1404, 2723, 0))
+      }
 
     fakeUi.mouse.release()
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).isEmpty()
+      }
+
+    // Mouse events outside the display image shouldn't trigger listeners.
+    inputEvents.clear()
+    fakeUi.mouse.press(50, 7)
+    fakeUi.mouse.release()
+    assertThat(inputEvents).isEmpty()
+    inputListenerManager.removeDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
     // Check clockwise rotation in a zoomed-in state.
     view.zoom(ZoomType.IN)
@@ -299,6 +337,9 @@ class EmulatorViewTest {
     // Mouse events outside the display image should be ignored.
     fakeUi.mouse.press(50, 7)
     fakeUi.mouse.release()
+
+    // Make sure event listeners aren't called after they're unregistered.
+    assertThat(inputEvents).isEmpty()
 
     // Check hiding the device frame.
     view.deviceFrameVisible = false

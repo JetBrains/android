@@ -1217,24 +1217,28 @@ class EmulatorView(
           imageWidth = displayRectangle.width
           imageHeight = displayRectangle.height
         }
+
         1 -> {
           normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
           normalizedY = x.scaled(screenScale) - displayRectangle.x
           imageWidth = displayRectangle.height
           imageHeight = displayRectangle.width
         }
+
         2 -> {
           normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
           normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
           imageWidth = displayRectangle.width
           imageHeight = displayRectangle.height
         }
+
         3 -> {
           normalizedX = y.scaled(screenScale) - displayRectangle.y
           normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
           imageWidth = displayRectangle.height
           imageHeight = displayRectangle.width
         }
+
         else -> {
           assert(false) { "Invalid display orientation: $displayOrientationQuadrants" }
           return
@@ -1261,14 +1265,18 @@ class EmulatorView(
     }
 
     private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, buttons: Int, deviceDisplayRegion: Rectangle) {
+      deviceInputListenerManager.notifyListenersOfTouchEvent(deviceSerialNumber, displayId,
+                                                             deviceDisplayRegion.width, deviceDisplayRegion.height,
+                                                             displayOrientationQuadrants, displayX, displayY, buttons == 0, multiTouchMode)
+
       val inputEvent = InputEventMessage.newBuilder()
       if (multiTouchMode) {
         val pressure = if (buttons == 0) 0 else PRESSURE_RANGE_MAX
         inputEvent.setTouchEvent(
-            TouchEvent.newBuilder()
-                .setDisplay(displayId)
-                .addTouches(createTouch(displayX, displayY, 0, pressure))
-                .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure)))
+          TouchEvent.newBuilder()
+            .setDisplay(displayId)
+            .addTouches(createTouch(displayX, displayY, 0, pressure))
+            .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure)))
       }
       else {
         val mouseEvent = MouseEventMessage.newBuilder()
