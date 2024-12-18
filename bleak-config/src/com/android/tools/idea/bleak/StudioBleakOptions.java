@@ -58,7 +58,7 @@ public class StudioBleakOptions {
     new IgnoredRef(-2, "com.github.benmanes.caffeine.cache.BoundedLocalCache$BoundedLocalManualCache", "cache"),
 
     new IgnoredRef(-2, "com.android.tools.idea.configurations.ConfigurationManager", "myCache"),
-    new IgnoredRef(-2, "com.intellij.openapi.vfs.newvfs.impl.VfsData$Segment", "myObjectArray"),
+    new IgnoredRef(-2, "com.intellij.openapi.vfs.newvfs.impl.VfsData$Segment", "objectFieldsArray"),
     new IgnoredRef(-2, "com.intellij.openapi.vcs.impl.FileStatusManagerImpl", "cachedStatuses"),
     new IgnoredRef(-2, "com.intellij.openapi.vcs.impl.FileStatusManagerImpl", "whetherExactlyParentToChanged"),
     new IgnoredRef(-3, "com.intellij.util.indexing.VfsAwareMapIndexStorage", "myCache"),
@@ -99,6 +99,7 @@ public class StudioBleakOptions {
     new IgnoredRef(1, "com.intellij.openapi.externalSystem.statistics.ExternalSystemSyncActionsCollector", "idToStartTS"), // small bounded cache
     new IgnoredRef(-1, "java.lang.ThreadGroup", "threads"), // false positives for e.g. I/O pool growth
     new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "capturedCoroutinesMap"),
+    new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "callerInfoCache"),
     new IgnoredRef(-2, "kotlinx.coroutines.DefaultExecutor", "_delayed"),
 
     // as-driver-specific:
@@ -109,6 +110,7 @@ public class StudioBleakOptions {
   }).toList());
 
   private static final IgnoreList<DisposerLeakInfo> globalDisposerIgnorelist = new IgnoreList<>(Arrays.stream(new IgnoredDisposerRef[]{
+    new IgnoredDisposerRef("com.intellij.openapi.project.impl.ProjectImpl", "com.intellij.notification.Notifications$Bus$$Lambda", 0)
   }).toList());
 
   private static final Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
