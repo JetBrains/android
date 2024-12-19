@@ -29,7 +29,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
@@ -117,7 +117,7 @@ class ExtendReservationActionTest {
           override val presentation = MutableStateFlow(defaultPresentation)
         },
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val event =
       AnActionEvent.createEvent(
         extendReservationAction,
@@ -223,7 +223,7 @@ class ExtendReservationActionTest {
           override val presentation = MutableStateFlow(defaultPresentation)
         },
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val extendHalfHourAction =
       CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
         as ExtendReservationAction.Extend30MinOrLessAction
@@ -295,7 +295,7 @@ class ExtendReservationActionTest {
           override val presentation = MutableStateFlow(defaultPresentation)
         },
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val extendHalfHourAction =
       CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
         as ExtendReservationAction.Extend30MinOrLessAction
@@ -336,7 +336,7 @@ class ExtendReservationActionTest {
         ),
         null,
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val event =
       AnActionEvent.createEvent(
         extendReservationAction,
@@ -430,7 +430,7 @@ class ExtendReservationActionTest {
           override val presentation = MutableStateFlow(defaultPresentation)
         },
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val event =
       AnActionEvent.createEvent(
         extendReservationAction,

@@ -28,7 +28,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
@@ -84,7 +84,7 @@ class EndReservationActionTest {
           override val presentation = MutableStateFlow(defaultPresentation)
         },
       )
-    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DEVICE_HANDLE_KEY, handle)
     val event = createEvent(endReservationAction, dataContext, null, "", ActionUiKind.NONE, null)
     // No reservation available.
     endReservationAction.update(event)
