@@ -19,7 +19,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.model.viewInfo
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
+import com.android.tools.wear.preview.WearTilePreviewElement
 
 /**
  * Detects animations within an inflated Wear Tile view.

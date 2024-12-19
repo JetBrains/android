@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlDataProviderHolder
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer

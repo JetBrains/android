@@ -21,8 +21,8 @@ import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.collectLatest

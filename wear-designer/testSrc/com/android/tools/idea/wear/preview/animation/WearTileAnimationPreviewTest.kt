@@ -30,13 +30,13 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.wear.preview.PsiWearTilePreviewElement
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.idea.wear.preview.animation.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement

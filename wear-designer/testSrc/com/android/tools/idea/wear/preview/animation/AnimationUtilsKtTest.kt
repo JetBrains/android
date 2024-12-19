@@ -30,9 +30,9 @@ import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.android.tools.idea.wear.preview.PsiWearTilePreviewElement
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore

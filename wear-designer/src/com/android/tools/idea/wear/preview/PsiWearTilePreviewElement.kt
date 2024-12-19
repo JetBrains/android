@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 

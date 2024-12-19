@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
