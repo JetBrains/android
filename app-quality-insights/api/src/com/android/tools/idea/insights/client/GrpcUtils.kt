@@ -25,6 +25,8 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 import io.grpc.protobuf.StatusProto
 import java.io.IOException
 import java.net.SocketException
@@ -162,7 +164,7 @@ suspend fun <T> runGrpcCatching(
 
 fun channelBuilderForAddress(address: String): NettyChannelBuilder {
   val sslContext =
-    GrpcSslContexts.forClient()
+    GrpcSslContexts.configure(SslContextBuilder.forClient(), SslProvider.JDK)
       .trustManager(
         ConfirmingTrustManager.createForStorage(
           CertificateManager.DEFAULT_PATH,
