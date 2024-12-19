@@ -362,11 +362,11 @@ class ComposePreviewRepresentation(
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
-   * This field indicates whether the preview should restore its zoom level after rendering. Set it
-   * to true before operations like mode changes or layout adjustments causes a refresh or
-   * re-rendering of the previews, and where we want the previous zoom level to be preserved.
+   * This field indicates whether the preview should apply zoom-to-fit after rendering. Set it to
+   * true before operations like mode changes or layout adjustments causes a refresh or re-rendering
+   * of the previews, and where we want the previous zoom level to be preserved.
    */
-  private val shouldRestoreZoomAfterRender = AtomicBoolean(true)
+  private val shouldZoomToFitAfterRender = AtomicBoolean(true)
 
   @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
@@ -1057,12 +1057,12 @@ class ComposePreviewRepresentation(
           ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
         )
       }
-      // When changing mode and when [shouldRestoreZoomAfterRender] is true we notify to
-      // DesignSurface to restore the zoom by calling [notifyRestoreZoom].
-      if (shouldRestoreZoomAfterRender.getAndSet(false)) {
+      // When changing mode and when [shouldZoomToFitAfterRender] is true we notify to
+      // DesignSurface to restore the zoom by calling [notifyZoomToFit].
+      if (shouldZoomToFitAfterRender.getAndSet(false)) {
         launch(uiThread) {
           // We notify DesignSurface to try to restore the zoom
-          surface.notifyRestoreZoom()
+          surface.notifyZoomToFit()
         }
       }
     }
@@ -1542,15 +1542,15 @@ class ComposePreviewRepresentation(
         withContext(uiThread) {
           composeWorkBench.galleryMode = GalleryMode(composeWorkBench.mainSurface)
         }
-        resetRestoreZoomOnAfterRender()
+        resetZoomToFitOnAfterRender()
       }
     }
     surface.background = mode.backgroundColor
   }
 
-  private fun resetRestoreZoomOnAfterRender() {
-    shouldRestoreZoomAfterRender.set(true)
-    surface.resetRestoreZoomNotifier()
+  private fun resetZoomToFitOnAfterRender() {
+    shouldZoomToFitAfterRender.set(true)
+    surface.resetZoomToFitNotifier()
   }
 
   /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */
@@ -1577,7 +1577,7 @@ class ComposePreviewRepresentation(
         withContext(uiThread) { composeWorkBench.galleryMode = null }
       }
     }
-    resetRestoreZoomOnAfterRender()
+    resetZoomToFitOnAfterRender()
   }
 
   private fun createAnimationPreviewPanel(

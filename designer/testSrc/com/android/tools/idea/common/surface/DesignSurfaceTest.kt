@@ -279,7 +279,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(10.0, surface.zoomController.scale)
   }
 
-  fun testWaitDesignSurfaceResizeBeforeRestoreZoomToFit() {
+  fun testWaitDesignSurfaceResizeBeforeZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
@@ -288,30 +288,31 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeRestoringZoom = true,
+        waitForRenderBeforeZoomToFit = true,
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
 
     // We try to notify that we are ready to restore the zoom with a bitwiseNumber of "1"
-    // (NOTIFY_RESTORE_ZOOM_INT_MASK).
-    surface.notifyRestoreZoom()
-    surface.notifyRestoreZoom()
-    surface.notifyRestoreZoom()
+    // (NOTIFY_ZOOM_TO_FIT_INT_MASK).
+    surface.notifyZoomToFit()
+    surface.notifyZoomToFit()
+    surface.notifyZoomToFit()
 
-    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyComponentResizedForTest()
 
-    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyLayoutCreatedForTest()
-    // We check that zoom-to-fit has been restored.
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
   }
 
-  fun testWaitRenderBeforeRestoreZoomToFit() {
+  fun testWaitRenderBeforeZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
@@ -320,7 +321,7 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeRestoringZoom = true,
+        waitForRenderBeforeZoomToFit = true,
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
 
@@ -331,19 +332,20 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.notifyComponentResizedForTest()
 
     // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
-    // bitwiseNumber of "1" (NOTIFY_RESTORE_ZOOM_INT_MASK).
+    // bitwiseNumber of "1" (NOTIFY_ZOOM_TO_FIT_INT_MASK).
     assertEquals(1.0, surface.zoomController.scale)
-    surface.notifyRestoreZoom()
+    surface.notifyZoomToFit()
 
     // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
     // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyLayoutCreatedForTest()
-    // We check that zoom-to-fit has been restored
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
   }
 
-  fun testDoNotWaitToRestoreZoomToFit() {
+  fun testDoNotWaitToZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
@@ -352,7 +354,7 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeRestoringZoom = false,
+        waitForRenderBeforeZoomToFit = false,
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
 
@@ -368,9 +370,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.notifyComponentResizedForTest()
     surface.notifyComponentResizedForTest()
 
-    // Zoom-to-fit should be applied because of waitForRenderBeforeRestoringZoom set to false even
-    // if surface.notifyRestoreZoom() hasn't called.
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
   }
 }
 
@@ -439,7 +440,7 @@ class TestDesignSurface(
     },
   testLayoutManager: TestLayoutManager = TestLayoutManager(),
   fitScaleProvider: () -> Double = { 1.0 },
-  waitForRenderBeforeRestoringZoom: Boolean = false,
+  waitForRenderBeforeZoomToFit: Boolean = false,
 ) :
   DesignSurface<SceneManager>(
     project = project,
@@ -448,7 +449,7 @@ class TestDesignSurface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
-    waitForRenderBeforeRestoringZoom = waitForRenderBeforeRestoringZoom,
+    waitForRenderBeforeZoomToFit = waitForRenderBeforeZoomToFit,
   ) {
 
   init {

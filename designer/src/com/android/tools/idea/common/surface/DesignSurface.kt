@@ -155,7 +155,7 @@ abstract class DesignSurface<T : SceneManager>(
   // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
-  waitForRenderBeforeRestoringZoom: Boolean = false,
+  waitForRenderBeforeZoomToFit: Boolean = false,
 ) :
   EditorDesignSurface(BorderLayout()),
   Disposable,
@@ -170,10 +170,10 @@ abstract class DesignSurface<T : SceneManager>(
   private val _isDisposed = AtomicBoolean(false)
 
   /** The expected bitwise mask value for when we want to restore the zoom. */
-  private val expectedRestoreZoomMask: Int =
-    if (waitForRenderBeforeRestoringZoom) {
+  private val expectedZoomToFitMask: Int =
+    if (waitForRenderBeforeZoomToFit) {
       // We should wait for rendering, layout to be created and to DesignSurface to resize.
-      ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK or
+      ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK or
         ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
         ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
     } else {
@@ -243,8 +243,8 @@ abstract class DesignSurface<T : SceneManager>(
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
         scope.launch(uiThread) {
           componentsUpdated.collect {
-            if (readyToRestoreZoomMask.get() != ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK) {
-              checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+            if (readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
+              checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
             }
           }
         }
@@ -433,13 +433,13 @@ abstract class DesignSurface<T : SceneManager>(
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
             if (
-              readyToRestoreZoomMask.get() != ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK &&
+              readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
                 isShowing &&
                 width > 0 &&
                 height > 0
             ) {
               val hasModelAttached =
-                checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
+                checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
               if (!hasModelAttached) {
                 // No model is attached, ignore the setup of initial zoom level.
                 return
@@ -600,84 +600,80 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * A bitwise mask used by [notifyRestoreZoom]. If the "or" operator applied to this mask gets a
-   * bitwise values of [ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK],
+   * A bitwise mask used by [notifyZoomToFit]. If the "or" operator applied to this mask gets a
+   * bitwise values of [ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK],
    * [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can restore the zoom.
    */
-  private val readyToRestoreZoomMask = AtomicInteger(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
+  private val readyToZoomToFitMask = AtomicInteger(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
 
   /**
-   * Notify to [DesignSurface] that we can now try to restore the zoom or apply zoom to fit if no
-   * zoom has been stored before.
+   * Notify to [DesignSurface] that we can now try to apply zoom to fit. This is used for when we
+   * need to wait for events external to [DesignSurface] (such as Rendering of the content) before
+   * trying to restore the zoom.
    *
-   * This is used for when we need to wait for events external to [DesignSurface] (such as Rendering
-   * of the content) before trying to restore the zoom.
-   *
-   * Note: if [waitForRenderBeforeRestoringZoom] flag is enabled, it waits [DesignSurface] to be
-   * resized before restoring the zoom.
+   * Note: if [waitForRenderBeforeZoomToFit] flag is enabled, it waits [DesignSurface] to be resized
+   * before restoring the zoom.
    */
   @UiThread
-  fun notifyRestoreZoom() {
-    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
+  fun notifyZoomToFit() {
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
   }
 
   /**
-   * Resets the bitwise mask responsible to check whether restoring zoom or waiting for
-   * [notifyRestoreZoom]. Resetting will allow DesignSurface to call [restoreZoomOrZoomToFit] as if
-   * it happens for the first time.
+   * Resets the bitwise mask responsible to wait for [notifyZoomToFit]. Resetting will allow
+   * DesignSurface to call [zoomToFit] as if it happens for the first time.
    *
    * This is useful when we switch modes or layouts.
    *
-   * Note: if [waitForRenderBeforeRestoringZoom] is enabled, it will wait [notifyRestoreZoom] to be
+   * Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait [notifyZoomToFit] to be
    * performed at least once before trying to restore the zoom.
    */
-  fun resetRestoreZoomNotifier() {
+  fun resetZoomToFitNotifier() {
     if (
-      readyToRestoreZoomMask.get() == ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK &&
+      readyToZoomToFitMask.get() == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
         height > 0 &&
         width > 0
     ) {
-      // If we have performed already the first [DesignSurface.restoreZoomOrZoomToFit]
-      // we can just set the bitwise map with the NOTIFY_RESTORE_ZOOM_INT_MASK flag.
-      readyToRestoreZoomMask.set(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
+      // If we have performed already the first [zoomToFit()] we can just set the bitwise map
+      // with the NOTIFY_ZOOM_TO_FIT_INT_MASK flag.
+      readyToZoomToFitMask.set(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
     } else {
-      readyToRestoreZoomMask.set(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
+      readyToZoomToFitMask.set(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
     }
   }
 
   @TestOnly
   fun notifyComponentResizedForTest() {
-    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
   }
 
   @TestOnly
   fun notifyLayoutCreatedForTest() {
-    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
   }
 
   /**
-   * Synchronized function that checks if we can call [restoreZoomOrZoomToFit]. We can call it only
-   * when [bitwiseNumber] has received both "1" and "2" and "4". This function solves a race
-   * condition of when the sizes of the content to show and the sizes of [DesignSurface] aren't yet
-   * synchronized causing a wrong fitScale value.
+   * Synchronized function that checks if we can call [zoomToFit]. We can call it only when
+   * [bitwiseNumber] has received both "1" and "2" and "4". This function solves a race condition of
+   * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
+   * causing a wrong fitScale value.
    *
-   * Note: if [waitForRenderBeforeRestoringZoom] is enabled it will wait
-   * DesignSurface.notifyRestoreZoom() to be performed at least once. if
-   * [waitForRenderBeforeRestoringZoom] is disabled it will directly perform
-   * restoreZoomOrZoomToFit()
+   * Note: if [waitForRenderBeforeZoomToFit] is enabled it will wait [notifyZoomToFit] to be
+   * performed at least once. if [waitForRenderBeforeZoomToFit] is disabled it will directly perform
+   * [zoomToFit]
    */
   @UiThread
-  private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
+  private fun checkIfReadyToZoomToFit(bitwiseNumber: Int): Boolean {
     val newMask =
-      readyToRestoreZoomMask.updateAndGet {
-        if (it == expectedRestoreZoomMask || it == ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK) {
-          ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK
+      readyToZoomToFitMask.updateAndGet {
+        if (it == expectedZoomToFitMask || it == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
+          ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK
         } else {
           it or bitwiseNumber
         }
       }
-    if (newMask == expectedRestoreZoomMask) {
-      return restoreZoomOrZoomToFit()
+    if (newMask == expectedZoomToFitMask) {
+      return zoomController.zoomToFit()
     }
 
     return false
@@ -1364,10 +1360,10 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Class to define constants used in the restore zoom logic. These constants are integers masks to
-   * be used in bitwise operations.
+   * Class to define constants used to manage the bitwise logic to check if apply zoom-to-fit. These
+   * constants are integers masks to be used in bitwise operations.
    *
-   * @see [readyToRestoreZoomMask]
+   * @see [readyToZoomToFitMask]
    */
   private class ZoomMaskConstants {
     companion object {
@@ -1378,14 +1374,14 @@ abstract class DesignSurface<T : SceneManager>(
       /**
        * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
        *
-       * @see [DesignSurface.notifyRestoreZoom]
+       * @see [DesignSurface.notifyZoomToFit]
        */
-      const val NOTIFY_RESTORE_ZOOM_INT_MASK = 1
+      const val NOTIFY_ZOOM_TO_FIT_INT_MASK = 1
 
       /**
        * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
        *
-       * @see also [DesignSurface.notifyRestoreZoom].
+       * @see also [DesignSurface.notifyZoomToFit].
        */
       const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
@@ -1398,10 +1394,10 @@ abstract class DesignSurface<T : SceneManager>(
        * * layout is created
        *
        * It indicates that the zooming has been done already and should not have shared bits with
-       * [NOTIFY_RESTORE_ZOOM_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] or
+       * [NOTIFY_ZOOM_TO_FIT_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] or
        * [NOTIFY_LAYOUT_CREATED_INT_MASK].
        */
-      const val RESTORE_ZOOM_DONE_INT_MASK = 8
+      const val ZOOM_TO_FIT_DONE_INT_MASK = 8
     }
   }
 }
