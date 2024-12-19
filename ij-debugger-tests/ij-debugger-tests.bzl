@@ -8,7 +8,7 @@ def debugger_test(
         test_exclude_filter = [],
         expected_to_fail_art = None,
         expected_to_fail_jvm = None,
-        art_tags = [],
+        art_tags = ["ci:studio-linux-large"],
         jvm_tags = [],
         module = "kotlin.jvm-debugger.test",
         shard_count = None):
