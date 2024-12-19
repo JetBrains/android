@@ -52,6 +52,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -98,6 +99,8 @@ class OpenProjectIntegrationTest {
 
   @Test
   fun testReopenProject_kmpWithAndroid() {
+    // TODO b/364570943 ignored test for K2 due to KTIJ-32501
+    if (KotlinPluginModeProvider.isK2Mode()) return
     val preparedProject = projectRule.prepareTestProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
     val before = preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
       project.saveAndDump()
