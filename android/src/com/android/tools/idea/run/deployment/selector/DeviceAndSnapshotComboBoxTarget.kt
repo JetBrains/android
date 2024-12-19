@@ -38,7 +38,7 @@ internal class DeviceAndSnapshotComboBoxTarget(
     throw UnsupportedOperationException()
   }
 
-  override fun getDevices(project: Project): DeviceFutures {
+  override fun launchDevices(project: Project): DeviceFutures {
     val devicesAndTargets = devicesSelectedService(project).devicesAndTargets
     for (target in devicesAndTargets.selectedTargets) {
       if (!target.device.isConnected) {

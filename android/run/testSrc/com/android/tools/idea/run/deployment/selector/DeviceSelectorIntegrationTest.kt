@@ -99,7 +99,7 @@ class DeviceSelectorIntegrationTest {
     assertThrows(IllegalStateException::class.java) { androidDevices[0].launchedDevice }
 
     // Calling getDevices should launch the device
-    val devices = deployTarget.getDevices(project)
+    val devices = deployTarget.launchDevices(project)
     runBlockingWithTimeout { devices.get().forEach { it.await() } }
 
     assertThat(pixel6.state.isOnline()).isTrue()

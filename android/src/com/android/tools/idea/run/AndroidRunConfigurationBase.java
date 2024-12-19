@@ -305,7 +305,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
+    DeviceFutures deviceFutures = deployTarget.launchDevices(getProject());
 
     // Record stat if we launched a device.
     stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> !device.isRunning()));

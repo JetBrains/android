@@ -48,7 +48,7 @@ class GradleAndroidTestRunConfigurationExecutorProviderTest {
 
           override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState) = null
 
-          override fun getDevices(project: Project) = FakeAndroidDevice.forDevices(listOf(mock<IDevice>()))
+          override fun launchDevices(project: Project) = FakeAndroidDevice.forDevices(listOf(mock<IDevice>()))
 
           override fun getAndroidDevices(project: Project): List<AndroidDevice> = throw UnsupportedOperationException()
         }
