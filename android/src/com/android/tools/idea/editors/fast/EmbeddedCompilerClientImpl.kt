@@ -92,8 +92,11 @@ class EmbeddedCompilerClientImpl private constructor(
          beforeCompilationStarts = beforeCompilationStarts)
 
   private val daemonLock = Mutex()
-  override val isRunning: Boolean
-    get() = daemonLock.holdsLock(this)
+
+  /**
+   * The embedded compiler does not have a daemon to start so is always running.
+   */
+  override val isRunning: Boolean = true
 
   /**
    * The Live Edit inline candidates cache. The cache can only be accessed with the Compile lock (see [runWithCompileLock]).
