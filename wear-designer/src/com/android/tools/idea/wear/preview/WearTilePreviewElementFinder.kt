@@ -20,19 +20,14 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.idea.preview.UastAnnotatedMethod
+import com.android.tools.idea.preview.UastAnnotationAttributesProvider
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.findPreviewDefaultValues
-import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
-import com.android.tools.preview.PreviewConfiguration
-import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.config.PARAMETER_DEVICE
-import com.android.tools.preview.config.PARAMETER_FONT_SCALE
-import com.android.tools.preview.config.PARAMETER_GROUP
-import com.android.tools.preview.config.PARAMETER_LOCALE
-import com.android.tools.preview.config.PARAMETER_NAME
+import com.android.tools.wear.preview.previewAnnotationToWearTilePreviewElement
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.lang.java.JavaLanguage
@@ -56,7 +51,6 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
-import com.intellij.util.text.nullize
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -75,7 +69,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.toUElement
 
 private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
@@ -212,51 +205,32 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 ): PsiWearTilePreviewElement? {
   val annotation = element as UAnnotation
   if (readAction { !annotation.isTilePreviewAnnotation() }) return null
+
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
 
-  val name = readAction {
-    annotation.findAttributeValue(PARAMETER_NAME)?.evaluateString()?.nullize()
-  }
-  val group = readAction {
-    annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
-  }
-  val methodName = readAction { uMethod.name }
+  val rootAnnotation = subtreeInfo?.topLevelAnnotation ?: annotation
+  val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
+  val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
+  val annotatedMethod =
+    UastAnnotatedMethod(
+      method = uMethod,
+      // currently preview parameters are not supported for tile previews
+      previewParameterAnnotationFqn = null,
+    )
   val nameHelper =
-    AnnotationPreviewNameHelper.create(this, methodName) {
+    AnnotationPreviewNameHelper.create(this, readAction { annotatedMethod.name }) {
       readAction { isWearTilePreviewAnnotation() }
     }
-  val displaySettings =
-    PreviewDisplaySettings(
-      name = nameHelper.buildPreviewName(name),
-      baseName = methodName,
-      parameterName = nameHelper.buildParameterName(name),
-      group = group,
-      showDecoration = false,
-      showBackground = true,
-      backgroundColor = null,
+
+  return readAction {
+    previewAnnotationToWearTilePreviewElement(
+      attributesProvider = attributesProvider,
+      annotatedMethod = annotatedMethod,
+      previewElementDefinition = previewElementDefinitionPsi,
+      buildPreviewName = nameHelper::buildPreviewName,
+      buildParameterName = nameHelper::buildParameterName,
     )
-
-  val configuration = readAction {
-    val device =
-      annotation.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
-        ?: defaultValues[PARAMETER_DEVICE]
-    val locale =
-      annotation.findAttributeValue(PARAMETER_LOCALE)?.evaluateString()?.nullize()
-        ?: defaultValues[PARAMETER_LOCALE]
-    val fontScale =
-      annotation.findAttributeValue(PARAMETER_FONT_SCALE)?.evaluate() as? Float
-        ?: defaultValues[PARAMETER_FONT_SCALE]?.toFloatOrNull()
-    PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
   }
-
-  return PsiWearTilePreviewElement(
-    displaySettings = displaySettings,
-    previewElementDefinition =
-      readAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },
-    previewBody = readAction { uMethod.uastBody.toSmartPsiPointer() },
-    methodFqn = readAction { uMethod.qualifiedName },
-    configuration = configuration,
-  )
 }
 
 /**
