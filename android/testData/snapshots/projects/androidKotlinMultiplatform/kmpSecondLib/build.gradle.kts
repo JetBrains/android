@@ -4,7 +4,17 @@ plugins {
 }
 
 kotlin {
-  jvm()
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(11))
+  }
+
+  jvm {
+    compilations.all {
+      compilerOptions.configure {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+      }
+    }
+  }
 
   targets.withType(com.android.build.api.dsl.KotlinMultiplatformAndroidTarget::class.java) {
     namespace = "com.example.kmpsecondlib"

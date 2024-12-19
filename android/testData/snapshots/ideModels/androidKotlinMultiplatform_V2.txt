@@ -1007,8 +1007,8 @@ MODULE                        : Kotlin_Multiplatform
                 buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
-                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    sourceCompatibility           : 11
+                    targetCompatibility           : 11
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                     configurationArtifacts
@@ -3265,7 +3265,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 21
+                    jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3344,7 +3344,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 21
+                    jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true
