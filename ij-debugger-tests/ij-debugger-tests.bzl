@@ -10,11 +10,13 @@ def debugger_test(
         expected_to_fail_jvm = None,
         art_tags = [],
         jvm_tags = [],
+        module = "kotlin.jvm-debugger.test",
         shard_count = None):
     """Define a debugger test that runs on a ART and JVM.
 
     Args:
         name: The base name of the tests
+        module: Module containing tests
         test_include_filter: Patterns of tests to include
         test_exclude_filter: Patterns of tests to exclude
         expected_to_fail_art: A file with a list of tests that are expected to fail on ART
@@ -24,6 +26,8 @@ def debugger_test(
         shard_count: Number of shards to run
     """
     expected_to_fail_dep_art = []
+    module_dep = [":%s_lib" % module]
+
     if expected_to_fail_art:
         expected_to_fail_dep_art = [":%s" % expected_to_fail_art]
     jps_test(
@@ -45,7 +49,7 @@ def debugger_test(
             "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
             "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "60000",
         },
-        module = "kotlin.jvm-debugger.test",
+        module = module,
         tags = art_tags,
         test_suite = "com.android.tools.test.ModuleTestSuite",
         runtime_deps = [
@@ -55,12 +59,11 @@ def debugger_test(
             "//tools/adt/idea/debuggers:android-field-visibility-provider",
         ],
         deps = [
-            ":kotlin.jvm-debugger.test_lib",
             ":test_repo.zip",
             "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
             "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
             "//tools/idea:idea_source",
-        ] + expected_to_fail_dep_art,
+        ] + expected_to_fail_dep_art + module_dep,
     )
 
     expected_to_fail_dep_jvm = []
@@ -77,16 +80,15 @@ def debugger_test(
         env = {
             "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "jvm",
         },
-        module = "kotlin.jvm-debugger.test",
+        module = module,
         tags = jvm_tags,
         test_suite = "com.android.tools.test.ModuleTestSuite",
         deps = [
-            ":kotlin.jvm-debugger.test_lib",
             ":test_repo.zip",
             "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
             "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
             "//tools/idea:idea_source",
-        ] + expected_to_fail_dep_jvm,
+        ] + expected_to_fail_dep_jvm + module_dep,
     )
 
     native.test_suite(
