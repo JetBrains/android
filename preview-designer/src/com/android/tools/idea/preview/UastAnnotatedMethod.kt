@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
-import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.preview.qualifiedName
-import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.AnnotatedMethod
 import com.android.tools.preview.AnnotationAttributesProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.uast.UMethod
 
-/** [AnnotatedMethod] implementation based on [UMethod]. */
-class UastAnnotatedMethod(private val method: UMethod) :
-  AnnotatedMethod<SmartPsiElementPointer<PsiElement>> {
+/**
+ * [AnnotatedMethod] implementation based on [UMethod].
+ *
+ * @param method the [UMethod] annotated with an `@Preview` annotation
+ * @param previewParameterAnnotationFqn the Fully Qualified Name of the `@PreviewParameter`
+ *   annotation corresponding to the `@Preview` annotation used on [method]. For example,
+ *   `androidx.compose.ui.tooling.preview.PreviewParameter` for methods annotated with the Compose
+ *   `@Preview`.
+ */
+class UastAnnotatedMethod(
+  private val method: UMethod,
+  private val previewParameterAnnotationFqn: String?,
+) : AnnotatedMethod<SmartPsiElementPointer<PsiElement>> {
   override val name: String
     get() = method.name
 
@@ -40,7 +47,7 @@ class UastAnnotatedMethod(private val method: UMethod) :
     get() =
       method.uastParameters.mapNotNull { parameter ->
         parameter.uAnnotations
-          .firstOrNull { COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN == it.qualifiedName }
+          .firstOrNull { previewParameterAnnotationFqn == it.qualifiedName }
           ?.let { parameter.name to UastAnnotationAttributesProvider(it, emptyMap()) }
       }
 }

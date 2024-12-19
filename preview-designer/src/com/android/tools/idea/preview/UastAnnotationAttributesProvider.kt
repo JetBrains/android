@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
 import com.android.tools.preview.AnnotationAttributesProvider
 import com.intellij.psi.PsiLiteralExpression
@@ -23,7 +23,7 @@ import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UExpression
 
 /** [AnnotationAttributesProvider] implementation based on [UAnnotation]. */
-internal class UastAnnotationAttributesProvider(
+class UastAnnotationAttributesProvider(
   private val annotation: UAnnotation,
   private val defaultValues: Map<String, String?>,
 ) : AnnotationAttributesProvider {

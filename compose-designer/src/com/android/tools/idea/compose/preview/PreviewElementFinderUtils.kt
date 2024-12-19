@@ -19,10 +19,13 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
 import com.android.tools.idea.preview.AnnotationPreviewNameHelper
+import com.android.tools.idea.preview.UastAnnotatedMethod
+import com.android.tools.idea.preview.UastAnnotationAttributesProvider
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
@@ -213,7 +216,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
   val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
-  val annotatedMethod = UastAnnotatedMethod(composableMethod)
+  val annotatedMethod =
+    UastAnnotatedMethod(composableMethod, COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
   val nameHelper =
     AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
       readAction { isPreviewAnnotation() }
