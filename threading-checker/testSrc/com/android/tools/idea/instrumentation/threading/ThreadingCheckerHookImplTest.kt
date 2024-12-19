@@ -21,7 +21,11 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ThreadingAgentUsageEvent
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -42,6 +46,9 @@ class ThreadingCheckerHookImplTest {
   var edtRule = EdtRule()
 
   @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @get:Rule
   val exceptionRule = ExpectedException.none()
 
   private val mockThreadingViolationNotifier = mock<ThreadingViolationNotifier>()
@@ -51,15 +58,16 @@ class ThreadingCheckerHookImplTest {
   @Before
   fun setUp() {
     UsageTracker.setWriterForTest(tracker)
+    ThreadingCheckerTrampoline.installHook(threadingCheckerHook)
   }
 
   @After
   fun cleanUp() {
     UsageTracker.cleanAfterTesting()
+    ThreadingCheckerTrampoline.removeHook(threadingCheckerHook)
   }
 
   init {
-    ThreadingCheckerTrampoline.installHook(threadingCheckerHook)
     // Do not log errors as to not throw exceptions by default
     System.setProperty("android.studio.instrumentation.threading.log-errors", "false")
   }
@@ -70,11 +78,10 @@ class ThreadingCheckerHookImplTest {
     val expectedViolatingMethod =
       "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest#checkForUiThreadOnWorkerThread\$lambda\$1"
     checkForUiThreadOnWorkerThread()
-
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
     verify(mockThreadingViolationNotifier).notify(
-      eq("Threading violation: methods annotated with @UiThread should be called on the UI thread"),
+      eq("Threading violation: methods annotated with @UiThread or @RequiresEdt should be called on the UI thread"),
       eq(expectedViolatingMethod))
 
     checkForUiThreadOnWorkerThread()
@@ -89,6 +96,8 @@ class ThreadingCheckerHookImplTest {
                            ThreadingAgentUsageEvent.newBuilder()
                              .setVerifyUiThreadCount(1) // The value is 1 and not 2 since we limit the frequency of logged events
                              .setVerifyWorkerThreadCount(0))
+                         .setIdeaIsInternal(true)
+                         .setProductDetails(ProductDetails.newBuilder().setVersion(UsageTracker.version!!))
                          .build())
   }
 
@@ -108,7 +117,7 @@ class ThreadingCheckerHookImplTest {
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
     verify(mockThreadingViolationNotifier).notify(
-      eq("Threading violation: methods annotated with @WorkerThread should not be called on the UI thread"),
+      eq("Threading violation: methods annotated with @WorkerThread or @RequiresBackgroundThread should not be called on the UI thread"),
       eq(expectedViolatingMethod))
 
     ThreadingCheckerTrampoline.verifyOnWorkerThread()
@@ -123,6 +132,8 @@ class ThreadingCheckerHookImplTest {
                            ThreadingAgentUsageEvent.newBuilder()
                              .setVerifyUiThreadCount(0)
                              .setVerifyWorkerThreadCount(1)) // The value is 1 and not 2 since we limit the frequency of logged events
+                         .setIdeaIsInternal(true)
+                         .setProductDetails(ProductDetails.newBuilder().setVersion(UsageTracker.version!!))
                          .build())
   }
 
@@ -138,6 +149,60 @@ class ThreadingCheckerHookImplTest {
       ThreadingCheckerTrampoline.verifyOnWorkerThread()
     }.join()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
+  }
+
+  @Test
+  fun `verify the read lock check adds a violation when accessed without a read lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    thread {
+      ThreadingCheckerTrampoline.verifyReadLock()
+    }.join()
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
+  }
+
+  @Test
+  fun `verify the read lock check does not add a violation when accessed with a read lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    runReadAction {
+      ThreadingCheckerTrampoline.verifyReadLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    }
+  }
+
+  @Test
+  fun `verify the write lock check adds a violation when called without a write lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    thread {
+      ThreadingCheckerTrampoline.verifyWriteLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
+    }.join()
+  }
+  @Test
+  fun `verify the write lock check does not add a violation when called with a write lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    runWriteAction {
+      ThreadingCheckerTrampoline.verifyWriteLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    }
+
+  }
+
+  @Test
+  fun `verify the no read lock check adds a violation when called without a read lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    runReadAction {
+      ThreadingCheckerTrampoline.verifyNoReadLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
+    }
+  }
+
+  @Test
+  fun `verify the no read lock check does not add a violation when called without a read lock`() {
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    thread {
+      ThreadingCheckerTrampoline.verifyNoReadLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
+    }
   }
 
   @Test

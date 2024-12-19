@@ -20,6 +20,7 @@ import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheck
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ThreadingAgentUsageEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -57,7 +58,7 @@ class ThreadingCheckerHookImpl(
     if (SwingUtilities.isEventDispatchThread()) {
       return
     }
-    recordViolation("Threading violation: methods annotated with @UiThread should be called on the UI thread")
+    recordViolation("Threading violation: methods annotated with @UiThread or @RequiresEdt should be called on the UI thread")
   }
 
   override fun verifyOnWorkerThread() {
@@ -67,8 +68,30 @@ class ThreadingCheckerHookImpl(
     if (!SwingUtilities.isEventDispatchThread()) {
       return
     }
-    recordViolation("Threading violation: methods annotated with @WorkerThread should not be called on the UI thread")
+    recordViolation("Threading violation: methods annotated with @WorkerThread or @RequiresBackgroundThread should not be called on the UI thread")
   }
+
+  override fun verifyReadLock() {
+    if (ApplicationManager.getApplication().isReadAccessAllowed) {
+      return
+    }
+    recordViolation("Read lock violation: methods annotated with @RequiresReadLock must be called inside a read action.")
+  }
+
+  override fun verifyWriteLock() {
+    if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+      return
+    }
+    recordViolation("Write lock violation: methods annotated with @RequiresWriteLock must be called inside a write lock.")
+  }
+
+  override fun verifyNoReadLock() {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed) {
+      return
+    }
+    recordViolation("Read lock violation: methods annotated with @RequiresReadLockAbsence must be called without a read lock.")
+  }
+
 
   private fun maybeReportUsageStats() {
     val currentTimeMs = System.currentTimeMillis()
