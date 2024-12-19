@@ -33,6 +33,7 @@ val FOCUS_MODE_LAYOUT_OPTION =
     organizationEnabled = false,
     sceneViewAlignment = SceneViewAlignment.LEFT,
     layoutType = SurfaceLayoutOption.LayoutType.Focus,
+    shouldStoreScale = false,
   )
 
 /** Grid layout option which doesn't group elements. */
@@ -43,6 +44,7 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     organizationEnabled = false,
     sceneViewAlignment = SceneViewAlignment.LEFT,
     layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    shouldStoreScale = false,
   )
 
 /**
@@ -81,6 +83,7 @@ val UI_CHECK_LAYOUT_OPTION =
     organizationEnabled = StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get(),
     sceneViewAlignment = SceneViewAlignment.LEFT,
     layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    shouldStoreScale = false,
   )
 
 /** The default layout that should appear when the Preview is open. */

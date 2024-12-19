@@ -374,11 +374,8 @@ internal constructor(
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher
 
   override val shouldStoreScale: Boolean
-    // Because Focus LayoutType sets zoom-to-fit at every opening,
-    // there is no need to store the scale in the settings preferences.
-    get() =
-      sceneViewLayoutManager.currentLayoutOption.value.layoutType !=
-        SurfaceLayoutOption.LayoutType.Focus
+    // Checks if store the current scale in the settings preferences.
+    get() = sceneViewLayoutManager.currentLayoutOption.value.shouldStoreScale
 
   override fun scrollToCenter(list: List<NlComponent>) {
     val view = focusedSceneView ?: return

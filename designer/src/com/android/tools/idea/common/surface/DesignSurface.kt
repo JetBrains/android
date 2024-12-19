@@ -681,16 +681,14 @@ abstract class DesignSurface<T : SceneManager>(
       revalidateScrollArea()
       return
     }
-    if (shouldStoreScale) {
-      models.firstOrNull()?.let { storeCurrentScale(it) }
-    }
+    models.firstOrNull()?.let { storeCurrentScale(it) }
     revalidateScrollArea()
     notifyScaleChanged(update.previousScale, update.newScale)
   }
 
   /** Save the current zoom level from the file of the given [NlModel]. */
   private fun storeCurrentScale(model: NlModel) {
-    if (!isKeepingScaleWhenReopen()) {
+    if (!shouldStoreScale) {
       return
     }
     val state = getInstance(project).surfaceState
@@ -824,10 +822,6 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  protected open fun isKeepingScaleWhenReopen(): Boolean {
-    return true
-  }
-
   /**
    * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
    *
@@ -836,45 +830,21 @@ abstract class DesignSurface<T : SceneManager>(
    */
   @UiThread
   private fun restoreZoomOrZoomToFit(): Boolean {
-    val model = model ?: return false
-    if (!restorePreviousScale(model)) {
+    if (!restorePreviousScale()) {
       zoomController.zoomToFit()
     }
     return true
   }
 
   /**
-   * Apply zoom to fit if there is a stored zoom in the persistent settings, it does nothing
-   * otherwise.
+   * Load the saved zoom level from the file.
    *
-   * Because zoom to fit scale gets calculated whenever [DesignSurface] changes its space or number
-   * of items, this function clear-up the stored zoom and replace it with the newly calculated zoom
-   * to fit value.
+   * @return true if the previous zoom level is restored, returns false if the previous zoom level
+   *   is not restored or [NlModel] is null.
    */
-  fun zoomToFitIfStorageNotEmpty() {
-    if (isZoomStored()) {
-      zoomController.zoomToFit()
-    }
-  }
-
-  /**
-   * Checks if there is zoom level stored from persistent settings.
-   *
-   * @return true if persistent settings contains a stored zoom, false otherwise.
-   */
-  private fun isZoomStored(): Boolean {
+  fun restorePreviousScale(): Boolean {
     val model = model ?: return false
-    return getInstance(model.project)
-      .surfaceState
-      .loadFileScale(project, model.virtualFile, zoomController) != null
-  }
-
-  /**
-   * Load the saved zoom level from the file of the given [NlModel]. Return true if the previous
-   * zoom level is restored, false otherwise.
-   */
-  private fun restorePreviousScale(model: NlModel): Boolean {
-    if (!isKeepingScaleWhenReopen()) {
+    if (!shouldStoreScale) {
       return false
     }
     val state = getInstance(model.project).surfaceState
