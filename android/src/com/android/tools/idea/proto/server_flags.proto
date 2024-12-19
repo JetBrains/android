@@ -40,7 +40,32 @@ message ServerFlag {
   repeated OSType os_type = 7;
 
   // Set of brands to apply this flag to
-  repeated Brand brand = 8;
+  repeated Brand brand = 8 [packed = true];
+}
+
+message FlagValue {
+  // A number from 1-100 indicating what percent of users
+  optional int32 percent_enabled = 1;
+  // The specific value used by this feature. Can be one of the standard
+  // primitive types or a custom value.
+  oneof values {
+    int32 int_value = 2;
+    float float_value = 3;
+    string string_value = 4;
+    bool boolean_value = 5;
+    google.protobuf.Any proto_value = 6;
+  }
+}
+
+message MultiValueServerFlag {
+  // Set of OS types to apply this flag to
+  repeated OSType os_type = 1 [packed = true];
+
+  // Set of brands to apply this flag to
+  repeated Brand brand = 2 [packed = true];
+
+  // Flag values
+  repeated FlagValue flag_values = 3;
 }
 
 // ServerFlagData associates a unique name with a server flag
@@ -48,6 +73,7 @@ message ServerFlag {
 message ServerFlagData {
   optional string name = 1;
   optional ServerFlag server_flag = 2;
+  optional MultiValueServerFlag multi_value_server_flag = 3;
 }
 
 // ServerFlagList is a collection of ServerFlagData objects.
