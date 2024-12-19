@@ -18,10 +18,11 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndGet
 import java.awt.datatransfer.DataFlavor
 import javax.swing.JTree
 import javax.swing.tree.TreePath
@@ -46,7 +47,7 @@ class CopyIssueDescriptionActionTest {
     action.update(issueNodeEvent)
     assertTrue(issueNodeEvent.presentation.isEnabledAndVisible)
 
-    val emptyEvent = TestActionEvent()
+    val emptyEvent = TestActionEvent.createTestEvent()
     action.update(emptyEvent)
     assertFalse(emptyEvent.presentation.isEnabledAndVisible)
   }
@@ -54,7 +55,7 @@ class CopyIssueDescriptionActionTest {
   @Test
   fun testPerform() {
     val action = CopyIssueDescriptionAction()
-    val emptyEvent = TestActionEvent()
+    val emptyEvent = TestActionEvent.createTestEvent()
 
     action.actionPerformed(emptyEvent)
     assertNull(CopyPasteManager.getInstance().contents)
@@ -81,10 +82,10 @@ class CopyIssueDescriptionActionTest {
     `when`(tree.selectionPath).thenReturn(path)
     `when`(path.lastPathComponent).thenReturn(node)
 
-    val context = DataContext { key ->
-      if (PlatformCoreDataKeys.CONTEXT_COMPONENT.`is`(key)) tree else null
+    val context = runInEdtAndGet {
+      SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, tree)
     }
 
-    return TestActionEvent(context, action)
+    return TestActionEvent.createTestEvent(action, context)
   }
 }

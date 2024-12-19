@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import org.junit.After
@@ -43,14 +43,13 @@ class ComposePreviewStatusIconActionTest {
 
   private val composePreviewManager = TestComposePreviewManager()
 
-  private val context = DataContext {
-    when (it) {
-      CommonDataKeys.PROJECT.name -> projectRule.project
-      SCENE_VIEW.name -> sceneViewMock
-      PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.currentStatus
-      else -> null
-    }
-  }
+  private val context
+    get() =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(SCENE_VIEW, sceneViewMock)
+        .add(PREVIEW_VIEW_MODEL_STATUS, composePreviewManager.currentStatus)
+        .build()
 
   private val originStatus =
     ComposePreviewManager.Status(
@@ -103,7 +102,6 @@ class ComposePreviewStatusIconActionTest {
   @Test
   fun testIconState() {
     val action = ComposePreviewStatusIconAction()
-    val event = TestActionEvent.createTestEvent(context)
 
     // Syntax error has priority over the other properties
     for (syntaxError in tf) {
@@ -122,6 +120,7 @@ class ComposePreviewStatusIconActionTest {
                     isRefreshing = refreshing,
                   )
                 composePreviewManager.currentStatus = status
+                val event = TestActionEvent.createTestEvent(context)
                 action.update(event)
                 val expectedToShowIcon = renderError && !refreshing
                 assertEquals(

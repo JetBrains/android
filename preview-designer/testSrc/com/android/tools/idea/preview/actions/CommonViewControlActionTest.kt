@@ -26,7 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert
@@ -51,12 +51,8 @@ class CommonViewControlActionTest {
       override var previewedFile: PsiFile? = null
     }
 
-  private val dataContext = DataContext {
-    when (it) {
-      PREVIEW_VIEW_MODEL_STATUS.name -> viewModelStatus
-      else -> null
-    }
-  }
+  val dataContext
+    get() = SimpleDataContext.getSimpleContext(PREVIEW_VIEW_MODEL_STATUS, viewModelStatus)
 
   @Test
   fun testLayoutOptions() {
@@ -81,7 +77,7 @@ class CommonViewControlActionTest {
 
     val designSurfaceMock = mock<NlDesignSurface>()
     whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)

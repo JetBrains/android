@@ -19,7 +19,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -45,7 +45,7 @@ class ShowInspectionTooltipsActionTest {
   @Test
   fun testEnableAndDisableInspectionTooltips() {
     val manager = TestComposePreviewManager()
-    val context = DataContext { if (COMPOSE_PREVIEW_MANAGER.`is`(it)) manager else null }
+    val context = SimpleDataContext.getSimpleContext(COMPOSE_PREVIEW_MANAGER, manager)
 
     val action = ShowInspectionTooltipsAction()
     manager.isInspectionTooltipEnabled = false

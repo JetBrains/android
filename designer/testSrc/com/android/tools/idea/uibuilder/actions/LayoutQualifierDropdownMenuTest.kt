@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -52,7 +53,7 @@ class LayoutQualifierDropdownMenuTest {
     val config = manager.getConfiguration(file)
 
     whenever(surface.configurations).thenReturn(ImmutableList.of(config))
-    context = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    context = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
   }
 
   @Test

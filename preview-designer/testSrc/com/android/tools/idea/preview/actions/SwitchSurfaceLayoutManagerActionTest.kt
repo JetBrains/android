@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
@@ -169,14 +170,12 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     val designSurface = mock<NlDesignSurface>()
 
-    val dataContext = DataContext {
-      when (it) {
-        PreviewModeManager.KEY.name -> previewModeManager
-        PreviewFlowManager.KEY.name -> previewFlowManager
-        DESIGN_SURFACE.name -> designSurface
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(PreviewModeManager.KEY, previewModeManager)
+        .add(PreviewFlowManager.KEY, previewFlowManager)
+        .add(DESIGN_SURFACE, designSurface)
+        .build()
     return TestData(dataContext, previewModeManager, previewFlowManager)
   }
 }

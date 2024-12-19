@@ -30,7 +30,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -94,7 +95,7 @@ class ComposeViewControlActionTest {
 
     val designSurfaceMock = mock<NlDesignSurface>()
     whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -139,7 +140,7 @@ class ComposeViewControlActionTest {
 
     val designSurfaceMock = mock<NlDesignSurface>()
     whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -187,7 +188,7 @@ class ComposeViewControlActionTest {
     val designSurfaceMock = mock<NlDesignSurface>()
     whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
     whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -214,26 +215,27 @@ class ComposeViewControlActionTest {
         areResourcesOutOfDate = false,
         psiFilePointer = null,
       )
-    val context = DataContext {
-      when {
-        PREVIEW_VIEW_MODEL_STATUS.`is`(it) -> manager.currentStatus
-        else -> null
-      }
-    }
-    val event = TestActionEvent.createTestEvent(context)
+    lateinit var event: AnActionEvent
     val viewControlAction =
       ComposeViewControlAction(listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager())))
+    fun ComposePreviewManager.Status.setAndUpdate() {
+      manager.currentStatus =
+        this.also {
+          event =
+            TestActionEvent.createTestEvent(
+              SimpleDataContext.getSimpleContext(PREVIEW_VIEW_MODEL_STATUS, this)
+            )
+          viewControlAction.update(event)
+        }
+    }
 
-    manager.currentStatus = nonRefreshingStatus
-    viewControlAction.update(event)
+    nonRefreshingStatus.setAndUpdate()
     assertTrue(event.presentation.isEnabled)
 
-    manager.currentStatus = refreshingStatus
-    viewControlAction.update(event)
+    refreshingStatus.setAndUpdate()
     assertFalse(event.presentation.isEnabled)
 
-    manager.currentStatus = nonRefreshingStatus
-    viewControlAction.update(event)
+    nonRefreshingStatus.setAndUpdate()
     assertTrue(event.presentation.isEnabled)
   }
 }

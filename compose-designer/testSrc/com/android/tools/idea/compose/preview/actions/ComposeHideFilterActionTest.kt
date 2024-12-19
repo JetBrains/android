@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -43,13 +43,11 @@ class ComposeHideFilterActionTest {
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of())
     manager.isFilterEnabled = true
 
-    val dataContext = DataContext {
-      when {
-        DESIGN_SURFACE.`is`(it) -> surface
-        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(DESIGN_SURFACE, surface)
+        .add(COMPOSE_PREVIEW_MANAGER, manager)
+        .build()
     val action = ComposeHideFilterAction()
     action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
 
@@ -67,13 +65,11 @@ class ComposeHideFilterActionTest {
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     manager.isFilterEnabled = true
 
-    val dataContext = DataContext {
-      when {
-        DESIGN_SURFACE.`is`(it) -> surface
-        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(DESIGN_SURFACE, surface)
+        .add(COMPOSE_PREVIEW_MANAGER, manager)
+        .build()
     val action = ComposeHideFilterAction()
 
     run {

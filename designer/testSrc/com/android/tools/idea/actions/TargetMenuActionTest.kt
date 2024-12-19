@@ -23,8 +23,8 @@ import com.android.tools.idea.actions.TargetMenuAction.SetTargetAction
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -41,7 +41,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))
     val menuAction = TargetMenuAction()
     menuAction.updateActions(dataContext)
 
@@ -66,7 +66,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))
     val menuAction = TargetMenuAction()
     menuAction.updateActions(dataContext)
 
@@ -87,7 +87,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))
     val menuAction = TargetMenuAction()
 
     manager.stateManager.projectState.isPickTarget = true

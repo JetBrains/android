@@ -8,7 +8,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import kotlin.test.assertEquals
@@ -51,13 +51,11 @@ class PreviewSurfaceActionManagerTest {
     statusesToEnable.forEach { (status, expectedResult) ->
       val (isEnabled, description) = expectedResult
 
-      val dataContext = DataContext {
-        when (it) {
-          CommonDataKeys.PROJECT.name -> projectRule.project
-          PREVIEW_VIEW_MODEL_STATUS.name -> status
-          else -> null
-        }
-      }
+      val dataContext =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, projectRule.project)
+          .add(PREVIEW_VIEW_MODEL_STATUS, status)
+          .build()
       val testEvent = createTestEvent(dataContext)
 
       val actions =
@@ -91,13 +89,11 @@ class PreviewSurfaceActionManagerTest {
 
     val noErrorStatus =
       Status(hasErrorsAndNeedsBuild = false, hasSyntaxErrors = false, isRefreshing = false)
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        PREVIEW_VIEW_MODEL_STATUS.name -> noErrorStatus
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PREVIEW_VIEW_MODEL_STATUS, noErrorStatus)
+        .build()
     val testEvent = createTestEvent(dataContext)
     val actions =
       (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())

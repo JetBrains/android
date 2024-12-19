@@ -18,7 +18,7 @@ package com.android.tools.idea.actions
 import com.android.resources.NightMode
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import junit.framework.Assert
@@ -30,7 +30,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml")
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val configuration = manager.getConfiguration(file)
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(configuration) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
     val systemUiModeAction = SystemUiModeAction()
 
     val wallpaperActions = systemUiModeAction.getWallpaperActions()
