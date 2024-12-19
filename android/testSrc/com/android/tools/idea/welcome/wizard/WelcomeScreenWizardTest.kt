@@ -93,9 +93,11 @@ import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.never
 import org.mockito.Mockito.`when`
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.KInvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
@@ -143,16 +145,18 @@ class WelcomeScreenWizardTest {
 
     mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
     fakeRepoManager =
-      FakeRepoManager(
-        RepositoryPackages(
-          emptyList(),
-          listOf(
-            createFakeRemotePackageWithLicense("build-tools;33.0.1"),
-            createFakeRemotePackageWithLicense("platforms;android-35"),
-            createFakeRemotePackageWithLicense(
-              "system-images;android-35;google_apis_playstore;arm64-v8a"
+      spy(
+        FakeRepoManager(
+          RepositoryPackages(
+            emptyList(),
+            listOf(
+              createFakeRemotePackageWithLicense("build-tools;33.0.1"),
+              createFakeRemotePackageWithLicense("platforms;android-35"),
+              createFakeRemotePackageWithLicense(
+                "system-images;android-35;google_apis_playstore;arm64-v8a"
+              ),
             ),
-          ),
+          )
         )
       )
     val sdkHandler = AndroidSdkHandler(sdkPath.toPath(), null, fakeRepoManager)
@@ -331,27 +335,29 @@ class WelcomeScreenWizardTest {
       )
     assertTrue(fakeUi.isShowing(sdkPathLabel))
 
-    // Add listener to the loading panel to allow us to wait for loading to complete
     val loadingPanel = checkNotNull(fakeUi.findComponent<JBLoadingPanel>())
-    val loadingFinished = CompletableFuture<Boolean>()
-    loadingPanel.addListener(
-      object : JBLoadingPanelListener.Adapter() {
-        override fun onLoadingFinish() {
-          loadingFinished.complete(true)
-        }
-      }
-    )
-
     val nextButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") })
+
+    val canContinueLoading = CompletableFuture<Boolean>()
+    whenever(
+        fakeRepoManager.loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
+      )
+      .doAnswer { kInvocationOnMock: KInvocationOnMock ->
+        canContinueLoading.get()
+        kInvocationOnMock.callRealMethod()
+        null
+      }
 
     // Change path
     sdkPathLabel.text = sdkPath.absolutePath
 
     waitForCondition(2, TimeUnit.SECONDS) { loadingPanel.isLoading }
-    assertFalse(nextButton.isEnabled)
+    waitForCondition(2, TimeUnit.SECONDS) { !nextButton.isEnabled }
 
-    waitForCondition(10, TimeUnit.SECONDS) { !loadingPanel.isLoading }
-    assertTrue(nextButton.isEnabled)
+    canContinueLoading.complete(true)
+
+    waitForCondition(2, TimeUnit.SECONDS) { !loadingPanel.isLoading }
+    waitForCondition(2, TimeUnit.SECONDS) { nextButton.isEnabled }
   }
 
   @Test

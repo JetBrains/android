@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -41,6 +42,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@UiThread
 public abstract class SdkComponentsStepController {
   private final @Nullable Project myProject;
   private final @NotNull FirstRunWizardMode myMode;
@@ -177,12 +179,18 @@ public abstract class SdkComponentsStepController {
 
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         localHandler.getSdkManager(progress)
-          .loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
-                  myRootNode.updateState(localHandler);
-                  stopLoading();
-                }), ImmutableList.of(this::loadingError),
-                new StudioProgressRunner(false, false, "Finding Available SDK Components", myProject), new StudioDownloader(),
-                StudioSettingsController.getInstance());
+          .loadSynchronously(
+            RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+            null,
+            ImmutableList.of(packages -> {
+              myRootNode.updateState(localHandler);
+              ApplicationManager.getApplication().invokeLater(this::stopLoading, modalityState);
+            }),
+            ImmutableList.of(() -> ApplicationManager.getApplication().invokeLater(this::loadingError, modalityState)),
+            new StudioProgressRunner(false, false, "Finding Available SDK Components", myProject),
+            new StudioDownloader(),
+            StudioSettingsController.getInstance()
+          );
         ApplicationManager.getApplication().invokeLater(this::reloadLicenseAgreementStep, modalityState);
       });
     }

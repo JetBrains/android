@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
@@ -43,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.SdkComponentsStep}
  */
 @Deprecated
+@UiThread
 public class SdkComponentsStep extends FirstRunWizardStep {
   @NotNull private final SdkComponentTreeNode myRootNode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
@@ -91,30 +93,35 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     });
 
     myController = new SdkComponentsStepController(project, mode, myRootNode, sdkHandlerProperty) {
+      @UiThread
       @Override
       public void setError(@Nullable Icon icon, @Nullable String message) {
         myForm.setErrorIcon(icon);
         setErrorHtml(message);
       }
 
+      @UiThread
       @Override
       public void onLoadingStarted() {
         myForm.startLoading();
         invokeUpdate(null);
       }
 
+      @UiThread
       @Override
       public void onLoadingFinished() {
         invokeUpdate(null);
         myForm.stopLoading();
       }
 
+      @UiThread
       @Override
       public void onLoadingError() {
         invokeUpdate(null);
         myForm.setLoadingText("Error loading components");
       }
 
+      @UiThread
       @Override
       public void reloadLicenseAgreementStep() {
         if (licenseAgreementStep != null) {

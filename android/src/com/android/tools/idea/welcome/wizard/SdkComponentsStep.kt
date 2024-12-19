@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
@@ -30,6 +31,7 @@ import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
 
 /** Wizard page for selecting SDK components to download. */
+@UiThread
 class SdkComponentsStep(
   model: FirstRunWizardModel,
   val project: Project?,
@@ -40,29 +42,34 @@ class SdkComponentsStep(
   private val rootNode = model.componentTree
   private val controller =
     object : SdkComponentsStepController(project, mode, rootNode, model.localHandlerProperty) {
+      @UiThread
       override fun setError(icon: Icon?, message: String?) {
         form.setErrorIcon(icon)
         form.setErrorMessage(message)
       }
 
+      @UiThread
       override fun onLoadingStarted() {
         form.startLoading()
         validate()
         updateDiskSizes()
       }
 
+      @UiThread
       override fun onLoadingFinished() {
         validate()
         updateDiskSizes()
         form.stopLoading()
       }
 
+      @UiThread
       override fun onLoadingError() {
         validate()
         updateDiskSizes()
         form.setLoadingText("Error loading components")
       }
 
+      @UiThread
       override fun reloadLicenseAgreementStep() {
         licenseAgreementStep?.reload()
       }

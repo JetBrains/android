@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.welcome.wizard.SdkComponentsRenderer;
 import com.android.tools.idea.welcome.wizard.SdkComponentsTableModel;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * UI for wizard page for selecting SDK components to download.
  */
+@UiThread
 public class SdkComponentsStepForm implements Disposable {
   private JPanel myContents;
   private JBTable myComponentsTable;
