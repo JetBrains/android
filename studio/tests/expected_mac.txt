@@ -2105,6 +2105,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-api-client-2.2.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-api-services-drive-v3-rev20241027-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-api-services-oauth2-v2-rev20200213-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-auth-library-credentials-1.24.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-auth-library-oauth2-http-1.24.0.jar

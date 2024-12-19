@@ -55,6 +55,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:oauth2",
         "//prebuilts/tools/common/m2:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
+        "//prebuilts/tools/common/m2:google-api-services-drive-v3-rev20241027-2.0.0",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
