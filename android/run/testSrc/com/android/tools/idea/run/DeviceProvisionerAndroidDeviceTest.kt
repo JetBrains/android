@@ -22,10 +22,11 @@ import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Uninterruptibles
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Before
@@ -41,8 +42,10 @@ class DeviceProvisionerAndroidDeviceTest {
   fun initAdb() {
     AndroidDebugBridge.enableFakeAdbServerMode(deviceProvisionerRule.fakeAdb.fakeAdbServer.port)
     val options =
-      AdbInitOptions.builder().setIDeviceManagerFactory(AdbLibIDeviceManagerFactory(deviceProvisionerRule.adbSession))
-        .useJdwpProxyService(false).build()
+      AdbInitOptions.builder()
+        .setIDeviceManagerFactory(AdbLibIDeviceManagerFactory(deviceProvisionerRule.adbSession))
+        .useJdwpProxyService(false)
+        .build()
     AndroidDebugBridge.init(options)
     bridge =
       AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
@@ -69,13 +72,17 @@ class DeviceProvisionerAndroidDeviceTest {
 
     val device = DeviceHandleAndroidDevice(bridge.asDdmlibDeviceLookup(), handle, handle.state)
     assertThat(device.isRunning).isFalse()
-    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
+    assertThat(device.serial)
+      .isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
     assertThat(device.ddmlibDevice).isNull()
 
     val futureDevice = device.bootDefault()
 
-    assertThat(runCatching { futureDevice.get(1, TimeUnit.SECONDS) }.exceptionOrNull())
-      .isInstanceOf(TimeoutException::class.java)
+    assertThat(
+        runCatching { runBlocking { withTimeout(1.seconds) { futureDevice.await() } } }
+          .exceptionOrNull()
+      )
+      .isInstanceOf(TimeoutCancellationException::class.java)
     assertThat(device.ddmlibDevice).isNull()
 
     handle.finishBoot()
@@ -85,7 +92,8 @@ class DeviceProvisionerAndroidDeviceTest {
     assertThat(iDevice).isSameAs(device.ddmlibDevice)
     assertThat(iDevice.serialNumber).isEqualTo("abcd")
     assertThat(device.isRunning).isTrue()
-    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
+    assertThat(device.serial)
+      .isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
     runBlocking { assertThat(device.launchedDevice.await()).isEqualTo(iDevice) }
   }
 }

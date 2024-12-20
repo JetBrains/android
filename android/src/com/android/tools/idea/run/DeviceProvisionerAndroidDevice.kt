@@ -71,13 +71,12 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
    * Boots the device in the default manner, if it is not already running, and returns the resulting
    * [IDevice]. This will cancel any existing boot operation and start a new one.
    */
-  abstract fun bootDefault(): ListenableFuture<IDevice>
+  abstract fun bootDefault(): Deferred<IDevice>
 
-  protected fun boot(action: suspend () -> IDevice): ListenableFuture<IDevice> {
+  protected fun boot(action: suspend () -> IDevice): Deferred<IDevice> {
     return scope
       .async { action() }
       .also { launchDeviceTask.getAndSet(it)?.cancel() }
-      .asListenableFuture()
   }
 
   override fun getLaunchedDevice(): ListenableFuture<IDevice> {
@@ -139,7 +138,7 @@ class DeviceTemplateAndroidDevice(
 
   override fun isRunning() = false
 
-  override fun bootDefault(): ListenableFuture<IDevice> = boot {
+  override fun bootDefault(): Deferred<IDevice> = boot {
     val deviceHandle = deviceTemplate.activationAction.activate()
 
     val deviceState =
@@ -184,15 +183,15 @@ class DeviceHandleAndroidDevice(
 
   override fun isRunning() = deviceHandle.state.connectedDevice != null
 
-  override fun bootDefault(): ListenableFuture<IDevice> = boot {
+  override fun bootDefault(): Deferred<IDevice> = boot {
     activate { deviceHandle.activationAction?.activate() }
   }
 
-  fun coldBoot(): ListenableFuture<IDevice> = boot {
+  fun coldBoot(): Deferred<IDevice> = boot {
     activate { deviceHandle.coldBootAction?.activate() }
   }
 
-  fun bootFromSnapshot(snapshot: Snapshot): ListenableFuture<IDevice> = boot {
+  fun bootFromSnapshot(snapshot: Snapshot): Deferred<IDevice> = boot {
     activate { deviceHandle.bootSnapshotAction?.activate(snapshot) }
   }
 
