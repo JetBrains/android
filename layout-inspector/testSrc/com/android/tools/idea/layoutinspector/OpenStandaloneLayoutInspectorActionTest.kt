@@ -31,7 +31,7 @@ import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -73,14 +73,12 @@ class OpenStandaloneLayoutInspectorActionTest {
     val deviceHandle = mock<DeviceHandle>()
     whenever(deviceHandle.state).thenAnswer { mock<DeviceState.Connected>() }
 
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        DEVICE_ROW_DATA_KEY.name -> deviceRowData
-        DEVICE_HANDLE_KEY.name -> deviceHandle
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(DEVICE_ROW_DATA_KEY, deviceRowData)
+        .add(DEVICE_HANDLE_KEY, deviceHandle)
+        .build()
 
     val fakeEvent = createTestActionEvent(action, dataContext = dataContext)
     action.update(fakeEvent)
@@ -99,14 +97,12 @@ class OpenStandaloneLayoutInspectorActionTest {
     val deviceHandle = mock<DeviceHandle>()
     whenever(deviceHandle.state).thenAnswer { mock<DeviceState.Connected>() }
 
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        DEVICE_ROW_DATA_KEY.name -> deviceRowData
-        DEVICE_HANDLE_KEY.name -> deviceHandle
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(DEVICE_ROW_DATA_KEY, deviceRowData)
+        .add(DEVICE_HANDLE_KEY, deviceHandle)
+        .build()
 
     val fakeEvent = createTestActionEvent(action, dataContext = dataContext)
     action.update(fakeEvent)
@@ -159,14 +155,12 @@ class OpenStandaloneLayoutInspectorActionTest {
     val deviceHandle = mock<DeviceHandle>()
     whenever(deviceHandle.state).thenAnswer { mock<DeviceState.Connected>() }
 
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        DEVICE_ROW_DATA_KEY.name -> deviceRowData
-        DEVICE_HANDLE_KEY.name -> deviceHandle
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(DEVICE_ROW_DATA_KEY, deviceRowData)
+        .add(DEVICE_HANDLE_KEY, deviceHandle)
+        .build()
 
     // Verify that the tool window is not present.
     val layoutInspectorToolWindow1 =

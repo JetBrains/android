@@ -27,8 +27,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
@@ -139,12 +139,8 @@ class LambdaParameterItemTest {
 
   private fun mockEvent(): AnActionEvent {
     val event: AnActionEvent = mock()
-    val context = DataContext { dataId ->
-      when (dataId) {
-        PlatformCoreDataKeys.CONTEXT_COMPONENT.name -> JPanel()
-        else -> null
-      }
-    }
+    val context =
+      SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, JPanel())
     whenever(event.dataContext).thenReturn(context)
     return event
   }

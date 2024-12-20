@@ -35,8 +35,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
@@ -45,6 +45,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.JPanel
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -213,18 +214,18 @@ class ToggleLayoutInspectorActionTest {
     val contentPanel = BorderLayoutPanel()
     contentPanelContainer.add(contentPanel)
 
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> displayViewRule.project
-        SERIAL_NUMBER_KEY.name -> deviceSerialNumber
-        STREAMING_CONTENT_PANEL_KEY.name -> contentPanel
-        DISPLAY_VIEW_KEY.name -> displayView
-        DEVICE_ID_KEY.name -> deviceId
-        CONTENT_MANAGER.name ->
-          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, displayViewRule.project)
+        .add(SERIAL_NUMBER_KEY, deviceSerialNumber)
+        .add(STREAMING_CONTENT_PANEL_KEY, contentPanel)
+        .add(DISPLAY_VIEW_KEY, displayView)
+        .add(DEVICE_ID_KEY, deviceId)
+        .add(
+          CONTENT_MANAGER,
+          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager,
+        )
+        .build()
 
     return createEvent(this, dataContext, null, "", ActionUiKind.NONE, null)
   }
