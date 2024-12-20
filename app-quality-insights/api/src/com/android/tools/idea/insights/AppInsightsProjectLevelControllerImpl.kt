@@ -26,6 +26,8 @@ import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.ConnectionsChanged
 import com.android.tools.idea.insights.events.DeleteNoteRequested
 import com.android.tools.idea.insights.events.DevicesChanged
+import com.android.tools.idea.insights.events.DisableAction
+import com.android.tools.idea.insights.events.EnableAction
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.FatalityToggleChanged
@@ -44,6 +46,7 @@ import com.android.tools.idea.insights.events.SelectedIssueVariantChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.experiments.InsightFeedback
@@ -55,6 +58,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import java.time.Clock
 import javax.swing.event.HyperlinkListener
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -300,6 +304,14 @@ class AppInsightsProjectLevelControllerImpl(
         markAsSelectedCallback = selectIssueCallback,
       )
     }
+  }
+
+  override fun disableAction(action: KClass<out Action>) {
+    emit(DisableAction(action))
+  }
+
+  override fun enableAction(action: KClass<out Action>) {
+    emit(EnableAction(action))
   }
 
   private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {

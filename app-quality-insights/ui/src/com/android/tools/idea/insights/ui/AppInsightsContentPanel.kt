@@ -72,6 +72,9 @@ class AppInsightsContentPanel(
       }
     splitter.isFocusCycleRoot = false
     val workBench = workBenchFactory(this)
+    workBench.addWorkBenchToolWindowListener { visibleWindows ->
+      secondaryToolWindows.forEach { it.updateVisibility(it.name in visibleWindows) }
+    }
     workBench.isFocusCycleRoot = false
     workBench.init(splitter, AppInsightsToolWindowContext(), secondaryToolWindows, false)
     // Set the Insight toolwindow as the default for the first time user launches with this feature.

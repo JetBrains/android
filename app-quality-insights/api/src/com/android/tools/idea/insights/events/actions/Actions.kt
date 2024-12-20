@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import kotlin.reflect.KClass
 
 /**
  * Describes all the actions available in App Insights.
@@ -144,6 +145,14 @@ sealed class Action {
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }
+  }
+
+  data class DisableAction(val action: KClass<out Action>) : Single() {
+    override fun maybeDoCancel(reasons: List<Single>) = this
+  }
+
+  data class EnableAction(val action: KClass<out Action>) : Single() {
+    override fun maybeDoCancel(reasons: List<Single>) = this
   }
 
   /** Cancel all outstanding fetches. */

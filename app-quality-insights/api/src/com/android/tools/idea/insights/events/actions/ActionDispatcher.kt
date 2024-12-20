@@ -115,6 +115,8 @@ class ActionDispatcher(
     val (action, currentState, lastGoodState) = ctx
     val connection = currentState.connections.selected ?: return CancellationToken.noop(Action.NONE)
 
+    if (action::class in currentState.disabledActions) return CancellationToken.noop(Action.NONE)
+
     return when (action) {
       is Action.Multiple ->
         CompositeCancellationToken(
@@ -132,6 +134,8 @@ class ActionDispatcher(
       is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
       is Action.ListEvents -> listEvents(currentState, action)
       is Action.FetchInsight -> fetchInsight(connection, currentState, action)
+      is Action.DisableAction -> CancellationToken.noop(action)
+      is Action.EnableAction -> CancellationToken.noop(action)
     }
   }
 

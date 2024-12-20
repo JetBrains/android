@@ -23,6 +23,9 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI
 import javax.swing.Icon
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 class AppInsightsToolWindowDefinition(
   title: String,
@@ -41,4 +44,13 @@ class AppInsightsToolWindowDefinition(
     DEFAULT_BUTTON_SIZE,
     ALLOW_BASICS,
     factory,
-  )
+  ) {
+
+  private val _definitionVisibility = MutableStateFlow(false)
+  // TODO(vidish): Combine with tab visibility
+  val toolWindowVisibility: StateFlow<Boolean> = _definitionVisibility
+
+  fun updateVisibility(isVisible: Boolean) {
+    _definitionVisibility.update { isVisible }
+  }
+}

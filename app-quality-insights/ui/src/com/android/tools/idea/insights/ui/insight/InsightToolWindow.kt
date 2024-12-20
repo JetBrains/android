@@ -17,6 +17,8 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
@@ -24,6 +26,10 @@ import com.intellij.openapi.Disposable
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 object InsightToolWindow {
   fun create(
@@ -31,13 +37,37 @@ object InsightToolWindow {
     parentDisposable: Disposable,
     permissionDeniedHandler: InsightPermissionDeniedHandler,
   ): AppInsightsToolWindowDefinition {
-    return AppInsightsToolWindowDefinition(
-      "Insights",
-      StudioIcons.StudioBot.LOGO_MONOCHROME,
-      "APP_INSIGHTS_INSIGHTS",
-    ) {
+    val content =
       InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
-    }
+    return AppInsightsToolWindowDefinition(
+        "Insights",
+        StudioIcons.StudioBot.LOGO_MONOCHROME,
+        "APP_INSIGHTS_INSIGHTS",
+      ) {
+        content
+      }
+      .apply {
+        val insightStateFLow =
+          projectController.state
+            .map { it.currentInsight }
+            .stateIn(
+              projectController.coroutineScope,
+              SharingStarted.Eagerly,
+              LoadingState.Ready(null),
+            )
+        projectController.coroutineScope.launch {
+          toolWindowVisibility.collect { isVisible ->
+            if (isVisible) {
+              projectController.enableAction(Action.FetchInsight::class)
+              if (insightStateFLow.value !is LoadingState.Ready) {
+                projectController.refreshInsight(false)
+              }
+            } else {
+              projectController.disableAction(Action.FetchInsight::class)
+            }
+          }
+        }
+      }
   }
 }
 

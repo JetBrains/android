@@ -19,11 +19,14 @@ import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.time.Duration
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1564,6 +1567,58 @@ class AppInsightsProjectLevelControllerTest {
     client.completeFetchInsightCallWith(LoadingState.Ready(newInsight))
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(newInsight))
+  }
+
+  @Test
+  fun `disableAction disables action, enableAction enables action`() = runBlocking {
+    var state =
+      controllerRule.consumeInitialState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(
+              listOf(ISSUE1, ISSUE2),
+              emptyList(),
+              emptyList(),
+              emptyList(),
+              DEFAULT_FETCHED_PERMISSIONS,
+            )
+          ),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+        insightState = LoadingState.Ready(AiInsight("insight")),
+      )
+
+    assertThat(state.disabledActions).isEmpty()
+    controllerRule.controller.disableAction(Action.FetchInsight::class)
+    state = controllerRule.consumeNext()
+    assertThat(state.disabledActions).containsExactly(Action.FetchInsight::class)
+
+    controllerRule.controller.refreshInsight(false)
+    state = controllerRule.consumeNext()
+
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+    try {
+      withTimeout(1000) {
+        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      }
+    } catch (e: TimeoutCancellationException) {}
+
+    // Assert that the insight did not change
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+    controllerRule.controller.enableAction(Action.FetchInsight::class)
+    state = controllerRule.consumeNext()
+    assertThat(state.disabledActions).isEmpty()
+
+    controllerRule.controller.refreshInsight(false)
+    try {
+      withTimeout(1000) {
+        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      }
+    } catch (e: TimeoutCancellationException) {}
+
+    state = controllerRule.consumeNext()
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
   }
 }
 
