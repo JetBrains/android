@@ -15,6 +15,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark1000Cpu": {
@@ -23,6 +24,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
@@ -35,6 +37,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
                 "perfgate-release",
             ],
         },
@@ -61,6 +64,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -70,6 +74,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -79,6 +84,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -88,6 +94,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -103,6 +110,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark500Cpu": {
@@ -111,6 +119,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark200Repeated20TimesMemory": {
@@ -119,6 +128,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark1000Memory": {
@@ -127,6 +137,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         # Disabled tests
