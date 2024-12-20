@@ -268,12 +268,9 @@ def _studio_plugin_impl(ctx):
 
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
-    need = depset(transitive =
-                      [m[ImlModuleInfo].module_deps for m in ctx.attr.modules] +
-                      [m[ImlModuleInfo].plugin_deps for m in ctx.attr.modules] +
-                      [m[ImlModuleInfo].external_deps for m in ctx.attr.modules])
+    need = depset(transitive = [depset(m[ImlModuleInfo].deps) for m in ctx.attr.modules])
     have = depset(
-        direct = ctx.attr.modules + ctx.attr.libs,
+        direct = ctx.attr.modules + ctx.attr.libs + [ctx.attr._intellij_sdk],
         transitive = [d[PluginInfo].module_deps for d in ctx.attr.deps] +
                      [d[PluginInfo].lib_deps for d in ctx.attr.deps] +
                      [depset(ctx.attr.deps)],
@@ -337,6 +334,9 @@ _studio_plugin = rule(
         "_intellij_platform": attr.label(
             default = Label("//tools/base/intellij-bazel:intellij_platform"),
             cfg = "exec",
+        ),
+        "_intellij_sdk": attr.label(
+            default = Label("@intellij//:intellij-sdk"),
         ),
     },
     outputs = {
