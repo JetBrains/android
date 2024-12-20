@@ -86,6 +86,7 @@ import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -829,6 +830,9 @@ class AndroidRunConfigurationExecutorTest {
     //  fail("Process handler didn't stop when debug process terminated")
     //}
     processHandler.destroyProcess()
+
+    // This removes all the invocation record of the device mock which held onto one of the Project reference.
+    reset(device)
     println("Finished runAPI33")
   }
 }
