@@ -694,7 +694,7 @@ public final class StudioFlags {
     "riscv.support",
     "Support for RISC V",
     "Allow support for RISC V architecture and targeted architecture selection.",
-    enabledUpTo(CANARY)
+    true
   );
 
   //endregion
