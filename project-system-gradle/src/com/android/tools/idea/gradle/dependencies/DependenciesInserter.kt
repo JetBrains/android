@@ -355,7 +355,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
 
   open fun updateDependencyVersion(dependency: Dependency,
                                    buildModel: GradleBuildModel) {
-    require(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
+    check(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
     findDependency(dependency, buildModel)?.let { artifact ->
       buildModel.dependencies().apply {
         remove(artifact)

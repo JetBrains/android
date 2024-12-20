@@ -176,7 +176,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
 
   override fun updateDependencyVersion(dependency: Dependency,
                                        buildModel: GradleBuildModel) {
-    require(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
+    check(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
     val catalogsModel = projectModel.versionCatalogsModel
 
     findDependency(dependency, buildModel)?.let { artifact ->

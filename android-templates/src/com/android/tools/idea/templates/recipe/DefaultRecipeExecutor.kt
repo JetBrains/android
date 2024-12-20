@@ -248,22 +248,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
-    check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }
-
-    val buildModel = projectGradleBuildModel ?: return
-
-    val buildscriptDependencies = buildModel.buildscript().dependencies()
-    val targetDependencyModel =
-      buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
-        toBeAddedDependency.equalsIgnoreVersion(it.spec)
-      }
     projectBuildModel?.let {
-      if (targetDependencyModel == null) {
         DependenciesHelper.withModel(it)
-          .addClasspathDependency(toBeAddedDependency.compactNotation())
+          .addClasspathDependency(resolvedCoordinate, listOf(), GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, resolvedCoordinate))
       }
-    }
   }
 
   private fun maybeGetPluginsFromSettings(): PluginsBlockModel? {
