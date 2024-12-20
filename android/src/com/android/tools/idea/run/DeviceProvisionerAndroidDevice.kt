@@ -32,8 +32,8 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.project.Project
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
@@ -45,8 +45,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import javax.swing.Icon
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -84,6 +84,14 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
     return launchDeviceTask.get()?.asListenableFuture()
       ?: throw IllegalStateException("Attempt to get device that hasn't been launched yet.")
   }
+
+  /**
+   * Returns the IDevice if the device is connected and ready for use, or else null. Note that even
+   * if the device is [running][isRunning], the device may not yet be fully booted, so this may
+   * return null.
+   */
+  val ddmlibDevice: IDevice?
+    get() = if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
 
   override fun getSerial(): String = buildString {
     append("DeviceProvisionerAndroidDevice pluginId=")
@@ -213,8 +221,7 @@ class DeviceHandleAndroidDevice(
         this,
       )
     // If the device is running, assume that these errors don't matter.
-    val deviceLaunchCompatibility =
-      deviceHandle.state.error.toLaunchCompatibility()
+    val deviceLaunchCompatibility = deviceHandle.state.error.toLaunchCompatibility()
 
     // Favor the project launch compatibility, since handle state tends to be more temporary.
     return projectLaunchCompatibility.combine(deviceLaunchCompatibility)

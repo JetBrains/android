@@ -70,16 +70,19 @@ class DeviceProvisionerAndroidDeviceTest {
     val device = DeviceHandleAndroidDevice(bridge.asDdmlibDeviceLookup(), handle, handle.state)
     assertThat(device.isRunning).isFalse()
     assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
+    assertThat(device.ddmlibDevice).isNull()
 
     val futureDevice = device.bootDefault()
 
     assertThat(runCatching { futureDevice.get(1, TimeUnit.SECONDS) }.exceptionOrNull())
       .isInstanceOf(TimeoutException::class.java)
+    assertThat(device.ddmlibDevice).isNull()
 
     handle.finishBoot()
 
     val iDevice =
       checkNotNull(runBlocking { withTimeoutOrNull(5.seconds) { futureDevice.await() } })
+    assertThat(iDevice).isSameAs(device.ddmlibDevice)
     assertThat(iDevice.serialNumber).isEqualTo("abcd")
     assertThat(device.isRunning).isTrue()
     assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
