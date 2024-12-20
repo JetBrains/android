@@ -275,7 +275,11 @@ private fun ProjectDumper.dumpJdk(jdkOrderEntry: JdkOrderEntry) {
 }
 
 private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
-  head("LIBRARY") { library.libraryName?.markMatching(library?.library?.name.orEmpty())?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths() }
+  if (!library.ownerModule.isKotlinBuildScript) {
+    head("LIBRARY") {
+      library.libraryName?.markMatching(library?.library?.name.orEmpty())?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths()
+    }
+  }
   nest {
     prop("LibraryLevel") { library.libraryLevel.takeUnless { it == "project" } }
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
@@ -530,3 +534,7 @@ class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
     println("Dumped to: file://$outputFile")
   }
 }
+
+private val Module.isKotlinBuildScript
+  get() = name.startsWith("Kotlin Scripts.KotlinBuildScript")
+
