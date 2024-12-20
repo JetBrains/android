@@ -153,7 +153,7 @@ class LiveEditServiceImpl(val project: Project,
             .createNotification(
               "Live Edit works with multi-device deployments but this is not officially supported.",
               NotificationType.INFORMATION)
-            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/studio/run#limitations"))
+            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations"))
             .notify(project)
           showMultiDeviceNotification = false
         }
@@ -163,7 +163,7 @@ class LiveEditServiceImpl(val project: Project,
             .createNotification(
               "Live Edit does not work with previous deployments on different devices.",
               NotificationType.INFORMATION)
-            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/studio/run#limitations"))
+            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations"))
             .notify(project)
           showMultiDeployNotification = false
         }
