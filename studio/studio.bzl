@@ -31,6 +31,28 @@ IntellijInfo = provider(
         "minor_version": "The minor IntelliJ version",
         "base": "A map from final studio location to the file (all non plugin files)",
         "plugins": "The file maps for all the bundled plugins",
+        "mac_bundle_name": "The application name on Mac, e.g. 'Android Studio Preview.app'",
+    },
+)
+
+_StudioDataInfo = provider(
+    doc = "Holds IDE distribution files split by platform",
+    fields = {
+        "linux": "Linux files",
+        "mac": "Mac x86-64 files",
+        "mac_arm": "Mac aarch64 files",
+        "win": "Windows files",
+        "mappings": "A map from files to destination paths",
+    },
+)
+
+_SearchableOptionsInfo = provider(
+    # For context: the "searchable options" for a given plugin is essentially just a list of
+    # available options exposed by that plugin in the IDE settings dialog. The list gets stored
+    # in a file which the IDE parses at runtime to optimize search queries from the user.
+    doc = "Holds searchable options generated for a given set of plugins",
+    fields = {
+        "so_jars": "A map from plugin IDs to corresponding searchable options jars",
     },
 )
 
@@ -172,8 +194,9 @@ WIN = struct(
 def _resource_deps(res_dirs, res, platform):
     files = []
     for dir, dep in zip(res_dirs, res):
-        if hasattr(dep, "mappings"):
-            files += [(dir + "/" + dep.mappings[f], f) for f in platform.get(dep).to_list()]
+        if _StudioDataInfo in dep:
+            dep_data = dep[_StudioDataInfo]
+            files += [(dir + "/" + dep_data.mappings[f], f) for f in platform.get(dep_data).to_list()]
         else:
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
@@ -336,10 +359,10 @@ def _searchable_options_impl(ctx):
         jar = searchable_options[id]
         _zipper(ctx, "%s %s searchable options" % (id, jar), [(f.basename, f) for f in srcs], jar)
 
-    return struct(
-        files = depset(searchable_options.values()),
-        searchable_options = searchable_options,
-    )
+    return [
+        DefaultInfo(files = depset(searchable_options.values())),
+        _SearchableOptionsInfo(so_jars = searchable_options),
+    ]
 
 _searchable_options = rule(
     attrs = {
@@ -353,6 +376,7 @@ _searchable_options = rule(
         ),
     },
     executable = False,
+    provides = [_SearchableOptionsInfo],
     implementation = _searchable_options_impl,
 )
 
@@ -399,7 +423,7 @@ def studio_plugin(
 
 def _studio_data_impl(ctx):
     for dep in ctx.attr.files_linux + ctx.attr.files_mac + ctx.attr.files_mac_arm + ctx.attr.files_win:
-        if hasattr(dep, "mappings"):
+        if _StudioDataInfo in dep:
             fail("studio_data does not belong on a platform specific attribute, please add " + str(dep.label) + " to \"files\" directly")
 
     files = []
@@ -409,12 +433,13 @@ def _studio_data_impl(ctx):
     linux = []
     mappings = {}
     for dep in ctx.attr.files:
-        if hasattr(dep, "mappings"):
-            linux.append(dep.linux)
-            mac.append(dep.mac)
-            mac_arm.append(dep.mac_arm)
-            win.append(dep.win)
-            mappings.update(dep.mappings)
+        if _StudioDataInfo in dep:
+            dep_data = dep[_StudioDataInfo]
+            linux.append(dep_data.linux)
+            mac.append(dep_data.mac)
+            mac_arm.append(dep_data.mac_arm)
+            win.append(dep_data.win)
+            mappings.update(dep_data.mappings)
         else:
             files += dep[DefaultInfo].files.to_list()
 
@@ -428,14 +453,16 @@ def _studio_data_impl(ctx):
     dmac_arm = depset(files + ctx.files.files_mac_arm, order = "preorder", transitive = mac_arm)
     dwin = depset(files + ctx.files.files_win, order = "preorder", transitive = win)
 
-    return struct(
-        linux = dlinux,
-        mac = dmac,
-        mac_arm = dmac_arm,
-        win = dwin,
-        mappings = mappings,
-        providers = [DefaultInfo(files = depset(files))],
-    )
+    return [
+        _StudioDataInfo(
+            linux = dlinux,
+            mac = dmac,
+            mac_arm = dmac_arm,
+            win = dwin,
+            mappings = mappings,
+        ),
+        DefaultInfo(files = depset(files)),
+    ]
 
 _studio_data = rule(
     attrs = {
@@ -447,6 +474,7 @@ _studio_data = rule(
         "mappings": attr.string_dict(mandatory = True),
     },
     executable = False,
+    provides = [_StudioDataInfo],
     implementation = _studio_data_impl,
 )
 
@@ -711,7 +739,7 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
 
 def _android_studio_prefix(ctx, platform):
     if platform == MAC or platform == MAC_ARM:
-        return ctx.attr.platform.platform_info.mac_bundle_name + "/"
+        return ctx.attr.platform[IntellijInfo].mac_bundle_name + "/"
     return "android-studio/"
 
 def _get_external_attributes(all_files):
@@ -743,7 +771,8 @@ def _android_studio_os(ctx, platform, out):
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
-        jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre).to_list()]
+        jre_data = ctx.attr.jre[_StudioDataInfo]
+        jre_files = [(jre_data.mappings[f], f) for f in platform.get(jre_data).to_list()]
         all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
     # Stamp the platform and its plugins
@@ -789,7 +818,7 @@ def _android_studio_os(ctx, platform, out):
         for key in source_map:
             files.append((platform.base_path + source_map[key], key.files.to_list()[0]))
 
-    so_jars = ctx.attr.searchable_options.searchable_options
+    so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
 
     license_files = []
     for p in ctx.attr.plugins:
@@ -957,7 +986,7 @@ _android_studio = rule(
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_win": attr.label_keyed_string_dict(allow_files = True, default = {}),
-        "jre": attr.label(),
+        "jre": attr.label(providers = [_StudioDataInfo]),
         "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "vm_options": attr.string_list(),
@@ -972,7 +1001,7 @@ _android_studio = rule(
         "properties_win": attr.string_list(),
         "selector": attr.string(mandatory = True),
         "application_icon": attr.label(providers = [AppIconInfo]),
-        "searchable_options": attr.label(),
+        "searchable_options": attr.label(providers = [_SearchableOptionsInfo]),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),
@@ -1213,39 +1242,36 @@ def _intellij_platform_impl_os(ctx, platform, data, zip_out):
     return base_files, plugin_files
 
 def _intellij_platform_impl(ctx):
-    base_files_linux, plugin_files_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data, ctx.outputs.linux_zip)
-    base_files_win, plugin_files_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data, ctx.outputs.win_zip)
-    base_files_mac, plugin_files_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data, ctx.outputs.mac_zip)
-    base_files_mac_arm, plugin_files_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data, ctx.outputs.mac_arm_zip)
+    studio_data = ctx.attr.studio_data[_StudioDataInfo]
+    base_files_linux, plugin_files_linux = _intellij_platform_impl_os(ctx, LINUX, studio_data, ctx.outputs.linux_zip)
+    base_files_win, plugin_files_win = _intellij_platform_impl_os(ctx, WIN, studio_data, ctx.outputs.win_zip)
+    base_files_mac, plugin_files_mac = _intellij_platform_impl_os(ctx, MAC, studio_data, ctx.outputs.mac_zip)
+    base_files_mac_arm, plugin_files_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, studio_data, ctx.outputs.mac_arm_zip)
 
     runfiles = ctx.runfiles(files = ctx.files.data)
-    return struct(
-        providers = [
-            DefaultInfo(runfiles = runfiles),
-            # buildifier: disable=native-java-common (@rules_java is not usable in this file yet)
-            # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
-            java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
-            IntellijInfo(
-                major_version = ctx.attr.major_version,
-                minor_version = ctx.attr.minor_version,
-                base = struct(
-                    linux = base_files_linux,
-                    mac = base_files_mac,
-                    mac_arm = base_files_mac_arm,
-                    win = base_files_win,
-                ),
-                plugins = struct(
-                    linux = plugin_files_linux,
-                    mac = plugin_files_mac,
-                    mac_arm = plugin_files_mac_arm,
-                    win = plugin_files_win,
-                ),
+    return [
+        DefaultInfo(runfiles = runfiles),
+        # buildifier: disable=native-java-common (@rules_java is not usable in this file yet)
+        # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
+        java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
+        IntellijInfo(
+            major_version = ctx.attr.major_version,
+            minor_version = ctx.attr.minor_version,
+            base = struct(
+                linux = base_files_linux,
+                mac = base_files_mac,
+                mac_arm = base_files_mac_arm,
+                win = base_files_win,
             ),
-        ],
-        platform_info = struct(
+            plugins = struct(
+                linux = plugin_files_linux,
+                mac = plugin_files_mac,
+                mac_arm = plugin_files_mac_arm,
+                win = plugin_files_win,
+            ),
             mac_bundle_name = ctx.attr.mac_bundle_name,
         ),
-    )
+    ]
 
 _intellij_platform = rule(
     attrs = {
@@ -1254,7 +1280,7 @@ _intellij_platform = rule(
         # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo]),
         "data": attr.label_list(allow_files = True),
-        "studio_data": attr.label(),
+        "studio_data": attr.label(providers = [_StudioDataInfo]),
         "compress": attr.bool(),
         "mac_bundle_name": attr.string(),
         "_zipper": attr.label(
