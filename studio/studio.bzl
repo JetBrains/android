@@ -14,8 +14,8 @@ PluginInfo = provider(
     fields = {
         "directory": "where to place this plugin within the plugins directory",
         "plugin_metadata": "metadata produced by the check_plugin tool",
-        "module_deps": "ImlModuleInfo for modules included in this plugin",
-        "lib_deps": "libraries to be included in this plugin",
+        "modules": "ImlModuleInfo for modules included in this plugin",
+        "libs": "libraries to be included in this plugin",
         "license_files": "",
         "plugin_files": "A map from the final studio location to the file it goes there.",
         "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
@@ -137,7 +137,7 @@ def _lists_to_dict(keys, values):
         dict[k].append(v)
     return dict
 
-def _module_deps(ctx, jar_names, modules):
+def _pack_modules(ctx, jar_names, modules):
     jars = _lists_to_dict(jar_names, modules)
     res_files = []
     for j, ms in jars.items():
@@ -224,8 +224,8 @@ def _check_plugin(ctx, out, files, external_xmls = [], verify_id = None, verify_
         mnemonic = "chkplugin",
     )
 
-def _studio_plugin_os(ctx, platform, module_deps, plugin_dir):
-    files = {plugin_dir + "/lib/" + d: f for (d, f) in module_deps}
+def _studio_plugin_os(ctx, platform, plugin_jars, plugin_dir):
+    files = {plugin_dir + "/lib/" + d: f for (d, f) in plugin_jars}
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     files.update({plugin_dir + "/" + d: f for (d, f) in res})
@@ -244,23 +244,23 @@ def _label_str(label):
 
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
-    module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
+    plugin_jars = _pack_modules(ctx, ctx.attr.jars, ctx.attr.modules)
+    plugin_jars = plugin_jars + [(f.basename, f) for f in ctx.files.libs]
 
     # Ensure plugin id is known at build time
     _check_plugin(
         ctx,
         ctx.outputs.plugin_metadata,
-        [f for (r, f) in module_deps],
+        [f for (r, f) in plugin_jars],
         ctx.attr.external_xmls,
         verify_id = ctx.attr.name,
         verify_deps = ctx.attr.deps,
     )
     plugin_id = ctx.attr.name
-    plugin_files_linux = _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir)
-    plugin_files_mac = _studio_plugin_os(ctx, MAC, module_deps, plugin_dir)
-    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir)
-    plugin_files_win = _studio_plugin_os(ctx, WIN, module_deps, plugin_dir)
+    plugin_files_linux = _studio_plugin_os(ctx, LINUX, plugin_jars, plugin_dir)
+    plugin_files_mac = _studio_plugin_os(ctx, MAC, plugin_jars, plugin_dir)
+    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, plugin_jars, plugin_dir)
+    plugin_files_win = _studio_plugin_os(ctx, WIN, plugin_jars, plugin_dir)
 
     for lib in ctx.attr.libs:
         if PluginInfo in lib:
@@ -271,8 +271,8 @@ def _studio_plugin_impl(ctx):
     need = depset(transitive = [depset(m[ImlModuleInfo].deps) for m in ctx.attr.modules])
     have = depset(
         direct = ctx.attr.modules + ctx.attr.libs + [ctx.attr._intellij_sdk],
-        transitive = [d[PluginInfo].module_deps for d in ctx.attr.deps] +
-                     [d[PluginInfo].lib_deps for d in ctx.attr.deps] +
+        transitive = [d[PluginInfo].modules for d in ctx.attr.deps] +
+                     [d[PluginInfo].libs for d in ctx.attr.deps] +
                      [depset(ctx.attr.deps)],
     )
 
@@ -292,8 +292,8 @@ def _studio_plugin_impl(ctx):
                 win = plugin_files_win,
             ),
             plugin_metadata = ctx.outputs.plugin_metadata,
-            module_deps = depset(ctx.attr.modules),
-            lib_deps = depset(ctx.attr.libs),
+            modules = depset(ctx.attr.modules),
+            libs = depset(ctx.attr.libs),
             license_files = depset(ctx.files.license_files),
             overwrite_plugin_version = True,
             platform = ctx.attr._intellij_platform,
@@ -1158,8 +1158,8 @@ def _intellij_plugin_import_impl(ctx):
             directory = ctx.attr.target_dir,
             plugin_metadata = ctx.outputs.plugin_metadata,
             plugin_id = None,
-            module_deps = depset(),
-            lib_deps = depset(ctx.attr.exports),
+            modules = depset(),
+            libs = depset(ctx.attr.exports),
             license_files = depset(),
             plugin_files = struct(
                 linux = plugin_files_linux,

@@ -142,8 +142,8 @@ def intellij_unit_test_suite(
 
 def _plugin_deps_impl(ctx):
     java_infos = [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p]
-    modules = depset([], transitive = [p[PluginInfo].module_deps for p in ctx.attr.plugins])
-    libs = depset(transitive = [p[PluginInfo].lib_deps for p in ctx.attr.plugins])
+    modules = depset([], transitive = [p[PluginInfo].modules for p in ctx.attr.plugins])
+    libs = depset(transitive = [p[PluginInfo].libs for p in ctx.attr.plugins])
 
     data = {}
     for p in ctx.attr.plugins:
