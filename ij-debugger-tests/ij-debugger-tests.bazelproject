@@ -12,6 +12,7 @@ directories:
 targets:
   tools/adt/idea/ij-debugger-tests:attacher
   tools/adt/idea/ij-jps-build:jps-test-runner
+  tools/adt/idea/jps-build:jps-test-runner
 
 additional_languages:
   kotlin

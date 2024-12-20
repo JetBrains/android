@@ -1,1 +1,1 @@
-com.android.tools.test.Test1.testFilterIndividualTest
+Test1.testFilterIndividualTest

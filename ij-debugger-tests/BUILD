@@ -50,16 +50,84 @@ debugger_test(
     shard_count = 50,
     test_exclude_filter = [
         # Flaky
+        "K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Coroutines.RunToCursor.testRunToCursorFromNonSuspendToSuspend",
         "K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Uncategorized.testAnnotationValue",
     ],
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinEvaluateExpressionTestGenerated\\$"],
+)
+
+test_suite(
+    name = "stepping-art",
+    tests = [
+        ":stepping-k1-k2-art",
+        ":stepping-k2-k2-art",
+    ],
+)
+
+test_suite(
+    name = "stepping-jvm",
+    tests = [
+        ":stepping-k1-k2-jvm",
+        ":stepping-k2-k2-jvm",
+    ],
+)
+
+test_suite(
+    name = "stepping",
+    tests = [":stepping-jvm"],
+)
+
+test_suite(
+    name = "evaluate-expression-art",
+    tests = [
+        ":evaluate-expression-k1-k2-art",
+    ],
+)
+
+test_suite(
+    name = "evaluate-expression-jvm",
+    tests = [
+        ":evaluate-expression-k1-k2-jvm",
+    ],
+)
+
+test_suite(
+    name = "evaluate-expression",
+    tests = [
+        ":evaluate-expression-art",
+        ":evaluate-expression-jvm",
+    ],
+)
+
+test_suite(
+    name = "art",
+    tests = [
+        ":evaluate-expression-art",
+        ":stepping-art",
+    ],
+)
+
+test_suite(
+    name = "jvm",
+    tests = [
+        ":evaluate-expression-jvm",
+        ":stepping-jvm",
+    ],
+)
+
+test_suite(
+    name = "all",
+    tests = [
+        ":art",
+        ":jvm",
+    ],
 )
 
 # A convenience target for running a single test for debugging. To use this, replace the filter
 # with whatever test desired.
 debugger_test(
     name = "single-k1-k2",
-    test_include_filter = ["K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Uncategorized.testAnnotationValue"],
+    test_include_filter = ["K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Coroutines.RunToCursor.testRunToCursorFromNonSuspendToSuspend"],
 )
 
 # A convenience target for running a single k2 test for debugging. To use this, replace the filter

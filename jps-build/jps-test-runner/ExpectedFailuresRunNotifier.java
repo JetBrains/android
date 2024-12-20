@@ -61,7 +61,7 @@ public class ExpectedFailuresRunNotifier extends RunNotifierWrapper {
 
   @Override
   public void fireTestFailure(Failure failure) {
-    String name = getTestFullName(failure.getDescription());
+    String name = getTestName(failure.getDescription());
     failures.add(name);
     if (!expectedFailures.contains(name)) {
       Throwable exception = failure.getException();
@@ -75,15 +75,16 @@ public class ExpectedFailuresRunNotifier extends RunNotifierWrapper {
 
   @Override
   public void fireTestFinished(Description description) {
-    String name = getTestFullName(description);
+    String name = getTestName(description);
     if (expectedFailures.contains(name) && !failures.contains(name)) {
       super.fireTestFailure(new Failure(description, new AssertionFailedError("Expected to fail")));
     }
     super.fireTestFinished(description);
   }
 
-  public String getTestFullName(Description description) {
-    return description.getClassName() + "." + description.getMethodName();
+  public String getTestName(Description description) {
+    int classNameStart = description.getTestClass().getPackageName().length() + 1;
+    return description.getClassName().substring(classNameStart) + "." + description.getMethodName();
   }
 
   private String getDetailedErrorMessage(org.opentest4j.AssertionFailedError error) {
