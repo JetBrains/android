@@ -32,6 +32,25 @@ debugger_test(
     test_include_filter = ["K1IdeK2CodeKotlinSteppingTestGenerated\\$"],
 )
 
+# 369 tests - 80 ART tests expected to fail
+debugger_test(
+    name = "stepping-k1-ir",
+    expected_to_fail_art = "stepping-k1-ir-art.txt",
+    expected_to_fail_jvm = "stepping-k1-ir-jvm.txt",
+    shard_count = 50,
+    test_exclude_filter = ["IndyLambdaIrKotlinSteppingTestGenerated"],
+    test_include_filter = ["IrKotlinSteppingTestGenerated\\$"],
+)
+
+# 369 tests - 98 ART tests expected to fail
+debugger_test(
+    name = "stepping-k1-indy",
+    expected_to_fail_art = "stepping-k1-indy-art.txt",
+    expected_to_fail_jvm = "stepping-k1-indy-jvm.txt",
+    shard_count = 50,
+    test_include_filter = ["IndyLambdaIrKotlinSteppingTestGenerated"],
+)
+
 # 369 tests - 95 ART tests expected to fail
 debugger_test(
     name = "stepping-k2-k2",
@@ -40,6 +59,26 @@ debugger_test(
     module = "kotlin.jvm-debugger.test.k2",
     shard_count = 50,
     test_include_filter = ["K2IdeK2CodeKotlinSteppingTestGenerated\\$"],
+)
+
+# 369 tests - 80 ART tests expected to fail
+debugger_test(
+    name = "stepping-k2-k1",
+    expected_to_fail_art = "stepping-k2-k1-art.txt",
+    expected_to_fail_jvm = "stepping-k2-k1-jvm.txt",
+    module = "kotlin.jvm-debugger.test.k2",
+    shard_count = 50,
+    test_include_filter = ["K2IdeK1CodeKotlinSteppingTestGenerated\\$"],
+)
+
+# 369 tests - 98 ART tests expected to fail
+debugger_test(
+    name = "stepping-k2-indy",
+    expected_to_fail_art = "stepping-k2-indy-art.txt",
+    expected_to_fail_jvm = "stepping-k2-indy-jvm.txt",
+    module = "kotlin.jvm-debugger.test.k2",
+    shard_count = 50,
+    test_include_filter = ["K2IndyLambdaKotlinSteppingTestGenerated\\$"],
 )
 
 # 444 tests - 97 ART tests expected to fail
@@ -59,7 +98,11 @@ debugger_test(
 test_suite(
     name = "stepping-art",
     tests = [
+        ":stepping-k1-indy-art",
+        ":stepping-k1-ir-art",
         ":stepping-k1-k2-art",
+        ":stepping-k2-indy-art",
+        ":stepping-k2-k1-art",
         ":stepping-k2-k2-art",
     ],
 )
@@ -67,7 +110,11 @@ test_suite(
 test_suite(
     name = "stepping-jvm",
     tests = [
+        ":stepping-k1-indy-jvm",
+        ":stepping-k1-ir-jvm",
         ":stepping-k1-k2-jvm",
+        ":stepping-k2-indy-jvm",
+        ":stepping-k2-k1-jvm",
         ":stepping-k2-k2-jvm",
     ],
 )
@@ -126,18 +173,22 @@ test_suite(
 # A convenience target for running a single test for debugging. To use this, replace the filter
 # with whatever test desired.
 debugger_test(
-    name = "single-k1-k2",
+    name = "single-k1",
     art_tags = [],
+    jvm_tags = [],
     test_include_filter = ["K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Coroutines.RunToCursor.testRunToCursorFromNonSuspendToSuspend"],
 )
 
 # A convenience target for running a single k2 test for debugging. To use this, replace the filter
 # with whatever test desired.
 debugger_test(
-    name = "single-k2-k2",
+    name = "single-k2",
     art_tags = [],
+    jvm_tags = [],
     module = "kotlin.jvm-debugger.test.k2",
-    test_include_filter = ["K2IdeK2CodeKotlinSteppingTestGenerated.Custom.testSmartStepIntoSuspendFunInterface"],
+    test_include_filter = [
+        "K2IndyLambdaKotlinSteppingTestGenerated.StepOver.Uncategorized.testSoSuspendableCallInEndOfFun",
+    ],
 )
 
 maven_repository(
