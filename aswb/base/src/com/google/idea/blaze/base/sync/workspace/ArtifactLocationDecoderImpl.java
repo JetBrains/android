@@ -109,6 +109,8 @@ public final class ArtifactLocationDecoderImpl implements ArtifactLocationDecode
       return new SourceArtifact(decode(location));
     }
     String configMnemonic = execRootPath.substring(ix1 + 1, ix2);
-    return new LocalFileOutputArtifactWithoutDigest(decode(location), Path.of(execRootPath), configMnemonic);
+    return new LocalFileOutputArtifactWithoutDigest(
+      decode(location), Path.of(execRootPath),
+      Path.of(location.getRootExecutionPathFragment()).getNameCount(), configMnemonic);
   }
 }

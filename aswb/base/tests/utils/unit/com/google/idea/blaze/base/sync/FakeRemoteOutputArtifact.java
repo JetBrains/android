@@ -29,8 +29,10 @@ import org.jetbrains.annotations.Nullable;
 public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   private final File file;
   private final Path artifactPath;
+  private final int artifactPathPrefixLength;
 
-  public FakeRemoteOutputArtifact(File file, Path artifactPath) {
+  public FakeRemoteOutputArtifact(File file, Path artifactPath, int artifactPathPrefixLength) {
+    this.artifactPathPrefixLength = artifactPathPrefixLength;
     if (!file.toPath().endsWith(artifactPath)) {
       throw new IllegalArgumentException(file + "must end with " + artifactPath);
     }
@@ -56,6 +58,11 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   @Override
   public Path getArtifactPath() {
     return artifactPath;
+  }
+
+  @Override
+  public int getArtifactPathPrefixLength() {
+    return artifactPathPrefixLength;
   }
 
   @Nullable

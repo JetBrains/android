@@ -27,8 +27,8 @@ public class LocalFileOutputArtifact extends LocalFileOutputArtifactWithoutDiges
   private final String digest;
 
   public LocalFileOutputArtifact(
-    File file, Path artifactPath, String configurationMnemonic, String digest) {
-    super(file, artifactPath, configurationMnemonic);
+    File file, Path artifactPath, int prefixLength, String configurationMnemonic, String digest) {
+    super(file, artifactPath, prefixLength, configurationMnemonic);
     this.digest = digest;
   }
 

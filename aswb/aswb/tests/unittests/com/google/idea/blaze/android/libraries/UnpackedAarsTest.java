@@ -192,6 +192,11 @@ public class UnpackedAarsTest extends BlazeTestCase {
       return artifactPath;
     }
 
+    @Override
+    public int getArtifactPathPrefixLength() {
+      return 0;
+    }
+
     @Nullable
     @Override
     public ArtifactState toArtifactState() {

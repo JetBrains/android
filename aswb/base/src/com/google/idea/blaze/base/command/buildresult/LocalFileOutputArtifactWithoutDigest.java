@@ -35,12 +35,14 @@ public class LocalFileOutputArtifactWithoutDigest
 
   private final File file;
   private final Path artifactPath;
+  private final int prefixLength;
   private final String configurationMnemonic;
 
   public LocalFileOutputArtifactWithoutDigest(
-    File file, Path artifactPath, String configurationMnemonic) {
+    File file, Path artifactPath, int prefixLength, String configurationMnemonic) {
     this.file = file;
     this.artifactPath = artifactPath;
+    this.prefixLength = prefixLength;
     this.configurationMnemonic = configurationMnemonic;
   }
 
@@ -63,6 +65,11 @@ public class LocalFileOutputArtifactWithoutDigest
   @Override
   public Path getArtifactPath() {
     return artifactPath;
+  }
+
+  @Override
+  public int getArtifactPathPrefixLength() {
+    return prefixLength;
   }
 
   @Override

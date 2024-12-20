@@ -41,6 +41,7 @@ public class LocalFileParser implements OutputArtifactParser {
       return new LocalFileOutputArtifact(
         f,
         OutputArtifactParser.bazelFileToArtifactPath(file),
+        file.getPathPrefixCount(),
         configurationMnemonic,
         file.getDigest());
     }
