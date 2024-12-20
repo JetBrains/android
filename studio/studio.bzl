@@ -1115,6 +1115,8 @@ def _intellij_plugin_import_impl(ctx):
     plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, [], plugin_dir) | files
     plugin_files_win = _studio_plugin_os(ctx, WIN, [], plugin_dir) | files
 
+    # buildifier: disable=native-java-common (@rules_java is not usable in this file yet)
+    # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
 
@@ -1151,6 +1153,7 @@ _intellij_plugin_import = rule(
         "target_dir": attr.string(),
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),
+        # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
         "compress": attr.bool(),
         "overwrite_plugin_version": attr.bool(),
@@ -1219,6 +1222,8 @@ def _intellij_platform_impl(ctx):
     return struct(
         providers = [
             DefaultInfo(runfiles = runfiles),
+            # buildifier: disable=native-java-common (@rules_java is not usable in this file yet)
+            # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
             java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
             IntellijInfo(
                 major_version = ctx.attr.major_version,
@@ -1246,6 +1251,7 @@ _intellij_platform = rule(
     attrs = {
         "major_version": attr.string(),
         "minor_version": attr.string(),
+        # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo]),
         "data": attr.label_list(allow_files = True),
         "studio_data": attr.label(),
@@ -1263,6 +1269,7 @@ _intellij_platform = rule(
         "mac_zip": "%{name}.mac.zip",
         "mac_arm_zip": "%{name}.mac_arm.zip",
     },
+    # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
     provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,
 )
@@ -1400,6 +1407,7 @@ def intellij_platform(
     )
 
     # Expose lib/resources.jar as a separate target
+    # buildifier: disable=native-java-import (@rules_java is not usable in this file yet)
     native.java_import(
         name = name + "-resources-jar",
         jars = select({
