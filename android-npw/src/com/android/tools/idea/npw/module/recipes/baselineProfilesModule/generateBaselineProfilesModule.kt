@@ -101,7 +101,11 @@ fun RecipeExecutor.generateBaselineProfilesModule(
         useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId,
       ),
     customizeModule = {
-      applyPlugin("androidx.baselineprofile", BASELINE_PROFILES_PLUGIN_MIN_REV)
+      addPlugin(
+        "androidx.baselineprofile",
+        "androidx.benchmark:benchmark-baseline-profile-gradle-plugin",
+        BASELINE_PROFILES_PLUGIN_MIN_REV,
+      )
 
       createTestClasses(
         targetModule = targetModule,
@@ -126,13 +130,19 @@ fun RecipeExecutor.updateTargetModule(newModule: ModuleTemplateData, targetModul
 
   // This needs to be added, because many projects don't define this plugin in plugins { } block,
   // and therefore it fails with unknown version.
-  applyPluginInModule(
+  applyPluginWithClasspathInModule(
     "com.android.application",
     targetModule,
-    newModule.projectTemplateData.agpVersion,
+    "com.android.tools.build:gradle",
+    newModule.projectTemplateData.agpVersion.toString(),
   )
 
-  applyPluginInModule("androidx.baselineprofile", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
+  applyPluginWithClasspathInModule(
+    "androidx.baselineprofile",
+    targetModule,
+    "androidx.benchmark:benchmark-baseline-profile-gradle-plugin",
+    BASELINE_PROFILES_PLUGIN_MIN_REV,
+  )
 
   addDependency(
     mavenCoordinate = "androidx.profileinstaller:profileinstaller:+",

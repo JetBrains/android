@@ -84,7 +84,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     verify(mockExecutor).run {
       addIncludeToSettings(moduleName)
       save(eq(gradleContent), any())
-      applyPlugin("com.android.test", pluginVersion)
+      applyPlugin("com.android.test", "com.android.tools.build:gradle", pluginVersion.toString())
 
       addDependency("androidx.test.ext:junit:+", "implementation")
       addDependency("androidx.test.espresso:espresso-core:+", "implementation")

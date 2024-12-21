@@ -34,6 +34,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.Optional
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +81,11 @@ class AddNewModulesToAppTest(
       useGradleKts,
       emptyProjectSyncInvoker,
     )
-
+    checkAgpClasspathAndId(
+      "feature1",
+      "com.android.dynamic-feature",
+      "libs.plugins.android.dynamic.feature",
+    )
     assembleDebugProject()
   }
 
@@ -147,6 +152,7 @@ class AddNewModulesToAppTest(
       useGradleKts,
     ) // Base module is always kts for this test
 
+    checkAgpClasspathAndId("mylibrary", "com.android.library", "libs.plugins.android.library")
     checkBuildGradleJavaVersion(moduleName)
     assembleDebugProject()
   }
@@ -161,13 +167,41 @@ class AddNewModulesToAppTest(
     loadInitialProject()
 
     val project = projectRule.project
-
+    val module = "mylibrary"
     val libModuleModel = NewLibraryModuleModel(project, ":", emptyProjectSyncInvoker)
     libModuleModel.language.set(Optional.of(Language.Kotlin))
-    generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts)
+    generateModuleFiles(project, libModuleModel, module, useGradleKts)
 
-    checkBuildGradleJavaVersion("mylibrary")
+    checkBuildGradleJavaVersion(module)
     assembleDebugProject()
+
+    // checking plugin/classpath inserted in correct places
+    assertTrue(
+      File(project.basePath!!)
+        .resolve("build.gradle")
+        .readText()
+        .contains("classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:")
+    )
+    val pluginId = "org.jetbrains.kotlin.jvm"
+    // settings must have no declared plugins
+    assertFalse(File(project.basePath!!).resolve("settings.gradle").readText().contains("kotlin"))
+    if (useGradleKts) {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(module)
+          .resolve("build.gradle.kts")
+          .readText()
+          .contains("id(\"$pluginId\")\n")
+      )
+    } else {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(module)
+          .resolve("build.gradle")
+          .readText()
+          .contains("id '$pluginId'\n")
+      )
+    }
 
     // Also run :mylibrary:compileKotlin to ensure there is no JVM target compatibility issue,
     // because assembling just the project doesn't trigger this error
@@ -181,6 +215,34 @@ class AddNewModulesToAppTest(
     projectRule.invokeTasks("assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
+    }
+  }
+
+  private fun checkAgpClasspathAndId(moduleName: String, pluginId: String, pluginAlias: String) {
+    val project = projectRule.project
+    if (useVersionCatalog) {
+      File(project.basePath!!)
+        .resolve("build.gradle")
+        .readText()
+        .contains("alias($pluginAlias) apply false")
+    }
+
+    if (useGradleKts) {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle.kts")
+          .readText()
+          .contains(if (useVersionCatalog) "alias($pluginAlias)" else "id(\"$pluginId\")\n")
+      )
+    } else {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle")
+          .readText()
+          .contains(if (useVersionCatalog) "alias($pluginAlias)" else "id '$pluginId'\n")
+      )
     }
   }
 

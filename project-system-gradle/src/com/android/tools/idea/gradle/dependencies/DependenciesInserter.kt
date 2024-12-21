@@ -87,7 +87,6 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
         addPlugin(pluginId, version, apply = false, projectBuildModel, projectBuildModel)
       )
     }
-
     buildModels.forEach {
       updatedFiles.addAll(addPluginToModule(pluginId, version, it))
     }
@@ -177,11 +176,14 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     if (projectModel.projectBuildModel?.plugins()?.any { pluginMatcher.match(it) } == true) {
       return true
     }
-    if (classpathMatcher!=null && projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true) {
+    if (hasPluginInClasspath(classpathMatcher)) {
       return true
     }
     return false
   }
+
+  private fun hasPluginInClasspath(classpathMatcher: DependencyMatcher?) =
+    classpathMatcher != null && projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true
 
   @JvmOverloads
   open fun addClasspathDependency(dependency: String,

@@ -66,8 +66,16 @@ private fun RecipeExecutor.generateModule(
   )
 
   setKotlinVersion(projectData.kotlinVersion)
-  applyPlugin("org.jetbrains.kotlin.multiplatform", projectData.kotlinVersion)
-  applyPlugin("com.android.kotlin.multiplatform.library", projectData.agpVersion)
+  addPlugin(
+    "org.jetbrains.kotlin.multiplatform",
+    "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    projectData.kotlinVersion.toString(),
+  )
+  addPlugin(
+    "com.android.kotlin.multiplatform.library",
+    "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    projectData.agpVersion.toString(),
+  )
 
   save(manifestXml, data.manifestDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML))
   save(gitignore(), data.rootDir.resolve(".gitignore"))

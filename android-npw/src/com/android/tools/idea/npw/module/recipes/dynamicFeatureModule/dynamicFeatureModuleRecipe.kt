@@ -84,7 +84,11 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     moduleOut.resolve(buildFile),
   )
 
-  applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
+  addPlugin(
+    "com.android.dynamic-feature",
+    "com.android.tools.build:gradle",
+    projectData.agpVersion.toString(),
+  )
   addKotlinIfNeeded(projectData, targetApi = targetApi.api)
   setJavaKotlinCompileOptions(language == Language.Kotlin)
 

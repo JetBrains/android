@@ -53,7 +53,11 @@ fun RecipeExecutor.generatePureLibrary(
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
     addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
-    applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
+    addPlugin(
+      "org.jetbrains.kotlin.jvm",
+      "org.jetbrains.kotlin:kotlin-gradle-plugin",
+      projectData.kotlinVersion,
+    )
   }
   setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

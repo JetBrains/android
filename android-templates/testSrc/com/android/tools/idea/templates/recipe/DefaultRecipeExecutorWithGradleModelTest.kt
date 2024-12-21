@@ -24,6 +24,7 @@ import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -39,6 +40,12 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
        plugins {
        }
      }
+    """.trimIndent()
+  private val EMPTY_BUILD_CONTENT = """
+   buildscript {
+     dependencies {
+     }
+   }
     """.trimIndent()
 
   private val renderingContext by lazy {
@@ -201,6 +208,51 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
     verifyFileContents(mySettingsFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE)
   }
+
+  @Test
+  fun testAddKotlinPluginToPluginManagement() {
+    deleteVersionCatalogFile()
+
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
+
+    recipeExecutor.addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin","1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(mySettingsFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE)
+  }
+
+  @Test
+  fun testAddKotlinPluginWithClasspath() {
+    deleteVersionCatalogFile()
+    writeToSettingsFile("")
+    writeToBuildFile(EMPTY_BUILD_CONTENT)
+    recipeExecutor.addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin","1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(mySettingsFile, "")
+    verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_ADD_KOTLIN_PLUGIN_CLASSPATH)
+  }
+
+  @Ignore("b/388555862")
+  @Test
+  fun testAddKotlinPluginToPluginSection() {
+    deleteVersionCatalogFile()
+    writeToSettingsFile("")
+    writeToBuildFile("""
+      plugins {
+      }
+    """.trimIndent())
+    recipeExecutor.addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin","1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(mySettingsFile, "")
+    verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_ADD_KOTLIN_PLUGIN_TO_PLUGINS_BLOCK)
+  }
+
 
   @Test
   fun testApplyKotlinPluginWithVersionCatalog() {
@@ -457,6 +509,8 @@ android-library = { id = "com.android.library", version.ref = "agpVersion" }
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
     NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE("noVersionCatalogApplyKotlinPlugin"),
+    NO_VERSION_CATALOG_ADD_KOTLIN_PLUGIN_CLASSPATH("noVersionCatalogAddKotlinPlugin"),
+    NO_VERSION_CATALOG_ADD_KOTLIN_PLUGIN_TO_PLUGINS_BLOCK("noVersionCatalogAddKotlinPluginToPlugins"),
     NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE("noVersionCatalogApplyKotlinPlugin.settings"),
     APPLY_KOTLIN_PLUGIN_BUILD_FILE("versionCatalogApplyKotlinPlugin"),
     APPLY_NOT_COMMON_PLUGIN_BUILD_FILE("versionCatalogApplyNotCommonPlugin"),

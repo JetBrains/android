@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates.recipe
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
@@ -60,8 +59,9 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
-  override fun applyPlugin(plugin: String, revision: AgpVersion) {
+  override fun addPlugin(plugin: String, classpathModule: String, version: String) {
     context.plugins.add(plugin)
+    context.classpathEntries.add("$classpathModule:$version")
   }
 
   override fun addPlugin(plugin: String, classpath: String) {
@@ -78,8 +78,9 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
-  override fun applyPluginInModule(plugin: String, module: Module, revision: AgpVersion) {
-    context.plugins.add(plugin)
+  override fun applyPluginWithClasspathInModule(pluginId: String, module: Module, classpathModule: String, version: String) {
+    context.plugins.add(pluginId)
+    context.classpathEntries.add("$classpathModule:$version")
   }
 
   override fun addClasspathDependency(

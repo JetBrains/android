@@ -93,10 +93,12 @@ fun RecipeExecutor.generateCommonModule(
   )
 
   // Note: com.android.* needs to be applied before kotlin
+  val classpathModule = "com.android.tools.build:gradle"
+  val version = projectData.agpVersion.toString()
   when {
-    isLibraryProject -> applyPlugin("com.android.library", projectData.agpVersion)
-    data.isDynamic -> applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
-    else -> applyPlugin("com.android.application", projectData.agpVersion)
+    isLibraryProject -> addPlugin("com.android.library", classpathModule, version)
+    data.isDynamic -> addPlugin("com.android.dynamic-feature", classpathModule, version)
+    else -> addPlugin("com.android.application", classpathModule, version)
   }
   addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api, noKtx = noKtx)
   setJavaKotlinCompileOptions(data.projectTemplateData.language == Language.Kotlin)
