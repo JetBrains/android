@@ -201,7 +201,7 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _check_plugin(ctx, out, files, external_xmls = [], verify_id = None, verify_deps = None):
+def _check_plugin(ctx, out, files, verify_id = None, verify_deps = None):
     deps = None
     if verify_deps != None:
         deps = [dep[PluginInfo].plugin_metadata for dep in verify_deps]
@@ -213,7 +213,6 @@ def _check_plugin(ctx, out, files, external_xmls = [], verify_id = None, verify_
         check_args.add("--plugin_id", verify_id)
     if deps != None:
         check_args.add_all("--deps", deps, omit_if_empty = False)
-    check_args.add_all("--external_xmls", external_xmls)
 
     ctx.actions.run(
         inputs = files + (deps if deps else []),
@@ -252,7 +251,6 @@ def _studio_plugin_impl(ctx):
         ctx,
         ctx.outputs.plugin_metadata,
         [f for (r, f) in plugin_jars],
-        ctx.attr.external_xmls,
         verify_id = ctx.attr.name,
         verify_deps = ctx.attr.deps,
     )
@@ -315,7 +313,6 @@ _studio_plugin = rule(
         "directory": attr.string(),
         "compress": attr.bool(),
         "deps": attr.label_list(providers = [PluginInfo]),
-        "external_xmls": attr.string_list(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",

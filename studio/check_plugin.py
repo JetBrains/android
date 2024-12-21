@@ -7,15 +7,15 @@ import xml.etree.ElementTree as ET
 import zipfile
 from tools.adt.idea.studio import intellij
 
-def check_plugin(plugin_id, files, deps, external_xmls, out):
+def check_plugin(plugin_id, files, deps, out):
   if len(files) == 1 and files[0].match("**/lib/modules/*.jar"):
     # This is a v2 module, not a plugin per se. See go/studio-v2-modules for details.
     kind = "module"
     found_id = files[0].stem
-    element = intellij.load_plugin_xml(files, external_xmls, f"{found_id}.xml")
+    element = intellij.load_plugin_xml(files, f"{found_id}.xml")
   else:
     kind = "plugin"
-    element = intellij.load_plugin_xml(files, external_xmls)
+    element = intellij.load_plugin_xml(files)
     ids = [id.text for id in element.findall("id")]
     if not ids:
       # If id is not found, IJ uses name
@@ -112,12 +112,6 @@ if __name__ == "__main__":
       nargs="*",
       help="Ids of the plugins this plugin depends on.")
   parser.add_argument(
-      "--external_xmls",
-      dest="external_xmls",
-      default=[],
-      nargs="*",
-      help="xmls files that this plugin can include but are not present.")
-  parser.add_argument(
       "--plugin_id",
       dest="plugin_id",
       help="The expected id of this plugin.")
@@ -126,4 +120,4 @@ if __name__ == "__main__":
       dest="out",
       help="Path to a file where to save the plugin information.")
   args = parser.parse_args()
-  check_plugin(args.plugin_id, args.files, args.deps, args.external_xmls, args.out)
+  check_plugin(args.plugin_id, args.files, args.deps, args.out)

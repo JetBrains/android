@@ -100,7 +100,7 @@ def _read_zip_entry(zip_path, entry):
 
 def _read_plugin_id(path: Path):
   jars = path.glob("lib/*.jar")
-  xml = load_plugin_xml(jars, [])
+  xml = load_plugin_xml(jars)
 
   # The id of a plugin is defined as the id tag and if missing, the name tag.
   ids = [id.text for id in xml.findall("id")]
@@ -136,7 +136,7 @@ def _read_plugin_jars(idea_home: Path):
   return plugins
 
 
-def _load_include(include, xpath, external_xmls, cwd, index):
+def _load_include(include, xpath, cwd, index):
   href = include.get("href")
   parse = include.get("parse", "xml")
   if parse != "xml":
@@ -146,6 +146,8 @@ def _load_include(include, xpath, external_xmls, cwd, index):
       child.tag == "{http://www.w3.org/2001/XInclude}fallback"
       for child in include
   )
+  if is_optional:
+    return [], None
 
   # See `PluginXmlPathResolver.toLoadPath` for the platform implementation
   rel = href
@@ -158,8 +160,6 @@ def _load_include(include, xpath, external_xmls, cwd, index):
     else:
       rel = cwd + "/" + href
 
-  if rel in external_xmls or is_optional:
-    return [], None
   new_cwd = rel[0 : rel.rindex("/")] if "/" in rel else ""
 
   if rel not in index:
@@ -199,7 +199,7 @@ def _xpath_for_include(include, parent):
   return xpath
 
 
-def _resolve_includes(elem, external_xmls, cwd, index):
+def _resolve_includes(elem, cwd, index):
   """Resolves xincludes in the given xml element.
 
   By replacing xinclude tags like
@@ -216,10 +216,10 @@ def _resolve_includes(elem, external_xmls, cwd, index):
     e = elem[i]
     if e.tag == "{http://www.w3.org/2001/XInclude}include":
       xpath = _xpath_for_include(e, elem)
-      nodes, new_cwd = _load_include(e, xpath, external_xmls, cwd, index)
+      nodes, new_cwd = _load_include(e, xpath, cwd, index)
       subtree = ET.Element(elem.tag)
       subtree.extend(nodes)
-      _resolve_includes(subtree, external_xmls, new_cwd, index)
+      _resolve_includes(subtree, new_cwd, index)
       nodes = list(subtree)
       if nodes:
         for node in nodes[:-1]:
@@ -230,11 +230,11 @@ def _resolve_includes(elem, external_xmls, cwd, index):
           node.tail = (node.tail or "") + e.tail
         elem[i] = node
     else:
-      _resolve_includes(e, external_xmls, cwd, index)
+      _resolve_includes(e, cwd, index)
     i = i + 1
 
 
-def load_plugin_xml(files: List[Path], external_xmls, xml_name = "META-INF/plugin.xml"):
+def load_plugin_xml(files: List[Path], xml_name = "META-INF/plugin.xml"):
   xmls = {}
   index = {}
   jars = [zipfile.ZipFile(f) for f in files if f.suffix == ".jar"]
@@ -260,7 +260,7 @@ def load_plugin_xml(files: List[Path], external_xmls, xml_name = "META-INF/plugi
   element = ET.fromstring(xml)
 
   # We cannot use ElementInclude because it does not support xpointer
-  _resolve_includes(element, external_xmls, "META-INF", index)
+  _resolve_includes(element, "META-INF", index)
 
   for jar in jars:
     jar.close()
