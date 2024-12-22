@@ -51,6 +51,7 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   private final Alarm alarm;
   private final List<ExperimentLoader> services;
   private final Supplier<String> buildSupplier;
+  private final Supplier<String> versionSupplier;
   private final AtomicInteger experimentScopeCounter = new AtomicInteger(0);
 
   private volatile Map<String, String> experiments = ImmutableMap.of();
@@ -58,24 +59,25 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   private final Map<String, Experiment> queriedExperiments = new ConcurrentHashMap<>();
 
   ExperimentServiceImpl() {
-    this(MorePlatformUtils::getIdeAbBuildNumber, ExperimentLoader.EP_NAME.getExtensions());
+    this(MorePlatformUtils::getIdeAbBuildNumber, MorePlatformUtils::getIdeVersion, ExperimentLoader.EP_NAME.getExtensions());
   }
 
   @VisibleForTesting
   ExperimentServiceImpl(CoroutineScope scope, ExperimentLoader... loaders) {
-    this(scope, MorePlatformUtils::getIdeAbBuildNumber, loaders);
+    this(scope, MorePlatformUtils::getIdeAbBuildNumber, MorePlatformUtils::getIdeVersion, loaders);
   }
 
   @VisibleForTesting
-  ExperimentServiceImpl(Supplier<String> buildSupplier, ExperimentLoader... loaders) {
-    this(null, buildSupplier, loaders);
+  ExperimentServiceImpl(Supplier<String> buildSupplier, Supplier<String> versionSupplier, ExperimentLoader... loaders) {
+    this(null, buildSupplier, versionSupplier, loaders);
   }
 
   @VisibleForTesting
-  ExperimentServiceImpl(@Nullable CoroutineScope scope, Supplier<String> buildSupplier,
+  ExperimentServiceImpl(@Nullable CoroutineScope scope, Supplier<String> buildSupplier, Supplier<String> versionSupplier,
       ExperimentLoader... loaders) {
     services = ImmutableList.copyOf(loaders);
     this.buildSupplier = buildSupplier;
+    this.versionSupplier = versionSupplier;
     // Bypass unregistered application service AlarmSharedCoroutineScopeHolder. It's a private service which hard to mock
     this.alarm = new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication(), null,
         scope);
@@ -102,6 +104,10 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
     String buildKey = buildSupplier.get() + "." + experiment.getKey();
     if (experiments.containsKey(buildKey)) {
       return experiments.get(buildKey);
+    }
+    String versionKey = versionSupplier.get() + "." + experiment.getKey();
+    if (experiments.containsKey(versionKey)) {
+      return experiments.get(versionKey);
     }
     if (experiments.containsKey(experiment.getKey())) {
       return experiments.get(experiment.getKey());

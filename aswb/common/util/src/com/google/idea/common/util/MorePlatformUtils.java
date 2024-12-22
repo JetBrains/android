@@ -49,6 +49,10 @@ public final class MorePlatformUtils {
    * canary}.
    */
 
+  public static String getIdeVersion() {
+    ApplicationInfo app = ApplicationInfo.getInstance();
+    return app.getMajorVersion() + "." + app.getMinorVersion() + "." + app.getMicroVersion();
+  }
 
   public static String getIdeAbBuildNumber() {
     String fullVersion = ApplicationInfo.getInstance().getBuild().toString();

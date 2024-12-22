@@ -111,6 +111,16 @@ public class ExperimentServiceImplTest {
   }
 
   @Test
+  public void testVeresionProperty() {
+    ExperimentService experimentService =
+        new ExperimentServiceImpl(DUMMY_SCOPE,
+            new MapExperimentLoader("id", "1.2.3." + STRING_EXPERIMENT.getKey(), "hi"));
+    assertThat(experimentService.getExperimentString(STRING_EXPERIMENT, null)).isEqualTo("hi");
+    assertThat(experimentService.getAllQueriedExperiments())
+        .containsExactly(STRING_EXPERIMENT.getKey(), STRING_EXPERIMENT);
+  }
+
+  @Test
   public void testStringPropertyReturnsDefaultWhenMissing() {
     ExperimentService experimentService = new ExperimentServiceImpl(DUMMY_SCOPE,
         new MapExperimentLoader("id"));
@@ -328,17 +338,17 @@ public class ExperimentServiceImplTest {
 
     @Override
     public String getMajorVersion() {
-      throw new UnsupportedOperationException();
+      return "1";
     }
 
     @Override
     public String getMinorVersion() {
-      throw new UnsupportedOperationException();
+      return "2";
     }
 
     @Override
     public String getMicroVersion() {
-      throw new UnsupportedOperationException();
+      return "3";
     }
 
     @Override
