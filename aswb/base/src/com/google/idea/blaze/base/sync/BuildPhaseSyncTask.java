@@ -269,7 +269,7 @@ public final class BuildPhaseSyncTask {
         SuggestBuildShardingNotification.syncOutOfMemoryError(project, context);
       }
 
-      if (!continueSyncOnOom.getValue() || blazeBuildResult.artifacts.isEmpty()) {
+      if (!continueSyncOnOom.getValue() || blazeBuildResult.isEmpty()) {
         context.output(PrintOutput.error(invocationResultMsg));
         throw new SyncFailedException();
       }

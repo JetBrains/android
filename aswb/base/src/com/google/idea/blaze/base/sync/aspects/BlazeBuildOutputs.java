@@ -80,7 +80,7 @@ public class BlazeBuildOutputs {
    * {@link BepArtifactData} by {@link OutputArtifact#getBazelOutRelativePath()} for all artifacts from a
    * build.
    */
-  public final ImmutableMap<String, BepArtifactData> artifacts;
+  private final ImmutableMap<String, BepArtifactData> artifacts;
 
   /** The artifacts transitively associated with each top-level target. */
   private final ImmutableSetMultimap<String, OutputArtifact> perTargetArtifacts;
@@ -195,5 +195,12 @@ public class BlazeBuildOutputs {
 
   public BuildResult buildResult() {
     return buildResult;
+  }
+
+  /**
+   * @return true if the build outputs are empty ().
+   */
+  public boolean isEmpty() {
+    return artifacts.isEmpty();
   }
 }
