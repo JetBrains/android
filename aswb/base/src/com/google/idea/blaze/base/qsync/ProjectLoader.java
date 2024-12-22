@@ -150,9 +150,10 @@ public class ProjectLoader {
     ProjectProtoTransform.Registry projectTransformRegistry = new Registry();
     SnapshotHolder graph = new SnapshotHolder();
     graph.addListener((c, i) -> projectModificationTracker.incModificationCount());
+    Path buildCachePath = getBuildCachePath(project);
     BuildArtifactCache artifactCache =
         BuildArtifactCache.create(
-            ideProjectBasePath.resolve(".buildcache"),
+          buildCachePath,
             createArtifactFetcher(),
             executor,
             QuerySyncManager.getInstance(project).cacheCleanRequest());
@@ -252,6 +253,10 @@ public class ProjectLoader {
     projectTransformRegistry.addAll(ProjectProtoTransformProvider.getAll(latestProjectDef));
 
     return querySyncProject;
+  }
+
+  public static Path getBuildCachePath(Project project) {
+    return Paths.get(checkNotNull(project.getBasePath())).resolve(".buildcache");
   }
 
   private ParallelPackageReader createWorkspaceRelativePackageReader() {

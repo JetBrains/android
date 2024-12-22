@@ -21,7 +21,7 @@ import java.nio.file.Path;
 /** Static helpers for managing directories in the project artifact store. */
 public class ArtifactDirectories {
 
-  private static final ProjectPath ROOT = ProjectPath.projectRelative(".bazel");
+  public static final ProjectPath ROOT = ProjectPath.projectRelative(".bazel");
 
   /**
    * By default, all project artifacts go in this directory, at a path matching their bazel output
