@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.sync.aspects;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -102,12 +103,17 @@ public class BlazeBuildOutputs {
   }
 
   /** Returns the output artifacts generated for target with given label. */
-  public ImmutableSet<OutputArtifact> artifactsForTarget(String label) {
-    return perTargetArtifacts.get(label);
+  public ImmutableSet<OutputArtifact> artifactsForTarget(String label, String outputGroup) {
+    // TODO: solodkyy - This is slow although it is invoked at most two times.
+    return artifacts.values().stream()
+      .filter(a -> a.outputGroups.contains(outputGroup) && a.topLevelTargets.contains(label))
+      .map(a -> a.artifact)
+      .collect(toImmutableSet());
   }
 
   @VisibleForTesting
   public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
+    // TODO: solodkyy - This is slow although it is invoked at most two times.
     return artifacts.values().stream()
         .filter(a -> a.outputGroups.contains(outputGroup))
         .map(a -> a.artifact)
