@@ -69,24 +69,19 @@ class NavigatingInteractionHandler(
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     val componentToSceneView: MutableMap<NlComponent, SceneView> = mutableMapOf()
     for (sceneView in surface.sceneViews) {
-      if (sceneView.firstComponent != null) {
-        componentToSceneView.put(sceneView.firstComponent!!, sceneView)
-      }
+      sceneView.firstComponent?.let { componentToSceneView[it] = sceneView }
     }
-    var selectedComponent =
-      componentToSceneView.keys
-        .filter { componentToSceneView[it]!!.selectionModel.isSelected(it) }
-        .firstOrNull()
-    if (selectedComponent == null) {
-      return super.keyPressedWithoutInteraction(keyEvent)
-    }
+    val selectedComponent =
+      componentToSceneView.keys.firstOrNull {
+        componentToSceneView[it]!!.selectionModel.isSelected(it)
+      } ?: return super.keyPressedWithoutInteraction(keyEvent)
 
     val otherComponentsInView =
       componentToSceneView.entries
-        .filter { !it.key.equals(selectedComponent) }
+        .filter { it.key != selectedComponent }
         // Filter components that are in closed sections of the grid view
-        .filter { it.value.x > -1 && it.value.y > -1 }
-        .mapNotNull { it.key }
+        .filter { it.value.x >= 0 && it.value.y >= 0 }
+        .map { it.key }
 
     when (keyEvent.keyCode) {
       KeyEvent.VK_LEFT ->
@@ -204,27 +199,29 @@ class NavigatingInteractionHandler(
     otherComponents: List<NlComponent>,
     componentToSceneView: MutableMap<NlComponent, SceneView>,
   ) {
-    var toSelectInCurrentRow =
-      otherComponents
-        .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
-        .filter { componentToSceneView[it]!!.x < componentToSceneView[selectedComponent]!!.x }
-    if ((toSelectInCurrentRow.isNotEmpty()))
-      return componentToSceneView[toSelectInCurrentRow.last()]!!.selectComponent(
-        toSelectInCurrentRow.last(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
-    var toSelectPreviousRow =
-      otherComponents.filter {
-        componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y
+    otherComponents
+      // First, try to select the right-most component located on the left of the selected
+      // component, in the same row.
+      .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+      .lastOrNull { componentToSceneView[it]!!.x < componentToSceneView[selectedComponent]!!.x }
+      ?.let {
+        return@selectComponentToTheLeft componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
       }
-    if (toSelectPreviousRow.isNotEmpty()) {
-      componentToSceneView[toSelectPreviousRow.last()]!!.selectComponent(
-        toSelectPreviousRow.lastOrNull(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
-    }
+
+    // Then, try to select the last component of the previous row.
+    otherComponents
+      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
   }
 
   private fun selectComponentToTheRight(
@@ -232,27 +229,29 @@ class NavigatingInteractionHandler(
     otherComponents: List<NlComponent>,
     componentToSceneView: MutableMap<NlComponent, SceneView>,
   ) {
-    var toSelectInCurrentRow =
-      otherComponents
-        .filter { componentToSceneView[it]!!.x > componentToSceneView[selectedComponent]!!.x }
-        .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
-    if ((toSelectInCurrentRow.isNotEmpty()))
-      return componentToSceneView[toSelectInCurrentRow.first()]!!.selectComponent(
-        toSelectInCurrentRow.first(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
-    var toSelectNextRow =
-      otherComponents.filter {
-        componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y
+    // First, try to select the left-most component located on the right of the selected
+    // component, in the same row.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x > componentToSceneView[selectedComponent]!!.x }
+      .firstOrNull { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        return@selectComponentToTheRight componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
       }
-    if (toSelectNextRow.isNotEmpty()) {
-      componentToSceneView[toSelectNextRow.first()]!!.selectComponent(
-        toSelectNextRow.first(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
-    }
+
+    // Then, try to select the first component of the next row.
+    otherComponents
+      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
+      .let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
   }
 
   private fun selectComponentToTheBottom(
@@ -260,17 +259,18 @@ class NavigatingInteractionHandler(
     otherComponents: List<NlComponent>,
     componentToSceneView: MutableMap<NlComponent, SceneView>,
   ) {
-    var toSelect =
-      otherComponents
-        .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
-        .filter { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
-
-    if (toSelect.isNotEmpty())
-      componentToSceneView[toSelect.first()]!!.selectComponent(
-        toSelect.first(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
+    // Select the component located immediately on the bottom of the selected component, if there
+    // is one.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
   }
 
   private fun selectComponentToTheTop(
@@ -278,16 +278,18 @@ class NavigatingInteractionHandler(
     otherComponents: List<NlComponent>,
     componentToSceneView: MutableMap<NlComponent, SceneView>,
   ) {
-    var toSelect =
-      otherComponents
-        .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
-        .filter { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
-    if (toSelect.isNotEmpty())
-      componentToSceneView[toSelect.last()]!!.selectComponent(
-        toSelect.last(),
-        allowToggle = false,
-        ignoreIfAlreadySelected = true,
-      )
+    // Select the component located immediately on the bottom of the selected component, if there
+    // is one.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
   }
 
   /**
