@@ -16,12 +16,15 @@
 package com.android.tools.idea.ddms
 
 /**
- * DeviceNameProperties holds the system properties from a device that are required to render the name of the device.
+ * DeviceNameProperties holds the system properties from a device that are required to render the
+ * name of the device.
  */
-data class DeviceNameProperties(val model: String?,
-                                val manufacturer: String?,
-                                val buildVersion: String?,
-                                val apiLevel: String?) {
+data class DeviceNameProperties(
+  val model: String?,
+  val manufacturer: String?,
+  val buildVersion: String?,
+  val apiLevel: String?,
+) {
   fun getName() = getName(model, manufacturer)
 
   companion object {
@@ -39,10 +42,7 @@ data class DeviceNameProperties(val model: String?,
         return model
       }
 
-      return if (model.startsWith(manufacturer, true))
-        model
-      else
-        "$manufacturer $model"
+      return if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
     }
   }
 }

@@ -32,10 +32,10 @@ import com.android.adblib.utils.ResizableBuffer
 import com.android.adblib.withPrefix
 import com.android.jdwpscache.SCacheResponse
 import com.android.jdwpscache.SuspendingSCache
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 internal class StudioAdbLibSCacheJdwpSessionPipeline(
   private val device: ConnectedDevice,
@@ -81,17 +81,13 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
     // want them to go to the parent scope handler as "unhandled" exceptions in a `launch` job.
     // Note: We cancel both channels on completion so that we never leave one of the two
     // coroutine running if the other completed.
-    scope.launch(session.ioDispatcher + exceptionHandler) {
-      forwardSendChannelToDebugger()
-    }.invokeOnCompletion {
-      cancelChannels(it)
-    }
+    scope
+      .launch(session.ioDispatcher + exceptionHandler) { forwardSendChannelToDebugger() }
+      .invokeOnCompletion { cancelChannels(it) }
 
-    scope.launch(session.ioDispatcher + exceptionHandler) {
-      forwardDebuggerToReceiveChannel()
-    }.invokeOnCompletion {
-      cancelChannels(it)
-    }
+    scope
+      .launch(session.ioDispatcher + exceptionHandler) { forwardDebuggerToReceiveChannel() }
+      .invokeOnCompletion { cancelChannels(it) }
   }
 
   private fun cancelChannels(throwable: Throwable?) {
@@ -103,8 +99,12 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
     // Ensure exception is propagated to channels so that
     // 1) callers (i.e. consumer of 'send' and 'receive' channels) get notified of errors
     // 2) both forwarding coroutines always complete together
-    val cancellationException = (throwable as? CancellationException)
-                                ?: CancellationException("SCache Debugger pipeline for JDWP session has completed", throwable)
+    val cancellationException =
+      (throwable as? CancellationException)
+        ?: CancellationException(
+          "SCache Debugger pipeline for JDWP session has completed",
+          throwable,
+        )
     sendChannelImpl.cancel(cancellationException)
     receiveChannelImpl.cancel(cancellationException)
   }
@@ -138,18 +138,22 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
   }
 
   private suspend fun processSCacheResponse(response: SCacheResponse) {
-    logger.verbose { "Processing SCache response: " +
-                     "edict.toUpstream size=${response.edict.toUpstream.size}, " +
-                     "edict.toDownstream size=${response.edict.toDownstream.size}, " +
-                     "journal.toUpstream size=${response.journal.toUpstream.size}, " +
-                     "journal.toDownstream size=${response.journal.toUpstream.size}" }
+    logger.verbose {
+      "Processing SCache response: " +
+        "edict.toUpstream size=${response.edict.toUpstream.size}, " +
+        "edict.toDownstream size=${response.edict.toDownstream.size}, " +
+        "journal.toUpstream size=${response.journal.toUpstream.size}, " +
+        "journal.toDownstream size=${response.journal.toUpstream.size}"
+    }
 
     // Packets from the debuggee (device) to the debugger
     response.edict.toDownstream
       .map { it.duplicate() }
       .forEach { packetBuffer ->
         val packet = JdwpPacketView.wrapByteBuffer(packetBuffer)
-        logger.verbose { "Sending packet from SCache to debugger endpoint '$debuggerPipeline': $packet" }
+        logger.verbose {
+          "Sending packet from SCache to debugger endpoint '$debuggerPipeline': $packet"
+        }
         debuggerPipeline.sendPacket(packet)
       }
 
@@ -160,7 +164,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
         val packet = JdwpPacketView.wrapByteBuffer(packetBuffer)
         logger.verbose { "Emitting packet from SCache to receive flow: $packet" }
         receiveChannelImpl.sendPacket(packet)
-     }
+      }
 
     // Forward journaling packets to the session monitor
     sessionMonitor?.also { monitor ->

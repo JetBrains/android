@@ -27,7 +27,7 @@ enum class AdbServerMdnsBackend(val displayText: String) {
   companion object {
 
     @JvmStatic
-    fun fromDisplayText(text: String) : AdbServerMdnsBackend {
+    fun fromDisplayText(text: String): AdbServerMdnsBackend {
       values().forEach {
         if (it.displayText == text) {
           return it

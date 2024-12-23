@@ -27,7 +27,7 @@ enum class AdbServerUsbBackend(val displayText: String) {
   companion object {
 
     @JvmStatic
-    fun fromDisplayText(text: String) : AdbServerUsbBackend {
+    fun fromDisplayText(text: String): AdbServerUsbBackend {
       values().forEach {
         if (it.displayText == text) {
           return it

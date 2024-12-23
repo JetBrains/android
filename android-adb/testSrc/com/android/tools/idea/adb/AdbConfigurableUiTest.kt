@@ -20,9 +20,7 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import org.junit.Assert
 import org.junit.Test
 
-/**
- * Tests synchronization of settings between the config panel and AdbOptionsService.
- */
+/** Tests synchronization of settings between the config panel and AdbOptionsService. */
 class AdbConfigurableUiTest : LightPlatform4TestCase() {
   private lateinit var myConfigurable: AdbConfigurableUi
   private lateinit var myAdbOptionsService: AdbOptionsService
@@ -32,21 +30,26 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
     super.setUp()
     myAdbOptionsService = AdbOptionsService.getInstance()
     myOriginalOptions = myAdbOptionsService.getOptionsUpdater()
-    myConfigurable = AdbConfigurableUi().also {
-      // Force lazy-init of JComboBoxes
-      it.component
-    }
+    myConfigurable =
+      AdbConfigurableUi().also {
+        // Force lazy-init of JComboBoxes
+        it.component
+      }
   }
 
   override fun tearDown() {
     // Restore the AdbOptionsService singleton to its original state so it doesn't break other tests
     myOriginalOptions.commit()
-    super.tearDown()  // clears all fields of this class (!) so do it last
+    super.tearDown() // clears all fields of this class (!) so do it last
   }
 
   @Test
   fun testApply() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
@@ -59,7 +62,11 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testReset() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
@@ -72,7 +79,11 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testIsModified() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
 
@@ -90,7 +101,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
       assertThat(AdbServerUsbBackend.fromDisplayText(it.displayText)).isEqualTo(it)
     }
     try {
-       AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
+      AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
       Assert.fail("fromDisplayText did no throw")
     } catch (_: IllegalArgumentException) {
       // Expected

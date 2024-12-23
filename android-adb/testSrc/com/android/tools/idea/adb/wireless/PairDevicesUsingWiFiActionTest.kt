@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.SimpleDialog
 import com.google.common.truth.Truth
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -28,8 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
-  @get:Rule
-  val portableUiFontRule = PortableUiFontRule()
+  @get:Rule val portableUiFontRule = PortableUiFontRule()
 
   override fun setUp() {
     super.setUp()
@@ -58,11 +55,12 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
 
     // Act
     createModalDialogAndInteractWithIt({
-                                    action.update(event)
-                                    action.actionPerformed(event)
-                                  }) {
+      action.update(event)
+      action.actionPerformed(event)
+    }) {
       // Assert
-      val dialog = SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
+      val dialog =
+        SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
       Truth.assertThat(dialog.title).isEqualTo("Pair devices over Wi-Fi")
       Truth.assertThat(dialog.cancelButtonText).isEqualTo("Close")
       Truth.assertThat(dialog.rootPane).isNotNull()

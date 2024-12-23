@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 @file:JvmName("EditorPaneUtils")
+
 package com.android.tools.idea.adb.wireless
 
 import com.android.utils.HtmlBuilder
-import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.JBColor
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.util.ui.JBDimension
@@ -33,7 +29,6 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.border.Border
 import javax.swing.border.CompoundBorder
-import javax.swing.event.HyperlinkEvent
 
 fun createHtmlEditorPane(): JEditorPane {
   val viewer: JEditorPane = SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK)

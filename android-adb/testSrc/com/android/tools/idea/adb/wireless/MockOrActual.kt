@@ -18,21 +18,21 @@ package com.android.tools.idea.adb.wireless
 import org.mockito.Mockito
 
 /**
- * Provides access to either a mock or an actual implementation of a class [T] through the [useMock] property
+ * Provides access to either a mock or an actual implementation of a class [T] through the [useMock]
+ * property
  */
-class MockOrActual<T: Any>(clazz: Class<T>, val actualFactory: () -> T) {
+class MockOrActual<T : Any>(clazz: Class<T>, val actualFactory: () -> T) {
   var useMock = false
 
   val instance: T by lazy {
     if (useMock) {
       Mockito.mock(clazz)
-    }
-    else {
+    } else {
       actualFactory()
     }
   }
 }
 
-inline fun <reified T: Any> mockOrActual(noinline actualFactory: () -> T): MockOrActual<T> {
+inline fun <reified T : Any> mockOrActual(noinline actualFactory: () -> T): MockOrActual<T> {
   return MockOrActual(T::class.java, actualFactory)
 }

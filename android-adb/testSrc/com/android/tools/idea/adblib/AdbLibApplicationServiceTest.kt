@@ -33,7 +33,11 @@ class AdbLibApplicationServiceTest {
   private val project2Rule = ProjectRule()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(project2Rule).around(fakeAdbRule).around(fakeAdbServiceRule)!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule)
+      .around(project2Rule)
+      .around(fakeAdbRule)
+      .around(fakeAdbServiceRule)!!
 
   @Test
   fun hostServicesShouldWork() {
@@ -41,9 +45,7 @@ class AdbLibApplicationServiceTest {
     val session = AdbLibApplicationService.instance.session
 
     // Act
-    val version = runBlocking {
-      session.hostServices.version()
-    }
+    val version = runBlocking { session.hostServices.version() }
 
     // Assert
     Truth.assertThat(version).isGreaterThan(1)
@@ -56,7 +58,8 @@ class AdbLibApplicationServiceTest {
     val deviceProvisionerService = projectRule.project.service<DeviceProvisionerService>()
 
     // Act
-    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
+    val deviceProvisioner =
+      AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
 
     // Assert
     Truth.assertThat(deviceProvisioner).isSameAs(deviceProvisionerService.deviceProvisioner)
@@ -68,7 +71,8 @@ class AdbLibApplicationServiceTest {
     val applicationAdbSession = AdbLibApplicationService.instance.session
 
     // Act
-    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
+    val deviceProvisioner =
+      AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
 
     // Assert
     Truth.assertThat(deviceProvisioner).isNull()
@@ -80,10 +84,12 @@ class AdbLibApplicationServiceTest {
     val projectService = AdbLibService.getInstance(projectRule.project)
 
     // Act
-    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(projectService.session)
+    val deviceProvisioner =
+      AdbLibApplicationService.getDeviceProvisionerForSession(projectService.session)
 
     // Assert
-    Truth.assertThat(deviceProvisioner).isSameAs(projectRule.project.service<DeviceProvisionerService>().deviceProvisioner)
+    Truth.assertThat(deviceProvisioner)
+      .isSameAs(projectRule.project.service<DeviceProvisionerService>().deviceProvisioner)
   }
 
   @Test
@@ -92,9 +98,11 @@ class AdbLibApplicationServiceTest {
     val projectAdbSession = AdbLibService.getInstance(project2Rule.project).session
 
     // Act
-    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(projectAdbSession)
+    val deviceProvisioner =
+      AdbLibApplicationService.getDeviceProvisionerForSession(projectAdbSession)
 
     // Assert
-    Truth.assertThat(deviceProvisioner).isSameAs(project2Rule.project.service<DeviceProvisionerService>().deviceProvisioner)
+    Truth.assertThat(deviceProvisioner)
+      .isSameAs(project2Rule.project.service<DeviceProvisionerService>().deviceProvisioner)
   }
 }

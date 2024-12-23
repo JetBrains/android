@@ -16,7 +16,6 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbLogger
-import com.android.adblib.AdbLoggerFactory
 import com.intellij.openapi.diagnostic.Logger
 
 /**
@@ -26,12 +25,12 @@ import com.intellij.openapi.diagnostic.Logger
  */
 internal class AndroidAdbLogger(private val logger: Logger) : AdbLogger() {
   override val minLevel: Level
-    get() = if (logger.isDebugEnabled) {
-      if (logger.isTraceEnabled) Level.VERBOSE else Level.DEBUG
-    }
-    else {
-      Level.INFO
-    }
+    get() =
+      if (logger.isDebugEnabled) {
+        if (logger.isTraceEnabled) Level.VERBOSE else Level.DEBUG
+      } else {
+        Level.INFO
+      }
 
   override fun log(level: Level, message: String) {
     when (level) {

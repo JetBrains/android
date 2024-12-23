@@ -23,14 +23,19 @@ import java.io.OutputStream
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
-/**
- * Executes a command with ability to pass `stdin` and capture `stdout` and `stderr`.
- */
-class ExternalCommand(val executable: String)  {
+/** Executes a command with ability to pass `stdin` and capture `stdout` and `stderr`. */
+class ExternalCommand(val executable: String) {
   private val LOG = logger<ExternalCommand>()
 
   @Throws(IOException::class)
-  fun execute(args: List<String>, stdin: InputStream, stdout: OutputStream, stderr: OutputStream, timeout: Long, unit: TimeUnit): Int {
+  fun execute(
+    args: List<String>,
+    stdin: InputStream,
+    stdout: OutputStream,
+    stderr: OutputStream,
+    timeout: Long,
+    unit: TimeUnit,
+  ): Int {
     val command: MutableList<String> = ArrayList()
     val exe = File(executable)
     command.add(exe.absolutePath)
@@ -57,14 +62,14 @@ class ExternalCommand(val executable: String)  {
       processToOut.join()
       stdin.close()
       inToProcess.join()
-    }
-    catch (e: InterruptedException) {
+    } catch (e: InterruptedException) {
       LOG.warn("Command was interrupted", e)
     }
     return code
   }
 
-  private class PipeConnector(private val input: InputStream, private val output: OutputStream) : Thread() {
+  private class PipeConnector(private val input: InputStream, private val output: OutputStream) :
+    Thread() {
     override fun run() {
       try {
         val buffer = ByteArray(8192)
@@ -73,8 +78,7 @@ class ExternalCommand(val executable: String)  {
           output.write(buffer, 0, read)
           output.flush()
         }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         // Ignore and exit the thread
       }
     }

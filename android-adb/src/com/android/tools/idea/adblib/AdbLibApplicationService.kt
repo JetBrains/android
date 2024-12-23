@@ -42,78 +42,91 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.Duration
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * Application service that provides access to the implementation of [AdbSession] and [AdbSessionHost]
- * that integrate with the IntelliJ/Android Studio platform.
+ * Application service that provides access to the implementation of [AdbSession] and
+ * [AdbSessionHost] that integrate with the IntelliJ/Android Studio platform.
  *
- * Note: Prefer using [AdbLibService] if a [Project] instance is available, as [Application] and [Project]
- * could be using different SDKs. A [Project] should only use the ADB provided by the SDK used in the [Project].
+ * Note: Prefer using [AdbLibService] if a [Project] instance is available, as [Application] and
+ * [Project] could be using different SDKs. A [Project] should only use the ADB provided by the SDK
+ * used in the [Project].
  */
 @Service
 class AdbLibApplicationService : Disposable {
-  /**
-   * The [AndroidAdbSessionHost] for this [session]
-   */
+  /** The [AndroidAdbSessionHost] for this [session] */
   private val host = AndroidAdbSessionHost()
 
   private val adbFileLocationTracker = AdbFileLocationTracker()
 
-  private val adbServerConfiguration = MutableStateFlow(
-    AdbServerConfiguration(adbPath = null, serverPort = null, isUserManaged = false, isUnitTest = false, envVars = emptyMap()))
+  private val adbServerConfiguration =
+    MutableStateFlow(
+      AdbServerConfiguration(
+        adbPath = null,
+        serverPort = null,
+        isUserManaged = false,
+        isUnitTest = false,
+        envVars = emptyMap(),
+      )
+    )
 
-  private val adbServerController = if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
-    AdbServerController.createServerController(host, adbServerConfiguration)
-  }
-  else {
-    null
-  }
+  private val adbServerController =
+    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
+      AdbServerController.createServerController(host, adbServerConfiguration)
+    } else {
+      null
+    }
 
   /**
    * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
    * [AdbChannel].
    */
   private val channelProvider =
-    adbServerController?.channelProvider ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+    adbServerController?.channelProvider
+      ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 
-  /**
-   * A [AdbSession] customized to work in the Android plugin.
-   */
-  val session = AdbSession.create(
-    host = host,
-    channelProvider = channelProvider,
-    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
-  ).also { session ->
-    // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance on
-    //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
-    //   are delegated to this AdbSession.
+  /** A [AdbSession] customized to work in the Android plugin. */
+  val session =
+    AdbSession.create(
+        host = host,
+        channelProvider = channelProvider,
+        connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong()),
+      )
+      .also { session ->
+        // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance
+        // on
+        //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
+        //   are delegated to this AdbSession.
 
-    val enabled = {
-      StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
-      StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
-    }
+        val enabled = {
+          StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
+            StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
+        }
 
-    ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
-      session,
-      enabled = enabled,
-      config = StudioProcessInventoryServerConfiguration(),
-    )
-  }
+        ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
+          session,
+          enabled = enabled,
+          config = StudioProcessInventoryServerConfiguration(),
+        )
+      }
 
   init {
     if (adbServerController != null) {
-      val androidDebugBridge = AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
+      val androidDebugBridge =
+        AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
       AndroidDebugBridge.preInit(androidDebugBridge)
     }
 
     // Listen to "project closed" events to unregister projects
-    ProjectManager.TOPIC.subscribe(this, object: ProjectManagerListener {
-      override fun projectClosed(project: Project) {
-        adbFileLocationTracker.unregisterProject(project)
-      }
-    })
+    ProjectManager.TOPIC.subscribe(
+      this,
+      object : ProjectManagerListener {
+        override fun projectClosed(project: Project) {
+          adbFileLocationTracker.unregisterProject(project)
+        }
+      },
+    )
   }
 
   internal fun registerProject(project: Project): Boolean {
@@ -126,7 +139,8 @@ class AdbLibApplicationService : Disposable {
   }
 
   /**
-   * The [StartupActivity] that registers [Project] instance to the [AndroidAdbServerChannelProvider].
+   * The [StartupActivity] that registers [Project] instance to the
+   * [AndroidAdbServerChannelProvider].
    */
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
@@ -141,23 +155,23 @@ class AdbLibApplicationService : Disposable {
     override val clientDescription: String
       get() {
         // Note: "Cheap" lazy implementation
-        return _clientDescription ?: "ProcessInventory(role='client', ${applicationInfo()})".also {
-          _clientDescription = it
-        }
+        return _clientDescription
+          ?: "ProcessInventory(role='client', ${applicationInfo()})"
+            .also { _clientDescription = it }
       }
 
     private var _serverDescription: String? = null
     override val serverDescription: String
       get() {
         // Note: "Cheap" lazy implementation
-        return _serverDescription ?: "ProcessInventory(role='server', ${applicationInfo()})".also {
-          _serverDescription = it
-        }
+        return _serverDescription
+          ?: "ProcessInventory(role='server', ${applicationInfo()})"
+            .also { _serverDescription = it }
       }
 
     private fun applicationInfo(): String {
       return "product='${ApplicationInfo.getInstance().fullApplicationName}', " +
-             "pathSelector='${PathManager.getPathsSelector()}'"
+        "pathSelector='${PathManager.getPathsSelector()}'"
     }
   }
 
@@ -166,10 +180,9 @@ class AdbLibApplicationService : Disposable {
     val instance: AdbLibApplicationService
       get() = ApplicationManager.getApplication().getService(AdbLibApplicationService::class.java)
 
-
     /**
-     * Returns the [DeviceProvisioner] best matching the [session]. This method is needed
-     * because some components (e.g. ddmlib compatibility layer) uses the [AdbSession] from
+     * Returns the [DeviceProvisioner] best matching the [session]. This method is needed because
+     * some components (e.g. ddmlib compatibility layer) uses the [AdbSession] from
      * [AdbLibApplicationService.session], so there is no [Project] for the passed in session,
      * meaning there is no [DeviceProvisioner] readily available.
      */
@@ -182,15 +195,13 @@ class AdbLibApplicationService : Disposable {
         projects.firstNotNullOfOrNull { project ->
           project.serviceIfCreated<DeviceProvisionerService>()?.deviceProvisioner
         }
-      }
-      else {
+      } else {
         // Find project corresponding to the adblib session
         projects.firstNotNullOfOrNull { project ->
           val projectSession = project.serviceIfCreated<AdbLibService>()?.session
           if (session === projectSession) {
             project.service<DeviceProvisionerService>().deviceProvisioner
-          }
-          else {
+          } else {
             null
           }
         }

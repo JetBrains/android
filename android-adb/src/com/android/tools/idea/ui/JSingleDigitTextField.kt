@@ -32,8 +32,8 @@ import javax.swing.text.DocumentFilter
 import kotlin.streams.toList
 
 /**
- * A specialized version of [JBTextField] that allows for entering only
- * a single digit and that does not display the caret when focused
+ * A specialized version of [JBTextField] that allows for entering only a single digit and that does
+ * not display the caret when focused
  */
 @UiThread
 class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
@@ -49,13 +49,18 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
     // Set document filter so that we can ensure only single digit contents
     (document as AbstractDocument).documentFilter = OneDigitOnlyDocumentFilter(this)
 
-    setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-                          hashSetOf(AWTKeyStroke.getAWTKeyStroke("shift TAB"),
-                                    AWTKeyStroke.getAWTKeyStroke("LEFT"),
-                                    AWTKeyStroke.getAWTKeyStroke("BACK_SPACE")))
-    setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-                          hashSetOf(AWTKeyStroke.getAWTKeyStroke("TAB"),
-                                    AWTKeyStroke.getAWTKeyStroke("RIGHT")))
+    setFocusTraversalKeys(
+      KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+      hashSetOf(
+        AWTKeyStroke.getAWTKeyStroke("shift TAB"),
+        AWTKeyStroke.getAWTKeyStroke("LEFT"),
+        AWTKeyStroke.getAWTKeyStroke("BACK_SPACE"),
+      ),
+    )
+    setFocusTraversalKeys(
+      KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+      hashSetOf(AWTKeyStroke.getAWTKeyStroke("TAB"), AWTKeyStroke.getAWTKeyStroke("RIGHT")),
+    )
   }
 
   fun addListener(listener: Listener) {
@@ -90,27 +95,31 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
   }
 
   /**
-   * A document filter that ensures only digits (a maximum of 6) are entered
-   * in the corresponding [JSingleDigitTextField]
+   * A document filter that ensures only digits (a maximum of 6) are entered in the corresponding
+   * [JSingleDigitTextField]
    */
-  private class OneDigitOnlyDocumentFilter(private val component: JSingleDigitTextField) : DocumentFilter() {
+  private class OneDigitOnlyDocumentFilter(private val component: JSingleDigitTextField) :
+    DocumentFilter() {
     @Throws(BadLocationException::class)
-    override fun replace(fb: FilterBypass,
-                         offset: Int,
-                         length: Int,
-                         text: String?,
-                         attrs: AttributeSet?) {
+    override fun replace(
+      fb: FilterBypass,
+      offset: Int,
+      length: Int,
+      text: String?,
+      attrs: AttributeSet?,
+    ) {
       if (text == null) {
         // Deletion case
         super.replace(fb, offset, length, text, attrs)
-      }
-      else {
+      } else {
         // Insert or replace case: Filter out any non digit character
-        val filteredInput = text.codePoints()
-          .toList()
-          .map { c -> c.toChar() }
-          .filter { c -> c in '0'..'9' }
-          .joinToString(separator = "") { it.toString() }
+        val filteredInput =
+          text
+            .codePoints()
+            .toList()
+            .map { c -> c.toChar() }
+            .filter { c -> c in '0'..'9' }
+            .joinToString(separator = "") { it.toString() }
         if (filteredInput != text) {
           Toolkit.getDefaultToolkit().beep()
         }
@@ -118,24 +127,18 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
           // Replace all document with the single digit text
           super.replace(fb, 0, fb.document.length, filteredInput, attrs)
           handleAutoTab(fb)
-        }
-        else {
+        } else {
           Toolkit.getDefaultToolkit().beep()
         }
       }
     }
 
     @Throws(BadLocationException::class)
-    override fun insertString(fb: FilterBypass,
-                              offs: Int,
-                              text: String,
-                              a: AttributeSet?) {
+    override fun insertString(fb: FilterBypass, offs: Int, text: String, a: AttributeSet?) {
       replace(fb, offs, 0, text, a)
     }
 
-    /**
-     * Move focus to next component when a character has been entered
-     */
+    /** Move focus to next component when a character has been entered */
     private fun handleAutoTab(fb: FilterBypass) {
       val c = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
       if (c == component) {
@@ -154,8 +157,11 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
     var consumed = false
   }
 
-  /** Don't let IntelliJ's ActionManager process backspace: we want to use it as a focus traversal key. */
+  /**
+   * Don't let IntelliJ's ActionManager process backspace: we want to use it as a focus traversal
+   * key.
+   */
   override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    return event.keyChar == '\b';
+    return event.keyChar == '\b'
   }
 }

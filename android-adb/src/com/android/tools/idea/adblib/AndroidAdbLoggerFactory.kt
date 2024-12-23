@@ -20,7 +20,8 @@ import com.android.adblib.AdbLoggerFactoryWithCache
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * Implementation of [AdbLoggerFactory] that integrates with the IntelliJ/Android Studio platform [Logger].
+ * Implementation of [AdbLoggerFactory] that integrates with the IntelliJ/Android Studio platform
+ * [Logger].
  */
 internal class AndroidAdbLoggerFactory : AdbLoggerFactoryWithCache<AndroidAdbLogger>() {
 

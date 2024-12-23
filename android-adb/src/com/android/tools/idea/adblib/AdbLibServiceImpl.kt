@@ -27,31 +27,28 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.time.Duration
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
 
-/**
- * The production implementation of [AdbLibService]
- */
+/** The production implementation of [AdbLibService] */
 internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
-  /**
-   * Take a snapshot of the flag in case the value changes (during tests for example)
-   */
+  /** Take a snapshot of the flag in case the value changes (during tests for example) */
   private val oneSessionPerProject = StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT.get()
 
   init {
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session = if (oneSessionPerProject) {
-    // Create per project session
-    createProjectSession(project)
-  } else {
-    // re-use session from application service
-    AdbLibApplicationService.instance.session
-  }
+  override val session =
+    if (oneSessionPerProject) {
+      // Create per project session
+      createProjectSession(project)
+    } else {
+      // re-use session from application service
+      AdbLibApplicationService.instance.session
+    }
 
   override fun dispose() {
     if (oneSessionPerProject) {
@@ -65,28 +62,34 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
       val host = AdbLibApplicationService.instance.session.host
 
       // Configure a channel provider to look for ADB from project settings
-      val channelProvider = AdbServerChannelProvider.createConnectAddresses(host) {
-        listOf(getAdbSocketAddress(project, host))
-      }
+      val channelProvider =
+        AdbServerChannelProvider.createConnectAddresses(host) {
+          listOf(getAdbSocketAddress(project, host))
+        }
 
       return AdbSession.createChildSession(
-        parentSession = AdbLibApplicationService.instance.session,
-        host = host,
-        channelProvider = channelProvider,
-        connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
-      ).also { projectSession ->
-        // Ensure all JDWP connections are delegated to the application session
-        projectSession.addJdwpProcessSessionFinder(ProjectSessionFinder(projectSession))
-      }
+          parentSession = AdbLibApplicationService.instance.session,
+          host = host,
+          channelProvider = channelProvider,
+          connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong()),
+        )
+        .also { projectSession ->
+          // Ensure all JDWP connections are delegated to the application session
+          projectSession.addJdwpProcessSessionFinder(ProjectSessionFinder(projectSession))
+        }
     }
 
-    private suspend fun getAdbSocketAddress(project: Project, host: AdbSessionHost): InetSocketAddress {
+    private suspend fun getAdbSocketAddress(
+      project: Project,
+      host: AdbSessionHost,
+    ): InetSocketAddress {
       return withContext(host.ioDispatcher) {
         val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
         if (needToConnect) {
           // Ensure ddmlib is initialized with ADB server path from project context
-          val adbFile = AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException(
-            "ADB has not been initialized for this project")
+          val adbFile =
+            AdbFileProvider.fromProject(project).get()
+              ?: throw IllegalStateException("ADB has not been initialized for this project")
           AdbService.getInstance().getDebugBridge(adbFile).await()
         }
         AndroidDebugBridge.getSocketAddress()

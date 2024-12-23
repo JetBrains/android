@@ -18,9 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import java.util.ArrayList
 
-/**
- * Model used for pairing devices
- */
+/** Model used for pairing devices */
 @UiThread
 open class WiFiPairingModel {
   open var qrCodeServices: List<MdnsService> = emptyList()
@@ -38,15 +36,11 @@ open class WiFiPairingModel {
   /** The list of listeners */
   private val listeners: ArrayList<AdbDevicePairingModelListener> = ArrayList()
 
-  /**
-   * The last [QrCodeImage] generated. It may be `null` if no image has been generated yet.
-   */
-  open var qrCodeImage : QrCodeImage? = null
+  /** The last [QrCodeImage] generated. It may be `null` if no image has been generated yet. */
+  open var qrCodeImage: QrCodeImage? = null
     set(value) {
       field = value
-      value?.let { newImage ->
-        listeners.forEach { it.qrCodeGenerated(newImage) }
-      }
+      value?.let { newImage -> listeners.forEach { it.qrCodeGenerated(newImage) } }
     }
 
   open fun addListener(listener: AdbDevicePairingModelListener) {
@@ -60,18 +54,12 @@ open class WiFiPairingModel {
 
 @UiThread
 interface AdbDevicePairingModelListener {
-  /**
-   * Invoked when a new QrCode image has been generated
-   */
+  /** Invoked when a new QrCode image has been generated */
   fun qrCodeGenerated(newImage: QrCodeImage)
 
-  /**
-   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
-   */
+  /** Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server */
   fun qrCodeServicesDiscovered(services: List<MdnsService>)
 
-  /**
-   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
-   */
+  /** Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server */
   fun pairingCodeServicesDiscovered(services: List<MdnsService>)
 }

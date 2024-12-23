@@ -26,8 +26,8 @@ import org.junit.Test
 
 class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
   /**
-   * Note: We force jdwp trace to be enabled to ensure the [JDWPTracer] specific code in [StudioAdbLibSCacheJdwpSessionPipeline]
-   * is covered.
+   * Note: We force jdwp trace to be enabled to ensure the [JDWPTracer] specific code in
+   * [StudioAdbLibSCacheJdwpSessionPipeline] is covered.
    */
   private val enableJdwpTracer = true
 
@@ -41,7 +41,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
         enabledForDeviceWasCalled = true
         true
       },
-      enableJdwpTracer = { enableJdwpTracer }
+      enableJdwpTracer = { enableJdwpTracer },
     )
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpSession = jdwpSessionInfo.debuggerJdwpSession
@@ -61,7 +61,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     StudioAdbLibSCacheJdwpSessionPipelineFactory.install(
       session,
       enableForDevice = { _ -> true },
-      enableJdwpTracer = { enableJdwpTracer }
+      enableJdwpTracer = { enableJdwpTracer },
     )
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpProcess = jdwpSessionInfo.process

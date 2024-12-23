@@ -18,9 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.FutureValuesTracker
 
-/**
- * Model used for pairing devices
- */
+/** Model used for pairing devices */
 @UiThread
 class MockWiFiPairingModel : WiFiPairingModel() {
   val qrCodeServicesTracker = FutureValuesTracker<List<MdnsService>>()

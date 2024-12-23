@@ -32,7 +32,8 @@ class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
+    val controller =
+      PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
     controller.showDialog()
   }
 

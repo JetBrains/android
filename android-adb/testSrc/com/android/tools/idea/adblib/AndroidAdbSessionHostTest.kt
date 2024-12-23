@@ -24,6 +24,9 @@ import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.BalloonLayout
+import java.awt.Rectangle
+import java.time.Duration
+import javax.swing.JComponent
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -31,13 +34,9 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Rectangle
-import java.time.Duration
-import javax.swing.JComponent
 
 class AndroidAdbSessionHostTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var host: AndroidAdbSessionHost
 
@@ -65,13 +64,20 @@ class AndroidAdbSessionHostTest {
     val useShortDelay = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
     // Assert
-    assertEquals("This test depends on `ApplicationManager.getApplication().isActive` returning `true`", true, useShortDelay)
+    assertEquals(
+      "This test depends on `ApplicationManager.getApplication().isActive` returning `true`",
+      true,
+      useShortDelay,
+    )
   }
 
   @Test
   fun propertiesCollectorUseShortDelayIsFalseWhenInactive() {
     // Prepare
-    val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
+    val publisher =
+      ApplicationManager.getApplication()
+        .messageBus
+        .syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
@@ -85,7 +91,10 @@ class AndroidAdbSessionHostTest {
   @Test
   fun propertiesCollectorUseShortDelayIsTrueWhenReActivated() {
     // Prepare
-    val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
+    val publisher =
+      ApplicationManager.getApplication()
+        .messageBus
+        .syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
@@ -106,7 +115,10 @@ class AndroidAdbSessionHostTest {
     val duration = Duration.ofMillis(453)
 
     // Act
-    host.delegatePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT, valueProvider = { duration })
+    host.delegatePropertyValue(
+      PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT,
+      valueProvider = { duration },
+    )
 
     // Assert
     assertEquals(duration, host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT))
@@ -115,10 +127,13 @@ class AndroidAdbSessionHostTest {
   @Test
   fun delegatingPropertyValueIsLowerPriorityThanOverriding() {
     // Act
-    host.delegatePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT, valueProvider = {
-      Assert.fail("Should not be called")
-      true
-    })
+    host.delegatePropertyValue(
+      PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT,
+      valueProvider = {
+        Assert.fail("Should not be called")
+        true
+      },
+    )
     host.overridePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT, false)
 
     // Assert
@@ -149,6 +164,5 @@ class AndroidAdbSessionHostTest {
     override fun getBalloonLayout(): BalloonLayout? {
       TODO("Not yet implemented")
     }
-
   }
 }

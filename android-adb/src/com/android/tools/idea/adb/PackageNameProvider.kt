@@ -26,15 +26,21 @@ object PackageNameProvider {
   private val taskExecutor = PooledThreadExecutor.INSTANCE
 
   /**
-   * Tries to infer the package name for [processName].
-   * The package name is not always equal to the process name, because of the `process` attribute that can be added to the app's manifest.
+   * Tries to infer the package name for [processName]. The package name is not always equal to the
+   * process name, because of the `process` attribute that can be added to the app's manifest.
    *
    * On devices with api lower than R, the package name will just be inferred from the process name.
    */
-  fun getPackageName(project: Project, deviceSerialNumber: String, processName: String): ListenableFuture<String> {
-    val adb = AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("adb not found")
+  fun getPackageName(
+    project: Project,
+    deviceSerialNumber: String,
+    processName: String,
+  ): ListenableFuture<String> {
+    val adb =
+      AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("adb not found")
 
-    return AdbService.getInstance().getDebugBridge(adb).transform(taskExecutor) { androidDebugBridge ->
+    return AdbService.getInstance().getDebugBridge(adb).transform(taskExecutor) { androidDebugBridge
+      ->
       val device = androidDebugBridge.devices.find { deviceSerialNumber == it.serialNumber }
       if (device == null) {
         logger.info("Can't find device from serial number.")

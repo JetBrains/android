@@ -21,31 +21,28 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
 
 /**
- * An [AdbServerChannelProvider] that keeps track of [Project] instances to retrieve the path
- * to `adb` on a "best effort" basis. If it "best effort", because Android Studio currently
- * does not support multiple `adb` paths and/or versions.
+ * An [AdbServerChannelProvider] that keeps track of [Project] instances to retrieve the path to
+ * `adb` on a "best effort" basis. If it "best effort", because Android Studio currently does not
+ * support multiple `adb` paths and/or versions.
  *
  * This class is thread-safe.
  */
 @AnyThread
-internal class AndroidAdbServerChannelProvider(private val host: AndroidAdbSessionHost,
-                                               private val adbFileTracker: AdbFileLocationTracker) : AdbServerChannelProvider {
-  /**
-   * The [AdbServerChannelProvider] we delegate to
-   */
-  private val connectProvider = AdbServerChannelProvider.createConnectAddresses(host) {
-    listOf(getAdbSocketAddress())
-  }
+internal class AndroidAdbServerChannelProvider(
+  private val host: AndroidAdbSessionHost,
+  private val adbFileTracker: AdbFileLocationTracker,
+) : AdbServerChannelProvider {
+  /** The [AdbServerChannelProvider] we delegate to */
+  private val connectProvider =
+    AdbServerChannelProvider.createConnectAddresses(host) { listOf(getAdbSocketAddress()) }
 
-  /**
-   * [AdbServerChannelProvider] implementation: delegate to [connectProvider]
-   */
+  /** [AdbServerChannelProvider] implementation: delegate to [connectProvider] */
   override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
     return connectProvider.createChannel(timeout, unit)
   }
@@ -59,8 +56,7 @@ internal class AndroidAdbServerChannelProvider(private val host: AndroidAdbSessi
       }
 
       // Deprecate: We need this until ddmlib is completely phased out
-      @Suppress("DEPRECATION")
-      AndroidDebugBridge.getSocketAddress()
+      @Suppress("DEPRECATION") AndroidDebugBridge.getSocketAddress()
     }
   }
 }

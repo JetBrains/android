@@ -21,45 +21,47 @@ import org.junit.Test
 
 class QrCodeGeneratorTest {
   /**
-   * Note: Change the return value to `true` to generate source code for the `expectedRows`
-   * variable of the tests. This should only required if, for some reason, the zxing library
-   * behavior changes. (One would hope this never happens).
+   * Note: Change the return value to `true` to generate source code for the `expectedRows` variable
+   * of the tests. This should only required if, for some reason, the zxing library behavior
+   * changes. (One would hope this never happens).
    */
   private fun generateExpectedRows() = false
 
   @Test
   fun qrEncodeShouldWork() {
     // Prepare
-    val expectedRows = arrayOf(
-      "                             ",
-      "                             ",
-      "                             ",
-      "                             ",
-      "    XXXXXXX XXXXX XXXXXXX    ",
-      "    X     X  X X  X     X    ",
-      "    X XXX X  XX   X XXX X    ",
-      "    X XXX X  XXX  X XXX X    ",
-      "    X XXX X   X X X XXX X    ",
-      "    X     X    XX X     X    ",
-      "    XXXXXXX X X X XXXXXXX    ",
-      "            XXXXX            ",
-      "    XX XX X  XX X X     X    ",
-      "       XX    XX X X XX       ",
-      "     XXXXXXXX X  XX X  XX    ",
-      "              XX      X X    ",
-      "     XX  XXX  X   X  X  X    ",
-      "            X XXX    X X     ",
-      "    XXXXXXX  XX XXXXXX       ",
-      "    X     X   XXXX   XX      ",
-      "    X XXX X XX XX XX X XX    ",
-      "    X XXX X XX XX  X XX      ",
-      "    X XXX X   X   X XX XX    ",
-      "    X     X XXX  XXX XXXX    ",
-      "    XXXXXXX XXXX   XX        ",
-      "                             ",
-      "                             ",
-      "                             ",
-      "                             ")
+    val expectedRows =
+      arrayOf(
+        "                             ",
+        "                             ",
+        "                             ",
+        "                             ",
+        "    XXXXXXX XXXXX XXXXXXX    ",
+        "    X     X  X X  X     X    ",
+        "    X XXX X  XX   X XXX X    ",
+        "    X XXX X  XXX  X XXX X    ",
+        "    X XXX X   X X X XXX X    ",
+        "    X     X    XX X     X    ",
+        "    XXXXXXX X X X XXXXXXX    ",
+        "            XXXXX            ",
+        "    XX XX X  XX X X     X    ",
+        "       XX    XX X X XX       ",
+        "     XXXXXXXX X  XX X  XX    ",
+        "              XX      X X    ",
+        "     XX  XXX  X   X  X  X    ",
+        "            X XXX    X X     ",
+        "    XXXXXXX  XX XXXXXX       ",
+        "    X     X   XXXX   XX      ",
+        "    X XXX X XX XX XX X XX    ",
+        "    X XXX X XX XX  X XX      ",
+        "    X XXX X   X   X XX XX    ",
+        "    X     X XXX  XXX XXXX    ",
+        "    XXXXXXX XXXX   XX        ",
+        "                             ",
+        "                             ",
+        "                             ",
+        "                             ",
+      )
 
     // Act
     val bits = encodeQrCode("foobar", 0)
@@ -78,47 +80,49 @@ class QrCodeGeneratorTest {
   @Test
   fun qrEncodeShouldWorkWithCustomSize() {
     // Prepare
-    val expectedRows = arrayOf(
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "         XXXXXXX XXXXX XXXXXXX          ",
-      "         X     X  X X  X     X          ",
-      "         X XXX X  XX   X XXX X          ",
-      "         X XXX X  XXX  X XXX X          ",
-      "         X XXX X   X X X XXX X          ",
-      "         X     X    XX X     X          ",
-      "         XXXXXXX X X X XXXXXXX          ",
-      "                 XXXXX                  ",
-      "         XX XX X  XX X X     X          ",
-      "            XX    XX X X XX             ",
-      "          XXXXXXXX X  XX X  XX          ",
-      "                   XX      X X          ",
-      "          XX  XXX  X   X  X  X          ",
-      "                 X XXX    X X           ",
-      "         XXXXXXX  XX XXXXXX             ",
-      "         X     X   XXXX   XX            ",
-      "         X XXX X XX XX XX X XX          ",
-      "         X XXX X XX XX  X XX            ",
-      "         X XXX X   X   X XX XX          ",
-      "         X     X XXX  XXX XXXX          ",
-      "         XXXXXXX XXXX   XX              ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ",
-      "                                        ")
+    val expectedRows =
+      arrayOf(
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "         XXXXXXX XXXXX XXXXXXX          ",
+        "         X     X  X X  X     X          ",
+        "         X XXX X  XX   X XXX X          ",
+        "         X XXX X  XXX  X XXX X          ",
+        "         X XXX X   X X X XXX X          ",
+        "         X     X    XX X     X          ",
+        "         XXXXXXX X X X XXXXXXX          ",
+        "                 XXXXX                  ",
+        "         XX XX X  XX X X     X          ",
+        "            XX    XX X X XX             ",
+        "          XXXXXXXX X  XX X  XX          ",
+        "                   XX      X X          ",
+        "          XX  XXX  X   X  X  X          ",
+        "                 X XXX    X X           ",
+        "         XXXXXXX  XX XXXXXX             ",
+        "         X     X   XXXX   XX            ",
+        "         X XXX X XX XX XX X XX          ",
+        "         X XXX X XX XX  X XX            ",
+        "         X XXX X   X   X XX XX          ",
+        "         X     X XXX  XXX XXXX          ",
+        "         XXXXXXX XXXX   XX              ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+        "                                        ",
+      )
 
     // Act
     val bits = encodeQrCode("foobar", 40)
@@ -137,36 +141,38 @@ class QrCodeGeneratorTest {
   @Test
   fun qrEncodeShouldWorkForUnicodeCharacters() {
     // Prepare
-    val expectedRows = arrayOf(
-      "                             ",
-      "                             ",
-      "                             ",
-      "                             ",
-      "    XXXXXXX XXXXX XXXXXXX    ",
-      "    X     X XX XX X     X    ",
-      "    X XXX X  XXX  X XXX X    ",
-      "    X XXX X  X XX X XXX X    ",
-      "    X XXX X X  XX X XXX X    ",
-      "    X     X X X   X     X    ",
-      "    XXXXXXX X X X XXXXXXX    ",
-      "            XXX              ",
-      "    XXX  XX XXXXXXXXX  XX    ",
-      "     X   X XX   XXXXXXX      ",
-      "    X   X X X   XX  XX       ",
-      "    X X         XX   X       ",
-      "     XX XXXXXX X X X XXXX    ",
-      "            XXXX  X X X      ",
-      "    XXXXXXX  X X    X   X    ",
-      "    X     X X   X XX  X X    ",
-      "    X XXX X  XXX XXX XXX     ",
-      "    X XXX X   X   X X XX     ",
-      "    X XXX X X XX X  XX XX    ",
-      "    X     X XX  XXX XXXXX    ",
-      "    XXXXXXX X    XX   X X    ",
-      "                             ",
-      "                             ",
-      "                             ",
-      "                             ")
+    val expectedRows =
+      arrayOf(
+        "                             ",
+        "                             ",
+        "                             ",
+        "                             ",
+        "    XXXXXXX XXXXX XXXXXXX    ",
+        "    X     X XX XX X     X    ",
+        "    X XXX X  XXX  X XXX X    ",
+        "    X XXX X  X XX X XXX X    ",
+        "    X XXX X X  XX X XXX X    ",
+        "    X     X X X   X     X    ",
+        "    XXXXXXX X X X XXXXXXX    ",
+        "            XXX              ",
+        "    XXX  XX XXXXXXXXX  XX    ",
+        "     X   X XX   XXXXXXX      ",
+        "    X   X X X   XX  XX       ",
+        "    X X         XX   X       ",
+        "     XX XXXXXX X X X XXXX    ",
+        "            XXXX  X X X      ",
+        "    XXXXXXX  X X    X   X    ",
+        "    X     X X   X XX  X X    ",
+        "    X XXX X  XXX XXX XXX     ",
+        "    X XXX X   X   X X XX     ",
+        "    X XXX X X XX X  XX XX    ",
+        "    X     X XX  XXX XXXXX    ",
+        "    XXXXXXX X    XX   X X    ",
+        "                             ",
+        "                             ",
+        "                             ",
+        "                             ",
+      )
 
     // Act
     val bits = encodeQrCode("中文測試", 0)
@@ -187,8 +193,8 @@ class QrCodeGeneratorTest {
   }
 
   /**
-   * Keep this method because we may need to generate source code for the
-   * expected QR Code format (or if we add tests in the future)
+   * Keep this method because we may need to generate source code for the expected QR Code format
+   * (or if we add tests in the future)
    */
   @Suppress("unused")
   private fun outputExpectedRowsCode(bits: BitMatrix) {

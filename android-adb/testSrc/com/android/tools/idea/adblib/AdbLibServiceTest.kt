@@ -17,9 +17,7 @@ package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.flags.junit.FlagRule
-import com.android.testutils.on
 import com.android.tools.idea.adb.FakeAdbServiceRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
@@ -35,7 +33,11 @@ class AdbLibServiceTest {
   private val oneSessionPerProject = FlagRule(ADBLIB_ONE_SESSION_PER_PROJECT)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(oneSessionPerProject).around(fakeAdbRule).around(fakeAdbServiceRule)!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule)
+      .around(oneSessionPerProject)
+      .around(fakeAdbRule)
+      .around(fakeAdbServiceRule)!!
 
   private val project
     get() = projectRule.project
@@ -46,9 +48,7 @@ class AdbLibServiceTest {
     val session = AdbLibService.getSession(project)
 
     // Act
-    val version = runBlocking {
-      session.hostServices.version()
-    }
+    val version = runBlocking { session.hostServices.version() }
 
     // Assert
     Truth.assertThat(version).isGreaterThan(1)
