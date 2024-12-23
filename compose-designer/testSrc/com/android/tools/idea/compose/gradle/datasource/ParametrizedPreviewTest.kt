@@ -297,10 +297,9 @@ class ParametrizedPreviewTest {
         it
           .asCollection()
           .filterIsInstance<ParametrizedComposePreviewElementInstance<*>>()
-          .map {
+          .joinToString("\n") {
             "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
           }
-          .joinToString("\n")
 
       stringValue ==
         """
