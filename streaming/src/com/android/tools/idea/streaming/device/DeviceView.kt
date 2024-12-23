@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.utils.TraceUtils.currentStack
 import com.android.utils.TraceUtils.simpleId
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -205,7 +206,7 @@ internal class DeviceView(
 
   init {
     Disposer.register(disposableParent, this)
-    thisLogger().info("$simpleId created") // b/364541401
+    thisLogger().info("$simpleId created deviceClient=${deviceClient.simpleId}\n$currentStack") // b/364541401
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
@@ -369,6 +370,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
+    thisLogger().info("$simpleId disposed deviceClient=${deviceClient.simpleId}\n$currentStack") // b/364541401
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
