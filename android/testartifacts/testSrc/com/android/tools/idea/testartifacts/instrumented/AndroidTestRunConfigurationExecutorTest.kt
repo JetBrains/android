@@ -130,7 +130,7 @@ class AndroidTestRunConfigurationExecutorTest {
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
         FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "applicationId", true)
-        Thread.sleep(2000) // let debugger to connect
+        Thread.sleep(2000) // let debugger connect
       }
       if (args.joinToString(" ") == "force-stop applicationId") {
         deviceState.stopClient(1235)

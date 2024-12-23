@@ -27,6 +27,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.configurations.RunConfiguration
@@ -763,6 +764,25 @@ class AndroidTestSuiteViewTest {
     assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
     assertThat(view.myDetailsView.titleTextView.text).isEqualTo("Test Results")
     assertThat(view.myDetailsView.selectedDevice).isEqualTo(device1)
+  }
+
+  @Test
+  fun exportTestResultsActionIsDisabledWhenTestSuiteIsCancelled() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 1)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.CANCELLED)
+    testsuiteOnDevice1.result = AndroidTestSuiteResult.CANCELLED
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(view.myExportTestResultsAction.devices).isNull()
+    assertThat(view.myExportTestResultsAction.rootResultsNode).isNull()
+    assertThat(view.myExportTestResultsAction.executionDuration).isNull()
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
