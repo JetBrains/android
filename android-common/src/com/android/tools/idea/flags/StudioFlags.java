@@ -612,6 +612,14 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     false);
 
+  public static final Flag<Boolean> ADBLIB_USE_APP_INFO_IF_AVAILABLE = new BooleanFlag(
+    RUNDEBUG,
+    "adblib.use.app.info.if.available",
+    "Use the `app_info` feature if available on the device for discovering processes",
+    "Check the `app_info` feature for connected devices, and use it to track processes if available. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    true);
+
   public static final Flag<Boolean> JDWP_TRACER = new BooleanFlag(
     RUNDEBUG,
     "adb.jdwp.tracer.enabled",

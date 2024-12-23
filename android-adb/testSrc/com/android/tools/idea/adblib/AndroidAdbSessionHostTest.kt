@@ -25,6 +25,7 @@ import com.intellij.openapi.wm.StatusBar
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.BalloonLayout
 import org.junit.After
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -97,6 +98,31 @@ class AndroidAdbSessionHostTest {
     // Assert
     assertEquals(false, useShortDelay1)
     assertEquals(true, useShortDelay2)
+  }
+
+  @Test
+  fun delegatingPropertyValueWorks() {
+    // Prepare
+    val duration = Duration.ofMillis(453)
+
+    // Act
+    host.delegatePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT, valueProvider = { duration })
+
+    // Assert
+    assertEquals(duration, host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT))
+  }
+
+  @Test
+  fun delegatingPropertyValueIsLowerPriorityThanOverriding() {
+    // Act
+    host.delegatePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT, valueProvider = {
+      Assert.fail("Should not be called")
+      true
+    })
+    host.overridePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT, false)
+
+    // Assert
+    assertEquals(false, host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT))
   }
 
   private class TestingIdeFrame : IdeFrame {
