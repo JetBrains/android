@@ -74,6 +74,7 @@ kotlin_library(
         "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
         "@maven//:net.sf.kxml.kxml2",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect",
         "@maven//:org.ow2.asm.asm",
         "@maven//:org.ow2.asm.asm-commons",
     ],
@@ -107,6 +108,10 @@ kotlin_test(
         "@maven//:com.google.truth.truth",
         "@maven//:junit.junit",
         "@maven//:net.sf.kxml.kxml2",
+        "@maven//:org.bouncycastle.bcpkix-jdk18on",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect",
+        "@maven//:org.jetbrains.kotlin.kotlin-test",
+        "@maven//:org.ow2.asm.asm-commons",
         "@maven//:org.ow2.asm.asm-util",
     ],
 )

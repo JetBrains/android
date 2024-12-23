@@ -52,6 +52,7 @@ kotlin_library(
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/adt/idea/rendering:tools.rendering",
         "//tools/base/common:tools.common",
+        "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",
         "//tools/base/sdk-common:tools.sdk-common",

@@ -210,6 +210,7 @@ kotlin_library(
         ":kotlin.jvm-debugger.test_lib_import",
         "//tools/adt/idea/android-kotlin:android-dexer",
         "//tools/adt/idea/debuggers:android-field-visibility-provider",
+        "@intellij//:org.jetbrains.kotlin",
         "@maven//:junit.junit",
     ],
 )

@@ -44,6 +44,8 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea/preview-elements:tools.preview-elements",
+        "//tools/base/common:tools.common",
         "//tools/base/sdk-common:tools.sdk-common",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core",
     ],
 )

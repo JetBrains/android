@@ -82,5 +82,6 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea/debuggers:intellij.android.debuggers",
+        "@intellij//:com.intellij.java",
     ],
 )

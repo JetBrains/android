@@ -11,6 +11,8 @@ aswb_library(
     ],
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/querysync",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep
     ],
