@@ -23,6 +23,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.diagnostic.thisLogger
 
 private val PROGRESS_LOGGER =
@@ -129,4 +130,6 @@ abstract class InstallableSdkComponentTreeNode(
 
   override val isChecked: Boolean
     get() = willBeInstalled.get()
+
+  abstract fun sdkComponentsMetricKind(): SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind
 }

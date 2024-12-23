@@ -50,7 +50,8 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
         IdeSdks.getInstance(),
       ) ?: return null
     val sdkComponentInstallerProvider = SdkComponentInstallerProvider()
-    return createWelcomeScreen(useNewWizard, wizardMode, sdkComponentInstallerProvider)
+    val tracker = FirstRunWizardTracker(wizardMode.toMetricKind())
+    return createWelcomeScreen(useNewWizard, wizardMode, sdkComponentInstallerProvider, tracker)
   }
 
   @VisibleForTesting
@@ -58,10 +59,12 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
     useNewWizard: Boolean,
     wizardMode: FirstRunWizardMode,
     sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+    tracker: FirstRunWizardTracker,
   ): WelcomeScreen {
     AndroidStudioWelcomeScreenService.instance.wizardWasShown = true
-    return if (useNewWizard) StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstallerProvider)
-    else FirstRunWizardHost(wizardMode, sdkComponentInstallerProvider)
+    return if (useNewWizard)
+      StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstallerProvider, tracker)
+    else FirstRunWizardHost(wizardMode, sdkComponentInstallerProvider, tracker)
   }
 
   override fun isAvailable(): Boolean {

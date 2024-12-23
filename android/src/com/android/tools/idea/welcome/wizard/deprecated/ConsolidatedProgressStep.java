@@ -16,8 +16,10 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.welcome.install.WizardException;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,11 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConsolidatedProgressStep extends AbstractProgressStep {
   private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
   private final DynamicWizardHost myHost;
+  private final @NotNull FirstRunWizardTracker myTracker;
   private List<? extends AndroidStudioWizardPath> myPaths;
 
-  public ConsolidatedProgressStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
+  public ConsolidatedProgressStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host, @NotNull FirstRunWizardTracker tracker) {
     super(disposable, "Downloading Components");
     myHost = host;
+    myTracker = tracker;
   }
 
   public void setPaths(@NotNull List<? extends AndroidStudioWizardPath> paths) {
@@ -54,8 +58,12 @@ public class ConsolidatedProgressStep extends AbstractProgressStep {
     myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
       @Override
       public void run() {
+        boolean wasSuccess = false;
+        myTracker.trackInstallingComponentsStarted();
+
         try {
           doLongRunningOperation(ConsolidatedProgressStep.this);
+          wasSuccess = true;
         }
         catch (WizardException e) {
           Logger.getInstance(getClass()).error(e);
@@ -63,6 +71,14 @@ public class ConsolidatedProgressStep extends AbstractProgressStep {
           print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
         }
         finally {
+          if (ConsolidatedProgressStep.this.isCanceled()) {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.CANCELED);
+          } else if (wasSuccess) {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.SUCCESS);
+          } else {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.ERROR);
+          }
+
           myIsBusy.set(false);
         }
       }

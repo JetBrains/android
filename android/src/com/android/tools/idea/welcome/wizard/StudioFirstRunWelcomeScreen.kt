@@ -26,8 +26,10 @@ import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.welcome.wizard.deprecated.CancelableWelcomeWizard
 import com.android.tools.idea.welcome.wizard.deprecated.WelcomeScreenWindowListener
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
@@ -49,6 +51,7 @@ import org.jetbrains.kotlin.idea.util.application.isHeadlessEnvironment
 class StudioFirstRunWelcomeScreen(
   private val mode: FirstRunWizardMode,
   private val sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+  private val tracker: FirstRunWizardTracker,
 ) : WelcomeScreen {
   private lateinit var modelWizard: ModelWizard
   private var mainPanel: JComponent? = null
@@ -59,9 +62,10 @@ class StudioFirstRunWelcomeScreen(
       model: FirstRunWizardModel,
       mode: FirstRunWizardMode,
       cancelInterceptor: BooleanSupplier,
+      tracker: FirstRunWizardTracker,
     ): ModelWizard {
       val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
-      val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel)
+      val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, tracker)
 
       val modelWizard =
         ModelWizard.Builder()
@@ -70,7 +74,7 @@ class StudioFirstRunWelcomeScreen(
               addStep(FirstRunWelcomeStep(model))
 
               if (model.isStandardInstallSupported) {
-                addStep(InstallationTypeWizardStep(model))
+                addStep(InstallationTypeWizardStep(model, tracker))
               }
             }
 
@@ -81,7 +85,7 @@ class StudioFirstRunWelcomeScreen(
             val supplier = model.getPackagesToInstallSupplier()
             val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
 
-            addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep))
+            addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep, tracker))
 
             if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
               addStep(InstallSummaryStep(model, supplier))
@@ -121,8 +125,9 @@ class StudioFirstRunWelcomeScreen(
         initialSdkLocation.toPath(),
         installUpdates = true,
         sdkComponentInstallerProvider,
+        tracker,
       )
-    modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel)
+    modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, tracker)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog
@@ -139,6 +144,19 @@ class StudioFirstRunWelcomeScreen(
 
     Disposer.register(this, modelWizardDialog.disposable)
     Disposer.register(this, modelWizard)
+
+    modelWizard.addResultListener(
+      object : ModelWizard.WizardListener {
+        override fun onWizardFinished(wizardResult: WizardResult) {
+          closeDialog()
+
+          tracker.trackWizardFinished(
+            if (wizardResult == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
+            else SetupWizardEvent.CompletionStatus.CANCELED
+          )
+        }
+      }
+    )
   }
 
   override fun getWelcomePanel(): JComponent {
@@ -147,6 +165,9 @@ class StudioFirstRunWelcomeScreen(
     if (mainPanel == null) {
       ApplicationManager.getApplication().invokeAndWait { setupWizard() }
     }
+
+    tracker.trackWizardStarted()
+
     return mainPanel!!
   }
 
@@ -175,14 +196,6 @@ class StudioFirstRunWelcomeScreen(
         },
       )
     }
-
-    modelWizard.addResultListener(
-      object : ModelWizard.WizardListener {
-        override fun onWizardFinished(wizardResult: ModelWizard.WizardResult) {
-          closeDialog()
-        }
-      }
-    )
   }
 
   override fun dispose() {}

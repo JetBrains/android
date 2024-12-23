@@ -21,6 +21,7 @@ import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.SdkComponentsRenderer;
 import com.android.tools.idea.welcome.wizard.SdkComponentsStepController;
 import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils;
@@ -52,6 +53,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @NotNull private final SdkComponentsStepForm myForm = new SdkComponentsStepForm();
   @NotNull private final SdkComponentsStepController myController;
+  @NotNull private final FirstRunWizardTracker myTracker;
 
   public SdkComponentsStep(@Nullable Project project,
                            @NotNull SdkComponentTreeNode rootNode,
@@ -60,13 +62,15 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                            @NotNull FirstRunWizardMode mode,
                            @NotNull ObjectValueProperty<AndroidSdkHandler> sdkHandlerProperty,
                            @Nullable LicenseAgreementStep licenseAgreementStep,
-                           @NotNull Disposable parent) {
+                           @NotNull Disposable parent,
+                           @NotNull FirstRunWizardTracker tracker) {
     super("SDK Components Setup");
     Disposer.register(parent, myForm);
 
     myRootNode = rootNode;
     myKeyCustomInstall = keyCustomInstall;
     mySdkDownloadPathKey = sdkDownloadPathKey;
+    myTracker = tracker;
 
     SdkComponentsTableModel tableModel = new SdkComponentsTableModel(rootNode);
     myForm.setTableModel(tableModel);
@@ -144,7 +148,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     if (modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION)) {
       String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
       if (sdkPath != null) {
-        myController.onPathUpdated(sdkPath, ModalityState.defaultModalityState());
+        boolean updated = myController.onPathUpdated(sdkPath, ModalityState.defaultModalityState());
+        if (updated) myTracker.trackSdkInstallLocationChanged();
       }
     }
     myForm.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(myState.get(mySdkDownloadPathKey)));

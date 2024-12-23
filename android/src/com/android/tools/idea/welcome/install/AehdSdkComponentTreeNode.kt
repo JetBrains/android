@@ -24,6 +24,7 @@ import com.android.tools.idea.avdmanager.ElevatedCommandLine
 import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.sdk.AndroidSdks
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Platform
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -95,6 +96,9 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
 
   public override val requiredSdkPackages
     get() = listOf("extras;google;Android_Emulator_Hypervisor_Driver")
+
+  override fun sdkComponentsMetricKind() =
+    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.AEHD
 
   /**
    * Create a platform-dependant command line for running the silent installer.

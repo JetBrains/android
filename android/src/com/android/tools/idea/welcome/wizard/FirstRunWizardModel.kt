@@ -54,6 +54,7 @@ class FirstRunWizardModel(
   initialSdkLocation: Path,
   installUpdates: Boolean,
   private val sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+  private val tracker: FirstRunWizardTracker,
 ) : WizardModel() {
   enum class InstallationType {
     STANDARD,
@@ -161,6 +162,11 @@ class FirstRunWizardModel(
   @Throws(WizardException::class)
   fun installComponents(progressStep: InstallComponentsProgressStep) {
     val sdkHandler = localHandler
+
+    tracker.trackSdkComponentsToInstall(
+      componentTree.childrenToInstall.map { it.sdkComponentsMetricKind() }
+    )
+
     InstallComponentsPath.installComponents(
       componentTree.childrenToInstall,
       InstallContext(InstallComponentsPath.createTempDir(), progressStep),

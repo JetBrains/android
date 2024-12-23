@@ -49,6 +49,7 @@ import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.WizardException;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
@@ -79,6 +80,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   // This will be different from the actual handler, since this will change as and when we change the path in the UI.
   private final ObjectValueProperty<AndroidSdkHandler> myLocalHandlerProperty;
+  private final @NotNull FirstRunWizardTracker myTracker;
 
   private SdkComponentTreeNode myComponentTree;
   private final AbstractProgressStep myProgressStep;
@@ -91,7 +93,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                @NotNull File sdkLocation,
                                @NotNull AbstractProgressStep progressStep,
                                @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
-                               boolean installUpdates) {
+                               boolean installUpdates,
+                               @NotNull FirstRunWizardTracker tracker) {
     myMode = mode;
 
     // Create a new instance for use during installation
@@ -100,6 +103,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myProgressStep = progressStep;
     mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
     myInstallUpdates = installUpdates;
+    myTracker = tracker;
   }
 
   private SdkComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
@@ -166,7 +170,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       myMode,
       myLocalHandlerProperty,
       myLicenseAgreementStep,
-      myWizard.getDisposable()
+      myWizard.getDisposable(),
+      myTracker
     );
     addStep(myComponentsStep);
 
@@ -188,9 +193,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       myLicenseAgreementStep.performFinishingActions();
     }
 
+    Collection<InstallableSdkComponentTreeNode> componentsToInstall = myComponentTree.getChildrenToInstall();
+    myTracker.trackSdkComponentsToInstall(componentsToInstall.stream().map(InstallableSdkComponentTreeNode::sdkComponentsMetricKind).toList());
+
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
     installComponents(
-      myComponentTree.getChildrenToInstall(),
+      componentsToInstall,
       new InstallContext(createTempDir(), myProgressStep),
       mySdkComponentInstallerProvider.getComponentInstaller(localHandler),
       myMode.getInstallerTimestamp(),

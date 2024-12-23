@@ -24,6 +24,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 
 /**
  * Install Android SDK components for developing apps targeting Android platform.
@@ -50,6 +51,9 @@ class AndroidPlatformSdkComponentTreeNode(
 
   override val optionalSdkPackages: Collection<String>
     get() = listOf(DetailsTypes.getSourcesPath(myVersion))
+
+  override fun sdkComponentsMetricKind() =
+    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_PLATFORM
 
   private fun findLatestCompatibleBuildTool(): String? {
     var revision: Revision? = null

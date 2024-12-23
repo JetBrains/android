@@ -24,6 +24,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
@@ -50,14 +51,17 @@ public class FirstRunWizard extends DynamicWizard {
 
   private final AtomicBoolean myIsShowingProgressStep = new AtomicBoolean(false);
   private final @NotNull SdkComponentInstallerProvider mySdkComponentInstallerProvider;
+  private final @NotNull FirstRunWizardTracker myTracker;
   private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
                         @NotNull FirstRunWizardMode mode,
-                        @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider) {
+                        @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
+                        @NotNull FirstRunWizardTracker tracker) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
     mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
+    myTracker = tracker;
     setTitle(WIZARD_TITLE);
   }
 
@@ -71,7 +75,7 @@ public class FirstRunWizard extends DynamicWizard {
         myState.put(KEY_CUSTOM_INSTALL, true);
       }
       else {
-        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myTracker)));
       }
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
@@ -79,7 +83,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
 
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, mySdkComponentInstallerProvider, true);
+    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, mySdkComponentInstallerProvider, true, myTracker);
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 
@@ -166,7 +170,7 @@ public class FirstRunWizard extends DynamicWizard {
 
   private class FirstRunProgressStep extends ConsolidatedProgressStep {
     public FirstRunProgressStep() {
-      super(getDisposable(), myHost);
+      super(getDisposable(), myHost, FirstRunWizard.this.myTracker);
       setPaths(myPaths);
     }
 

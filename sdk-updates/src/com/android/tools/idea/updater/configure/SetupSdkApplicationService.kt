@@ -22,6 +22,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.isWritable
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
 import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider
 import com.android.tools.idea.welcome.wizard.FirstRunWizardModel
 import com.android.tools.idea.welcome.wizard.InstallComponentsProgressStep
@@ -38,6 +39,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.WizardListener
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -70,21 +72,23 @@ class SetupSdkApplicationService : Disposable {
         File(sdkPathString)
       }
 
+    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP)
     if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-      showNewWizard(sdkPath, sdkUpdatedCallback)
+      showNewWizard(sdkPath, sdkUpdatedCallback, tracker)
     } else {
-      showOldWizard(sdkPath, sdkUpdatedCallback)
+      showOldWizard(sdkPath, sdkUpdatedCallback, tracker)
     }
   }
 
   override fun dispose() {}
 
-  private fun showOldWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?) {
+  private fun showOldWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?, tracker: FirstRunWizardTracker) {
     val host: DynamicWizardHost = DialogWrapperHost(null)
     val wizard: DynamicWizard =
       object : DynamicWizard(null, null, "SDK Setup", host) {
         override fun init() {
-          val progressStep = DownloadingComponentsStep(myHost.disposable, myHost)
+          // TODO get this wizard to work with the tracker
+          val progressStep = DownloadingComponentsStep(myHost.disposable, myHost, tracker)
 
           val path =
             InstallComponentsPath(
@@ -93,6 +97,7 @@ class SetupSdkApplicationService : Disposable {
               progressStep,
               SdkComponentInstallerProvider(),
               false,
+              tracker
             )
 
           progressStep.setInstallComponentsPath(path)
@@ -122,16 +127,15 @@ class SetupSdkApplicationService : Disposable {
     wizard.show()
   }
 
-  private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?) {
-    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, SdkComponentInstallerProvider())
+  private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?, tracker: FirstRunWizardTracker) {
+    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, SdkComponentInstallerProvider(), tracker)
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
     val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
 
     val progressStep: InstallComponentsProgressStep =
-      object : InstallComponentsProgressStep(model, licenseAgreementModel) {
-
+      object : InstallComponentsProgressStep(model, licenseAgreementModel, tracker) {
         override fun shouldShow(): Boolean {
           val sdkInstallLocation = model.sdkInstallLocation
           return sdkInstallLocation != null && isWritable(sdkInstallLocation)
@@ -140,7 +144,7 @@ class SetupSdkApplicationService : Disposable {
 
     val builder = ModelWizard.Builder()
     builder.addStep(
-      SdkComponentsStep(model, null, FirstRunWizardMode.MISSING_SDK, licenseAgreementStep)
+      SdkComponentsStep(model, null, FirstRunWizardMode.MISSING_SDK, licenseAgreementStep, tracker)
     )
     builder.addStep(InstallSummaryStep(model, supplier))
     builder.addStep(licenseAgreementStep)
@@ -182,8 +186,8 @@ class SetupSdkApplicationService : Disposable {
       get() = ApplicationManager.getApplication().getService(SetupSdkApplicationService::class.java)
   }
 
-  private class DownloadingComponentsStep(disposable: Disposable, host: DynamicWizardHost) :
-    ConsolidatedProgressStep(disposable, host) {
+  private class DownloadingComponentsStep(disposable: Disposable, host: DynamicWizardHost, tracker: FirstRunWizardTracker) :
+    ConsolidatedProgressStep(disposable, host, tracker) {
     private var myInstallComponentsPath: InstallComponentsPath? = null
 
     fun setInstallComponentsPath(installComponentsPath: InstallComponentsPath) {

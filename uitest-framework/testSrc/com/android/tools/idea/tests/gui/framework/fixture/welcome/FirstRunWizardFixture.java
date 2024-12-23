@@ -22,7 +22,9 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -40,9 +42,10 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
   public static void show() {
     GuiTask.execute(() -> {
       JFrame welcomeFrame = new WelcomeFrame();
+      FirstRunWizardTracker tracker = new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.NEW_INSTALL);
       WelcomeScreen welcomeScreen = StudioFlags.NPW_FIRST_RUN_WIZARD.get()
-                                    ? new StudioFirstRunWelcomeScreen(FirstRunWizardMode.NEW_INSTALL, new SdkComponentInstallerProvider())
-                                    : new FirstRunWizardHost(FirstRunWizardMode.NEW_INSTALL, new SdkComponentInstallerProvider());
+                                    ? new StudioFirstRunWelcomeScreen(FirstRunWizardMode.NEW_INSTALL, new SdkComponentInstallerProvider(), tracker)
+                                    : new FirstRunWizardHost(FirstRunWizardMode.NEW_INSTALL, new SdkComponentInstallerProvider(), tracker);
       welcomeFrame.setContentPane(welcomeScreen.getWelcomePanel());
       welcomeScreen.setupFrame(welcomeFrame);
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,10 +31,15 @@ import javax.swing.*;
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
   private final InstallationTypeWizardStepForm myForm = new InstallationTypeWizardStepForm();
+  @NotNull private final FirstRunWizardTracker myTracker;
 
-  public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall) {
+  public InstallationTypeWizardStep(
+    @NotNull ScopedStateStore.Key<Boolean> customInstall,
+    @NotNull FirstRunWizardTracker tracker
+  ) {
     super("Install Type");
     myDataKey = customInstall;
+    myTracker = tracker;
     setComponent(myForm.getContents());
   }
 
@@ -50,5 +57,16 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myForm.getStandardRadioButton();
+  }
+
+  @Override
+  public boolean commitStep() {
+    myTracker.trackInstallationMode(
+      myState.getNotNull(myDataKey, false) ?
+      SetupWizardEvent.InstallationMode.CUSTOM :
+      SetupWizardEvent.InstallationMode.STANDARD
+    );
+
+    return super.commitStep();
   }
 }

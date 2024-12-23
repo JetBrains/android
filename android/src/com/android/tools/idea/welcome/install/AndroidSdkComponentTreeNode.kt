@@ -20,6 +20,7 @@ import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 
 /** Android SDK installable component. */
 class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
@@ -62,6 +63,9 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
       }
       .filterNotNull()
       .toList()
+
+  override fun sdkComponentsMetricKind() =
+    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_SDK
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     // Nothing to do, having components installed is enough

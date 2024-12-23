@@ -161,14 +161,26 @@ public abstract class SdkComponentsStepController {
     }
   }
 
-  public void onPathUpdated(@NotNull String sdkPath, @NotNull ModalityState modalityState) {
+  /**
+   * Handles updates to the SDK path, triggering SDK component loading and refreshing the UI.  This method
+   * is called when the user selects a new SDK installation location. It updates the internal SDK handler,
+   * loads the SDK components available at the new location, and updates the UI to reflect the available
+   * components.  The loading process happens on a background thread to avoid blocking the UI.
+   *
+   * @param sdkPath The new SDK path selected by the user.  Should not be empty.
+   * @param modalityState The modality state to use when invoking UI updates.  This ensures that UI updates
+   *                      happen on the correct thread and with the appropriate modality.
+   * @return {@code true} if the SDK path was actually updated and processing started, {@code false} if the
+   *         provided path is the same as the current path and no update was necessary.
+   */
+  public boolean onPathUpdated(@NotNull String sdkPath, @NotNull ModalityState modalityState) {
     File sdkLocation = new File(sdkPath);
     if (!FileUtil.filesEqual(myLocalSdkHandlerProperty.get().getLocation().toFile(), sdkLocation)) {
       if (sdkPath.isEmpty()) {
         // When setting the SDK location in tests, it first triggers the state update with an empty string
         // before triggering it with the updated value. If we try to load the SDK manager with an empty string,
         // it hangs for a long time (40+ seconds), making the tests slow.
-        return;
+        return false;
       }
 
       AndroidSdkHandler localHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, myLocalSdkHandlerProperty.get().toCompatiblePath(sdkLocation));
@@ -193,7 +205,11 @@ public abstract class SdkComponentsStepController {
           );
         ApplicationManager.getApplication().invokeLater(this::reloadLicenseAgreementStep, modalityState);
       });
+
+      return true;
     }
+
+    return false;
   }
 
   public abstract void reloadLicenseAgreementStep();

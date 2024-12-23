@@ -17,11 +17,14 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import javax.swing.JComponent
 
 /** Wizard step for selecting installation types */
-class InstallationTypeWizardStep(model: FirstRunWizardModel) :
-  ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
+class InstallationTypeWizardStep(
+  model: FirstRunWizardModel,
+  private val tracker: FirstRunWizardTracker,
+) : ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
   private val myForm = InstallationTypeWizardStepForm()
 
   override fun getComponent(): JComponent {
@@ -53,5 +56,11 @@ class InstallationTypeWizardStep(model: FirstRunWizardModel) :
     model.installationType =
       if (myForm.standardRadioButton.isSelected) FirstRunWizardModel.InstallationType.STANDARD
       else FirstRunWizardModel.InstallationType.CUSTOM
+
+    tracker.trackInstallationMode(
+      if (model.installationType == FirstRunWizardModel.InstallationType.STANDARD)
+        SetupWizardEvent.InstallationMode.STANDARD
+      else SetupWizardEvent.InstallationMode.CUSTOM
+    )
   }
 }

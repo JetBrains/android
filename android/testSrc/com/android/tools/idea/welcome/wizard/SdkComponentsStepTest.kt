@@ -71,7 +71,7 @@ class SdkComponentsStepTest {
     licenseAgreementStep = mock(LicenseAgreementStep::class.java)
     mode = FirstRunWizardMode.NEW_INSTALL
     sdkPath = FileUtil.createTempDirectory("sdk", null).toPath()
-    model = spy(FirstRunWizardModel(mode, sdkPath, true, SdkComponentInstallerProvider()))
+    model = spy(FirstRunWizardModel(mode, sdkPath, true, SdkComponentInstallerProvider(), mock()))
 
     val root =
       SdkComponentCategoryTreeNode(
@@ -87,7 +87,7 @@ class SdkComponentsStepTest {
 
   @Test
   fun titleIsCorrect() {
-    val sdkComponentsStep = SdkComponentsStep(model, null, mode, licenseAgreementStep)
+    val sdkComponentsStep = SdkComponentsStep(model, null, mode, licenseAgreementStep, mock())
     runInWizardDialog(sdkComponentsStep) { fakeUi ->
       val title =
         checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("SDK Components Setup") })
@@ -97,7 +97,7 @@ class SdkComponentsStepTest {
 
   @Test
   fun licensesReloadedWhenComponentSelectionChanges() {
-    val sdkComponentsStep = SdkComponentsStep(model, null, mode, licenseAgreementStep)
+    val sdkComponentsStep = SdkComponentsStep(model, null, mode, licenseAgreementStep, mock())
     runInWizardDialog(sdkComponentsStep) { fakeUi ->
       val table = checkNotNull(fakeUi.findComponent<JBTable>())
       assertThat(table.model.rowCount).isEqualTo(2)

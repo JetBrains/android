@@ -37,6 +37,7 @@ class SdkComponentsStep(
   val project: Project?,
   val mode: FirstRunWizardMode,
   val licenseAgreementStep: LicenseAgreementStep?,
+  private val tracker: FirstRunWizardTracker,
 ) : ModelWizardStep<FirstRunWizardModel>(model, "SDK Components Setup") {
   private val form = SdkComponentsStepForm()
   private val rootNode = model.componentTree
@@ -85,10 +86,12 @@ class SdkComponentsStep(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           validate()
-          controller.onPathUpdated(
-            form.path.getText(),
-            ModalityState.stateForComponent(form.contents),
-          )
+          val updated =
+            controller.onPathUpdated(
+              form.path.getText(),
+              ModalityState.stateForComponent(form.contents),
+            )
+          if (updated) tracker.trackSdkInstallLocationChanged()
         }
       }
     )
@@ -145,6 +148,7 @@ class SdkComponentsStep(
   override fun canGoForward() = isValid
 
   override fun onProceeding() {
+    super.onProceeding()
     controller.warnIfRequiredComponentsUnavailable()
   }
 

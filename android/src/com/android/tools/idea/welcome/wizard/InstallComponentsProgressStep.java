@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,11 +50,17 @@ public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRun
       return myIsBusy.get();
     }
   };
-  private final LicenseAgreementModel licenseAgreementModel;
+  private final LicenseAgreementModel myLicenseAgreementModel;
+  private final FirstRunWizardTracker myTracker;
 
-  public InstallComponentsProgressStep(@NotNull FirstRunWizardModel model, @NotNull LicenseAgreementModel licenseAgreementModel) {
+  public InstallComponentsProgressStep(
+    @NotNull FirstRunWizardModel model,
+    @NotNull LicenseAgreementModel licenseAgreementModel,
+    @NotNull FirstRunWizardTracker tracker
+  ) {
     super(model, "Downloading Components");
-    this.licenseAgreementModel = licenseAgreementModel;
+    this.myLicenseAgreementModel = licenseAgreementModel;
+    this.myTracker = tracker;
   }
 
   @Override
@@ -88,9 +95,13 @@ public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRun
     Task.Backgroundable task = new Task.Backgroundable(null, "Android Studio Setup Wizard", true) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
+        boolean wasSuccess = false;
+        myTracker.trackInstallingComponentsStarted();
+
         try {
-          licenseAgreementModel.acceptLicenses();
+          myLicenseAgreementModel.acceptLicenses();
           getModel().installComponents(InstallComponentsProgressStep.this);
+          wasSuccess = true;
         }
         catch (WizardException e) {
           Logger.getInstance(getClass()).error(e);
@@ -98,6 +109,14 @@ public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRun
           print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
         }
         finally {
+          if (InstallComponentsProgressStep.this.isCanceled()) {
+            myTracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.CANCELED);
+          } else if (wasSuccess) {
+            myTracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS);
+          } else {
+            myTracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.ERROR);
+          }
+
           myIsBusyProperty.set(false);
         }
       }

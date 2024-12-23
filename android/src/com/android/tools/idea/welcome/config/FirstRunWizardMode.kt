@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.config
 
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import java.io.File
 
 /**
@@ -50,4 +51,11 @@ enum class FirstRunWizardMode {
   fun hasValidSdkLocation(): Boolean = installerData.hasValidSdkLocation()
 
   fun shouldCreateAvd(): Boolean = this != MISSING_SDK && installerData.shouldCreateAvd()
+
+  fun toMetricKind(): SetupWizardEvent.SetupWizardMode =
+    when (this) {
+      NEW_INSTALL -> SetupWizardEvent.SetupWizardMode.NEW_INSTALL
+      INSTALL_HANDOFF -> SetupWizardEvent.SetupWizardMode.INSTALL_HANDOFF
+      MISSING_SDK -> SetupWizardEvent.SetupWizardMode.MISSING_SDK
+    }
 }

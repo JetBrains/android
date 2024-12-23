@@ -45,6 +45,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.google.wireless.android.sdk.stats.ProductDetails
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.system.CpuArch
@@ -214,6 +215,9 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     }
     return true
   }
+
+  override fun sdkComponentsMetricKind() =
+    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_VIRTUAL_DEVICE
 
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDeviceSdkComponentTreeNode::class.java)
