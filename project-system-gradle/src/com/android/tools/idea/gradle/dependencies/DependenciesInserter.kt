@@ -147,7 +147,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
         val updatedFiles = mutableSetOf<PsiFile>()
         if (existing == null) {
           updatedFiles.addAll(
-            DependenciesHelper.withModel(projectModel).addPlugin(
+            addPlugin(
               pluginId,
               version,
               apply = null,
