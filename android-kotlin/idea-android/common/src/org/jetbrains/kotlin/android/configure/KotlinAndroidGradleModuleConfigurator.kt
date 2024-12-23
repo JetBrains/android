@@ -24,14 +24,15 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_FRAGME
 import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_FRAGMENT_KTX
 import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI
 import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI_KTX
-import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy
-import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
+import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.DependencyManagementException
@@ -50,6 +51,7 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiFile
+import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
@@ -63,7 +65,6 @@ import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigu
 import org.jetbrains.kotlin.idea.util.application.executeCommand
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
-import org.jetbrains.kotlin.utils.addIfNotNull
 
 class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
@@ -88,234 +89,92 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
      */
     override fun getMinimumSupportedVersion() = "1.4.0"
 
-    private fun RepositoriesModel.addRepositoryFor(version: String): PsiFile? {
-        var updated = false
-        if (version.contains("SNAPSHOT")) {
-            addMavenRepositoryByUrl("https://oss.sonatype.org/content/repositories/snapshots", "Sonatype OSS Snapshot Repository")
-            updated = true
-        }
-        if (!containsMethodCall("jcenter")) {
-            // Despite the name this doesn't add it if it's already there.
-            updated = addRepositoryByMethodName("mavenCentral") || updated
-        }
-        return this.psiElement?.containingFile?.takeIf { updated }
-    }
-
-    private fun hasVersionCatalog(projectModel: ProjectBuildModel) =
-        calculateAddDependencyPolicy(projectModel) == AddDependencyPolicy.VERSION_CATALOG
-
-    private fun tryAddToBuildscriptDependencies(
-      projectBuildModel: ProjectBuildModel,
-      moduleBuildModel: GradleBuildModel,
-      version: String
-    ): TryAddResult {
-        // do not add classpath if project is catalog oriented
-        // we'll define plugin version there
-        if (hasVersionCatalog(projectBuildModel)) return TryAddResult.failed()
-
-        moduleBuildModel.buildscript().dependencies().takeIf { it.psiElement != null }
-          ?.let { dependencies -> // known to exist on file
-              val existing = dependencies
-                .artifacts("classpath")
-                .firstOrNull { it.group().forceString() == "org.jetbrains.kotlin" && it.name().forceString() == "kotlin-gradle-plugin" }
-              if (existing == null) {
-                  val updatedFiles = mutableSetOf<PsiFile>()
-                  updatedFiles.addAll(
-                    DependenciesHelper.withModel(projectBuildModel).addClasspathDependencyWithVersionVariable(
-                      "org.jetbrains.kotlin:kotlin-gradle-plugin:$version",
-                      "kotlin_version"
-                    )
-                  )
-                  updatedFiles.addIfNotNull(
-                    moduleBuildModel.buildscript().repositories().addRepositoryFor(version)
-                  )
-                  return TryAddResult(updatedFiles, true)
-              }
-              else {
-                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
-                  if (currentVersion != version) {
-                      existing.version().resolve().setValue(version)
-                      return TryAddResult(moduleBuildModel.psiFile?.let { setOf(it) } ?: setOf(), true)
-                  }
-              }
-              // returns here means no changes are done as classpath is in requried state
-              return TryAddResult.succeedNoChanges()
-          }
-        return TryAddResult.failed()
-    }
-
     private fun ChangedConfiguratorFiles.addAll(files:Set<PsiFile>) =
         files.forEach { storeOriginalFileContent(it) }
 
-    private fun tryAddToPluginsBlock(
-      projectBuildModel: ProjectBuildModel,
-      moduleBuildModel: GradleBuildModel,
-      version: String
-    ): TryAddResult {
-        moduleBuildModel.plugins().takeIf { moduleBuildModel.pluginsPsiElement != null }
-          ?.let { plugins -> // known to exist on file
-              val existing = plugins.firstOrNull { it.name().forceString() == "org.jetbrains.kotlin.android" }
-              if (existing == null) {
-                  // TODO(xof): kotlin("android") for kotlin [cosmetic]
-                  val updatedFiles = mutableSetOf<PsiFile>()
-                  updatedFiles.addAll(
-                    DependenciesHelper.withModel(projectBuildModel).addPlugin(
-                      "org.jetbrains.kotlin.android",
-                      version,
-                      apply = false,
-                      moduleBuildModel,
-                      moduleBuildModel)
-                  )
-                  // TODO(xof): is this the right place to add this dependency?
-                  updatedFiles.addIfNotNull(
-                    projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addRepositoryFor(version)
-                  )
-                  return TryAddResult(updatedFiles, true)
-              }
-              else {
-                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
-                  if (currentVersion != version) {
-                      existing.version().setValue(version)
-                      return TryAddResult(moduleBuildModel.psiFile?.let { setOf(it) } ?: setOf(), true)
-                  }
-              }
-              return TryAddResult.succeedNoChanges()
-          }
-        return  TryAddResult.failed()
-    }
+    private val insertionConfig: PluginInsertionConfig
 
-    private fun tryAddToPluginsManagementBlock(
-      projectBuildModel: ProjectBuildModel,
-      moduleBuildModel: GradleBuildModel,
-      version: String
-    ): TryAddResult {
-        projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
-          ?.let { plugins -> // known to exist on file
-              val existing = plugins.plugins().firstOrNull { it.name().forceString() == "org.jetbrains.kotlin.android" }
-              if (existing == null) {
-                  // TODO(xof): kotlin("android") for kotlin [cosmetic]
-                  val updatedFiles = mutableSetOf<PsiFile>()
-                  updatedFiles.addAll(
-                    DependenciesHelper.withModel(projectBuildModel).addPlugin(
-                      "org.jetbrains.kotlin.android",
-                      version,
-                      apply = null,
-                      plugins,
-                      moduleBuildModel)
-                  )
-                  updatedFiles.addIfNotNull(
-                    projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addRepositoryFor(version)
-                  )
-                  return TryAddResult(updatedFiles, true)
-              }
-              else {
-                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
-                  if (currentVersion != version) {
-                      existing.version().setValue(version)
-                      return TryAddResult(moduleBuildModel.psiFile?.let { setOf(it) } ?: setOf(), false)
-                  }
-              }
-              return TryAddResult.succeedNoChanges()
-          }
-        return TryAddResult.failed()
-    }
-
-    // Files may be already in proper state, so we need additional flag `succeed` to make sure
-    // all changes already there
-    data class TryAddResult(val changedFiles: Set<PsiFile>, val succeed: Boolean){
-        companion object{
-            fun failed() =  TryAddResult(setOf(), false)
-            fun succeedNoChanges() =  TryAddResult(setOf(), true)
-        }
+    init {
+        val steps = LinkedHashSet<PluginInsertionStep>()
+        steps.addAll(listOf(PluginInsertionStep.BUILDSCRIPT_CLASSPATH_WITH_VARIABLE,
+                            PluginInsertionStep.PLUGIN_BLOCK,
+                            PluginInsertionStep.PLUGIN_MANAGEMENT))
+        insertionConfig = PluginInsertionConfig(
+            steps,
+            MatchedStrategy.UPDATE_VERSION,
+            "kotlin_version",
+            true
+        )
     }
 
     // for all cases method is called for top level build.gradle and then for selected/all modules build.gradle
     override fun addElementsToFiles(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
                                     jvmTarget: String?, addVersion: Boolean, changedFiles: ChangedConfiguratorFiles) {
+        if (isTopLevelProjectFile) return
         val version = originalVersion.rawVersion // TODO(b/244338901): Migrate to IdeKotlinVersion.
         val module = ModuleUtil.findModuleForPsiElement(file) ?: return
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
 
-        if (isTopLevelProjectFile) {
-            // We need to handle the following cases:
-
-            // 1. The top-level project configures plugins through classpath dependencies, with a version possibly indirected
-            //    through a variable:
-            //        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-            // 2. The top-level project configures its plugins through a plugins block in the top-level project file:
-            //        plugins {
-            //            id 'org.jetbrains.kotlin.android' version '1.4.31' apply false // Groovy
-            //            kotlin("android") version "1.4.31" apply false // KotlinScript
-            //        }
-
-            // 3. The top-level project configures plugins through a plugins block in pluginsManagement in settings:
-            //        pluginsManagement {
-            //            plugins {
-            //                id 'org.jetbrains.kotlin.android' version '1.4.31'
-            //                kotlin("android") version "1.4.31"
-            //            }
-            //        }
-            // Each case needs to take account of version catalog. If it's there - we need to insert
-            // reference instead of literal. This logic is hidden in DependenciesHelper
-
-            // run through lazy sequence - first method that returns `TryAddResult.succeed = true` value will stop iteration
-            val kotlinPluginAddedFiles = sequenceOf(
-              lazy { tryAddToBuildscriptDependencies(projectBuildModel, moduleBuildModel, version) },
-              lazy { tryAddToPluginsBlock(projectBuildModel, moduleBuildModel, version) },
-              lazy { tryAddToPluginsManagementBlock(projectBuildModel, moduleBuildModel, version) }
-            ).firstOrNull { it.value.succeed }?.value?.changedFiles ?: setOf()
+        val pluginId = "org.jetbrains.kotlin.android"
+        val classpathModule = "org.jetbrains.kotlin:kotlin-gradle-plugin"
+        val helper = DependenciesHelper.withModel(projectBuildModel)
+        val kotlinPluginAddedFiles = helper.addPluginOrClasspath(
+            pluginId,
+            classpathModule,
+            version,
+            listOf(moduleBuildModel),
+            IdPluginMatcher(pluginId),
+            GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
+            insertionConfig
+        )
+        if (kotlinPluginAddedFiles.isNotEmpty()) {
+            changedFiles.addAll(kotlinPluginAddedFiles)
 
             // handle an allprojects block if present.
-            if (kotlinPluginAddedFiles.isNotEmpty()) {
-                changedFiles.addAll(kotlinPluginAddedFiles)
-
-                moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)?.let {
-                    changedFiles.storeOriginalFileContent(it)
+            projectBuildModel.projectBuildModel?.repositories()?.takeIf { it.psiElement != null }?.let {
+                helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) }
+            }
+        }
+        if (file.project.isAndroidx()) {
+            val ktxCoreVersion = IdeGoogleMavenRepository
+                                     .findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
+                                     ?.toString() ?: "+"
+            (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, ktxCoreVersion) +
+             addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
+                .let {
+                    changedFiles.addAll(it)
                 }
-                projectBuildModel.applyChanges()
-            }
         }
-        else {
-            if (file.project.isAndroidx()) {
-                val ktxCoreVersion = IdeGoogleMavenRepository
-                  .findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
-                  ?.toString() ?: "+"
-                (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, ktxCoreVersion) +
-                 addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
-                  .let {
-                      changedFiles.addAll(it)
-                  }
-            }
-            addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, nonAndroidxKtxLibraryMap).let {
-                changedFiles.addAll(it)
-            }
-            /*
-            We need to
-            - apply the plugin (it is known to be missing at this point, otherwise we would not be configuring Kotlin in the first place)
-            - add an android.kotlinOptions jvmTarget property, if jvmTarget is not null.
-
-            Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
-             */
-            DependenciesHelper.withModel(projectBuildModel).addPluginToModule("org.jetbrains.kotlin.android", version, moduleBuildModel).let {
-                changedFiles.addAll(it)
-            }
-
-            LanguageLevel.parse(jvmTarget)?.let { languageLevel ->
-                moduleBuildModel.android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
-                moduleBuildModel.psiFile?.let { changedFiles.storeOriginalFileContent(it) }
-            }
-            moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)?.let {
-                changedFiles.storeOriginalFileContent(it)
-            }
-            projectBuildModel.projectSettingsModel?.dependencyResolutionManagement()?.repositories()
-              ?.takeIf { it.psiElement != null }?.addRepositoryFor(version)?.let {
-                changedFiles.storeOriginalFileContent(it)
-            }
-            projectBuildModel.applyChanges()
+        addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, nonAndroidxKtxLibraryMap).let {
+            changedFiles.addAll(it)
         }
+        /*
+        We need to
+        - apply the plugin (it is known to be missing at this point, otherwise we would not be configuring Kotlin in the first place)
+        - add an android.kotlinOptions jvmTarget property, if jvmTarget is not null.
+
+        Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
+         */
+        helper.addPluginToModule("org.jetbrains.kotlin.android", version, moduleBuildModel).let {
+            changedFiles.addAll(it)
+        }
+
+        LanguageLevel.parse(jvmTarget)?.let { languageLevel ->
+            moduleBuildModel.android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
+            moduleBuildModel.psiFile?.let { changedFiles.storeOriginalFileContent(it) }
+        }
+        moduleBuildModel.repositories().takeIf { it.psiElement != null }?.let {
+            helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) }
+        }
+        projectBuildModel.projectSettingsModel?.dependencyResolutionManagement()?.repositories()
+            ?.takeIf { it.psiElement != null }?.let {
+                helper.addRepositoryFor(version, it)?.let { file ->
+                    changedFiles.storeOriginalFileContent(file)
+                }
+            }
+        projectBuildModel.applyChanges()
     }
 
     @JvmSuppressWildcards

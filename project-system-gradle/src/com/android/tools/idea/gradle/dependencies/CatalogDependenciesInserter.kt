@@ -22,6 +22,7 @@ import com.android.ide.common.repository.pickLibraryVariableName
 import com.android.ide.common.repository.pickPluginVariableName
 import com.android.ide.common.repository.pickPluginVersionVariableName
 import com.android.ide.common.repository.pickVersionVariableName
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
@@ -42,7 +43,8 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) : DependenciesInserter(projectModel) {
   override fun addClasspathDependency(dependency: String,
                                       excludes: List<ArtifactDependencySpec>,
-                                      matcher: DependencyMatcher): Set<PsiFile> {
+                                      matcher: DependencyMatcher,
+                                      matchedStrategy: MatchedStrategy): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     return getOrAddDependencyToCatalog(dependency, matcher) { alias, updatedFiles ->
       val buildscriptDependencies = buildModel.buildscript().dependencies()
@@ -52,8 +54,28 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
           updatedFiles.addIfNotNull(buildModel.psiFile)
         }
       }
+      else if (matchedStrategy == MatchedStrategy.UPDATE_VERSION) {
+        buildscriptDependencies.updateDependencyVersion(dependency, updatedFiles, buildModel)
+      }
     }
   }
+
+  // Avoid insertion to buildscript when using catalog
+  override fun tryAddToBuildscriptDependencies(
+    classpathDependency: String,
+    buildModel: GradleBuildModel,
+    classpathMatcher: DependencyMatcher,
+    matchedStrategy: MatchedStrategy,
+  ): TryAddResult = TryAddResult.failed()
+
+  // Avoid insertion to buildscript when using catalog
+  override fun tryAddClasspathDependencyWithVersionVariable(
+    dependency: String,
+    variableName: String,
+    excludes: List<ArtifactDependencySpec>,
+    matcher: DependencyMatcher,
+    matchedStrategy: MatchedStrategy
+  ): TryAddResult = TryAddResult.failed()
 
   override fun addPlatformDependency(
     configuration: String,
@@ -75,7 +97,8 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   override fun addClasspathDependencyWithVersionVariable(dependency: String,
                                                          variableName: String,
                                                          excludes: List<ArtifactDependencySpec>,
-                                                         matcher: DependencyMatcher): Set<PsiFile> {
+                                                         matcher: DependencyMatcher,
+                                                         matchedStrategy: MatchedStrategy): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     return getOrAddDependencyToCatalog(dependency, matcher) { alias, updatedFiles ->
@@ -84,6 +107,9 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
         buildscriptDependencies.addArtifact(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME, reference, excludes).also {
           updatedFiles.addIfNotNull(buildModel.psiFile)
         }
+      }
+      else if (matchedStrategy == MatchedStrategy.UPDATE_VERSION) {
+        buildscriptDependencies.updateDependencyVersion(dependency, updatedFiles, buildModel)
       }
     }
   }
