@@ -1,34 +1,28 @@
 """A tool to check consistency of an intellij plugin."""
 from pathlib import Path
 import argparse
-import re
 import sys
-import xml.etree.ElementTree as ET
-import zipfile
 from tools.adt.idea.studio import intellij
 
-def check_plugin(plugin_id, files, deps, out):
-  if len(files) == 1 and files[0].match("**/lib/modules/*.jar"):
+def check_plugin(kind, id, files, deps, out):
+  if kind == "module":
     # This is a v2 module, not a plugin per se. See go/studio-v2-modules for details.
-    kind = "module"
-    found_id = files[0].stem
-    element = intellij.load_plugin_xml(files, f"{found_id}.xml")
+    element = intellij.load_plugin_xml(files, f"{id}.xml")
   else:
-    kind = "plugin"
+    assert kind == "plugin"
     element = intellij.load_plugin_xml(files)
-    ids = [id.text for id in element.findall("id")]
-    if not ids:
+    found_ids = [id.text for id in element.findall("id")]
+    if not found_ids:
       # If id is not found, IJ uses name
       # https://jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_configuration_file.html
-      ids = [id.text for id in element.findall("name")]
-    if len(set(ids)) != 1:
-      print("Expected exactly one id, but found [%s]" % ",".join(ids))
+      found_ids = [id.text for id in element.findall("name")]
+    if len(set(found_ids)) != 1:
+      print("Expected exactly one id, but found [%s]" % ",".join(found_ids))
       sys.exit(1)
-    found_id = ids[0]
-
-  if plugin_id and found_id != plugin_id:
-    print("Expected plugin id to be %s, but found %s" % (plugin_id, found_id))
-    sys.exit(1)
+    found_id = found_ids[0]
+    if found_id != id:
+      print("Expected plugin id to be %s, but found %s" % (id, found_id))
+      sys.exit(1)
 
   if element.tag != 'idea-plugin':
     print("Expected plugin.xml root item to be 'idea-plugin' but was %s" % element.tag)
@@ -37,15 +31,15 @@ def check_plugin(plugin_id, files, deps, out):
   # Disallow updates for bundled plugins. We enforce this even for JetBrains plugins, because
   # we want to guarantee compatibility between plugins, and because we want platform plugins
   # to always come from our own IntelliJ fork (which may have patches, for example).
-  if element.attrib.get("allow-bundled-update", "false") != "false" and found_id != "org.jetbrains.kotlin":
-      print("Bundled plugin update are not allowed for plugin: %s" % found_id)
+  if element.attrib.get("allow-bundled-update", "false") != "false" and id != "org.jetbrains.kotlin":
+      print("Bundled plugin update are not allowed for plugin: %s" % id)
       sys.exit(1)
 
   if deps is not None:
     # Check for duplicate <dependencies> elements, because duplicates get
     # silently overwritten at runtime at XmlReader.readDependencies().
     if len(element.findall("dependencies")) > 1:
-      sys.exit(f"ERROR: found multiple <dependencies> elements in plugin.xml for plugin '{found_id}'")
+      sys.exit(f"ERROR: found multiple <dependencies> elements in plugin.xml for plugin '{id}'")
 
     # Collect plugin.xml dependencies, handling both v1 and v2 syntax.
     # Each dependency is represented as a pair: (kind, ID).
@@ -83,22 +77,27 @@ def check_plugin(plugin_id, files, deps, out):
       print("Error while checking plugin dependencies")
       for dep_kind, dep_id in depends_build - depends_xml:
         print(
-          f"ERROR: Plugin '{found_id}' depends on {dep_kind} '{dep_id}' in the build, "
+          f"ERROR: {kind} '{id}' depends on {dep_kind} '{dep_id}' in the build, "
           "but this dependency is not declared in the plugin.xml file."
         )
       for dep_kind, dep_id in depends_xml - depends_build:
         print(
-          f"ERROR: Plugin '{found_id}' depends on {dep_kind} '{dep_id}' in the plugin.xml file, "
+          f"ERROR: {kind} '{id}' depends on {dep_kind} '{dep_id}' in the plugin.xml file, "
           "but this dependency is not declared in the build."
         )
       sys.exit(1)
 
   with open(out, "w") as info:
-    info.write(f"{kind}:{found_id}")
+    info.write(f"{kind}:{id}")
 
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "--kind",
+      choices=["plugin", "module"],
+      required=True,
+      help="Whether this is a top-level plugin, or a plugin module inside a larger host plugin")
   parser.add_argument(
       "--files",
       dest="files",
@@ -112,12 +111,12 @@ if __name__ == "__main__":
       nargs="*",
       help="Ids of the plugins this plugin depends on.")
   parser.add_argument(
-      "--plugin_id",
-      dest="plugin_id",
-      help="The expected id of this plugin.")
+      "--id",
+      required=True,
+      help="The expected id of this plugin or plugin module")
   parser.add_argument(
       "--out",
       dest="out",
       help="Path to a file where to save the plugin information.")
   args = parser.parse_args()
-  check_plugin(args.plugin_id, args.files, args.deps, args.out)
+  check_plugin(args.kind, args.id, args.files, args.deps, args.out)

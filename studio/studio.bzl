@@ -20,7 +20,7 @@ PluginInfo = provider(
         "plugin_files": "A map from the final studio location to the file it goes there.",
         "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
         "platform": "The platform this plugin was compiled against",
-        "plugin_id": "The plugin id if known at build time, None otherwise",
+        "plugin_id": "The plugin id",
     },
 )
 
@@ -201,7 +201,7 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _check_plugin(ctx, out, files, verify_id = None, verify_deps = None):
+def _check_plugin(ctx, out, files, kind, id, verify_deps = None):
     deps = None
     if verify_deps != None:
         deps = [dep[PluginInfo].plugin_metadata for dep in verify_deps]
@@ -209,8 +209,8 @@ def _check_plugin(ctx, out, files, verify_id = None, verify_deps = None):
     check_args = ctx.actions.args()
     check_args.add("--out", out)
     check_args.add_all("--files", files)
-    if verify_id:
-        check_args.add("--plugin_id", verify_id)
+    check_args.add("--kind", kind)
+    check_args.add("--id", id)
     if deps != None:
         check_args.add_all("--deps", deps, omit_if_empty = False)
 
@@ -251,10 +251,10 @@ def _studio_plugin_impl(ctx):
         ctx,
         ctx.outputs.plugin_metadata,
         [f for (r, f) in plugin_jars],
-        verify_id = ctx.attr.name,
+        "plugin",
+        ctx.attr.name,
         verify_deps = ctx.attr.deps,
     )
-    plugin_id = ctx.attr.name
     plugin_files_linux = _studio_plugin_os(ctx, LINUX, plugin_jars, plugin_dir)
     plugin_files_mac = _studio_plugin_os(ctx, MAC, plugin_jars, plugin_dir)
     plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, plugin_jars, plugin_dir)
@@ -295,7 +295,7 @@ def _studio_plugin_impl(ctx):
             license_files = depset(ctx.files.license_files),
             overwrite_plugin_version = True,
             platform = ctx.attr._intellij_platform,
-            plugin_id = plugin_id,
+            plugin_id = ctx.attr.name,
         ),
         # Force 'chkplugin' to run by marking its output as a validation output.
         # See https://bazel.build/extending/rules#validation_actions for details.
@@ -1146,7 +1146,8 @@ def _intellij_plugin_import_impl(ctx):
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
 
-    _check_plugin(ctx, ctx.outputs.plugin_metadata, jars)
+    id = ctx.attr.id or ctx.attr.name
+    _check_plugin(ctx, ctx.outputs.plugin_metadata, jars, ctx.attr.kind, id)
 
     return [
         java_info,
@@ -1154,7 +1155,7 @@ def _intellij_plugin_import_impl(ctx):
         PluginInfo(
             directory = ctx.attr.target_dir,
             plugin_metadata = ctx.outputs.plugin_metadata,
-            plugin_id = None,
+            plugin_id = id,
             modules = depset(),
             libs = depset(ctx.attr.exports),
             license_files = depset(),
@@ -1173,6 +1174,8 @@ def _intellij_plugin_import_impl(ctx):
 
 _intellij_plugin_import = rule(
     attrs = {
+        "kind": attr.string(default = "plugin", doc = "Pass 'module' if this is a plugin module inside a larger host plugin"),
+        "id": attr.string(doc = "the plugin id, if different from the target name"),
         # Note: platform plugins will have no files because they are already in intellij-sdk.
         "files": attr.label_list(allow_files = True),
         "strip_prefix": attr.string(),
@@ -1334,6 +1337,8 @@ def intellij_platform_import(name, spec):
     )
 
     for plugin, jars in spec.plugin_jars.items():
+        # 'kind' indicates whether this is a top-level plugin, or a plugin module inside a host plugin.
+        kind = "module" if len(jars) == 1 and "/modules/" in jars[0] else "plugin"
         jars_target_name = "%s-plugin-%s-jars" % (name, plugin)
         jvm_import(
             name = jars_target_name,
@@ -1342,6 +1347,8 @@ def intellij_platform_import(name, spec):
         )
         intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
+            id = plugin,
+            kind = kind,
             exports = [":" + jars_target_name],
             target_dir = "",
             visibility = ["//visibility:public"],
@@ -1501,10 +1508,14 @@ def intellij_platform(
     )
 
     for plugin, jars in spec.plugin_jars.items():
+        # 'kind' indicates whether this is a top-level plugin, or a plugin module inside a host plugin.
+        kind = "module" if len(jars) == 1 and "/modules/" in jars[0] else "plugin"
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
         _gen_plugin_jars_import_target(jars_target_name, src, spec, plugin, jars)
         _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
+            id = plugin,
+            kind = kind,
             exports = [":" + jars_target_name],
             visibility = ["@intellij//:__subpackages__"],
         )

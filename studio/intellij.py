@@ -249,12 +249,9 @@ def load_plugin_xml(files: List[Path], xml_name = "META-INF/plugin.xml"):
         index[jar_entry] = jar
 
   if len(xmls) != 1:
-    msg = "\n".join(xmls.keys())
-    print(
-        "Plugin should have exactly one plugin.xml file (found %d)" % len(xmls)
-    )
-    print(msg)
-    sys.exit(1)
+    for file in xmls:
+      print(f"Found {xml_name} at {file}")
+    sys.exit(f"ERROR: plugin should have exactly one file named {xml_name} (found {len(xmls)})")
 
   _, xml = list(xmls.items())[0]
   element = ET.fromstring(xml)
