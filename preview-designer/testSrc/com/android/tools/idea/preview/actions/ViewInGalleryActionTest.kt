@@ -79,7 +79,10 @@ class ViewInGalleryActionTest {
 
   @Test
   fun `selected sceneView can be opened to gallery`() {
-    // We are not in Gallery mode.
+    // We are in Default Mode
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
+
+    // We are not in Gallery layout manager.
     whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
@@ -100,7 +103,10 @@ class ViewInGalleryActionTest {
 
   @Test
   fun `Cannot click on the action, we are in Gallery mode already`() {
-    // We are in Gallery mode.
+    // We are in Gallery Mode.
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Gallery>()))
+
+    // We are using the Gallery layout manager.
     whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GalleryLayoutManager>())
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
@@ -121,7 +127,10 @@ class ViewInGalleryActionTest {
 
   @Test
   fun `Cannot click on the action, not clicking on any screen view`() {
-    // We aren't in Gallery mode.
+    // We are in Default Mode.
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
+
+    // We aren't using Gallery layout manager.
     whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We aren't clicking on any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
@@ -141,7 +150,7 @@ class ViewInGalleryActionTest {
   fun `Action not visible, Flag is disabled`() {
     StudioFlags.VIEW_IN_GALLERY.override(false)
 
-    // We aren't in Gallery mode.
+    // We aren't using Gallery layout manager.
     whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We aren't focussing any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
@@ -157,11 +166,34 @@ class ViewInGalleryActionTest {
     StudioFlags.VIEW_IN_GALLERY.clearOverride()
   }
 
+  // Regression test for b/385686357
+  @Test
+  fun `Action not visible, wrong preview mode`() {
+    // We are in Ui Check Mode.
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.UiCheck>()))
+
+    // We aren't using Gallery layout manager.
+    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
+    // We aren't focussing any screen view.
+    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
+
+    val viewInGalleryAction = ViewInGalleryAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+
+    viewInGalleryAction.update(event)
+
+    // Action should not be visible.
+    assertFalse(event.presentation.isVisible)
+  }
+
   @Test
   fun `Cannot click on the action, not rendered yet`() {
+    // We are in Default Mode.
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
+
     val sceneManagerMock = createSceneManagerMock(hasRendered = false)
 
-    // We aren't in Gallery mode.
+    // We aren't using Gallery layout manager.
     whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We are focussing a scene view, but hasn't rendered yet.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
@@ -201,9 +233,6 @@ class ViewInGalleryActionTest {
 
   @Test
   fun `selected preview opens to gallery correctly with parametrized previews`() {
-    val modeManager: PreviewModeManager = mock()
-    whenever(dataContext.getData(PreviewModeManager.KEY)).thenReturn(modeManager)
-
     // List of compose preview element.
     val parametrizedPreviewElements =
       ParametrizedComposePreviewElementInstance(

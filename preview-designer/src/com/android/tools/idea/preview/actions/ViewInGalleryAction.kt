@@ -44,12 +44,19 @@ class ViewInGalleryAction(
 
   override fun update(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface
+    val modeManager = e.dataContext.findPreviewManager(PreviewModeManager.KEY)
+
     val sceneView = surface?.getSceneViewAt(x, y)
-
-    // The action is not visible if the open-to-gallery flag is disabled.
-    e.presentation.isVisible = StudioFlags.VIEW_IN_GALLERY.get()
-
     val isGallery: Boolean = surface?.isLayoutGallery() ?: false
+
+    // Hide completely the action if:
+    // * View-in-gallery flag is disabled
+    // * The selected preview mode is neither Default nor Gallery.
+    // When in Gallery mode, we want to show up the action, but disabled.
+    e.presentation.isVisible =
+      StudioFlags.VIEW_IN_GALLERY.get() &&
+        (modeManager?.mode?.value is PreviewMode.Default || isGallery)
+
     val hasRendered: Boolean =
       (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
 
