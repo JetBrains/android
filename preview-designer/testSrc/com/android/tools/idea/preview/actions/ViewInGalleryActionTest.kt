@@ -26,8 +26,6 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.TestSceneView
@@ -82,8 +80,6 @@ class ViewInGalleryActionTest {
     // We are in Default Mode
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
 
-    // We are not in Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
@@ -106,8 +102,6 @@ class ViewInGalleryActionTest {
     // We are in Gallery Mode.
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Gallery>()))
 
-    // We are using the Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GalleryLayoutManager>())
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
@@ -130,8 +124,6 @@ class ViewInGalleryActionTest {
     // We are in Default Mode.
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
 
-    // We aren't using Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We aren't clicking on any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
@@ -150,8 +142,6 @@ class ViewInGalleryActionTest {
   fun `Action not visible, Flag is disabled`() {
     StudioFlags.VIEW_IN_GALLERY.override(false)
 
-    // We aren't using Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We aren't focussing any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
@@ -172,8 +162,6 @@ class ViewInGalleryActionTest {
     // We are in Ui Check Mode.
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.UiCheck>()))
 
-    // We aren't using Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We aren't focussing any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
@@ -193,8 +181,6 @@ class ViewInGalleryActionTest {
 
     val sceneManagerMock = createSceneManagerMock(hasRendered = false)
 
-    // We aren't using Gallery layout manager.
-    whenever(surfaceLayoutOption.layoutManager).thenReturn(mock<GridLayoutManager>())
     // We are focussing a scene view, but hasn't rendered yet.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
