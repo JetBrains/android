@@ -443,7 +443,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
       override fun onNext(message: InputEvent) {
         val loggingEnabled = when {
-          message.hasKeyEvent() || message.hasAndroidEvent() || message.xrInputEvent.hasNavEvent() || message.hasXrCommand() ->
+          message.hasKeyEvent() || message.hasAndroidEvent() ||
+          message.hasXrCommand() || message.hasXrHeadAngularVelocityEvent() || message.hasXrHeadVelocityEvent() ->
               EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
           else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
         }

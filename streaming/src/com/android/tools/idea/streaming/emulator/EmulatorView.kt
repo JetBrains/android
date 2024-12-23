@@ -210,6 +210,7 @@ class EmulatorView(
     get() = emulatorConfig.api
 
   private var lastScreenshot: Screenshot? = null
+  private var deviceScaleFactor: Double = 1.0
   private val displayTransform = AffineTransform()
   private val screenshotShape: DisplayShape
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
@@ -598,8 +599,7 @@ class EmulatorView(
     g.drawImage(screenshot.image, displayTransform, null)
 
     frameNumber = screenshotShape.frameNumber
-    xrInputController?.mouseScaleFactor =
-        min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
+    deviceScaleFactor = min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
 
     notifyFrameListeners(displayRect, screenshot.image)
 
@@ -1077,7 +1077,7 @@ class EmulatorView(
       requestFocusInWindow()
       buttons = buttons or getButtonBit(event.button)
       mouseCoordinates = event.point
-      if (xrInputController?.mousePressed(event) == true) {
+      if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       if (isInsideDisplay(event)) {
@@ -1093,7 +1093,7 @@ class EmulatorView(
     override fun mouseReleased(event: MouseEvent) {
       buttons = buttons and getButtonBit(event.button).inv()
       mouseCoordinates = event.point
-      if (xrInputController?.mouseReleased(event) == true) {
+      if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       if (event.button == BUTTON1) {
@@ -1106,7 +1106,7 @@ class EmulatorView(
 
     override fun mouseEntered(event: MouseEvent) {
       mouseCoordinates = event.point
-      if (xrInputController?.mouseEntered(event) == true) {
+      if (xrInputController?.mouseEntered(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       updateMultiTouchMode(event)
@@ -1114,7 +1114,7 @@ class EmulatorView(
 
     override fun mouseExited(event: MouseEvent) {
       mouseCoordinates = null
-      if (xrInputController?.mouseExited(event) == true) {
+      if (xrInputController?.mouseExited(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       if (lastTouchCoordinates != null) {
@@ -1127,7 +1127,7 @@ class EmulatorView(
 
     override fun mouseDragged(event: MouseEvent) {
       mouseCoordinates = event.point
-      if (xrInputController?.mouseDragged(event) == true) {
+      if (xrInputController?.mouseDragged(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       updateMultiTouchMode(event)
@@ -1138,7 +1138,7 @@ class EmulatorView(
 
     override fun mouseMoved(event: MouseEvent) {
       mouseCoordinates = event.point
-      if (xrInputController?.mouseMoved(event) == true) {
+      if (xrInputController?.mouseMoved(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       updateMultiTouchMode(event)
@@ -1149,7 +1149,7 @@ class EmulatorView(
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {
       mouseCoordinates = event.point
-      if (xrInputController?.mouseWheelMoved(event) == true) {
+      if (xrInputController?.mouseWheelMoved(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
       // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.

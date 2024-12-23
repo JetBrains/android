@@ -16,11 +16,11 @@
 package com.android.tools.idea.streaming.emulator.xr
 
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.AngularVelocity
 import com.android.emulator.control.InputEvent
-import com.android.emulator.control.XrInputEvent
-import com.android.emulator.control.XrInputEvent.NavButtonPressEvent
-import com.android.emulator.control.XrInputEvent.RelativeMoveEvent
-import com.android.tools.adtui.util.scaled
+import com.android.emulator.control.RotationRadian
+import com.android.emulator.control.Translation
+import com.android.emulator.control.Velocity
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
@@ -32,6 +32,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import io.ktor.util.collections.ConcurrentMap
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_DOWN
@@ -49,6 +50,8 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
+import kotlin.math.PI
+import kotlin.math.min
 
 // TODO: Adjust this coefficient when XR gRPC API is implemented.
 private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
@@ -74,15 +77,16 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     set(value) {
       if (field != value) {
         field = value
-        navigationMask = computeNavigationMask(value)
+        navigationMask = pressedKeysMaskToNavigationMask(value)
       }
     }
 
   private var navigationMask = 0
     set(value) {
       if (field != value) {
+        val oldValue = field
         field = value
-        sendKeyUpdate(value) // Send update to the emulator.
+        sendVelocityUpdate(value, oldValue) // Send update to the emulator.
       }
     }
 
@@ -90,11 +94,11 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   private val controlKeys
     get() = emulatorSettings.cameraVelocityControls.keys
   private var mouseDragReferencePoint: Point? = null
-  var mouseScaleFactor: Double = 1.0
   private val inputEvent = InputEvent.newBuilder()
-  private val xrInputEvent = XrInputEvent.newBuilder()
-  private val navigationEvent = NavButtonPressEvent.newBuilder()
-  private val relativeMoveEvent = RelativeMoveEvent.newBuilder()
+  private val rotation = RotationRadian.newBuilder()
+  private val translation = Translation.newBuilder()
+  private val angularVelocity = AngularVelocity.newBuilder()
+  private val velocity = Velocity.newBuilder()
 
   init {
     Disposer.register(emulator, this)
@@ -147,9 +151,14 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   /**
    * Notifies the controller that a mouse button was pressed.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mousePressed(event: MouseEvent): Boolean {
+  fun mousePressed(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     if (!isMouseUsedForNavigation(inputMode)) {
       return false
     }
@@ -163,9 +172,14 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   /**
    * Notifies the controller that a mouse button was released.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseReleased(event: MouseEvent): Boolean {
+  fun mouseReleased(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     if (!isMouseUsedForNavigation(inputMode)) {
       return false
     }
@@ -179,9 +193,14 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   /**
    * Notifies the controller that the mouse entered the panel sending events to this controller.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseEntered(event: MouseEvent): Boolean {
+  fun mouseEntered(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     if (!isMouseUsedForNavigation(inputMode)) {
       return false
     }
@@ -195,39 +214,60 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   /**
    * Notifies the controller that the mouse exited the panel sending events to this controller.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseExited(event: MouseEvent): Boolean {
+  fun mouseExited(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     return false
   }
 
   /**
    * Notifies the controller that the mouse button was dragged.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseDragged(event: MouseEvent): Boolean {
+  fun mouseDragged(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     if (!isMouseUsedForNavigation(inputMode)) {
       return false
     }
     val referencePoint = mouseDragReferencePoint
     if (referencePoint != null) {
-      val deltaX = if (inputMode == XrInputMode.LOCATION_IN_SPACE_Z) 0 else (event.x - referencePoint.x).scaled(mouseScaleFactor)
-      val deltaY = (event.y - referencePoint.y).scaled(mouseScaleFactor)
+      val movementScale = if (inputMode == XrInputMode.VIEW_DIRECTION) ROTATION_SCALE else TRANSLATION_SCALE
+      val scale = movementScale * scaleFactor.toFloat() / min(deviceDisplaySize.width, deviceDisplaySize.height)
+      val deltaX = (event.x - referencePoint.x) * scale
+      val deltaY = (event.y - referencePoint.y) * scale
       mouseDragReferencePoint = event.point
-      if (deltaX != 0 || deltaY != 0) {
-        relativeMoveEvent.setRelX(deltaX)
-        relativeMoveEvent.setRelY(deltaY)
+      if (deltaX != 0f || deltaY != 0f) {
+        inputEvent.clear()
         when (inputMode) {
-          XrInputMode.VIEW_DIRECTION -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE
-          XrInputMode.LOCATION_IN_SPACE_XY -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_PAN
-          XrInputMode.LOCATION_IN_SPACE_Z -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM
+          XrInputMode.LOCATION_IN_SPACE_XY -> {
+            translation.clear()
+            translation.deltaX = deltaX
+            translation.deltaY = deltaY
+            inputEvent.setXrHeadMovementEvent(translation)
+          }
+          XrInputMode.LOCATION_IN_SPACE_Z -> {
+            translation.clear()
+            translation.deltaZ = deltaY
+            inputEvent.setXrHeadMovementEvent(translation)
+          }
+          XrInputMode.VIEW_DIRECTION -> {
+            // Moving the mouse between opposite edges of the device display shifts the view direction by 180 degrees
+            rotation.x = deltaY
+            rotation.y = -deltaX
+            inputEvent.setXrHeadRotationEvent(rotation)
+          }
           else -> throw Error("Internal error") // Unreachable due to the !isMouseUsedForNavigation check above.
         }
-        xrInputEvent.clear()
-        xrInputEvent.setMoveEvent(relativeMoveEvent)
-        inputEvent.clear()
-        inputEvent.setXrInputEvent(xrInputEvent)
         sendInputEvent(inputEvent.build())
       }
     }
@@ -238,30 +278,36 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   /**
    * Notifies the controller that the mouse was moved.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseMoved(event: MouseEvent): Boolean {
+  fun mouseMoved(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     return false
   }
 
   /**
    * Notifies the controller that the mouse wheel was moved.
    * Returns true if the input event has been consumed.
+   *
+   * @param event the AWT event
+   * @param deviceDisplaySize the size of the device display in pixels
+   * @param scaleFactor the ratio between the size of the device display and the size in logical
+   *        pixels of its projection on the host screen
    */
   @UiThread
-  fun mouseWheelMoved(event: MouseWheelEvent): Boolean {
+  fun mouseWheelMoved(event: MouseWheelEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
     if (!isMouseUsedForNavigation(inputMode)) {
       return false
     }
-    relativeMoveEvent.setRelX(0)
+    translation.clear()
     // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
-    val delta = -event.wheelRotation.scaled(MOUSE_WHEEL_NAVIGATION_FACTOR * mouseScaleFactor)
-    relativeMoveEvent.setRelY(delta)
-    relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM
-    xrInputEvent.clear()
-    xrInputEvent.setMoveEvent(relativeMoveEvent)
+    translation.deltaZ = (-event.wheelRotation * MOUSE_WHEEL_NAVIGATION_FACTOR * scaleFactor).toFloat()
     inputEvent.clear()
-    inputEvent.setXrInputEvent(xrInputEvent)
+    inputEvent.setXrHeadMovementEvent(translation)
     sendInputEvent(inputEvent.build())
     event.consume()
     return true
@@ -288,14 +334,19 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
       VK_UP, VK_KP_UP -> 1 shl NavigationKey.ROTATE_UP.ordinal
       VK_DOWN, VK_KP_DOWN -> 1 shl NavigationKey.ROTATE_DOWN.ordinal
       VK_PAGE_UP -> 1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal
-      VK_PAGE_DOWN -> 1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal
+      VK_PAGE_DOWN -> 1 shl NavigationKey.ROTATE_RIGHT_DOWN.ordinal
       VK_HOME -> 1 shl NavigationKey.ROTATE_LEFT_UP.ordinal
-      VK_END -> 1 shl NavigationKey.ROTATE_LEFT_UP.ordinal
+      VK_END -> 1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal
       else -> 0
     }
   }
 
-  private fun computeNavigationMask(pressedKeysMask: Int): Int {
+  /**
+   * Replaces mask bits corresponding to the diagonal rotation numpad keys by combinations of bits
+   * corresponding to horizontal and vertical rotation keys. Also cancels out keys that act in
+   * opposite directions, e.g. [NavigationKey.ROTATE_RIGHT] and [NavigationKey.ROTATE_LEFT].
+   */
+  private fun pressedKeysMaskToNavigationMask(pressedKeysMask: Int): Int {
     var mask = pressedKeysMask and ((1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) - 1)
     if (pressedKeysMask and (1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) != 0) {
       mask = mask or (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_UP.ordinal)
@@ -309,36 +360,98 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     if (pressedKeysMask and (1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal) != 0) {
       mask = mask or (1 shl NavigationKey.ROTATE_LEFT.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal)
     }
+    // Cancel out keys acting in opposite directions.
+    val opposites = intArrayOf(
+        (1 shl NavigationKey.MOVE_RIGHT.ordinal) or (1 shl NavigationKey.MOVE_LEFT.ordinal),
+        (1 shl NavigationKey.MOVE_UP.ordinal) or (1 shl NavigationKey.MOVE_DOWN.ordinal),
+        (1 shl NavigationKey.MOVE_BACKWARD.ordinal) or (1 shl NavigationKey.MOVE_FORWARD.ordinal),
+        (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_LEFT.ordinal),
+        (1 shl NavigationKey.ROTATE_UP.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal))
+    for (m in opposites) {
+      if ((mask and m) == m) {
+        mask = mask and m.inv()
+      }
+    }
     return mask
   }
 
-  private fun sendKeyUpdate(keyMask: Int) {
-    navigationEvent.clear()
-    var mask = keyMask
+  private fun sendVelocityUpdate(newMask: Int, oldMask: Int) {
+    val subtractions = oldMask and newMask.inv()
+    var mask = subtractions
     var key = 0
     while (mask != 0) {
       if (mask and 1 != 0) {
-        when (key) {
-          NavigationKey.MOVE_RIGHT.ordinal -> navigationEvent.setRightHeld(true)
-          NavigationKey.MOVE_LEFT.ordinal -> navigationEvent.setLeftHeld(true)
-          NavigationKey.MOVE_UP.ordinal -> navigationEvent.setUpHeld(true)
-          NavigationKey.MOVE_DOWN.ordinal -> navigationEvent.setDownHeld(true)
-          NavigationKey.MOVE_FORWARD.ordinal -> navigationEvent.setForwardHeld(true)
-          NavigationKey.MOVE_BACKWARD.ordinal -> navigationEvent.setBackwardHeld(true)
-          NavigationKey.ROTATE_RIGHT.ordinal -> navigationEvent.setRotateRightHeld(true)
-          NavigationKey.ROTATE_LEFT.ordinal -> navigationEvent.setRotateLeftHeld(true)
-          NavigationKey.ROTATE_UP.ordinal -> navigationEvent.setRotateUpHeld(true)
-          NavigationKey.ROTATE_DOWN.ordinal -> navigationEvent.setRotateDownHeld(true)
+        if (key < NavigationKey.ROTATE_RIGHT.ordinal) {
+          when (key) {
+            NavigationKey.MOVE_RIGHT.ordinal, NavigationKey.MOVE_LEFT.ordinal -> velocity.x = 0f
+            NavigationKey.MOVE_UP.ordinal, NavigationKey.MOVE_DOWN.ordinal -> velocity.y = 0f
+            NavigationKey.MOVE_FORWARD.ordinal, NavigationKey.MOVE_BACKWARD.ordinal -> velocity.z = 0f
+          }
+        }
+        else {
+          when (key) {
+            NavigationKey.ROTATE_RIGHT.ordinal, NavigationKey.ROTATE_LEFT.ordinal -> angularVelocity.omegaY = 0f
+            NavigationKey.ROTATE_UP.ordinal, NavigationKey.ROTATE_DOWN.ordinal -> angularVelocity.omegaX = 0f
+          }
         }
       }
       mask = mask ushr 1
       key++
     }
-    xrInputEvent.clear()
-    xrInputEvent.setNavEvent(navigationEvent)
-    inputEvent.clear()
-    inputEvent.setXrInputEvent(xrInputEvent)
-    sendInputEvent(inputEvent.build())
+    if ((subtractions and NavigationKey.TRANSLATION_MASK) != 0) {
+      velocity.transitionTimeSec = BREAKING_TIME
+      inputEvent.clear()
+      inputEvent.setXrHeadVelocityEvent(velocity)
+      sendInputEvent(inputEvent.build())
+    }
+    if ((subtractions and NavigationKey.ROTATION_MASK) != 0) {
+      angularVelocity.transitionTimeSec = BREAKING_TIME
+      inputEvent.clear()
+      inputEvent.setXrHeadAngularVelocityEvent(angularVelocity)
+      sendInputEvent(inputEvent.build())
+    }
+
+    velocity.clear()
+    angularVelocity.clear()
+    mask = newMask
+    key = 0
+    while (mask != 0) {
+      if (mask and 1 != 0) {
+        if (key < NavigationKey.ROTATE_RIGHT.ordinal) {
+          when (key) {
+            NavigationKey.MOVE_RIGHT.ordinal -> velocity.x = VELOCITY
+            NavigationKey.MOVE_LEFT.ordinal -> velocity.x = -VELOCITY
+            NavigationKey.MOVE_UP.ordinal -> velocity.y = VELOCITY
+            NavigationKey.MOVE_DOWN.ordinal -> velocity.y = -VELOCITY
+            NavigationKey.MOVE_FORWARD.ordinal -> velocity.z = -VELOCITY
+            NavigationKey.MOVE_BACKWARD.ordinal -> velocity.z = VELOCITY
+          }
+        }
+        else {
+          when (key) {
+            NavigationKey.ROTATE_RIGHT.ordinal -> angularVelocity.omegaY = -ANGULAR_VELOCITY
+            NavigationKey.ROTATE_LEFT.ordinal -> angularVelocity.omegaY = ANGULAR_VELOCITY
+            NavigationKey.ROTATE_UP.ordinal -> angularVelocity.omegaX = ANGULAR_VELOCITY
+            NavigationKey.ROTATE_DOWN.ordinal -> angularVelocity.omegaX = -ANGULAR_VELOCITY
+          }
+        }
+      }
+      mask = mask ushr 1
+      key++
+    }
+    val additions = newMask and oldMask.inv()
+    if ((additions and NavigationKey.TRANSLATION_MASK) != 0) {
+      velocity.transitionTimeSec = ACCELERATION_TIME
+      inputEvent.clear()
+      inputEvent.setXrHeadVelocityEvent(velocity)
+      sendInputEvent(inputEvent.build())
+    }
+    if ((additions and NavigationKey.ROTATION_MASK) != 0) {
+      angularVelocity.transitionTimeSec = ACCELERATION_TIME
+      inputEvent.clear()
+      inputEvent.setXrHeadAngularVelocityEvent(angularVelocity)
+      sendInputEvent(inputEvent.build())
+    }
   }
 
   private fun isMouseUsedForNavigation(inputMode: XrInputMode): Boolean {
@@ -371,7 +484,12 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     ROTATE_RIGHT_UP,   // Page Up
     ROTATE_RIGHT_DOWN, // Page Down
     ROTATE_LEFT_UP,    // Home
-    ROTATE_LEFT_DOWN,  // End
+    ROTATE_LEFT_DOWN;  // End
+
+    companion object {
+      const val TRANSLATION_MASK: Int = 0x3F
+      const val ROTATION_MASK: Int = 0x3C0
+    }
   }
 }
 
@@ -405,6 +523,7 @@ internal class EmulatorXrInputControllerService(project: Project): Disposable {
       if (emulatorXrInputController.inputMode == XrInputMode.HARDWARE) {
         hardwareInputStateStorage.setHardwareInputEnabled(DeviceId.ofEmulator(emulator.emulatorId), true)
       }
+
       return@computeIfAbsent emulatorXrInputController
     }
   }
@@ -413,3 +532,16 @@ internal class EmulatorXrInputControllerService(project: Project): Disposable {
     xrControllers.clear()
   }
 }
+
+/** Distance of translational movement in meters when moving mouse across the device display. */
+private const val TRANSLATION_SCALE = 5f
+/** Anngle of rotation in radians when moving mouse across the device display. */
+private const val ROTATION_SCALE = PI.toFloat()
+/** Translational velocity in meters per second. */
+private const val VELOCITY = 1f
+/** Angular velocity in radians per second. */
+private const val ANGULAR_VELOCITY = (PI / 6).toFloat()
+/** Time it takes to reach a non-zero velocity in seconds. */
+private const val ACCELERATION_TIME = 1f
+/** Time it takes to stop after moving or rotating in seconds. */
+private const val BREAKING_TIME = 0f
