@@ -18,6 +18,8 @@ package com.android.tools.idea.sdk.wizard
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 
@@ -35,12 +37,13 @@ class AehdWizardService {
    */
   @UiThread
   fun showAndGet(installationIntention: AehdSdkComponentTreeNode.InstallationIntention): Boolean {
+    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD)
     if (!StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-      val wizard = AehdWizard(installationIntention, AehdWizardController())
+      val wizard = AehdWizard(installationIntention, AehdWizardController(), tracker)
       wizard.init()
       return wizard.showAndGet()
     } else {
-      val wizard = AehdModelWizard(installationIntention, AehdWizardController())
+      val wizard = AehdModelWizard(installationIntention, AehdWizardController(), tracker)
       return wizard.showAndGet()
     }
   }

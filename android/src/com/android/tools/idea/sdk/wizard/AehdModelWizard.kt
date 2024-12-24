@@ -26,15 +26,18 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
+import com.android.tools.idea.welcome.wizard.AbstractProgressStep
 import com.android.tools.idea.welcome.wizard.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep
-import com.android.tools.idea.welcome.wizard.AbstractProgressStep
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -46,7 +49,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class AehdModelWizard(
   private val installationIntention: AehdSdkComponentTreeNode.InstallationIntention,
-  private val aehdWizardController: AehdWizardController
+  private val aehdWizardController: AehdWizardController,
+  private val tracker: FirstRunWizardTracker
 ) {
   companion object {
     var LOG: Logger = Logger.getInstance(AehdModelWizard::class.java)
@@ -55,10 +59,19 @@ class AehdModelWizard(
   val myAehdSdkComponentTreeNode = AehdSdkComponentTreeNode(installationIntention)
 
   fun showAndGet(): Boolean {
+    tracker.trackWizardStarted()
     val modelWizard = buildModelWizard()
     val wizardDialog: ModelWizardDialog = StudioWizardDialogBuilder(modelWizard, "AEHD")
       .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
       .build()
+    modelWizard.addResultListener(object : ModelWizard.WizardListener {
+      override fun onWizardFinished(wizardResult: WizardResult) {
+        tracker.trackWizardFinished(
+          if (wizardResult == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
+          else SetupWizardEvent.CompletionStatus.CANCELED
+        )
+      }
+    })
     return wizardDialog.showAndGet()
   }
 
@@ -82,7 +95,7 @@ class AehdModelWizard(
       })
     }
 
-    val progressStep = SetupProgressStep(BlankModel(), "Invoking installer")
+    val progressStep = SetupProgressStep(BlankModel(), "Invoking installer", tracker)
     modelWizardBuilder.addStep(progressStep)
 
     val modelWizard = modelWizardBuilder.build()
@@ -96,7 +109,7 @@ class AehdModelWizard(
     }
 
     modelWizard.addResultListener(object : ModelWizard.WizardListener {
-      override fun onWizardFinished(result: ModelWizard.WizardResult) {
+      override fun onWizardFinished(result: WizardResult) {
         if (!progressStep.isSuccessfullyCompleted.get()) {
           aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, javaClass, LOG)
         }
@@ -138,7 +151,7 @@ class AehdModelWizard(
     }
   }
 
-  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, name: String): AbstractProgressStep<BlankModel>(
+  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, name: String, private val tracker: FirstRunWizardTracker): AbstractProgressStep<BlankModel>(
     model, name) {
     val isSuccessfullyCompleted = AtomicBooleanProperty(false)
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
@@ -155,7 +168,10 @@ class AehdModelWizard(
 
       val task: Task.Backgroundable = object : Task.Backgroundable(null, "AEHD Installation", true) {
         override fun run(indicator: ProgressIndicator) {
+          tracker.trackInstallingComponentsStarted()
           try {
+            tracker.trackSdkComponentsToInstall(listOf(myAehdSdkComponentTreeNode.sdkComponentsMetricKind()))
+
             val success = aehdWizardController.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
             isSuccessfullyCompleted.set(success)
           }
@@ -163,6 +179,17 @@ class AehdModelWizard(
             LOG.warn("Exception caught while trying to configure AEHD", e)
             showConsole()
             print(e.message + "\n", ConsoleViewContentType.ERROR_OUTPUT)
+          }
+          finally {
+            if (this@SetupProgressStep.isCanceled()) {
+              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.CANCELED)
+            }
+            else if (isSuccessfullyCompleted.get()) {
+              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS)
+            }
+            else {
+              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.ERROR)
+            }
           }
         }
       }
