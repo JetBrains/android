@@ -482,7 +482,11 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       }
     }
 
-    SwingUtilities.getWindowAncestor(myContentPanel).pack();
+    Window window = SwingUtilities.getWindowAncestor(myContentPanel);
+    if (window != null) {
+      // There may be no window when running unit tests
+      window.pack();
+    }
   }
 
   private void addStepIfNecessary(Step step) {

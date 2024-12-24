@@ -63,7 +63,10 @@ class SetupSdkApplicationService : Disposable {
    *   final SDK path.
    */
   @UiThread
-  fun showSdkSetupWizard(sdkPathString: String, sdkUpdatedCallback: SdkUpdatedCallback?) {
+  fun showSdkSetupWizard(sdkPathString: String,
+                         sdkUpdatedCallback: SdkUpdatedCallback?,
+                         sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
+                         tracker: FirstRunWizardTracker) {
     val sdkPath =
       if (StringUtil.isEmpty(sdkPathString)) {
         getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK)
@@ -71,19 +74,21 @@ class SetupSdkApplicationService : Disposable {
         File(sdkPathString)
       }
 
-    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP)
     tracker.trackWizardStarted()
 
     if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-      showNewWizard(sdkPath, sdkUpdatedCallback, tracker)
+      showNewWizard(sdkPath, sdkUpdatedCallback, sdkComponentInstaller, tracker)
     } else {
-      showOldWizard(sdkPath, sdkUpdatedCallback, tracker)
+      showOldWizard(sdkPath, sdkUpdatedCallback, sdkComponentInstaller, tracker)
     }
   }
 
   override fun dispose() {}
 
-  private fun showOldWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?, tracker: FirstRunWizardTracker) {
+  private fun showOldWizard(sdkPath: File,
+                            sdkUpdatedCallback: SdkUpdatedCallback?,
+                            sdkComponentInstaller: SdkComponentInstaller,
+                            tracker: FirstRunWizardTracker) {
     val host: DynamicWizardHost = DialogWrapperHost(null)
     val wizard: DynamicWizard =
       object : DynamicWizard(null, null, "SDK Setup", host) {
@@ -95,7 +100,7 @@ class SetupSdkApplicationService : Disposable {
               FirstRunWizardMode.MISSING_SDK,
               sdkPath,
               progressStep,
-              SdkComponentInstaller(),
+              sdkComponentInstaller,
               false,
               tracker
             )
@@ -139,8 +144,12 @@ class SetupSdkApplicationService : Disposable {
     wizard.show()
   }
 
-  private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?, tracker: FirstRunWizardTracker) {
-    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, SdkComponentInstaller(), tracker)
+  private fun showNewWizard(sdkPath: File,
+                            sdkUpdatedCallback: SdkUpdatedCallback?,
+                            sdkComponentInstaller: SdkComponentInstaller,
+                            tracker: FirstRunWizardTracker) {
+    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, sdkComponentInstaller,
+                                    tracker)
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)

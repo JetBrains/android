@@ -41,6 +41,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.FileUtils;
@@ -53,6 +55,7 @@ import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -302,10 +305,15 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        SetupSdkApplicationService.getInstance().showSdkSetupWizard(mySdkLocationTextField.getText(), (sdkLocation) -> {
-          onSdkLocationUpdated(sdkLocation);
-          return null;
-        });
+        SetupSdkApplicationService.getInstance().showSdkSetupWizard(
+          mySdkLocationTextField.getText(),
+          (sdkLocation) -> {
+            onSdkLocationUpdated(sdkLocation);
+            return null;
+          },
+          new SdkComponentInstaller(),
+          new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP)
+        );
       }
     });
     mySdkLocationTextField.setEditable(false);
