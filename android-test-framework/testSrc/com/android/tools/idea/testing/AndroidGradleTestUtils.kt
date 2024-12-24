@@ -194,6 +194,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
@@ -1611,12 +1612,14 @@ private fun setupTestProjectFromAndroidModelCore(
   val externalProjectData = InternalExternalProjectInfo(GradleConstants.SYSTEM_ID, rootProjectBasePath.path, projectDataNode)
   (ExternalProjectsManager.getInstance(project) as ExternalProjectsManagerImpl).updateExternalProjectData(externalProjectData)
 
-  ProjectDataManager.getInstance().importData(projectDataNode, project)
+  runWithModalProgressBlocking(project, "import project data from dataNodes") {
+    ProjectDataManager.getInstance().importData(projectDataNode, project)
+  }
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
   IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
-  runWriteAction {
+  runWithModalProgressBlocking(project, "invoking IdeaSyncPopulateProjectTask") {
     task.populateProject(
       projectDataNode,
       null
