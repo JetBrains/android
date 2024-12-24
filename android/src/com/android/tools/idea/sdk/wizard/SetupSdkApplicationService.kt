@@ -35,6 +35,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost
 import com.android.tools.idea.wizard.dynamic.SingleStepPath
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.WizardListener
+import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
@@ -71,6 +72,8 @@ class SetupSdkApplicationService : Disposable {
       }
 
     val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP)
+    tracker.trackWizardStarted()
+
     if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
       showNewWizard(sdkPath, sdkUpdatedCallback, tracker)
     } else {
@@ -85,7 +88,6 @@ class SetupSdkApplicationService : Disposable {
     val wizard: DynamicWizard =
       object : DynamicWizard(null, null, "SDK Setup", host) {
         override fun init() {
-          // TODO get this wizard to work with the tracker
           val progressStep = DownloadingComponentsStep(myHost.disposable, myHost, tracker)
 
           val path =
@@ -119,6 +121,18 @@ class SetupSdkApplicationService : Disposable {
 
         override fun getWizardActionDescription(): String {
           return "Setting up SDK..."
+        }
+
+        override fun doCancelAction() {
+          super.doCancelAction()
+
+          tracker.trackWizardFinished(SetupWizardEvent.CompletionStatus.CANCELED)
+        }
+
+        override fun doFinishAction() {
+          super.doFinishAction()
+
+          tracker.trackWizardFinished(SetupWizardEvent.CompletionStatus.FINISHED)
         }
       }
     wizard.init()
@@ -159,7 +173,12 @@ class SetupSdkApplicationService : Disposable {
     }
     wizard.addResultListener(
       object : WizardListener {
-        override fun onWizardFinished(result: ModelWizard.WizardResult) {
+        override fun onWizardFinished(result: WizardResult) {
+          tracker.trackWizardFinished(
+            if (result == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
+            else SetupWizardEvent.CompletionStatus.CANCELED
+          )
+
           if (!result.isFinished) {
             return
           }
