@@ -54,7 +54,7 @@ class NewLibraryModuleModel(
         .apply { loadLocalVersions() }
         .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
         .first() // we don't care which one do we use, we just have to pass something, it is not
-                 // going to be used
+      // going to be used
     )
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
@@ -78,7 +78,6 @@ class NewLibraryModuleModel(
             moduleData = td as ModuleTemplateData,
             className = className.get(),
             useGradleKts = useGradleKts.get(),
-            useVersionCatalog = useVersionCatalog.get(),
           )
         }
     }
