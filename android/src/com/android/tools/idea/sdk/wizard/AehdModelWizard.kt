@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard
 
-import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -25,12 +23,10 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
-import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.wizard.AbstractProgressStep
 import com.android.tools.idea.welcome.wizard.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
-import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -41,7 +37,6 @@ import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -90,7 +85,7 @@ class AehdModelWizard(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
-      val packagesToInstallSupplier = { resolvePackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode) }
+      val packagesToInstallSupplier = { aehdWizardController.getPackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode) }
       modelWizardBuilder.addStep(object : LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location), packagesToInstallSupplier) {
         override fun onShowing() {
           super.onShowing()
@@ -129,17 +124,6 @@ class AehdModelWizard(
       AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
       AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES,
       AehdSdkComponentTreeNode.InstallationIntention.CONFIGURE_ONLY -> AehdInstallInfoStep(tracker)
-    }
-  }
-
-  private fun resolvePackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode): Collection<RemotePackage> {
-    try {
-      val componentInstaller = SdkComponentInstaller()
-      return componentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
-    }
-    catch (e: SdkQuickfixUtils.PackageResolutionException) {
-      logger<StudioFirstRunWelcomeScreen>().warn(e)
-      return emptyList()
     }
   }
 

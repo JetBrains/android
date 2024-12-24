@@ -16,7 +16,9 @@
 package com.android.tools.idea.sdk.wizard
 
 import com.android.repository.api.ProgressIndicator
+import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
@@ -32,9 +34,11 @@ import com.android.tools.idea.welcome.install.InstallationCancelledException
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.WizardException
 import com.android.tools.idea.welcome.wizard.ProgressStep
+import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen
 import com.google.common.collect.Lists
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
@@ -42,6 +46,17 @@ import com.intellij.util.PlatformUtils
 import java.io.File
 
 class AehdWizardController {
+
+  fun getPackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode): Collection<RemotePackage> {
+    try {
+      val componentInstaller = SdkComponentInstaller()
+      return componentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
+    }
+    catch (e: SdkQuickfixUtils.PackageResolutionException) {
+      logger<StudioFirstRunWelcomeScreen>().warn(e)
+      return emptyList()
+    }
+  }
 
   fun setupAehd(aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, progressStep: ProgressStep, progressIndicator: ProgressIndicator): Boolean {
     val tmpDir = FileUtil.createTempDirectory(PlatformUtils.getPlatformPrefix(), "AEHD", true)

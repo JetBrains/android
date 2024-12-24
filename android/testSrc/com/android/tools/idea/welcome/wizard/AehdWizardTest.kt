@@ -86,6 +86,7 @@ class AehdWizardTest {
     ) // AndroidProjectRule must get initialized off the EDT thread
 
   private lateinit var mockAndroidSdksStatic: MockedStatic<AndroidSdks>
+  private lateinit var mockAehdWizardController: AehdWizardController
 
   @Before
   fun setUp() {
@@ -105,6 +106,11 @@ class AehdWizardTest {
 
     mockAndroidSdksStatic = mockStatic(AndroidSdks::class.java)
     whenever(AndroidSdks.getInstance()).thenReturn(mockAndroidSdks)
+
+    mockAehdWizardController = mock(AehdWizardController::class.java)
+    whenever(mockAehdWizardController.getPackagesToInstall(any(), any()))
+      .thenReturn(listOf(remotePackage))
+    whenever(mockAehdWizardController.setupAehd(any(), any(), any())).thenReturn(true)
   }
 
   @After
@@ -118,9 +124,6 @@ class AehdWizardTest {
     if (!SystemInfo.isWindows) {
       return
     }
-
-    val mockAehdWizardController = mock(AehdWizardController::class.java)
-    whenever(mockAehdWizardController.setupAehd(any(), any(), any())).thenReturn(true)
 
     showWizard(mockAehdWizardController, mock()) { fakeUi ->
       val infoStepTitle =
@@ -183,7 +186,6 @@ class AehdWizardTest {
     }
 
     val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD)
-    val mockAehdWizardController = mock(AehdWizardController::class.java)
     showWizard(mockAehdWizardController, tracker) { fakeUi ->
       val cancelButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.equals("Cancel") })
       assertTrue { fakeUi.isShowing(cancelButton) }
@@ -203,11 +205,7 @@ class AehdWizardTest {
       return
     }
 
-    val mockAehdWizardController = mock(AehdWizardController::class.java)
-    whenever(mockAehdWizardController.setupAehd(any(), any(), any())).thenReturn(true)
-
     val mockTracker = mock(FirstRunWizardTracker::class.java)
-
     showWizard(mockAehdWizardController, mockTracker) { fakeUi ->
       val nextButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") })
       nextButton.doClick()
@@ -261,11 +259,7 @@ class AehdWizardTest {
       return
     }
 
-    val mockAehdWizardController = mock(AehdWizardController::class.java)
-    whenever(mockAehdWizardController.setupAehd(any(), any(), any())).thenReturn(true)
-
     val trackerMock = mock(FirstRunWizardTracker::class.java)
-
     showWizard(mockAehdWizardController, trackerMock) {
       val cancelButton = checkNotNull(it.findComponent<JButton> { it.text.equals("Cancel") })
       cancelButton.doClick()
