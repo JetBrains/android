@@ -637,7 +637,7 @@ internal data class DisplayAddedOrChangedNotification(
     stream.writeInt(width)
     stream.writeInt(height)
     stream.writeInt(rotation)
-    stream.writeInt(displayType.ordinal)
+    stream.writeEnum(displayType)
   }
 
   override fun toString(): String =
@@ -651,7 +651,7 @@ internal data class DisplayAddedOrChangedNotification(
       val width = stream.readInt()
       val height = stream.readInt()
       val rotation = stream.readInt()
-      val displayType = DisplayType.entries[stream.readInt()]
+      val displayType = stream.readEnum<DisplayType>()
       return DisplayAddedOrChangedNotification(displayId, width, height, rotation, displayType)
     }
   }
