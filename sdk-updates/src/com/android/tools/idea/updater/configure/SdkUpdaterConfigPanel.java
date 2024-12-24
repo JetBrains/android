@@ -38,6 +38,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.sdk.AndroidPlatform;

@@ -3,7 +3,7 @@ package com.android.tools.idea.npw.project;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.updater.configure.SetupSdkApplicationService;
+import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

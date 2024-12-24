@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updater.configure
+package com.android.tools.idea.sdk.wizard
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.isWritable
