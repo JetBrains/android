@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -31,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
 public class AehdUninstallInfoStep extends FirstRunWizardStep {
   private final AehdUninstallInfoStepForm myForm = new AehdUninstallInfoStepForm();
 
-  public AehdUninstallInfoStep() {
-    super("Uninstalling Android Emulator hypervisor driver");
+  public AehdUninstallInfoStep(@NotNull FirstRunWizardTracker tracker) {
+    super("Uninstalling Android Emulator hypervisor driver", tracker);
     setComponent(myForm.getRoot());
   }
 
@@ -53,5 +56,10 @@ public class AehdUninstallInfoStep extends FirstRunWizardStep {
   @Override
   public boolean isStepVisible() {
     return SystemInfo.isWindows;
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.AEHD_UNINSTALL_INFO;
   }
 }

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.util.IJSwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,14 +38,16 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
   @Nullable private final String myDescription;
   private JComponent myComponent;
   private boolean myComponentUpdated;
+  @NotNull protected final FirstRunWizardTracker myTracker;
 
-  public FirstRunWizardStep(@Nullable String name) {
-    this(name == null ? SETUP_WIZARD : name, null);
+  public FirstRunWizardStep(@Nullable String name, @NotNull FirstRunWizardTracker tracker) {
+    this(name == null ? SETUP_WIZARD : name, null, tracker);
   }
 
-  public FirstRunWizardStep(@NotNull String name, @Nullable String description) {
+  public FirstRunWizardStep(@NotNull String name, @Nullable String description, @NotNull FirstRunWizardTracker tracker) {
     myName = name;
     myDescription = description;
+    myTracker = tracker;
   }
 
   @Override
@@ -56,7 +60,11 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
       IJSwingUtilities.updateComponentTreeUI(myComponent);
       myComponentUpdated = true;
     }
+
+    myTracker.trackStepShowing(getWizardStepKind());
   }
+
+  protected abstract SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind();
 
   @NotNull
   @Override

@@ -31,15 +31,13 @@ import javax.swing.*;
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
   private final InstallationTypeWizardStepForm myForm = new InstallationTypeWizardStepForm();
-  @NotNull private final FirstRunWizardTracker myTracker;
 
   public InstallationTypeWizardStep(
     @NotNull ScopedStateStore.Key<Boolean> customInstall,
     @NotNull FirstRunWizardTracker tracker
   ) {
-    super("Install Type");
+    super("Install Type", tracker);
     myDataKey = customInstall;
-    myTracker = tracker;
     setComponent(myForm.getContents());
   }
 
@@ -68,5 +66,10 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
     );
 
     return super.commitStep();
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE;
   }
 }

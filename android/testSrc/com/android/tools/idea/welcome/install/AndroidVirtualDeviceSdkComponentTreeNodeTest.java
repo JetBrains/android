@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +44,7 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule;
 import com.android.tools.idea.welcome.wizard.deprecated.AbstractProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.NioFiles;
@@ -147,7 +149,12 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
     AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
     when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, disposableRule.getDisposable());
-    progressStep = new AbstractProgressStep(disposableRule.getDisposable(), "test") {
+    progressStep = new AbstractProgressStep(disposableRule.getDisposable(), "test", mock()) {
+      @Override
+      protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+        return SetupWizardEvent.WizardStep.WizardStepKind.UNKNOWN_STEP;
+      }
+
       @Override
       protected void execute() {}
     };

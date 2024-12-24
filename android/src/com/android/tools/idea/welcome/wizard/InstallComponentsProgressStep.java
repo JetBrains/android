@@ -76,6 +76,12 @@ public class InstallComponentsProgressStep extends AbstractProgressStep<FirstRun
   }
 
   @Override
+  protected void onShowing() {
+    super.onShowing();
+    myTracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK);
+  }
+
+  @Override
   protected boolean canGoBack() {
     return false;
   }

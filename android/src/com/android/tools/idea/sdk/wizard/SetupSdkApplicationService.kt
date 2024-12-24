@@ -144,7 +144,12 @@ class SetupSdkApplicationService : Disposable {
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
-    val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
+    val licenseAgreementStep = object : LicenseAgreementStep(licenseAgreementModel, supplier) {
+      override fun onShowing() {
+        super.onShowing()
+        tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+      }
+    }
 
     val progressStep: InstallComponentsProgressStep =
       object : InstallComponentsProgressStep(model, licenseAgreementModel, tracker) {
@@ -158,7 +163,7 @@ class SetupSdkApplicationService : Disposable {
     builder.addStep(
       SdkComponentsStep(model, null, FirstRunWizardMode.MISSING_SDK, licenseAgreementStep, tracker)
     )
-    builder.addStep(InstallSummaryStep(model, supplier))
+    builder.addStep(InstallSummaryStep(model, supplier, tracker))
     builder.addStep(licenseAgreementStep)
     builder.addStep(progressStep)
 

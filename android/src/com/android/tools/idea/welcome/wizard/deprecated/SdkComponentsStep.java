@@ -28,6 +28,7 @@ import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils;
 import com.android.tools.idea.welcome.wizard.SdkComponentsTableModel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
@@ -53,7 +54,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @NotNull private final SdkComponentsStepForm myForm = new SdkComponentsStepForm();
   @NotNull private final SdkComponentsStepController myController;
-  @NotNull private final FirstRunWizardTracker myTracker;
 
   public SdkComponentsStep(@Nullable Project project,
                            @NotNull SdkComponentTreeNode rootNode,
@@ -64,13 +64,12 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                            @Nullable LicenseAgreementStep licenseAgreementStep,
                            @NotNull Disposable parent,
                            @NotNull FirstRunWizardTracker tracker) {
-    super("SDK Components Setup");
+    super("SDK Components Setup", tracker);
     Disposer.register(parent, myForm);
 
     myRootNode = rootNode;
     myKeyCustomInstall = keyCustomInstall;
     mySdkDownloadPathKey = sdkDownloadPathKey;
-    myTracker = tracker;
 
     SdkComponentsTableModel tableModel = new SdkComponentsTableModel(rootNode);
     myForm.setTableModel(tableModel);
@@ -190,5 +189,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @NotNull
   private String getPath() {
     return StringUtil.notNullize(myState.get(mySdkDownloadPathKey));
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.SDK_COMPONENTS;
   }
 }

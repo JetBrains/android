@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +30,8 @@ import org.jetbrains.annotations.NotNull;
 public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   private final FirstRunWelcomeStepForm myForm;
 
-  public FirstRunWelcomeStep(boolean sdkExists) {
-    super("Welcome", "Android Studio");
+  public FirstRunWelcomeStep(boolean sdkExists, @NotNull FirstRunWizardTracker tracker) {
+    super("Welcome", "Android Studio", tracker);
     myForm = new FirstRunWelcomeStepForm(sdkExists);
     setComponent(myForm.getRoot());
   }
@@ -49,5 +51,10 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   public JComponent getPreferredFocusedComponent() {
     // Doesn't matter
     return myForm.getRoot();
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.WELCOME;
   }
 }

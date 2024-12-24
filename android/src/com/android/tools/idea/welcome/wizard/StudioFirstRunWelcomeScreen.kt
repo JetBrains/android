@@ -71,7 +71,7 @@ class StudioFirstRunWelcomeScreen(
         ModelWizard.Builder()
           .apply {
             if (mode == FirstRunWizardMode.NEW_INSTALL) {
-              addStep(FirstRunWelcomeStep(model))
+              addStep(FirstRunWelcomeStep(model, tracker))
 
               if (model.isStandardInstallSupported) {
                 addStep(InstallationTypeWizardStep(model, tracker))
@@ -79,16 +79,24 @@ class StudioFirstRunWelcomeScreen(
             }
 
             if (mode == FirstRunWizardMode.MISSING_SDK) {
-              addStep(MissingSdkAlertStep())
+              addStep(MissingSdkAlertStep(tracker))
             }
 
             val supplier = model.getPackagesToInstallSupplier()
-            val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
+            val licenseAgreementStep =
+              object : LicenseAgreementStep(licenseAgreementModel, supplier) {
+                override fun onShowing() {
+                  super.onShowing()
+                  tracker.trackStepShowing(
+                    SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT
+                  )
+                }
+              }
 
             addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep, tracker))
 
             if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-              addStep(InstallSummaryStep(model, supplier))
+              addStep(InstallSummaryStep(model, supplier, tracker))
               addStep(licenseAgreementStep)
             }
 
@@ -97,7 +105,7 @@ class StudioFirstRunWelcomeScreen(
                 !isChromeOSAndIsNotHWAccelerated() &&
                 mode == FirstRunWizardMode.NEW_INSTALL
             ) {
-              addStep(LinuxKvmInfoStep())
+              addStep(LinuxKvmInfoStep(tracker))
             }
 
             addStep(progressStep)
@@ -160,13 +168,13 @@ class StudioFirstRunWelcomeScreen(
   }
 
   override fun getWelcomePanel(): JComponent {
+    tracker.trackWizardStarted()
+
     // TODO(qumeric): I am not sure at which point getWelcomePanel runs.
     //  Maybe it is worth to run setupWizard earlier and wait here for finish.
     if (mainPanel == null) {
       ApplicationManager.getApplication().invokeAndWait { setupWizard() }
     }
-
-    tracker.trackWizardStarted()
 
     return mainPanel!!
   }
@@ -215,11 +223,9 @@ class StudioFirstRunWelcomeScreen(
     return when (ConfirmFirstRunWizardCloseDialog.show()) {
       ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
-        closeDialog()
         false
       }
       ConfirmFirstRunWizardCloseDialog.Result.Rerun -> {
-        closeDialog()
         false
       }
       ConfirmFirstRunWizardCloseDialog.Result.DoNotClose -> {

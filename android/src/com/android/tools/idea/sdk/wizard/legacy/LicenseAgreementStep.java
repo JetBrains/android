@@ -27,9 +27,11 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
@@ -78,17 +80,22 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final Set<License> myLicenses = Sets.newHashSet();
   private final Supplier<List<String>> myInstallRequestsProvider;
   private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
+  private final @NotNull FirstRunWizardTracker myTracker;
 
   /**
    * @param installRequestsProvider Provides a list of {@link RepoPackage#getPath() remote package} paths
    */
   public LicenseAgreementStep(@NotNull Disposable parentDisposable,
                               @NotNull Supplier<List<String>> installRequestsProvider,
-                              @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier) {
+                              @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier,
+                              @NotNull FirstRunWizardTracker tracker
+                              ) {
     super(parentDisposable);
 
     myInstallRequestsProvider = installRequestsProvider;
     mySdkHandlerSupplier = sdkHandlerSupplier;
+    myTracker = tracker;
+
     Splitter splitter = new Splitter(false, .30f);
     splitter.setHonorComponentsMinimumSize(true);
 
@@ -211,6 +218,12 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   @Override
   public boolean isStepVisible() {
     return !myVisibleLicenses.isEmpty();
+  }
+
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    myTracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT);
   }
 
   @Override

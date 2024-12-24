@@ -42,6 +42,9 @@ class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) 
     eventBuilder.setupWizardEventBuilder.sdkInstallationMetricsBuilder
   private var installingComponentsStartTime: Instant? = null
 
+  private var lastStepShown: SetupWizardEvent.WizardStep.WizardStepKind? = null
+  private var lastStepShownAtTimeMs = -1L
+
   /**
    * Tracks the start of the First Run Wizard. Call this method as soon as the wizard is launched.
    */
@@ -50,6 +53,21 @@ class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) 
       return // We've already tracked the start of the wizard
     }
     wizardStartedTime = Instant.now()
+  }
+
+  /**
+   * Tracks when a specific step is shown in the First Run Wizard. This should be called each time a
+   * step's UI is displayed to the user, including when navigating back to a previously shown step.
+   */
+  fun trackStepShowing(wizardStepKind: SetupWizardEvent.WizardStep.WizardStepKind) {
+    if (wizardStepKind == lastStepShown) {
+      return
+    }
+
+    addCurrentStep()
+
+    lastStepShown = wizardStepKind
+    lastStepShownAtTimeMs = System.currentTimeMillis()
   }
 
   /** Tracks the [installationMode] chosen by the user (e.g., Standard, Custom). */
@@ -99,6 +117,8 @@ class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) 
       return
     }
 
+    addCurrentStep()
+
     eventBuilder.setupWizardEventBuilder.mode = mode
     eventBuilder.setupWizardEventBuilder.installationMode = installationMode
     eventBuilder.setupWizardEventBuilder.completionStatus = completionStatus
@@ -107,5 +127,16 @@ class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) 
     eventBuilder.setupWizardEventBuilder.timeSpentInWizardMs = timeSpentInWizardMs.toMillis()
 
     UsageTracker.log(eventBuilder)
+  }
+
+  private fun addCurrentStep() {
+    if (lastStepShown != null && lastStepShownAtTimeMs != -1L) {
+      val timeInPreviousStepMs = System.currentTimeMillis() - lastStepShownAtTimeMs
+      eventBuilder.setupWizardEventBuilder.addWizardSteps(
+        SetupWizardEvent.WizardStep.newBuilder()
+          .setWizardStepKind(lastStepShown)
+          .setTimeSpentInStepMs(timeInPreviousStepMs)
+      )
+    }
   }
 }

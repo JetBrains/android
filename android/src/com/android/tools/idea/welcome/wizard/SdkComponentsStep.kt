@@ -22,6 +22,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStepForm
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -150,6 +151,11 @@ class SdkComponentsStep(
   override fun onProceeding() {
     super.onProceeding()
     controller.warnIfRequiredComponentsUnavailable()
+  }
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.SDK_COMPONENTS)
   }
 
   private fun updateDiskSizes() {

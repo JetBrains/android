@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.util.SystemInfo
 import javax.swing.JComponent
 
@@ -26,7 +27,7 @@ import javax.swing.JComponent
  * operations straight away as the first wizard step, as this would not be in line with common
  * wizard conventions.
  */
-class AehdUninstallInfoStep() :
+class AehdUninstallInfoStep(private val tracker: FirstRunWizardTracker) :
   ModelWizardStep.WithoutModel("Uninstalling Android Emulator hypervisor driver") {
   private val form = AehdUninstallInfoStepForm()
 
@@ -35,4 +36,9 @@ class AehdUninstallInfoStep() :
   override fun getPreferredFocusComponent(): JComponent = form.root
 
   override fun shouldShow(): Boolean = SystemInfo.isWindows
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.AEHD_UNINSTALL_INFO)
+  }
 }

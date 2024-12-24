@@ -19,6 +19,7 @@ import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.google.wireless.android.sdk.stats.SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
@@ -34,13 +35,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConsolidatedProgressStep extends AbstractProgressStep {
   private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
   private final DynamicWizardHost myHost;
-  private final @NotNull FirstRunWizardTracker myTracker;
   private List<? extends AndroidStudioWizardPath> myPaths;
 
-  public ConsolidatedProgressStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host, @NotNull FirstRunWizardTracker tracker) {
-    super(disposable, "Downloading Components");
+  public ConsolidatedProgressStep(
+    @NotNull Disposable disposable,
+    @NotNull DynamicWizardHost host,
+    @NotNull FirstRunWizardTracker tracker
+  ) {
+    super(disposable, "Downloading Components", tracker);
     myHost = host;
-    myTracker = tracker;
   }
 
   public void setPaths(@NotNull List<? extends AndroidStudioWizardPath> paths) {
@@ -104,5 +107,10 @@ public class ConsolidatedProgressStep extends AbstractProgressStep {
   @Override
   public boolean isStepVisible() {
     return myPaths != null && !myPaths.isEmpty();
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK;
   }
 }

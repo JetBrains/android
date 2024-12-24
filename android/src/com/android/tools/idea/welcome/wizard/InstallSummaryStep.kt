@@ -20,6 +20,7 @@ import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.deprecated.InstallSummaryStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.StartupUiUtil.labelFont
 import com.intellij.util.ui.UIUtil
@@ -31,6 +32,7 @@ import javax.swing.JComponent
 class InstallSummaryStep(
   private val model: FirstRunWizardModel,
   private val packagesProvider: Supplier<out Collection<RemotePackage>?>,
+  private val tracker: FirstRunWizardTracker,
 ) : ModelWizardStep<FirstRunWizardModel>(model, "Verify Settings") {
 
   companion object {
@@ -112,6 +114,11 @@ class InstallSummaryStep(
   override fun onEntering() {
     super.onEntering()
     generateSummary()
+  }
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SUMMARY)
   }
 
   private fun generateSummary() {

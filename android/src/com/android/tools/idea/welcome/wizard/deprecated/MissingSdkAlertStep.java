@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,8 +28,8 @@ import javax.swing.*;
  */
 @Deprecated
 public class MissingSdkAlertStep extends FirstRunWizardStep {
-  public MissingSdkAlertStep() {
-    super("Missing SDK");
+  public MissingSdkAlertStep(@NotNull FirstRunWizardTracker tracker) {
+    super("Missing SDK", tracker);
   }
 
   @Override
@@ -43,6 +46,11 @@ public class MissingSdkAlertStep extends FirstRunWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.MISSING_SDK_ALERT;
   }
 }
 

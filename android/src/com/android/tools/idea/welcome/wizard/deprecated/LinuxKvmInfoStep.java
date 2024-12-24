@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -29,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
 public class LinuxKvmInfoStep extends FirstRunWizardStep {
   private final LinuxKvmInfoStepForm myForm = new LinuxKvmInfoStepForm();
 
-  public LinuxKvmInfoStep() {
-    super("Emulator Settings");
+  public LinuxKvmInfoStep(@NotNull FirstRunWizardTracker tracker) {
+    super("Emulator Settings", tracker);
     setComponent(myForm.getRoot());
   }
 
@@ -52,5 +55,10 @@ public class LinuxKvmInfoStep extends FirstRunWizardStep {
   @Override
   public boolean isStepVisible() {
     return SystemInfo.isLinux;
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.LINUX_KVM_INFO;
   }
 }

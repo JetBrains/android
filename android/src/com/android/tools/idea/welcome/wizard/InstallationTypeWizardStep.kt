@@ -63,4 +63,9 @@ class InstallationTypeWizardStep(
       else SetupWizardEvent.InstallationMode.CUSTOM
     )
   }
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE)
+  }
 }

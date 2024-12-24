@@ -666,6 +666,8 @@ class WelcomeScreenWizardTest {
       val mockFrame = configureFrameMock(listeners)
 
       val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen
+        .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
       welcomeScreen.setupFrame(mockFrame)
 
       val listener = listeners[0]
@@ -688,6 +690,8 @@ class WelcomeScreenWizardTest {
       val mockFrame = configureFrameMock(listeners)
 
       val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen
+        .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
       welcomeScreen.setupFrame(mockFrame)
 
       val listener = listeners[0]
@@ -710,6 +714,8 @@ class WelcomeScreenWizardTest {
       val mockFrame = configureFrameMock(listeners)
 
       val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen
+        .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
       welcomeScreen.setupFrame(mockFrame)
 
       verify(mockFrame, never()).removeWindowListener(any())
@@ -732,6 +738,8 @@ class WelcomeScreenWizardTest {
       listeners[0] = welcomeFrameListenerSpy
 
       val welcomeScreen = createWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+      welcomeScreen
+        .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
       welcomeScreen.setupFrame(mockFrame)
 
       val listener = listeners[0]
@@ -782,7 +790,20 @@ class WelcomeScreenWizardTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     inOrder(mockTracker).apply {
-      verify(mockTracker, atLeastOnce()).trackWizardStarted()
+      verify(mockTracker).trackWizardStarted()
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.WELCOME)
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE)
+      verify(mockTracker)
+        .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.SDK_COMPONENTS)
+      verify(mockTracker)
+        .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SUMMARY)
+      verify(mockTracker)
+        .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+      if (SystemInfo.isLinux) {
+        verify(mockTracker)
+          .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LINUX_KVM_INFO)
+      }
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK)
       verify(mockTracker).trackWizardFinished(SetupWizardEvent.CompletionStatus.FINISHED)
     }
 
@@ -823,6 +844,26 @@ class WelcomeScreenWizardTest {
     }
   }
 
+  @Test
+  fun usageMetricsTracked_bothForwardAndBackwardsNavigationTracked() {
+    val mockTracker: FirstRunWizardTracker = mock()
+    val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL, tracker = mockTracker)
+    navigateToSdkComponentsStep(fakeUi)
+
+    val backButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Previous") })
+    backButton.doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    inOrder(mockTracker).apply {
+      verify(mockTracker).trackWizardStarted()
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.WELCOME)
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE)
+      verify(mockTracker)
+        .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.SDK_COMPONENTS)
+      verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE)
+    }
+  }
+
   private fun getExistingSdkPath(): File {
     return AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()!!
   }
@@ -859,8 +900,6 @@ class WelcomeScreenWizardTest {
         )
 
     Disposer.register(projectRule.testRootDisposable, welcomeScreen)
-    welcomeScreen
-      .welcomePanel // Need to access the welcome panel to ensure the wizard is initialised
 
     return welcomeScreen
   }

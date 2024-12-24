@@ -68,7 +68,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
         createKey(String.class),
         mode,
         new ObjectValueProperty<>(sdkHandler),
-        new LicenseAgreementStep(getTestRootDisposable(), ArrayList::new, () -> sdkHandler),
+        new LicenseAgreementStep(getTestRootDisposable(), ArrayList::new, () -> sdkHandler, mock()),
         getTestRootDisposable(),
         mock()
       ), data, isComponentsStepVisible

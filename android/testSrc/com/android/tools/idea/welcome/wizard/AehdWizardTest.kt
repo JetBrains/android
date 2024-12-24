@@ -232,6 +232,11 @@ class AehdWizardTest {
 
       inOrder(mockTracker).apply {
         verify(mockTracker).trackWizardStarted()
+        verify(mockTracker)
+          .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.AEHD_INSTALL_INFO)
+        verify(mockTracker)
+          .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+        verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK)
         verify(mockTracker).trackWizardFinished(SetupWizardEvent.CompletionStatus.FINISHED)
       }
 

@@ -69,7 +69,7 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addPath(new SingleStepPath(new FirstRunWelcomeStep(getSdkExists(initialSdkLocation))));
+      addPath(new SingleStepPath(new FirstRunWelcomeStep(getSdkExists(initialSdkLocation), myTracker)));
       if (initialSdkLocation.getPath().isEmpty()) {
         // We don't have a default path specified, have to do custom install.
         myState.put(KEY_CUSTOM_INSTALL, true);
@@ -79,7 +79,7 @@ public class FirstRunWizard extends DynamicWizard {
       }
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
-      addPath(new SingleStepPath(new MissingSdkAlertStep()));
+      addPath(new SingleStepPath(new MissingSdkAlertStep(myTracker)));
     }
 
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
@@ -119,7 +119,7 @@ public class FirstRunWizard extends DynamicWizard {
       return;
     }
 
-    addPath(new SingleStepPath(new LinuxKvmInfoStep()));
+    addPath(new SingleStepPath(new LinuxKvmInfoStep(myTracker)));
   }
 
   @Override

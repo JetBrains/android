@@ -116,12 +116,12 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   @Override
   public JComponent getWelcomePanel() {
+    myTracker.trackWizardStarted();
+
     if (myWizard == null) {
       setupWizard();
     }
     assert myWizard != null;
-
-    myTracker.trackWizardStarted();
 
     return this;
   }

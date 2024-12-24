@@ -22,14 +22,17 @@ import static com.android.tools.idea.welcome.wizard.InstallSummaryStep.getSdkFol
 import static com.android.tools.idea.welcome.wizard.InstallSummaryStep.getSetupTypeSection;
 
 import com.android.repository.api.RemotePackage;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.Section;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -45,8 +48,9 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
 
   public InstallSummaryStep(Key<Boolean> keyCustomInstall,
                             Key<String> keySdkInstallLocation,
-                            Supplier<? extends Collection<RemotePackage>> packagesProvider) {
-    super("Verify Settings");
+                            Supplier<? extends Collection<RemotePackage>> packagesProvider,
+                            @NotNull FirstRunWizardTracker tracker) {
+    super("Verify Settings", tracker);
     myKeyCustomInstall = keyCustomInstall;
     myKeySdkInstallLocation = keySdkInstallLocation;
     myPackagesProvider = packagesProvider;
@@ -59,6 +63,11 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     super.onEnterStep();
     generateSummary();
     invokeUpdate(null);
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SUMMARY;
   }
 
   @Override

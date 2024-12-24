@@ -90,8 +90,12 @@ class AehdModelWizard(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
-      modelWizardBuilder.addStep(LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location)) {
-        resolvePackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode)
+      val packagesToInstallSupplier = { resolvePackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode) }
+      modelWizardBuilder.addStep(object : LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location), packagesToInstallSupplier) {
+        override fun onShowing() {
+          super.onShowing()
+          tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+        }
       })
     }
 
@@ -121,10 +125,10 @@ class AehdModelWizard(
 
   private fun getInstallationStep(installationIntention: AehdSdkComponentTreeNode.InstallationIntention): ModelWizardStep.WithoutModel {
     return when (installationIntention) {
-      AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL -> AehdUninstallInfoStep()
+      AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL -> AehdUninstallInfoStep(tracker)
       AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
       AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES,
-      AehdSdkComponentTreeNode.InstallationIntention.CONFIGURE_ONLY -> AehdInstallInfoStep()
+      AehdSdkComponentTreeNode.InstallationIntention.CONFIGURE_ONLY -> AehdInstallInfoStep(tracker)
     }
   }
 
@@ -159,6 +163,11 @@ class AehdModelWizard(
     override fun canGoForward(): ObservableBool = isSuccessfullyCompleted.and(super.canGoForward())
 
     override fun canGoBack(): Boolean = false
+
+    override fun onShowing() {
+      super.onShowing()
+      tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK)
+    }
 
     override fun execute() {
       isSuccessfullyCompleted.set(false)

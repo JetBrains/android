@@ -460,6 +460,8 @@ public final class ModelWizard implements Disposable {
     myContentPanel.revalidate();
     myContentPanel.repaint();
 
+    step.onShowing();
+
     JComponent focusedComponent = step.getPreferredFocusComponent();
     if (focusedComponent != null) {
       IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(

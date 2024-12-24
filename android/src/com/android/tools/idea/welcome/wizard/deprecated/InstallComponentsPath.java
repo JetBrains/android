@@ -160,7 +160,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       Collection<RemotePackage> remotePackages = supplier.get();
       return remotePackages == null ? null : remotePackages.stream().map(it -> it.getPath()).collect(Collectors.toList());
     };
-    myLicenseAgreementStep = new LicenseAgreementStep(myWizard.getDisposable(), installRequests, myLocalHandlerProperty::get);
+    myLicenseAgreementStep = new LicenseAgreementStep(myWizard.getDisposable(), installRequests, myLocalHandlerProperty::get, myTracker);
 
     myComponentsStep = new SdkComponentsStep(
       getProject(),
@@ -176,7 +176,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     addStep(myComponentsStep);
 
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier, myTracker));
       addStep(myLicenseAgreementStep);
     }
   }

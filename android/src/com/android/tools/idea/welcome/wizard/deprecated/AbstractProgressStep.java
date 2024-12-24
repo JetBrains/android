@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.annotations.concurrency.AnyThread;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -39,8 +40,11 @@ public abstract class AbstractProgressStep extends FirstRunWizardStep implements
   private final ProgressStepForm myForm;
   private ProgressIndicator myProgressIndicator;
 
-  public AbstractProgressStep(@NotNull Disposable parentDisposable, @NotNull String name) {
-    super(name);
+  public AbstractProgressStep(
+    @NotNull Disposable parentDisposable,
+    @NotNull String name,
+    @NotNull FirstRunWizardTracker tracker) {
+    super(name, tracker);
     myForm = new ProgressStepForm();
     setComponent(myForm.getRoot());
     Disposer.register(parentDisposable, myForm);

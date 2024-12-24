@@ -16,13 +16,15 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** Step to show a message that the SDK is missing. */
-class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
+class MissingSdkAlertStep(private val tracker: FirstRunWizardTracker) :
+  ModelWizardStep.WithoutModel("Missing SDK") {
   private val panel = createPanel()
 
   override fun getComponent(): JComponent = panel
@@ -39,5 +41,10 @@ class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
       )
       return panel
     }
+  }
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.MISSING_SDK_ALERT)
   }
 }

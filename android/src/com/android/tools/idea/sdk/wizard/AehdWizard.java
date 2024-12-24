@@ -108,19 +108,17 @@ public class AehdWizard extends DynamicWizard {
     @NotNull private DynamicWizardHost myHost;
     @NotNull private StudioLoggerProgressIndicator myProgressIndicator;
     @NotNull private final AehdWizardController myAehdWizardController;
-    @NotNull private final FirstRunWizardTracker myTracker;
 
     SetupProgressStep(@NotNull Disposable parentDisposable,
                       @NotNull AehdSdkComponentTreeNode aehdSdkComponentTreeNode,
                       @NotNull DynamicWizardHost host,
                       @NotNull AehdWizardController aehdWizardController,
                       @NotNull FirstRunWizardTracker tracker) {
-      super(parentDisposable, "Invoking installer");
+      super(parentDisposable, "Invoking installer", tracker);
       myAehdSdkComponentTreeNode = aehdSdkComponentTreeNode;
       myHost = host;
       myProgressIndicator = new StudioLoggerProgressIndicator(getClass());
       myAehdWizardController = aehdWizardController;
-      myTracker = tracker;
     }
 
     @Override
@@ -163,6 +161,11 @@ public class AehdWizard extends DynamicWizard {
     public boolean canGoPrevious() {
       return false;
     }
+
+    @Override
+    protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+      return SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK;
+    }
   }
 
   private class AehdPath extends DynamicWizardPath {
@@ -179,7 +182,7 @@ public class AehdWizard extends DynamicWizard {
       if (myInstallationIntention != AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL) {
         addStep(
           myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myAehdSdkComponentTreeNode.getRequiredSdkPackages(),
-                                                            AndroidSdks.getInstance()::tryToChooseSdkHandler)
+                                                            AndroidSdks.getInstance()::tryToChooseSdkHandler, myTracker)
         );
       }
       mySetupProgressStep = new SetupProgressStep(
@@ -211,8 +214,8 @@ public class AehdWizard extends DynamicWizard {
 
     private DynamicWizardStep getInfoStep(AehdSdkComponentTreeNode.InstallationIntention installationIntention) {
       return switch (installationIntention) {
-        case UNINSTALL -> new AehdUninstallInfoStep();
-        case INSTALL_WITH_UPDATES, INSTALL_WITHOUT_UPDATES, CONFIGURE_ONLY -> new AehdInstallInfoStep();
+        case UNINSTALL -> new AehdUninstallInfoStep(myTracker);
+        case INSTALL_WITH_UPDATES, INSTALL_WITHOUT_UPDATES, CONFIGURE_ONLY -> new AehdInstallInfoStep(myTracker);
       };
     }
   }
