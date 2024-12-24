@@ -24,8 +24,8 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
-import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -50,17 +50,17 @@ public class FirstRunWizard extends DynamicWizard {
   @NotNull private final FirstRunWizardMode myMode;
 
   private final AtomicBoolean myIsShowingProgressStep = new AtomicBoolean(false);
-  private final @NotNull SdkComponentInstallerProvider mySdkComponentInstallerProvider;
+  private final @NotNull SdkComponentInstaller mySdkComponentInstaller;
   private final @NotNull FirstRunWizardTracker myTracker;
   private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
                         @NotNull FirstRunWizardMode mode,
-                        @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
+                        @NotNull SdkComponentInstaller sdkComponentInstaller,
                         @NotNull FirstRunWizardTracker tracker) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
-    mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
+    mySdkComponentInstaller = sdkComponentInstaller;
     myTracker = tracker;
     setTitle(WIZARD_TITLE);
   }
@@ -83,7 +83,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
 
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, mySdkComponentInstallerProvider, true, myTracker);
+    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, mySdkComponentInstaller, true, myTracker);
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 

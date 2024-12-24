@@ -26,14 +26,22 @@ import com.android.repository.impl.installer.BasicInstallerFactory
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.ThrottledProgressWrapper
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
+import com.android.tools.idea.ui.ApplicationUtils
+import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
+import com.google.common.base.Function
+import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.application.ModalityState
+import java.io.File
 
 /** Installs SDK components. */
-class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
+class SdkComponentInstaller {
   @Throws(PackageResolutionException::class)
   fun getPackagesToInstall(
-    components: Iterable<InstallableSdkComponentTreeNode>
+    sdkHandler: AndroidSdkHandler,
+    components: Iterable<InstallableSdkComponentTreeNode>,
   ): List<RemotePackage> {
     // TODO: Prompt about connection in handoff case?
     val progress = StudioLoggerProgressIndicator(javaClass)
@@ -42,8 +50,54 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     return SdkQuickfixUtils.resolve(requests, sdkManager.packages).map { it.remote!! }
   }
 
+  /**
+   * Installs all components in the `componentTree` that are configured to be installed. Once the
+   * components have been installed, the SDK path and installer timestamp are stored in preferences.
+   *
+   * @param installableSdkComponents The SDK components to install
+   * @param installContext Used to track installation progress
+   * @param installerTimestamp Stored in preferences when installation is complete
+   * @param modalityState Used when updating preferences
+   * @param localHandler Used when running the `configure` step after components are installed
+   * @param destination The directory to save the SDK components in
+   */
+  @Throws(WizardException::class)
+  fun installComponents(
+    installableSdkComponents: Collection<InstallableSdkComponentTreeNode>,
+    installContext: InstallContext,
+    installerTimestamp: String?,
+    modalityState: ModalityState,
+    localHandler: AndroidSdkHandler,
+    destination: File,
+  ) {
+    if (installableSdkComponents.isEmpty()) {
+      installContext.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT)
+    }
+
+    val INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0
+    val install =
+      InstallSdkComponentsOperation(
+        installContext,
+        localHandler,
+        installableSdkComponents,
+        this,
+        INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE,
+      )
+
+    try {
+      install
+        .then(SetPreference(installerTimestamp, modalityState))
+        .then(ConfigureComponents(installContext, installableSdkComponents, localHandler))
+        .then(CheckSdkOperation(installContext))
+        .execute(destination)
+    } catch (e: InstallationCancelledException) {
+      installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT)
+    }
+  }
+
   @Slow
   fun installPackages(
+    sdkHandler: AndroidSdkHandler,
     packages: List<RemotePackage>,
     downloader: Downloader,
     progress: ProgressIndicator,
@@ -76,7 +130,11 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
   }
 
   @Slow
-  fun ensureSdkPackagesUninstalled(packageNames: Collection<String>, progress: ProgressIndicator) {
+  fun ensureSdkPackagesUninstalled(
+    sdkHandler: AndroidSdkHandler,
+    packageNames: Collection<String>,
+    progress: ProgressIndicator,
+  ) {
     val sdkManager = sdkHandler.getSdkManager(progress)
     val localPackages = sdkManager.packages.localPackages
     val packagesToUninstall = mutableListOf<LocalPackage>()
@@ -124,5 +182,32 @@ class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
       null,
     )
     progress.fraction = 1.0
+  }
+
+  private class SetPreference(
+    private val myInstallerTimestamp: String?,
+    private val myModalityState: ModalityState,
+  ) : Function<File, File> {
+    override fun apply(input: File): File {
+      ApplicationUtils.invokeWriteActionAndWait(myModalityState) {
+        IdeSdks.getInstance().setAndroidSdkPath(input)
+        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp)
+      }
+
+      return input
+    }
+  }
+
+  private class ConfigureComponents(
+    private val myInstallContext: InstallContext,
+    private val mySelectedComponents: Collection<InstallableSdkComponentTreeNode>,
+    private val mySdkHandler: AndroidSdkHandler,
+  ) : Function<File, File> {
+    override fun apply(input: File): File {
+      for (component in mySelectedComponents) {
+        component.configure(myInstallContext, mySdkHandler)
+      }
+      return input
+    }
   }
 }

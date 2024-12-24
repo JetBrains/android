@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.wizard.deprecated.CancelableWelcomeWizard
 import com.android.tools.idea.welcome.wizard.deprecated.WelcomeScreenWindowListener
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -50,7 +51,7 @@ import org.jetbrains.kotlin.idea.util.application.isHeadlessEnvironment
  */
 class StudioFirstRunWelcomeScreen(
   private val mode: FirstRunWizardMode,
-  private val sdkComponentInstallerProvider: SdkComponentInstallerProvider,
+  private val sdkComponentInstaller: SdkComponentInstaller,
   private val tracker: FirstRunWizardTracker,
 ) : WelcomeScreen {
   private lateinit var modelWizard: ModelWizard
@@ -132,7 +133,7 @@ class StudioFirstRunWelcomeScreen(
         mode,
         initialSdkLocation.toPath(),
         installUpdates = true,
-        sdkComponentInstallerProvider,
+        sdkComponentInstaller,
         tracker,
       )
     modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, tracker)

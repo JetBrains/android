@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode
 import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -71,7 +72,7 @@ class SdkComponentsStepTest {
     licenseAgreementStep = mock(LicenseAgreementStep::class.java)
     mode = FirstRunWizardMode.NEW_INSTALL
     sdkPath = FileUtil.createTempDirectory("sdk", null).toPath()
-    model = spy(FirstRunWizardModel(mode, sdkPath, true, SdkComponentInstallerProvider(), mock()))
+    model = spy(FirstRunWizardModel(mode, sdkPath, true, SdkComponentInstaller(), mock()))
 
     val root =
       SdkComponentCategoryTreeNode(

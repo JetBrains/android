@@ -17,8 +17,8 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
-import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -75,7 +75,7 @@ import org.jetbrains.annotations.Nullable;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost, CancelableWelcomeWizard {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final SdkComponentInstallerProvider mySdkComponentInstallerProvider;
+  @NotNull private final SdkComponentInstaller mySdkComponentInstaller;
   @NotNull private final FirstRunWizardTracker myTracker;
 
   private Action myCancelAction = new CancelAction();
@@ -97,11 +97,11 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
-  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode, @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode, @NotNull SdkComponentInstaller sdkComponentInstaller,
                             @NotNull FirstRunWizardTracker tracker) {
     super(new BorderLayout());
     myMode = mode;
-    mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
+    mySdkComponentInstaller = sdkComponentInstaller;
     myTracker = tracker;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
@@ -128,7 +128,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   private void setupWizard() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      DynamicWizard wizard = new FirstRunWizard(this, myMode, mySdkComponentInstallerProvider, myTracker);
+      DynamicWizard wizard = new FirstRunWizard(this, myMode, mySdkComponentInstaller, myTracker);
       wizard.init();
       add(wizard.getContentPane(), BorderLayout.CENTER);
     }, ModalityState.any());

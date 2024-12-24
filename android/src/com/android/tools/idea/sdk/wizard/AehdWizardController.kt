@@ -54,7 +54,7 @@ class AehdWizardController {
         RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
     aehdSdkComponentTreeNode.updateState(sdkHandler)
 
-    val sdkComponentInstaller = SdkComponentInstaller(sdkHandler)
+    val sdkComponentInstaller = SdkComponentInstaller()
     val selectedComponents: Collection<InstallableSdkComponentTreeNode> = Lists.newArrayList(aehdSdkComponentTreeNode)
 
     var configureAehdProgressRatio = 1.0
@@ -70,7 +70,7 @@ class AehdWizardController {
     val opChain: InstallOperation<File, File>
     if (aehdSdkComponentTreeNode.installationIntention.isInstall()) {
       val install =
-        InstallSdkComponentsOperation(installContext, selectedComponents, sdkComponentInstaller, 0.5)
+        InstallSdkComponentsOperation(installContext, sdkHandler, selectedComponents, sdkComponentInstaller, 0.5)
       opChain = install.then(configureAehdOperation)
     }
     else {
@@ -90,7 +90,7 @@ class AehdWizardController {
       if (!aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted && aehdSdkComponentTreeNode.installationIntention != AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL) {
         // The intention was to install AEHD, but the installation failed. Ensure we don't leave the SDK package behind
         sdkHandler.getSdkManager(progressIndicator).reloadLocalIfNeeded(progressIndicator)
-        sdkComponentInstaller.ensureSdkPackagesUninstalled(aehdSdkComponentTreeNode.requiredSdkPackages, progressIndicator)
+        sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progressIndicator)
       }
     }
     installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT)
@@ -104,10 +104,10 @@ class AehdWizardController {
     if (installationIntention.isInstall()) {
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val sdkComponentInstaller = SdkComponentInstaller(sdkHandler)
+        val sdkComponentInstaller = SdkComponentInstaller()
         val progress: ProgressIndicator = StudioLoggerProgressIndicator(aClass)
         sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress)
-        sdkComponentInstaller.ensureSdkPackagesUninstalled(aehdSdkComponentTreeNode.requiredSdkPackages, progress)
+        sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progress)
       }
       catch (e: Exception) {
         Messages.showErrorDialog(sdkPackageCleanupFailedMessage(), "Cleanup Error")

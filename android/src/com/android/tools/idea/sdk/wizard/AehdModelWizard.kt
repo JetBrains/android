@@ -134,8 +134,8 @@ class AehdModelWizard(
 
   private fun resolvePackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode): Collection<RemotePackage> {
     try {
-      val componentInstaller = SdkComponentInstaller(sdkHandler)
-      return componentInstaller.getPackagesToInstall(listOf(aehdSdkComponentTreeNode))
+      val componentInstaller = SdkComponentInstaller()
+      return componentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
     }
     catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)

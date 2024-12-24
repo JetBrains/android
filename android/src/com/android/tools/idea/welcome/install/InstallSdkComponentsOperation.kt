@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.repository.api.RemotePackage
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
 import com.android.tools.idea.util.formatElementListString
@@ -26,6 +27,7 @@ import java.io.File
 /** Install or updates SDK components if needed. */
 class InstallSdkComponentsOperation(
   context: InstallContext,
+  private val sdkHandler: AndroidSdkHandler,
   private val components: Collection<InstallableSdkComponentTreeNode>,
   private val sdkComponentInstaller: SdkComponentInstaller,
   progressRatio: Double,
@@ -35,20 +37,20 @@ class InstallSdkComponentsOperation(
     indicator.text = "Checking for updated SDK components"
     var packages: List<RemotePackage> =
       try {
-        sdkComponentInstaller.getPackagesToInstall(components)
+        sdkComponentInstaller.getPackagesToInstall(sdkHandler, components)
       } catch (e: PackageResolutionException) {
         throw WizardException("Failed to determine required packages", e)
       }
     while (packages.isNotEmpty()) {
       indicator.fraction = 0.0
       val logger = SdkManagerProgressIndicatorIntegration(indicator, context)
-      sdkComponentInstaller.installPackages(packages, StudioDownloader(), logger)
+      sdkComponentInstaller.installPackages(sdkHandler, packages, StudioDownloader(), logger)
       // If we didn't set remote information on the installer we assume we weren't expecting
       // updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
       packages =
         try {
-          sdkComponentInstaller.getPackagesToInstall(components)
+          sdkComponentInstaller.getPackagesToInstall(sdkHandler, components)
         } catch (e: PackageResolutionException) {
           throw WizardException("Failed to determine required packages", e)
         }

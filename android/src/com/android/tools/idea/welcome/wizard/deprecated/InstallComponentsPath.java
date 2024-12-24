@@ -27,34 +27,25 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
-import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
-import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.AndroidSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.CheckSdkOperation;
 import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
 import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallSdkComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
-import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
-import com.google.common.base.Function;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -84,7 +75,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private SdkComponentTreeNode myComponentTree;
   private final AbstractProgressStep myProgressStep;
-  @NotNull private final SdkComponentInstallerProvider mySdkComponentInstallerProvider;
+  @NotNull private final SdkComponentInstaller mySdkComponentInstaller;
   private final boolean myInstallUpdates;
   private SdkComponentsStep myComponentsStep;
   @Nullable private LicenseAgreementStep myLicenseAgreementStep;
@@ -92,7 +83,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
                                @NotNull AbstractProgressStep progressStep,
-                               @NotNull SdkComponentInstallerProvider sdkComponentInstallerProvider,
+                               @NotNull SdkComponentInstaller sdkComponentInstaller,
                                boolean installUpdates,
                                @NotNull FirstRunWizardTracker tracker) {
     myMode = mode;
@@ -101,7 +92,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandlerProperty = new ObjectValueProperty<>(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkLocation.toPath()));
 
     myProgressStep = progressStep;
-    mySdkComponentInstallerProvider = sdkComponentInstallerProvider;
+    mySdkComponentInstaller = sdkComponentInstaller;
     myInstallUpdates = installUpdates;
     myTracker = tracker;
   }
@@ -149,7 +140,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Supplier<Collection<RemotePackage>> supplier = () -> {
       Iterable<InstallableSdkComponentTreeNode> components = myComponentTree.getChildrenToInstall();
       try {
-        return mySdkComponentInstallerProvider.getComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
+        return mySdkComponentInstaller.getPackagesToInstall(myLocalHandlerProperty.get(), components);
       }
       catch (SdkQuickfixUtils.PackageResolutionException e) {
         Logger.getInstance(InstallComponentsPath.class).warn(e);
@@ -197,10 +188,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myTracker.trackSdkComponentsToInstall(componentsToInstall.stream().map(InstallableSdkComponentTreeNode::sdkComponentsMetricKind).toList());
 
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    installComponents(
+    mySdkComponentInstaller.installComponents(
       componentsToInstall,
       new InstallContext(createTempDir(), myProgressStep),
-      mySdkComponentInstallerProvider.getComponentInstaller(localHandler),
       myMode.getInstallerTimestamp(),
       ModalityState.stateForComponent(myWizard.getContentPane()),
       localHandler,
@@ -270,48 +260,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return SdkLocationUtils.isWritable(Paths.get(path));
   }
 
-  /**
-   * Installs all components in the `componentTree` that are configured to be installed.
-   * Once the components have been installed, the SDK path and installer timestamp are
-   * stored in preferences.
-   *
-   * @param installableSdkComponents The SDK components to install
-   * @param installContext Used to track installation progress
-   * @param componentInstaller Used to install the SDK components
-   * @param installerTimestamp Stored in preferences when installation is complete
-   * @param modalityState Used when updating preferences
-   * @param localHandler Used when running the `configure` step after components are installed
-   * @param destination The directory to save the SDK components in
-   */
-  public static void installComponents(
-    Collection<? extends InstallableSdkComponentTreeNode> installableSdkComponents,
-    InstallContext installContext,
-    SdkComponentInstaller componentInstaller,
-    @Nullable String installerTimestamp,
-    ModalityState modalityState,
-    AndroidSdkHandler localHandler,
-    File destination
-  ) throws WizardException {
-    if (installableSdkComponents.isEmpty()) {
-      installContext.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
-    }
-
-    final double INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0;
-    InstallSdkComponentsOperation install =
-      new InstallSdkComponentsOperation(installContext, installableSdkComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
-
-    try {
-      install
-        .then(new SetPreference(installerTimestamp, modalityState))
-        .then(new ConfigureComponents(installContext, installableSdkComponents, localHandler))
-        .then(new CheckSdkOperation(installContext))
-        .execute(destination);
-    }
-    catch (InstallationCancelledException e) {
-      installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-    }
-  }
-
   public static File createTempDir() throws WizardException {
     File tempDirectory;
     try {
@@ -321,50 +269,5 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       throw new WizardException("Unable to create temporary folder: " + e.getMessage(), e);
     }
     return tempDirectory;
-  }
-
-  private static class SetPreference implements Function<File, File> {
-    @NotNull private final ModalityState myModalityState;
-    @Nullable private final String myInstallerTimestamp;
-
-    SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
-      myInstallerTimestamp = installerTimestamp;
-      myModalityState = modalityState;
-    }
-
-    @Override
-    public File apply(@Nullable final File input) {
-      assert input != null;
-
-      ApplicationUtils.invokeWriteActionAndWait(myModalityState, () -> {
-        IdeSdks.getInstance().setAndroidSdkPath(input);
-        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
-      });
-
-      return input;
-    }
-  }
-
-  private static class ConfigureComponents implements Function<File, File> {
-    private final InstallContext myInstallContext;
-    private final Collection<? extends InstallableSdkComponentTreeNode> mySelectedComponents;
-    private final AndroidSdkHandler mySdkHandler;
-
-    ConfigureComponents(InstallContext installContext,
-                        Collection<? extends InstallableSdkComponentTreeNode> selectedComponents,
-                        AndroidSdkHandler sdkHandler) {
-      myInstallContext = installContext;
-      mySelectedComponents = selectedComponents;
-      mySdkHandler = sdkHandler;
-    }
-
-    @Override
-    public File apply(@Nullable File input) {
-      assert input != null;
-      for (InstallableSdkComponentTreeNode component : mySelectedComponents) {
-        component.configure(myInstallContext, mySdkHandler);
-      }
-      return input;
-    }
   }
 }

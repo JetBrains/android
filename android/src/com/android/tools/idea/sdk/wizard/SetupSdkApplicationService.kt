@@ -19,9 +19,9 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
-import com.android.tools.idea.welcome.wizard.SdkComponentInstallerProvider
 import com.android.tools.idea.welcome.wizard.FirstRunWizardModel
 import com.android.tools.idea.welcome.wizard.InstallComponentsProgressStep
 import com.android.tools.idea.welcome.wizard.InstallSummaryStep
@@ -95,7 +95,7 @@ class SetupSdkApplicationService : Disposable {
               FirstRunWizardMode.MISSING_SDK,
               sdkPath,
               progressStep,
-              SdkComponentInstallerProvider(),
+              SdkComponentInstaller(),
               false,
               tracker
             )
@@ -140,7 +140,7 @@ class SetupSdkApplicationService : Disposable {
   }
 
   private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?, tracker: FirstRunWizardTracker) {
-    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, SdkComponentInstallerProvider(), tracker)
+    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, SdkComponentInstaller(), tracker)
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
