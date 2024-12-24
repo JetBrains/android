@@ -28,48 +28,58 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.project.Project
-import com.intellij.util.lang.JavaVersion
 
 class NewLibraryModuleModel(
   project: Project,
   moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(
-  name = "lib",
-  commandName = "New Library Module",
-  isLibrary = true,
-  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent,
-  wizardContext = NEW_MODULE
-) {
-  @JvmField
-  val className = StringValueProperty("MyClass")
+  projectSyncInvoker: ProjectSyncInvoker,
+) :
+  ModuleModel(
+    name = "lib",
+    commandName = "New Library Module",
+    isLibrary = true,
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+    moduleParent = moduleParent,
+    wizardContext = NEW_MODULE,
+  ) {
+  @JvmField val className = StringValueProperty("MyClass")
 
   // TODO(qumeric): will it fail if there are no SDKs installed?
-  override val androidSdkInfo = OptionalValueProperty(
-    AndroidVersionsInfo().apply { loadLocalVersions() }
-      .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
-      .first() // we don't care which one do we use, we just have to pass something, it is not going to be used
-  )
+  override val androidSdkInfo =
+    OptionalValueProperty(
+      AndroidVersionsInfo()
+        .apply { loadLocalVersions() }
+        .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
+        .first() // we don't care which one do we use, we just have to pass something, it is not
+                 // going to be used
+    )
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = RenderLoggingEvent.JAVA_LIBRARY
 
   override fun getParamsToLog(): String {
-    return super.getParamsToLog() + """
+    return super.getParamsToLog() +
+      """
       |
       |[Java or Kotlin Library params]
       |Class name: ${className.get()}
-    """.trimMargin()
+    """
+        .trimMargin()
   }
 
-  override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = { td: TemplateData ->
-      generatePureLibrary(moduleData = td as ModuleTemplateData, className = className.get(), useGradleKts = useGradleKts.get(),
-                          useVersionCatalog = useVersionCatalog.get())
+  override val renderer =
+    object : ModuleTemplateRenderer() {
+      override val recipe: Recipe
+        get() = { td: TemplateData ->
+          generatePureLibrary(
+            moduleData = td as ModuleTemplateData,
+            className = className.get(),
+            useGradleKts = useGradleKts.get(),
+            useVersionCatalog = useVersionCatalog.get(),
+          )
+        }
     }
-  }
 }
