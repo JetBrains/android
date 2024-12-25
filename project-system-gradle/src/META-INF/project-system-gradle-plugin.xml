@@ -254,7 +254,6 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <externallyHandledExtensions implementation="com.android.tools.idea.gradle.catalog.GradleDslVersionCatalogHandler"/>
     <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
