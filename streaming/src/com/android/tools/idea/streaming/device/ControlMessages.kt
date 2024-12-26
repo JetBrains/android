@@ -501,7 +501,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
       stream.writeInt(display.width)
       stream.writeInt(display.height)
       stream.writeInt(display.orientation)
-      stream.writeInt(display.type.ordinal)
+      stream.writeEnum(display.type)
     }
   }
 
