@@ -17,7 +17,6 @@ package com.android.tools.asdriver.tests;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class Emulator implements AutoCloseable {
@@ -40,13 +38,9 @@ public class Emulator implements AutoCloseable {
   private final Process process;
   private final String name;
 
-  public static void createEmulator(TestFileSystem fileSystem, String name, Path systemImage, AndroidSdk sdk) throws IOException {
+  public static void createEmulator(TestFileSystem fileSystem, String name, Path systemImage) throws IOException {
     Path avdHome = getAvdHome(fileSystem);
     Files.createDirectories(avdHome);
-
-    String sysImage = getSystemImagePath(systemImage, sdk);
-    FileUtils.moveDirectory(systemImage.toFile(),new File(sysImage));
-    systemImage = new File(sysImage).toPath();
 
     Path sourceProperties = systemImage.resolve("source.properties");
     Matcher api = getString(sourceProperties, "AndroidVersion.ApiLevel=(.*)");
@@ -215,18 +209,6 @@ public class Emulator implements AutoCloseable {
 
   private static Path getAvdHome(TestFileSystem fileSystem) {
     return fileSystem.getAndroidHome().resolve("avd");
-  }
-
-  private static String getSystemImagePath(Path systemImage, AndroidSdk sdk) {
-    String sysPath = systemImage.toString();
-    String[] path = sysPath.toString().split("/");
-    String image = path[path.length-1];
-    image = image.replace("system_image", "system-images");
-    image = image.replace("_","/");
-    image = image.replace("x86/64", "x86_64");
-    image = image.replace("arm", "arm-v8a");
-
-    return sdk.getSourceDir().resolve(image).toString();
   }
 
   private static Matcher getString(Path file, String regex) throws IOException {
