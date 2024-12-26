@@ -108,7 +108,7 @@ internal class EmulatorToolWindowPanel(
     }
 
   override val description: String
-    get() = "${emulatorId.avdName} ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
+    get() = "$title ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
 
   override val icon: Icon
     get() {
