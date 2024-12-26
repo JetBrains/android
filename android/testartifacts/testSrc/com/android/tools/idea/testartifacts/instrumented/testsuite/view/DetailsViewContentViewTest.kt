@@ -211,6 +211,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
+    assertThat(view.lastSelectedTab).isEqualTo(view.myBenchmarkTab)
   }
 
   @Test

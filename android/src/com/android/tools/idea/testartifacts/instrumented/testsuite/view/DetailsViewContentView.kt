@@ -74,6 +74,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myRetentionTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
+  @VisibleForTesting var lastSelectedTab: TabInfo? = null
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
@@ -81,7 +82,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var myErrorStackTrace = ""
   private var myRetentionSnapshot: File? = null
   private var needsRefreshLogsView: Boolean = true
-  private var lastSelectedTab: TabInfo? = null
 
   init {
     // Create logcat tab.
@@ -200,7 +200,11 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     for (line in benchmarkText.lines) {
       line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
     }
-    myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
+    val benchmarkOutputIsEmpty = benchmarkText.lines.isEmpty()
+    myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
+    if (!benchmarkOutputIsEmpty) {
+      this.lastSelectedTab = myBenchmarkTab
+    }
   }
 
   fun setRetentionInfo(retentionInfo: File?) {
