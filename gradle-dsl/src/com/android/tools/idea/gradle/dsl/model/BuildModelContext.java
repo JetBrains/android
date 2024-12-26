@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.model.settings.FromCatalogResolvedProperty;
 import com.android.tools.idea.gradle.dsl.parser.DependencyManager;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
@@ -292,13 +293,17 @@ public final class BuildModelContext {
       return;
     }
     for (VersionCatalogModel versionCatalogModel : gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
-      String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
-      if (from == null) continue;
-      if (versionCatalogModel.from().getType() == FILES) {
-        checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      FromCatalogResolvedProperty fromProperty = versionCatalogModel.from();
+      if (fromProperty.getType() == FILES) {
+        VirtualFile tomlFile = fromProperty.getValue(GradlePropertyModel.VIRTUAL_FILE_TYPE);
+        checkVersionCatalog(tomlFile, versionCatalogModel.getName())
+          .ifPresent(myVersionCatalogFiles::add);
       }
       else {
-        checkImportedVersionCatalog(versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+        String fromValue = fromProperty.getValue(GradlePropertyModel.STRING_TYPE);
+        if (fromValue == null) continue;
+        checkImportedVersionCatalog(versionCatalogModel.getName())
+          .ifPresent(myVersionCatalogFiles::add);
       }
     }
   }
@@ -309,6 +314,10 @@ public final class BuildModelContext {
     @SystemIndependent String rootPath = getBaseDirPath(getProject()).getPath();
     @SystemIndependent String path = String.join("/", rootPath, fromPath);
     VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
+    return checkVersionCatalog(versionCatalogFile, name);
+  }
+
+  private Optional<GradleVersionCatalogFile> checkVersionCatalog(VirtualFile versionCatalogFile, String name) {
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
   }
@@ -319,8 +328,7 @@ public final class BuildModelContext {
     if (catalogPath != null) {
       VirtualFileSystem fileSystem = StandardFileSystems.local();
       VirtualFile versionCatalogFile = fileSystem.findFileByPath(catalogPath);
-      if (versionCatalogFile == null) return Optional.empty();
-      return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
+      return checkVersionCatalog(versionCatalogFile, name);
     }
 
     return Optional.empty();

@@ -61,6 +61,7 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
 
   // The following are TypeReferences used in calls to getValue and getRawValue.
   TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
+  TypeReference<VirtualFile> VIRTUAL_FILE_TYPE = new TypeReference<>() {};
   TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
   TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<BigDecimal>() {};
   TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
