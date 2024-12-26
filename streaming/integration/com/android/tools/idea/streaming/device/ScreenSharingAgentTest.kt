@@ -69,7 +69,10 @@ class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 /**
  * Tests the functionality of the Screen Sharing Agent.
  *
- * This works by starting an emulator and then creating a [DeviceView] that starts screen sharing on the emulator.
+ * Works by starting an emulator and then creating a [DeviceView] that starts screen sharing on the emulator.
+ *
+ * To debug this test in IntelliJ, run `bazel run //tools/adt/idea/streaming:ScreenSharingAgentTest_linux`
+ * first to download the system image into `bazel-out/../../../external`.
  */
 @RunWith(JUnit4::class)
 @RunsInEdt
