@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_STYLE;
@@ -45,7 +46,6 @@ import static com.android.SdkConstants.ATTR_TAB_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_THEME;
-import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
@@ -169,7 +169,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
       .filter(it -> !(it instanceof TemporarySceneComponent))
       .collect(Collectors.toList());
 
-    if (children.size() == 0) {
+    if (children.isEmpty()) {
       retList.add(new ViewGroupPlaceholder(component));
     }
     else {

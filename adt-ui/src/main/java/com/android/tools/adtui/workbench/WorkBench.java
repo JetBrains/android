@@ -556,7 +556,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
     StringBuilder builder = new StringBuilder();
     for (AttachedToolWindow tool : tools) {
-      if (builder.length() > 0) {
+      if (!builder.isEmpty()) {
         builder.append(",");
       }
       builder.append(tool.getToolName());

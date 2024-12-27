@@ -60,7 +60,7 @@ public class AaptAttrAttributeSnapshot extends AttributeSnapshot {
     }
 
     List<RenderXmlTag> subTags = tag.getSubTags();
-    if (subTags.size() == 0) {
+    if (subTags.isEmpty()) {
       return null;
     }
 

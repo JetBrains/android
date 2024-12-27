@@ -180,7 +180,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
   private String getDeviceName() {
     StringBuilder name = new StringBuilder(20);
     name.append(getDeviceManufacturer());
-    if (name.length() > 0) {
+    if (!name.isEmpty()) {
       name.append(' ');
     }
     name.append(getDeviceModel());

@@ -1,3 +1,4 @@
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.ide.common.signing.KeystoreHelper;
@@ -121,7 +122,7 @@ public abstract class NewKeyForm {
     if (textField != null) {
       String value = textField.getText().trim();
       if (!value.isEmpty()) {
-        if (builder.length() > 0) {
+        if (!builder.isEmpty()) {
           builder.append(",");
         }
         builder.append(prefix);
@@ -175,16 +176,16 @@ public abstract class NewKeyForm {
     normalizeBuilder(outBuilder);
 
     if (createdStore) {
-      if (errorBuilder.length() > 0) {
+      if (!errorBuilder.isEmpty()) {
         String prefix = AndroidBundle.message("android.create.new.key.error.prefix");
         Messages.showErrorDialog(myContentPanel, prefix + '\n' + errorBuilder.toString());
       }
     }
     else {
-      if (errorBuilder.length() > 0) {
+      if (!errorBuilder.isEmpty()) {
         throw new CommitStepException(errorBuilder.toString());
       }
-      if (outBuilder.length() > 0) {
+      if (!outBuilder.isEmpty()) {
         throw new CommitStepException(outBuilder.toString());
       }
       throw new CommitStepException(AndroidBundle.message("android.cannot.create.new.key.error"));
@@ -247,7 +248,7 @@ public abstract class NewKeyForm {
   }
 
   private static void normalizeBuilder(StringBuilder builder) {
-    if (builder.length() > 0) {
+    if (!builder.isEmpty()) {
       builder.deleteCharAt(builder.length() - 1);
     }
   }

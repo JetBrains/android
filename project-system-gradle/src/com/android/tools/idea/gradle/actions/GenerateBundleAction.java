@@ -56,7 +56,7 @@ public class GenerateBundleAction extends DumbAwareAction {
     Project project = e.getProject();
     if (isProjectBuildWithGradle(project)) {
       List<Module> appModules = GradleProjectSystemUtil.getAppHolderModulesSupportingBundleTask(project);
-      if (appModules.size() > 0) {
+      if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);

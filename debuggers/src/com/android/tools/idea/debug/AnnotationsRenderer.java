@@ -99,7 +99,7 @@ public class AnnotationsRenderer {
     for (Map.Entry<Integer,String> entry : intDef.valuesMap.entrySet()) {
       int key = entry.getKey();
       if ((value & key) != 0) {
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
           sb.append(" | ");
         }
         sb.append(entry.getValue());

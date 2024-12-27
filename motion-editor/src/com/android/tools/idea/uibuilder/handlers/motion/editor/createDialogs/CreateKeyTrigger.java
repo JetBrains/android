@@ -178,7 +178,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
 
     if (comboBox.getSelectedIndex() == 0) {
       String pos = mMainParameter.getText();
-      if (pos.trim().length() == 0 || pos.equals(mPosPrompt)) {
+      if (pos.trim().isEmpty() || pos.equals(mPosPrompt)) {
         showErrorDialog("Must define the position of the view");
         return null;
       }
@@ -192,7 +192,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
       }
     } else {
       String pos = mMainParameter.getText();
-      if (pos.trim().length() == 0 || pos.equals(mPosPrompt)) {
+      if (pos.trim().isEmpty() || pos.equals(mPosPrompt)) {
         showErrorDialog("Must define the id of the colliding view");
         return null;
       }

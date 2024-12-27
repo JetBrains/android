@@ -358,7 +358,7 @@ public class FormScalingUtil {
   private String buildStackString() {
     StringBuilder sb = new StringBuilder();
     for (String text : myStack) {
-      if (sb.length() > 0)
+      if (!sb.isEmpty())
         sb.append(" > ");
       sb.append(text);
     }

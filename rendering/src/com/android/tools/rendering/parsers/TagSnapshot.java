@@ -111,7 +111,7 @@ public class TagSnapshot {
     List<TagSnapshot> children;
     List<RenderXmlTag> subTags = tag.getSubTags();
     boolean hasDeclaredAaptAttrs = false;
-    if (subTags.size() > 0) {
+    if (!subTags.isEmpty()) {
       TagSnapshot last = null;
       children = Lists.newArrayListWithCapacity(subTags.size());
       for (RenderXmlTag subTag : subTags) {

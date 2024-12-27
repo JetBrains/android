@@ -105,12 +105,12 @@ public class ConstraintSet {
     boolean hasCycles = false;
     ArrayList<ConstrainedWidget> remaining = new ArrayList<ConstrainedWidget>(myWidgets);
     Stack<ConstrainedWidget> visited = new Stack<ConstrainedWidget>();
-    while (remaining.size() != 0 && !hasCycles) {
+    while (!remaining.isEmpty() && !hasCycles) {
       hasCycles |= searchCycles(remaining, visited, remaining.get(0), Direction.ORIENTATION_VERTICAL);
     }
     remaining.addAll(myWidgets);
     visited.empty();
-    while (remaining.size() != 0 && !hasCycles) {
+    while (!remaining.isEmpty() && !hasCycles) {
       hasCycles |= searchCycles(remaining, visited, remaining.get(0), Direction.ORIENTATION_HORIZONTAL);
     }
     return hasCycles;
@@ -299,7 +299,7 @@ public class ConstraintSet {
    */
   public void createChains() {
     myChains = new ArrayList<>();
-    if (myChainConnnections.size() == 0) {
+    if (myChainConnnections.isEmpty()) {
       return;
     }
     // Find start of chains

@@ -154,7 +154,7 @@ public final class GroovyDslUtil {
       if (child instanceof GrMethodCallExpression) child.accept(visitor);
       else gradleName.append(child.getText());
     }
-    return (gradleName.length() == 0) ? element.getText() : gradleName.toString();
+    return (gradleName.isEmpty()) ? element.getText() : gradleName.toString();
   }
 
   static void maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
@@ -415,7 +415,7 @@ public final class GroovyDslUtil {
 
     if (currentParent instanceof GradleVersionCatalogFile && context.getDslFile() instanceof GradleScriptFile) {
       externalName.append(((GradleVersionCatalogFile)currentParent).getCatalogName()).append(".");
-      if (resolutionElements.size() > 0 && "libraries".equals(resolutionElements.get(0).getName())) {
+      if (!resolutionElements.isEmpty() && "libraries".equals(resolutionElements.get(0).getName())) {
         resolutionElements.remove(0);
       }
     }
@@ -451,7 +451,7 @@ public final class GroovyDslUtil {
       }
     }
 
-    if (externalName.length() == 0) {
+    if (externalName.isEmpty()) {
       return null;
     }
     else {

@@ -139,7 +139,7 @@ public class AccelAlert extends JPanel {
 
         if (myImageDescription != null) {
           if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
-            if (warningTextBuilder.length() > 0) {
+            if (!warningTextBuilder.isEmpty()) {
               warningTextBuilder.append("<br>");
             }
             warningTextBuilder.append("This API Level is Deprecated<br>");
@@ -147,14 +147,14 @@ public class AccelAlert extends JPanel {
 
           String nonX86ImageWarning = getWarningTextForX86HostsUsingNonX86Image(myImageDescription, CommonMetricsData.getOsArchitecture());
           if (nonX86ImageWarning != null) {
-            if (warningTextBuilder.length() > 0) {
+            if (!warningTextBuilder.isEmpty()) {
               warningTextBuilder.append("<br>");
             }
             warningTextBuilder.append(nonX86ImageWarning).append("<br>");
           }
 
           if (!myImageDescription.hasGoogleApis()) {
-            if (warningTextBuilder.length() > 0) {
+            if (!warningTextBuilder.isEmpty()) {
               warningTextBuilder.append("<br>");
             }
             warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");

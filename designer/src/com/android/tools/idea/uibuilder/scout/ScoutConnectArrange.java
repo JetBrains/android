@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-
-import java.util.List;
-
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutConnect;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.wouldCreateLoop;
+
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import java.util.List;
 
 public class ScoutConnectArrange {
 
@@ -165,7 +164,7 @@ public class ScoutConnectArrange {
   }
 
   public static boolean connectCheck(List<NlComponent> widgets, Scout.Connect test, boolean reverse) {
-    if (widgets.size() == 0) {
+    if (widgets.isEmpty()) {
       return false;
     }
 
