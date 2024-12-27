@@ -45,7 +45,13 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
     BlazeBuildOutputs runBuild(BuildResultHelper buildResultHelper) throws BuildException;
   }
 
+  @FunctionalInterface
+  public interface LegacyBuildFunction {
+    BlazeBuildOutputs.Legacy runBuild(BuildResultHelper buildResultHelper) throws BuildException;
+  }
+
   private final BuildFunction resultsFunction;
+  private final LegacyBuildFunction legacyResultsFunction;
   private BlazeCommand command;
 
   public FakeBlazeCommandRunner() {
@@ -55,11 +61,18 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
             return BlazeBuildOutputs.fromParsedBepOutput(
               BuildResult.SUCCESS, BuildResultParser.getBuildOutput(bepStream, Interners.STRING));
           }
+        },
+        buildResultHelper -> {
+          try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+            return BlazeBuildOutputs.fromParsedBepOutputForLegacy(
+              BuildResult.SUCCESS, BuildResultParser.getBuildOutput(bepStream, Interners.STRING));
+          }
         });
   }
 
-  public FakeBlazeCommandRunner(BuildFunction buildFunction) {
+  public FakeBlazeCommandRunner(BuildFunction buildFunction, LegacyBuildFunction legacyBuildFunction) {
     this.resultsFunction = buildFunction;
+    this.legacyResultsFunction = legacyBuildFunction;
   }
 
   @Override
@@ -77,6 +90,23 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
       return blazeBuildOutputs;
     } catch (GetArtifactsException e) {
       return BlazeBuildOutputs.noOutputs(BuildResult.FATAL_ERROR);
+    }
+  }
+
+  @Override
+  public BlazeBuildOutputs.Legacy runLegacy(Project project, BlazeCommand.Builder blazeCommandBuilder,
+                                            BuildResultHelper buildResultHelper, BlazeContext context) throws BuildException {
+    command = blazeCommandBuilder.build();
+    try {
+      BlazeBuildOutputs blazeBuildOutputs = resultsFunction.runBuild(buildResultHelper);
+      int exitCode = blazeBuildOutputs.buildResult().exitCode;
+      BuildDepsStatsScope.fromContext(context).ifPresent(stats -> stats.setBazelExitCode(exitCode));
+      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+        return BlazeBuildOutputs.fromParsedBepOutputForLegacy(
+          BuildResult.SUCCESS, BuildResultParser.getBuildOutput(bepStream, Interners.STRING));
+      }
+    } catch (GetArtifactsException e) {
+      return BlazeBuildOutputs.noOutputsForLegacy(BuildResult.FATAL_ERROR);
     }
   }
 

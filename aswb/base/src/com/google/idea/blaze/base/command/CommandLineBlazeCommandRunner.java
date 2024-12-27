@@ -61,7 +61,7 @@ import java.util.function.Function;
 public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
 
   @Override
-  public BlazeBuildOutputs run(
+  public BlazeBuildOutputs.Legacy runLegacy(
       Project project,
       BlazeCommand.Builder blazeCommandBuilder,
       BuildResultHelper buildResultHelper,
@@ -69,7 +69,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
     try {
       performGuardCheck(project, context);
     } catch (ExecutionDeniedException e) {
-      return BlazeBuildOutputs.noOutputs(BuildResult.FATAL_ERROR);
+      return BlazeBuildOutputs.noOutputsForLegacy(BuildResult.FATAL_ERROR);
     }
 
     BuildResult buildResult =
@@ -77,7 +77,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
     BuildDepsStatsScope.fromContext(context)
         .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
     if (buildResult.status == Status.FATAL_ERROR) {
-      return BlazeBuildOutputs.noOutputs(buildResult);
+      return BlazeBuildOutputs.noOutputsForLegacy(buildResult);
     }
     context.output(PrintOutput.log("Build command finished. Retrieving BEP outputs..."));
     try {
@@ -90,12 +90,18 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
         buildOutput = BuildResultParser.getBuildOutput(bepStream, stringInterner);
       }
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
-      return BlazeBuildOutputs.fromParsedBepOutput(buildResult, buildOutput);
+      return BlazeBuildOutputs.fromParsedBepOutputForLegacy(buildResult, buildOutput);
     } catch (GetArtifactsException e) {
       context.output(PrintOutput.log("Failed to get build outputs: " + e.getMessage()));
       context.setHasError();
-      return BlazeBuildOutputs.noOutputs(buildResult);
+      return BlazeBuildOutputs.noOutputsForLegacy(buildResult);
     }
+  }
+
+  @Override
+  public BlazeBuildOutputs run(Project project, BlazeCommand.Builder blazeCommandBuilder,
+                               BuildResultHelper buildResultHelper, BlazeContext context) throws BuildException {
+    return runLegacy(project, blazeCommandBuilder, buildResultHelper, context);
   }
 
   @Override

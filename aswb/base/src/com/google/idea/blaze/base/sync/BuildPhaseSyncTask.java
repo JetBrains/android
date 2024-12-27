@@ -250,14 +250,12 @@ public final class BuildPhaseSyncTask {
         .setShardStats(shardedTargets.shardStats())
         .setParallelBuilds(syncBuildInvoker.supportsParallelism());
 
-    BlazeBuildOutputs blazeBuildResult =
+    BlazeBuildOutputs.Legacy blazeBuildResult =
         getBlazeBuildResult(context, viewSet, shardedTargets, syncBuildInvoker, parallel);
     resultBuilder.setBuildResult(blazeBuildResult);
     buildStats
         .setBuildResult(blazeBuildResult.buildResult())
-        .setBuildIds(blazeBuildResult.getBuildIds())
-        .setBuildBinaryType(syncBuildInvoker.getType())
-        .setBepBytesConsumed(blazeBuildResult.bepBytesConsumed);
+        .setBuildBinaryType(syncBuildInvoker.getType());
 
     if (context.isCancelled()) {
       throw new SyncCanceledException();
@@ -405,7 +403,7 @@ public final class BuildPhaseSyncTask {
     return targets.build();
   }
 
-  private BlazeBuildOutputs getBlazeBuildResult(
+  private BlazeBuildOutputs.Legacy getBlazeBuildResult(
       BlazeContext parentContext,
       ProjectViewSet projectViewSet,
       ShardedTargetList shardedTargets,

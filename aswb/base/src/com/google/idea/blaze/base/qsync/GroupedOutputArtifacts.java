@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.qsync;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.qsync.deps.OutputGroup;

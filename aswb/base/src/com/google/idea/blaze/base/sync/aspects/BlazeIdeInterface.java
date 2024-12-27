@@ -60,7 +60,7 @@ public interface BlazeIdeInterface {
    *
    * @param outputGroups Set of {@link OutputGroup} to be generated in the build.
    */
-  BlazeBuildOutputs build(
+  BlazeBuildOutputs.Legacy build(
       Project project,
       BlazeContext context,
       WorkspaceRoot workspaceRoot,

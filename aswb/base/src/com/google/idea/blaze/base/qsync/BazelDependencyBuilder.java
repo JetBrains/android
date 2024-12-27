@@ -336,13 +336,13 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(
             // getOnlyElement should be safe since we never shard querysync builds:
-            getOnlyElement(blazeBuildOutputs.getBuildIds()), buildTime);
+            blazeBuildOutputs.buildId(), buildTime);
 
     return OutputInfo.create(
       allArtifacts,
       artifactInfoFilesBuilder.build(),
       ccInfoBuilder.build(),
-      blazeBuildOutputs.getTargetsWithErrors().stream()
+      blazeBuildOutputs.targetsWithErrors().stream()
             .map(Object::toString)
             .map(Label::of)
             .collect(toImmutableSet()),
