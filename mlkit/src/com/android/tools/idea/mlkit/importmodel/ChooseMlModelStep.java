@@ -49,7 +49,13 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import icons.StudioIcons;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -89,6 +95,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                            @NotNull String title) {
     super(model, title);
 
+    setupUI();
     myModelLocation.addBrowseFolderListener(project, FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor()
       .withTitle("Select TensorFlow Lite Model Location")
       .withDescription("Select existing TensorFlow Lite model to import to ml folder"));
@@ -218,6 +225,71 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
     return directory.findChild(fileName);
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(9, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.setMinimumSize(new Dimension(200, 109));
+    myModelLocation = new TextFieldWithBrowseButton();
+    myModelLocation.setName("Location Browser Button");
+    myPanel.add(myModelLocation, new GridConstraints(1, 1, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Model location:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(8, 2, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Create ml directory in");
+    myPanel.add(jBLabel2,
+                new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myPanel.add(spacer2, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                             new Dimension(-1, 60), new Dimension(-1, 60), 0, false));
+    myPanel.add(myFlavorBox,
+                new GridConstraints(2, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                    false));
+    myBasicCheckBox = new JCheckBox();
+    myBasicCheckBox.setSelected(true);
+    myBasicCheckBox.setText("Automatically add build feature and dependencies to build.gradle");
+    myPanel.add(myBasicCheckBox,
+                new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBasicTextArea = new JTextArea();
+    myBasicTextArea.setMargin(new Insets(0, 2, 0, 0));
+    myPanel.add(myBasicTextArea, new GridConstraints(4, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                     GridConstraints.SIZEPOLICY_FIXED,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     null, null, 2, false));
+    myLearnMoreLabel = new HyperlinkLabel();
+    myLearnMoreLabel.setAlignmentY(0.0f);
+    myLearnMoreLabel.setText("");
+    myPanel.add(myLearnMoreLabel, new GridConstraints(7, 0, 1, 4, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, 1, null, null, null, 2, false));
+    myGpuCheckBox = new JCheckBox();
+    myGpuCheckBox.setSelected(false);
+    myGpuCheckBox.setText("Automatically add TensorFlow Lite GPU dependencies to build.gradle (optional)");
+    myPanel.add(myGpuCheckBox,
+                new GridConstraints(5, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myGpuTextArea = new JTextArea();
+    myGpuTextArea.setMargin(new Insets(0, 2, 0, 0));
+    myGpuTextArea.setText("");
+    myPanel.add(myGpuTextArea, new GridConstraints(6, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                   GridConstraints.SIZEPOLICY_FIXED,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 2, false));
+  }
+
+  public JComponent getRootComponent() { return myPanel; }
 
   private static File getMlDirectory(AndroidModulePaths androidModulePaths) {
     List<File> mlDirectories = androidModulePaths.getMlModelsDirectories();

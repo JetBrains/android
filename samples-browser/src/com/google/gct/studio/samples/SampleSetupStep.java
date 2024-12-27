@@ -37,6 +37,12 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,6 +77,7 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
   public SampleSetupStep(@NotNull SampleModel model) {
     super(model, SamplesBrowserBundle.message("sample.setup.title"));
 
+    setupUI();
     myProjectName = new TextProperty(myProjectNameField);
     myDir = new TextProperty(myProjectLocationField.getTextField());
 
@@ -84,6 +91,44 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
         return getFileLocation(myProjectName.get()).getAbsolutePath();
       }
     };
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myProjectNameField = new JTextField();
+    myPanel.add(myProjectNameField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                        new Dimension(150, -1), null, 0, false));
+    myUrlField = new HyperlinkLabel();
+    myPanel.add(myUrlField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                new Dimension(150, -1), null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setHorizontalAlignment(10);
+    jBLabel1.setText("GitHub URL:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Project location:");
+    myPanel.add(jBLabel2,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Application name:");
+    myPanel.add(jBLabel3,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myProjectLocationField = new TextFieldWithBrowseButton();
+    myPanel.add(myProjectLocationField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                            null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    jBLabel2.setLabelFor(myProjectLocationField);
+    jBLabel3.setLabelFor(myProjectNameField);
   }
 
   private static String getUniqueName(String projectName) {
@@ -142,8 +187,10 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
     myBindings.bind(myDir, myNameToPathExpression, isNameDirSynced);
 
     myValidatorPanel.registerValidator(myProjectName, projectName -> (StringUtil.isEmptyOrSpaces(projectName)
-            ? new Validator.Result(Validator.Severity.ERROR, SamplesBrowserBundle.message("application.name.not.set"))
-            : Validator.Result.OK));
+                                                                      ? new Validator.Result(Validator.Severity.ERROR,
+                                                                                             SamplesBrowserBundle.message(
+                                                                                               "application.name.not.set"))
+                                                                      : Validator.Result.OK));
 
     PathValidator pathValidator = PathValidator.createDefault("sample location");
     Expression<Path> myDirFile = new Expression<>(myDir) {
@@ -182,5 +229,4 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
   public void dispose() {
     myBindings.releaseAll();
   }
-
 }

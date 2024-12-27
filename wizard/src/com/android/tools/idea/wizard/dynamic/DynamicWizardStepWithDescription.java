@@ -15,35 +15,36 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.android.tools.adtui.util.FormScalingUtil;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.StartupUiUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Map;
-import java.util.WeakHashMap;
-
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.beans.PropertyChangeListener;
+import java.util.Map;
+import java.util.WeakHashMap;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>Base class for wizard steps that have a description label in the bottom.
  * One of the facilities provided by this class is tracking currently focused
  * component and displaying its description.</p>
- * <p>Subclasses should call {@link #setBodyComponent(javax.swing.JComponent)}
+ * <p>Subclasses should call {@link #setBodyComponent(JComponent)}
  * from the constructor.</p>
  */
 public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep implements Disposable {
@@ -61,6 +62,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
   public DynamicWizardStepWithDescription(@Nullable Disposable parentDisposable) {
+    setupUI();
     myDisposable = parentDisposable;
     if (parentDisposable != null) {
       Disposer.register(parentDisposable, this);
@@ -71,47 +73,28 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
     myDescriptionLabel.setText(DynamicWizardStep.BLANK);
   }
 
-  protected static CompoundBorder createBodyBorder() {
-    int fontSize = StartupUiUtil.getLabelFont().getSize();
-    Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
-    return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(JBColor.border()), insetBorder);
+  private void setupUI() {
+    myRootPane = new JPanel();
+    myRootPane.setLayout(new BorderLayout(0, 0));
+    mySouthPanel = new JPanel();
+    mySouthPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPane.add(mySouthPanel, BorderLayout.SOUTH);
+    myDescriptionLabel = new JLabel();
+    myDescriptionLabel.setText("");
+    mySouthPanel.add(myDescriptionLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myErrorWarningLabel = new JBLabel();
+    myErrorWarningLabel.setText("");
+    mySouthPanel.add(myErrorWarningLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                              null, null, 0, false));
   }
 
   @NotNull
   @Override
   protected JPanel createStepBody() {
     return myRootPane;
-  }
-
-  protected void setControlDescription(Component control, @Nullable String description) {
-    if (myFocusListener == null) {
-      myFocusListener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          if (evt.getNewValue() instanceof Component) {
-            updateDescription((Component)evt.getNewValue());
-          }
-        }
-      };
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
-    }
-    if (StringUtil.isEmpty(description)) {
-      myControlDescriptions.remove(control);
-    }
-    else {
-      myControlDescriptions.put(control, description);
-    }
-  }
-
-  private String getDescriptionText(Component component) {
-    while (component != null && !myControlDescriptions.containsKey(component)) {
-      component = component.getParent();
-    }
-    return component != null ? myControlDescriptions.get(component) : "";
-  }
-
-  private void updateDescription(Component focusedComponent) {
-    myState.put(KEY_DESCRIPTION, getDescriptionText(focusedComponent));
   }
 
   @Override

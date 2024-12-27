@@ -57,11 +57,16 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -98,17 +103,55 @@ public class ApkViewPanel implements TreeSelectionListener {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
 
+  private void setupUI() {
+    createUIComponents();
+    myContainer = new JPanel();
+    myContainer.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myContainer.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myContainer.add(myColumnTreePane, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    myContainer.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    myNameComponent = new SimpleColoredComponent();
+    panel1.add(myNameComponent);
+    panel1.add(myNameAsyncIcon);
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    myContainer.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    mySizeComponent = new SimpleColoredComponent();
+    panel2.add(mySizeComponent);
+    panel2.add(mySizeAsyncIcon);
+    myCompareWithButton = new JButton();
+    myCompareWithButton.setText("Compare with previous APK...");
+    myContainer.add(myCompareWithButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                             null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myContainer; }
+
   public interface Listener {
-    void selectionChanged(ArchiveTreeNode @Nullable[] entry);
+    void selectionChanged(ArchiveTreeNode @Nullable [] entry);
+
     void selectApkAndCompare();
   }
 
   public ApkViewPanel(
     @NotNull ApkParser apkParser,
     @NotNull String apkName,
-    @NotNull  AndroidApplicationInfoProvider applicationInfoProvider) {
+    @NotNull AndroidApplicationInfoProvider applicationInfoProvider) {
     myApkParser = apkParser;
     // construct the main tree along with the uncompressed sizes
+    setupUI();
     Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(ArchiveNode result) {
@@ -117,7 +160,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         setRootNode(result);
       }
-    } , EdtExecutorService.getInstance());
+    }, EdtExecutorService.getInstance());
 
     // kick off computation of the compressed archive, and once its available, refresh the tree
     Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<>() {
@@ -164,10 +207,12 @@ public class ApkViewPanel implements TreeSelectionListener {
           if (entry == null) {
             setToZipMode(apkName);
             return Futures.immediateFailedFuture(new Exception("Regular .zip, not valid .apk file."));
-          } else {
+          }
+          else {
             try {
               return applicationInfoProvider.getApplicationInfo(apkParser, entry);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
               setToZipMode(apkName);
               Logger.getInstance(ApkViewPanel.class).warn(e);
               return Futures.immediateFailedFuture(e);
@@ -210,7 +255,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     Futures.FutureCombiner<Object> combiner = Futures.whenAllComplete(uncompressedApkSize, compressedFullApkSize, applicationInfo);
     combiner.call(() -> {
-      String applicationId = applicationInfo.get().packageId;
+        String applicationId = applicationInfo.get().packageId;
       ApkAnalyzerStats.Builder stats = ApkAnalyzerStats.newBuilder()
           .setCompressedSize(compressedFullApkSize.get())
           .setUncompressedSize(uncompressedApkSize.get());
@@ -219,12 +264,12 @@ public class ApkViewPanel implements TreeSelectionListener {
                              ? ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
                              : ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED);
       }
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                         .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                         .setRawProjectId(applicationId)
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                           .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                           .setRawProjectId(applicationId)
                          .setApkAnalyzerStats(stats));
-      return null;
+        return null;
       }, MoreExecutors.directExecutor())
       .addListener(() -> {
       }, MoreExecutors.directExecutor());
@@ -350,7 +395,8 @@ public class ApkViewPanel implements TreeSelectionListener {
         myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
       }
       myTree.setModel(myTreeModel);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       // Ignore exceptions if the archive was disposed (b/351919218)
       if (!myArchiveDisposed) {
         throw e;
@@ -389,10 +435,12 @@ public class ApkViewPanel implements TreeSelectionListener {
           version of the file).
           For application updates, Google Play serves patches that are typically much smaller.
           The installation size may be higher than the APK size depending on various other factors.""");
-    } else if (myApkParser.getArchive() instanceof InstantAppBundleArchive) {
+    }
+    else if (myApkParser.getArchive() instanceof InstantAppBundleArchive) {
       mySizeComponent.append("Zip file size: ");
       mySizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n");
-    } else {
+    }
+    else {
       mySizeComponent.append("Raw File Size: ");
     }
     mySizeComponent.append(HumanReadableUtil.getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
@@ -430,9 +478,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     if (myListener != null) {
       TreePath[] paths = ((Tree)e.getSource()).getSelectionPaths();
       ArchiveTreeNode[] components;
-      if (paths == null){
+      if (paths == null) {
         components = null;
-      } else {
+      }
+      else {
         components = new ArchiveTreeNode[paths.length];
         for (int i = 0; i < paths.length; i++) {
           if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)) {
@@ -486,7 +535,8 @@ public class ApkViewPanel implements TreeSelectionListener {
                                                                        : SimpleTextAttributes.REGULAR_ATTRIBUTES;
         SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
                                    attr.getBgColor(), this);
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         // Ignore exceptions if the file doesn't exist (b/351919218)
         if (Files.exists(myApkParser.getArchive().getPath())) {
           throw e;
@@ -496,7 +546,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     @NotNull
     private static Icon getIconFor(@NotNull ArchiveEntry entry) {
-      if(entry instanceof ArchiveErrorEntry) {
+      if (entry instanceof ArchiveErrorEntry) {
         return StudioIcons.Common.WARNING;
       }
       Path path = entry.getPath();
@@ -509,7 +559,8 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
-        } else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
+        }
+        else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
           // TODO: Use dedicated icon for this.
           return AllIcons.FileTypes.Hprof;
         }

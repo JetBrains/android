@@ -16,6 +16,9 @@
 package com.android.tools.idea.wizard.ui.deprecated;
 
 import com.intellij.ui.components.JBLabel;
+import java.util.Locale;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,16 +34,46 @@ public final class StudioWizardStepPanel extends JPanel {
   private JPanel myRootPanel;
   private JBLabel myDescriptionLabel;
 
-  public StudioWizardStepPanel(@NotNull JPanel innerPanel) {
-    this(innerPanel, null);
-  }
-
   public StudioWizardStepPanel(@NotNull JPanel innerPanel, @Nullable String description) {
     super(new BorderLayout());
+    setupUI();
 
     myDescriptionLabel.setText(description != null ? description : "");
 
     myRootPanel.add(innerPanel);
     add(myRootPanel);
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new BorderLayout(0, 15));
+    myDescriptionLabel = new JBLabel();
+    Font myDescriptionLabelFont = getFont(null, Font.BOLD, 16, myDescriptionLabel.getFont());
+    if (myDescriptionLabelFont != null) myDescriptionLabel.setFont(myDescriptionLabelFont);
+    myDescriptionLabel.setText("(Step description)");
+    myRootPanel.add(myDescriptionLabel, BorderLayout.NORTH);
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
   }
 }

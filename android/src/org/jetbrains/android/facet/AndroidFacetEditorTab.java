@@ -38,23 +38,33 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ResourceBundle;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -64,6 +74,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.util.AndroidBundle;
@@ -124,6 +135,395 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
   private static final String MAVEN_TAB_TITLE = "Maven";
 
+  private void setupUI() {
+    createUIComponents();
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myContentPanel.add(spacer1, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myResetPathsButton = new JButton();
+    myResetPathsButton.setText("Reset paths to defaults");
+    myContentPanel.add(myResetPathsButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myContentPanel.add(spacer2, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myIsLibraryProjectCheckbox = new JCheckBox();
+    myIsLibraryProjectCheckbox.setSelected(false);
+    loadButtonText(myIsLibraryProjectCheckbox,
+                              getMessageFromBundle("messages/AndroidBundle", "android.facet.editor.is.library.checkbox"));
+    myContentPanel.add(myIsLibraryProjectCheckbox, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                       GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myTabbedPane = new JBTabbedPane();
+    myContentPanel.add(myTabbedPane, new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                         new Dimension(200, 200), null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myTabbedPane.addTab("Structure", panel1);
+    myManifestFileLabel = new JLabel();
+    myManifestFileLabel.setText("Manifest file:");
+    myManifestFileLabel.setDisplayedMnemonic('M');
+    myManifestFileLabel.setDisplayedMnemonicIndex(0);
+    panel1.add(myManifestFileLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myManifestFileField = new TextFieldWithBrowseButton();
+    panel1.add(myManifestFileField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                        null, 0, false));
+    myResFolderLabel = new JLabel();
+    myResFolderLabel.setText("Resources directory:");
+    myResFolderLabel.setDisplayedMnemonic('S');
+    myResFolderLabel.setDisplayedMnemonicIndex(2);
+    panel1.add(myResFolderLabel,
+               new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myResFolderField = new TextFieldWithBrowseButton();
+    panel1.add(myResFolderField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                     GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                     null, 0, false));
+    myAssetsFolderLabel = new JLabel();
+    myAssetsFolderLabel.setText("Assets directory:");
+    myAssetsFolderLabel.setDisplayedMnemonic('T');
+    myAssetsFolderLabel.setDisplayedMnemonicIndex(4);
+    panel1.add(myAssetsFolderLabel,
+               new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAssetsFolderField = new TextFieldWithBrowseButton();
+    panel1.add(myAssetsFolderField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                        null, 0, false));
+    myNativeLibsFolderLabel = new JLabel();
+    myNativeLibsFolderLabel.setText("Native libs directory:");
+    myNativeLibsFolderLabel.setDisplayedMnemonic('L');
+    myNativeLibsFolderLabel.setDisplayedMnemonicIndex(7);
+    panel1.add(myNativeLibsFolderLabel,
+               new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myNativeLibsFolder = new TextFieldWithBrowseButton();
+    panel1.add(myNativeLibsFolder, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                       null, 0, false));
+    final Spacer spacer3 = new Spacer();
+    panel1.add(spacer3, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 4, 0), -1, -1));
+    myTabbedPane.addTab("Generated Sources", panel2);
+    final Spacer spacer4 = new Spacer();
+    panel2.add(spacer4, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myAptAutogenerationOptionsPanel = new JPanel();
+    myAptAutogenerationOptionsPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+    panel2.add(myAptAutogenerationOptionsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myAptAutogenerationOptionsPanel.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(),
+                                                                                                       getMessageFromBundle(
+                                                                                                         "messages/AndroidBundle",
+                                                                                                         "android.apt.settings.title"),
+                                                                                                       TitledBorder.DEFAULT_JUSTIFICATION,
+                                                                                                       TitledBorder.DEFAULT_POSITION, null,
+                                                                                                       null));
+    myAaptCompilerPanel = new JPanel();
+    myAaptCompilerPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myAptAutogenerationOptionsPanel.add(myAaptCompilerPanel,
+                                        new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            null, null, null, 0, false));
+    myRGenPathLabel = new JLabel();
+    loadLabelText(myRGenPathLabel, getMessageFromBundle("messages/AndroidBundle", "android.dest.directory.title"));
+    myAaptCompilerPanel.add(myRGenPathLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                 GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                 null, null, 0, false));
+    myRGenPathField = new TextFieldWithBrowseButton();
+    myAaptCompilerPanel.add(myRGenPathField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, null, null, 0, false));
+    myCompileResourcesByIdeRadio = new JRadioButton();
+    loadButtonText(myCompileResourcesByIdeRadio,
+                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.compile.resources.by.ide"));
+    myAptAutogenerationOptionsPanel.add(myCompileResourcesByIdeRadio,
+                                        new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myRunProcessResourcesRadio = new JRadioButton();
+    loadButtonText(myRunProcessResourcesRadio,
+                              getMessageFromBundle("messages/AndroidBundle", "copy.resources.from.artifacts.setting"));
+    myAptAutogenerationOptionsPanel.add(myRunProcessResourcesRadio,
+                                        new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAidlAutogenerationOptionsPanel = new JPanel();
+    myAidlAutogenerationOptionsPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel2.add(myAidlAutogenerationOptionsPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                     GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myAidlAutogenerationOptionsPanel.setBorder(
+      IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(), "AIDL files",
+                                                               TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null,
+                                                               null));
+    myAidlGenPathLabel = new JLabel();
+    loadLabelText(myAidlGenPathLabel, getMessageFromBundle("messages/AndroidBundle", "android.dest.directory.title"));
+    myAidlAutogenerationOptionsPanel.add(myAidlGenPathLabel,
+                                         new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                             null, 0, false));
+    myAidlGenPathField = new TextFieldWithBrowseButton();
+    myAidlAutogenerationOptionsPanel.add(myAidlGenPathField,
+                                         new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             null, null, 0, false));
+    myEnableSourcesAutogenerationCheckBox = new JBCheckBox();
+    myEnableSourcesAutogenerationCheckBox.setText("Generate sources automatically ");
+    myEnableSourcesAutogenerationCheckBox.setMnemonic('O');
+    myEnableSourcesAutogenerationCheckBox.setDisplayedMnemonicIndex(20);
+    panel2.add(myEnableSourcesAutogenerationCheckBox,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 4, 0), -1, -1));
+    myTabbedPane.addTab("Packaging", panel3);
+    final JPanel panel4 = new JPanel();
+    panel4.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel3.add(panel4, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    panel4.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(),
+                                                                              getMessageFromBundle("messages/AndroidBundle",
+                                                                                                              "android.apk.settings.title"),
+                                                                              TitledBorder.DEFAULT_JUSTIFICATION,
+                                                                              TitledBorder.DEFAULT_POSITION, null, null));
+    myUseAptResDirectoryFromPathRadio = new JRadioButton();
+    loadButtonText(myUseAptResDirectoryFromPathRadio,
+                              getMessageFromBundle("messages/AndroidBundle", "android.generate.r.java.by.res.dir"));
+    panel4.add(myUseAptResDirectoryFromPathRadio, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                      null, null, null, 0, false));
+    myUseCustomSourceDirectoryRadio = new JRadioButton();
+    loadButtonText(myUseCustomSourceDirectoryRadio,
+                              getMessageFromBundle("messages/AndroidBundle", "android.use.custom.r.java.source.dir"));
+    panel4.add(myUseCustomSourceDirectoryRadio, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                    null, null, null, 0, false));
+    myCustomAptSourceDirField = new TextFieldWithBrowseButton();
+    panel4.add(myCustomAptSourceDirField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                              GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myIncludeAssetsFromLibraries = new JBCheckBox();
+    myIncludeAssetsFromLibraries.setText("Include assets from dependencies into APK");
+    panel4.add(myIncludeAssetsFromLibraries,
+               new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myUseCustomManifestPackage = new JBCheckBox();
+    loadButtonText(myUseCustomManifestPackage,
+                              getMessageFromBundle("messages/AndroidBundle", "android.aapt.use.custom.package.name"));
+    panel4.add(myUseCustomManifestPackage,
+               new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCustomManifestPackageField = new JTextField();
+    panel4.add(myCustomManifestPackageField, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, new Dimension(150, -1), null, 0, false));
+    myEnableManifestMerging = new JBCheckBox();
+    myEnableManifestMerging.setText("Enable manifest merging");
+    panel4.add(myEnableManifestMerging,
+               new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Additional command line parameters:");
+    panel4.add(jBLabel1,
+               new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAdditionalPackagingCommandLineParametersField = new RawCommandLineEditor();
+    panel4.add(myAdditionalPackagingCommandLineParametersField,
+               new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer5 = new Spacer();
+    panel3.add(spacer5, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myIncludeTestCodeAndCheckBox = new JCheckBox();
+    loadButtonText(myIncludeTestCodeAndCheckBox,
+                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.pack.test.sources"));
+    panel3.add(myIncludeTestCodeAndCheckBox, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, null, null, 0, false));
+    myCustomKeystoreLabel = new JBLabel();
+    loadLabelText(myCustomKeystoreLabel, getMessageFromBundle("messages/AndroidBundle",
+                                                                                    "android.facet.settings.custom.debug.keystore.label"));
+    panel3.add(myCustomKeystoreLabel,
+               new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCustomDebugKeystoreField = new TextFieldWithBrowseButton();
+    panel3.add(myCustomDebugKeystoreField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myApkPathLabel = new JLabel();
+    loadLabelText(myApkPathLabel,
+                             getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.apk.path.label"));
+    panel3.add(myApkPathLabel,
+               new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myApkPathCombo = new ComboboxWithBrowseButton();
+    panel3.add(myApkPathCombo, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myPreDexEnabledCheckBox = new JBCheckBox();
+    myPreDexEnabledCheckBox.setText("Pre-dex external jars and Android library dependencies");
+    panel3.add(myPreDexEnabledCheckBox, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                            null, 0, false));
+    final JPanel panel5 = new JPanel();
+    panel5.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 4, 0), -1, -1));
+    myTabbedPane.addTab("ProGuard", panel5);
+    myRunProguardCheckBox = new JBCheckBox();
+    loadButtonText(myRunProguardCheckBox,
+                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.run.proguard"));
+    panel5.add(myRunProguardCheckBox, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                          null, 0, false));
+    final Spacer spacer6 = new Spacer();
+    panel5.add(spacer6, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    panel5.add(myProGuardConfigFilesPanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               null, null, null, 0, false));
+    myProGuardLogsDirectoryLabel = new JBLabel();
+    myProGuardLogsDirectoryLabel.setText("Proguard logs directory:");
+    panel5.add(myProGuardLogsDirectoryLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myProguardLogsDirectoryField = new TextFieldWithBrowseButton();
+    panel5.add(myProguardLogsDirectoryField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, null, null, 0, false));
+    final JPanel panel6 = new JPanel();
+    panel6.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myTabbedPane.addTab("Maven", panel6);
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Import following options from pom.xml:");
+    panel6.add(jBLabel2,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myImportedOptionsList = new CheckBoxList();
+    panel6.add(myImportedOptionsList, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Update \"project.properties\" file automatically:");
+    jBLabel3.setDisplayedMnemonic('D');
+    jBLabel3.setDisplayedMnemonicIndex(2);
+    myContentPanel.add(jBLabel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myUpdateProjectPropertiesCombo = new ComboBox();
+    myContentPanel.add(myUpdateProjectPropertiesCombo,
+                       new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                           GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                           false));
+    final Spacer spacer7 = new Spacer();
+    myContentPanel.add(spacer7, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    jBLabel1.setLabelFor(myAdditionalPackagingCommandLineParametersField);
+    myApkPathLabel.setLabelFor(myApkPathCombo);
+    myProGuardLogsDirectoryLabel.setLabelFor(myProguardLogsDirectoryField);
+    jBLabel3.setLabelFor(myUpdateProjectPropertiesCombo);
+    ButtonGroup buttonGroup;
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(myUseAptResDirectoryFromPathRadio);
+    buttonGroup.add(myUseCustomSourceDirectoryRadio);
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(myCompileResourcesByIdeRadio);
+    buttonGroup.add(myRunProcessResourcesRadio);
+  }
+
+  private static Method cachedGetBundleMethod = null;
+
+  private String getMessageFromBundle(String path, String key) {
+    ResourceBundle bundle;
+    try {
+      Class<?> thisClass = this.getClass();
+      if (cachedGetBundleMethod == null) {
+        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
+        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
+      }
+      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
+    }
+    catch (Exception e) {
+      bundle = ResourceBundle.getBundle(path);
+    }
+    return bundle.getString(key);
+  }
+
+  private void loadLabelText(JLabel component, String text) {
+    StringBuffer result = new StringBuffer();
+    boolean haveMnemonic = false;
+    char mnemonic = '\0';
+    int mnemonicIndex = -1;
+    for (int i = 0; i < text.length(); i++) {
+      if (text.charAt(i) == '&') {
+        i++;
+        if (i == text.length()) break;
+        if (!haveMnemonic && text.charAt(i) != '&') {
+          haveMnemonic = true;
+          mnemonic = text.charAt(i);
+          mnemonicIndex = result.length();
+        }
+      }
+      result.append(text.charAt(i));
+    }
+    component.setText(result.toString());
+    if (haveMnemonic) {
+      component.setDisplayedMnemonic(mnemonic);
+      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    }
+  }
+
+  private void loadButtonText(AbstractButton component, String text) {
+    StringBuffer result = new StringBuffer();
+    boolean haveMnemonic = false;
+    char mnemonic = '\0';
+    int mnemonicIndex = -1;
+    for (int i = 0; i < text.length(); i++) {
+      if (text.charAt(i) == '&') {
+        i++;
+        if (i == text.length()) break;
+        if (!haveMnemonic && text.charAt(i) != '&') {
+          haveMnemonic = true;
+          mnemonic = text.charAt(i);
+          mnemonicIndex = result.length();
+        }
+      }
+      result.append(text.charAt(i));
+    }
+    component.setText(result.toString());
+    if (haveMnemonic) {
+      component.setMnemonic(mnemonic);
+      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    }
+  }
+
+  public JComponent getRootComponent() { return myContentPanel; }
+
   public static final class Provider implements AndroidFacetConfiguration.EditorTabProvider {
     @Override
     public FacetEditorTab createFacetEditorTab(@NotNull FacetEditorContext editorContext,
@@ -133,6 +533,11 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   public AndroidFacetEditorTab(FacetEditorContext context, AndroidFacetConfiguration androidFacetConfiguration) {
+        try {
+      setupUI();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     final Project project = context.getProject();
     myConfiguration = androidFacetConfiguration;
     myContext = context;
@@ -158,13 +563,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
 
     myResFolderField.addActionListener(new MyFolderFieldListener(myResFolderField,
-                                                                             AndroidRootUtil.getResourceDir(facet), false, null));
+                                                                 AndroidRootUtil.getResourceDir(facet), false, null));
 
     myAssetsFolderField.addActionListener(new MyFolderFieldListener(myAssetsFolderField,
-                                                                                AndroidRootUtil.getAssetsDir(facet), false, null));
+                                                                    AndroidRootUtil.getAssetsDir(facet), false, null));
 
     myNativeLibsFolder.addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
-                                                                               AndroidRootUtil.getLibsDir(facet), false, null));
+                                                                   AndroidRootUtil.getLibsDir(facet), false, null));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override

@@ -40,18 +40,23 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +74,7 @@ public class DeviceExplorerPanel {
   private Tree myTree;
 
   public DeviceExplorerPanel() {
+    setupUI();
     myErrorPanel.setBackground(UIUtil.getTreeBackground());
 
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
@@ -207,6 +213,56 @@ public class DeviceExplorerPanel {
     return myTree;
   }
 
+  private void setupUI() {
+    createUIComponents();
+    myComponent = new JPanel();
+    myComponent.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), 1, 1));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myComponent.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myToolbarPanel = new JPanel();
+    myToolbarPanel.setLayout(new BorderLayout(0, 0));
+    panel1.add(myToolbarPanel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myComponent.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
+                                                null, 0, false));
+    panel2.add(myColumnTreePane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     null, null, 0, false));
+    myErrorPanel = new JPanel();
+    myErrorPanel.setLayout(new BorderLayout(0, 0));
+    myErrorPanel.setVisible(false);
+    panel2.add(myErrorPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    myErrorPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(120, 10, 0, 10), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myErrorText = new JBLabel();
+    myErrorText.setHorizontalAlignment(0);
+    myErrorText.setHorizontalTextPosition(0);
+    myErrorText.setVerticalAlignment(1);
+    myErrorText.setVerticalTextPosition(3);
+    myErrorPanel.add(myErrorText, BorderLayout.CENTER);
+    myProgressPanel = new ProgressPanel();
+    myProgressPanel.setVisible(false);
+    myComponent.add(myProgressPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myComponent; }
+
   private static class NameRenderer extends ColoredTreeCellRenderer {
     @NotNull private final TreeSpeedSearch mySpeedSearch;
 
@@ -241,11 +297,13 @@ public class DeviceExplorerPanel {
                                  HumanReadableUtil.getHumanizedSize(node.getCurrentTransferredBytes()),
                                  HumanReadableUtil.getHumanizedSize(node.getTotalTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
-          } else if (node.getCurrentTransferredBytes() > 0) {
+          }
+          else if (node.getCurrentTransferredBytes() > 0) {
             append(String.format(" (%s) ",
                                  HumanReadableUtil.getHumanizedSize(node.getCurrentTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
-          } else {
+          }
+          else {
             appendProgress(node.getTransferringTick());
           }
         }
@@ -253,10 +311,12 @@ public class DeviceExplorerPanel {
         if (!StringUtil.isEmpty(linkTarget)) {
           setToolTipText("Link target: " + linkTarget);
         }
-      } else if (value instanceof ErrorNode) {
+      }
+      else if (value instanceof ErrorNode) {
         ErrorNode errorNode = (ErrorNode)value;
         append(errorNode.getText(), SimpleTextAttributes.ERROR_ATTRIBUTES);
-      } else if (value instanceof MyLoadingNode) {
+      }
+      else if (value instanceof MyLoadingNode) {
         MyLoadingNode loadingNode = (MyLoadingNode)value;
         append("loading", SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
         appendProgress(loadingNode.getTick());
