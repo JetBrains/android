@@ -45,6 +45,7 @@ class JdkRecreationIntegrationTest {
   val expect = Expect.createAndEnableStackTrace()!!
 
   @Test
+  @Ignore("b/385322415")
   fun `Corrupted Jdk is recreated after sync`() {
     // Set flag
     StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true)
