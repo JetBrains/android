@@ -126,9 +126,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             classpathModule,
             version,
             listOf(moduleBuildModel),
-            IdPluginMatcher(pluginId),
-            GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
-            insertionConfig
+            classpathMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
+            config = insertionConfig
         )
         if (kotlinPluginAddedFiles.isNotEmpty()) {
             changedFiles.addAll(kotlinPluginAddedFiles)

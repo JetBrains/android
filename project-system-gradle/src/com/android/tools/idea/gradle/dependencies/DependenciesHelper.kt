@@ -31,7 +31,7 @@ abstract class DependenciesHelper {
       when (calculateAddDependencyPolicy(projectModel)) {
         AddDependencyPolicy.VERSION_CATALOG -> CatalogDependenciesInserter(projectModel)
         AddDependencyPolicy.BUILD_FILE -> DependenciesInserter()
-        AddDependencyPolicy.DECLARATIVE -> DeclarativeDependenciesInserter(projectModel)
+        AddDependencyPolicy.DECLARATIVE -> DeclarativeDependenciesInserter()
       }
 
     @JvmStatic

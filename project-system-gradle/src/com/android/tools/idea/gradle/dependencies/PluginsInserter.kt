@@ -54,19 +54,21 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     classpathModule: String,
     version: String,
     buildModels: List<GradleBuildModel>,
-    pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
+    matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) },
     classpathMatcher: DependencyMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
     config: PluginInsertionConfig = defaultInsertionConfig()
   ): Set<PsiFile> {
     val classpathInfo = PluginClasspathInfo("$classpathModule:$version", classpathMatcher)
-    return findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, pluginMatcher, classpathInfo, config)
+    return findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, matcherFactory(pluginId, version), classpathInfo, config)
   }
 
-  open fun findPlaceAndAddPlugin(pluginId: String,
-                                 version: String,
-                                 buildModels: List<GradleBuildModel>,
-                                 pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile> =
-    findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, pluginMatcher, null, defaultInsertionConfig())
+  open fun findPlaceAndAddPlugin(
+    pluginId: String,
+    version: String,
+    buildModels: List<GradleBuildModel>,
+    matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }
+  ): Set<PsiFile> =
+    findPlaceAndAddPluginOrClasspath(pluginId, version, buildModels, matcherFactory(pluginId, version), null, defaultInsertionConfig())
 
   data class PluginClasspathInfo(val dependency: String, val matcher: DependencyMatcher)
 
@@ -161,7 +163,6 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
       model?.repositories()?.let { addRepositoryFor(version, it) }
     }
   }
-
 
   fun addRepositoryFor(version: String, model: RepositoriesModel): PsiFile? {
     var updated = false
@@ -482,7 +483,6 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
       it.version().toString() != dep.version.toString()
     }
   }
-
 
   internal open fun tryAddClasspathDependencyWithVersionVariable(dependency: String,
                                                                  variableName: String,

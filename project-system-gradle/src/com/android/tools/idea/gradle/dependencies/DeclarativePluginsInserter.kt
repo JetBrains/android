@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.Companion.defaultInsertionConfig
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
+import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.BasePluginsModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.utils.addIfNotNull
 
@@ -30,7 +35,7 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
 
     getSettingsModel()?.plugins()?.let {
       it.applyPlugin(pluginId, version)
-      changedFiles.addIfNotNull(projectModel.projectSettingsModel?.psiFile)
+      changedFiles.addIfNotNull(projectModel.declarativeSettingsModel?.psiFile)
     }
 
     return changedFiles
@@ -39,7 +44,14 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
   /**
    * Applying plugin to module for declarative means nothing as all plugins can only be on settings
    */
-  override fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher): PsiFile? = null
+  override fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher): PsiFile =
+    throw IllegalStateException("Add plugin to module (addPlugin function) is impossible for declarative. Low level API like this will be removed eventually")
+
+  override fun addPluginToModule(pluginId: String,
+                             version: String,
+                             buildModel: GradleBuildModel,
+                             matcher: PluginMatcher): Set<PsiFile> =
+    throw IllegalStateException("Add plugin to module (addPluginToModule function) is impossible for declarative. Low level API like this will be removed eventually")
 
   override fun addPlugin(pluginId: String,
                          version: String,
@@ -56,6 +68,113 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     return changedFiles
   }
 
+  override fun addPluginOrClasspath(
+    pluginId: String,
+    classpathModule: String,
+    version: String,
+    buildModels: List<GradleBuildModel>,
+    matcherFactory: (String, String) -> PluginMatcher,
+    classpathMatcher: DependencyMatcher,
+    config: PluginInsertionConfig
+  ): Set<PsiFile> = applyPlugin(pluginId, version, buildModels, config.whenFoundSame, matcherFactory)
+
+
+  override fun findPlaceAndAddPlugin(pluginId: String,
+                                     version: String,
+                                     buildModels: List<GradleBuildModel>,
+                                     matcherFactory: (String, String) -> PluginMatcher): Set<PsiFile> =
+    applyPlugin(pluginId, version, buildModels, defaultInsertionConfig().whenFoundSame, matcherFactory)
+
+  override fun addClasspathDependency(dependency: String,
+                                      excludes: List<ArtifactDependencySpec>,
+                                      matcher: DependencyMatcher): Set<PsiFile> =
+    throw IllegalStateException("Add classpath is impossible for declarative. Low level API like this will be removed eventually")
+
+  override fun addClasspathDependencyWithVersionVariable(dependency: String,
+                                                     variableName: String,
+                                                     excludes: List<ArtifactDependencySpec>,
+                                                     matcher: DependencyMatcher): Set<PsiFile> =
+    throw IllegalStateException("Add classpath with variable is impossible for declarative. Low level API like this will be removed eventually")
+
+  private fun applyPlugin(pluginId: String,
+                          version: String,
+                          buildModels: List<GradleBuildModel>,
+                          whenFoundPlugin: MatchedStrategy,
+                          matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
+    projectModel.declarativeSettingsModel?.plugins() ?: run {
+      log.warn("Settings file does not exist so cannot insert plugin for declarative project")
+      return changedFiles
+    }
+    val ecosystemPlugin = pluginToEcosystemPluginMap.get(pluginId)
+    val ecosystemPluginVersion = version // assuming ecosystem version is the same as for real plugin
+    if (ecosystemPlugin != null) {
+      val component = getEcosystemPlugin(pluginId)
+      if (component == null) {
+        log.warn("Unknown declarative plugin $pluginId")
+        return changedFiles
+      }
+      val ecosystemMatcher = matcherFactory(ecosystemPlugin, ecosystemPluginVersion)
+      if (!hasPlugin(ecosystemMatcher)) {
+        applySettingsPlugin(ecosystemPlugin, ecosystemPluginVersion).also { changedFiles.addAll(it) }
+        buildModels.forEach { addModuleComponent(component, it).also { changedFiles.addAll(it) } }
+      }
+      else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
+        updatePlugin(ecosystemPlugin, ecosystemPluginVersion).also { changedFiles.addAll(it) }
+      }
+    }
+    else {
+      val pluginMatcher = matcherFactory(pluginId, version)
+      if (!hasPlugin(pluginMatcher)) {
+        applySettingsPlugin(pluginId, version).also { changedFiles.addAll(it) }
+      }
+      else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
+        updatePlugin(pluginId, version).also { changedFiles.addAll(it) }
+      }
+      // TODO - not clear how to apply non ecosystem plugins
+    }
+    return changedFiles
+  }
+
+  private fun updatePlugin(pluginId: String,
+                           version: String): Set<PsiFile> {
+    val plugin = projectModel.declarativeSettingsModel?.plugins()?.plugins()?.firstOrNull { it.name().toString() == pluginId && it.version().toString() != version }
+    if (plugin != null) {
+      plugin.version().resolve().setValue(version)
+      val result = mutableSetOf<PsiFile>()
+      result.addIfNotNull(projectModel.declarativeSettingsModel?.psiFile)
+      return result
+    }
+    return setOf()
+  }
+
+  private fun hasPlugin(
+    pluginMatcher: PluginMatcher,
+  ): Boolean {
+    val settingsPlugins =
+      projectModel.declarativeSettingsModel?.plugins()?.plugins()
+    return settingsPlugins?.any { pluginMatcher.match(it) } == true
+  }
+
+  private fun addModuleComponent(plugin: EcosystemPlugin, buildModel: GradleBuildModel): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
+    val declarativeBuildModel = projectModel.getDeclarativeModuleBuildModel(buildModel.virtualFile)
+    val type = when (plugin) {
+      EcosystemPlugin.APPLICATION -> AndroidDeclarativeType.APPLICATION
+      EcosystemPlugin.LIBRARY -> AndroidDeclarativeType.LIBRARY
+    }
+    return declarativeBuildModel?.let { model ->
+      if (model.existingAndroidElement() == null) {
+        model.createAndroidElement(type)
+        changedFiles.addIfNotNull(model.psiFile)
+      }
+      changedFiles
+    } ?: changedFiles
+  }
+
+  private fun getEcosystemPlugin(plugin: String): EcosystemPlugin? =
+    EcosystemPlugin.entries.find { it.pluginId == plugin }
+
   private fun getSettingsModel(): GradleDeclarativeSettingsModel? {
     val settingsFile = projectModel.declarativeSettingsModel
     if (settingsFile == null)
@@ -64,4 +183,25 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
   }
 
   private fun BasePluginsModel.hasPlugins(matcher: PluginMatcher) = plugins().any { matcher.match(it) }
+
+  companion object {
+    val log = Logger.getInstance(DependenciesHelper::class.java)
+    val pluginToEcosystemPluginMap: Map<String, String> =
+      listOf("com.android.application",
+             "com.android.library",
+             "com.android.test",
+             "com.android.asset-pack",
+             "com.android.dynamic-feature").associateWith { "com.android.ecosystem" }
+  }
+}
+
+enum class EcosystemPlugin(val pluginId: String) {
+  APPLICATION("com.android.application"),
+  LIBRARY("com.android.library"),
+  /*
+  uncomment once AGP ecosystem  will support more
+  TEST("com.android.test"),
+  ASSET_PACK("com.android.asset-pack"),
+  DYNAMIC_FEATURE("com.android.dynamic-feature")
+  */
 }
