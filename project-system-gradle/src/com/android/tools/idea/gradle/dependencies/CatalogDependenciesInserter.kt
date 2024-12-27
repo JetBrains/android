@@ -43,8 +43,7 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) : DependenciesInserter(projectModel) {
   override fun addClasspathDependency(dependency: String,
                                       excludes: List<ArtifactDependencySpec>,
-                                      matcher: DependencyMatcher,
-                                      matchedStrategy: MatchedStrategy): Set<PsiFile> {
+                                      matcher: DependencyMatcher): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     return getOrAddDependencyToCatalog(dependency, matcher) { alias, updatedFiles ->
       val buildscriptDependencies = buildModel.buildscript().dependencies()
@@ -54,9 +53,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
           updatedFiles.addIfNotNull(buildModel.psiFile)
         }
       }
-      else if (matchedStrategy == MatchedStrategy.UPDATE_VERSION) {
-        buildscriptDependencies.updateDependencyVersion(dependency, updatedFiles, buildModel)
-      }
     }
   }
 
@@ -64,8 +60,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   override fun tryAddToBuildscriptDependencies(
     classpathDependency: String,
     buildModel: GradleBuildModel,
-    classpathMatcher: DependencyMatcher,
-    matchedStrategy: MatchedStrategy,
+    classpathMatcher: DependencyMatcher
   ): TryAddResult = TryAddResult.failed()
 
   // Avoid insertion to buildscript when using catalog
@@ -73,8 +68,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     dependency: String,
     variableName: String,
     excludes: List<ArtifactDependencySpec>,
-    matcher: DependencyMatcher,
-    matchedStrategy: MatchedStrategy
+    matcher: DependencyMatcher
   ): TryAddResult = TryAddResult.failed()
 
   override fun addPlatformDependency(
@@ -97,8 +91,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   override fun addClasspathDependencyWithVersionVariable(dependency: String,
                                                          variableName: String,
                                                          excludes: List<ArtifactDependencySpec>,
-                                                         matcher: DependencyMatcher,
-                                                         matchedStrategy: MatchedStrategy): Set<PsiFile> {
+                                                         matcher: DependencyMatcher): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     return getOrAddDependencyToCatalog(dependency, matcher) { alias, updatedFiles ->
@@ -107,9 +100,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
         buildscriptDependencies.addArtifact(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME, reference, excludes).also {
           updatedFiles.addIfNotNull(buildModel.psiFile)
         }
-      }
-      else if (matchedStrategy == MatchedStrategy.UPDATE_VERSION) {
-        buildscriptDependencies.updateDependencyVersion(dependency, updatedFiles, buildModel)
       }
     }
   }

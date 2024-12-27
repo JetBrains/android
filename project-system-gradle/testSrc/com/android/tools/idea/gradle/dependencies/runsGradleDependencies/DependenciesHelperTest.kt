@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.FalsePluginMatcher
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
@@ -748,6 +750,163 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              val buildFileContent = project.getTextForFile("app/build.gradle")
 
              assertThat(countMatches(buildFileContent, "apply plugin: 'com.google.gms.google-services'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartUpdatePluginVersionInClasspath() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val pluginId = "com.google.gms.google-services"
+             val classpathModule = "com.google.gms:google-services"
+             // add first
+             val changed = helper.addPluginOrClasspath(pluginId,
+                                                       classpathModule,
+                                                       "4.3.14",
+                                                       listOf(moduleModel))
+             assertThat(changed.size).isEqualTo(2)
+
+             // then update
+             val config  =  PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION)
+             val changed2 = helper.addPluginOrClasspath(pluginId,
+                                                        classpathModule,
+                                                        "4.3.15",
+                                                        listOf(moduleModel),
+                                                        config = config)
+             assertThat(changed2.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             val regex = "\\R\\s*classpath 'com.google.gms:google-services:4.3.15'".toRegex()
+             assertThat(regex.findAll(projectBuildContent).toList().size).isEqualTo(1)
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(projectBuildContent).doesNotContain("plugins")
+             assertThat(project.getTextForFile("settings.gradle")).doesNotContain("plugins")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+
+             assertThat(countMatches(buildFileContent, "apply plugin: 'com.google.gms.google-services'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartUpdatePluginVersionInPlugins() {
+    doTest(SIMPLE_APPLICATION_PLUGINS_DSL,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val pluginId = "com.google.gms.google-services"
+             val classpathModule = "com.google.gms:google-services"
+             // add first
+             val changed = helper.addPluginOrClasspath(pluginId,
+                                                       classpathModule,
+                                                       "4.3.14",
+                                                       listOf(moduleModel))
+             assertThat(changed.size).isEqualTo(2)
+
+             // then update
+             val config  =  PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION)
+             val changed2 = helper.addPluginOrClasspath(pluginId,
+                                                        classpathModule,
+                                                        "4.3.15",
+                                                        listOf(moduleModel),
+                                                        config = config)
+             assertThat(changed2.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("id 'com.google.gms.google-services' version '4.3.15' apply false")
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(project.getTextForFile("settings.gradle")).doesNotContain("plugins")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent, "id 'com.google.gms.google-services'\n")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartUpdatePluginVersionInPluginManagement() {
+    doTest(SIMPLE_APPLICATION_PLUGINS_DSL,
+           {
+             val settings = File(project.basePath, "settings.gradle").readText()
+             val newContent = settings.replace("pluginManagement {", "pluginManagement { \n  plugins {\n  \n}\n")
+             FileUtil.writeToFile(
+               File(project.basePath, "settings.gradle"), newContent
+             )
+           },
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val pluginId = "com.google.gms.google-services"
+             val classpathModule = "com.google.gms:google-services"
+             // add first
+             val changed = helper.addPluginOrClasspath(pluginId,
+                                                       classpathModule,
+                                                       "4.3.14",
+                                                       listOf(moduleModel))
+             assertThat(changed.size).isEqualTo(2)
+
+             // then update
+             val config  =  PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION)
+             val changed2 = helper.addPluginOrClasspath(pluginId,
+                                                        classpathModule,
+                                                        "4.3.15",
+                                                        listOf(moduleModel),
+                                                        config = config)
+             assertThat(changed2.size).isEqualTo(1)
+           },
+           {
+             val settingsContent = project.getTextForFile("settings.gradle")
+             assertThat(settingsContent).contains("id 'com.google.gms.google-services' version '4.3.15'")
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(project.getTextForFile("build.gradle")).doesNotContain("google-services")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent, "id 'com.google.gms.google-services'\n")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartUpdatePluginVersionInCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val pluginId = "com.google.gms.google-services"
+             val classpathModule = "com.google.gms:google-services"
+             // add first
+             val changed = helper.addPluginOrClasspath(pluginId,
+                                                       classpathModule,
+                                                       "4.3.14",
+                                                       listOf(moduleModel))
+             assertThat(changed.size).isEqualTo(3)
+
+             // then update
+             val config  =  PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION)
+             val changed2 = helper.addPluginOrClasspath(pluginId,
+                                                        classpathModule,
+                                                        "4.3.15",
+                                                        listOf(moduleModel),
+                                                        config = config)
+             assertThat(changed2.size).isEqualTo(1)
+           },
+           {
+             val catalog = project.getTextForFile("gradle/libs.versions.toml")
+             // we don't update standalone version as it can be used somewhere.
+             assertThat(catalog).contains("google-gms-google-services = \"4.3.14\"")
+             assertThat(catalog).contains("google-gms-google-services = { id = \"com.google.gms.google-services\", version = \"4.3.15\" }")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.google.gms.google.services) apply false")
+
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("alias(libs.plugins.google.gms.google.services)")
            })
   }
 

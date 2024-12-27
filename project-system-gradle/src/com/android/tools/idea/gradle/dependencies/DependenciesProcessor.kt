@@ -25,6 +25,7 @@ class DependenciesProcessor(private val projectModel: ProjectBuildModel) {
     var result: ApplyResult = ApplyResult.success(setOf())
     val helper = DependenciesHelper.withModel(projectModel)
     for (plugin in config.plugins) {
+      // TODO rethink input types in DependenciesConfig
       helper.addPluginOrClasspath(plugin.pluginId,
                                   plugin.classpathModule,
                                   plugin.version,
