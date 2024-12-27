@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -206,11 +207,14 @@ internal class DeviceView(
 
   init {
     Disposer.register(disposableParent, this)
-    thisLogger().info("$simpleId created deviceClient=${deviceClient.simpleId}\n$currentStack") // b/364541401
-
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      thisLogger().info("$simpleId created deviceClient=${deviceClient.simpleId}\n$currentStack")
+    }
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
-        thisLogger().info("$simpleId.componentShown: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight") // b/364541401
+        if (StudioFlags.B_364541401_LOGGING.get()) {
+          thisLogger().info("$simpleId.componentShown: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight")
+        }
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
@@ -230,7 +234,9 @@ internal class DeviceView(
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
     val resized = width != this.width || height != this.height
-    thisLogger().info("$simpleId.setBounds($x, $y, $width, $height): resized=$resized isVisible=$isVisible") // b/364541401
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      thisLogger().info("$simpleId.setBounds($x, $y, $width, $height): resized=$resized isVisible=$isVisible")
+    }
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
       if (connectionState == ConnectionState.INITIAL) {
@@ -243,8 +249,9 @@ internal class DeviceView(
   }
 
   override fun addNotify() {
-    thisLogger().info( // b/364541401
-        "$simpleId.addNotify: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight isVisible=$isVisible")
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      thisLogger().info("$simpleId.addNotify: size=${width}x$height physicalSize=${physicalWidth}x$physicalHeight isVisible=$isVisible")
+    }
     super.addNotify()
   }
 
@@ -370,7 +377,9 @@ internal class DeviceView(
   }
 
   override fun dispose() {
-    thisLogger().info("$simpleId disposed deviceClient=${deviceClient.simpleId}\n$currentStack") // b/364541401
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      thisLogger().info("$simpleId disposed deviceClient=${deviceClient.simpleId}\n$currentStack")
+    }
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)

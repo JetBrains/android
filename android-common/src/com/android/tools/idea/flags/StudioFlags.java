@@ -1191,6 +1191,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
     false);
+  public static final Flag<Boolean> B_364541401_LOGGING = new BooleanFlag(
+    DEVICE_MIRRORING, "b.364541401.logging", "Debug logging for investigation of b/364541401",
+    "Enable debug logging for investigation of b/364541401",
+    enabledUpTo(CANARY));
   //endregion
 
   // region Device Definition Download Service

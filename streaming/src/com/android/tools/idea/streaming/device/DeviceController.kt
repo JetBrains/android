@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.applicationCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -211,7 +212,9 @@ internal class DeviceController(
   }
 
   private fun send(message:ControlMessage) {
-    logger.info("$simpleId.send($message)") // b/364541401
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      logger.info("$simpleId.send($message)")
+    }
     message.serialize(outputStream)
     outputStream.flush()
   }
