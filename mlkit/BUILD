@@ -44,7 +44,7 @@ iml_module(
     test_class = "com.android.tools.idea.mlkit.MlModelBindingTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",

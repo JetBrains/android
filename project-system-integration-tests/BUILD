@@ -14,7 +14,7 @@ common_data = [
 old_project_app_data = [
     ":oldprojectapp",
     ":oldprojectapp_deps",
-    "//prebuilts/studio/jdk/jdk11",
+    "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
     "//prebuilts/studio/sdk:build-tools/latest",
     "//tools/base/build-system:gradle-distrib-6.7.1",
 ]

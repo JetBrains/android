@@ -8,7 +8,7 @@ iml_module(
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
-        "//prebuilts/studio/jdk:jdk_1_8",
+        "//prebuilts/studio/jdk/jdk8:jdk_runtime_files",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

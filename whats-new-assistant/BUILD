@@ -30,7 +30,7 @@ iml_module(
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewTestSuite",
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",

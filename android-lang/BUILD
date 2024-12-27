@@ -56,7 +56,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
