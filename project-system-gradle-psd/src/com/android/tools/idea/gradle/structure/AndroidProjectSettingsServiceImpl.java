@@ -35,7 +35,6 @@ import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
-import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -275,13 +274,13 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public boolean processModulesMoved(Module[] modules, @Nullable ModuleGroup targetGroup) {
+  public boolean processModulesMoved(Module[] modules, @Nullable String targetGroupName) {
     if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
     else {
-      return myDelegate.processModulesMoved(modules, targetGroup);
+      return myDelegate.processModulesMoved(modules, targetGroupName);
     }
   }
 
