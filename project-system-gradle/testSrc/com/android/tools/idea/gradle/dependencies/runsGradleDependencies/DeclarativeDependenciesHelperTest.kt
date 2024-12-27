@@ -179,7 +179,7 @@ class DeclarativeDependenciesHelperTest : AndroidGradleTestCase() {
     try {
       prepareProjectForImport(projectPath)
       VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true))
-      setupGradleSnapshotToWrapper()
+      setupGradleSnapshotToWrapper(project)
       importProject()
       prepareProjectForTest(project, null)
       myFixture.allowTreeAccessForAllFiles()
@@ -197,12 +197,5 @@ class DeclarativeDependenciesHelperTest : AndroidGradleTestCase() {
       DeclarativeStudioSupport.clearOverride()
       DeclarativeIdeSupport.clearOverride()
     }
-  }
-
-  private fun setupGradleSnapshotToWrapper() {
-    val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")
-    val gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip")
-    val wrapper = GradleWrapper.find(project)!!
-    wrapper.updateDistributionUrl(gradle.toFile())
   }
 }

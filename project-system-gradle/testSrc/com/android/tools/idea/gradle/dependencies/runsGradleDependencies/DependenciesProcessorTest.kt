@@ -15,50 +15,105 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
+import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dependencies.DependenciesConfig
 import com.android.tools.idea.gradle.dependencies.DependenciesProcessor
 import com.android.tools.idea.gradle.dependencies.DependencyDescription
 import com.android.tools.idea.gradle.dependencies.PluginDescription
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.BuildEnvironment
+import com.android.tools.idea.testing.TestProjectPaths.EMPTY_APPLICATION_DECLARATIVE
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
-import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
-import org.junit.Rule
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class DependenciesProcessorTest {
+@RunWith(JUnit4::class)
+class DependenciesProcessorTest : AndroidGradleTestCase() {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @Before
+  fun onBefore() {
+    DeclarativeStudioSupport.override(true)
+    DeclarativeIdeSupport.override(true)
+  }
+
+  @After
+  fun onAfter() {
+    DeclarativeStudioSupport.clearOverride()
+    DeclarativeIdeSupport.clearOverride()
+  }
 
   @Test
   fun simpleAddPluginAndDependency() {
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val projectBuildModel = ProjectBuildModel.get(projectRule.project)
-    val appModule = projectRule.project.findModule("app")
+    loadProject(SIMPLE_APPLICATION)
+    val projectBuildModel = ProjectBuildModel.get(project)
+    val appModule = project.findModule("app")
     val config = DependenciesConfig.defaultConfig().withDependency(
       DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev")
     ).withPlugin(
       PluginDescription("org.example", "1.0", "org.example.gradle.plugin:gradle")
     )
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+    WriteCommandAction.runWriteCommandAction(project) {
       DependenciesProcessor(projectBuildModel).apply(config, appModule)
       projectBuildModel.applyChanges()
     }
     runReadAction {
-      Truth.assertThat(projectRule.project.getTextForFile("build.gradle"))
+
+      assertThat(project.getTextForFile("build.gradle"))
         .contains("classpath 'org.example.gradle.plugin:gradle:1.0'")
 
-      Truth.assertThat(projectRule.project.getTextForFile("app/build.gradle"))
+      assertThat(project.getTextForFile("app/build.gradle"))
         .contains("api 'my.not.existing.dependency:gradle:1.2.3-dev'")
 
-      Truth.assertThat(projectRule.project.getTextForFile("app/build.gradle"))
+      assertThat(project.getTextForFile("app/build.gradle"))
         .contains("apply plugin: 'org.example'")
     }
+  }
+
+  @Test
+  fun simpleAddEcosystemPluginAndDependency() {
+    importProjectWithRecentGradle(EMPTY_APPLICATION_DECLARATIVE)
+    val projectBuildModel = ProjectBuildModel.get(project)
+    val appModule = project.findModule("app")
+    val env = BuildEnvironment.getInstance()
+    val config = DependenciesConfig.defaultConfig().withDependency(
+      DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev")
+    ).withPlugin(
+      PluginDescription("com.android.application",
+                        env.gradlePluginVersion,
+                        "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+                        "com.android.ecosystem",
+                        env.gradlePluginVersion)
+    )
+    WriteCommandAction.runWriteCommandAction(project) {
+      DependenciesProcessor(projectBuildModel).apply(config, appModule)
+      projectBuildModel.applyChanges()
+    }
+    runReadAction {
+      assertThat(project.getTextForFile("settings.gradle.dcl"))
+        .contains("id(\"com.android.ecosystem\").version(\"${env.gradlePluginVersion}\")")
+
+      assertThat(project.getTextForFile("app/build.gradle.dcl"))
+        .contains("androidApp {")
+    }
+  }
+
+  private fun importProjectWithRecentGradle(relativePath: String){
+    prepareProjectForImport(relativePath)
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true))
+    setupGradleSnapshotToWrapper(project)
+    importProject()
   }
 
 }

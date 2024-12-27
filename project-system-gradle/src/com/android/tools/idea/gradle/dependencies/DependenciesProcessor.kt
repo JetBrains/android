@@ -31,8 +31,9 @@ class DependenciesProcessor(private val projectModel: ProjectBuildModel) {
         plugin.classpathModule,
         plugin.version,
         listOf(moduleModel),
-        { id, _ -> config.pluginMatcherFactory(PluginDescription(id, plugin.version, plugin.classpathModule)) },
-        config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version)
+        { id, version -> config.pluginMatcherFactory(id, version) },
+        config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version),
+        config.pluginInsertionConfig
       ).also { result = result.appendAll(it) }
     }
     for (dependency in config.dependencies) {

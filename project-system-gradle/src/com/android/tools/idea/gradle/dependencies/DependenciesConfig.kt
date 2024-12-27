@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.dependencies
 
 typealias ConfigName = String
 typealias Dependency = String
+typealias PluginId = String
+typealias Version = String
 
 data class DependenciesConfig(
   val plugins: List<PluginDescription>,
-  val pluginMatcherFactory: (PluginDescription) -> PluginMatcher,
+  val pluginMatcherFactory: (PluginId, Version?) -> PluginMatcher,
   val pluginInsertionConfig: PluginInsertionConfig,
   val dependencies: List<DependencyDescription>,
   val dependencyMatcherFactory: (ConfigName, Dependency) -> DependencyMatcher,
@@ -30,7 +32,7 @@ data class DependenciesConfig(
     fun defaultConfig() =
       DependenciesConfig(
         listOf(),
-        { descr -> IdPluginMatcher(descr.pluginId) },
+        { id, _ -> IdPluginMatcher(id) },
         PluginInsertionConfig.defaultInsertionConfig(),
         listOf(),
         { configName, dependency -> ExactDependencyMatcher(configName, dependency) },
@@ -46,6 +48,10 @@ data class DependenciesConfig(
   fun withPlatforms(newPlatforms: List<PlatformDescription>) = this.copy(platforms = platforms + newPlatforms)
 }
 
-data class PluginDescription(val pluginId: String, val version: String, val classpathModule: String)
+data class PluginDescription(val pluginId: String,
+                             val version: String,
+                             val classpathModule: String,
+                             val ecosystemPlugin: String? = null,
+                             val ecosystemPluginVersion: String? = null)
 data class DependencyDescription(val configurationName: ConfigName, val dependency: Dependency)
 data class PlatformDescription(val configurationName: ConfigName, val dependency: Dependency, val enforced: Boolean)

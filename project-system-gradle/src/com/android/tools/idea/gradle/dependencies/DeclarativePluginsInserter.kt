@@ -97,7 +97,7 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     throw IllegalStateException("Add classpath with variable is impossible for declarative. Low level API like this will be removed eventually")
 
   private fun applyPlugin(pluginId: String,
-                          version: String,
+                          version: String?,
                           buildModels: List<GradleBuildModel>,
                           whenFoundPlugin: MatchedStrategy,
                           matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }): Set<PsiFile> {
@@ -107,8 +107,11 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
       return changedFiles
     }
     val ecosystemPlugin = pluginToEcosystemPluginMap.get(pluginId)
-    val ecosystemPluginVersion = version // assuming ecosystem version is the same as for real plugin
     if (ecosystemPlugin != null) {
+      // assuming ecosystem version is the same as for real plugin
+      val ecosystemPluginVersion = version
+                                   ?: throw IllegalArgumentException("Version cannot be null for ecosystem plugin for $pluginId")
+
       val component = getEcosystemPlugin(pluginId)
       if (component == null) {
         log.warn("Unknown declarative plugin $pluginId")
@@ -124,14 +127,20 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
       }
     }
     else {
-      val pluginMatcher = matcherFactory(pluginId, version)
-      if (!hasPlugin(pluginMatcher)) {
-        applySettingsPlugin(pluginId, version).also { changedFiles.addAll(it) }
+      if (version != null) {
+        val pluginMatcher = matcherFactory(pluginId, version)
+        if (!hasPlugin(pluginMatcher)) {
+          applySettingsPlugin(pluginId, version).also { changedFiles.addAll(it) }
+        }
+        else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
+          updatePlugin(pluginId, version).also { changedFiles.addAll(it) }
+        }
+        // TODO - not clear how to apply non ecosystem plugins
+
       }
-      else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
-        updatePlugin(pluginId, version).also { changedFiles.addAll(it) }
+      else {
+        // TODO - insert gradle ecosystem plugin
       }
-      // TODO - not clear how to apply non ecosystem plugins
     }
     return changedFiles
   }
