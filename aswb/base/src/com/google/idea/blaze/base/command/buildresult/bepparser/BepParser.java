@@ -36,9 +36,9 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.IntExperiment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -136,6 +136,34 @@ public final class BepParser {
   }
 
   /**
+   * A collection of all known named file sets.
+   */
+  private static class FileSets {
+    Map<String, BuildEventStreamProtos.NamedSetOfFiles> data = new LinkedHashMap<>();
+
+    public void add(String name, BuildEventStreamProtos.NamedSetOfFiles fileSet) {
+      final var existing = data.put(name, fileSet);
+      if (existing != null) {
+        throw new IllegalStateException(String.format("File set named %s already exists", name));
+      }
+    }
+
+    public ImmutableMap<String, BuildEventStreamProtos.NamedSetOfFiles> toImmutableMap() {
+      return ImmutableMap.copyOf(data);
+    }
+  }
+
+  private static class BepParserState {
+    final OutputGroupTargetConfigFileSetMap outputs = new OutputGroupTargetConfigFileSetMap();
+    final FileSets fileSets = new FileSets();
+    final Set<String> targetsWithErrors = new LinkedHashSet<>();
+    String localExecRoot = null;
+    String buildId = null;
+    long startTimeMillis = 0L;
+    int buildResult = 0;
+  }
+
+  /**
    * Parses BEP events into {@link ParsedBepOutput}. String references in {@link BuildEventStreamProtos.NamedSetOfFiles}
    * are interned to conserve memory.
    *
@@ -148,76 +176,74 @@ public final class BepParser {
     final var semaphore = ApplicationManager.getApplication().getService(BepParserSemaphore.class);
     semaphore.start();
     try {
-      final Interner<String> interner = nullableInterner == null ? Interners.newStrongInterner() : nullableInterner;
-
-      BuildEventStreamProtos.BuildEvent event;
-      Map<String, BuildEventStreamProtos.NamedSetOfFiles> fileSets = new LinkedHashMap<>();
-      final var data = new OutputGroupTargetConfigFileSetMap();
-      ImmutableSet.Builder<String> targetsWithErrors = ImmutableSet.builder();
-      String localExecRoot = null;
-      String buildId = null;
-      long startTimeMillis = 0L;
-      int buildResult = 0;
-      boolean emptyBuildEventStream = true;
-
-      while ((event = stream.getNext()) != null) {
-        emptyBuildEventStream = false;
-        switch (event.getId().getIdCase()) {
-          case WORKSPACE:
-            localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
-            continue;
-          case NAMED_SET:
-            BuildEventStreamProtos.NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
-            fileSets.put(interner.intern(event.getId().getNamedSet().getId()), namedSet);
-            continue;
-          case ACTION_COMPLETED:
-            Preconditions.checkState(event.hasAction());
-            if (!event.getAction().getSuccess()) {
-              targetsWithErrors.add(event.getId().getActionCompleted().getLabel());
-            }
-            break;
-          case TARGET_COMPLETED:
-            String label = event.getId().getTargetCompleted().getLabel();
-            String configId = event.getId().getTargetCompleted().getConfiguration().getId();
-
-            for (BuildEventStreamProtos.OutputGroup o : event.getCompleted().getOutputGroupList()) {
-              final var fileSetNames = getFileSets(o, interner);
-              data.setOutputGroupTargetConfig(interner.intern(o.getName()), interner.intern(label), interner.intern(configId), fileSetNames);
-            }
-            continue;
-          case STARTED:
-            buildId = Strings.emptyToNull(event.getStarted().getUuid());
-            startTimeMillis = event.getStarted().getStartTimeMillis();
-            continue;
-          case BUILD_FINISHED:
-            buildResult = event.getFinished().getExitCode().getCode();
-            continue;
-          default: // continue
-        }
-      }
-      // If stream is empty, it means that service failed to retrieve any blaze build event from build
-      // event stream. This should not happen if a build start correctly.
-      if (emptyBuildEventStream) {
-        throw new BuildEventStreamProvider.BuildEventStreamException("No build events found");
-      }
+      BepParserState state = parseBep(stream, nullableInterner);
       ImmutableMap<String, ParsedBepOutput.FileSet> filesMap =
-        fillInTransitiveFileSetData(
-          fileSets, data, startTimeMillis);
+        fillInTransitiveFileSetData(state.fileSets, state.outputs, state.startTimeMillis);
       return new ParsedBepOutput(
-        buildId,
-        localExecRoot,
+        state.buildId,
+        state.localExecRoot,
         filesMap,
-        data.fileSetStream()
+        state.outputs.fileSetStream()
           .collect(ImmutableSetMultimap.flatteningToImmutableSetMultimap(OutputGroupTargetConfigFileSets::target,
                                                                it -> it.fileSetNames().stream())),
-        startTimeMillis,
-        buildResult,
+        state.startTimeMillis,
+        state.buildResult,
         stream.getBytesConsumed(),
-        targetsWithErrors.build());
+        ImmutableSet.copyOf(state.targetsWithErrors));
     }
     finally {
       semaphore.end();
     }
+  }
+
+  private static BepParserState parseBep(BuildEventStreamProvider stream, Interner<String> nullableInterner)
+    throws BuildEventStreamProvider.BuildEventStreamException {
+    final Interner<String> interner = nullableInterner == null ? Interners.newStrongInterner() : nullableInterner;
+    final var state = new BepParserState();
+    BuildEventStreamProtos.BuildEvent event;
+    boolean emptyBuildEventStream = true;
+
+    while ((event = stream.getNext()) != null) {
+      emptyBuildEventStream = false;
+      switch (event.getId().getIdCase()) {
+        case WORKSPACE:
+          state.localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
+          continue;
+        case NAMED_SET:
+          BuildEventStreamProtos.NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
+          state.fileSets.add(interner.intern(event.getId().getNamedSet().getId()), namedSet);
+          continue;
+        case ACTION_COMPLETED:
+          Preconditions.checkState(event.hasAction());
+          if (!event.getAction().getSuccess()) {
+            state.targetsWithErrors.add(event.getId().getActionCompleted().getLabel());
+          }
+          break;
+        case TARGET_COMPLETED:
+          String label = event.getId().getTargetCompleted().getLabel();
+          String configId = event.getId().getTargetCompleted().getConfiguration().getId();
+
+          for (BuildEventStreamProtos.OutputGroup o : event.getCompleted().getOutputGroupList()) {
+            final var fileSetNames = getFileSets(o, interner);
+            state.outputs.setOutputGroupTargetConfig(interner.intern(o.getName()), interner.intern(label), interner.intern(configId), fileSetNames);
+          }
+          continue;
+        case STARTED:
+          state.buildId = Strings.emptyToNull(event.getStarted().getUuid());
+          state.startTimeMillis = event.getStarted().getStartTimeMillis();
+          continue;
+        case BUILD_FINISHED:
+          state.buildResult = event.getFinished().getExitCode().getCode();
+          continue;
+        default: // continue
+      }
+    }
+    // If stream is empty, it means that service failed to retrieve any blaze build event from build
+    // event stream. This should not happen if a build start correctly.
+    if (emptyBuildEventStream) {
+      throw new BuildEventStreamProvider.BuildEventStreamException("No build events found");
+    }
+    return state;
   }
 
   private static ImmutableList<String> getFileSets(BuildEventStreamProtos.OutputGroup group, Interner<String> interner) {
@@ -231,22 +257,20 @@ public final class BepParser {
    * explicitly provided in BEP. This method fills in that data for the transitive closure.
    */
   private static ImmutableMap<String, ParsedBepOutput.FileSet> fillInTransitiveFileSetData(
-    Map<String, BuildEventStreamProtos.NamedSetOfFiles> namedFileSets,
-      OutputGroupTargetConfigFileSetMap data,
-      long startTimeMillis) {
+    FileSets namedFileSets, OutputGroupTargetConfigFileSetMap data, long startTimeMillis) {
     Map<String, FileSetBuilder> fileSets =
       ImmutableMap.copyOf(
-        Maps.transformValues(namedFileSets, it -> new FileSetBuilder().setNamedSet(it)));
+        Maps.transformValues(namedFileSets.toImmutableMap(), it -> new FileSetBuilder().setNamedSet(it)));
     Set<String> topLevelFileSets = new HashSet<>();
-    data.fileSetStream().forEach(entry -> {
-      entry.fileSetNames().forEach(fileSetName -> {
-        final var fileSet = checkNotNull(fileSets.get(fileSetName));
-        fileSet.setConfigId(entry.config());
-        fileSet.addOutputGroup(entry.outputGroup());
-        fileSet.addTarget(entry.target());
-        topLevelFileSets.add(fileSetName);
-      });
-    });
+    data.fileSetStream().forEach(
+      entry ->
+        entry.fileSetNames().forEach(fileSetName -> {
+          final var fileSet = checkNotNull(fileSets.get(fileSetName));
+          fileSet.setConfigId(entry.config());
+          fileSet.addOutputGroup(entry.outputGroup());
+          fileSet.addTarget(entry.target());
+          topLevelFileSets.add(fileSetName);
+        }));
     Queue<String> toVisit = Queues.newArrayDeque(topLevelFileSets);
     Set<String> visited = new HashSet<>(topLevelFileSets);
     while (!toVisit.isEmpty()) {
