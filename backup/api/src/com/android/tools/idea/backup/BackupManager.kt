@@ -104,7 +104,7 @@ interface BackupManager {
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 
   companion object {
-    const val NOTIFICATION_GROUP = "Backup"
+    const val NOTIFICATION_GROUP: String = "Backup"
 
     @JvmStatic
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)

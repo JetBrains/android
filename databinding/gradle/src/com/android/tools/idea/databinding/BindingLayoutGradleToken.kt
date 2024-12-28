@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.intellij.openapi.module.Module
 
-class BindingLayoutGradleToken : BindingLayoutToken<GradleProjectSystem>, GradleToken {
+private class BindingLayoutGradleToken : BindingLayoutToken<GradleProjectSystem>, GradleToken {
   override fun isTestModule(projectSystem: GradleProjectSystem, module: Module) =
     module.isAndroidTestModule()
 
