@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.command.buildresult.bepparser;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
@@ -26,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -37,13 +39,12 @@ import com.intellij.openapi.components.Service;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 public final class BepParser {
@@ -63,6 +64,78 @@ public final class BepParser {
   }
 
   /**
+   * A record of the top level file sets output by the given {@link #outputGroup}, {@link #target} and {@link #config}.
+   */
+  private record OutputGroupTargetConfigFileSets(String outputGroup, String target, String config, ImmutableList<String> fileSetNames){}
+
+  /**
+   * A data structure allowing to associate file set names with output group, targets and configs and allowing to retrieve them efficiently
+   * at each level of the hierarchy.
+   */
+  private static class OutputGroupTargetConfigFileSetMap {
+    private final Map<String, Map<String, Map<String, ImmutableList<String>>>> data = new LinkedHashMap<>();
+
+    private Map<String, Map<String, ImmutableList<String>>> getOutputGroup(String outputGroup) {
+      return data.computeIfAbsent(outputGroup, it -> new LinkedHashMap<>());
+    }
+
+    private Map<String, ImmutableList<String>> getOutputGroupTarget(String outputGroup, String target) {
+      return getOutputGroup(outputGroup).computeIfAbsent(target, it -> new LinkedHashMap<>());
+    }
+
+    private ImmutableList<String> getOutputGroupTargetConfig(String outputGroup, String target, String config) {
+      final var result = getOutputGroupTarget(outputGroup, target).get(config);
+      return result != null ? result : ImmutableList.of();
+    }
+
+    public void setOutputGroupTargetConfig(String outputGroup, String target, String config, ImmutableList<String> fileSetNames) {
+      final var previous = getOutputGroupTarget(outputGroup, target).put(config, fileSetNames);
+      if (previous != null){
+        throw new IllegalStateException(outputGroup + ":" + target + ":" + config + " already present");
+      }
+    }
+
+    public Stream<OutputGroupTargetConfigFileSets> fileSetStream() {
+      return data.entrySet().stream().flatMap(
+        outputGroup ->
+          outputGroup.getValue().entrySet().stream().flatMap(
+            target ->
+              target.getValue().entrySet().stream().map(
+                config ->
+                  new OutputGroupTargetConfigFileSets(outputGroup.getKey(), target.getKey(),
+                                                      config.getKey(), config.getValue()))));
+    }
+
+    public Stream<OutputGroupTargetConfigFileSets> outputGroupFileSetStream(String outputGroup) {
+      final var outputGroupData = data.get(outputGroup);
+      if (outputGroupData == null) {
+        return Stream.empty();
+      }
+      return outputGroupData.entrySet().stream().flatMap(
+        target ->
+          target.getValue().entrySet().stream().map(
+            config ->
+              new OutputGroupTargetConfigFileSets(outputGroup, target.getKey(),
+                                                  config.getKey(), config.getValue())));
+    }
+
+    public Stream<OutputGroupTargetConfigFileSets> outputGroupTargetFileSetStream(String outputGroup, String target) {
+      final var outputGroupData = data.get(outputGroup);
+      if (outputGroupData == null) {
+        return Stream.empty();
+      }
+      final var outputGroupTargetData = outputGroupData.get(target);
+      if (outputGroupTargetData == null) {
+        return Stream.empty();
+      }
+      return outputGroupTargetData.entrySet().stream().map(
+            config ->
+              new OutputGroupTargetConfigFileSets(outputGroup, target,
+                                                  config.getKey(), config.getValue()));
+    }
+  }
+
+  /**
    * Parses BEP events into {@link ParsedBepOutput}. String references in {@link BuildEventStreamProtos.NamedSetOfFiles}
    * are interned to conserve memory.
    *
@@ -70,20 +143,17 @@ public final class BepParser {
    * shards running in parallel, so a {@link Interner} is used to share references.
    */
   public static ParsedBepOutput parseBepArtifacts(
-      BuildEventStreamProvider stream, @Nullable Interner<String> interner)
+      BuildEventStreamProvider stream, @Nullable Interner<String> nullableInterner)
     throws BuildEventStreamProvider.BuildEventStreamException {
     final var semaphore = ApplicationManager.getApplication().getService(BepParserSemaphore.class);
     semaphore.start();
     try {
-      if (interner == null) {
-        interner = Interners.newStrongInterner();
-      }
+      final Interner<String> interner = nullableInterner == null ? Interners.newStrongInterner() : nullableInterner;
 
       BuildEventStreamProtos.BuildEvent event;
       Map<String, String> configIdToMnemonic = new HashMap<>();
-      Set<String> topLevelFileSets = new HashSet<>();
-      Map<String, FileSetBuilder> fileSets = new LinkedHashMap<>();
-      ImmutableSetMultimap.Builder<String, String> targetToFileSets = ImmutableSetMultimap.builder();
+      Map<String, BuildEventStreamProtos.NamedSetOfFiles> fileSets = new LinkedHashMap<>();
+      final var data = new OutputGroupTargetConfigFileSetMap();
       ImmutableSet.Builder<String> targetsWithErrors = ImmutableSet.builder();
       String localExecRoot = null;
       String buildId = null;
@@ -103,10 +173,7 @@ public final class BepParser {
             continue;
           case NAMED_SET:
             BuildEventStreamProtos.NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
-            fileSets.compute(
-              event.getId().getNamedSet().getId(),
-              (k, v) ->
-                v != null ? v.setNamedSet(namedSet) : new FileSetBuilder().setNamedSet(namedSet));
+            fileSets.put(interner.intern(event.getId().getNamedSet().getId()), namedSet);
             continue;
           case ACTION_COMPLETED:
             Preconditions.checkState(event.hasAction());
@@ -118,26 +185,10 @@ public final class BepParser {
             String label = event.getId().getTargetCompleted().getLabel();
             String configId = event.getId().getTargetCompleted().getConfiguration().getId();
 
-            event
-              .getCompleted()
-              .getOutputGroupList()
-              .forEach(
-                o -> {
-                  List<String> sets = getFileSets(o);
-                  targetToFileSets.putAll(label, sets);
-                  topLevelFileSets.addAll(sets);
-                  for (String id : sets) {
-                    fileSets.compute(
-                      id,
-                      (k, v) -> {
-                        FileSetBuilder builder = (v != null) ? v : new FileSetBuilder();
-                        return builder
-                          .setConfigId(configId)
-                          .addOutputGroups(ImmutableSet.of(o.getName()))
-                          .addTargets(ImmutableSet.of(label));
-                      });
-                  }
-                });
+            for (BuildEventStreamProtos.OutputGroup o : event.getCompleted().getOutputGroupList()) {
+              final var fileSetNames = getFileSets(o, interner);
+              data.setOutputGroupTargetConfig(interner.intern(o.getName()), interner.intern(label), interner.intern(configId), fileSetNames);
+            }
             continue;
           case STARTED:
             buildId = Strings.emptyToNull(event.getStarted().getUuid());
@@ -156,12 +207,14 @@ public final class BepParser {
       }
       ImmutableMap<String, ParsedBepOutput.FileSet> filesMap =
         fillInTransitiveFileSetData(
-          fileSets, topLevelFileSets, configIdToMnemonic, startTimeMillis);
+          fileSets, data, configIdToMnemonic, startTimeMillis);
       return new ParsedBepOutput(
         buildId,
         localExecRoot,
         filesMap,
-        targetToFileSets.build(),
+        data.fileSetStream()
+          .collect(ImmutableSetMultimap.flatteningToImmutableSetMultimap(OutputGroupTargetConfigFileSets::target,
+                                                               it -> it.fileSetNames().stream())),
         startTimeMillis,
         buildResult,
         stream.getBytesConsumed(),
@@ -172,10 +225,10 @@ public final class BepParser {
     }
   }
 
-  private static List<String> getFileSets(BuildEventStreamProtos.OutputGroup group) {
+  private static ImmutableList<String> getFileSets(BuildEventStreamProtos.OutputGroup group, Interner<String> interner) {
     return group.getFileSetsList().stream()
-        .map(BuildEventStreamProtos.BuildEventId.NamedSetOfFilesId::getId)
-        .collect(Collectors.toList());
+        .map(namedSetOfFilesId -> interner.intern(namedSetOfFilesId.getId()))
+        .collect(toImmutableList());
   }
 
   /**
@@ -183,10 +236,23 @@ public final class BepParser {
    * explicitly provided in BEP. This method fills in that data for the transitive closure.
    */
   private static ImmutableMap<String, ParsedBepOutput.FileSet> fillInTransitiveFileSetData(
-      Map<String, FileSetBuilder> fileSets,
-      Set<String> topLevelFileSets,
+    Map<String, BuildEventStreamProtos.NamedSetOfFiles> namedFileSets,
+      OutputGroupTargetConfigFileSetMap data,
       Map<String, String> configIdToMnemonic,
       long startTimeMillis) {
+    Map<String, FileSetBuilder> fileSets =
+      ImmutableMap.copyOf(
+        Maps.transformValues(namedFileSets, it -> new FileSetBuilder().setNamedSet(it)));
+    Set<String> topLevelFileSets = new HashSet<>();
+    data.fileSetStream().forEach(entry -> {
+      entry.fileSetNames().forEach(fileSetName -> {
+        final var fileSet = checkNotNull(fileSets.get(fileSetName));
+        fileSet.setConfigId(entry.config());
+        fileSet.addOutputGroup(entry.outputGroup());
+        fileSet.addTarget(entry.target());
+        topLevelFileSets.add(fileSetName);
+      });
+    });
     Queue<String> toVisit = Queues.newArrayDeque(topLevelFileSets);
     Set<String> visited = new HashSet<>(topLevelFileSets);
     while (!toVisit.isEmpty()) {
@@ -237,10 +303,10 @@ public final class BepParser {
                               .addAllPathPrefix(
                                   file.getPathPrefixList().stream()
                                       .map(interner::intern)
-                                      .collect(Collectors.toUnmodifiableList()));
+                                      .collect(toImmutableList()));
                       return builder.build();
                     })
-                .collect(Collectors.toUnmodifiableList()))
+                .collect(toImmutableList()))
         .build();
   }
 
@@ -295,14 +361,14 @@ public final class BepParser {
     }
 
     @CanIgnoreReturnValue
-    FileSetBuilder addOutputGroups(Set<String> outputGroups) {
-      this.outputGroups.addAll(outputGroups);
+    FileSetBuilder addOutputGroup(String outputGroup) {
+      this.outputGroups.add(outputGroup);
       return this;
     }
 
     @CanIgnoreReturnValue
-    FileSetBuilder addTargets(Set<String> targets) {
-      this.targets.addAll(targets);
+    FileSetBuilder addTarget(String target) {
+      this.targets.add(target);
       return this;
     }
 
