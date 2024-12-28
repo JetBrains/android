@@ -242,9 +242,15 @@ def _label_str(label):
         return "//%s:%s" % (label.package, label.name)
 
 def _studio_plugin_impl(ctx):
+    plugin_id = ctx.attr.name
     plugin_dir = "plugins/" + ctx.attr.directory
     plugin_jars = _pack_modules(ctx, ctx.attr.jars, ctx.attr.modules)
     plugin_jars = plugin_jars + [(f.basename, f) for f in ctx.files.libs]
+
+    # Pack searchable-options metadata.
+    so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
+    if plugin_id in so_jars:
+        plugin_jars.append((ctx.attr.directory + ".so.jar", so_jars[plugin_id]))
 
     # Ensure plugin id is known at build time
     _check_plugin(
@@ -295,7 +301,7 @@ def _studio_plugin_impl(ctx):
             license_files = depset(ctx.files.license_files),
             overwrite_plugin_version = True,
             platform = ctx.attr._intellij_platform,
-            plugin_id = ctx.attr.name,
+            plugin_id = plugin_id,
         ),
         # Force 'chkplugin' to run by marking its output as a validation output.
         # See https://bazel.build/extending/rules#validation_actions for details.
@@ -313,6 +319,10 @@ _studio_plugin = rule(
         "directory": attr.string(),
         "compress": attr.bool(),
         "deps": attr.label_list(providers = [PluginInfo]),
+        "searchable_options": attr.label(
+            default = Label("//tools/adt/idea/searchable-options"),
+            providers = [_SearchableOptionsInfo],
+        ),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",
@@ -815,21 +825,14 @@ def _android_studio_os(ctx, platform, out):
         for key in source_map:
             files.append((platform.base_path + source_map[key], key.files.to_list()[0]))
 
-    so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
-
     license_files = []
     for p in ctx.attr.plugins:
-        pkey = p[PluginInfo].directory
         this_plugin_files = platform.get(p[PluginInfo].plugin_files)
-
         this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, p[PluginInfo].overwrite_plugin_version)
 
         license_files.append(p[PluginInfo].license_files)
         this_plugin_full_files = {platform_prefix + platform.base_path + k: v for k, v in this_plugin_files.items()}
         all_files.update(this_plugin_full_files)
-
-        if p[PluginInfo].plugin_id in so_jars:
-            files.append(("%splugins/%s/lib/%s" % (platform.base_path, pkey, pkey + ".so.jar"), so_jars[p[PluginInfo].plugin_id]))
 
     files += [(platform.base_path + "license/" + f.basename, f) for f in depset([], transitive = license_files).to_list()]
 
@@ -998,7 +1001,6 @@ _android_studio = rule(
         "properties_win": attr.string_list(),
         "selector": attr.string(mandatory = True),
         "application_icon": attr.label(providers = [AppIconInfo]),
-        "searchable_options": attr.label(providers = [_SearchableOptionsInfo]),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),

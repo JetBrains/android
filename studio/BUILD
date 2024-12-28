@@ -802,7 +802,6 @@ android_studio(
         ":com.google.targetsdkversionassistant",
         ":com.android.tools.gradle.dcl",
     ],
-    searchable_options = "//tools/adt/idea/searchable-options",
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
