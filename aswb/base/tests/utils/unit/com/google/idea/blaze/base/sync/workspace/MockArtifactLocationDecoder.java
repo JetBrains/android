@@ -60,7 +60,6 @@ public class MockArtifactLocationDecoder implements ArtifactLocationDecoder {
       return new FakeRemoteOutputArtifact(file, workspaceRoot.toPath().relativize(file.toPath()), artifactPathPrefixLength);
     }
     return new LocalFileOutputArtifactWithoutDigest(
-      decode(artifact), Path.of(artifact.getExecutionRootRelativePath()), artifactPathPrefixLength,
-      artifact.getExecutionRootRelativePath());
+      decode(artifact), Path.of(artifact.getExecutionRootRelativePath()), artifactPathPrefixLength);
   }
 }

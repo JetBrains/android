@@ -151,7 +151,6 @@ public final class BepParser {
       final Interner<String> interner = nullableInterner == null ? Interners.newStrongInterner() : nullableInterner;
 
       BuildEventStreamProtos.BuildEvent event;
-      Map<String, String> configIdToMnemonic = new HashMap<>();
       Map<String, BuildEventStreamProtos.NamedSetOfFiles> fileSets = new LinkedHashMap<>();
       final var data = new OutputGroupTargetConfigFileSetMap();
       ImmutableSet.Builder<String> targetsWithErrors = ImmutableSet.builder();
@@ -166,10 +165,6 @@ public final class BepParser {
         switch (event.getId().getIdCase()) {
           case WORKSPACE:
             localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
-            continue;
-          case CONFIGURATION:
-            configIdToMnemonic.put(
-              event.getId().getConfiguration().getId(), event.getConfiguration().getMnemonic());
             continue;
           case NAMED_SET:
             BuildEventStreamProtos.NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
@@ -207,7 +202,7 @@ public final class BepParser {
       }
       ImmutableMap<String, ParsedBepOutput.FileSet> filesMap =
         fillInTransitiveFileSetData(
-          fileSets, data, configIdToMnemonic, startTimeMillis);
+          fileSets, data, startTimeMillis);
       return new ParsedBepOutput(
         buildId,
         localExecRoot,
@@ -238,7 +233,6 @@ public final class BepParser {
   private static ImmutableMap<String, ParsedBepOutput.FileSet> fillInTransitiveFileSetData(
     Map<String, BuildEventStreamProtos.NamedSetOfFiles> namedFileSets,
       OutputGroupTargetConfigFileSetMap data,
-      Map<String, String> configIdToMnemonic,
       long startTimeMillis) {
     Map<String, FileSetBuilder> fileSets =
       ImmutableMap.copyOf(
@@ -272,16 +266,16 @@ public final class BepParser {
               });
     }
     return fileSets.entrySet().stream()
-        .filter(e -> e.getValue().isValid(configIdToMnemonic))
+        .filter(e -> e.getValue().isValid())
         .collect(
             toImmutableMap(
-              Map.Entry::getKey, e -> e.getValue().build(configIdToMnemonic, startTimeMillis)));
+              Map.Entry::getKey, e -> e.getValue().build(startTimeMillis)));
   }
 
   private static ImmutableList<OutputArtifact> parseFiles(
-    BuildEventStreamProtos.NamedSetOfFiles namedSet, String config, long startTimeMillis) {
+    BuildEventStreamProtos.NamedSetOfFiles namedSet, long startTimeMillis) {
     return namedSet.getFilesList().stream()
-        .map(f -> OutputArtifactParser.parseArtifact(f, config, startTimeMillis))
+        .map(f -> OutputArtifactParser.parseArtifact(f, startTimeMillis))
         .filter(Objects::nonNull)
         .collect(toImmutableList());
   }
@@ -372,12 +366,12 @@ public final class BepParser {
       return this;
     }
 
-    boolean isValid(Map<String, String> configIdToMnemonic) {
-      return namedSet != null && configId != null && configIdToMnemonic.get(configId) != null;
+    boolean isValid() {
+      return namedSet != null && configId != null;
     }
 
-    ParsedBepOutput.FileSet build(Map<String, String> configIdToMnemonic, long startTimeMillis) {
-      return new ParsedBepOutput.FileSet(parseFiles(namedSet, configIdToMnemonic.get(configId), startTimeMillis), outputGroups, targets);
+    ParsedBepOutput.FileSet build(long startTimeMillis) {
+      return new ParsedBepOutput.FileSet(parseFiles(namedSet, startTimeMillis), outputGroups, targets);
     }
   }
 }

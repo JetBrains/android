@@ -32,17 +32,16 @@ public interface OutputArtifactParser {
 
   @Nullable
   static OutputArtifact parseArtifact(
-      BuildEventStreamProtos.File file, String configurationMnemonic, long syncStartTimeMillis) {
+      BuildEventStreamProtos.File file, long syncStartTimeMillis) {
     return Arrays.stream(EP_NAME.getExtensions())
-        .map(p -> p.parse(file, configurationMnemonic, syncStartTimeMillis))
+        .map(p -> p.parse(file, syncStartTimeMillis))
         .filter(Objects::nonNull)
         .findFirst()
         .orElse(null);
   }
 
   @Nullable
-  OutputArtifact parse(
-      BuildEventStreamProtos.File file, String configurationMnemonic, long syncStartTimeMillis);
+  OutputArtifact parse(BuildEventStreamProtos.File file, long syncStartTimeMillis);
 
   static Path bazelFileToArtifactPath(BuildEventStreamProtos.File file) {
     return Path.of(Joiner.on('/').join(file.getPathPrefixList()), file.getName());

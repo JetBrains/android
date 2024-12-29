@@ -38,14 +38,14 @@ public class BlazeConfigurationHandler {
   }
 
   @Nullable
-  public String getConfigurationMnemonic(File artifact) {
+  private String getConfigurationMnemonic(File artifact) {
     if (!artifact.getPath().startsWith(blazeOutPath)) {
       return null;
     }
     return getConfigurationMnemonic(artifact.getPath().substring(blazeOutPath.length()));
   }
 
-  public static String getConfigurationMnemonic(String blazeOutRelativePath) {
+  private static String getConfigurationMnemonic(String blazeOutRelativePath) {
     int endIndex = blazeOutRelativePath.indexOf(File.separatorChar);
     return endIndex == -1 ? blazeOutRelativePath : blazeOutRelativePath.substring(0, endIndex);
   }

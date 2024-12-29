@@ -31,7 +31,7 @@ public class LocalFileParser implements OutputArtifactParser {
   @Override
   @Nullable
   public OutputArtifact parse(
-    BuildEventStreamProtos.File file, String configurationMnemonic, long syncStartTimeMillis) {
+    BuildEventStreamProtos.File file, long syncStartTimeMillis) {
     String uri = file.getUri();
     if (!uri.startsWith(URLUtil.FILE_PROTOCOL)) {
       return null;
@@ -42,7 +42,6 @@ public class LocalFileParser implements OutputArtifactParser {
         f,
         OutputArtifactParser.bazelFileToArtifactPath(file),
         file.getPathPrefixCount(),
-        configurationMnemonic,
         file.getDigest());
     }
     catch (URISyntaxException | IllegalArgumentException e) {

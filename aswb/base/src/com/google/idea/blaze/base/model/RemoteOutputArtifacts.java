@@ -193,7 +193,7 @@ public final class RemoteOutputArtifacts
   }
 
   private static String parseConfigurationMnemonic(RemoteOutputArtifact output) {
-    return BlazeConfigurationHandler.getConfigurationMnemonic(output.getBazelOutRelativePath());
+    return output.getConfigurationMnemonicForLegacySync();
   }
 
   @Override

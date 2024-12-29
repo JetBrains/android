@@ -51,11 +51,6 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   }
 
   @Override
-  public String getConfigurationMnemonic() {
-    return "";
-  }
-
-  @Override
   public Path getArtifactPath() {
     return artifactPath;
   }
