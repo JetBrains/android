@@ -8,7 +8,7 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "//android/android/lib:instantapps-api-1_8",
+    "//android/android/lib:instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
     "@lib//:junit4",

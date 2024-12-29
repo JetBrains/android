@@ -15,7 +15,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
     "//xml/impl",
@@ -23,8 +23,8 @@ jvm_library(
     "//android/nav/safeargs/common:android-nav-safeargs-common",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/base/analysis:kotlin-base-analysis",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_analysis-api-platform-interface-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
   ],
   runtime_deps = [":android-nav-safeargs-k2_resources"]
 )

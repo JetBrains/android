@@ -12,7 +12,7 @@ jvm_test(
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:truth",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "//android/android-common:common",
     "//android/android:core",
     "//android/android:core-tests_test_lib",

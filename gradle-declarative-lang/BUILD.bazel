@@ -25,7 +25,7 @@ jvm_library(
     "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "@lib//:commons-lang3",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//platform/code-style-impl:codeStyle-impl",
   ],
   runtime_deps = [":gradle-declarative-lang_resources"]

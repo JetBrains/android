@@ -19,7 +19,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kxml2",
     "@lib//:protobuf",
     "@lib//:rd-core",
@@ -91,7 +91,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_test")
 
 jvm_test(
   name = "newProjectWizard-tests_test",
-  srcs = glob(["testResources/**/*.kt", "testResources/**/*.java", "testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -105,6 +105,7 @@ jvm_test(
     "@lib//:protobuf",
     "@lib//:mockito",
     "@lib//:truth",
+    "//java/idea-ui:ui",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",

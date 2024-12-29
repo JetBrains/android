@@ -12,7 +12,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:google_protobuf_java_util",
+    "@lib//:google-protobuf-java-util",
   ]
 )
 
@@ -30,7 +30,7 @@ jvm_library(
     "@lib//:truth",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:google_protobuf_java_util",
+    "@lib//:google-protobuf-java-util",
     "//android/android-common:common",
     "//platform/util",
   ]

@@ -18,6 +18,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "//android/app-inspection/ide:android-app-inspection-ide",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//platform/util",
     "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
     "//android/android-common:common",
     "//android/project-system:projectSystem",

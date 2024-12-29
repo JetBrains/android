@@ -15,6 +15,7 @@ jvm_library(
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
+    "//platform/util",
     "//plugins/groovy/groovy-psi:psi",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-psi-api:psi",

@@ -17,6 +17,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
+    "//platform/observable:ide-observable",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",

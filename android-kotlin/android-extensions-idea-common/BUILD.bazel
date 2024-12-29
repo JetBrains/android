@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   opt_in = [
     "org.jetbrains.kotlin.analysis.api.KaIdeApi",
     "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
@@ -27,10 +27,10 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:gradle",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_android-extensions-compiler-plugin-provided",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
-    "@lib//:kotlinc_kotlin-jps-common-provided",
+    "@lib//:kotlinc-android-extensions-compiler-plugin-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
     "//android/android-kotlin/android-extensions-toolingExtension:android-kotlin-extensions-tooling",
     "//plugins/gradle:gradle-common",
     "//platform/analysis-api:analysis",

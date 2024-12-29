@@ -16,7 +16,7 @@ jvm_test(
     "@lib//:kotlin-test",
     "@lib//:mockito",
     "@lib//:truth",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",

@@ -16,6 +16,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/databinding",
     "//android/project-system:projectSystem",
+    "//platform/util",
     "//android/project-system-gradle:projectSystem-gradle",
     "//platform/core-api:core",
   ],

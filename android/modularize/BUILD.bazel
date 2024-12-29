@@ -15,7 +15,7 @@ jvm_test(
     "@lib//:kotlin-test",
     "@lib//:mockito",
     "@lib//:truth",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
@@ -49,7 +49,7 @@ jvm_test(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move-k2",
     "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move-k2_test_lib",
-    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-provided",
   ]
 )
 ### auto-generated section `build intellij.android.core.modularize` end

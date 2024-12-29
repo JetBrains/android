@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android:core",
     "//platform/util",
     "//platform/util-rt",

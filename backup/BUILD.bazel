@@ -17,9 +17,11 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/artwork",
+    "//platform/observable:ide-observable",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/backup:backup-api",
+    "//platform/util/progress",
     "//android/android-common:common",
     "//android/android:core",
     "//android/execution/common:android-execution-common",
@@ -52,6 +54,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
+    "//platform/util",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
   ]

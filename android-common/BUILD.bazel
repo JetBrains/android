@@ -4,12 +4,18 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
 )
 
 jvm_resources(
   name = "common_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_resources(
+  name = "common_resources_1",
   files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
@@ -18,7 +24,7 @@ jvm_library(
   name = "common",
   module_name = "intellij.android.common",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "resources/**/*.kt", "resources/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",
@@ -28,10 +34,10 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
-    "@lib//:kotlinc_kotlin-compiler-ir-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
     "//android/artwork",
     "//android/jps-model",
     "//android/render-resources",
@@ -68,7 +74,10 @@ jvm_library(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/core",
   ],
-  runtime_deps = [":common_resources"]
+  runtime_deps = [
+    ":common_resources",
+    ":common_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.common` end
 
@@ -93,9 +102,11 @@ jvm_library(
     "@lib//:kotlinx-coroutines-test",
     "@lib//:truth",
     "@lib//:mockito",
-    "@lib//:kotlinc_analysis-api",
-    "@lib//:kotlinc_kotlin-compiler-common",
-    "@lib//:kotlinc_kotlin-compiler-fe10",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "@lib//:kotlinc-analysis-api",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-fe10",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/artwork",
     "//android/server-flags",

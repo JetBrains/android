@@ -12,7 +12,6 @@ jvm_library(
   module_name = "intellij.android.kotlin.extensions.tooling",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
-  javac_opts = "@community//:j8",
   kotlinc_opts = "@community//:k8",
   deps = [
     "@lib//:studio-platform-provided",

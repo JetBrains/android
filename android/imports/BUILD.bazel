@@ -12,7 +12,7 @@ jvm_test(
     "@lib//:junit4",
     "@lib//:kotlinx-serialization-core",
     "@lib//:kotlinx-serialization-json",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",

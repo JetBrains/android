@@ -17,7 +17,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/gradle-dsl",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",

@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   context_receivers = True
 )
 
@@ -37,6 +37,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/inspectors-common/api:android-inspectors-common-api",
     "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//platform/core-impl",
     "//android/profilers",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/core-api:core",
@@ -50,7 +51,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//android/artwork-compose",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "@lib//:jewel-ide-laf-bridge",
   ],
   runtime_deps = [":profilers-ui_resources"],
@@ -66,7 +67,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:android_profilers_ui_traceprocessor-protos",
+    "@lib//:android-profilers-ui-traceprocessor-protos",
     "@lib//:guava",
     "@lib//:java_compatibility",
     "@lib//:fastutil-min",
@@ -92,6 +93,7 @@ jvm_library(
     "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//android/inspectors-common/ui:android-inspectors-common-ui",
     "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
+    "//platform/core-impl",
     "//android/profilers",
     "//android/profilers:profilers_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
@@ -114,7 +116,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//android/artwork-compose",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "@lib//:jewel-ide-laf-bridge",
   ],
   runtime_deps = [":profilers-ui_resources"],

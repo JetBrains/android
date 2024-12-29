@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   context_receivers = True
 )
 
@@ -19,7 +19,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/artwork",
     "//android/adt-ui-compose",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "@lib//:jewel-ide-laf-bridge",
   ],
   plugins = ["@lib//:compose-plugin"]

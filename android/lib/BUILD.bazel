@@ -2,7 +2,7 @@
 load("@rules_java//java:defs.bzl", "java_import")
 
 java_import(
-  name = "instantapps-api-1_8",
+  name = "instantapps-api-1-8",
   jars = ["instantapps-api-1.8.jar"],
   visibility = ["//visibility:public"]
 )

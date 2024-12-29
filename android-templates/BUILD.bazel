@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   opt_in = ["org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"]
 )
 
@@ -25,8 +25,8 @@ jvm_library(
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
     "//platform/ide-core-impl",
     "//android/android-common:common",
     "//android/android:core",
@@ -60,8 +60,8 @@ jvm_library(
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_analysis-api-platform-interface-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
   runtime_deps = [":templates_resources"]
@@ -79,15 +79,15 @@ jvm_library(
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
     "@lib//:junit4",
     "@lib//:kotlin-test-junit",
     "@lib//:kotlin-test",
     "@lib//:mockito",
     "//platform/ide-core-impl",
     "@lib//:truth",
-    "@lib//:org_codehaus_groovy_groovy-json",
+    "@lib//:org-codehaus-groovy-groovy-json",
     "//android/android-common:common",
     "//android/android:core",
     "//android/gradle-dsl",
@@ -137,8 +137,8 @@ jvm_library(
     "//android/wizard-model:wizard-model_test_lib",
     "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_analysis-api-platform-interface-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
   runtime_deps = [":templates_resources"]

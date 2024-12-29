@@ -15,8 +15,8 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
     "//android/android-common:common",
     "//android/android:core",
     "//android/jps-model",

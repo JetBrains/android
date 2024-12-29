@@ -17,6 +17,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
+    "//platform/platform-impl:ide-impl",
     "@lib//:jsoup",
     "//java/java-impl:impl",
     "//platform/analysis-api:analysis",
@@ -30,7 +31,7 @@ jvm_library(
     "//android/gradle-declarative-lang",
     "//platform/code-style-impl:codeStyle-impl",
     "@lib//:commons-lang3",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [":gradle-declarative-lang-ide_resources"]
 )

@@ -27,7 +27,7 @@ jvm_library(
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//android/gradle-declarative-lang",
     "@lib//:commons-lang3",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [
     ":gradle-dsl-declarative_resources",

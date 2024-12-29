@@ -1,14 +1,20 @@
 ### auto-generated section `build intellij.android.core.testartifacts` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "core-testartifacts_test",
+java_library(
+  name = "core-testartifacts",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "core-testartifacts_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:android_core_testartifacts_libstudio_android-test-plugin-host-retention-proto",
+    "@lib//:android-core-testartifacts-libstudio-android-test-plugin-host-retention-proto",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
     "@lib//:junit4",
@@ -57,6 +63,7 @@ jvm_test(
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",
     "//platform/external-system-impl:externalSystem-impl",
+    "//java/execution/impl:java-execution-impl",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/ide-core-impl",
@@ -81,5 +88,10 @@ jvm_test(
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
   ]
+)
+
+jvm_test(
+  name = "core-testartifacts_test",
+  runtime_deps = [":core-testartifacts_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.testartifacts` end

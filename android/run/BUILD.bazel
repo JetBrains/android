@@ -9,7 +9,7 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "//android/android/lib:instantapps-api-1_8",
+    "//android/android/lib:instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
     "@lib//:guava",
@@ -26,8 +26,8 @@ jvm_test(
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",
-    "@lib//:kotlinc_kotlin-compiler-common",
-    "@lib//:kotlinc_kotlin-compiler-fe10",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-fe10",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
@@ -96,7 +96,7 @@ jvm_test(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-provided",
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
     "//android/backup:backup-api",
   ]

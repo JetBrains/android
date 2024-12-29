@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   context_receivers = True
 )
 
@@ -17,21 +17,21 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "//android/android-common:common",
     "//android/android:core",
     "//platform/util:util-ui",
     "//platform/editor-ui-api:editor",
     "//platform/core-api:core",
-    "@lib//:android_adt_ui_compose_jewel-markdown-ide-laf-bridge-styling-242",
+    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
     "@lib//:jewel-ide-laf-bridge",
   ],
   exports = [
-    "@lib//:android_adt_ui_compose_jetbrains-compose-ui-test-junit4-desktop",
-    "@lib//:android_adt_ui_compose_jewel-markdown-int-ui-standalone-styling-242",
-    "@lib//:android_adt_ui_compose_jewel-int-ui-standalone-242",
+    "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-242",
+    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
   ],
-  runtime_deps = ["@lib//:android_adt_ui_compose_jetbrains_skiko_awt_runtime_all_0_8_9"],
+  runtime_deps = ["@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-9"],
   plugins = ["@lib//:compose-plugin"]
 )
 
@@ -46,7 +46,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "//android/android-common:common",
     "//android/android:core",
     "//android/adt-testutils:adt-testutils_test_lib",
@@ -54,10 +54,10 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/editor-ui-api:editor",
     "//platform/core-api:core",
-    "@lib//:android_adt_ui_compose_jetbrains-compose-ui-test-junit4-desktop",
-    "@lib//:android_adt_ui_compose_jewel-markdown-int-ui-standalone-styling-242",
-    "@lib//:android_adt_ui_compose_jewel-int-ui-standalone-242",
-    "@lib//:android_adt_ui_compose_jewel-markdown-ide-laf-bridge-styling-242",
+    "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-242",
+    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
+    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
     "@lib//:jewel-ide-laf-bridge",
   ],
   plugins = ["@lib//:compose-plugin"]

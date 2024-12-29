@@ -29,7 +29,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_test")
 
 jvm_test(
   name = "android-material-tests_test",
-  srcs = glob(["testResources/**/*.kt", "testResources/**/*.java", "testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

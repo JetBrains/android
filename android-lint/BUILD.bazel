@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
 )
 
@@ -27,9 +27,9 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kxml2",
     "@lib//:protobuf",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-jps-common-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
     "//android/analytics",
     "//android/assistant",
     "//android/android-common:common",
@@ -104,7 +104,7 @@ jvm_test(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",

@@ -14,17 +14,17 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:android_streaming_ffmpeg-javacpp",
+    "@lib//:android-streaming-ffmpeg-javacpp",
     "@lib//:guava",
     "@lib//:hdr_histogram",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:protobuf",
-    "@lib//:android_streaming_ffmpeg",
+    "@lib//:android-streaming-ffmpeg",
     "@lib//:caffeine",
     "//android/android-adb:adb",
     "//android/android-adb-ui:adb-ui",
@@ -67,14 +67,14 @@ jvm_library(
   ],
   runtime_deps = [
     ":streaming_resources",
-    "@lib//:android_streaming_ffmpeg-linux-x64",
-    "@lib//:android_streaming_ffmpeg-macos-aarch64",
-    "@lib//:android_streaming_ffmpeg-macos-x64",
-    "@lib//:android_streaming_ffmpeg-windows-x64",
-    "@lib//:android_streaming_javacpp-linux-x64",
-    "@lib//:android_streaming_javacpp-macos-aarch64",
-    "@lib//:android_streaming_javacpp-macos-x64",
-    "@lib//:android_streaming_javacpp-windows-x64",
+    "@lib//:android-streaming-ffmpeg-linux-x64",
+    "@lib//:android-streaming-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-ffmpeg-macos-x64",
+    "@lib//:android-streaming-ffmpeg-windows-x64",
+    "@lib//:android-streaming-javacpp-linux-x64",
+    "@lib//:android-streaming-javacpp-macos-aarch64",
+    "@lib//:android-streaming-javacpp-macos-x64",
+    "@lib//:android-streaming-javacpp-windows-x64",
   ]
 )
 ### auto-generated section `build intellij.android.streaming` end
@@ -142,8 +142,8 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:fastutil-min",
-    "@lib//:android_streaming_test_util_ffmpeg",
-    "@lib//:android_streaming_test_util_ffmpeg-javacpp",
+    "@lib//:android-streaming-test_util-ffmpeg",
+    "@lib//:android-streaming-test_util-ffmpeg-javacpp",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:mockito",
@@ -182,14 +182,14 @@ jvm_library(
     "//android/project-system:projectSystem",
   ],
   runtime_deps = [
-    "@lib//:android_streaming_test_util_ffmpeg-linux-x64",
-    "@lib//:android_streaming_test_util_ffmpeg-macos-aarch64",
-    "@lib//:android_streaming_test_util_ffmpeg-macos-x64",
-    "@lib//:android_streaming_test_util_ffmpeg-windows-x64",
-    "@lib//:android_streaming_test_util_javacpp-linux-x64",
-    "@lib//:android_streaming_test_util_javacpp-macos-aarch64",
-    "@lib//:android_streaming_test_util_javacpp-macos-x64",
-    "@lib//:android_streaming_test_util_javacpp-windows-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-windows-x64",
+    "@lib//:android-streaming-test_util-javacpp-linux-x64",
+    "@lib//:android-streaming-test_util-javacpp-macos-aarch64",
+    "@lib//:android-streaming-test_util-javacpp-macos-x64",
+    "@lib//:android-streaming-test_util-javacpp-windows-x64",
   ]
 )
 
@@ -201,10 +201,16 @@ jvm_test(
 
 ### auto-generated section `build intellij.android.streaming.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "streaming-tests_test",
+java_library(
+  name = "streaming-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "streaming-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
   associates = ["//android/streaming"],
   deps = [
@@ -212,8 +218,8 @@ jvm_test(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:layoutlib",
-    "@lib//:android_streaming_tests_ffmpeg",
-    "@lib//:android_streaming_tests_ffmpeg-javacpp",
+    "@lib//:android-streaming-tests-ffmpeg",
+    "@lib//:android-streaming-tests-ffmpeg-javacpp",
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:fastutil-min",
@@ -267,14 +273,19 @@ jvm_test(
     "@lib//:mockito-kotlin",
   ],
   runtime_deps = [
-    "@lib//:android_streaming_tests_ffmpeg-linux-x64",
-    "@lib//:android_streaming_tests_ffmpeg-macos-aarch64",
-    "@lib//:android_streaming_tests_ffmpeg-macos-x64",
-    "@lib//:android_streaming_tests_ffmpeg-windows-x64",
-    "@lib//:android_streaming_tests_javacpp-linux-x64",
-    "@lib//:android_streaming_tests_javacpp-macos-aarch64",
-    "@lib//:android_streaming_tests_javacpp-macos-x64",
-    "@lib//:android_streaming_tests_javacpp-windows-x64",
+    "@lib//:android-streaming-tests-ffmpeg-linux-x64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-x64",
+    "@lib//:android-streaming-tests-ffmpeg-windows-x64",
+    "@lib//:android-streaming-tests-javacpp-linux-x64",
+    "@lib//:android-streaming-tests-javacpp-macos-aarch64",
+    "@lib//:android-streaming-tests-javacpp-macos-x64",
+    "@lib//:android-streaming-tests-javacpp-windows-x64",
   ]
+)
+
+jvm_test(
+  name = "streaming-tests_test",
+  runtime_deps = [":streaming-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.streaming.tests` end

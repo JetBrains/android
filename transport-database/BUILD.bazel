@@ -35,7 +35,7 @@ jvm_library(
     "@lib//:mockito",
     "@lib//:truth",
     "@lib//:guava",
-    "@lib//:android_tools_sdklib",
+    "@lib//:android-tools-sdklib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/android-common:common",

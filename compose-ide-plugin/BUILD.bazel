@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = "17",
+  jvm_target = 17,
   context_receivers = True,
   opt_in = ["org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction"]
 )
@@ -27,13 +27,13 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinc_kotlin-compiler-cli-provided",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_analysis-api-k2-provided",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
-    "@lib//:kotlinc_kotlin-compiler-ir-provided",
-    "@lib//:kotlinc_kotlin-compiler-fir-provided",
+    "@lib//:kotlinc-kotlin-compiler-cli-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-k2-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "@lib//:kotlinc-kotlin-compiler-fir-provided",
     "//plugins/kotlin/completion/impl-k2:kotlin-completion-impl-k2",
     "//android/android-material",
     "//android/artwork",
@@ -109,7 +109,7 @@ jvm_library(
     "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-common",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2",
     "//android/completion",
-    "@lib//:kotlinc_compose-compiler-plugin-provided",
+    "@lib//:kotlinc-compose-compiler-plugin-provided",
     "//plugins/kotlin/jvm-debugger/base/util:kotlin-jvm-debugger-base-util",
   ],
   runtime_deps = [":compose-ide-plugin_resources"]
@@ -132,9 +132,9 @@ jvm_test(
     "@lib//:gradle",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlinc_kotlin-compiler-common",
-    "@lib//:kotlinc_kotlin-compiler-fe10",
-    "@lib//:kotlinc_analysis-api",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-fe10",
+    "@lib//:kotlinc-analysis-api",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-test",
     "@lib//:mockito",
@@ -204,7 +204,7 @@ jvm_test(
     "//plugins/kotlin/idea",
     "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-common",
     "//plugins/kotlin/base/psi:kotlin-base-psi",
-    "@lib//:kotlinc_compose-compiler-plugin-provided",
+    "@lib//:kotlinc-compose-compiler-plugin-provided",
     "//plugins/kotlin/jvm-debugger/base/util:kotlin-jvm-debugger-base-util",
   ]
 )

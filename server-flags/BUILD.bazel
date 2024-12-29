@@ -16,6 +16,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
+    "//platform/util",
     "//platform/core-api:core",
   ],
   runtime_deps = [":server-flags_resources"]
@@ -29,11 +30,12 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:android_server-flags_libserver-flag-test-proto",
+    "@lib//:android-server-flags-libserver-flag-test-proto",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "@lib//:junit4",
     "@lib//:truth",
+    "//platform/util",
     "//platform/core-api:core",
   ],
   runtime_deps = [":server-flags_resources"]

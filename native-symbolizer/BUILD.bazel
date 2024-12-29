@@ -53,6 +53,8 @@ jvm_test(
     "//java/testFramework",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
   ]
 )

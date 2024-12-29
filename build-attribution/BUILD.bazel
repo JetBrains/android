@@ -3,6 +3,12 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "build-attribution_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_resources(
+  name = "build-attribution_resources_1",
   files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
@@ -11,7 +17,7 @@ jvm_library(
   name = "build-attribution",
   module_name = "intellij.android.build-attribution",
   visibility = ["//visibility:public"],
-  srcs = glob(["resources/**/*.kt", "resources/**/*.java", "src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:gradle",
@@ -20,9 +26,10 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:jna",
     "@lib//:kotlin-stdlib",
+    "//platform/observable:ide-observable",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:protobuf",
-    "@lib//:kotlinc_lombok-compiler-plugin-provided",
+    "@lib//:kotlinc-lombok-compiler-plugin-provided",
     "//android/adt-ui",
     "//android/analytics",
     "//android/artwork",
@@ -56,7 +63,10 @@ jvm_library(
     "//platform/util:util-ui",
     "//plugins/properties/properties-psi-api:psi",
   ],
-  runtime_deps = [":build-attribution_resources"]
+  runtime_deps = [
+    ":build-attribution_resources",
+    ":build-attribution_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.build-attribution` end
 
@@ -72,7 +82,7 @@ jvm_test(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-reflect",
-    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:gradle",
     "@lib//:guava",
     "@lib//:junit4",

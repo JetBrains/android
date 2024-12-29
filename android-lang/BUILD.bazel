@@ -3,6 +3,12 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "lang_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_resources(
+  name = "lang_resources_1",
   files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
@@ -11,14 +17,14 @@ jvm_library(
   name = "lang",
   module_name = "intellij.android.lang",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java", "resources/**/*.kt", "resources/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_analysis-api-provided",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/artwork",
     "//android/android-common:common",
     "//android/project-system:projectSystem",
@@ -49,7 +55,10 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
   ],
-  runtime_deps = [":lang_resources"]
+  runtime_deps = [
+    ":lang_resources",
+    ":lang_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.lang` end
 
@@ -74,7 +83,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:truth",
-    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android:core",
     "//android/project-system:projectSystem",
     "//android/adt-testutils:adt-testutils_test_lib",
