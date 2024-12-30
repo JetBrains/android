@@ -354,7 +354,7 @@ class ScreenSharingAgentTest {
 
   companion object {
     private const val EVENT_LOGGER_TAG = "EventLogger"
-    private const val AGENT_TAG = "ScreenSharing"
+    private const val AGENT_TAG = "studio.screen.sharing"
     private const val APP_PKG = "com.android.tools.eventlogger"
     private const val ACTIVITY = "EventLoggingActivity"
     private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
