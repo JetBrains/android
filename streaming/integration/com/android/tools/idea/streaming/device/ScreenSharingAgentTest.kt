@@ -60,6 +60,7 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 import javax.swing.JScrollPane
 import kotlin.random.Random
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 
 @RunWith(Suite::class)
@@ -441,6 +442,9 @@ class ScreenSharingAgentTest {
 
       // Install the event logger app
       val eventLoggerApk = getBinPath("tools/adt/idea/streaming/integration/event-logger/event-logger.apk")
+      if (Files.notExists(eventLoggerApk)) {
+        fail("$eventLoggerApk does not exist.")
+      }
       executeWithRetries<InterruptedException>(EVENT_LOGGER_INSTALLATION_MAX_RETRIES) {
         adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
           waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)

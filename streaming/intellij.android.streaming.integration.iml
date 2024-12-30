@@ -28,6 +28,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="library" name="kotlin-test" level="project" scope="TEST" />
     <orderEntry type="library" name="mockito" level="project" scope="TEST" />
     <orderEntry type="library" name="studio-sdk" level="project" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" scope="TEST" />
