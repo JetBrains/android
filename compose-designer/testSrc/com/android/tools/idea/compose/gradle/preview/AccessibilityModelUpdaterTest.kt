@@ -108,7 +108,6 @@ class AccessibilityModelUpdaterTest {
     return previewRepresentation
   }
 
-  @Ignore("b/385133714")
   @Test
   fun testNlComponentTreeCreation() {
     val twoElementsPreviewModel =
@@ -137,9 +136,12 @@ class AccessibilityModelUpdaterTest {
 
     var children = twoElementsPreviewRoot.children
     assertThat(children.size).isGreaterThan(0)
+
+    children = children[0].children
+    assertEquals(1, children.size)
     assertNotEquals(-1, children[0].accessibilityId)
     assertEquals(303, children[0].w)
-    assertEquals(126, children[0].y)
+    assertEquals(147, children[0].y)
 
     children = children[0].children
     assertEquals(2, children.size)
@@ -148,7 +150,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, textViewComponent.childCount)
     assertNotEquals(-1, textViewComponent.accessibilityId)
     assertEquals(139, textViewComponent.w)
-    assertEquals(126, textViewComponent.y)
+    assertEquals(147, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1158, textViewNavigatable.offset)
     assertEquals("MainActivity.kt", textViewNavigatable.file.name)
@@ -160,7 +162,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, buttonTextViewComponent.childCount)
     assertNotEquals(-1, buttonTextViewComponent.accessibilityId)
     assertEquals(219, buttonTextViewComponent.w)
-    assertEquals(222, buttonTextViewComponent.y)
+    assertEquals(252, buttonTextViewComponent.y)
     val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonTextViewNavigatable.offset)
     assertEquals("MainActivity.kt", buttonTextViewNavigatable.file.name)
@@ -169,7 +171,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, buttonComponent.childCount)
     assertNotEquals(-1, buttonComponent.accessibilityId)
     assertEquals(303, buttonComponent.w)
-    assertEquals(199, buttonComponent.y)
+    assertEquals(226, buttonComponent.y)
     val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonNavigatable.offset)
     assertEquals("MainActivity.kt", buttonNavigatable.file.name)
