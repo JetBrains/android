@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
@@ -107,5 +108,5 @@ sealed class JdkTestProject(
   override fun getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android/testData/snapshots"
 
   override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
