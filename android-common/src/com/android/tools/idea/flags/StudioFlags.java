@@ -2123,6 +2123,11 @@ public final class StudioFlags {
                     "Enables AI rename suggestion functionality",
                     true);
 
+  public static final Flag<Boolean> FIX_WITH_AI_EDITOR_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.fix.error.editor.action",
+                    "Use AI to fix simple compiler errors",
+                    "Editor action to provide quick fixes for errors", enabledUpTo(CANARY));
+
 
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
