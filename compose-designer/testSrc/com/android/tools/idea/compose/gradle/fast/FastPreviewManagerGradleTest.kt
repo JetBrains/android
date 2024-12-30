@@ -224,9 +224,6 @@ class FastPreviewManagerGradleTest {
 
   @Test
   fun testMultipleFilesCompileSuccessfully() {
-    // TODO(352403444): K2 fails on this test. After fixing it, re-enable this test for K2.
-    if (KotlinPluginModeProvider.isK2Mode()) return
-
     val psiSecondFile = runReadAction {
       val vFile =
         projectRule.project

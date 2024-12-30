@@ -35,6 +35,8 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.createParentDirectories
 import kotlinx.coroutines.CancellationException
@@ -46,6 +48,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
@@ -167,21 +170,52 @@ class EmbeddedCompilerClientImpl private constructor(
     generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
   }
 
+  @OptIn(KaExperimentalApi::class)
   private suspend fun compileKtFilesForK2(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
+      val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
+      val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
       runWithCompileLock {
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
+          if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
+
           val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
 
           @OptIn(KaExperimentalApi::class)
           val result = backendCodeGenForK2(inputFile, moduleForAllInputs, configuration)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           @OptIn(KaExperimentalApi::class)
-          result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
-            it.writeTo(outputDirectory)
-          }
+          addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
+
+          filesAlreadyCompiled.addAll(result.output.getSourceVirtualFiles())
+        }
+      }
+
+      pathToCompileOutput.forEach { (_, output) -> output.writeTo(outputDirectory) }
+    }
+  }
+
+  @OptIn(KaExperimentalApi::class)
+  private fun List<KaCompiledFile>.getSourceVirtualFiles() =
+    flatMap { it.sourceFiles }.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
+
+  /**
+   * Add elements of [newCompileOutput] to [pathToCompileOutput] if [pathToCompileOutput] does not
+   * have its `relativePath` as a key. Otherwise, it compares the byte arrays and raises an error
+   * if they are different.
+   */
+  private fun addIfNotDuplicated(pathToCompileOutput: MutableMap<String, OutputFileForKtCompiledFile>,
+                                 newCompileOutput: List<OutputFileForKtCompiledFile>) {
+    for (output in newCompileOutput) {
+      val duplicate = pathToCompileOutput[output.relativePath]
+      if (duplicate == null) {
+        pathToCompileOutput[output.relativePath] = output
+      } else {
+        if (!output.asByteArray().contentEquals(duplicate.asByteArray()) &&
+            !output.relativePath.startsWith("META-INF/")) {
+          error("Two Kotlin files must have the same output")
         }
       }
     }
