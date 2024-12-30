@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -139,19 +138,10 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     }
 
     if (xmlChanged.get() || buildFileChanged.get()) {
-      Application currentApp = ApplicationManager.getApplication();
-      if (currentApp.isUnitTestMode()) {
-        // We need to call invokeAndWait for unit tests mode because we rely on the Sync results to make assertions later on.
-        currentApp.invokeAndWait(() -> {
-          GradleSyncInvoker.getInstance()
-            .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
-        });
-      } else {
-        currentApp.invokeLater(() -> {
-          GradleSyncInvoker.getInstance()
-            .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
-        }, myProject.getDisposed());
-      }
+      ApplicationManager.getApplication().invokeLater(() -> {
+        GradleSyncInvoker.getInstance()
+          .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
+      }, myProject.getDisposed());
     }
   }
 
