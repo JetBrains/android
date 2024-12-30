@@ -89,6 +89,7 @@ import javax.annotation.Nullable;
 
 /** Python-specific run configuration runner. */
 public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurationRunner {
+  private static final String DEFAULT_OUTPUT_GROUP_NAME = "default";
 
   /** This inserts flags provided by any BlazePyDebugHelpers to the pydevd.py invocation */
 
@@ -344,7 +345,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
         candidateFiles =
             LocalFileArtifact.getLocalFiles(
                 BuildResultParser.getBuildOutput(bepStream, Interners.STRING)
-                  .getDirectArtifactsForTarget(target.toString()).asList())
+                  .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString()).asList())
                 .stream()
                 .filter(File::canExecute)
                 .collect(Collectors.toList());

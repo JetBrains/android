@@ -245,7 +245,7 @@ public class MobileInstallBuildStep implements ApkBuildStep {
 
       AndroidDeployInfo deployInfoProto =
           deployInfoHelper.readDeployInfoProtoForTarget(
-              label, buildResultHelper, fileName -> fileName.endsWith(deployInfoSuffix));
+              label, "mobile_install_INTERNAL_", buildResultHelper, fileName -> fileName.endsWith(deployInfoSuffix));
       deployInfo =
           deployInfoHelper.extractDeployInfoAndInvalidateManifests(
               project, new File(executionRoot), deployInfoProto);

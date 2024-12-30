@@ -27,7 +27,6 @@ import com.google.idea.blaze.android.manifest.ParsedManifestService;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.common.Interners;
@@ -50,14 +49,14 @@ import java.util.stream.Stream;
  */
 public class BlazeApkDeployInfoProtoHelper {
   public AndroidDeployInfo readDeployInfoProtoForTarget(
-    Label target, BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
+    Label target, String outputGroup,BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
     ImmutableSet<OutputArtifact> targetOutputArtifacts;
     ParsedBepOutput bepOutput;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
       bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
-      targetOutputArtifacts = bepOutput.getDirectArtifactsForTarget(target.toString());
+      targetOutputArtifacts = bepOutput.getOutputGroupTargetArtifacts(outputGroup, target.toString());
       outputArtifacts =
         targetOutputArtifacts.stream().filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
           .collect(toImmutableList());

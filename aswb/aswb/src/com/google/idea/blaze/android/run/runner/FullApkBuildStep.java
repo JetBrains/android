@@ -58,6 +58,7 @@ import java.util.List;
 
 /** Builds the APK using normal blaze build. */
 public class FullApkBuildStep implements ApkBuildStep {
+  private static final String ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME = "android_deploy_info";
   @VisibleForTesting public static final String DEPLOY_INFO_SUFFIX = ".deployinfo.pb";
 
   /** Controls the post-build remote APK fetching step. */
@@ -218,8 +219,8 @@ public class FullApkBuildStep implements ApkBuildStep {
       }
 
       AndroidDeployInfo deployInfoProto =
-          deployInfoHelper.readDeployInfoProtoForTarget(
-              label, buildResultHelper, fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
+        deployInfoHelper.readDeployInfoProtoForTarget(
+          label, ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME, buildResultHelper, fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
       ImmutableList<File> libs =
           nativeSymbolFinderList.stream()
               .flatMap(

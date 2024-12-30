@@ -117,7 +117,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), any()))
@@ -158,7 +158,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), any()))
@@ -207,7 +207,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), any()))
@@ -250,7 +250,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     // Expect symbol files to be passed to Helper when building DeployInfo.
     when(helper.extractDeployInfoAndInvalidateManifests(
@@ -296,7 +296,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.getDefaultInstance();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     // Expect symbol files to be passed to Helper when building DeployInfo.
     when(helper.extractDeployInfoAndInvalidateManifests(
@@ -341,7 +341,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
 
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
     AndroidDeployInfo fakeProto = AndroidDeployInfo.getDefaultInstance();
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), eq(symbolFiles)))
@@ -377,7 +377,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
     // Return fake deploy info proto and mocked deploy info data object.
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(any(), any(), any(), any()))
         .thenThrow(new GetDeployInfoException("Fake Exception"));
@@ -409,7 +409,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     when(mockDeployInfo.getApksToDeploy()).thenReturn(ImmutableList.of());
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), any()))
@@ -443,7 +443,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     when(mockDeployInfo.getApksToDeploy()).thenReturn(ImmutableList.of());
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             eq(getProject()), eq(new File(getExecRoot())), eq(fakeProto), any()))

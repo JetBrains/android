@@ -273,7 +273,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     ImmutableSet<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)))
-            .getDirectArtifactsForTarget("//some:target");
+            .getOutputGroupTargetArtifacts("group-name", "//some:target");
 
     assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
         .containsExactlyElementsIn(allFiles)
@@ -313,7 +313,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     ImmutableSet<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)))
-            .getDirectArtifactsForTarget("//some:target");
+            .getOutputGroupTargetArtifacts("group-name", "//some:target");
 
     assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
         .containsExactlyElementsIn(allFiles)
