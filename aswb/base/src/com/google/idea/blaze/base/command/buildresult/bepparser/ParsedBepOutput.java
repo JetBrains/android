@@ -29,9 +29,9 @@ import com.google.common.collect.SetMultimap;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /** A data class representing blaze's build event protocol (BEP) output for a build. */
 public final class ParsedBepOutput {
@@ -100,37 +100,29 @@ public final class ParsedBepOutput {
   }
 
   /** Returns all output artifacts of the build. */
-  public ImmutableSet<OutputArtifact> getAllOutputArtifacts(Predicate<String> pathFilter) {
+  @TestOnly
+  public ImmutableSet<OutputArtifact> getAllOutputArtifactsForTesting() {
     return fileSets.values().stream()
         .map(s -> s.parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
 
   /** Returns the set of artifacts directly produced by the given target. */
-  public ImmutableSet<OutputArtifact> getDirectArtifactsForTarget(
-      String label, Predicate<String> pathFilter) {
+  public ImmutableSet<OutputArtifact> getDirectArtifactsForTarget(String label) {
     return targetFileSets.get(label).stream()
         .map(s -> fileSets.get(s).parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
 
-  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(
-      String outputGroup, Predicate<String> pathFilter) {
+  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
     return fileSets.values().stream()
         .filter(f -> f.outputGroups.contains(outputGroup))
         .map(f -> f.parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .distinct()
         .collect(toImmutableList());
-  }
-
-  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
-    return getOutputGroupArtifacts(outputGroup, s -> true);
   }
 
   /**

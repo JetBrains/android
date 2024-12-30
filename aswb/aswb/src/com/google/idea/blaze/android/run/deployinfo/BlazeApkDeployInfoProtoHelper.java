@@ -15,8 +15,11 @@
  */
 package com.google.idea.blaze.android.run.deployinfo;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
@@ -34,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -49,10 +53,14 @@ public class BlazeApkDeployInfoProtoHelper {
     Label target, BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
+    ImmutableSet<OutputArtifact> targetOutputArtifacts;
     ParsedBepOutput bepOutput;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
       bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
-      outputArtifacts = bepOutput.getDirectArtifactsForTarget(target.toString(), pathFilter).asList();
+      targetOutputArtifacts = bepOutput.getDirectArtifactsForTarget(target.toString());
+      outputArtifacts =
+        targetOutputArtifacts.stream().filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
+          .collect(toImmutableList());
     } catch (GetArtifactsException e) {
       throw new GetDeployInfoException(e.getMessage());
     }
@@ -60,18 +68,13 @@ public class BlazeApkDeployInfoProtoHelper {
     if (outputArtifacts.isEmpty()) {
       Logger log = Logger.getInstance(BlazeApkDeployInfoProtoHelper.class.getName());
       log.warn("Local execroot: " + bepOutput.getLocalExecRoot());
-      log.warn("All output artifacts:");
-      for (OutputArtifact outputArtifact : bepOutput.getAllOutputArtifacts(path -> true)) {
-        log.warn(outputArtifact.getBazelOutRelativePath() + " -> " + outputArtifact.getBazelOutRelativePath());
-      }
-      log.warn("All local artifacts for " + target + ":");
+      log.warn("All artifacts for " + target + ":");
       List<OutputArtifact> allBuildArtifacts =
-        bepOutput.getDirectArtifactsForTarget(target.toString(), path1 -> true).asList();
-      List<File> allLocalFiles = LocalFileArtifact.getLocalFiles(allBuildArtifacts);
-      for (File file : allLocalFiles) {
-        String path = file.getPath();
-        log.warn(path);
-        if (pathFilter.test(path)) {
+        targetOutputArtifacts.asList();
+      for (final var artifact : allBuildArtifacts) {
+        Path path = artifact.getArtifactPath();
+        log.warn(path.toString());
+        if (pathFilter.test(path.toString())) {
           log.warn("Note: " + path + " passes pathFilter but was not recognized!");
         }
       }
@@ -127,7 +130,7 @@ public class BlazeApkDeployInfoProtoHelper {
     ImmutableList<File> apksToDeploy =
         deployInfoProto.getApksToDeployList().stream()
             .map(artifact -> new File(executionRoot, artifact.getExecRootPath()))
-            .collect(ImmutableList.toImmutableList());
+            .collect(toImmutableList());
 
     return new BlazeAndroidDeployInfo(
         mergedManifest, testTargetMergedManifest, apksToDeploy, symbolFiles);
@@ -154,7 +157,7 @@ public class BlazeApkDeployInfoProtoHelper {
                 instrumentorProto.getApksToDeployList().stream(),
                 appProto.getApksToDeployList().stream())
             .map(artifact -> new File(executionRoot, artifact.getExecRootPath()))
-            .collect(ImmutableList.toImmutableList());
+            .collect(toImmutableList());
 
     return new BlazeAndroidDeployInfo(parsedInstrumentorManifest, parsedAppManifest, apksToDeploy);
   }
