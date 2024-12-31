@@ -42,14 +42,36 @@ import java.util.stream.Stream;
  */
 public interface BlazeBuildOutputs {
 
-  ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup);
+  /**
+   * A list of the artifacts outputted by the given target to the given output group.
+   *
+   * <p>Note that the same artifact may be outputted by multiple targets and into multiple output groups.
+   */
+  ImmutableList<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label);
 
+  /**
+   * A de-duplicated list of the artifacts outputted to the given output group.
+   *
+   * <p>Note that the same artifact may be outputted by multiple targets and into multiple output groups. Such artifacts are included in the
+   * resulting list only once.
+   */
   ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup);
 
+  /**
+   * Label of any targets that were not build because of build errors.
+   */
   ImmutableSet<String> targetsWithErrors();
 
+  /**
+   * The final status of the Bazel build.
+   */
   BuildResult buildResult();
 
+  /**
+   * An obscure ID that can be used to identify the build in the external environment.
+   *
+   * <p><em>DO NOT</em> attempt to interpret or compare.
+   */
   String idForLogging();
 
   String buildId();
@@ -115,7 +137,7 @@ public interface BlazeBuildOutputs {
   static BlazeBuildOutputs fromParsedBepOutput(ParsedBepOutput parsedOutput) {
     return new BlazeBuildOutputs() {
       @Override
-      public ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup) {
+      public ImmutableList<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label) {
         return parsedOutput.getOutputGroupTargetArtifacts(outputGroup, label);
       }
 
@@ -208,7 +230,7 @@ public interface BlazeBuildOutputs {
 
     /** Returns the output artifacts generated for target with given label. */
     @Override
-    public ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup) {
+    public ImmutableList<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label) {
       // TODO: solodkyy - This is slow although it is invoked at most two times.
       return artifacts.values().stream()
         .filter(a -> a.outputGroups.contains(outputGroup) && a.topLevelTargets.contains(label))

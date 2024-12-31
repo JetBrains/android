@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
@@ -27,7 +26,6 @@ import com.google.idea.blaze.android.manifest.ParsedManifestService;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Interners;
@@ -59,7 +57,7 @@ public class BlazeApkDeployInfoProtoHelper {
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
       final var bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
       bazelOutputs = BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
-      targetOutputArtifacts = bazelOutputs.getTargetArtifacts(target.toString(), outputGroup);
+      targetOutputArtifacts = bazelOutputs.getOutputGroupTargetArtifacts(outputGroup, target.toString());
       outputArtifacts =
         targetOutputArtifacts.stream().filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
           .collect(toImmutableList());

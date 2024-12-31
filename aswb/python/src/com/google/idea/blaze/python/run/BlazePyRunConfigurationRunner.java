@@ -347,7 +347,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
           LocalFileArtifact.getLocalFiles(
               BlazeBuildOutputs.fromParsedBepOutput(
                   BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
-                .getTargetArtifacts(target.toString(), DEFAULT_OUTPUT_GROUP_NAME).asList())
+                .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString()).asList())
             .stream()
             .filter(File::canExecute)
             .collect(Collectors.toList());
