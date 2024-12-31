@@ -81,7 +81,7 @@ iml_module(
         },
         "gradle-other": {
             "tags": ["cpu:3"],
-            "shard_count": 7,
+            "shard_count": 8,
             "test_filter": "com.android.tools.idea.compose.gradle",
         },
         "animation": {
