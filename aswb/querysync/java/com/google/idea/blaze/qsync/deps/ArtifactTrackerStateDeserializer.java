@@ -72,9 +72,9 @@ public class ArtifactTrackerStateDeserializer {
 
   private void visitBuildContext(ArtifactTrackerProto.BuildContext buildContext) {
     buildContexts.put(
-        buildContext.getBuildId(),
+        buildContext.getBuildIdForLogging(),
         DependencyBuildContext.create(
-            buildContext.getBuildId(),
+            buildContext.getBuildIdForLogging(),
             Instant.ofEpochMilli(buildContext.getStartTimeMillis())));
   }
 

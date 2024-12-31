@@ -29,7 +29,6 @@ import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Artifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.ArtifactTrackerState;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.BuildContext;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import com.google.idea.blaze.qsync.project.SnapshotSerializer;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
@@ -64,19 +63,19 @@ public class ArtifactTrackerStateSerializer {
 
     ArtifactTrackerProto.TargetBuildInfo.Builder builder =
         ArtifactTrackerProto.TargetBuildInfo.newBuilder();
-    builder.setBuildId(targetBuildInfo.buildContext().buildId());
+    builder.setBuildId(targetBuildInfo.buildContext().buildIdForLogging());
     targetBuildInfo.javaInfo().ifPresent(ji -> visitJavaInfo(ji, builder));
     targetBuildInfo.ccInfo().ifPresent(cc -> visitCcInfo(cc, builder));
     proto.putBuiltDeps(target.toString(), builder.build());
   }
 
   private void visitBuildContext(DependencyBuildContext buildContext) {
-    if (buildIdsSeen.add(buildContext.buildId())) {
+    if (buildIdsSeen.add(buildContext.buildIdForLogging())) {
       BuildContext.Builder builder =
           proto
               .addBuildContextsBuilder()
               .setStartTimeMillis(buildContext.startTime().toEpochMilli())
-              .setBuildId(buildContext.buildId());
+              .setBuildIdForLogging(buildContext.buildIdForLogging());
     }
   }
 

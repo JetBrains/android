@@ -178,7 +178,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
 
   private ImmutableMap<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>>
   extractArtifactMetadata(
-      Iterable<TargetBuildInfo> targetBuildInfo, DigestMap digestMap, String buildId)
+      Iterable<TargetBuildInfo> targetBuildInfo, DigestMap digestMap, String buildIdForLogging)
       throws BuildException {
     Map<MetadataKey, ListenableFuture<ArtifactMetadata>> metadataFutures = Maps.newHashMap();
     for (TargetBuildInfo targetInfo : targetBuildInfo) {
@@ -200,7 +200,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
                                     + " It was requested for metadata %s.",
                                 entry.getKey().artifactPath(),
                                 targetInfo.label(),
-                                buildId,
+                                buildIdForLogging,
                                 entry.getValue().getClass().getName())));
         ListenableFuture<CachedArtifact> artifact =
             artifactCache
@@ -214,7 +214,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
                                 digest,
                                 entry.getKey().artifactPath(),
                                 targetInfo.label(),
-                                buildId,
+                                buildIdForLogging,
                                 entry.getValue().metadataClass().getName())));
         ListenableFuture<ArtifactMetadata> transformed =
             Futures.transformAsync(
@@ -245,7 +245,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
                     entry.getKey().mdClass.getName(),
                     entry.getKey().artifact.artifactPath(),
                     entry.getKey().artifact.target(),
-                    buildId),
+                    buildIdForLogging),
                 e));
       }
     }
@@ -357,7 +357,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     // extract required metadata from the build artifacts
     ImmutableMap<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> metadata =
         extractArtifactMetadata(
-            newTargetInfo.values(), digestMap, outputInfo.getBuildContext().buildId());
+            newTargetInfo.values(), digestMap, outputInfo.getBuildContext().buildIdForLogging());
 
     // insert this metadata into newTargetInfo
     for (Map.Entry<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> entry :

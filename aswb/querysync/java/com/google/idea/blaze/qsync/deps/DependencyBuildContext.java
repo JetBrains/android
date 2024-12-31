@@ -16,9 +16,7 @@
 package com.google.idea.blaze.qsync.deps;
 
 import com.google.auto.value.AutoValue;
-import com.google.idea.blaze.common.vcs.VcsState;
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * Basic information about a dependency build. This is used to track where built artifacts
@@ -30,7 +28,7 @@ public abstract class DependencyBuildContext {
   public static final DependencyBuildContext NONE = create("", Instant.EPOCH);
 
   /** The bazel build ID. */
-  public abstract String buildId();
+  public abstract String buildIdForLogging();
 
   /**
    * The time that the build was started at. Used to disambiguate between conflicting artifacts, by

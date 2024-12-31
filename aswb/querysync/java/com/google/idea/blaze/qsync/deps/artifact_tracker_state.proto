@@ -89,7 +89,7 @@ message JavaArtifacts {
 }
 
 message BuildContext {
-  string build_id = 1;
+  string build_id_for_logging = 1;
   int64 start_time_millis = 2;
   reserved 3;
 }
