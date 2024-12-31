@@ -29,6 +29,7 @@ import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.openapi.diagnostic.Logger;
@@ -53,10 +54,12 @@ public class BlazeApkDeployInfoProtoHelper {
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
     ImmutableSet<OutputArtifact> targetOutputArtifacts;
-    ParsedBepOutput bepOutput;
+
+    BlazeBuildOutputs bazelOutputs;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-      bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
-      targetOutputArtifacts = bepOutput.getOutputGroupTargetArtifacts(outputGroup, target.toString());
+      final var bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
+      bazelOutputs = BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
+      targetOutputArtifacts = bazelOutputs.getTargetArtifacts(target.toString(), outputGroup);
       outputArtifacts =
         targetOutputArtifacts.stream().filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
           .collect(toImmutableList());

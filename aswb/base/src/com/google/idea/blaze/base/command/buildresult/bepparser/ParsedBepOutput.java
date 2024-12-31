@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.command.buildresult.bepparser;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -23,9 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +38,6 @@ public final class ParsedBepOutput {
       new ParsedBepOutput(
           "build-id",
           ImmutableMap.of(),
-          ImmutableSetMultimap.of(),
           0,
           0,
           0,
@@ -50,10 +46,8 @@ public final class ParsedBepOutput {
   @Nullable public final String buildId;
 
   /** A map from file set ID to file set, with the same ordering as the BEP stream. */
-  private final ImmutableMap<String, FileSet> fileSets;
-
-  /** The set of named file sets directly produced by each target. */
-  private final SetMultimap<String, String> targetFileSets;
+  @VisibleForTesting
+  public final ImmutableMap<String, FileSet> fileSets;
 
   final long syncStartTimeMillis;
 
@@ -64,14 +58,12 @@ public final class ParsedBepOutput {
   ParsedBepOutput(
     @Nullable String buildId,
     ImmutableMap<String, FileSet> fileSets,
-    ImmutableSetMultimap<String, String> targetFileSets,
     long syncStartTimeMillis,
     int buildResult,
     long bepBytesConsumed,
     ImmutableSet<String> targetsWithErrors) {
     this.buildId = buildId;
     this.fileSets = fileSets;
-    this.targetFileSets = targetFileSets;
     this.syncStartTimeMillis = syncStartTimeMillis;
     this.buildResult = buildResult;
     this.bepBytesConsumed = bepBytesConsumed;
@@ -96,25 +88,6 @@ public final class ParsedBepOutput {
         .collect(toImmutableSet());
   }
 
-  /** Returns the set of artifacts directly produced by the given target. */
-  public ImmutableSet<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label) {
-    return fileSets.values().stream()
-      .filter(f -> f.targets.contains(label) && f.outputGroups.contains(outputGroup))
-      .map(f -> f.parsedOutputs)
-      .flatMap(List::stream)
-      .distinct()
-      .collect(toImmutableSet());
-  }
-
-  public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
-    return fileSets.values().stream()
-        .filter(f -> f.outputGroups.contains(outputGroup))
-        .map(f -> f.parsedOutputs)
-        .flatMap(List::stream)
-        .distinct()
-        .collect(toImmutableList());
-  }
-
   /**
    * Returns a map from artifact key to {@link BepArtifactData} for all artifacts reported during
    * the build.
@@ -133,10 +106,13 @@ public final class ParsedBepOutput {
     return targetsWithErrors;
   }
 
-  static class FileSet {
-    private final ImmutableList<OutputArtifact> parsedOutputs;
-    private final ImmutableSet<String> outputGroups;
-    private final ImmutableSet<String> targets;
+  public static class FileSet {
+    @VisibleForTesting
+    public final ImmutableList<OutputArtifact> parsedOutputs;
+    @VisibleForTesting
+    public final ImmutableSet<String> outputGroups;
+    @VisibleForTesting
+    public final ImmutableSet<String> targets;
 
     FileSet(
       ImmutableList<OutputArtifact> parsedOutputs,

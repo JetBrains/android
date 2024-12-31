@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.Interners;
@@ -133,14 +134,15 @@ public class ClassFileManifestBuilder {
         throw new ExecutionException(e);
       }
       ImmutableList<File> jars;
-      try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         jars =
-            LocalFileArtifact.getLocalFiles(
-                BuildResultParser.getBuildOutput(bepStream, Interners.STRING)
-                  .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP))
-                .stream()
-                .filter(f -> f.getName().endsWith(".jar"))
-                .collect(toImmutableList());
+          LocalFileArtifact.getLocalFiles(
+              BlazeBuildOutputs.fromParsedBepOutput(
+                  BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
+                .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP))
+            .stream()
+            .filter(f -> f.getName().endsWith(".jar"))
+            .collect(toImmutableList());
       } catch (GetArtifactsException e) {
         throw new ExecutionException("Failed to get debug binary: " + e.getMessage());
       }
