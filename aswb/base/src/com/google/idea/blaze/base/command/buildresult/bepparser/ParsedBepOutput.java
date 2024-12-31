@@ -40,7 +40,6 @@ public final class ParsedBepOutput {
   public static final ParsedBepOutput EMPTY =
       new ParsedBepOutput(
           "build-id",
-          null,
           ImmutableMap.of(),
           ImmutableSetMultimap.of(),
           0,
@@ -49,9 +48,6 @@ public final class ParsedBepOutput {
           ImmutableSet.of());
 
   @Nullable public final String buildId;
-
-  /** A path to the local execroot */
-  @Nullable private final String localExecRoot;
 
   /** A map from file set ID to file set, with the same ordering as the BEP stream. */
   private final ImmutableMap<String, FileSet> fileSets;
@@ -67,7 +63,6 @@ public final class ParsedBepOutput {
 
   ParsedBepOutput(
     @Nullable String buildId,
-    @Nullable String localExecRoot,
     ImmutableMap<String, FileSet> fileSets,
     ImmutableSetMultimap<String, String> targetFileSets,
     long syncStartTimeMillis,
@@ -75,19 +70,12 @@ public final class ParsedBepOutput {
     long bepBytesConsumed,
     ImmutableSet<String> targetsWithErrors) {
     this.buildId = buildId;
-    this.localExecRoot = localExecRoot;
     this.fileSets = fileSets;
     this.targetFileSets = targetFileSets;
     this.syncStartTimeMillis = syncStartTimeMillis;
     this.buildResult = buildResult;
     this.bepBytesConsumed = bepBytesConsumed;
     this.targetsWithErrors = targetsWithErrors;
-  }
-
-  /** Returns the local execroot. */
-  @Nullable
-  public String getLocalExecRoot() {
-    return localExecRoot;
   }
 
   /** Returns the build result. */

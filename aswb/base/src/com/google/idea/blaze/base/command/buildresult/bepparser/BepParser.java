@@ -157,7 +157,6 @@ public final class BepParser {
     final OutputGroupTargetConfigFileSetMap outputs = new OutputGroupTargetConfigFileSetMap();
     final FileSets fileSets = new FileSets();
     final Set<String> targetsWithErrors = new LinkedHashSet<>();
-    String localExecRoot = null;
     String buildId = null;
     long startTimeMillis = 0L;
     int buildResult = 0;
@@ -181,7 +180,6 @@ public final class BepParser {
         fillInTransitiveFileSetData(state.fileSets, state.outputs, state.startTimeMillis);
       return new ParsedBepOutput(
         state.buildId,
-        state.localExecRoot,
         filesMap,
         state.outputs.fileSetStream()
           .collect(ImmutableSetMultimap.flatteningToImmutableSetMultimap(OutputGroupTargetConfigFileSets::target,
@@ -206,9 +204,6 @@ public final class BepParser {
     while ((event = stream.getNext()) != null) {
       emptyBuildEventStream = false;
       switch (event.getId().getIdCase()) {
-        case WORKSPACE:
-          state.localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
-          continue;
         case NAMED_SET:
           BuildEventStreamProtos.NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
           state.fileSets.add(interner.intern(event.getId().getNamedSet().getId()), namedSet);
