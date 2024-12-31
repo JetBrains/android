@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+import static com.android.tools.lint.detector.api.Lint.describeCounts;
 
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
@@ -361,8 +362,12 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
           message = String
             .format(Locale.US, "Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
                     myBaseline.getFixedCount(),
-                    Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
-                                        true));
+                    describeCounts(myBaseline.getFoundErrorCount(),
+                                   myBaseline.getFoundWarningCount(),
+                                   myBaseline.getFoundHintCount(),
+                                   false,
+                                   true,
+                                   false));
         }
         else {
           message = String
