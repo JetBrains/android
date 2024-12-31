@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.compose.gradle.datasource
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -35,11 +34,6 @@ import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
-import com.android.tools.idea.rendering.StudioRenderService
-import com.android.tools.idea.rendering.createNoSecurityRenderService
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
@@ -47,7 +41,6 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.rendering.RenderService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
@@ -60,19 +53,15 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore("b/385133714")
 class ParametrizedPreviewTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @get:Rule val edtRule = EdtRule()
 
@@ -80,36 +69,9 @@ class ParametrizedPreviewTest {
   fun setUp() {
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
-    RenderService.shutdownRenderExecutor(5)
-    RenderService.initializeRenderExecutor()
-    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
-    val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
-    if (!gradleInvocationResult.isBuildSuccessful) {
-      Assert.fail(
-        """
-        The project must compile correctly for the test to pass.
-
-        ${gradleInvocationResult.buildError}
-      """
-          .trimIndent()
-      )
-    }
-
-    assertTrue(
-      "The project must compile correctly for the test to pass",
-      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful,
-    )
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
     VisualLintService.getInstance(projectRule.project)
-  }
-
-  @After
-  fun tearDown() {
-    StudioRenderService.setForTesting(projectRule.project, null)
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
@@ -134,11 +96,7 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
             ?.renderResult
@@ -158,11 +116,7 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
             ?.renderResult
@@ -183,11 +137,7 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
             ?.renderResult
@@ -216,11 +166,7 @@ class ParametrizedPreviewTest {
         )
         assertTrue(it is SingleComposePreviewElementInstance)
         assertNull(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
         )
@@ -245,11 +191,7 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
             ?.renderResult
@@ -283,11 +225,7 @@ class ParametrizedPreviewTest {
         )
         assertTrue(it is ParametrizedComposePreviewElementInstance)
         assertNull(
-          renderPreviewElementForResult(
-              projectRule.mainAndroidFacet(":app"),
-              parametrizedPreviews,
-              it,
-            )
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
             .future
             .get()
         )
