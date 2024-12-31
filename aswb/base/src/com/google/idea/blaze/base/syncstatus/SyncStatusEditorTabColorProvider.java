@@ -38,7 +38,7 @@ public class SyncStatusEditorTabColorProvider implements EditorTabColorProvider 
       return null;
     }
 
-    SyncStatus syncStatus = SyncStatusContributor.getSyncStatus(project, file);
+    SyncStatus syncStatus = LegacySyncStatusContributor.getSyncStatus(project, file);
     if (Objects.equals(syncStatus, SyncStatus.UNSYNCED)) {
       return UNSYNCED_COLOR;
     }

@@ -23,11 +23,10 @@ import com.google.idea.blaze.android.run.state.DebuggerSettingsState;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.lang.AdditionalLanguagesHelper;
+import com.google.idea.blaze.base.lang.LegacyAdditionalLanguagesHelper;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.run.state.RunConfigurationFlagsState;
 import com.google.idea.blaze.base.run.state.RunConfigurationState;
 import com.google.idea.blaze.base.run.state.RunConfigurationStateEditor;
@@ -125,7 +124,7 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
           ValidationErrorCompat.fatal(
               "Native debugging requires C language support.",
               () ->
-                  AdditionalLanguagesHelper.enableLanguageSupport(
+                  LegacyAdditionalLanguagesHelper.enableLanguageSupport(
                       project, ImmutableList.of(LanguageClass.C))));
     }
 

@@ -262,8 +262,8 @@ java_library(
 java_library(
     name = "library_to_target_api",
     srcs = [
+        "src/com/google/idea/blaze/base/model/LegacyLibraryToTargetResolver.java",
         "src/com/google/idea/blaze/base/model/LibraryKey.java",
-        "src/com/google/idea/blaze/base/model/LibraryToTargetResolver.java",
     ],
     neverlink = 1,
     visibility = G3PLUGINS_VISIBILITY,

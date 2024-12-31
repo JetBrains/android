@@ -49,7 +49,7 @@ import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
-import com.google.idea.blaze.base.lang.AdditionalLanguagesHelper;
+import com.google.idea.blaze.base.lang.LegacyAdditionalLanguagesHelper;
 import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.ProjectTargetData;
@@ -517,7 +517,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
             new NavigatableAdapter() {
               @Override
               public void navigate(boolean requestFocus) {
-                AdditionalLanguagesHelper.enableLanguageSupport(project, sorted);
+                LegacyAdditionalLanguagesHelper.enableLanguageSupport(project, sorted);
               }
             })
         .submit(context);

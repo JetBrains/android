@@ -38,9 +38,9 @@ import javax.annotation.Nullable;
  * Implemented on a per-language basis to indicate source files of that language which weren't built
  * in the most recent sync.
  */
-public interface SyncStatusContributor {
+public interface LegacySyncStatusContributor {
 
-  ExtensionPointName<SyncStatusContributor> EP_NAME =
+  ExtensionPointName<LegacySyncStatusContributor> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.SyncStatusContributor");
 
   /**
@@ -50,7 +50,6 @@ public interface SyncStatusContributor {
   @Nullable
   static SyncStatus getSyncStatus(Project project, VirtualFile vf) {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      // TODO(b/260643753) update this for querysync
       return null;
     }
     BlazeProjectData projectData =
@@ -97,7 +96,7 @@ public interface SyncStatusContributor {
   @Nullable
   PsiFileAndName toPsiFileAndName(BlazeProjectData projectData, ProjectViewNode<?> node);
 
-  /** Whether this {@link SyncStatusContributor} handles the given file type, for this project. */
+  /** Whether this {@link LegacySyncStatusContributor} handles the given file type, for this project. */
   boolean handlesFile(BlazeProjectData projectData, VirtualFile file);
 
   /** The {@link PsiFile} and UI text associated with a {@link ProjectViewNode}. */

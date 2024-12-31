@@ -55,7 +55,7 @@ import javax.annotation.Nullable;
  * Detects usage of files in supported but inactive languages, and offers to add them to the project
  * view.
  */
-public class AdditionalLanguagesHelper
+public class LegacyAdditionalLanguagesHelper
     extends EditorNotifications.Provider<EditorNotificationPanel> {
 
   private static final Key<EditorNotificationPanel> KEY = Key.create("add additional language");
@@ -65,7 +65,7 @@ public class AdditionalLanguagesHelper
   private final Project project;
   private final EditorNotifications notifications;
 
-  AdditionalLanguagesHelper(Project project) {
+  LegacyAdditionalLanguagesHelper(Project project) {
     this.project = project;
     this.notifications = EditorNotifications.getInstance(project);
 
@@ -107,7 +107,6 @@ public class AdditionalLanguagesHelper
       return null;
     }
     if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      // TODO(b/260643753)
       return null;
     }
     BlazeProjectData projectData =

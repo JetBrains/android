@@ -24,9 +24,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /** Resolves a given library to a Blaze target */
-public interface LibraryToTargetResolver {
+public interface LegacyLibraryToTargetResolver {
 
-  ExtensionPointName<LibraryToTargetResolver> EP_NAME =
+  ExtensionPointName<LegacyLibraryToTargetResolver> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.LibraryToTargetResolver");
 
   /**
