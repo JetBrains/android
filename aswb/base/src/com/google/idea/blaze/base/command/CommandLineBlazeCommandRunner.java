@@ -85,9 +85,9 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
           Optional.ofNullable(context.getScope(SharedStringPoolScope.class))
               .map(SharedStringPoolScope::getStringInterner)
               .orElse(null);
-      ParsedBepOutput buildOutput;
+      ParsedBepOutput.Legacy buildOutput;
       try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-        buildOutput = BuildResultParser.getBuildOutput(bepStream, stringInterner);
+        buildOutput = BuildResultParser.getBuildOutputForLegacySync(bepStream, stringInterner);
       }
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
       return BlazeBuildOutputs.fromParsedBepOutputForLegacy(buildOutput);
@@ -101,7 +101,36 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
   @Override
   public BlazeBuildOutputs run(Project project, BlazeCommand.Builder blazeCommandBuilder,
                                BuildResultHelper buildResultHelper, BlazeContext context) throws BuildException {
-    return runLegacy(project, blazeCommandBuilder, buildResultHelper, context);
+    try {
+      performGuardCheck(project, context);
+    } catch (ExecutionDeniedException e) {
+      return BlazeBuildOutputs.noOutputs(BuildResult.FATAL_ERROR);
+    }
+
+    BuildResult buildResult =
+      issueBuild(blazeCommandBuilder, WorkspaceRoot.fromProject(project), context);
+    BuildDepsStatsScope.fromContext(context)
+      .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
+    if (buildResult.status == Status.FATAL_ERROR) {
+      return BlazeBuildOutputs.noOutputs(buildResult);
+    }
+    context.output(PrintOutput.log("Build command finished. Retrieving BEP outputs..."));
+    try {
+      Interner<String> stringInterner =
+        Optional.ofNullable(context.getScope(SharedStringPoolScope.class))
+          .map(SharedStringPoolScope::getStringInterner)
+          .orElse(null);
+      ParsedBepOutput buildOutput;
+      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+        buildOutput = BuildResultParser.getBuildOutput(bepStream, stringInterner);
+      }
+      context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.bepBytesConsumed())));
+      return BlazeBuildOutputs.fromParsedBepOutput(buildOutput);
+    } catch (GetArtifactsException e) {
+      context.output(PrintOutput.log("Failed to get build outputs: " + e.getMessage()));
+      context.setHasError();
+      return BlazeBuildOutputs.noOutputs(buildResult);
+    }
   }
 
   @Override

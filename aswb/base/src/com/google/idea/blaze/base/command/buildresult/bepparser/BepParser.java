@@ -24,7 +24,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
@@ -36,6 +35,7 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.IntExperiment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -56,12 +56,6 @@ public final class BepParser {
     new IntExperiment("bep.parsing.concurrency.limit", 5);
 
   private BepParser() {}
-
-  /** Parses BEP events into {@link ParsedBepOutput} */
-  public static ParsedBepOutput parseBepArtifacts(BuildEventStreamProvider stream)
-    throws BuildEventStreamProvider.BuildEventStreamException {
-    return parseBepArtifacts(stream, null);
-  }
 
   /**
    * A record of the top level file sets output by the given {@link #outputGroup}, {@link #target} and {@link #config}.
@@ -160,6 +154,82 @@ public final class BepParser {
     String buildId = null;
     long startTimeMillis = 0L;
     int buildResult = 0;
+
+    private ImmutableList<OutputArtifact> traverseFileSets(Stream<OutputGroupTargetConfigFileSets> fileSetNames) {
+      final var queue = new ArrayDeque<String>();
+      final var visited = new HashSet<String>();
+      final var emitted = new HashSet<String>();
+      final var result = ImmutableList.<OutputArtifact>builder();
+      fileSetNames.flatMap(it -> it.fileSetNames().stream())
+        .distinct()
+        .forEach(filesetName -> {
+                   if (visited.add(filesetName)) {
+                     queue.addLast(filesetName);
+                   }
+                 }
+        );
+      while (!queue.isEmpty()) {
+        final var fileSetName = queue.removeFirst();
+        final var fileSet = fileSets.data.get(fileSetName);
+        for (final var  fileSetId : fileSet.getFileSetsList()) {
+          if (visited.add(fileSetId.getId())) {
+            queue.addLast(fileSetId.getId());
+          }
+        }
+        final var artifacts = parseFiles(fileSet, startTimeMillis);
+        for (OutputArtifact artifact : artifacts) {
+          if (emitted.add(artifact.getArtifactPath().toString())) {
+            result.add(artifact);
+          }
+        }
+      }
+      return result.build();
+    }
+  }
+
+  /**
+   * Parses BEP events into {@link ParsedBepOutput}.
+   */
+  public static ParsedBepOutput parseBepArtifacts(BuildEventStreamProvider stream, @Nullable Interner<String> nullableInterner)
+    throws BuildEventStreamProvider.BuildEventStreamException {
+    BepParserState state = parseBep(stream, nullableInterner);
+    final long bepBytesConsumed = stream.getBytesConsumed();
+    return new ParsedBepOutput() {
+      @Override
+      public int buildResult() {
+        return state.buildResult;
+      }
+
+      @Override
+      public long bepBytesConsumed() {
+        return bepBytesConsumed;
+      }
+
+      @Override
+      public String idForLogging() {
+        return state.buildId;
+      }
+
+      @Override
+      public ImmutableList<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label) {
+        return state.traverseFileSets(state.outputs.outputGroupTargetFileSetStream(outputGroup, label));
+      }
+
+      @Override
+      public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
+        return state.traverseFileSets(state.outputs.outputGroupFileSetStream(outputGroup));
+      }
+
+      @Override
+      public ImmutableSet<String> targetsWithErrors() {
+        return ImmutableSet.copyOf(state.targetsWithErrors);
+      }
+
+      @Override
+      public ImmutableList<OutputArtifact> getAllOutputArtifactsForTesting() {
+        return state.traverseFileSets(state.outputs.fileSetStream());
+      }
+    };
   }
 
   /**
@@ -169,16 +239,16 @@ public final class BepParser {
    * <p>BEP protos often contain many duplicate strings both within a single stream and across
    * shards running in parallel, so a {@link Interner} is used to share references.
    */
-  public static ParsedBepOutput parseBepArtifacts(
-      BuildEventStreamProvider stream, @Nullable Interner<String> nullableInterner)
+  public static ParsedBepOutput.Legacy parseBepArtifactsForLegacySync(
+    BuildEventStreamProvider stream, @Nullable Interner<String> nullableInterner)
     throws BuildEventStreamProvider.BuildEventStreamException {
     final var semaphore = ApplicationManager.getApplication().getService(BepParserSemaphore.class);
     semaphore.start();
     try {
       BepParserState state = parseBep(stream, nullableInterner);
-      ImmutableMap<String, ParsedBepOutput.FileSet> fileSetMap =
+      ImmutableMap<String, ParsedBepOutput.Legacy.FileSet> fileSetMap =
         fillInTransitiveFileSetData(state.fileSets, state.outputs, state.startTimeMillis);
-      return new ParsedBepOutput(
+      return new ParsedBepOutput.Legacy(
         state.buildId,
         fileSetMap,
         state.startTimeMillis,
@@ -248,7 +318,7 @@ public final class BepParser {
    * Only top-level targets have configuration mnemonic, producing target, and output group data
    * explicitly provided in BEP. This method fills in that data for the transitive closure.
    */
-  private static ImmutableMap<String, ParsedBepOutput.FileSet> fillInTransitiveFileSetData(
+  private static ImmutableMap<String, ParsedBepOutput.Legacy.FileSet> fillInTransitiveFileSetData(
     FileSets namedFileSets, OutputGroupTargetConfigFileSetMap data, long startTimeMillis) {
     Map<String, FileSetBuilder> fileSets =
       ImmutableMap.copyOf(
@@ -386,8 +456,8 @@ public final class BepParser {
       return namedSet != null && configId != null;
     }
 
-    ParsedBepOutput.FileSet build(long startTimeMillis) {
-      return new ParsedBepOutput.FileSet(parseFiles(namedSet, startTimeMillis), outputGroups, targets);
+    ParsedBepOutput.Legacy.FileSet build(long startTimeMillis) {
+      return new ParsedBepOutput.Legacy.FileSet(parseFiles(namedSet, startTimeMillis), outputGroups, targets);
     }
   }
 }

@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
-import static com.google.idea.blaze.base.command.buildresult.bepparser.BepParser.parseBepArtifacts;
-
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;

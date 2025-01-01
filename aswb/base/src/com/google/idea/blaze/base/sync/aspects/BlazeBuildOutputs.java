@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.sync.aspects;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -43,7 +42,7 @@ import java.util.stream.Stream;
  */
 public interface BlazeBuildOutputs {
 
-  ImmutableSet<OutputArtifact> getTargetArtifacts(String label, String outputGroup);
+  ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup);
 
   ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup);
 
@@ -113,25 +112,47 @@ public interface BlazeBuildOutputs {
   }
 
 
-  static BlazeBuildOutputs fromParsedBepOutput(
-    ParsedBepOutput parsedOutput) {
-    final var result = BuildResult.fromExitCode(parsedOutput.getBuildResult());
-    ImmutableMap<String, BuildResult> buildIdWithResult =
-      parsedOutput.buildId != null
-      ? ImmutableMap.of(parsedOutput.buildId, result)
-      : ImmutableMap.of();
-    return new BlazeBuildOutputsImpl(
-      result,
-      result.status == Status.FATAL_ERROR
-      ? ImmutableMap.of()
-      : parsedOutput.getFullArtifactData(),
-      buildIdWithResult,
-      parsedOutput.getTargetsWithErrors(),
-      parsedOutput.getBepBytesConsumed());
+  static BlazeBuildOutputs fromParsedBepOutput(ParsedBepOutput parsedOutput) {
+    return new BlazeBuildOutputs() {
+      @Override
+      public ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup) {
+        return parsedOutput.getOutputGroupTargetArtifacts(outputGroup, label);
+      }
+
+      @Override
+      public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
+        return parsedOutput.getOutputGroupArtifacts(outputGroup);
+      }
+
+      @Override
+      public ImmutableSet<String> targetsWithErrors() {
+        return parsedOutput.targetsWithErrors();
+      }
+
+      @Override
+      public BuildResult buildResult() {
+        return BuildResult.fromExitCode(parsedOutput.buildResult());
+      }
+
+      @Override
+      public String idForLogging() {
+        return parsedOutput.idForLogging();
+      }
+
+      @Override
+      public String buildId() {
+        return "";
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return false;
+      }
+    };
   }
 
   static BlazeBuildOutputs.Legacy fromParsedBepOutputForLegacy(
-    ParsedBepOutput parsedOutput) {
+    ParsedBepOutput.Legacy parsedOutput) {
     final var result = BuildResult.fromExitCode(parsedOutput.getBuildResult());
     ImmutableMap<String, BuildResult> buildIdWithResult =
       parsedOutput.buildId != null
@@ -187,12 +208,12 @@ public interface BlazeBuildOutputs {
 
     /** Returns the output artifacts generated for target with given label. */
     @Override
-    public ImmutableSet<OutputArtifact> getTargetArtifacts(String label, String outputGroup) {
+    public ImmutableList<OutputArtifact> getTargetArtifacts(String label, String outputGroup) {
       // TODO: solodkyy - This is slow although it is invoked at most two times.
       return artifacts.values().stream()
         .filter(a -> a.outputGroups.contains(outputGroup) && a.topLevelTargets.contains(label))
         .map(a -> a.artifact)
-        .collect(toImmutableSet());
+        .collect(toImmutableList());
     }
 
     @VisibleForTesting

@@ -127,6 +127,6 @@ public final class BepUtils {
 
   public static ParsedBepOutput parsedBep(List<BuildEvent> events)
       throws IOException, BuildEventStreamException {
-    return BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)));
+    return BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null);
   }
 }

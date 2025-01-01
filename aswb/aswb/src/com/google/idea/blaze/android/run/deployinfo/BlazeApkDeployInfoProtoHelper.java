@@ -53,7 +53,7 @@ public class BlazeApkDeployInfoProtoHelper {
     Label target, String outputGroup,BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
-    ImmutableSet<OutputArtifact> targetOutputArtifacts;
+    ImmutableList<OutputArtifact> targetOutputArtifacts;
 
     BlazeBuildOutputs bazelOutputs;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {

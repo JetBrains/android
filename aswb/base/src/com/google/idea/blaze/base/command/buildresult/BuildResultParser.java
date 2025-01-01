@@ -48,6 +48,26 @@ public final class BuildResultParser {
   }
 
   /**
+   * Parses the BEP stream and returns the corresponding {@link ParsedBepOutput}. May only be
+   * called once on a given stream.
+   *
+   * <p>As BEP retrieval can be memory-intensive for large projects, implementations of
+   * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
+   * (e.g. remote builds).
+   */
+  public static ParsedBepOutput.Legacy getBuildOutputForLegacySync(
+    BuildEventStreamProvider bepStream, Interner<String> stringInterner)
+    throws BuildResultHelper.GetArtifactsException {
+    try {
+      return BepParser.parseBepArtifactsForLegacySync(bepStream, stringInterner);
+    } catch (BuildEventStreamProvider.BuildEventStreamException e) {
+      BuildResultHelper.logger.error(e);
+      throw new BuildResultHelper.GetArtifactsException(String.format(
+        "Failed to parse bep for build id: %s: %s", bepStream.getId(), e.getMessage()));
+    }
+  }
+
+  /**
    * Parses BEP stream and returns the corresponding {@link BlazeTestResults}. May
    * only be called once on a given stream.
    */
