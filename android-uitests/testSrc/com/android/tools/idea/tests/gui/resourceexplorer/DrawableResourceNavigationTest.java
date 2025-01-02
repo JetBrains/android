@@ -102,10 +102,14 @@ public class DrawableResourceNavigationTest {
 
     //Verify 3: A new editor with the image ""icon_category_entertainment.xml"" should open
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    waitForXMLFileToShow(myIdeFrameFixture.getEditor());
+    EditorFixture myEditor = myIdeFrameFixture.getEditor();
+    myEditor.waitForFileToActivate();
+    waitForXMLFileToShow(myEditor);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Verify 4 : A drawable named icon_category_entertainment should be showing
+    myResourceDetailViewFixture.focus();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     myResourceDetailViewFixture.goBackToResourceList().click();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myResourceExplorerFixture.findResource("icon_category_entertainment");
