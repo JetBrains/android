@@ -22,8 +22,8 @@ import com.android.tools.idea.dagger.index.getValuesFromIndex
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
+import com.android.tools.idea.progress.checkCanceled
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -98,20 +98,20 @@ sealed class DaggerElement {
         relatedItemTypes.any { type -> type.java.isAssignableFrom(daggerElementJavaType) }
       }
       // The next operation (distinct) must iterate all elements, so check for cancellation.
-      .onEach { ProgressManager.checkCanceled() }
+      .checkCanceled()
       // Ensure there are no duplicate index values (which can happen if two different keys have
       // identical values)
       .distinct()
       // Resolve index values
       .flatMap { it.resolveToDaggerElements(project, scope) }
       // The next operation (distinct) must iterate all elements, so check for cancellation.
-      .onEach { ProgressManager.checkCanceled() }
+      .checkCanceled()
       // Ensure there are no duplicate resolved values
       .distinct()
       // Filter out any candidates that are not applicable.
       .filter(this::filterResolveCandidate)
       // The next operation (toList) must iterate all elements, so check for cancellation.
-      .onEach { ProgressManager.checkCanceled() }
+      .checkCanceled()
       .toList()
   }
 
