@@ -344,14 +344,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // If we are debugging on a device, then the app needs to be debuggable
     for (AndroidDevice androidDevice : deviceFutures.getDevices()) {
       if (!androidDevice.isDebuggable() && !LaunchUtils.canDebugApp(facet)) {
-        String deviceName;
-        if (!androidDevice.getLaunchedDevice().isDone()) {
-          deviceName = androidDevice.getName();
-        }
-        else {
-          IDevice device = Futures.getUnchecked(androidDevice.getLaunchedDevice());
-          deviceName = device.getName();
-        }
+        IDevice device = androidDevice.getDdmlibDevice();
+        String deviceName = device == null ? androidDevice.getName() : device.getName();
         return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, deviceName);
       }
     }

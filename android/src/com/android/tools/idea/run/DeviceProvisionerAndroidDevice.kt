@@ -89,8 +89,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
    * if the device is [running][isRunning], the device may not yet be fully booted, so this may
    * return null.
    */
-  val ddmlibDevice: IDevice?
-    get() = if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
+  override fun getDdmlibDevice(): IDevice? =
+    if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
 
   override fun getSerial(): String = buildString {
     append("DeviceProvisionerAndroidDevice pluginId=")
