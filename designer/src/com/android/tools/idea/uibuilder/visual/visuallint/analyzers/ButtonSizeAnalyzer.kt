@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -31,9 +30,6 @@ private const val MAX_BUTTON_WIDTH_DP = 320
 object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BUTTON_SIZE
-
-  override val backgroundEnabled: Boolean
-    get() = ButtonSizeAnalyzerInspection.buttonSizeBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -70,12 +66,5 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
         .add("Material Design recommends buttons to be no wider than ${MAX_BUTTON_WIDTH_DP}dp")
     }
     return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
-  }
-}
-
-class ButtonSizeAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.BUTTON_SIZE, "buttonSizeBackground") {
-  companion object {
-    var buttonSizeBackground = true
   }
 }

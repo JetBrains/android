@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.utils.HtmlBuilder
@@ -33,9 +32,6 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LOCALE_TEXT
-
-  override val backgroundEnabled: Boolean
-    get() = LocaleAnalyzerInspection.localeBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -177,12 +173,5 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
     }
 
     return requiredTextBoundsWidth > textView.width
-  }
-}
-
-class LocaleAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.LOCALE_TEXT, "localeBackground") {
-  companion object {
-    var localeBackground = true
   }
 }

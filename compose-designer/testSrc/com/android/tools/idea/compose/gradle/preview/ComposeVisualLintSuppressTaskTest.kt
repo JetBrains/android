@@ -125,11 +125,10 @@ class ComposeVisualLintSuppressTaskTest {
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
-    val buttonIssues =
-      ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+    val buttonIssues = ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING)
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING)
     assertEquals(1, textFieldIssues.size)
     issueProvider.addAllIssues(buttonIssues)
     issueProvider.addAllIssues(textFieldIssues)
@@ -228,11 +227,10 @@ class ComposeVisualLintSuppressTaskTest {
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
-    val buttonIssues =
-      ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+    val buttonIssues = ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING)
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING)
     assertEquals(1, textFieldIssues.size)
     issueProvider.addAllIssues(buttonIssues)
     issueProvider.addAllIssues(textFieldIssues)

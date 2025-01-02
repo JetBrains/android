@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -34,9 +33,6 @@ private const val COMPOSE_VIEW_CLASS_NAME = "androidx.compose.ui.platform.Compos
 object WearMarginAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.WEAR_MARGIN
-
-  override val backgroundEnabled: Boolean
-    get() = WearMarginAnalyzerInspection.wearMarginBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -110,10 +106,3 @@ data class ViewWithParentBounds(
   val absoluteParentLeft: Int,
   val absoluteParentRight: Int,
 )
-
-class WearMarginAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.WEAR_MARGIN, "wearMarginBackground") {
-  companion object {
-    var wearMarginBackground = true
-  }
-}

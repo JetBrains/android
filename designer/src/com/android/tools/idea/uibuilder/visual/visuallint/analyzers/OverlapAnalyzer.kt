@@ -26,7 +26,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 import java.awt.Rectangle
@@ -44,9 +43,6 @@ private const val OVERLAP_RATIO_THRESHOLD = 0.5
 object OverlapAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.OVERLAP
-
-  override val backgroundEnabled: Boolean
-    get() = OverlapAnalyzerInspection.overlapBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -241,12 +237,5 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
         bottom - top,
       )
     }
-  }
-}
-
-class OverlapAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.OVERLAP, "overlapBackground") {
-  companion object {
-    var overlapBackground = true
   }
 }

@@ -20,7 +20,6 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -35,9 +34,6 @@ private const val NAVIGATION_DRAWER_URL =
 object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_NAV
-
-  override val backgroundEnabled: Boolean
-    get() = BottomNavAnalyzerInspection.bottomNavBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -76,12 +72,5 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
       message = "Bottom navigation bar is not recommended for breakpoints over 600dp",
       descriptionProvider = content,
     )
-  }
-}
-
-class BottomNavAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
-  companion object {
-    var bottomNavBackground = true
   }
 }

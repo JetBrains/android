@@ -44,7 +44,6 @@ import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
-import com.intellij.codeInspection.InspectionProfile
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -52,7 +51,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.profile.ProfileChangeAdapter
 import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -104,49 +102,15 @@ class VisualLintService(val project: Project) : Disposable {
     )
   private val wearAnalyzers = listOf(WearMarginAnalyzer)
 
-  private val ignoredTypes: MutableList<VisualLintErrorType>
-
   private var listenerRemovalDisposable: Disposable? = null
 
   init {
-    val connection = project.messageBus.connect()
-    ignoredTypes = mutableListOf()
-    getIgnoredTypesFromProfile(InspectionProfileManager.getInstance(project).currentProfile)
-    connection.subscribe(
-      ProfileChangeAdapter.TOPIC,
-      object : ProfileChangeAdapter {
-        override fun profileActivated(oldProfile: InspectionProfile?, profile: InspectionProfile?) {
-          profile?.let { getIgnoredTypesFromProfile(it) }
-        }
-
-        override fun profileChanged(profile: InspectionProfile) {
-          val oldIgnoredTypes = ignoredTypes.toList()
-          getIgnoredTypesFromProfile(profile)
-          ignoredTypes
-            .filterNot { it in oldIgnoredTypes }
-            .forEach { VisualLintUsageTracker.getInstance().trackRuleStatusChanged(it, false) }
-          oldIgnoredTypes
-            .filterNot { it in ignoredTypes }
-            .forEach { VisualLintUsageTracker.getInstance().trackRuleStatusChanged(it, true) }
-        }
-      },
-    )
     // We pass the VisualLintService as the IssueModel parent disposable. We need to initialize it
     // only in the end of this constructor to
     // prevent Project leaks if the constructor throws an exception sooner, because that could make
     // the IssueModel never to be disposed,
     // since it will be registered as the child of a broken VisualLintService object.
     issueModel = VisualLintIssueModel(this, project)
-  }
-
-  private fun getIgnoredTypesFromProfile(profile: InspectionProfile) {
-    ignoredTypes.clear()
-    for (type in VisualLintErrorType.values()) {
-      val enabled = profile.isToolEnabled(HighlightDisplayKey.find(type.shortName))
-      if (!enabled) {
-        ignoredTypes.add(type)
-      }
-    }
   }
 
   /**
@@ -231,7 +195,7 @@ class VisualLintService(val project: Project) : Disposable {
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)
       for (model in modelsToAnalyze) {
-        val runAtfChecks = VisualLintErrorType.ATF !in ignoredTypes
+        val runAtfChecks = AtfAnalyzer.shouldRun(project, true)
         createRenderResult(model, runAtfChecks)
           .handleAsync(
             { result, _ ->
@@ -306,13 +270,13 @@ class VisualLintService(val project: Project) : Disposable {
       runAnalyzers(targetIssueProvider, wearAnalyzers, result, model, runningInBackground)
     } else {
       runAnalyzers(targetIssueProvider, adaptiveAnalyzers, result, model, runningInBackground)
-      if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
-        LocaleAnalyzer(baseConfigIssues).let {
-          targetIssueProvider.addAllIssues(
-            it.analyze(result, model, getSeverity(it.type), runningInBackground)
-          )
-        }
-      }
+      runAnalyzers(
+        targetIssueProvider,
+        listOf(LocaleAnalyzer(baseConfigIssues)),
+        result,
+        model,
+        runningInBackground,
+      )
     }
   }
 
@@ -324,9 +288,19 @@ class VisualLintService(val project: Project) : Disposable {
     runningInBackground: Boolean,
   ) {
     analyzers
-      .filter { !ignoredTypes.contains(it.type) }
-      .forEach {
-        val issues = it.analyze(result, model, getSeverity(it.type), runningInBackground)
+      .filter { it.shouldRun(project, runningInBackground) }
+      .forEach { analyzer ->
+        val profile = InspectionProfileManager.getInstance(project).currentProfile
+        val tools = profile.getToolsOrNull(analyzer.type.shortName, project) ?: return@forEach
+        if (!tools.isEnabled) {
+          return@forEach
+        }
+        val inspection =
+          tools.getInspectionTool(null).tool as? VisualLintInspection ?: return@forEach
+        if (runningInBackground && !inspection.runInBackground) {
+          return@forEach
+        }
+        val issues = analyzer.analyze(result, model, getSeverity(analyzer.type))
         targetIssueProvider.addAllIssues(issues)
       }
   }
@@ -401,6 +375,19 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
         }
       }
     }
+}
+
+private fun VisualLintAnalyzer.shouldRun(project: Project, runningInBackground: Boolean): Boolean {
+  val profile = InspectionProfileManager.getInstance(project).currentProfile
+  val tools = profile.getToolsOrNull(this.type.shortName, project) ?: return false
+  if (!tools.isEnabled) {
+    return false
+  }
+  if (!runningInBackground) {
+    return true
+  }
+  val inspection = tools.getInspectionTool(null).tool as? VisualLintInspection ?: return false
+  return inspection.runInBackground
 }
 
 class VisualLintIssueModel(parentDisposable: Disposable, project: Project) :

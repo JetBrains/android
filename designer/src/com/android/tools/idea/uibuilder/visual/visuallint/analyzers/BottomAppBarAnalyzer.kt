@@ -20,7 +20,6 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -37,9 +36,6 @@ private const val TOP_APP_BAR_URL =
 object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_APP_BAR
-
-  override val backgroundEnabled: Boolean
-    get() = BottomAppBarAnalyzerInspection.bottomAppBarBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -83,12 +79,5 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
       message = "Bottom app bars are only recommended for compact screens",
       descriptionProvider = content,
     )
-  }
-}
-
-class BottomAppBarAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.BOTTOM_APP_BAR, "bottomAppBarBackground") {
-  companion object {
-    var bottomAppBarBackground = true
   }
 }

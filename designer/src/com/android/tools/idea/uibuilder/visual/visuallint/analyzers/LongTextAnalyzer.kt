@@ -23,7 +23,6 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -34,9 +33,6 @@ private const val MAX_LENGTH = 120
 object LongTextAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LONG_TEXT
-
-  override val backgroundEnabled: Boolean
-    get() = LongTextAnalyzerInspection.longTextBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -107,12 +103,5 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
         .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
-  }
-}
-
-class LongTextAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
-  companion object {
-    var longTextBackground = true
   }
 }

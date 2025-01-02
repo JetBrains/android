@@ -36,7 +36,6 @@ import javax.swing.event.HyperlinkListener
 /** Base class for all Visual Linting analyzers. */
 abstract class VisualLintAnalyzer {
   abstract val type: VisualLintErrorType
-  abstract val backgroundEnabled: Boolean
 
   /**
    * Analyze the given [RenderResult] for visual lint issues and return found
@@ -46,11 +45,7 @@ abstract class VisualLintAnalyzer {
     renderResult: RenderResult,
     model: NlModel,
     severity: HighlightSeverity,
-    runningInBackground: Boolean,
   ): List<VisualLintRenderIssue> {
-    if (runningInBackground && !backgroundEnabled) {
-      return emptyList()
-    }
     val issueContents = findIssues(renderResult, model)
     return issueContents.map { createIssue(it, model, severity) }.toList()
   }

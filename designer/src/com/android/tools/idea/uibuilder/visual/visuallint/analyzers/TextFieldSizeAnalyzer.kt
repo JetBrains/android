@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -31,9 +30,6 @@ private const val TEXT_FIELD_MAX_DP_WIDTH = 488
 object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.TEXT_FIELD_SIZE
-
-  override val backgroundEnabled: Boolean
-    get() = TextFieldSizeAnalyzerInspection.textFieldSizeBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -72,12 +68,5 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
         )
     }
     return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
-  }
-}
-
-class TextFieldSizeAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE, "textFieldSizeBackground") {
-  companion object {
-    var textFieldSizeBackground = true
   }
 }

@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -40,9 +39,6 @@ private val scrollViewInterfaces =
 object BoundsAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOUNDS
-
-  override val backgroundEnabled: Boolean
-    get() = BoundsAnalyzerInspection.boundsBackground
 
   override fun findIssues(
     renderResult: RenderResult,
@@ -93,12 +89,5 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
       return true
     }
     return view.viewObject.javaClass.interfaces.any { it.name in scrollViewInterfaces }
-  }
-}
-
-class BoundsAnalyzerInspection :
-  VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
-  companion object {
-    var boundsBackground = true
   }
 }

@@ -20,7 +20,6 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
-import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -28,14 +27,6 @@ import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.util.concurrent.MoreExecutors

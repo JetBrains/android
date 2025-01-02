@@ -41,12 +41,12 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.visual.visuallint.AtfAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.ui.IdeUiService
