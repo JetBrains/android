@@ -22,6 +22,7 @@ import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -30,6 +31,7 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -118,6 +120,9 @@ abstract class StreamingDevicePanel(
   }
 
   override fun dispose() {
+    if (StudioFlags.B_364541401_LOGGING.get()) {
+      thisLogger().info("$simpleId disposed")
+    }
     destroyContent()
   }
 
