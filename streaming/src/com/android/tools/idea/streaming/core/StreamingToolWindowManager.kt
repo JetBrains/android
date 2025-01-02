@@ -759,13 +759,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (StudioFlags.B_364541401_LOGGING.get()) {
       logger.info("$simpleId.deactivateMirroring($serialNumber)")
     }
-    if (contentShown) {
-      val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
-      content.removeAndDispose()
-    }
-    else {
-      stopMirroring(serialNumber)
-    }
+    findContentBySerialNumberOfPhysicalDevice(serialNumber)?.removeAndDispose()
+    stopMirroring(serialNumber)
   }
 
   private fun stopMirroring(serialNumber: String) {
