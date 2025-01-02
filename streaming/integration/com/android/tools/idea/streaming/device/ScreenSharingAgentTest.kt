@@ -60,6 +60,8 @@ import java.awt.event.KeyEvent.VK_SHIFT
 import java.nio.file.Files
 import java.util.regex.Pattern
 import javax.swing.JScrollPane
+import kotlin.math.absoluteValue
+import kotlin.math.sign
 import kotlin.random.Random
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
@@ -293,8 +295,13 @@ class ScreenSharingAgentTest {
             fakeUi.mouse.wheel(x, y, rotation)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            // On Android, scrolling vertically is upside-down compared to Java.
-            waitForLog(Point(x, y).scrollLog(v = -rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+            val sign = -rotation.sign // On Android, scrolling vertically is upside-down compared to AWT.
+            var remainingRotation = (rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR).absoluteValue
+            while (remainingRotation > 0) {
+              val scrollAmount = remainingRotation.coerceAtMost(1f)
+              waitForLog(Point(x, y).scrollLog(v = scrollAmount * sign), INPUT_TIMEOUT)
+              remainingRotation -= scrollAmount
+            }
           }
         }
       }
@@ -328,7 +335,13 @@ class ScreenSharingAgentTest {
             fakeUi.keyboard.release(VK_SHIFT)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            waitForLog(Point(x, y).scrollLog(h = rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+            val sign = rotation.sign
+            var remainingRotation = (rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR).absoluteValue
+            while (remainingRotation > 0) {
+              val scrollAmount = remainingRotation.coerceAtMost(1f)
+              waitForLog(Point(x, y).scrollLog(h = scrollAmount * sign), INPUT_TIMEOUT)
+              remainingRotation -= scrollAmount
+            }
           }
         }
       }
