@@ -28,7 +28,7 @@ import org.junit.Rule
 
 internal const val DEFAULT_KOTLIN_VERSION = "1.9.0"
 
-open class ComposeRenderTestBase {
+abstract class ComposeRenderTestBase {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
