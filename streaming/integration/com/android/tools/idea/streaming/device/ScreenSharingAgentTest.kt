@@ -32,6 +32,7 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
@@ -402,6 +403,8 @@ class ScreenSharingAgentTest {
     @JvmStatic
     @BeforeClass
     fun setUpClass() {
+      ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
+
       val disposable = Disposer.newDisposable("ScreenSharingAgentTest").also { classDisposable = it }
       StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.overrideForTest("debug", disposable)
 

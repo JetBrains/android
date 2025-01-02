@@ -44,6 +44,7 @@ import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -165,6 +166,7 @@ class EmulatorViewTest {
     whenever(pointerInfo.location).thenReturn(Point(10, 20))
     mouseInfo.whenever<PointerInfo> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
   }
 
   @Test

@@ -54,6 +54,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
@@ -182,6 +183,7 @@ internal class DeviceViewTest {
     device = agentRule.connectDevice("Pixel 5", 32, Dimension(1080, 2340))
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
   }
 
   @After
