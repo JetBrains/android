@@ -38,15 +38,16 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.treeStructure.Tree
 import java.util.EnumSet
 import javax.swing.JComponent
@@ -285,15 +286,34 @@ class TreeSettingsActionsTest {
     Mockito.doAnswer { inLiveMode }.whenever(appClient).inLiveMode
     Mockito.doAnswer { inLiveMode }.whenever(snapshotClient).inLiveMode
 
-    return runInEdtAndGet {
-      val dataContext =
-        SimpleDataContext.builder()
-          .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
-          .add(LAYOUT_INSPECTOR_DATA_KEY, inspector)
-          .build()
-      val actionManager: ActionManager = mock()
-      AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
-    }
+    // Note: Do not replace this with SimpleDataContext or any other form of PreCachedDataContext.
+    // The WeakReference created in PreCachedDataContext causes NPEs: b/386798337
+    val dataContext =
+      object : DataContext {
+        @Suppress("removal")
+        override fun getData(dataId: String): Any? {
+          return null
+        }
+
+        override fun <T> getData(key: DataKey<T>): T? {
+          @Suppress("UNCHECKED_CAST")
+          return when (key) {
+            PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
+            LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
+            else -> null
+          }
+        }
+      }
+    val actionManager: ActionManager = mock()
+    return AnActionEvent(
+      dataContext,
+      Presentation(),
+      ActionPlaces.UNKNOWN,
+      ActionUiKind.NONE,
+      null,
+      0,
+      actionManager,
+    )
   }
 
   private fun createModel(): InspectorModel {
