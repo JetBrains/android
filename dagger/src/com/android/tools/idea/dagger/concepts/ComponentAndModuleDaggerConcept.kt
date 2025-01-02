@@ -28,6 +28,7 @@ import com.android.tools.idea.dagger.index.readClassId
 import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -238,6 +239,9 @@ internal sealed class ClassDaggerElement : DaggerElement() {
       resolveCandidateClassElement
         .getAnnotation(annotation.fqNameString)
         ?.findAttributeValue(argumentName) ?: return false
+
+    // Resolving annotations in Kotlin sometimes takes a while, so check for cancellation.
+    ProgressManager.checkCanceled()
 
     // In Java, the annotation's array argument may be specified without the array syntax if there's
     // only a single value. Look for both variations. (In Kotlin, the list form is always used.)
