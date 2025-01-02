@@ -2309,9 +2309,9 @@ private fun <T> openPreparedProject(
       finally {
         runInEdtAndWait {
           if (!project.isDisposed) {
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
             PlatformTestUtil.saveProject(project, true)
             ProjectManager.getInstance().closeAndDispose(project)
-            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           }
         }
       }
