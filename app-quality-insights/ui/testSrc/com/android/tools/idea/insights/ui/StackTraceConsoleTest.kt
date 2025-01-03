@@ -283,7 +283,23 @@ class StackTraceConsoleTest {
       stackTraceConsole.consoleView.waitAllRequests()
 
       assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
+      assertThat(stackTraceConsole.noStackTracePane.isVisible).isFalse()
       assertThat(stackTraceConsole.emptyStatePane.isVisible).isTrue()
+    }
+  }
+
+  @Test
+  fun `when stacktrace is empty, no stack trace panel shown`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+      )
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
+      assertThat(stackTraceConsole.emptyStatePane.isVisible).isFalse()
+      assertThat(stackTraceConsole.noStackTracePane.isVisible).isTrue()
     }
   }
 

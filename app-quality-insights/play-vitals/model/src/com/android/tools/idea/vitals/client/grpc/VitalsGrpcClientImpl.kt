@@ -210,7 +210,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       .map { it.toIssueDetails() }
   }
 
-  override suspend fun searchErrorReports(
+  override suspend fun searchErrorReportByReportIds(
     connection: Connection,
     filters: QueryFilters,
     reportIds: List<String>,
@@ -220,7 +220,16 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       SearchErrorReportsRequest.newBuilder().apply {
         parent = connection.clientId
         interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-        filter = FilterBuilder().apply { addReportIds(reportIds) }.build()
+        filter =
+          FilterBuilder()
+            .apply {
+              addVersions(filters.versions)
+              addVisibilityType(filters.visibilityType)
+              addDevices(filters.devices)
+              addOperatingSystems(filters.operatingSystems)
+              addReportIds(reportIds)
+            }
+            .build()
       }
 
     var nextPageToken = ""
@@ -231,6 +240,36 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       nextPageToken = response.nextPageToken
     } while (nextPageToken.isNotEmpty())
     return errorReports
+  }
+
+  override suspend fun searchErrorReportByIssueId(
+    connection: Connection,
+    filters: QueryFilters,
+    issueId: IssueId,
+  ): Event {
+    val searchErrorReportsRequest =
+      SearchErrorReportsRequest.newBuilder()
+        .apply {
+          parent = connection.clientId
+          interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+          filter =
+            FilterBuilder()
+              .apply {
+                addErrorIssue(issueId)
+                addVersions(filters.versions)
+                addVisibilityType(filters.visibilityType)
+                addDevices(filters.devices)
+                addOperatingSystems(filters.operatingSystems)
+              }
+              .build()
+          pageSize = 1
+        }
+        .build()
+
+    return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest).await() }
+      .errorReportsList
+      .map { it.toSampleEvent() }
+      .firstOrNull() ?: Event.EMPTY
   }
 
   companion object {

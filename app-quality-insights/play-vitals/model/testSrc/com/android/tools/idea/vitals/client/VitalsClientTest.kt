@@ -189,7 +189,7 @@ class VitalsClientTest {
           maxNumResults: Int,
         ) = emptyList<DimensionsAndMetrics>()
 
-        override suspend fun searchErrorReports(
+        override suspend fun searchErrorReportByReportIds(
           connection: Connection,
           filters: QueryFilters,
           reportIds: List<String>,
@@ -312,7 +312,7 @@ class VitalsClientTest {
             pageTokenFromPreviousCall: String?,
           ): List<IssueDetails> = emptyList()
 
-          override suspend fun searchErrorReports(
+          override suspend fun searchErrorReportByReportIds(
             connection: Connection,
             filters: QueryFilters,
             reportIds: List<String>,
@@ -341,6 +341,63 @@ class VitalsClientTest {
         ConnectionMode.ONLINE,
       )
     }
+
+  @Test
+  fun `client fetches error report if not found in batch api`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    val grpcClient =
+      object : TestVitalsGrpcClient() {
+        override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection) =
+          listOf(Freshness(TimeGranularity.FULL_RANGE, DateTime.getDefaultInstance()))
+
+        override suspend fun listTopIssues(
+          connection: Connection,
+          filters: QueryFilters,
+          maxNumResults: Int,
+          pageTokenFromPreviousCall: String?,
+        ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
+
+        override suspend fun searchErrorReportByReportIds(
+          connection: Connection,
+          filters: QueryFilters,
+          reportIds: List<String>,
+        ): List<Event> {
+          return emptyList()
+        }
+
+        override suspend fun searchErrorReportByIssueId(
+          connection: Connection,
+          filters: QueryFilters,
+          issueId: IssueId,
+        ): Event {
+          return Event("123")
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
+
+    val response =
+      client.listTopOpenIssues(
+        IssueRequest(
+          TEST_CONNECTION_1,
+          QueryFilters(
+            interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
+            eventTypes = listOf(FailureType.FATAL),
+          ),
+        ),
+        null,
+        ConnectionMode.ONLINE,
+      )
+    val issues = (response as LoadingState.Ready).value.issues
+    assertThat(issues.size).isEqualTo(1)
+    assertThat(issues[0].sampleEvent.name).isEqualTo("123")
+  }
 
   @Test
   fun `list top open issues returns correct issues, events, versions, oses, and devices`() =
@@ -472,7 +529,7 @@ class VitalsClientTest {
           maxNumResults: Int,
         ) = emptyList<DimensionsAndMetrics>()
 
-        override suspend fun searchErrorReports(
+        override suspend fun searchErrorReportByReportIds(
           connection: Connection,
           filters: QueryFilters,
           reportIds: List<String>,

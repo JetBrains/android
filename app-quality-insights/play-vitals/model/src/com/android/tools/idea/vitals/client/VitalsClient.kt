@@ -268,11 +268,16 @@ class VitalsClient(
             .toMap()
         topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
       }
-    val sampleErrorReportIdList = requestIssues.map { it.sampleEvent.split("/").last() }
+    val sampleErrorReportIdList =
+      requestIssues.mapNotNull { it.sampleEvent.split("/").last().takeIf { it.isNotEmpty() } }
     val fetchedErrorReportMap =
       if (sampleErrorReportIdList.isNotEmpty()) {
         grpcClient
-          .searchErrorReports(request.connection, request.filters, sampleErrorReportIdList)
+          .searchErrorReportByReportIds(
+            request.connection,
+            request.filters,
+            sampleErrorReportIdList,
+          )
           .associateBy { it.name }
       } else {
         emptyMap()
@@ -283,7 +288,11 @@ class VitalsClient(
         val event =
           cachedSampleEvents[issueDetails]
             ?: fetchedErrorReportMap[issueDetails.sampleEvent]
-            ?: Event.EMPTY
+            ?: grpcClient.searchErrorReportByIssueId(
+              request.connection,
+              request.filters,
+              issueDetails.id,
+            )
         AppInsightsIssue(issueDetails, event)
       }
       .also { cache.populateIssues(request.connection, it) }

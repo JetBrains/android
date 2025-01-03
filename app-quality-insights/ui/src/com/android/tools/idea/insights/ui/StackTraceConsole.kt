@@ -71,10 +71,12 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 private val CONSOLE_LOCK = Any()
 private const val CONSOLE_VIEW = "ConsoleView"
 private const val EMPTY_STATE_PANEL = "EmptyStatePanel"
+private const val NO_STACK_TRACE_PANEL = "NoStackTracePanel"
 private val LINE_0_REGEX = Regex("\\((.*):0\\)")
 
 data class StackTraceConsoleState(
@@ -113,6 +115,7 @@ class StackTraceConsole(
 
   val stackPanel = JPanel(cardLayout)
 
+  @VisibleForTesting
   val emptyStatePane =
     object : JPanel() {
       init {
@@ -122,6 +125,31 @@ class StackTraceConsole(
       override fun paint(g: Graphics) {
         super.paint(g)
         emptyStatusText.paint(this, g)
+      }
+    }
+
+  @VisibleForTesting
+  val noStackTracePane =
+    object : JPanel() {
+      private val statusText =
+        AppInsightsStatusText(this) { true }
+          .apply {
+            appendText(
+              "Stack trace not available",
+              SimpleTextAttributes(
+                SimpleTextAttributes.STYLE_PLAIN,
+                UIUtil.getLabelDisabledForeground(),
+              ),
+            )
+          }
+
+      init {
+        isOpaque = false
+      }
+
+      override fun paint(g: Graphics) {
+        super.paint(g)
+        statusText.paint(this, g)
       }
     }
 
@@ -152,6 +180,7 @@ class StackTraceConsole(
 
     stackPanel.add(consoleView, CONSOLE_VIEW)
     stackPanel.add(emptyStatePane, EMPTY_STATE_PANEL)
+    stackPanel.add(noStackTracePane, NO_STACK_TRACE_PANEL)
     cardLayout.show(stackPanel, CONSOLE_VIEW)
 
     consoleView.editor!!.setBorder(JBUI.Borders.empty())
@@ -212,6 +241,9 @@ class StackTraceConsole(
       if (event == Event.EMPTY) {
         cardLayout.show(stackPanel, EMPTY_STATE_PANEL)
         stackPanel.preferredSize = emptyStatePane.preferredSize
+      } else if (event.stacktraceGroup.exceptions.isEmpty()) {
+        cardLayout.show(stackPanel, NO_STACK_TRACE_PANEL)
+        stackPanel.preferredSize = noStackTracePane.preferredSize
       } else {
         cardLayout.show(stackPanel, CONSOLE_VIEW)
         stackPanel.preferredSize = consoleView.preferredSize
