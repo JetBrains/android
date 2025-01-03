@@ -21,7 +21,6 @@ import com.android.tools.idea.run.editor.DeployTargetContext
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.intellij.execution.RunManager
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
 
 /** Production implementation of [ActionHelper] */
 class ActionHelperImpl : ActionHelper {
@@ -40,8 +39,7 @@ class ActionHelperImpl : ActionHelper {
     if (targets.size != 1) {
       return null
     }
-    val target = targets.firstOrNull { it.isRunning } ?: return null
-    return target.launchedDevice.await().serialNumber
+    return targets.first().ddmlibDevice?.serialNumber
   }
 
   private fun getDeployTarget(project: Project): DeployTarget? {
