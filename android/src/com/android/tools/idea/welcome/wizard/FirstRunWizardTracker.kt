@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
@@ -32,6 +33,7 @@ import java.time.Instant
  * The event containing the metrics is logged when the `trackWizardFinished()` method is called, so
  * it's important to ensure this method is called whenever the wizard is finished or cancelled.
  */
+@AnyThread
 class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) {
   private val eventBuilder =
     AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.SETUP_WIZARD_EVENT)
