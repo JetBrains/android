@@ -212,6 +212,71 @@ class AddDeviceWizardTest {
       composeTestRule.onNode(hasText("Name") and hasContentDescription("Sorted ascending"))
     }
   }
+
+  @Test
+  fun noSystemImage() {
+    with(SdkFixture()) {
+      val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
+      repoPackages.setLocalPkgInfos(listOf(api34))
+
+      val source = createLocalVirtualDeviceSource()
+
+      val wizard = TestComposeWizard {
+        with(AddDeviceWizard(source, null, { AccelerationErrorCode.NO_EMULATOR_INSTALLED })) {
+          DeviceGridPage()
+        }
+      }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      composeTestRule.onNodeWithText("XR").performClick()
+      composeTestRule.waitForIdle()
+      assertThat(wizard.nextAction.enabled).isFalse()
+
+      composeTestRule.onNodeWithText("XR Device").performClick()
+      composeTestRule.waitForIdle()
+      wizard.performAction(wizard.nextAction)
+
+      composeTestRule.waitForIdle()
+      assertThat(wizard.nextAction.enabled).isFalse()
+      assertThat(wizard.finishAction.enabled).isFalse()
+
+      composeTestRule.onNodeWithText("No system images available.").assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun noSupportedSystemImage() {
+    with(SdkFixture()) {
+      val api34 =
+        createLocalSystemImage(
+          "google_atd",
+          listOf(SystemImageTags.GOOGLE_ATD_TAG),
+          AndroidVersion(34),
+        )
+      repoPackages.setLocalPkgInfos(listOf(api34))
+
+      val source = createLocalVirtualDeviceSource()
+
+      val wizard = TestComposeWizard {
+        with(AddDeviceWizard(source, null, { AccelerationErrorCode.NO_EMULATOR_INSTALLED })) {
+          DeviceGridPage()
+        }
+      }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      composeTestRule.onNodeWithText("Medium Phone").performClick()
+      composeTestRule.waitForIdle()
+      wizard.performAction(wizard.nextAction)
+
+      composeTestRule.waitForIdle()
+      assertThat(wizard.nextAction.enabled).isFalse()
+      assertThat(wizard.finishAction.enabled).isFalse()
+
+      composeTestRule
+        .onNodeWithText("No system images available matching the current set of filters.")
+        .assertIsDisplayed()
+    }
+  }
 }
 
 private fun createTestAddDeviceWizard(source: LocalVirtualDeviceSource) = TestComposeWizard {

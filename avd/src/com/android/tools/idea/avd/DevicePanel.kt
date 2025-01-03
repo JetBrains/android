@@ -140,6 +140,9 @@ internal fun DevicePanel(
 
     val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
     val filteredSystemImages = devicePanelState.filter(imageState.images, baseExtensionLevels)
+    configureDevicePanelState.setIsSystemImageTableSelectionValid(
+      configureDevicePanelState.systemImageTableSelectionState.selection in filteredSystemImages
+    )
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       if (filteredSystemImages.isEmpty()) {
@@ -162,7 +165,6 @@ internal fun DevicePanel(
         SystemImageTable(
           filteredSystemImages,
           configureDevicePanelState.systemImageTableSelectionState,
-          configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,
           onSystemImageTableRowClick,
           Modifier.border(1.dp, JewelTheme.globalColors.borders.normal),
@@ -227,13 +229,10 @@ private fun ServicesDropdown(
 private fun SystemImageTable(
   images: List<ISystemImage>,
   selectionState: TableSelectionState<ISystemImage>,
-  onIsSystemImageTableSelectionValidChange: (Boolean) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  onIsSystemImageTableSelectionValidChange(selectionState.selection in images)
-
   val sortedImages = images.sortedWith(SystemImageComparator)
   val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isSupported() })
   val starColumn = remember {

@@ -105,6 +105,8 @@ internal fun WizardPageScope.ConfigurationPage(
       (!isTimedOut && !systemImageState.hasRemote && systemImageState.error == null)
   ) {
     EmptyStatePanel("Loading system images...", Modifier.fillMaxSize())
+    nextAction = WizardAction.Disabled
+    finishAction = WizardAction.Disabled
     return
   }
 
@@ -114,6 +116,8 @@ internal fun WizardPageScope.ConfigurationPage(
     )
   if (filteredImageState.images.isEmpty()) {
     EmptyStatePanel("No system images available.", Modifier.fillMaxSize())
+    nextAction = WizardAction.Disabled
+    finishAction = WizardAction.Disabled
     return
   }
 
