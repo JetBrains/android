@@ -21,7 +21,7 @@ import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 
-internal class DevicePanelState
+internal class SystemImageFilterState
 internal constructor(
   selectedApi: AndroidVersionSelection,
   selectedServices: Services?,

@@ -123,9 +123,9 @@ private fun Tabs(
 
   val androidVersions = imageState.images.map { it.androidVersion }.relevantVersions()
 
-  val devicePanelState = remember {
+  val systemImageFilterState = remember {
     if (initialSystemImage == null) {
-      DevicePanelState(
+      SystemImageFilterState(
         selectedApi =
           AndroidVersionSelection(
             androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
@@ -133,7 +133,7 @@ private fun Tabs(
         selectedServices = servicesSet.firstOrNull(),
       )
     } else {
-      DevicePanelState(
+      SystemImageFilterState(
         selectedApi =
           AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
         selectedServices = initialSystemImage.getServices(),
@@ -147,7 +147,7 @@ private fun Tabs(
     Tab.DEVICE ->
       DevicePanel(
         configureDevicePanelState,
-        devicePanelState,
+        systemImageFilterState,
         imageState,
         androidVersions,
         servicesSet,

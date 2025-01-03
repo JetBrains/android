@@ -75,7 +75,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Composable
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
-  devicePanelState: DevicePanelState,
+  systemImageFilterState: SystemImageFilterState,
   imageState: SystemImageState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
@@ -125,21 +125,21 @@ internal fun DevicePanel(
     Row(horizontalArrangement = Arrangement.spacedBy(Padding.LARGE)) {
       ApiFilter(
         androidVersions,
-        devicePanelState.selectedApi,
-        devicePanelState::setSelectedApi,
+        systemImageFilterState.selectedApi,
+        systemImageFilterState::setSelectedApi,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
-        devicePanelState.selectedServices,
+        systemImageFilterState.selectedServices,
         servicesCollection,
-        devicePanelState::setSelectedServices,
+        systemImageFilterState::setSelectedServices,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
     }
 
     val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
-    val filteredSystemImages = devicePanelState.filter(imageState.images, baseExtensionLevels)
+    val filteredSystemImages = systemImageFilterState.filter(imageState.images, baseExtensionLevels)
     configureDevicePanelState.setIsSystemImageTableSelectionValid(
       configureDevicePanelState.systemImageTableSelectionState.selection in filteredSystemImages
     )
@@ -173,15 +173,15 @@ internal fun DevicePanel(
     }
 
     ShowSdkExtensionSystemImagesCheckbox(
-      devicePanelState.showSdkExtensionSystemImages,
-      devicePanelState::setShowSdkExtensionSystemImages,
+      systemImageFilterState.showSdkExtensionSystemImages,
+      systemImageFilterState::setShowSdkExtensionSystemImages,
       Modifier.padding(bottom = Padding.SMALL),
     )
 
     CheckboxRow(
       "Show unsupported system images",
-      devicePanelState.showUnsupportedSystemImages,
-      devicePanelState::setShowUnsupportedSystemImages,
+      systemImageFilterState.showUnsupportedSystemImages,
+      systemImageFilterState::setShowUnsupportedSystemImages,
     )
   }
 }

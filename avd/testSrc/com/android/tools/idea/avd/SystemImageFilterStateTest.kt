@@ -25,21 +25,21 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
-class DevicePanelStateTest {
+class SystemImageFilterStateTest {
   @Test
-  fun devicePanelState() {
+  fun systemImageFilterState() {
     // Arrange
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 9, false)))
 
     // Act
-    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
+    val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(images, state.filter(images))
   }
 
   @Test
-  fun devicePanelStateIsBaseExtensionAndExtensionLevelIsNull() {
+  fun systemImageFilterStateIsBaseExtensionAndExtensionLevelIsNull() {
     // Arrange
     val images =
       listOf(
@@ -48,33 +48,33 @@ class DevicePanelStateTest {
       )
 
     // Act
-    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
+    val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(images, state.filter(images))
   }
 
   @Test
-  fun devicePanelStateApiLevelsAreEqual() {
+  fun systemImageFilterStateApiLevelsAreEqual() {
     // Arrange
     val image = mockSystemImage(AndroidVersion(34, null, 7, true))
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 8, false)), image)
 
     // Act
-    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
+    val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(listOf(image), state.filter(images))
   }
 
   @Test
-  fun devicePanelStateApiLevelsArentEqual() {
+  fun systemImageFilterStateApiLevelsArentEqual() {
     // Arrange
     val image = mockSystemImage(AndroidVersion(34, null, 9, false))
     val images = listOf(mockSystemImage(AndroidVersion(33, null, 3, true)), image)
 
     // Act
-    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
+    val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(listOf(image), state.filter(images))
