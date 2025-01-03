@@ -33,4 +33,8 @@ ShellCommand& ShellCommand::operator+=(const ShellCommand& other) {
   return *this;
 }
 
+ShellCommand operator+(std::string&& lhs, const ShellCommand& rhs) {
+  return ShellCommand(std::move(lhs)) + rhs;
+}
+
 }  // namespace screensharing
