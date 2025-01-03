@@ -32,8 +32,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.mock.Mock
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -131,6 +133,8 @@ class ScreenshotViewerTest {
 
   private val fileNamePrompts = mutableListOf<String>()
   private val openedFiles = mutableListOf<String>()
+  private val testRootDisposable
+    get() = disposableRule.disposable
 
   @After
   fun tearDown() {
@@ -176,17 +180,7 @@ class ScreenshotViewerTest {
   @Test
   fun testRecapture() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
-    val screenshotSupplier = object : ScreenshotSupplier {
-      var captured = false
-
-      override fun captureScreenshot(): ScreenshotImage {
-        captured = true
-        return screenshotImage
-      }
-
-      override fun dispose() {
-      }
-    }
+    val screenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), screenshotSupplier)
     val ui = FakeUi(viewer.rootPane)
 
@@ -376,7 +370,7 @@ class ScreenshotViewerTest {
     val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
     overrideSaveFileDialog(tempFile)
 
-    viewer.doOKAction()
+    viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
@@ -402,7 +396,7 @@ class ScreenshotViewerTest {
     overrideSaveFileDialog(tempFile)
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
-    viewer.doOKAction()
+    viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
@@ -465,7 +459,7 @@ class ScreenshotViewerTest {
   @Test
   fun testScreenshotViewerWithoutFramingOptionsDoesNotAttemptToSelectFrameOption() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    ScreenshotViewer.PersistentState.getInstance(projectRule.project).frameScreenshot = true
+    projectRule.project.service<ScreenshotViewer.PersistentState>().frameScreenshot = true
 
     // test that no exceptions are thrown
     createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), framingOptions = listOf())
@@ -482,7 +476,7 @@ class ScreenshotViewerTest {
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
                                      screenshotDecorator: ScreenshotDecorator,
-                                     screenshotSupplier: ScreenshotSupplier? = null,
+                                     screenshotSupplier: ScreenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable),
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
@@ -492,6 +486,7 @@ class ScreenshotViewerTest {
     return viewer
   }
 
+  @Suppress("UnstableApiUsage")
   private fun overrideSaveFileDialog(file: File) {
     val virtualFileWrapper = VirtualFileWrapper(file)
     val factory = object : FileChooserFactoryImpl() {
@@ -505,18 +500,33 @@ class ScreenshotViewerTest {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
 
     val fileEditorManager = object : Mock.MyFileEditorManager() {
-      @Suppress("UnstableApiUsage")
       override fun openFile(file: VirtualFile, window: EditorWindow?, options: FileEditorOpenOptions): FileEditorComposite {
         openedFiles.add(file.toString())
         return super.openFile(file, window, options)
       }
     }
-    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, disposableRule.disposable)
+    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =
     usages.filter { it.studioEvent.kind == DEVICE_SCREENSHOT_EVENT }.map { it.studioEvent.deviceScreenshotEvent }
+
+  private class TestScreenshotSupplier(private val screenshotImage: ScreenshotImage, parentDisposable: Disposable) : ScreenshotSupplier {
+    var captured = false
+
+    init {
+      Disposer.register(parentDisposable, this)
+    }
+
+    override fun captureScreenshot(): ScreenshotImage {
+      captured = true
+      return screenshotImage
+    }
+
+    override fun dispose() {
+    }
+  }
 }
