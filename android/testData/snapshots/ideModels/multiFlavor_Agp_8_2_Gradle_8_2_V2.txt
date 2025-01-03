@@ -253,42 +253,42 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/<KOTLIN_VERSION_FOR_TESTS>/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>
-        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>
-        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/jni [-]
-        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt
-        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/rs [-]
-        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/res [-]
-        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-<KOTLIN_VERSION_FOR_TESTS>/R.txt
-    - library                     : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/<KOTLIN_VERSION_FOR_TESTS>/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
-        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>
-        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>
-        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/jni [-]
-        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt
-        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/rs [-]
-        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/res [-]
-        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-<KOTLIN_VERSION_FOR_TESTS>/R.txt
+    - library                     : androidx.lifecycle:lifecycle-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.1.0/lifecycle-runtime-2.1.0.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.1.0
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/R.txt
+    - library                     : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.1.0/lifecycle-viewmodel-2.1.0.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel:2.1.0
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/R.txt
     - library                     : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -509,10 +509,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar
         artifactAddress               : androidx.annotation:annotation:1.1.0@jar
         component                     : androidx.annotation:annotation:1.1.0
-    - library                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
-        artifactAddress               : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-        component                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+    - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+        artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
+        component                     : androidx.arch.core:core-common:2.1.0
     - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
         artifactAddress               : androidx.collection:collection:1.1.0@jar
@@ -521,10 +521,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
         artifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
         component                     : androidx.constraintlayout:constraintlayout-solver:1.1.3
-    - library                     : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/<KOTLIN_VERSION_FOR_TESTS>/lifecycle-common-<KOTLIN_VERSION_FOR_TESTS>.jar
-        artifactAddress               : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-        component                     : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>
+    - library                     : androidx.lifecycle:lifecycle-common:2.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar
+        artifactAddress               : androidx.lifecycle:lifecycle-common:2.1.0@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.1.0
     - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
         artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
@@ -1684,12 +1684,12 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.core:core:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -1703,7 +1703,7 @@ MODULE                        : MultiFlavor.app
                             androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.activity:activity:1.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -1715,30 +1715,30 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.activity:activity:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                         androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -1762,9 +1762,9 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -1780,12 +1780,12 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.core:core:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -1799,7 +1799,7 @@ MODULE                        : MultiFlavor.app
                             androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.activity:activity:1.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -1811,30 +1811,30 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.activity:activity:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                         androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -1858,9 +1858,9 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -1921,7 +1921,7 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.test:core:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.test:monitor:1.3.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.test:monitor:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.test.espresso:espresso-core:3.2.0@aar
@@ -1948,12 +1948,12 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.core:core:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -1967,7 +1967,7 @@ MODULE                        : MultiFlavor.app
                             androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.activity:activity:1.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -1979,30 +1979,30 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.activity:activity:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                         androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -2029,7 +2029,7 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : com.squareup:javawriter:2.1.1@jar
@@ -2039,7 +2039,7 @@ MODULE                        : MultiFlavor.app
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -2054,7 +2054,7 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.test:core:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.test:monitor:1.3.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.test:monitor:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.test.espresso:espresso-core:3.2.0@aar
@@ -2075,7 +2075,7 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : com.squareup:javawriter:2.1.1@jar
@@ -2089,7 +2089,7 @@ MODULE                        : MultiFlavor.app
                     - provided                    : androidx.activity:activity:1.0.0@aar
                     - provided                    : androidx.appcompat:appcompat-resources:1.1.0@aar
                     - provided                    : androidx.appcompat:appcompat:1.1.0@aar
-                    - provided                    : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+                    - provided                    : androidx.arch.core:core-common:2.1.0
                     - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
                     - provided                    : androidx.collection:collection:1.1.0
                     - provided                    : androidx.constraintlayout:constraintlayout-solver:1.1.3
@@ -2102,8 +2102,8 @@ MODULE                        : MultiFlavor.app
                     - provided                    : androidx.interpolator:interpolator:1.0.0@aar
                     - provided                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                     - provided                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                    - provided                    : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                    - provided                    : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                    - provided                    : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    - provided                    : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                     - provided                    : androidx.loader:loader:1.0.0@aar
                     - provided                    : androidx.savedstate:savedstate:1.0.0@aar
                     - provided                    : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
@@ -2167,12 +2167,12 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.core:core:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -2186,7 +2186,7 @@ MODULE                        : MultiFlavor.app
                             androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.activity:activity:1.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -2198,30 +2198,30 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.activity:activity:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                         androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -2245,9 +2245,9 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -2267,12 +2267,12 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.core:core:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
@@ -2286,7 +2286,7 @@ MODULE                        : MultiFlavor.app
                             androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.activity:activity:1.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -2298,30 +2298,30 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         androidLibrary                : androidx.activity:activity:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:<KOTLIN_VERSION_FOR_TESTS>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                         androidLibrary                : androidx.savedstate:savedstate:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                             androidLibrary                : androidx.core:core:1.1.0@aar
@@ -2345,9 +2345,9 @@ MODULE                        : MultiFlavor.app
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.1.0@jar

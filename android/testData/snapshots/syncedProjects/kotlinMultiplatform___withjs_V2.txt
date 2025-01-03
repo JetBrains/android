@@ -703,7 +703,7 @@ PROJECT                       : kotlinMultiPlatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/module2
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

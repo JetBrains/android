@@ -129,25 +129,25 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
-    - library                     : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/aidl [-]
-        artifact                      : <M2>/androidx/arch/core/core-runtime/<KOTLIN_VERSION_FOR_TESTS>/core-runtime-<KOTLIN_VERSION_FOR_TESTS>.aar
-        artifactAddress               : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        component                     : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>
-        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>
-        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jni [-]
-        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/rs [-]
-        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/res [-]
-        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/R.txt
+    - library                     : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/2.1.0/core-runtime-2.1.0.aar
+        artifactAddress               : androidx.arch.core:core-runtime:2.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.1.0
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/R.txt
     - library                     : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -950,10 +950,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
         artifactAddress               : androidx.annotation:annotation:1.2.0@jar
         component                     : androidx.annotation:annotation:1.2.0
-    - library                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar
-        artifactAddress               : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
-        component                     : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+    - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+        artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
+        component                     : androidx.arch.core:core-common:2.1.0
     - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
         artifactAddress               : androidx.collection:collection:1.1.0@jar
@@ -1598,7 +1598,7 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -1608,7 +1608,7 @@ MODULE                        : navgraph.app
                         module                        : <ROOT>-:lib-MAIN
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                     runtimeClasspath
@@ -1645,7 +1645,7 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -1655,7 +1655,7 @@ MODULE                        : navgraph.app
                         module                        : <ROOT>-:lib-MAIN
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         androidLibrary                : __local_aars__:<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar:unspecified
@@ -1741,7 +1741,7 @@ MODULE                        : navgraph.app
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : com.squareup:javawriter:2.1.1@jar
@@ -1773,7 +1773,7 @@ MODULE                        : navgraph.app
                     - provided                    : androidx.annotation:annotation-experimental:1.0.0@aar
                     - provided                    : androidx.appcompat:appcompat-resources:1.3.0@aar
                     - provided                    : androidx.appcompat:appcompat:1.3.0@aar
-                    - provided                    : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
+                    - provided                    : androidx.arch.core:core-common:2.1.0
                     - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
                     - provided                    : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     - provided                    : androidx.cardview:cardview:1.0.0@aar
@@ -1868,7 +1868,7 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -1880,7 +1880,7 @@ MODULE                        : navgraph.app
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         module                        : <ROOT>-:app-MAIN
@@ -1918,7 +1918,7 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -1930,7 +1930,7 @@ MODULE                        : navgraph.app
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         module                        : <ROOT>-:app-MAIN
@@ -2252,7 +2252,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2261,7 +2261,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                     runtimeClasspath
@@ -2298,7 +2298,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2307,7 +2307,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         androidLibrary                : __local_aars__:<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar:unspecified
@@ -2372,7 +2372,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.navigation:navigation-common:2.3.5@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2386,7 +2386,7 @@ MODULE                        : navgraph.lib
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : com.squareup:javawriter:2.1.1@jar
@@ -2433,7 +2433,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.navigation:navigation-common:2.3.5@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2447,7 +2447,7 @@ MODULE                        : navgraph.lib
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : com.squareup:javawriter:2.1.1@jar
@@ -2514,7 +2514,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2525,7 +2525,7 @@ MODULE                        : navgraph.lib
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                     runtimeClasspath
@@ -2563,7 +2563,7 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                        androidLibrary                : androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                         androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -2574,7 +2574,7 @@ MODULE                        : navgraph.lib
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        javaLibrary                   : androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         androidLibrary                : __local_aars__:<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar:unspecified

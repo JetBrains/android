@@ -2169,7 +2169,7 @@ MODULE                        : TestCompositeLib1.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3329,7 +3329,7 @@ MODULE                        : TestCompositeLib1.lib
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -4791,7 +4791,7 @@ MODULE                        : TestCompositeLib3.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -7777,7 +7777,7 @@ MODULE                        : project.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -8904,7 +8904,7 @@ MODULE                        : project.lib
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

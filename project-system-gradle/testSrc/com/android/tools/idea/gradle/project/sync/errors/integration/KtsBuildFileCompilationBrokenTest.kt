@@ -84,7 +84,12 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only.
+        // Example:
+        //     Unresolved reference: abcd
+        //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is started
+        //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is closed
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -99,7 +104,8 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -114,7 +120,8 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }

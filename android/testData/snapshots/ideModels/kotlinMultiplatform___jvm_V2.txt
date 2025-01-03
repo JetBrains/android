@@ -1029,14 +1029,17 @@ MODULE                        : kotlinMultiPlatform
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugApiElements              : <empty>
+                        - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
+                        - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugRuntimeOnly              : <empty>
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
@@ -1044,6 +1047,7 @@ MODULE                        : kotlinMultiPlatform
                         default                       : <empty>
                         implementation                : <empty>
                         - jvmApiElements              : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -1060,7 +1064,9 @@ MODULE                        : kotlinMultiPlatform
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1105,19 +1111,22 @@ MODULE                        : kotlinMultiPlatform
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/module2/build/libs/module2-kotlin-sources.jar [-]
                         releaseAnnotationProcessor    : <empty>
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
                         releaseApiElements            : <empty>
+                        - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
+                        - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
@@ -2266,7 +2275,7 @@ MODULE                        : kotlinMultiPlatform.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

@@ -181,7 +181,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
@@ -433,8 +433,8 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection-ktx:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
@@ -597,9 +597,9 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar [=]
             Scope                         : Test
@@ -1195,7 +1195,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar (1) [=]
             Scope                         : Test
@@ -1360,8 +1360,8 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar (1) [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1) [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar (1) [=]
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
@@ -1490,9 +1490,9 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1) [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
@@ -2054,20 +2054,20 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/res
             *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-common:<KOTLIN_VERSION_FOR_TESTS>
-            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/<KOTLIN_VERSION_FOR_TESTS>/core-common-<KOTLIN_VERSION_FOR_TESTS>.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:<KOTLIN_VERSION_FOR_TESTS>@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-<KOTLIN_VERSION_FOR_TESTS>/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1)
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/res
