@@ -92,7 +92,7 @@ class AndroidTestSuiteViewTest {
 
   @Before
   fun setup() {
-    MockitoAnnotations.initMocks(this)
+    MockitoAnnotations.openMocks(this)
     resetToDefaultState()
   }
 
