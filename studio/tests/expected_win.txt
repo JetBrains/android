@@ -1446,11 +1446,13 @@ android-studio/plugins/android/lib/perfetto-protos.jar
 android-studio/plugins/android/lib/pixelprobe.jar
 android-studio/plugins/android/lib/proto.jar
 android-studio/plugins/android/lib/r8.jar
+android-studio/plugins/android/lib/repository-sdk-schema.jar
 android-studio/plugins/android/lib/repository.jar
 android-studio/plugins/android/lib/runtime-desktop-1.7.1.jar
 android-studio/plugins/android/lib/runtime-saveable-desktop-1.7.1.jar
 android-studio/plugins/android/lib/sdk-common.jar
 android-studio/plugins/android/lib/sdk-tools.jar
+android-studio/plugins/android/lib/sdklib-sdk-schema.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
 android-studio/plugins/android/lib/skiko-awt-0.8.18.jar

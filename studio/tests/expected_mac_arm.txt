@@ -2177,11 +2177,13 @@ Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
 Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/r8.jar
+Android Studio Preview.app/Contents/plugins/android/lib/repository-sdk-schema.jar
 Android Studio Preview.app/Contents/plugins/android/lib/repository.jar
 Android Studio Preview.app/Contents/plugins/android/lib/runtime-desktop-1.7.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/runtime-saveable-desktop-1.7.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdk-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdk-tools.jar
+Android Studio Preview.app/Contents/plugins/android/lib/sdklib-sdk-schema.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.8.18.jar
