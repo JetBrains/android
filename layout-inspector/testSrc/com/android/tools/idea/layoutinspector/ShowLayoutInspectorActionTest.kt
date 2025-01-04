@@ -38,7 +38,6 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -91,21 +90,6 @@ class ShowLayoutInspectorActionTest {
       createFakeEvent(projectRule.project, showLayoutInspectorAction)
     )
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isTrue()
-  }
-
-  @Test
-  fun testShowLayoutInspectorDiscoveryPopUp() = withEmbeddedLayoutInspector {
-    val showLayoutInspectorAction = ShowLayoutInspectorAction()
-    showLayoutInspectorAction.actionPerformed(
-      createFakeEvent(projectRule.project, showLayoutInspectorAction)
-    )
-    verify(fakeNotificationGroupManager.mockNotificationGroup)
-      .createNotification(
-        "Layout Inspector is now embedded in the Running Devices window.",
-        "Launch, connect, or mirror a device to start inspecting.",
-        NotificationType.INFORMATION,
-      )
-    verify(fakeNotificationGroupManager.mockNotification).notify(any())
   }
 }
 

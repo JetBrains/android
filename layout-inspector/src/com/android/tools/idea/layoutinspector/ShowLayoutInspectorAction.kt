@@ -18,8 +18,6 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.util.CommonAndroidUtil
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -47,23 +45,10 @@ class ShowLayoutInspectorAction :
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      showLayoutInspectorDiscoveryPopUp(project)
       activateToolWindow(project, RUNNING_DEVICES_TOOL_WINDOW_ID)
     } else {
       activateToolWindow(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     }
-  }
-
-  private fun showLayoutInspectorDiscoveryPopUp(project: Project) {
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
-    val notification =
-      notificationGroup.createNotification(
-        LayoutInspectorBundle.message("layout.inspector.discovery.title"),
-        LayoutInspectorBundle.message("layout.inspector.discovery.description"),
-        NotificationType.INFORMATION,
-      )
-    notification.notify(project)
   }
 
   private fun activateToolWindow(project: Project, toolWindowId: String) {
