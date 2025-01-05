@@ -21,6 +21,7 @@ jvm_library(
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/backup:backup-api",
+    "//platform/analysis-api:analysis",
     "//platform/util/progress",
     "//android/android-common:common",
     "//android/android:core",

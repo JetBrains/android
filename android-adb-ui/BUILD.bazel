@@ -65,6 +65,7 @@ jvm_test(
     "@lib//:truth",
     "//android/android-adb:adb",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/analysis-api:analysis",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/artwork",
