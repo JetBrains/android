@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.surface.NlScannerLayoutParser
-import com.android.tools.idea.uibuilder.surface.RenderResultMetricData
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
@@ -37,9 +36,6 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
    * Parses the layout and stores all metadata required for linking issues to source [NlComponent]
    */
   private val layoutParser = NlScannerLayoutParser()
-
-  /** Render specific metrics data */
-  var renderMetric = RenderResultMetricData()
 
   init {
     // Enable retrieving text character locations from TextView to improve the
@@ -76,7 +72,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
           )
 
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
-        return validateAndUpdateLint(renderResult, validated)
+        return validateAndUpdateLint(validated)
       }
       else -> {
         // Result not available.
@@ -86,8 +82,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
   }
 
   private fun validateAndUpdateLint(
-    renderResult: RenderResult,
-    validatorResult: ValidatorResult,
+    validatorResult: ValidatorResult
   ): MutableList<VisualLintAtfIssue> {
     layoutParser.clear()
 
@@ -118,11 +113,6 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
         }
       }
     } finally {
-      renderMetric.renderMs = renderResult.stats.renderDurationMs
-      renderMetric.scanMs = validatorResult.metric.mHierarchyCreationMs
-      renderMetric.componentCount = layoutParser.componentCount
-      renderMetric.isRenderResultSuccess = renderResult.renderResult.isSuccess
-
       layoutParser.clear()
     }
     return issues
