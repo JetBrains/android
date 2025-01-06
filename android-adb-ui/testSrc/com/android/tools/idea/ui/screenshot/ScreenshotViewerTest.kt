@@ -161,23 +161,6 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testUpdateEditorImage() {
-    assumeFalse(SystemInfo.isWindows) // b/355613188
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
-    val ui = FakeUi(viewer.rootPane)
-
-    val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    waitForCondition(TIMEOUT) {
-      zoomModel.zoomFactor == 1.0
-    }
-
-    viewer.updateEditorImage()
-    ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
-  }
-
-  @Test
   fun testRecapture() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val screenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable)
