@@ -447,7 +447,7 @@ internal class FilterTextField(
             }
           )
           if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
-            add(Separator)
+            add(Separator())
           }
           addAll(
             filterHistory.named.map {
@@ -785,7 +785,7 @@ internal class FilterTextField(
       }
     }
 
-    data object Separator : FilterHistoryItem() {
+    class Separator : FilterHistoryItem() {
       // A standalone JSeparator here will change the background of the separator when it is
       // selected. Wrapping it with a JPanel
       // suppresses that behavior for some reason.
