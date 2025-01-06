@@ -192,8 +192,8 @@ public final class SdkQuickfixUtils {
       // This is an expensive call involving a number of manifest download operations,
       // so make it only when some installations are requested.
       mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-               new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
-               new StudioDownloader(), StudioSettingsController.getInstance());
+                            new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+                            new StudioDownloader(), StudioSettingsController.getInstance());
       RepositoryPackages packages = mgr.getPackages();
       if (requestedPackages == null) {
         requestedPackages = new ArrayList<>();
@@ -245,7 +245,7 @@ public final class SdkQuickfixUtils {
     }
     List<RemotePackage> installRequests = ContainerUtil.map(resolvedPackages, UpdatablePackage::getRemote);
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
+    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), () -> installRequests));
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);

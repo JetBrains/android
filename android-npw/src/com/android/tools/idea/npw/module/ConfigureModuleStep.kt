@@ -208,7 +208,10 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     val licenseAgreementStep =
-      LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), installLicenseRequests)
+      LicenseAgreementStep(
+        LicenseAgreementModel(sdkManagerLocalPath),
+        { installLicenseRequests },
+      )
     val installPackagesStep =
       InstallSelectedPackagesStep(
         installRequests,

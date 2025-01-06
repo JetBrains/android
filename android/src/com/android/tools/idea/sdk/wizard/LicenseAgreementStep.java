@@ -21,11 +21,13 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -88,13 +90,44 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // True when all the visible licenses have been accepted.
   private final BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier) {
-    super(model, "License Agreement");
-    myInstallRequestsSupplier = installRequestsSupplier;
+  // Sets the default accepted status for each license
+  private final boolean mySelectedByDefault;
+
+  /**
+   * Constructs a new LicenseAgreementStep
+   *
+   * @param model                   Stores associated step data
+   * @param installRequestsSupplier Supplies the packages to be installed
+   */
+  public LicenseAgreementStep(
+    @NotNull LicenseAgreementModel model,
+    @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier
+  ) {
+    this(model, installRequestsSupplier, false);
   }
 
-  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
-    this(model, () -> installRequests);
+  /**
+   * Constructs a new LicenseAgreementStep
+   *
+   * @param model                   Stores associated step data
+   * @param installRequestsSupplier Supplies the packages to be installed
+   * @param selectedByDefault       Should only be enabled in tests - actual users need to manually click 'accept'
+   */
+  public LicenseAgreementStep(
+    @NotNull LicenseAgreementModel model,
+    @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier,
+    boolean selectedByDefault
+  ) {
+    super(model, "License Agreement");
+    myInstallRequestsSupplier = installRequestsSupplier;
+    mySelectedByDefault = selectedByDefault;
+
+    if (mySelectedByDefault) {
+      boolean isTesting = GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+      if (!isTesting) {
+        throw new IllegalStateException("Licenses can only be selected by default when running tests");
+      }
+    }
   }
 
   public void reload() {
@@ -235,7 +268,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
           firstChild = n;
         }
         licenseNodeMap.put(licenseRef, n);
-        myAcceptances.put(licenseRef, Boolean.FALSE);
+        myAcceptances.put(licenseRef, mySelectedByDefault);
         root.add(n);
       }
       licenseNodeMap.get(licenseRef).add(new DefaultMutableTreeNode(change));

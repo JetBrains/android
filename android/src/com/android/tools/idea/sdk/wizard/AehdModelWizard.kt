@@ -85,13 +85,21 @@ class AehdModelWizard(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
-      val packagesToInstallSupplier = { aehdWizardController.getPackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode) }
-      modelWizardBuilder.addStep(object : LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location), packagesToInstallSupplier) {
-        override fun onShowing() {
-          super.onShowing()
-          tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+      val packagesToInstallSupplier = {
+        aehdWizardController.getPackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode)
+      }
+      modelWizardBuilder.addStep(
+        object :
+          LicenseAgreementStep(
+            LicenseAgreementModel(sdkHandler.location),
+            packagesToInstallSupplier,
+          ) {
+          override fun onShowing() {
+            super.onShowing()
+            tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+          }
         }
-      })
+      )
     }
 
     val progressStep = SetupProgressStep(BlankModel(), "Invoking installer", tracker)

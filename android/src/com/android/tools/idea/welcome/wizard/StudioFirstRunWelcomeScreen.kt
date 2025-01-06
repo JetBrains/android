@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
@@ -85,7 +86,12 @@ class StudioFirstRunWelcomeScreen(
 
             val supplier = model.getPackagesToInstallSupplier()
             val licenseAgreementStep =
-              object : LicenseAgreementStep(licenseAgreementModel, supplier) {
+              object :
+                LicenseAgreementStep(
+                  licenseAgreementModel,
+                  supplier,
+                  StudioFlags.NPW_ACCEPT_ALL_LICENSES.get(),
+                ) {
                 override fun onShowing() {
                   super.onShowing()
                   tracker.trackStepShowing(
