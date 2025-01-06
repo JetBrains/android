@@ -34,7 +34,6 @@ import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.mock.Mock
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -64,6 +63,7 @@ import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
 import org.junit.Assume.assumeFalse
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -135,6 +135,11 @@ class ScreenshotViewerTest {
   private val openedFiles = mutableListOf<String>()
   private val testRootDisposable
     get() = disposableRule.disposable
+
+  @Before
+  fun setUp() {
+    UIManager.setLookAndFeel(DarculaLaf())
+  }
 
   @After
   fun tearDown() {
@@ -213,9 +218,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshotWithBackgroundColorInDarkMode() {
-    runInEdt {
-      UIManager.setLookAndFeel(DarculaLaf())
-    }
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -295,9 +297,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testPlayCompatibleScreenshotInDarkMode() {
-    runInEdt {
-      UIManager.setLookAndFeel(DarculaLaf())
-    }
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
