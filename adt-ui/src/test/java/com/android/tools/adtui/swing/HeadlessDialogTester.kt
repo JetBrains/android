@@ -172,6 +172,7 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogTrigger: R
 
 private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
   // Code similar to EDT.dispatchAllInvocationEvents.
+  @Suppress("UnstableApiUsage")
   resetThreadContext().use {
     val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
     while (eventQueue.peekEvent() != null) {
@@ -402,7 +403,7 @@ private class HeadlessDialogWrapperPeer(
     val changeModalityState = appStarted && isModal && !wrapper.isModalProgress // ProgressWindow starts a modality state itself.
 
     if (changeModalityState) {
-      commandProcessor!!.enterModal()
+      commandProcessor.enterModal()
       LaterInvocator.enterModal(wrapper)
     }
 
@@ -421,7 +422,7 @@ private class HeadlessDialogWrapperPeer(
     }
     finally {
       if (changeModalityState) {
-        commandProcessor!!.leaveModal()
+        commandProcessor.leaveModal()
         LaterInvocator.leaveModal(wrapper)
       }
       result.complete(null)
