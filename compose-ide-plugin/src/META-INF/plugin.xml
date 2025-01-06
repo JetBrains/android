@@ -56,6 +56,14 @@
 
     <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
+    <liveTemplateContext contextId="COMPOSE" implementation="com.android.tools.compose.templates.ComposeEnabledTemplateContextType"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN" baseContextId="COMPOSE" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$Generic"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_TOP_LEVEL" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$TopLevel"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_STATEMENT" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$Statement"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_CLASS" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$Class"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_EXPRESSION" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$Expression"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_COMMENT" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$Comment"/>
+    <liveTemplateContext contextId="COMPOSE_KOTLIN_OBJECT_DECLARATION" baseContextId="COMPOSE_KOTLIN" implementation="com.android.tools.compose.templates.ComposeKotlinTemplateContextType$ObjectDeclaration"/>
 
     <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
