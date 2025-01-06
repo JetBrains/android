@@ -24,7 +24,9 @@ import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.vfs.VirtualFile
@@ -52,7 +54,7 @@ class AtfAnalyzerComposeTest {
       facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
 
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
-    val issueMessages = issues.map { it.message }.distinct()
+    val issueMessages = issues.map { it.summary }.distinct()
 
     Assert.assertEquals(2, issueMessages.size)
     Assert.assertEquals("Insufficient text color contrast ratio", issueMessages[0])
@@ -80,11 +82,10 @@ class AtfAnalyzerComposeTest {
 
     Assert.assertEquals(
       "Insufficient color contrast for color blind users",
-      selectedIssueToShowInProblems.message,
+      selectedIssueToShowInProblems.summary,
     )
 
-    val problemDescriptionHtml =
-      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+    val problemDescriptionHtml = selectedIssueToShowInProblems.description
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
@@ -112,13 +113,12 @@ class AtfAnalyzerComposeTest {
 
     // All the problems have the same message but different descriptions
     issues.forEach {
-      Assert.assertEquals("Insufficient color contrast for color blind users", it.message)
+      Assert.assertEquals("Insufficient color contrast for color blind users", it.summary)
     }
 
-    val selectedIssueToShowInProblems = issues.first()
+    val selectedIssueToShowInProblems = issues.first().apply { combineWithIssue(issues[1]) }
 
-    val problemDescriptionHtml =
-      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+    val problemDescriptionHtml = selectedIssueToShowInProblems.description
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
@@ -147,13 +147,16 @@ class AtfAnalyzerComposeTest {
 
     // All the problems have the same message but different descriptions
     issues.forEach {
-      Assert.assertEquals("Insufficient color contrast for color blind users", it.message)
+      Assert.assertEquals("Insufficient color contrast for color blind users", it.summary)
     }
 
-    val selectedIssueToShowInProblems = issues.first()
+    val selectedIssueToShowInProblems =
+      issues.first().apply {
+        combineWithIssue(issues[1])
+        combineWithIssue(issues[2])
+      }
 
-    val problemDescriptionHtml =
-      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+    val problemDescriptionHtml = selectedIssueToShowInProblems.description
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
@@ -167,7 +170,7 @@ class AtfAnalyzerComposeTest {
     uiCheckPreviews: Collection<PsiComposePreviewElementInstance>,
     facet: AndroidFacet,
     targetFile: VirtualFile,
-  ): List<VisualLintIssueContent> =
+  ): List<VisualLintRenderIssue> =
     uiCheckPreviews.flatMap {
       val renderResult =
         renderPreviewElementForResult(
@@ -186,6 +189,8 @@ class AtfAnalyzerComposeTest {
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel
       NlModelHierarchyUpdater.updateHierarchy(renderResult.result!!, nlModel)
-      AtfAnalyzer.findIssues(renderResult.result, nlModel)
+      AtfAnalyzer.findIssues(renderResult.result, nlModel).map {
+        createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF)
+      }
     }
 }

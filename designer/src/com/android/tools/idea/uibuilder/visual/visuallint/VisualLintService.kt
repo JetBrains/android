@@ -43,8 +43,6 @@ import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderService
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.codeInsight.daemon.HighlightDisplayKey
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -300,16 +298,9 @@ class VisualLintService(val project: Project) : Disposable {
         if (runningInBackground && !inspection.runInBackground) {
           return@forEach
         }
-        val issues = analyzer.analyze(result, model, getSeverity(analyzer.type))
+        val issues = analyzer.analyze(result, model)
         targetIssueProvider.addAllIssues(issues)
       }
-  }
-
-  private fun getSeverity(type: VisualLintErrorType): HighlightSeverity {
-    val key = HighlightDisplayKey.find(type.shortName)
-    return key?.let {
-      InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity
-    } ?: HighlightSeverity.WARNING
   }
 
   fun removeAllIssueProviders() {

@@ -31,6 +31,8 @@ import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.describe
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.summarize
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
@@ -88,7 +90,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 }
 
 /** Issue created by [ValidatorData.Issue] */
-open class NlAtfIssue(
+class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: NlComponentIssueSource,
   private val eventListener: EventListener? = null,
@@ -104,50 +106,11 @@ open class NlAtfIssue(
     fun onIgnoreButtonClicked(issue: ValidatorData.Issue)
   }
 
-  companion object {
-    private const val CONTENT_LABELING = "CONTENT_LABELING"
-    private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
-    private const val LOW_CONTRAST = "LOW_CONTRAST"
-  }
-
-  fun isLowContrast(): Boolean {
-    return result.mSourceClass == "TextContrastCheck" ||
-      result.mSourceClass == "ImageContrastCheck" ||
-      result.mCategory == LOW_CONTRAST
-  }
-
   override val summary: String
-    get() =
-      when (result.mSourceClass) {
-        "SpeakableTextPresentCheck" -> "No speakable text present"
-        "EditableContentDescCheck" -> "Editable text view with contentDescription"
-        "TouchTargetSizeCheck" -> "Touch target size too small"
-        "DuplicateSpeakableTextCheck" -> "Duplicate speakable text present"
-        "TextContrastCheck" -> "Insufficient text color contrast ratio"
-        "ClickableSpanCheck" -> "Accessibility issue with clickable span"
-        "DuplicateClickableBoundsCheck" -> "Duplicated clickable Views"
-        "RedundantDescriptionCheck" -> "Item labelled with type or state"
-        "ImageContrastCheck" -> "Insufficient image color contrast ratio"
-        "ClassNameCheck" -> "Accessibility Issue"
-        "TraversalOrderCheck" -> "Unpredictable traversal behavior"
-        "LinkPurposeUnclearCheck" -> "Unclear text in link"
-        else -> {
-          when (result.mCategory) {
-            CONTENT_LABELING -> "Content labels missing or ambiguous"
-            TOUCH_TARGET_SIZE -> "Touch target size too small"
-            LOW_CONTRAST -> "Insufficient color contrast ratio"
-            else -> "Accessibility Issue"
-          }
-        }
-      }
+    get() = result.summarize()
 
   override val description: String
-    get() {
-      if (result.mHelpfulUrl.isNullOrEmpty()) {
-        return result.mMsg
-      }
-      return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
-    }
+    get() = result.describe()
 
   override val severity: HighlightSeverity
     get() {
