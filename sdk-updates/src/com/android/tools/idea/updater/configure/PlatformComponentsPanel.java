@@ -113,7 +113,7 @@ public class PlatformComponentsPanel {
                     .thenComparing(AndroidVersion::compareTo));
     for (AndroidVersion version : versions) {
       // When an API level is not parsed correctly, it is given API level 0, which is undefined and we should not show the package.
-      if (version.equals(AndroidVersion.VersionCodes.UNDEFINED)) {
+      if (version.getApiLevel() < 1) {
         continue;
       }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
