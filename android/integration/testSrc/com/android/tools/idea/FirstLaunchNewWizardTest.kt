@@ -17,22 +17,24 @@ package com.android.tools.idea
 
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Display
+import com.android.tools.idea.FirstLaunchTest.Companion.getFileNamesInSdkDirectory
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
-import kotlin.io.path.name
 
-class FirstLaunchTest {
+class FirstLaunchNewWizardTest {
+
   @JvmField
   @Rule
-  val system: AndroidSystem = AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
+  val system: AndroidSystem =
+    AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
 
   @Test
   fun firstLaunchTest() {
-    system.installation.addVmOption("-Dnpw.first.run.wizard=false")
-    configureWizardFlags(system)
+    system.installation.addVmOption("-Dnpw.first.run.wizard=true")
+    FirstLaunchTest.configureWizardFlags(system)
 
     system.runStudioWithoutProject().use { studio ->
       studio.waitForComponentWithExactText("Welcome")
@@ -51,7 +53,7 @@ class FirstLaunchTest {
         studio.waitForComponentWithExactText("Emulator Settings")
         Thread.sleep(1000)
       }
-      studio.invokeComponent("Finish")
+      studio.invokeComponent("Next")
       studio.waitForComponentWithExactText("Downloading Components")
       Thread.sleep(1000)
       studio.invokeComponent("Finish")
@@ -69,31 +71,6 @@ class FirstLaunchTest {
           )
         )
       Truth.assertThat<String>(fileNames).asList().containsAllIn(expectedFiles)
-    }
-  }
-
-  companion object {
-    fun configureWizardFlags(system: AndroidSystem) {
-      system.installation.addVmOption("-Dnpw.first.run.wizard.show=true")
-      system.installation.addVmOption("-Dnpw.first.run.offline=true")
-      system.installation.addVmOption("-Dnpw.first.run.accept.sdk.license=true")
-      system.installation.addVmOption(
-        String.format("-Dnpw.first.run.local.app.data=%s", system.installation.fileSystem.root)
-      )
-    }
-
-    fun getFileNamesInSdkDirectory(system: AndroidSystem): Array<String?> {
-      var directory = system.installation.fileSystem.root
-      if (SystemInfo.isLinux) {
-        directory = directory.resolve("home")
-      }
-      else if (SystemInfo.isMac) {
-        directory = directory.resolve("Library")
-      }
-      val files = Files.list(directory.resolve("Android").resolve("Sdk")).toList()
-      val fileNames = arrayOfNulls<String>(files?.size ?: 0)
-      files?.mapIndexed { index, item -> fileNames[index] = item?.name }
-      return fileNames
     }
   }
 }
