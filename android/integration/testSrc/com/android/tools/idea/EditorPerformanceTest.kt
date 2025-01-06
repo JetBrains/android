@@ -20,7 +20,8 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.android.tools.asdriver.tests.metric.MetricCollector
+import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
+import com.google.common.math.Quantiles
 import org.junit.Rule
 import org.junit.Test
 
@@ -84,11 +85,38 @@ class EditorPerformanceTest {
           checkCompletionTestCase(studio, completionPosition, false)
         }
       }
-      val metricCollector = MetricCollector(watcher.dashboardName!!, system.installation.telemetryJsonFile, system.installation.studioEventsDir)
-      metricCollector.collect("completion", "firstCodeAnalysis", "semanticHighlighting")
-      metricCollector.collectChildMetrics("findUsagesParent", "findUsages")
-      metricCollector.collectChildMetrics("findUsagesParent", "findUsages_firstUsage")
-      metricCollector.collectChildMetrics("completion", "invokeCompletion")
+      val benchmark = PlatformPerformanceBenchmark(watcher.dashboardName!!)
+
+      val telemetry = system.installation.telemetry
+
+      Quantiles.median().compute(telemetry.get("completion").toList()).let { benchmark.log("completion_median", it.toLong()) }
+      telemetry.get("completion").max(Long::compareTo).get().let { benchmark.log("completion_max", it) }
+
+      Quantiles.median().compute(telemetry.get("firstCodeAnalysis").toList()).let {
+        benchmark.log("firstCodeAnalysis_median", it.toLong())
+      }
+      telemetry.get("firstCodeAnalysis").max(Long::compareTo).get().let { benchmark.log("firstCodeAnalysis_max", it) }
+
+      Quantiles.median().compute(telemetry.getChild("findUsagesParent", "findUsages").toList()).let {
+        benchmark.log("findUsages_median", it.toLong())
+      }
+      telemetry.getChild("findUsagesParent", "findUsages").max(Long::compareTo).get().let {
+        benchmark.log("findUsages_max", it)
+      }
+
+      Quantiles.median().compute(telemetry.getChild("findUsagesParent", "findUsages_firstUsage").toList()).let {
+        benchmark.log("findUsages_firstUsage_median", it.toLong())
+      }
+      telemetry.getChild("findUsagesParent", "findUsages_firstUsage").max(Long::compareTo).get().let {
+        benchmark.log("findUsages_firstUsage_max", it)
+      }
+
+      Quantiles.median().compute(telemetry.getChild("completion", "invokeCompletion").toList()).let {
+        benchmark.log("invokeCompletion_median", it.toLong())
+      }
+      telemetry.getChild("completion", "invokeCompletion").max(Long::compareTo).get().let {
+        benchmark.log("invokeCompletion_max", it)
+      }
     }
 
     val warmupCompletionPositions =

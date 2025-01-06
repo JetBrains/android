@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="platform-performance-testing" scope="TEST" />
   </component>
 </module>

@@ -19,8 +19,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.android.tools.asdriver.tests.metric.MetricCollector
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
 import org.junit.Rule
 import org.junit.Test
 
@@ -59,20 +58,22 @@ class StartupPerformanceTest {
       studio.waitForFinishedCodeAnalysis(null)
     }
 
-    val metricCollector = MetricCollector(watcher.dashboardName!!, system.installation.telemetryJsonFile, system.installation.studioEventsDir)
-    metricCollector.collectStudioStatsEventMetric("STARTUP_EVENT",
-                                                  "startup_event") { e: AndroidStudioEvent -> e.startupEvent.durationMs.toLong() }
-    metricCollector.collectStudioStatsEventMetric(
-      "STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR",
-      "startup_performance_code_loaded_and_visible_in_editor") { e: AndroidStudioEvent -> e.startupPerformanceCodeLoadedAndVisibleInEditor.durationMs.toLong() }
-    metricCollector.collectStudioStatsEventMetric(
-      "STARTUP_PERFORMANCE_FIRST_UI_SHOWN",
-      "startup_performance_first_ui_shown") { e: AndroidStudioEvent -> e.startupPerformanceFirstUiShownEvent.durationMs.toLong() }
-    metricCollector.collectStudioStatsEventMetric(
-      "STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE",
-      "startup_performance_frame_became_interactive") { e: AndroidStudioEvent -> e.startupPerformanceFrameBecameInteractiveEvent.durationMs.toLong() }
-    metricCollector.collectStudioStatsEventMetric(
-      "STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE",
-      "startup_performance_frame_became_visible") { e: AndroidStudioEvent -> e.startupPerformanceFrameBecameVisibleEvent.durationMs.toLong() }
+    val benchmark = PlatformPerformanceBenchmark(watcher.dashboardName!!)
+    val stats = system.installation.studioEvents
+
+    stats.get("STARTUP_EVENT").findFirst().get().let { benchmark.log("startup_event", it.startupEvent.durationMs.toLong()) }
+    stats.get("STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR").findFirst().get().let {
+      benchmark.log("startup_performance_code_loaded_and_visible_in_editor",
+                    it.startupPerformanceCodeLoadedAndVisibleInEditor.durationMs.toLong())
+    }
+    stats.get("STARTUP_PERFORMANCE_FIRST_UI_SHOWN").findFirst().get().let {
+      benchmark.log("startup_performance_first_ui_shown", it.startupPerformanceFirstUiShownEvent.durationMs.toLong())
+    }
+    stats.get("STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE").findFirst().get().let {
+      benchmark.log("startup_performance_frame_became_interactive", it.startupPerformanceFrameBecameInteractiveEvent.durationMs.toLong())
+    }
+    stats.get("STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE").findFirst().get().let {
+      benchmark.log("startup_performance_frame_became_visible", it.startupPerformanceFrameBecameVisibleEvent.durationMs.toLong())
+    }
   }
 }

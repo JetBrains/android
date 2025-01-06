@@ -430,6 +430,7 @@
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable-demo/observable-demo.iml" filepath="$PROJECT_DIR$/observable-demo/observable-demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/perf-logger/perf-logger.iml" filepath="$PROJECT_DIR$/../../base/perf-logger/perf-logger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/platform-performance-testing/platform-performance-testing.iml" filepath="$PROJECT_DIR$/platform-performance-testing/platform-performance-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/real-world-integration-test/real-world-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/real-world-integration-test/real-world-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/samples-browser/samples-browser.iml" filepath="$PROJECT_DIR$/samples-browser/samples-browser.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/studio.iml" filepath="$PROJECT_DIR$/studio/studio.iml" />
