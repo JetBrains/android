@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.lang.psi.PsiImplUtil.Companion.getReceiver
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.CompositePsiElement
 import com.intellij.psi.tree.IElementType

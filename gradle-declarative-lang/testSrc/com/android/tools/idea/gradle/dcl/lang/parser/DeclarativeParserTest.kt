@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
@@ -159,14 +158,18 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
-  fun testPropertyDotErrorIsNotInPsiTree() {
+  fun testPropertyReceiverFactory(){
+    doTest(true, true)
+  }
+
+  fun testPropertyDotNewlineFunction() {
     doTest(true, false)
     val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
     assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
     val entries = (psiFile as DeclarativeFile).getEntries()
     assertThat(entries).hasSize(1)
 
-    assertThat(entries[0]).isInstanceOf(DeclarativeSimpleFactory::class.java)
+    assertThat(entries[0]).isInstanceOf(DeclarativeFactory::class.java)
     assertThat((entries[0] as DeclarativeFactory).identifier.name).isEqualTo("include")
 
     val argumentsList = (entries[0] as DeclarativeFactory).argumentsList?.argumentList

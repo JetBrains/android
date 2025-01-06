@@ -124,8 +124,8 @@ class DeclarativePsiFactory(private val project: Project) {
   private fun String.maybeAddBackticks(): String =
     if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
 
-  fun createPrefixedFactory(): DeclarativeReceiverPrefixedFactory {
-    val prefixedFactory: DeclarativeReceiverPrefixedFactory = createFromText("fun().fun()") ?: error(
+  fun createPrefixedFactory(): DeclarativeFactory {
+    val prefixedFactory: DeclarativeFactory = createFromText("fun().fun()") ?: error(
       "Failed to create DeclarativeReceiverPrefixedFactory")
     prefixedFactory.children.forEach { it.delete() }
     return prefixedFactory

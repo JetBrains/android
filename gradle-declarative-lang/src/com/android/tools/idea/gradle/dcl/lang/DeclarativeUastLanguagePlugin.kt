@@ -21,10 +21,15 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValueFieldOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
+
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue
 import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
@@ -125,27 +130,58 @@ class DeclarativeUFile(override val sourcePsi: DeclarativeFile, override val lan
 
 interface DeclarativeUEntry : UExpression
 
-class DeclarativeUFactory(
-  override val sourcePsi: DeclarativeFactory,
-  parentProvider: () -> UElement?,
-) : DeclarativeUEntry, UCallExpression {
+abstract class AbstractUFactory: DeclarativeUEntry, UCallExpression {
+  abstract override val sourcePsi: DeclarativeIdentifierOwner
   override val classReference: UReferenceExpression? = null
   override val kind: UastCallKind = UastCallKind.METHOD_CALL
-  override val methodIdentifier: UIdentifier = UIdentifier(sourcePsi.identifier, this)
-  override val methodName: String? = sourcePsi.identifier.name
-  override val psi: PsiElement = sourcePsi
-  override val receiver: UExpression? = sourcePsi.getReceiver()?.let { DeclarativeUFactory(it) { this } }
+  override val methodIdentifier: UIdentifier
+    get() = UIdentifier(sourcePsi.identifier, this)
+  override val methodName: String?
+    get() = sourcePsi.identifier.name
+  override val psi: PsiElement
+    get() = sourcePsi
   override val receiverType: PsiType? = null
   override val returnType: PsiType? = null
   override val typeArgumentCount: Int = 0
   override val typeArguments: List<PsiType> = listOf()
   override val uAnnotations: List<UAnnotation> = listOf()
-  override val uastParent: UElement? by lazy(parentProvider)
-  override val valueArguments: List<UExpression> = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) }
-                                                   ?: listOf()
-  override val valueArgumentCount: Int = valueArguments.size
+  override val valueArgumentCount: Int
+    get() = valueArguments.size
   override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)
   override fun resolve(): PsiMethod? = null
+}
+
+class DeclarativeUFactory(
+  override val sourcePsi: DeclarativeFactory,
+  parentProvider: () -> UElement?,
+) : AbstractUFactory() {
+  override val receiver: UExpression? =
+    sourcePsi.factoryReceiver?.toDeclarativeUExpression(this) ?:
+    sourcePsi.propertyReceiver?.toDeclarativeUExpression(this)
+
+  override val valueArguments: List<UExpression> = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) }
+                                                   ?: listOf()
+  override val uastParent: UElement? by lazy(parentProvider)
+}
+
+open class DeclarativeUFactoryReceiver(
+  override val sourcePsi: DeclarativeFactoryReceiver,
+  parentProvider: () -> UElement?,
+) : AbstractUFactory() {
+  override val receiver: UExpression?
+    get() = sourcePsi.getReceiver()?.toDeclarativeUExpression(this)
+
+  override val valueArguments: List<UExpression>
+    get() = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) }
+                                                   ?: listOf()
+  override val uastParent: UElement? by lazy(parentProvider)
+}
+
+class SimpleDeclarativeUFactoryReceiver(
+  override val sourcePsi: DeclarativeFactoryReceiver,
+  parentProvider: () -> UElement?,
+) : DeclarativeUFactoryReceiver(sourcePsi, parentProvider) {
+  override val receiver: UExpression? = null
 }
 
 class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
@@ -212,13 +248,19 @@ class DeclarativeUAssignment(override val sourcePsi: DeclarativeAssignment,
   override val uastParent by lazy(parentProvider)
 }
 
+fun DeclarativePropertyReceiver.toDeclarativeUExpression(uastParent: UElement?): UExpression =
+  getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
+    this.field, uastParent)
+
+fun DeclarativeFactoryReceiver.toDeclarativeUExpression(uastParent: UElement?): UExpression =
+  getReceiver()?.let { DeclarativeUFactoryReceiver(this) { uastParent } } ?: SimpleDeclarativeUFactoryReceiver(this) { uastParent }
+
 fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpression =
   when (this) {
     is DeclarativeLiteral -> DeclarativeULiteral(this, uastParent)
     is DeclarativeFactory -> DeclarativeUFactory(this) { uastParent }
     is DeclarativeProperty -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
-
     else -> error("Unexpected DeclarativeValue: $this")
   }
 
@@ -233,9 +275,9 @@ class DeclarativeULiteral(override val sourcePsi: DeclarativeLiteral, override v
   override fun evaluate(): Any? = value
 }
 
-class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeProperty,
+class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeValueFieldOwner,
                                     override val uastParent: UElement?,
-                                    receiver: DeclarativeProperty) : UQualifiedReferenceExpression {
+                                    receiver: DeclarativeValueFieldOwner) : UQualifiedReferenceExpression {
   override val accessType: UastQualifiedExpressionAccessType = UastQualifiedExpressionAccessType.SIMPLE
   override val psi: PsiElement = sourcePsi
   override val receiver: UExpression = receiver.toDeclarativeUExpression(this)

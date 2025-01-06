@@ -42,6 +42,13 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getField(property: DeclarativePropertyReceiver): DeclarativeIdentifier = when (property) {
+      is DeclarativeBareReceiver -> property.identifier
+      is DeclarativeQualifiedReceiver -> property.identifier
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+    }
+
+    @JvmStatic
     fun getReference(property: DeclarativeProperty): PsiReference? = getReferences(property).firstOrNull()
 
     @JvmStatic
@@ -65,6 +72,23 @@ class PsiImplUtil {
     @JvmStatic
     fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
       assignment.assignableProperty.field
+
+    @JvmStatic
+    fun getIdentifier(factory: DeclarativeFactory): DeclarativeIdentifier =
+      factory.simpleFactory?.getIdentifier() ?: factory.factoryReceiver!!.identifier
+
+    @JvmStatic
+    fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
+       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
+
+    @JvmStatic
+    fun getArgumentsList(factory: DeclarativeFactory): DeclarativeArgumentsList? =
+      factory.simpleFactory?.argumentsList ?: PsiTreeUtil.getChildOfType(factory.factoryReceiver,DeclarativeArgumentsList::class.java)
+
+
+    @JvmStatic
+    fun getArgumentsList(factory: DeclarativeFactoryReceiver): DeclarativeArgumentsList? =
+      PsiTreeUtil.getChildOfType(factory, DeclarativeArgumentsList::class.java)
 
     @JvmStatic
     fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
@@ -120,11 +144,18 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getReceiver(factory: DeclarativeFactory): DeclarativeFactory? = when (factory) {
-      is DeclarativeSimpleFactory -> null
-      is DeclarativeReceiverPrefixedFactory -> factory.factory
-      else -> throw IllegalStateException("Unexpected DeclarativeFactory class of type ${factory.javaClass.name} in getReceiver()")
-    }
+    fun getReceiver(receiver: DeclarativeFactoryReceiver): DeclarativeFactoryReceiver? =
+      when (receiver) {
+        is DeclarativeReceiverPrefixedFactory -> receiver.getFactoryReceiver()
+        else -> null
+      }
+
+    @JvmStatic
+    fun getReceiver(receiver: DeclarativePropertyReceiver): DeclarativePropertyReceiver? =
+      when (receiver) {
+        is DeclarativeQualifiedReceiver -> receiver.propertyReceiver
+        else -> null
+      }
 
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {

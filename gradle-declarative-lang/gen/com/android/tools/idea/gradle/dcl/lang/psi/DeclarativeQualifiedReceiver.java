@@ -21,10 +21,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeSimpleFactory extends DeclarativeElement {
+public interface DeclarativeQualifiedReceiver extends DeclarativePropertyReceiver {
 
-  @Nullable
-  DeclarativeArgumentsList getArgumentsList();
+  @NotNull
+  DeclarativePropertyReceiver getPropertyReceiver();
 
   @NotNull
   DeclarativeIdentifier getIdentifier();

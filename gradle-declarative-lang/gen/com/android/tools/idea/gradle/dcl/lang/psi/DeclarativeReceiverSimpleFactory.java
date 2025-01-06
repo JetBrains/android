@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeSimpleFactory extends DeclarativeElement {
+public interface DeclarativeReceiverSimpleFactory extends DeclarativeFactoryReceiver {
 
   @Nullable
   DeclarativeArgumentsList getArgumentsList();

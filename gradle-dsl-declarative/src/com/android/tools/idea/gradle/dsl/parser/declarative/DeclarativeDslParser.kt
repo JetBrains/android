@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
@@ -109,7 +110,7 @@ class DeclarativeDslParser(
           psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.assignableProperty, this@DeclarativeDslParser)))
         }
 
-        override fun visitSimpleFactory(psi: DeclarativeSimpleFactory) {
+        override fun visitReceiverSimpleFactory(psi: DeclarativeReceiverSimpleFactory) {
           val methodCall = parseFactory(psi, context, nameElement) ?: return
           context.addParsedElement(methodCall)
         }
@@ -137,7 +138,6 @@ class DeclarativeDslParser(
             context.addParsedElement(expression)
           }
         }
-
         override fun visitLiteral(psi: DeclarativeLiteral) {
           val newLiteral = GradleDslLiteral(context, psi.parent, nameElement, psi, LITERAL).also {
             it.externalSyntax = ASSIGNMENT
@@ -203,12 +203,12 @@ class DeclarativeDslParser(
       }
 
       override fun visitFactory(psi: DeclarativeFactory) {
-        val methodCall = parseFactory(psi, context, GradleNameElement.empty()) ?: return
+        val methodCall = psi.factoryReceiver?.let { parseFactory(it, context, GradleNameElement.empty()) } ?: return
         list.addParsedExpression(methodCall)
       }
     }
 
-  private fun parseFactory(psi: DeclarativeFactory,
+  private fun parseFactory(psi: DeclarativeFactoryReceiver,
                            context: GradlePropertiesDslElement,
                            currentNameElement: GradleNameElement): GradleDslMethodCall? {
     val name = psi.identifier.name ?: return null

@@ -27,7 +27,7 @@ import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTy
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeReceiverPrefixedFactoryImpl extends DeclarativeFactoryImpl implements DeclarativeReceiverPrefixedFactory {
+public class DeclarativeReceiverPrefixedFactoryImpl extends DeclarativeFactoryReceiverImpl implements DeclarativeReceiverPrefixedFactory {
 
   public DeclarativeReceiverPrefixedFactoryImpl(@NotNull IElementType type) {
     super(type);
@@ -52,12 +52,12 @@ public class DeclarativeReceiverPrefixedFactoryImpl extends DeclarativeFactoryIm
 
   @Override
   @NotNull
-  public DeclarativeFactory getFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
+  public DeclarativeFactoryReceiver getFactoryReceiver() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeFactoryReceiver.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public DeclarativeIdentifier getIdentifier() {
     return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }

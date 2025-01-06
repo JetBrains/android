@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public abstract class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
+public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
 
   public DeclarativeFactoryImpl(@NotNull IElementType type) {
     super(type);
@@ -46,8 +46,32 @@ public abstract class DeclarativeFactoryImpl extends DeclarativeFactoryMixin imp
 
   @Override
   @Nullable
-  public DeclarativeFactory getReceiver() {
-    return PsiImplUtil.getReceiver(this);
+  public DeclarativeFactoryReceiver getFactoryReceiver() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeFactoryReceiver.class);
+  }
+
+  @Override
+  @Nullable
+  public DeclarativePropertyReceiver getPropertyReceiver() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativePropertyReceiver.class);
+  }
+
+  @Override
+  @Nullable
+  public DeclarativeSimpleFactory getSimpleFactory() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeSimpleFactory.class);
+  }
+
+  @Override
+  @NotNull
+  public DeclarativeIdentifier getIdentifier() {
+    return PsiImplUtil.getIdentifier(this);
+  }
+
+  @Override
+  @Nullable
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiImplUtil.getArgumentsList(this);
   }
 
 }

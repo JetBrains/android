@@ -28,14 +28,14 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeSimpleFactoryImpl extends CompositePsiElement implements DeclarativeSimpleFactory {
+public abstract class DeclarativeFactoryReceiverImpl extends CompositePsiElement implements DeclarativeFactoryReceiver {
 
-  public DeclarativeSimpleFactoryImpl(@NotNull IElementType type) {
+  public DeclarativeFactoryReceiverImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitSimpleFactory(this);
+    visitor.visitFactoryReceiver(this);
   }
 
   @Override
@@ -46,14 +46,14 @@ public class DeclarativeSimpleFactoryImpl extends CompositePsiElement implements
 
   @Override
   @Nullable
-  public DeclarativeArgumentsList getArgumentsList() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
+  public DeclarativeFactoryReceiver getReceiver() {
+    return PsiImplUtil.getReceiver(this);
   }
 
   @Override
-  @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+  @Nullable
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiImplUtil.getArgumentsList(this);
   }
 
 }
