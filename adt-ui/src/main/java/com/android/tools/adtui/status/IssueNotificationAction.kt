@@ -23,10 +23,8 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
@@ -36,11 +34,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
-import com.intellij.ui.components.AnActionLink
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Insets
 import java.awt.event.MouseAdapter
@@ -49,6 +45,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val ACTION_BACKGROUND_ALPHA = 0x1A
 private const val ACTION_BORDER_ALPHA = 0xBF
@@ -99,15 +96,6 @@ interface IdeStatus {
     val border = chipBorder(color)
   }
 }
-
-/**
- * Creates a new [AnActionLink] with the given [text]. The returned [AnActionLink] will use the given [delegateDataContext] to obtain
- * the associated information when calling into the [action].
- */
-fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext): AnActionLink =
-  AnActionLink(text, action).apply {
-    dataProvider = DataProvider { dataId -> delegateDataContext.getData(dataId) }
-  }
 
 /**
  * Action that reports the current [IdeStatus].
