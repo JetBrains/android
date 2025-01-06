@@ -82,6 +82,8 @@ import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.UIManager
 import kotlin.concurrent.withLock
+import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -338,7 +340,9 @@ private class HeadlessDialogWrapperPeer(
     this.title = title
   }
 
-  override fun pack() {}
+  override fun pack() {
+    rootPane.size = rootPane.preferredSize
+  }
 
   override fun setAppIcons() {}
 
@@ -394,7 +398,23 @@ private class HeadlessDialogWrapperPeer(
     val dialog = MyDialog()
     dialog.add(rootPane)
 
-    rootPane.size = rootPane.preferredSize
+    val dialogWrapper = dialog.dialogWrapper
+    if (dialogWrapper.isAutoAdjustable) {
+      pack()
+
+      val initial = rootPane.size
+      if (initial.width <= 0 || initial.height <= 0) {
+        val packedSize = size
+        maximize(initial, packedSize) // Cannot be less than packed size.
+      }
+      val minimumSize = rootPane.minimumSize
+      maximize(initial, minimumSize) // Cannot be less than minimum size.
+      initial.width = (initial.width * dialogWrapper.horizontalStretch).roundToInt()
+      initial.height = (initial.height * dialogWrapper.verticalStretch).roundToInt()
+      size = initial
+      rootPane.size = initial
+    }
+
     anCancelAction.registerCustomShortcutSet(CommonShortcuts.ESCAPE, rootPane)
     disposeActions.add(Runnable { anCancelAction.unregisterCustomShortcutSet(rootPane) })
     val commandProcessor = if (getApplication() != null) CommandProcessor.getInstance() as CommandProcessorEx else null
@@ -435,6 +455,13 @@ private class HeadlessDialogWrapperPeer(
   }
 
   override fun centerInParent() {}
+
+  private fun maximize(size: Dimension, alternativeSize: Dimension?) {
+    if (alternativeSize != null) {
+      size.width = max(size.width, alternativeSize.width)
+      size.height = max(size.height, alternativeSize.height)
+    }
+  }
 
   private fun createRootPane(): JRootPane {
     val pane = DialogRootPane()
