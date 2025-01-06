@@ -29,13 +29,13 @@ import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.hasKtsUsage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.project.determineVersionCatalogUse
 import com.android.tools.idea.npw.template.components.BuildConfigurationLanguageComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
@@ -59,24 +59,24 @@ import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.components.JBTextField
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTextField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.util.AndroidBundle.message
 
 private const val KTS_AGP_MIN_VERSION = "7.0.0"
 
@@ -86,18 +86,21 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
   basePackage: String? = getSuggestedProjectPackage(),
   title: String,
-  parentDisposable: Disposable? = null
+  parentDisposable: Disposable? = null,
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
   // Indicates if the existing project uses Version Catalogs
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // Indicates if the new dependencies for the new module will be managed by Version Catalogs
-  private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> = OptionalValueProperty()
-  // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration language is not visible,
+  private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> =
+    OptionalValueProperty()
+  // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration
+  // language is not visible,
   // thus, build script is determined if the existing project has KTS usage
-  private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguageForNewModule> = OptionalValueProperty(
-    if(model.project.hasKtsUsage()) KTS else Groovy)
+  private val buildConfigurationLanguage:
+    OptionalValueProperty<BuildConfigurationLanguageForNewModule> =
+    OptionalValueProperty(if (model.project.hasKtsUsage()) KTS else Groovy)
 
   private val disposable by lazy { parentDisposable ?: this }
   private val androidVersionsInfo = AndroidVersionsInfo()
@@ -108,26 +111,43 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val packageName: JTextField = JBTextField()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
-  protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguageForNewModule> = BuildConfigurationLanguageComboProvider().createComponent()
+  protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguageForNewModule> =
+    BuildConfigurationLanguageComboProvider().createComponent()
 
   protected val validatorPanel: ValidatorPanel by lazy {
     ValidatorPanel(disposable, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
-      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
+      registerValidator(
+        model.androidSdkInfo,
+        ApiVersionValidator(model.project.isAndroidx(), formFactor),
+      )
       registerKtsAgpVersionValidation(model)
-      registerValidator(versionCatalogUse, createValidator {
-        if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get()) return@createValidator Validator.Result(INFO, message(
-          "android.wizard.module.will.not.use.version.catalog"))
-        if (it.isPresent && it.get() && versionCatalogUseForNewModule.get().isPresent && !versionCatalogUseForNewModule.value) {
-          // Meaning existing project uses Version Catalogs, but new module's dependencies are not managed by Version Catalogs
-          Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
-        } else OK
-      })
+      registerValidator(
+        versionCatalogUse,
+        createValidator {
+          if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get())
+            return@createValidator Validator.Result(
+              INFO,
+              message("android.wizard.module.will.not.use.version.catalog"),
+            )
+          if (
+            it.isPresent &&
+              it.get() &&
+              versionCatalogUseForNewModule.get().isPresent &&
+              !versionCatalogUseForNewModule.value
+          ) {
+            // Meaning existing project uses Version Catalogs, but new module's dependencies are not
+            // managed by Version Catalogs
+            Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
+          } else OK
+        },
+      )
 
       AndroidCoroutineScope(disposable).launch(Dispatchers.IO) {
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
-        val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
+        val versionCatalogUseForNewModuleValue =
+          determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
@@ -139,58 +159,85 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
   }
-  protected val rootPanel: JScrollPane by lazy {
-    wrapWithVScroll(validatorPanel, SMALL)
-  }
+  protected val rootPanel: JScrollPane by lazy { wrapWithVScroll(validatorPanel, SMALL) }
 
   abstract fun createMainPanel(): JPanel
 
   private val moduleValidator = ModuleValidator(model.project)
+
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
-    bindings.bindTwoWay(SelectedItemProperty(buildConfigurationLanguageCombo), buildConfigurationLanguage)
+    bindings.bindTwoWay(
+      SelectedItemProperty(buildConfigurationLanguageCombo),
+      buildConfigurationLanguage,
+    )
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)
-    val computedPackageName: Expression<String> = object : Expression<String>(model.moduleName) {
-      override fun get() = "${basePackage}.${nameToJavaPackage(model.moduleName.get())}"
-    }
+    val computedPackageName: Expression<String> =
+      object : Expression<String>(model.moduleName) {
+        override fun get() = "${basePackage}.${nameToJavaPackage(model.moduleName.get())}"
+      }
     bindings.bind(packageNameText, computedPackageName, isPackageNameSynced)
     bindings.bind(model.packageName, packageNameText)
-    listeners.listen(packageNameText) { value: String -> isPackageNameSynced.set(value == computedPackageName.get()) }
+    listeners.listen(packageNameText) { value: String ->
+      isPackageNameSynced.set(value == computedPackageName.get())
+    }
 
     val isModuleNameSynced: BoolProperty = BoolValueProperty(true)
 
     val moduleNameText = TextProperty(moduleName)
-    // Module name is generate from application name in case of Android Module (e.g. mobile, watch) but in all other cases
+    // Module name is generate from application name in case of Android Module (e.g. mobile, watch)
+    // but in all other cases
     // a hardcoded name is used (e.g. "benchmark", "lib").
-    val defaultModuleName = if (model.moduleName.isEmpty.get()) model.applicationName else model.moduleName
-    val computedModuleName = UniqueModuleGradlePathWithParentExpression(model.project, defaultModuleName, model.moduleParent)
+    val defaultModuleName =
+      if (model.moduleName.isEmpty.get()) model.applicationName else model.moduleName
+    val computedModuleName =
+      UniqueModuleGradlePathWithParentExpression(
+        model.project,
+        defaultModuleName,
+        model.moduleParent,
+      )
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
-    listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
+    listeners.listen(moduleNameText) { value: String ->
+      isModuleNameSynced.set(value == computedModuleName.get())
+    }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    val licenseAgreementStep = LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), installLicenseRequests)
-    val installPackagesStep = InstallSelectedPackagesStep(installRequests, hashSetOf(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false)
+    val licenseAgreementStep =
+      LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), installLicenseRequests)
+    val installPackagesStep =
+      InstallSelectedPackagesStep(
+        installRequests,
+        hashSetOf(),
+        AndroidSdks.getInstance().tryToChooseSdkHandler(),
+        false,
+      )
     return listOf(licenseAgreementStep, installPackagesStep)
   }
 
   override fun onEntering() {
-    // TODO: The old version only loaded the list of version once, and kept everything on a static field
+    // TODO: The old version only loaded the list of version once, and kept everything on a static
+    // field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
     androidVersionsInfo.loadLocalVersions()
-    apiLevelCombo.init(formFactor, androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel)) // Pre-populate
-    androidVersionsInfo.loadRemoteTargetVersions(
-      formFactor, minSdkLevel
-    ) { items -> apiLevelCombo.init(formFactor, items) }
+    apiLevelCombo.init(
+      formFactor,
+      androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel),
+    ) // Pre-populate
+    androidVersionsInfo.loadRemoteTargetVersions(formFactor, minSdkLevel) { items ->
+      apiLevelCombo.init(formFactor, items)
+    }
   }
 
   override fun onProceeding() {
     // Now that the module name was validated, update the model template
-    model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get()))
+    model.template.set(
+      GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get())
+    )
     model.useGradleKts.set(buildConfigurationLanguage.value == KTS)
     installRequests = androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
     installLicenseRequests = installRequests.map { it.remote!! }
@@ -208,10 +255,15 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
 fun ValidatorPanel.registerKtsAgpVersionValidation(model: ProjectModelData) {
   val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
-  registerValidator(model.agpVersion, createValidator { version ->
-    if (model.useGradleKts.get() && version.compareIgnoringQualifiers(minKtsAgpVersion) < 0)
-      Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
-    else
-      Validator.Result.OK
-  }, model.useGradleKts)
+  registerValidator(
+    model.agpVersion,
+    createValidator { version ->
+      if (model.useGradleKts.get() && version.compareIgnoringQualifiers(minKtsAgpVersion) < 0)
+        Validator.Result.fromNullableMessage(
+          message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION)
+        )
+      else Validator.Result.OK
+    },
+    model.useGradleKts,
+  )
 }
