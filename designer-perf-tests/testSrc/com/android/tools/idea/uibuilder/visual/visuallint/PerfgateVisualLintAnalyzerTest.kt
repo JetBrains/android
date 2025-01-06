@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
+import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
-import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.rendering.VISUAL_LINT_APPLICATION_PATH
 import com.android.tools.idea.rendering.measureOperation
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
@@ -37,34 +36,19 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnaly
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.rendering.RenderResult
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.rendering.RenderTask
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
-class PerfgateVisualLintAnalyzerTest {
-
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
-
+class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PATH) {
   @Before
-  fun setup() {
-    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
-    RenderTestUtil.beforeRenderTestCase()
+  override fun setUp() {
+    super.setUp()
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
                                         TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
                                         ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection())
     projectRule.fixture.enableInspections(*visualLintInspections)
-  }
-
-  @After
-  fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
   }
 
   @Test
@@ -108,10 +92,8 @@ class PerfgateVisualLintAnalyzerTest {
   }
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
-    projectRule.load("projects/visualLintApplication")
-
     val module = projectRule.getModule("app")
-    val facet = AndroidFacet.getInstance(module)!!
+    val facet = projectRule.mainAndroidFacet(":app")
     val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!

@@ -94,7 +94,7 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
 
   @Test
   fun testComposeVisualLintRun() {
-    val facet = projectRule.androidFacet(":app")
+    val facet = projectRule.mainAndroidFacet(":app")
     val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()

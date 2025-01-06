@@ -17,3 +17,4 @@ package com.android.tools.idea.rendering
 
 internal const val PERFGATE_COMPLEX_LAYOUT = "projects/perfgateComplexLayout"
 internal const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
+internal const val VISUAL_LINT_APPLICATION_PATH = "projects/visualLintApplication"

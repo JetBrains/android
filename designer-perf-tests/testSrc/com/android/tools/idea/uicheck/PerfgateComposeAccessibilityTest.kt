@@ -44,7 +44,7 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
   }
 
   private fun renderPreview(withAccessibilityParser: Boolean) {
-    val facet = projectRule.androidFacet(":app")
+    val facet = projectRule.mainAndroidFacet(":app")
     val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     renderPreviewElementForResult(
       facet,

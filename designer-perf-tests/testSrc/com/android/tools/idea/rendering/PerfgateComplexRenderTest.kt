@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.rendering.RenderResult
 import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
+import com.android.tools.idea.testing.virtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -45,36 +46,18 @@ fun checkComplexLayoutRenderResult(result: RenderResult) {
   AndroidGradleTestCase.assertNotNull(result.renderedImage)
 }
 
-class PerfgateComplexRenderTest {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+class PerfgateComplexRenderTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT) {
+
   private lateinit var facet: AndroidFacet
   private lateinit var layoutFile: VirtualFile
   private lateinit var layoutConfiguration: Configuration
 
   @Before
-  fun setUp() {
-    RenderTestUtil.beforeRenderTestCase()
-
-    val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
-    gradleRule.fixture.testDataPath = baseTestPath.toString()
-    gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
-    facet = gradleRule.androidFacet(":app")
-    val xmlPath = baseTestPath.resolve("projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml")
-    layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath.toString())!!
+  override fun setUp() {
+    super.setUp()
+    facet = projectRule.mainAndroidFacet(":app")
+    layoutFile = facet.virtualFile("src/main/res/layout/activity_main.xml")
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
-  }
-
-  @After
-  fun tearDown() {
-    try {
-      ApplicationManager.getApplication().invokeAndWait {
-        RenderTestUtil.afterRenderTestCase()
-      }
-    }
-    finally {
-      StudioFrameworkResourceRepositoryManager.getInstance().clearCache()
-    }
   }
 
   @Test

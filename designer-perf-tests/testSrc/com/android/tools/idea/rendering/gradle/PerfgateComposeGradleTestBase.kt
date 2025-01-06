@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.rendering.gradle
 
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.concurrency.asCollection
-import com.android.tools.idea.rendering.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.rendering.MetricMeasurement
 import com.android.tools.idea.rendering.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.rendering.measureOperation
@@ -54,8 +54,8 @@ open class PerfgateComposeGradleTestBase {
     projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
     previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
     testDataPath = "tools/adt/idea/designer-perf-tests/testData",
-    kotlinVersion = DEFAULT_KOTLIN_VERSION,
-    enableRenderQuality = false
+    enableRenderQuality = false,
+    kotlinVersion = KOTLIN_VERSION_FOR_TESTS
   )
 
   protected val fixture: CodeInsightTestFixture

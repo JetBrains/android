@@ -1,25 +1,47 @@
-apply plugin: 'com.android.application'
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+plugins {
+  alias(libs.plugins.android.application)
+}
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
-    defaultConfig {
-        applicationId "com.example.perfgatecomplexlayout"
-        minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  namespace "com.example.perfgatecomplexlayout"
+  compileSdk 35 // compileSdk version will be replaced by AndroidGradleTestCase
+
+  defaultConfig {
+    applicationId "com.example.perfgatecomplexlayout"
+    minSdk 23
+    targetSdk 34 // targetSdk version will be replaced by AndroidGradleTestCase
+    versionCode 1
+    versionName "1.0"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
+  }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:+'
+  implementation libs.appcompat.v7
+  implementation libs.constraint.layout
 }

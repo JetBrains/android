@@ -82,7 +82,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
   }
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
-    val facet = projectRule.androidFacet(":app")
+    val facet = projectRule.mainAndroidFacet(":app")
     val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
@@ -106,6 +106,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
           AndroidBuildTargetReference.gradleOnly(facet),
           file
         )
+      assert(renderResult.result != null)
       resultToModelMap[renderResult.result!!] = nlModel
     }
     uiCheckBenchmark.measureOperation(

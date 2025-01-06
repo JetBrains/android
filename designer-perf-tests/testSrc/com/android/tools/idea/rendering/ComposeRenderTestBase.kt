@@ -18,17 +18,19 @@ package com.android.tools.idea.rendering
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withKotlin
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
-internal const val DEFAULT_KOTLIN_VERSION = "1.9.0"
 
-open class ComposeRenderTestBase {
+open class ComposeRenderTestBase(val testProject: String = SIMPLE_COMPOSE_PROJECT_PATH) {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
@@ -38,13 +40,14 @@ open class ComposeRenderTestBase {
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
+    projectRule.load(testProject, AGP_CURRENT.withCompileSdk("35"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
       Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(true)
   }
 
