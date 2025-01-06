@@ -127,6 +127,7 @@ test_suite(
 # with whatever test desired.
 debugger_test(
     name = "single-k1-k2",
+    art_tags = [],
     test_include_filter = ["K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.Coroutines.RunToCursor.testRunToCursorFromNonSuspendToSuspend"],
 )
 
@@ -134,6 +135,7 @@ debugger_test(
 # with whatever test desired.
 debugger_test(
     name = "single-k2-k2",
+    art_tags = [],
     module = "kotlin.jvm-debugger.test.k2",
     test_include_filter = ["K2IdeK2CodeKotlinSteppingTestGenerated.Custom.testSmartStepIntoSuspendFunInterface"],
 )
