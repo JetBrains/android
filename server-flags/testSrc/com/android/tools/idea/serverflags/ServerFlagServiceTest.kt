@@ -25,7 +25,7 @@ class ServerFlagServiceEmptyTest {
   fun testEmptyService() {
     val service = ServerFlagServiceEmpty
     assertThat(service.configurationVersion).isEqualTo(-1)
-    assertThat(service.names).isEmpty()
+    assertThat(service.flagAssignments).isEmpty()
     checkNull(service, ServerFlagService::getBoolean)
     checkNull(service, ServerFlagService::getInt)
     checkNull(service, ServerFlagService::getFloat)

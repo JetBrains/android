@@ -37,8 +37,10 @@ import kotlin.math.abs
  */
 data class ServerFlagInitializationData(
   val configurationVersion: Long,
-  val flags: Map<String, FlagValue>,
+  val flags: Map<String, ServerFlagValueData>,
 )
+
+data class ServerFlagValueData(val index: Int, val value: FlagValue)
 
 class ServerFlagInitializer {
 
@@ -111,7 +113,7 @@ private fun List<ServerFlagData>.getOverriddenFlags(
                 .warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
               return@associateNotNull null
             }
-          it.name to flagValue
+          it.name to ServerFlagValueData(flagValueIndex, flagValue)
         } else {
           Logger.getInstance("ServerFlagInitializer")
             .warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
@@ -119,7 +121,7 @@ private fun List<ServerFlagData>.getOverriddenFlags(
         }
       } else {
         if (it.hasServerFlag()) {
-          it.name to it.serverFlag.toSingleFlagValue()
+          it.name to ServerFlagValueData(0, it.serverFlag.toSingleFlagValue())
         } else {
           Logger.getInstance("ServerFlagInitializer")
             .warn("Expected ServerFlag to be set for overridden flag ${it.name}")
@@ -141,7 +143,7 @@ private fun ServerFlagData.isEnabled(osType: OSType, brand: Brand): Boolean {
 private fun ServerFlagData.getEnabledValue(
   useMultiValueFlag: Boolean,
   hashFunction: (String) -> Int,
-): FlagValue? {
+): ServerFlagValueData? {
   val key = AnalyticsSettings.userId + name
   val hash = hashFunction(key)
 
@@ -157,11 +159,11 @@ private fun ServerFlagData.getEnabledValue(
       return null
     }
     var acc = 0
-    for (flagValue in multiValueServerFlag.flagValuesList) {
-      if (acc <= hash && hash < acc + flagValue.percentEnabled) {
-        return flagValue
+    for (indexedValue in multiValueServerFlag.flagValuesList.withIndex()) {
+      if (acc <= hash && hash < acc + indexedValue.value.percentEnabled) {
+        return ServerFlagValueData(indexedValue.index, indexedValue.value)
       }
-      acc += flagValue.percentEnabled
+      acc += indexedValue.value.percentEnabled
     }
     return null
   } else {
@@ -171,7 +173,7 @@ private fun ServerFlagData.getEnabledValue(
       return null
     }
     if (hash < serverFlag.percentEnabled) {
-      return serverFlag.toSingleFlagValue()
+      return ServerFlagValueData(0, serverFlag.toSingleFlagValue())
     }
     return null
   }

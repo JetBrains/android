@@ -118,10 +118,18 @@ object AndroidStudioUsageTracker {
         channel = lifecycleChannelFromUpdateSettings()
         theme = currentIdeTheme()
         serverFlagsChangelist = ServerFlagService.instance.configurationVersion
-        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.names))
+        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.flagAssignments.keys))
         runningInsideIdx = (System.getenv(IDX_ENVIRONMENT_VARIABLE) == "true")
+        addAllActiveExperiments(buildActiveExperimentsFromServerFlags(ServerFlagService.instance.flagAssignments))
       }.build()
     }
+
+  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) = map.map {
+    ProductDetails.ActiveExperiment.newBuilder().apply {
+      experimentId = it.key
+      valueIndex = it.value
+    }.build()
+  }
 
   /** Gets list of active experiments. */
   @JvmStatic

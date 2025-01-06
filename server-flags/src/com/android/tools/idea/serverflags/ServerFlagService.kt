@@ -20,7 +20,9 @@ import com.intellij.openapi.application.ApplicationManager
 
 interface ServerFlagService {
   val configurationVersion: Long
-  val names: List<String>
+
+  /** A map of names of active flags and their assigned value indices. */
+  val flagAssignments: Map<String, Int>
 
   fun getString(name: String): String? = null
 

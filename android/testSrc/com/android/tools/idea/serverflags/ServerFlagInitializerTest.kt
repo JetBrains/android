@@ -124,8 +124,8 @@ class ServerFlagInitializerTest : TestCase() {
       }
     ) {
       assertThat(flags).hasSize(2)
-      assertThat(flags["boolean"]?.booleanValue).isTrue()
-      assertThat(flags["string"]?.stringValue).isEqualTo("foo")
+      assertThat(flags["boolean"]?.value?.booleanValue).isTrue()
+      assertThat(flags["string"]?.value?.stringValue).isEqualTo("foo")
     }
   }
 
@@ -174,7 +174,7 @@ class ServerFlagInitializerTest : TestCase() {
       )
     }
     val service = ServerFlagServiceImpl()
-    assertThat(service.names).containsExactlyElementsIn(listOf(osType.toString()))
+    assertThat(service.flagAssignments.keys).containsExactlyElementsIn(listOf(osType.toString()))
   }
 
   private fun testBrand(brand: AndroidStudioEvent.IdeBrand, filterBy: Brand) {
@@ -191,7 +191,7 @@ class ServerFlagInitializerTest : TestCase() {
       )
     }
     val service = ServerFlagServiceImpl()
-    assertThat(service.names).containsExactlyElementsIn(listOf(filterBy.toString()))
+    assertThat(service.flagAssignments.keys).containsExactlyElementsIn(listOf(filterBy.toString()))
   }
 
   private fun testServerFlagInitializer(expected: ServerFlagList) {
@@ -367,16 +367,20 @@ class MultiValueServerFlagInitializerTest {
     with(ServerFlagServiceImpl()) {
       assertThat(getString("multiValue")).isEqualTo("flagValue")
       assertThat(getBoolean("singleValue")).isTrue()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(0)
+      assertThat(flagAssignments["singleValue"]).isEqualTo(0)
     }
     hash = 21
     with(ServerFlagServiceImpl()) {
       assertThat(getString("multiValue")).isEqualTo("flagValue2")
       assertThat(getBoolean("singleValue")).isNull()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(1)
     }
     hash = 59
     with(ServerFlagServiceImpl()) {
       assertThat(getString("multiValue")).isEqualTo("flagValue3")
       assertThat(getBoolean("singleValue")).isNull()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(2)
     }
     hash = 66
     with(ServerFlagServiceImpl()) {
@@ -405,8 +409,8 @@ class MultiValueServerFlagInitializerTest {
       )
     ) {
       assertThat(flags).hasSize(2)
-      assertThat(flags["multiValue"]?.hasStringValue()).isTrue()
-      assertThat(flags["singleValue"]?.hasBooleanValue()).isTrue()
+      assertThat(flags["multiValue"]?.value?.hasStringValue()).isTrue()
+      assertThat(flags["singleValue"]?.value?.hasBooleanValue()).isTrue()
     }
   }
 }

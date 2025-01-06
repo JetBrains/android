@@ -42,7 +42,7 @@ class AppInsightsExperimentFetcherTest {
     serverFlagService =
       object : ServerFlagService {
         override val configurationVersion = 0L
-        override val names = emptyList<String>()
+        override val flagAssignments = emptyMap<String, Int>()
 
         override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
           if (activeExperiment == Experiment.UNKNOWN) return null

@@ -26,40 +26,55 @@ import org.junit.Test
 private val FLAGS =
   mapOf(
     "boolean" to
-      FlagValue.newBuilder()
-        .apply {
-          percentEnabled = 0
-          booleanValue = true
-        }
-        .build(),
+      ServerFlagValueData(
+        0,
+        FlagValue.newBuilder()
+          .apply {
+            percentEnabled = 0
+            booleanValue = true
+          }
+          .build(),
+      ),
     "int" to
-      FlagValue.newBuilder()
-        .apply {
-          percentEnabled = 25
-          intValue = 1
-        }
-        .build(),
+      ServerFlagValueData(
+        0,
+        FlagValue.newBuilder()
+          .apply {
+            percentEnabled = 25
+            intValue = 1
+          }
+          .build(),
+      ),
     "float" to
-      FlagValue.newBuilder()
-        .apply {
-          percentEnabled = 50
-          floatValue = 1f
-        }
-        .build(),
+      ServerFlagValueData(
+        0,
+        FlagValue.newBuilder()
+          .apply {
+            percentEnabled = 50
+            floatValue = 1f
+          }
+          .build(),
+      ),
     "string" to
-      FlagValue.newBuilder()
-        .apply {
-          percentEnabled = 75
-          stringValue = "foo"
-        }
-        .build(),
+      ServerFlagValueData(
+        0,
+        FlagValue.newBuilder()
+          .apply {
+            percentEnabled = 75
+            stringValue = "foo"
+          }
+          .build(),
+      ),
     "proto" to
-      FlagValue.newBuilder()
-        .apply {
-          percentEnabled = 100
-          protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
-        }
-        .build(),
+      ServerFlagValueData(
+        0,
+        FlagValue.newBuilder()
+          .apply {
+            percentEnabled = 100
+            protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
+          }
+          .build(),
+      ),
   )
 
 private val TEST_PROTO = ServerFlagTest.newBuilder().apply { content = "default" }.build()
@@ -124,7 +139,7 @@ class ServerFlagServiceTest {
         }
         .build()
 
-    val map = mapOf("proto" to proto)
+    val map = mapOf("proto" to ServerFlagValueData(0, proto))
     ServerFlagServiceImpl.initializer = { ServerFlagInitializationData(CONFIGURATION_VERSION, map) }
     val service = ServerFlagServiceImpl()
     val retrieved = service.getProto("proto", TEST_PROTO)
@@ -138,7 +153,7 @@ class ServerFlagServiceTest {
   fun testEmptyService() {
     val service = ServerFlagServiceEmpty
     assertThat(service.configurationVersion).isEqualTo(-1)
-    assertThat(service.names).isEmpty()
+    assertThat(service.flagAssignments).isEmpty()
 
     checkNull(service, ServerFlagService::getBoolean)
     checkNull(service, ServerFlagService::getInt)
@@ -156,7 +171,7 @@ class ServerFlagServiceTest {
       .isEqualTo("default")
     assertThat(CONFIGURATION_VERSION).isEqualTo(service.configurationVersion)
     assertThat(listOf("boolean", "int", "float", "string", "proto"))
-      .containsExactlyElementsIn(service.names)
+      .containsExactlyElementsIn(service.flagAssignments.keys)
   }
 
   @Test

@@ -26,7 +26,7 @@ import com.google.protobuf.TextFormat
 
 class ServerFlagServiceImpl : ServerFlagService {
   override val configurationVersion: Long
-  val flags: Map<String, FlagValue>
+  private val flags: Map<String, ServerFlagValueData>
 
   init {
     val data = initializer()
@@ -34,12 +34,12 @@ class ServerFlagServiceImpl : ServerFlagService {
     flags = data.flags
   }
 
-  override val names = flags.keys.toList()
+  override val flagAssignments = flags.entries.associate { it.key to it.value.index }
 
   override fun getString(name: String): String? {
     val flag = flags[name] ?: return null
     return when {
-      (flag.hasStringValue()) -> flag.stringValue
+      (flag.value.hasStringValue()) -> flag.value.stringValue
       else -> null
     }
   }
@@ -47,7 +47,7 @@ class ServerFlagServiceImpl : ServerFlagService {
   override fun getInt(name: String): Int? {
     val flag = flags[name] ?: return null
     return when {
-      (flag.hasIntValue()) -> flag.intValue
+      (flag.value.hasIntValue()) -> flag.value.intValue
       else -> null
     }
   }
@@ -55,7 +55,7 @@ class ServerFlagServiceImpl : ServerFlagService {
   override fun getFloat(name: String): Float? {
     val flag = flags[name] ?: return null
     return when {
-      (flag.hasFloatValue()) -> flag.floatValue
+      (flag.value.hasFloatValue()) -> flag.value.floatValue
       else -> null
     }
   }
@@ -63,18 +63,18 @@ class ServerFlagServiceImpl : ServerFlagService {
   override fun getBoolean(name: String): Boolean? {
     val flag = flags[name] ?: return null
     return when {
-      (flag.hasBooleanValue()) -> flag.booleanValue
+      (flag.value.hasBooleanValue()) -> flag.value.booleanValue
       else -> null
     }
   }
 
   override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
     val flag = flags[name] ?: return null
-    if (!flag.hasProtoValue()) {
+    if (!flag.value.hasProtoValue()) {
       return null
     }
 
-    val any = flag.protoValue ?: return null
+    val any = flag.value.protoValue ?: return null
 
     return try {
       @Suppress("UNCHECKED_CAST")
@@ -92,7 +92,7 @@ class ServerFlagServiceImpl : ServerFlagService {
     val sb = StringBuilder()
     for ((name, flag) in flags.entries.sortedBy { it.key }) {
       sb.append(
-        "Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${prettyPrint(name, flag)}\n\n"
+        "Name: $name\nPercentEnabled: ${flag.value.percentEnabled}\nValue: ${prettyPrint(name, flag.value)}\n\n"
       )
     }
 
