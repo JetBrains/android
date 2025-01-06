@@ -81,6 +81,7 @@ import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -265,36 +266,39 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       }
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(model)) {
-        ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
-          .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-        // When sync is done, try to create the schema again.
-        Futures.addCallback(syncResult, new FutureCallback<Object>() {
-          @Override
-          public void onSuccess(@Nullable Object unused) {
-            ProgressManager.getInstance().runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
-              @Override
-              public void run(@NotNull ProgressIndicator indicator) {
-                final int initialAttempts = 3;
-                int attempts = initialAttempts;
-                while (attempts > 0) {
-                  DumbService.getInstance(getProject()).waitForSmartMode();
-                  if (tryToCreateSchema(facet)) {
-                    result.complete(null);
-                    return;
+        application.invokeAndWait(() -> {
+          ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getSyncManager(getProject())
+            .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+          // When sync is done, try to create the schema again.
+          Futures.addCallback(syncResult, new FutureCallback<Object>() {
+            @Override
+            public void onSuccess(@Nullable Object unused) {
+              ProgressManager.getInstance()
+                .runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
+                  @Override
+                  public void run(@NotNull ProgressIndicator indicator) {
+                    final int initialAttempts = 3;
+                    int attempts = initialAttempts;
+                    while (attempts > 0) {
+                      DumbService.getInstance(getProject()).waitForSmartMode();
+                      if (tryToCreateSchema(facet)) {
+                        result.complete(null);
+                        return;
+                      }
+                      attempts--;
+                      sleepCancellable(500L * (initialAttempts - attempts));
+                    }
+                    showFailToAddMessage(result, model);
                   }
-                  attempts--;
-                  sleepCancellable(500L * (initialAttempts - attempts));
-                }
-                showFailToAddMessage(result, model);
-              }
-            }, new EmptyProgressIndicator());
-          }
+                }, new EmptyProgressIndicator());
+            }
 
-          @Override
-          public void onFailure(@Nullable Throwable t) {
-            showFailToAddMessage(result, model);
-          }
-        }, MoreExecutors.directExecutor());
+            @Override
+            public void onFailure(@Nullable Throwable t) {
+              showFailToAddMessage(result, model);
+            }
+          }, MoreExecutors.directExecutor());
+        }, ModalityState.nonModal());
       }
       else {
         showFailToAddMessage(result, model);
