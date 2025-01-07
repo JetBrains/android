@@ -28,7 +28,7 @@ public class IgnoredDisposerRef implements IgnoreListEntry<DisposerLeakInfo> {
   }
 
   private static String stripLambdaIdentifier(String className) {
-    return className.replaceFirst("\\$\\$Lambda\\$.*", "$$Lambda");
+    return className.replaceFirst("\\$\\$Lambda.*", "$$Lambda");
   }
 
   @Override
