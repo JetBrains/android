@@ -318,7 +318,25 @@ class NavigatingInteractionHandler(
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
+      var navigatableElement =
+        navigationHandler
+          .findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor)
+          .firstOrNull()
+      val navigated =
+        navigationHandler
+          .findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor)
+          .firstOrNull()
+          ?.let { navigationHandler.navigateTo(sceneView, navigatableElement!!, needsFocusEditor) }
+          ?: run {
+            if (needsFocusEditor) {
+              // Only allow default navigation when double clicking since it might take us to a
+              // different
+              // file
+              navigationHandler.handleNavigate(sceneView, needsFocusEditor)
+            }
+            return@run false
+          }
+      if (!navigated) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)

@@ -284,12 +284,17 @@ class WearTilePreviewRepresentationTest {
             .sceneViews
             .first()
         withContext(uiThread) {
-          preview.navigationHandler.handleNavigateWithCoordinates(
-            sceneViewWithNormalPreviewAnnotation,
-            sceneViewWithNormalPreviewAnnotation.x,
-            sceneViewWithNormalPreviewAnnotation.y,
-            false,
-          )
+          preview.navigationHandler
+            .findNavigatablesWithCoordinates(
+              sceneViewWithNormalPreviewAnnotation,
+              sceneViewWithNormalPreviewAnnotation.x,
+              sceneViewWithNormalPreviewAnnotation.y,
+              false,
+            )
+            .firstOrNull()
+            ?.let {
+              preview.navigationHandler.navigateTo(sceneViewWithNormalPreviewAnnotation, it, false)
+            }
         }
 
         runReadAction {
@@ -312,12 +317,17 @@ class WearTilePreviewRepresentationTest {
             .sceneViews
             .first()
         withContext(uiThread) {
-          preview.navigationHandler.handleNavigateWithCoordinates(
-            sceneViewWithMultiPreviewAnnotation,
-            sceneViewWithMultiPreviewAnnotation.x,
-            sceneViewWithMultiPreviewAnnotation.y,
-            false,
-          )
+          preview.navigationHandler
+            .findNavigatablesWithCoordinates(
+              sceneViewWithMultiPreviewAnnotation,
+              sceneViewWithMultiPreviewAnnotation.x,
+              sceneViewWithMultiPreviewAnnotation.y,
+              false,
+            )
+            .firstOrNull()
+            ?.let {
+              preview.navigationHandler.navigateTo(sceneViewWithMultiPreviewAnnotation, it, false)
+            }
         }
 
         runReadAction {

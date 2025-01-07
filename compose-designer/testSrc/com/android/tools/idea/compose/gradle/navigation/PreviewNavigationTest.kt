@@ -46,6 +46,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -76,10 +77,20 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     expectedInvocationsCountDownLatch = CountDownLatch(newExpectedInvocations)
   }
 
-  override suspend fun handleNavigateWithCoordinates(
+  override suspend fun findNavigatablesWithCoordinates(
     sceneView: SceneView,
     x: Int,
     y: Int,
+    requestFocus: Boolean,
+  ): List<Navigatable> {
+    assertTrue(expectedInvocationsCountDownLatch.count > 0)
+    expectedInvocationsCountDownLatch.countDown()
+    return listOf()
+  }
+
+  override suspend fun navigateTo(
+    sceneView: SceneView,
+    navigatable: Navigatable,
     requestFocus: Boolean,
   ): Boolean {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)

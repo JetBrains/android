@@ -116,13 +116,20 @@ fun findNavigatableComponentHit(
   return hits.firstNotNullOfOrNull { runReadAction { it.toNavigatable(module) } }
 }
 
-private fun findNavigatableComponent(
+/**
+ * Returns a list of [Navigatable]s that references to the source code position of the Composable at
+ * the given x, y pixel coordinates. This function will only ever return one navigatable at the
+ * moment but full implementation will follow. If requestFocus is false the function will only
+ * return navigatables in the same file that was passed in. The navigatable it returns is the
+ * deepest navigatable (with the most depth in the tree) that has these coordinates.
+ */
+private fun findNavigatableComponents(
   sceneView: SceneView,
   @SwingCoordinate hitX: Int,
   @SwingCoordinate hitY: Int,
   requestFocus: Boolean,
   fileName: String,
-): Navigatable? {
+): List<Navigatable?> {
   val x = Coordinates.getAndroidX(sceneView, hitX)
   val y = Coordinates.getAndroidY(sceneView, hitY)
   LOG.debug { "handleNavigate x=$x, y=$y" }
@@ -130,8 +137,8 @@ private fun findNavigatableComponent(
   val model = sceneView.sceneManager.model
 
   // Find component to navigate to
-  val root = model.treeReader.components.firstOrNull() ?: return null
-  val viewInfo = root.viewInfo ?: return null
+  val root = model.treeReader.components.firstOrNull() ?: return listOf()
+  val viewInfo = root.viewInfo ?: return listOf()
   val module = model.module
   val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
 
@@ -139,13 +146,15 @@ private fun findNavigatableComponent(
     dumpViewInfosToLog(module, allViewInfos)
   }
 
-  return findNavigatableComponentHit(module, allViewInfos, x, y) {
-    // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
-    // any hit even if it's not in the current
-    // file. If requestFocus is false, we only allow single clicks
-    requestFocus || it.fileName == fileName
-  }
+  var navigatable =
+    findNavigatableComponentHit(module, allViewInfos, x, y) {
+      // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
+      // any hit even if it's not in the current
+      // file. If requestFocus is false, we only allow single clicks
+      requestFocus || it.fileName == fileName
+    }
+  return listOf(navigatable)
 }
 
 /** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
-class ComposePreviewNavigationHandler : DefaultNavigationHandler(::findNavigatableComponent)
+class ComposePreviewNavigationHandler : DefaultNavigationHandler(::findNavigatableComponents)

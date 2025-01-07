@@ -52,7 +52,11 @@ class JumpToDefinitionAction(
     val surface = e.getRequiredData(DESIGN_SURFACE)
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     AndroidCoroutineScope(sceneView).launch {
-      navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true)
+      navigationHandler.findNavigatablesWithCoordinates(sceneView, x, y, true).firstOrNull()?.let {
+        // We first try to navigate to specific components within the coordinates, but fall back to
+        // a more general scene view navigation if it's not possible.
+        navigationHandler.navigateTo(sceneView, it, true)
+      } ?: navigationHandler.handleNavigate(sceneView, true)
     }
   }
 }

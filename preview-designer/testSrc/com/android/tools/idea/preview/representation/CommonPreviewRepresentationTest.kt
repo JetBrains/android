@@ -445,12 +445,10 @@ class CommonPreviewRepresentationTest {
       val sceneView = preview.previewView.mainSurface.sceneManagers.first().sceneViews.first()
 
       withContext(uiThread) {
-        preview.navigationHandler.handleNavigateWithCoordinates(
-          sceneView,
-          sceneView.x,
-          sceneView.y,
-          false,
-        )
+        preview.navigationHandler
+          .findNavigatablesWithCoordinates(sceneView, sceneView.x, sceneView.y, false)
+          .firstOrNull()
+          ?.let { preview.navigationHandler.navigateTo(sceneView, it, false) }
       }
 
       runReadAction {
