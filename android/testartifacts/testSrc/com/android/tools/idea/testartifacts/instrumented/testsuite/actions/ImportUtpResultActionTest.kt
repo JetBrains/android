@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.writeChild
 import org.junit.Rule
 import org.junit.Test
@@ -82,9 +79,7 @@ class ImportUtpResultActionTest {
 
   @Test
   fun enableUtpResultSupport() {
-    val anActionEvent = AnActionEvent(null, { projectRule.project },
-                                      ActionPlaces.UNKNOWN, Presentation(),
-                                      ActionManager.getInstance(), 0)
+    val anActionEvent = TestActionEvent.createTestEvent(SimpleDataContext.getProjectContext(projectRule.project))
     ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isTrue()
   }
