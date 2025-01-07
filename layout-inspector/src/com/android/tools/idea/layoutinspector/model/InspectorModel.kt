@@ -432,7 +432,7 @@ class InspectorModel(
 
   fun addHoverListener(listener: HoverListener) {
     listener.onHover(hoveredNode, hoveredNode)
-    hoverListeners.remove(listener)
+    hoverListeners.add(listener)
   }
 
   fun removeHoverListener(listener: HoverListener) {

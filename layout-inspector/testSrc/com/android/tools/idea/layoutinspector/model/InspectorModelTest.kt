@@ -737,29 +737,77 @@ class InspectorModelTest {
   }
 
   @Test
-  fun testListenersAreInvokedWithLastValue() {
-    val model = model(disposable) { view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") }
+  fun testListenersAreInvoked() {
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1) { view(VIEW2) { view(VIEW3) } }
+        }
+      }
+    val root = model[ROOT]
+    val view1 = model[VIEW1]
+    val view2 = model[VIEW2]
+    val view3 = model[VIEW3]
 
     // Selection
-    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
-    val observedSelectedNodes = mutableListOf<ViewNode?>()
+    model.setSelection(root, SelectionOrigin.INTERNAL)
+    val observedSelectedNodes = mutableListOf<Triple<ViewNode?, ViewNode?, SelectionOrigin>>()
 
     model.addSelectionListener { oldNode, newNode, origin ->
-      assertThat(oldNode).isEqualTo(newNode)
-      assertThat(origin).isEqualTo(SelectionOrigin.INTERNAL)
-      observedSelectedNodes.add(newNode)
+      observedSelectedNodes.add(Triple(oldNode, newNode, origin))
     }
-    assertThat(observedSelectedNodes).containsExactly(model[ROOT])
+    assertThat(observedSelectedNodes).containsExactly(Triple(root, root, SelectionOrigin.INTERNAL))
+
+    model.setSelection(view2, SelectionOrigin.COMPONENT_TREE)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+      )
+
+    model.setSelection(view3, SelectionOrigin.INTERNAL)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+      )
+
+    model.setSelection(view3, SelectionOrigin.INTERNAL)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, view3, SelectionOrigin.INTERNAL),
+      )
+
+    model.setSelection(null, SelectionOrigin.COMPONENT_TREE)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, null, SelectionOrigin.COMPONENT_TREE),
+      )
 
     // Hover
-    model.hoveredNode = model[ROOT]
-    val observedHoverNode = mutableListOf<ViewNode?>()
+    model.hoveredNode = view1
+    val observedHoverNodes = mutableListOf<Pair<ViewNode?, ViewNode?>>()
 
-    model.addHoverListener { oldNode, newNode ->
-      assertThat(oldNode).isEqualTo(newNode)
-      observedHoverNode.add(newNode)
-    }
-    assertThat(observedHoverNode).containsExactly(model[ROOT])
+    model.addHoverListener { oldNode, newNode -> observedHoverNodes.add(Pair(oldNode, newNode)) }
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1))
+
+    model.hoveredNode = view2
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2))
+
+    model.hoveredNode = view2
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2))
+
+    model.hoveredNode = null
+    assertThat(observedHoverNodes)
+      .containsExactly(Pair(view1, view1), Pair(view1, view2), Pair(view2, null))
 
     // Modification
     val newWindow = window(VIEW2, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType")
