@@ -46,7 +46,7 @@ public class FileRefresher {
 
   private static final Logger logger = Logger.getInstance(DependencyTrackerImpl.class);
   private static final FeatureRolloutExperiment skipFindingBuildOutputsExperiment =
-    new FeatureRolloutExperiment("query.sync.skip.finding.build.output");
+    new FeatureRolloutExperiment("query.sync.skip.finding.build.output.2");
 
   private final Project project;
 
@@ -97,6 +97,10 @@ public class FileRefresher {
                     });
               });
         });
+    }
+    if (skipFindingBuildOutputsExperiment.isEnabled()) {
+      virtualFiles.addAll(
+        getFileParentsAsVirtualFilesMarkedDirty(context, updatedFiles));
     }
     refreshFilesRecursively(virtualFiles.build());
     context.output(
