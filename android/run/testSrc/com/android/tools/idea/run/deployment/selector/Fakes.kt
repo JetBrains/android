@@ -40,11 +40,11 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.DeviceTemplateAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.execution.RunManager
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import java.nio.file.Path
@@ -206,14 +206,9 @@ internal fun createTemplate(
 }
 
 internal fun actionEvent(dataContext: DataContext, place: String = "") =
-  AnActionEvent(null, dataContext, place, Presentation(), ActionManager.getInstance(), 0)
+  AnActionEvent.createEvent(dataContext, Presentation(), place, ActionUiKind.NONE, null)
 
-internal fun dataContext(project: Project? = null): DataContext = DataContext {
-  when {
-    CommonDataKeys.PROJECT.`is`(it) -> project
-    else -> null
-  }
-}
+internal fun dataContext(project: Project) = SimpleDataContext.getProjectContext(project)
 
 internal fun RunManager.createTestConfig() =
   createConfiguration("config", AndroidRunConfigurationType::class.java).also {
