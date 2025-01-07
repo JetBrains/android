@@ -85,6 +85,9 @@ fun main(args: Array<String>) {
     println("Update tools/base/build-system/integration-test/BUILD.bazel")
     File("$repoDir/tools/base/build-system/integration-test/BUILD.bazel")
       .replaceLine(lineStart = "LATEST_KOTLIN_VERSION_FOR_SYNC_BENCHMARKS = ", newVersion = kotlinVersion)
+    println("Update tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java")
+    File("$repoDir/tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java")
+      .replaceLine(lineStart = "    public static final String LATEST_KOTLIN_VERSION = ", newVersion = kotlinVersion)
 
 
     println("Running maven_fetch.sh")
@@ -113,14 +116,16 @@ fun main(args: Array<String>) {
     runGitCommit(repoDir, "tools/base", commitMessage, listOf(
       "tools/base/bazel/maven/artifacts.bzl",
       "tools/base/bazel/maven/BUILD.maven",
-      "tools/base/build-system/integration-test/BUILD.bazel"))
+      "tools/base/build-system/integration-test/BUILD.bazel",
+      "tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java"))
   }
 }
 
 private fun File.replaceLine(lineStart: String? = null, lineEnd: String? = null, newVersion: String) = apply {
   writeText(readLines().joinToString("\n", postfix = "\n") {
     if (lineStart != null && it.startsWith(lineStart)) {
-      "$lineStart\"$newVersion\""
+      val maybeSemicolon = if (it.endsWith(";")) ";" else ""
+      "$lineStart\"$newVersion\"$maybeSemicolon"
     } else if (lineEnd != null && it.endsWith(lineEnd)) {
       it.replace(lineEnd, "$newVersion\",")
     }
