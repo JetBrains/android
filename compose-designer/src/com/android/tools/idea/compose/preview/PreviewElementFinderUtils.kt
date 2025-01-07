@@ -135,7 +135,7 @@ private suspend fun getPreviewNodes(
   includeAllNodes: Boolean,
   rootSearchElement: UElement,
 ): Flow<PreviewNode> {
-  if (!composableMethod.isComposable()) return emptyFlow()
+  if (readAction {!composableMethod.isComposable()}) return emptyFlow()
   val composableFqn = readAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
 

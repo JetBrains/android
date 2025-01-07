@@ -93,7 +93,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
       result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
         result.mode == ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
     ) {
-      clearCaches()
+      ApplicationManager.getApplication().executeOnPooledThread { clearCaches() }
     }
   }
 
