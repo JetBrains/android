@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.backup
 
-import com.android.backup.BackupException
-import com.android.backup.BackupResult
+import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
@@ -24,6 +23,9 @@ import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
+import com.android.backup.testing.BackupFileHelper
+import com.android.backup.testing.FakeAdbServices.CommandOverride.Output
+import com.android.backup.testing.FakeAdbServicesFactory
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.analytics.UsageTrackerRule
@@ -42,27 +44,27 @@ import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.TextAccessor
 import java.nio.file.Path
-import kotlin.io.path.pathString
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.relativeTo
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.argThat
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.whenever
+
+private const val DUMPSYS_GMSCORE_CMD = "dumpsys package com.google.android.gms"
 
 /** Tests for [BackupManagerImpl] */
 @RunsInEdt
@@ -71,6 +73,11 @@ internal class BackupManagerImplTest {
   private val projectRule = ProjectRule()
   private val project
     get() = projectRule.project
+
+  @get:Rule
+  val temporaryFolder =
+    TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val backupFileHelper = BackupFileHelper(temporaryFolder)
 
   private val usageTrackerRule = UsageTrackerRule()
   private val notificationRule = NotificationRule(projectRule)
@@ -83,15 +90,20 @@ internal class BackupManagerImplTest {
       usageTrackerRule,
       notificationRule,
       HeadlessDialogRule(),
+      temporaryFolder,
       disposableRule,
       EdtRule(),
     )
 
-  private val mockBackupService = mock<BackupService>()
   private val fakeDialogFactory = FakeDialogFactory()
 
   @Test
   fun backup_success(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
     project.replaceService(
       ProjectAppsProvider::class.java,
       object : ProjectAppsProvider {
@@ -101,18 +113,8 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
+    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
     val serialNumber = "serial"
-    whenever(
-        mockBackupService.backup(
-          eq(serialNumber),
-          eq("app3"),
-          eq(CLOUD),
-          argThat { endsWith("file.backup") },
-          any(),
-        )
-      )
-      .thenReturn(BackupResult.Success)
 
     createModalDialogAndInteractWithIt({
       backupManagerImpl.showBackupDialog(serialNumber, "app2", RUN_CONFIG)
@@ -140,51 +142,59 @@ internal class BackupManagerImplTest {
         "ShowPostBackupDialogAction",
       )
     assertThat(fakeDialogFactory.dialogs).isEmpty()
+    backupFile.deleteExisting()
   }
 
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
+    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
     val serialNumber = "serial"
-    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else "/path/file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
-      .thenReturn(BackupResult.Success)
+    val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
-    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
+    val result = backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
+    assertThat(result).isEqualTo(Success)
     assertThat(usageTrackerRule.backupEvents())
       .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
   fun restore_success_relativePath(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
+    val projectPath = project.basePath?.let { Path.of(it) } ?: fail("Project base path unavailable")
+    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
     val serialNumber = "serial"
-    val backupFile = Path.of("file")
-    whenever(
-        mockBackupService.restore(
-          eq(serialNumber),
-          eq(Path.of(project.basePath ?: "", backupFile.pathString)),
-          anyOrNull(),
-        )
-      )
-      .thenReturn(BackupResult.Success)
+    val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
+    val relativePath = backupFile.relativeTo(projectPath)
 
-    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
+    val result = backupManagerImpl.restore(serialNumber, relativePath, RUN_CONFIG, notify = true)
 
+    assertThat(result).isEqualTo(Success)
     assertThat(usageTrackerRule.backupEvents())
       .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
   fun gmsCoreNotUpdated(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
-    val serialNumber = "serial"
-    val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
-      .thenReturn(
-        BackupResult.Error(GMSCORE_IS_TOO_OLD, BackupException(GMSCORE_IS_TOO_OLD, "Error"))
+    val backupService =
+      BackupService.getInstance(
+        FakeAdbServicesFactory {
+          it.addCommandOverride(
+            Output(
+              DUMPSYS_GMSCORE_CMD,
+              """
+          Packages:
+              versionCode=50 minSdk=31 targetSdk=34
+        """
+                .trimIndent(),
+            )
+          )
+        }
       )
+    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val serialNumber = "serial"
+    val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
     backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
@@ -193,7 +203,11 @@ internal class BackupManagerImplTest {
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
-        DialogData("Restore Failed", "Error", listOf("Show Full Error", "Open Play Store"))
+        DialogData(
+          "Restore Failed",
+          "Google Services version is too old (50).  Min version is 100",
+          listOf("Show Full Error", "Open Play Store"),
+        )
       )
   }
 
