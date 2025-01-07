@@ -45,18 +45,24 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
       "8.3" to GradleVersion.version("8.4"),
       "8.4" to GradleVersion.version("8.6"),
       "8.5" to GradleVersion.version("8.7"),
-      "8.6" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+      "8.6" to GradleVersion.version("8.7"),
+      "8.7" to GradleVersion.version("8.9"),
+      "8.8" to GradleVersion.version("8.10.2"),
+      "8.9" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
     )
     fun String.toBetaVersionString() = when (this) {
       "3.1" -> "$this.0-beta2"
       else -> "$this.0-beta02"
     }
+    fun checkGetCompatibleGradleVersion(from: AgpVersion, to: GradleVersion) {
+      expect.that(getCompatibleGradleVersion(from).version).named("getCompatibleGradleVersion(agpVersion=$from)").isEqualTo(to)
+    }
     data.forEach { (agpBase, expected) ->
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0")).version).isEqualTo(expected)
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.9")).version).isEqualTo(expected)
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-alpha01")).version).isEqualTo(expected)
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse(agpBase.toBetaVersionString())).version).isEqualTo(expected)
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-rc03")).version).isEqualTo(expected)
+      checkGetCompatibleGradleVersion(AgpVersion.parse("$agpBase.0"), expected)
+      checkGetCompatibleGradleVersion(AgpVersion.parse("$agpBase.9"), expected)
+      checkGetCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-alpha01"), expected)
+      checkGetCompatibleGradleVersion(AgpVersion.parse(agpBase.toBetaVersionString()), expected)
+      checkGetCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-rc03"), expected)
     }
   }
 }

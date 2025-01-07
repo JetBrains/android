@@ -488,13 +488,18 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   // http://b.android.com/218575
   public void testCreateWithoutSpecificGradleVersion() throws IOException {
-    File projectPath = getProjectBaseDir();
-    File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
-    assertFalse(projectWrapperDirPath.exists());
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.override(false);
+    try {
+      File projectPath = getProjectBaseDir();
+      File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
+      assertFalse(projectWrapperDirPath.exists());
 
-    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, myProject);
-    assertNotNull(gradleWrapper);
-    assertWrapperCreated(projectWrapperDirPath, GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION));
+      GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, myProject);
+      assertNotNull(gradleWrapper);
+      assertWrapperCreated(projectWrapperDirPath, GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION));
+    } finally {
+      StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.clearOverride();
+    }
   }
 
   // See https://code.google.com/p/android/issues/detail?id=357944
