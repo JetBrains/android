@@ -188,12 +188,14 @@ class RootPanelTest {
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(1)
     assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(1)
+    assertThat(layoutInspectorRule.inspectorModel.attachStageListeners.size()).isEqualTo(1)
 
     Disposer.dispose(androidProjectRule.testRootDisposable)
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(0)
     assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(0)
+    assertThat(layoutInspectorRule.inspectorModel.attachStageListeners.size()).isEqualTo(0)
   }
 
   @Test

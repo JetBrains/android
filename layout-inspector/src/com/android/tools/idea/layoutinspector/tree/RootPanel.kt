@@ -142,6 +142,7 @@ class RootPanel(
 
   private fun removeListeners() {
     layoutInspector?.inspectorModel?.removeConnectionListener(connectionListener)
+    layoutInspector?.inspectorModel?.removeAttachStageListener(attachProgressProvider)
     layoutInspector
       ?.foregroundProcessDetection
       ?.removeForegroundProcessListener(foregroundProcessListener)
