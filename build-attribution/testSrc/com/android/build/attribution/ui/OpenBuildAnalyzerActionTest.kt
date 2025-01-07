@@ -22,13 +22,10 @@ import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.testFramework.MapDataContext
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -43,20 +40,22 @@ import java.util.UUID
 import javax.swing.JPanel
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
   private val openBuildAnalyzerAction = OpenBuildAnalyzerAction()
-  private val mapDataContext = MapDataContext()
   private lateinit var event : AnActionEvent
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun setup() {
-    event = AnActionEvent(null, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
+    event = TestActionEvent.createTestEvent(SimpleDataContext.getProjectContext(projectRule.project))
   }
 
   @Test
@@ -68,7 +67,6 @@ class OpenBuildAnalyzerActionTest {
 
   @Test
   fun testUpdateNoData() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     openBuildAnalyzerAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
@@ -76,7 +74,7 @@ class OpenBuildAnalyzerActionTest {
 
   @Test
   fun testUpdateNoProject() {
-    mapDataContext.put(CommonDataKeys.PROJECT, null)
+    event = TestActionEvent.createTestEvent(EMPTY_CONTEXT)
     openBuildAnalyzerAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
     assertThat(event.presentation.isEnabled).isFalse()
@@ -84,7 +82,6 @@ class OpenBuildAnalyzerActionTest {
 
   @Test
   fun testUpdateDataAndProject() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     val buildSessionID = UUID.randomUUID().toString()
     storeDefaultData(buildSessionID)
     openBuildAnalyzerAction.update(event)
@@ -94,7 +91,6 @@ class OpenBuildAnalyzerActionTest {
 
   @Test
   fun testActionPerformed() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     val windowManager = ToolWindowHeadlessManagerImpl(projectRule.project)
     projectRule.replaceProjectService(ToolWindowManager::class.java, windowManager)
     projectRule.replaceProjectService(BuildContentManager::class.java, BuildContentManagerImpl(projectRule.project))

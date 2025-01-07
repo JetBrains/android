@@ -29,11 +29,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -47,7 +47,6 @@ class OpenBuildAnalyzerResultsActionTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val jbPopupRule = JBPopupRule()
   private val openBuildAnalyzerResultsAction = OpenBuildAnalyzerResultsAction()
-  private val mapDataContext = MapDataContext()
   private lateinit var event: AnActionEvent
 
   @get:Rule
@@ -55,8 +54,7 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Before
   fun setup() {
-    event = AnActionEvent(null, mapDataContext,
-                          "place", Presentation(), ActionManager.getInstance(), 0)
+    event = TestActionEvent.createTestEvent(SimpleDataContext.getProjectContext(projectRule.project))
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
   }
 
@@ -74,7 +72,6 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testUpdateNoData() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     openBuildAnalyzerResultsAction.update(event)
     Truth.assertThat(event.presentation.isVisible).isTrue()
     Truth.assertThat(event.presentation.isEnabled).isTrue()
@@ -82,7 +79,7 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testUpdateNoProject() {
-    mapDataContext.put(CommonDataKeys.PROJECT, null)
+    event = TestActionEvent.createTestEvent(EMPTY_CONTEXT)
     openBuildAnalyzerResultsAction.update(event)
     Truth.assertThat(event.presentation.isVisible).isFalse()
     Truth.assertThat(event.presentation.isEnabled).isFalse()
@@ -90,7 +87,6 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testUpdateDataAndProject() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     val buildSessionID = UUID.randomUUID().toString()
     storeDefaultData(buildSessionID)
     openBuildAnalyzerResultsAction.update(event)
@@ -100,7 +96,6 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testActionPerformed() {
-    mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
     val buildSessionIDs = List(5) {
       val buildSessionID = UUID.randomUUID().toString()
       storeDefaultData(buildSessionID)
