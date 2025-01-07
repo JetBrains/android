@@ -20,15 +20,14 @@ import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Button
 import android.widget.TextView
-import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 import java.awt.Rectangle
+import kotlin.jvm.java
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -46,7 +45,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
@@ -55,7 +54,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     while (viewsToAnalyze.isNotEmpty()) {
       val view = viewsToAnalyze.removeLast()
       view.children.forEach { viewsToAnalyze.addLast(it) }
-      findOverlapOfTextViewIssues(view, backgroundBounds, foregroundBounds, model, issues)
+      findOverlapOfTextViewIssues(view, backgroundBounds, foregroundBounds, issues)
     }
     return issues
   }
@@ -64,7 +63,6 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     view: ViewInfo,
     backgroundBounds: Rectangle,
     foregroundBounds: Rectangle,
-    model: NlModel,
     issueList: MutableList<VisualLintIssueContent>,
   ) {
     val children =
@@ -83,16 +81,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
           continue
         }
         if (
-          isPartiallyHidden(
-            firstView,
-            i,
-            backgroundBounds,
-            secondView,
-            j,
-            foregroundBounds,
-            model,
-            view,
-          )
+          isPartiallyHidden(firstView, i, backgroundBounds, secondView, j, foregroundBounds, view)
         ) {
           issueList.add(createIssueContent(firstView, secondView))
         }
@@ -132,10 +121,9 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     secondViewInfo: ViewInfo,
     j: Int,
     secondBounds: Rectangle,
-    model: NlModel,
     parentViewInfo: ViewInfo,
   ): Boolean {
-    if (!isFirstViewUnderneath(firstViewInfo, i, secondViewInfo, j, model)) {
+    if (!isFirstViewUnderneath(firstViewInfo, i, secondViewInfo, j)) {
       return false
     }
     getTextBounds(firstViewInfo, firstBounds, parentViewInfo)
@@ -166,30 +154,24 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     firstViewIndex: Int,
     secondViewInfo: ViewInfo,
     secondViewIndex: Int,
-    model: NlModel,
   ): Boolean {
-    val comp1 = componentFromViewInfo(firstViewInfo, model)
-    val comp2 = componentFromViewInfo(secondViewInfo, model)
+    if (
+      firstViewInfo.accessibilityObject !is AccessibilityNodeInfo &&
+        secondViewInfo.accessibilityObject !is AccessibilityNodeInfo
+    ) {
+      val firstView = firstViewInfo.viewObject as? View
+      val secondView = secondViewInfo.viewObject as? View
+      if (firstView != null && secondView != null) {
+        val firstElevation = firstView.elevation
+        val secondElevation = secondView.elevation
 
-    // Try to see if we can compare elevation attribute if it exists.
-    if (comp1 != null && comp2 != null) {
-      val elev1 =
-        ConstraintComponentUtilities.getDpValue(
-          comp1,
-          comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION),
-        )
-      val elev2 =
-        ConstraintComponentUtilities.getDpValue(
-          comp2,
-          comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION),
-        )
-
-      if (elev1 < elev2) {
-        return true
-      } else if (elev1 > elev2) {
-        return false
+        if (firstElevation < secondElevation) {
+          return true
+        } else if (firstElevation > secondElevation) {
+          return false
+        }
+        // If they're the same, leave it to the index to resolve overlapping logic.
       }
-      // If they're the same, leave it to the index to resolve overlapping logic.
     }
 
     if (

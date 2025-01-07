@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.resources.Density.DEFAULT_DENSITY
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.parsers.TagSnapshot
@@ -34,54 +32,17 @@ abstract class VisualLintAnalyzer {
 
   /**
    * Analyze the given [RenderResult] for visual lint issues and return found
-   * [VisualLintRenderIssue]s
+   * [VisualLintIssueContent]s
    */
-  fun analyze(renderResult: RenderResult, model: NlModel): List<VisualLintRenderIssue> {
-    val issueContents = findIssues(renderResult, model)
-    return issueContents.map { createVisualLintRenderIssue(it, model, type) }.toList()
+  fun analyze(renderResult: RenderResult): List<VisualLintIssueContent> {
+    val configuration = renderResult.renderContext?.configuration ?: return emptyList()
+    return findIssues(renderResult, configuration)
   }
 
-  abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
-
-  protected fun previewConfigurations(count: Int): String {
-    return if (count == 1) "a preview configuration" else "$count preview configurations"
-  }
-
-  protected fun simpleName(view: ViewInfo): String {
-    if (view.cookie is TagSnapshot) {
-      return (view.cookie as TagSnapshot).tagName.substringAfterLast('.')
-    } else if (
-      view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View"
-    ) {
-      return "Composable"
-    }
-    return view.className.substringAfterLast('.')
-  }
-
-  protected fun nameWithId(viewInfo: ViewInfo): String {
-    val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
-    val name = simpleName(viewInfo)
-    val id =
-      tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let {
-        ResourceUrl.parse(it)?.name
-      }
-    return id?.let { "$id <$name>" } ?: name
-  }
-
-  protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
-    val accessibilityNodeInfo = viewInfo?.accessibilityObject
-    if (accessibilityNodeInfo is AccessibilityNodeInfo) {
-      return model.treeReader.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
-    }
-    val tag =
-      (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag
-        ?: return model.treeReader.components.firstOrNull()
-    return model.treeReader.findViewByTag(tag.psiXmlTag)
-  }
-
-  protected fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {
-    return clazz.isInstance(viewInfo.viewObject) || clazz.canonicalName == viewInfo.className
-  }
+  abstract fun findIssues(
+    renderResult: RenderResult,
+    configuration: Configuration,
+  ): List<VisualLintIssueContent>
 
   data class VisualLintIssueContent(
     val view: ViewInfo?,
@@ -89,4 +50,40 @@ abstract class VisualLintAnalyzer {
     val atfIssue: ValidatorData.Issue? = null,
     val descriptionProvider: (Int) -> HtmlBuilder,
   )
+
+  companion object {
+    fun previewConfigurations(count: Int): String {
+      return if (count == 1) "a preview configuration" else "$count preview configurations"
+    }
+
+    fun simpleName(view: ViewInfo): String {
+      if (view.cookie is TagSnapshot) {
+        return (view.cookie as TagSnapshot).tagName.substringAfterLast('.')
+      } else if (
+        view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View"
+      ) {
+        return "Composable"
+      }
+      return view.className.substringAfterLast('.')
+    }
+
+    fun nameWithId(viewInfo: ViewInfo): String {
+      val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
+      val name = simpleName(viewInfo)
+      val id =
+        tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let {
+          ResourceUrl.parse(it)?.name
+        }
+      return id?.let { "$id <$name>" } ?: name
+    }
+
+    fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {
+      return clazz.isInstance(viewInfo.viewObject) || clazz.canonicalName == viewInfo.className
+    }
+
+    fun pxToDp(config: Configuration, androidPx: Int): Int {
+      val dpiValue = config.density.dpiValue
+      return androidPx * DEFAULT_DENSITY / dpiValue
+    }
+  }
 }

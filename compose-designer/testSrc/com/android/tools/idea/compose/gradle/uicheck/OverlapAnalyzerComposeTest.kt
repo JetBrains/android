@@ -47,7 +47,7 @@ class OverlapAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
-    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView is covered by Composable", issues[0].message)
   }
@@ -69,7 +69,7 @@ class OverlapAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
-    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 }

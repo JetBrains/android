@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
-import junit.framework.Assert
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -74,19 +71,12 @@ class BoundsAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", content).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = BoundsAnalyzer.findIssues(result, nlModel)
+        val issues = BoundsAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals("TextView is partially hidden in layout", issues[0].message)
         Assert.assertEquals(

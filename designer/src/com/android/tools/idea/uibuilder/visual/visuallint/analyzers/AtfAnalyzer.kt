@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
@@ -45,7 +45,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     when (val validatorResult = renderResult.validatorResult) {
       is ValidatorHierarchy -> {

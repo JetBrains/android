@@ -132,7 +132,7 @@ class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICA
                         // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))
       ),
       samplesCount = NUMBER_OF_SAMPLES) {
-      modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel) }
+      modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel.configuration) }
     }
   }
 }

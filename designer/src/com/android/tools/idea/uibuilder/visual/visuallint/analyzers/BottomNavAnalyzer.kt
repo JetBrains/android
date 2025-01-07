@@ -16,8 +16,7 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
@@ -37,7 +36,7 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
@@ -46,7 +45,7 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
       view.children.forEach { viewsToAnalyze.addLast(it) }
       if (view.className == BOTTOM_NAVIGATION_CLASS_NAME) {
         /* This is needed, as visual lint analysis need to run outside the context of scene. */
-        val widthInDp = Coordinates.pxToDp(model, view.right - view.left)
+        val widthInDp = pxToDp(configuration, view.right - view.left)
         if (widthInDp > 600) {
           issues.add(createIssueContent(view))
         }

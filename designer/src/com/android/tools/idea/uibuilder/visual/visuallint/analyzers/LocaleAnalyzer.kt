@@ -19,7 +19,6 @@ import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
@@ -35,7 +34,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val config = renderResult.renderContext?.configuration
@@ -52,7 +51,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
       while (viewsToAnalyze.isNotEmpty()) {
         val view = viewsToAnalyze.removeLast()
         view.children.forEach { viewsToAnalyze.addLast(it) }
-        issues.addAll(findLocaleIssues(view, baseConfigIssues, model))
+        issues.addAll(findLocaleIssues(view, baseConfigIssues, configuration))
       }
     }
     return issues
@@ -86,12 +85,12 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   private fun findLocaleIssues(
     view: ViewInfo,
     baseConfigIssues: VisualLintBaseConfigIssues,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val key = getKey(view) ?: return issues
     val value = baseConfigIssues.componentState[key]
-    val locale = model.configuration.locale.toString()
+    val locale = configuration.locale.toString()
 
     if (isEllipsized(view) && value != null && !value.hasI18NEllipsis) {
       issues.add(createEllipsizedIssue(view, locale))

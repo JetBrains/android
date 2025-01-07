@@ -58,7 +58,7 @@ class LongTextAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
   }
@@ -87,7 +87,7 @@ class LongTextAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 }

@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHier
 import com.android.tools.idea.uibuilder.visual.WearDeviceModelsProvider
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
@@ -298,7 +299,8 @@ class VisualLintService(val project: Project) : Disposable {
         if (runningInBackground && !inspection.runInBackground) {
           return@forEach
         }
-        val issues = analyzer.analyze(result, model)
+        val issues =
+          analyzer.analyze(result).map { createVisualLintRenderIssue(it, model, analyzer.type) }
         targetIssueProvider.addAllIssues(issues)
       }
   }

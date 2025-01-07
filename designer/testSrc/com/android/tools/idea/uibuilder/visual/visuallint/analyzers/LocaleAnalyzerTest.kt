@@ -16,18 +16,15 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.resources.Locale
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
-import junit.framework.Assert
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -80,20 +77,13 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        layoutFile,
-      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -105,7 +95,7 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text might be cut off.", issues[0].message)
       } catch (ex: java.lang.Exception) {
@@ -149,20 +139,13 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        layoutFile,
-      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -174,7 +157,7 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text is ellipsized in locale \"fr\".", issues[0].message)
       } catch (ex: java.lang.Exception) {
@@ -217,20 +200,13 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        layoutFile,
-      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -242,7 +218,7 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, nlModel)
+        val issues = analyzer.findIssues(result, configuration)
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

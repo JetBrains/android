@@ -16,8 +16,7 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
@@ -39,14 +38,13 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
-    val configuration = model.configuration
     val orientation = configuration.deviceState?.orientation ?: return issues
     val dimension = configuration.device?.getScreenSize(orientation) ?: return issues
-    val width = Coordinates.pxToDp(model, dimension.width)
-    val height = Coordinates.pxToDp(model, dimension.height)
+    val width = pxToDp(configuration, dimension.width)
+    val height = pxToDp(configuration, dimension.height)
     if (width > 600 && height > 360) {
       val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
       while (viewsToAnalyze.isNotEmpty()) {

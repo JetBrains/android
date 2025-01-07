@@ -98,7 +98,7 @@ class AtfAnalyzerTest {
       try {
         val result = task.render().get()
         NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-        val issues = AtfAnalyzer.findIssues(result, nlModel)
+        val issues = AtfAnalyzer.findIssues(result, nlModel.configuration)
         assertEquals(1, issues.size)
         issues.forEach {
           assertEquals("Duplicated clickable Views", it.message)

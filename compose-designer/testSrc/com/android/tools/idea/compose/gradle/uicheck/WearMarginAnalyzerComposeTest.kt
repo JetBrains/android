@@ -59,7 +59,7 @@ class WearMarginAnalyzerComposeTest {
         file,
         renderResult.result!!.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel)
+    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 
@@ -89,7 +89,7 @@ class WearMarginAnalyzerComposeTest {
         file,
         renderResult.result!!.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel)
+    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals(
       "The view TextView is too close to the side of the device",

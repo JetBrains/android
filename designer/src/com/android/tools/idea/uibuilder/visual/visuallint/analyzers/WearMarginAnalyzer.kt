@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import android.view.ViewGroup
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
@@ -36,11 +36,10 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel,
+    configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque<ViewWithParentBounds>()
-    val configuration = model.configuration
     val orientation = configuration.deviceState?.orientation ?: return issues
     val width = configuration.device?.getScreenSize(orientation)?.width ?: return issues
     val isRound = configuration.device?.isScreenRound ?: false

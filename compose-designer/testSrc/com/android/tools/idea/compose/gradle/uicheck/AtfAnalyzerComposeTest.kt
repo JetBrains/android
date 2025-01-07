@@ -189,7 +189,7 @@ class AtfAnalyzerComposeTest {
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel
       NlModelHierarchyUpdater.updateHierarchy(renderResult.result!!, nlModel)
-      AtfAnalyzer.findIssues(renderResult.result, nlModel).map {
+      AtfAnalyzer.findIssues(renderResult.result, nlModel.configuration).map {
         createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF)
       }
     }

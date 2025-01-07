@@ -58,7 +58,7 @@ class TextFieldSizeAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(1, issues.size)
     assertEquals("The text field EditText is too wide", issues[0].message)
   }
@@ -87,7 +87,7 @@ class TextFieldSizeAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(0, issues.size)
   }
 }
