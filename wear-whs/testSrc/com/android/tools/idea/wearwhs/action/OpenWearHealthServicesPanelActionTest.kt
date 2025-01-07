@@ -33,12 +33,11 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.seconds
@@ -109,8 +108,7 @@ class OpenWearHealthServicesPanelActionTest {
         .add(EMULATOR_CONTROLLER_KEY, emulatorController)
         .build()
 
-    actionEvent =
-      AnActionEvent(null, dataContext, "", Presentation(), ActionManager.getInstance(), 0)
+    actionEvent = TestActionEvent.createTestEvent(dataContext)
 
     val deviceProvisionerService: DeviceProvisionerService = mock()
     projectRule.project.replaceService(
