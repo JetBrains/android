@@ -17,6 +17,9 @@ package com.android.tools.idea.backup
 
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.pathString
 
 private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
 
@@ -24,12 +27,26 @@ private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
 internal class BackupFileHistory(private val project: Project) {
 
   fun getFileHistory(): List<String> {
-    val value = PropertiesComponent.getInstance(project).getValue(FILE_HISTORY_PROPERTY)
-    return value?.lines() ?: emptyList()
+    val value =
+      PropertiesComponent.getInstance(project).getValue(FILE_HISTORY_PROPERTY) ?: return emptyList()
+
+    val files = value.lines()
+    val existing = files.filterExisting()
+    if (files.size != existing.size) {
+      setProperty(existing)
+    }
+    return existing
   }
 
   fun setFileHistory(history: List<String>) {
-    PropertiesComponent.getInstance(project)
-      .setValue(FILE_HISTORY_PROPERTY, history.joinToString("\n") { it })
+    setProperty(history.filterExisting())
   }
+
+  private fun setProperty(value: List<String>) {
+    PropertiesComponent.getInstance(project)
+      .setValue(FILE_HISTORY_PROPERTY, value.joinToString("\n") { it })
+  }
+
+  private fun List<String>.filterExisting() =
+    map { Path.of(it).absoluteInProject(project) }.filter { it.exists() }.map { it.pathString }
 }
