@@ -210,18 +210,18 @@ class ScreenshotViewer(
   override fun createCenterPanel(): JComponent {
     val panel = panel {
       row {
-        button("Recapture") { doRefreshScreenshot() }
+        button(message("screenshot.dialog.recapture.button.text")) { doRefreshScreenshot() }
           .applyToComponent {
             icon = AllIcons.Actions.Refresh
             runOnDisposalOfAnyOf(screenshotSupplier, disposable, runnable = Runnable { setEnabled(false) })
           }
 
         if (allowRotation) {
-          button("Rotate Left") { updateImageRotation(1) }
-          button("Rotate Right") { updateImageRotation(3) }
+          button(message("screenshot.dialog.rotate.left.button.text")) { updateImageRotation(1) }
+          button(message("screenshot.dialog.rotate.right.button.text")) { updateImageRotation(3) }
         }
 
-        button("Copy to Clipboard") { copyImageToClipboard() }
+        button(message("screenshot.dialog.copy.button.text")) { copyImageToClipboard() }
 
         cell(decorationComboBox).align(AlignX.RIGHT)
       }
