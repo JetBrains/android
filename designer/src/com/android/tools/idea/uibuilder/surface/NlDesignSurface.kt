@@ -581,7 +581,7 @@ internal constructor(
           port,
           update,
           scrollPosition,
-          Point(scrollPosition.x, max(0.0, focusPoint.y.toDouble()).toInt()),
+          Point(scrollPosition.x, max(0, focusPoint.y)),
         )
     } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =
