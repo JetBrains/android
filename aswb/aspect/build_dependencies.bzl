@@ -351,15 +351,11 @@ def declares_aar_import(ctx):
     """
     return ctx.rule.kind == "aar_import" and hasattr(ctx.rule.attr, "aar")
 
-def _collect_dependencies_impl(target, ctx):
+def _collect_dependencies_impl(target, ctx, params):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        ctx.attr.include,
-        ctx.attr.exclude,
-        ctx.attr.always_build_rules,
-        ctx.attr.generate_aidl_classes,
-        ctx.attr.use_generated_srcjars,
+        params,
         test_mode = False,
     )
 
@@ -367,11 +363,13 @@ def _collect_all_dependencies_for_tests_impl(target, ctx):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        include = None,
-        exclude = None,
-        always_build_rules = ALWAYS_BUILD_RULES,
-        generate_aidl_classes = None,
-        use_generated_srcjars = True,
+        struct(
+            include = None,
+            exclude = None,
+            always_build_rules = ALWAYS_BUILD_RULES,
+            generate_aidl_classes = None,
+            use_generated_srcjars = True,
+        ),
         test_mode = True,
     )
 
@@ -379,11 +377,13 @@ def collect_dependencies_for_test(target, ctx, include = []):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        include = ",".join(include),
-        exclude = "",
-        always_build_rules = ALWAYS_BUILD_RULES,
-        generate_aidl_classes = None,
-        use_generated_srcjars = True,
+        struct(
+            include = include,
+            exclude = "",
+            always_build_rules = ALWAYS_BUILD_RULES,
+            generate_aidl_classes = None,
+            use_generated_srcjars = True,
+        ),
         test_mode = False,
     )
 
@@ -403,16 +403,16 @@ def _target_within_project_scope(label, include, exclude):
     package = label.package
     result = False
     if include:
-        if include == "//":
+        if len(include) == 1 and include[0] == "//":
             # when workspace root is included
             result = True
         else:
-            for inc in [Label(i) for i in include.split(",")]:
+            for inc in [Label(i) for i in include]:
                 if _get_repo_name(inc) == repo and _package_prefix_match(package, inc.package):
                     result = True
                     break
     if result and len(exclude) > 0:
-        for exc in [Label(i) for i in exclude.split(",")]:
+        for exc in [Label(i) for i in exclude]:
             if _get_repo_name(exc) == repo and _package_prefix_match(package, exc.package):
                 result = False
                 break
@@ -460,7 +460,7 @@ def _collect_own_java_artifacts(
     rule = ctx.rule
 
     must_build_main_artifacts = (
-        not target_is_within_project_scope or rule.kind in always_build_rules.split(",")
+        not target_is_within_project_scope or rule.kind in always_build_rules
     )
 
     own_jar_files = []
@@ -714,20 +714,12 @@ def _collect_own_and_dependency_cc_info(target, rule, test_mode):
 def _collect_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode):
     java_dep_info = _collect_java_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode,
     )
     cc_dep_info = None
@@ -741,22 +733,18 @@ def _collect_dependencies_core_impl(
 def _collect_java_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode):
-    target_is_within_project_scope = _target_within_project_scope(target.label, include, exclude) and not test_mode
+    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude) and not test_mode
     dependency_infos = _get_followed_java_dependency_infos(ctx.rule)
 
     target_to_artifacts, compile_jars, aars, gensrcs = _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
         dependency_infos,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params.always_build_rules,
+        params.generate_aidl_classes,
+        params.use_generated_srcjars,
         target_is_within_project_scope,
     )
 
@@ -767,9 +755,9 @@ def _collect_java_dependencies_core_impl(
             target,
             ctx,
             can_follow_dependencies,
-            always_build_rules,
-            generate_aidl_classes,
-            use_generated_srcjars,
+            params.always_build_rules,
+            params.generate_aidl_classes,
+            params.use_generated_srcjars,
             target_is_within_project_scope = True,
         )
         test_mode_own_files = struct(
@@ -968,43 +956,27 @@ FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLL
 
 TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_CC.toolchains_aspects
 
-collect_dependencies = aspect(
-    implementation = _collect_dependencies_impl,
-    provides = [DependenciesInfo],
-    attr_aspects = FOLLOW_ATTRIBUTES,
-    attrs = {
-        "include": attr.string(
-            doc = "Comma separated list of workspace paths included in the project as source. Any targets inside here will not be built.",
-            mandatory = True,
-        ),
-        "exclude": attr.string(
-            doc = "Comma separated list of exclusions to 'include'.",
-            default = "",
-        ),
-        "always_build_rules": attr.string(
-            doc = "Comma separated list of rules. Any targets belonging to these rules will be built, regardless of location",
-            default = "",
-        ),
-        "generate_aidl_classes": attr.bool(
-            doc = "If True, generates classes for aidl files included as source for the project targets",
-            default = False,
-        ),
-        "use_generated_srcjars": attr.bool(
-            doc = "If True, collects generated source jars for a target instead of compiled jar",
-            default = False,
-        ),
-        "_build_zip": attr.label(
-            allow_files = True,
-            cfg = "exec",
-            executable = True,
-            default = ZIP_TOOL_LABEL,
-        ),
-    },
-    fragments = ["cpp"],
-    **{
-        "toolchains_aspects": TOOLCHAINS_ASPECTS,
-    } if TOOLCHAINS_ASPECTS else {}
-)
+def collect_dependencies(parameters):
+    def _impl(target, ctx):
+        return _collect_dependencies_impl(target, ctx, parameters)
+
+    return aspect(
+        implementation = _impl,
+        provides = [DependenciesInfo],
+        attr_aspects = FOLLOW_ATTRIBUTES,
+        attrs = {
+            "_build_zip": attr.label(
+                allow_files = True,
+                cfg = "exec",
+                executable = True,
+                default = ZIP_TOOL_LABEL,
+            ),
+        },
+        fragments = ["cpp"],
+        **{
+            "toolchains_aspects": TOOLCHAINS_ASPECTS,
+        } if TOOLCHAINS_ASPECTS else {}
+    )
 
 collect_all_dependencies_for_tests = aspect(
     doc = """
