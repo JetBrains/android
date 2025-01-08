@@ -71,6 +71,10 @@ public class StudioBleakOptions {
     new IgnoredRef(1, "sun.java2d.marlin.OffHeapArray", "REF_LIST"),
     new IgnoredRef(1, "sun.awt.X11.XInputMethod", "lastXICFocussedComponent"), // b/150879705
     new IgnoredRef(-1, "sun.font.XRGlyphCache", "cacheMap"),
+    new IgnoredRef(1, "android.icu.impl.ICUResourceBundleImpl$ResourceTable", "cacheList"),
+    new IgnoredRef(1, "com.intellij.util.CachedValueStabilityChecker", "ourFieldCache"),
+    new IgnoredRef(-2, "com.intellij.psi.impl.source.resolve.reference.PsiReferenceRegistrarImpl", "bindingCache"),
+    new IgnoredRef(-2, "com.intellij.platform.diagnostic.telemetry.exporters.BatchSpanProcessor$1", "L$0"), // batch size is bounded
 
     new IgnoredRef(-2, "com.intellij.openapi.application.impl.ReadMostlyRWLock", "readers"),
     new IgnoredRef(1, "org.jdom.JDOMInterner", "INSTANCE"),
@@ -100,7 +104,7 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "java.lang.ThreadGroup", "threads"), // false positives for e.g. I/O pool growth
     new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "capturedCoroutinesMap"),
     new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "callerInfoCache"),
-    new IgnoredRef(-2, "kotlinx.coroutines.DefaultExecutor", "_delayed"),
+    new IgnoredRef(-1, "kotlinx.coroutines.EventLoopImplBase$DelayedTaskQueue", "a"),
 
     // as-driver-specific:
     new IgnoredRef(2, "com.android.tools.idea.io.grpc.InternalChannelz", "perServerSockets"),
