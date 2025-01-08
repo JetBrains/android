@@ -56,20 +56,13 @@ internal fun ConfigureDevicePanel(
 ) {
   Row(Modifier.padding(top = Padding.LARGE)) {
     Column(Modifier.weight(1f)) {
-      Column(Modifier.padding(horizontal = Padding.EXTRA_LARGE)) {
-        Text(
-          "Configure virtual device",
-          fontWeight = FontWeight.SemiBold,
-          fontSize = LocalTextStyle.current.fontSize * 1.2,
-          modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
-        )
-        Text(
-          "Select the system image you'd like to use with the device profile you selected. You can " +
-            "also change additional settings that affect the emulated device.",
-          color = JewelTheme.globalColors.text.info,
-          modifier = Modifier.padding(bottom = Padding.SMALL),
-        )
-      }
+      Text(
+        "Configure virtual device",
+        fontWeight = FontWeight.SemiBold,
+        fontSize = LocalTextStyle.current.fontSize * 1.2,
+        modifier =
+          Modifier.padding(horizontal = Padding.EXTRA_LARGE).padding(bottom = Padding.SMALL_MEDIUM),
+      )
       Tabs(
         configureDevicePanelState,
         initialSystemImage,

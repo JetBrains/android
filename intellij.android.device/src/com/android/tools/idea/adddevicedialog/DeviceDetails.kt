@@ -95,11 +95,7 @@ fun DeviceDetails(
       if (device.apiRange.isSingleton() && systemImage == null) {
         LabeledValue("API Level", device.apiRange.lowerEndpoint().toString())
       } else {
-        TwoLineLabeledValue(
-          "Supported API Levels",
-          device.apiRange.firstAndLastApiLevel(),
-          Modifier.padding(top = 4.dp),
-        )
+        LabeledValue("Supported API Levels", device.apiRange.firstAndLastApiLevel())
       }
 
       if (systemImage != null) {
@@ -172,14 +168,6 @@ private fun LabeledValue(label: String, value: String) {
     }
     Spacer(Modifier.size(4.dp))
     Column(Modifier.weight(0.5f).alignByBaseline()) { Text(value) }
-  }
-}
-
-@Composable
-private fun TwoLineLabeledValue(label: String, value: String, modifier: Modifier = Modifier) {
-  Column(modifier) {
-    Text(label, color = JewelTheme.globalColors.text.info)
-    Text(value)
   }
 }
 
