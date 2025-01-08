@@ -55,6 +55,27 @@ class SystemImageFilterStateTest {
   }
 
   @Test
+  fun systemImageFilterStatePreview() {
+    // Arrange
+    val images =
+      listOf(
+        mockSystemImage(AndroidVersion(35, "Baklava", 15, true)),
+        mockSystemImage(AndroidVersion(35, "Baklava", 16, true)),
+      )
+
+    // Act
+    val state =
+      SystemImageFilterState(
+        AndroidVersionSelection(AndroidVersion(35, "Baklava")),
+        null,
+        showUnsupportedSystemImages = true,
+      )
+
+    // Assert
+    assertEquals(images, state.filter(images))
+  }
+
+  @Test
   fun systemImageFilterStateApiLevelsAreEqual() {
     // Arrange
     val image = mockSystemImage(AndroidVersion(34, null, 7, true))

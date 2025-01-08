@@ -65,7 +65,9 @@ internal constructor(
       val servicesMatches = selectedServices == null || image.getServices() == selectedServices
 
       val isSdkExtensionMatches =
-        showSdkExtensionSystemImages || baseExtensionLevels.isBaseExtension(image.androidVersion)
+        showSdkExtensionSystemImages ||
+          image.androidVersion.isPreview ||
+          baseExtensionLevels.isBaseExtension(image.androidVersion)
 
       val isSupportedMatches = showUnsupportedSystemImages || image.isSupported()
 
