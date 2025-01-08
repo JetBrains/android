@@ -196,8 +196,8 @@ def _test_build_dep_desc_impl(ctx):
     output_groups = {}
     for t in ctx.attr.deps:
         label = str(t.label)
-        f += t[OutputGroupInfo].artifact_info_file.to_list()
-        f += t[OutputGroupInfo].cc_info_file.to_list()
+        f += t[OutputGroupInfo].qs_info.to_list()
+        f += t[OutputGroupInfo].qs_cc_info.to_list()
 
         # Add all output groups to a dict of [target name] -> [OutputGroupInfo]
         output_groups[label] = t[OutputGroupInfo]

@@ -73,21 +73,21 @@ IDE_CC = _validate_ide(
 
 JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_KOTLIN.srcs_attributes)
 
+def _noneToEmpty(d):
+    return d if d else depset()
+
 def _package_dependencies_impl(target, ctx):
-    java_info_file = _write_java_target_info(target, ctx)
-    cc_info_file = _write_cc_target_info(target, ctx)
-
-    def noneToEmpty(d):
-        return d if d else depset()
-
     dep_info = target[DependenciesInfo]
+    java_info_file = _write_java_target_info(target, ctx)
+    cc_info_files = _write_cc_target_info(target, ctx) + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else []
+
     return [OutputGroupInfo(
-        qsync_jars = noneToEmpty(dep_info.compile_time_jars),
-        artifact_info_file = java_info_file,
-        qsync_aars = noneToEmpty(dep_info.aars),
-        qsync_gensrcs = noneToEmpty(dep_info.gensrcs),
-        cc_headers = noneToEmpty(dep_info.cc_headers),
-        cc_info_file = cc_info_file + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else [],
+        qs_jars = _noneToEmpty(dep_info.compile_time_jars),
+        qs_info = java_info_file,
+        qs_aars = _noneToEmpty(dep_info.aars),
+        qs_gensrcs = _noneToEmpty(dep_info.gensrcs),
+        qs_cc_headers = _noneToEmpty(dep_info.cc_headers),
+        qs_cc_info = cc_info_files,
     )]
 
 def _write_java_target_info(target, ctx, custom_prefix = ""):
