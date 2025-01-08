@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE
@@ -459,6 +460,7 @@ class ScreenshotViewer(
     ALLOW_IMAGE_ROTATION // Enables the image rotation buttons.
   }
 
+  @Service(Service.Level.PROJECT)
   @State(name = "ScreenshotViewer", storages = [Storage(NON_ROAMABLE_FILE)])
   internal class PersistentState : PersistentStateComponent<PersistentState> {
     var frameScreenshot: Boolean = false
