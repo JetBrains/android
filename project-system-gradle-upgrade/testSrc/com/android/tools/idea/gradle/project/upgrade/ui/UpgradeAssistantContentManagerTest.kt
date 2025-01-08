@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.Loading
+import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoAGP
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ProjectFilesNotCleanWarning
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ReadyToRun
@@ -194,6 +195,12 @@ class ContentManagerImplTest {
   fun testToolWindowModelStartsBlockedWithNoFiles() {
     val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
     assertThat(toolWindowModel.uiState.get()).isEqualTo(Blocked)
+  }
+
+  @Test
+  fun testToolWindowModelStartsNoAGPWithNoAGP() {
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { null })
+    assertThat(toolWindowModel.uiState.get()).isEqualTo(NoAGP)
   }
 
   @Test
@@ -1178,7 +1185,7 @@ class ContentManagerImplTest {
   fun testUIStateEquality() {
     fun UIState.hash(): Int = when (this) {
       // This is written out so that it fails to compile if a new UIState is added without updating this test.
-      AllDone, Blocked,
+      AllDone, Blocked, NoAGP,
       is CaughtException,
       is InvalidVersionError,
       VersionSelectionInProgress,
@@ -1190,7 +1197,7 @@ class ContentManagerImplTest {
     }
 
     val stateList = listOf(
-      AllDone, Blocked,
+      AllDone, Blocked, NoAGP,
       CaughtException("one"), CaughtException("two"),
       InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
       Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync, RunningBuild,

@@ -230,6 +230,12 @@ class UpgradeAssistantWindowModel(
       override val runTooltip: String
         get() = statusMessage.text
     }
+    object NoAGP : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.HIDE_TREE
+      override val statusMessage = StatusMessage(Severity.ERROR, "Android Gradle Plugin not present")
+      override val runTooltip = ""
+    }
     class CaughtException(
       val errorMessage: String
     ): UIState() {
@@ -438,7 +444,10 @@ class UpgradeAssistantWindowModel(
       }
     }
 
-    if (newProcessor == null) {
+    if (current == null) {
+      uiState.set(UIState.NoAGP)
+    }
+    else if (newProcessor == null) {
       // Preserve existing message and run button tooltips from newVersion validation.
       uiState.set(oldState)
     }
