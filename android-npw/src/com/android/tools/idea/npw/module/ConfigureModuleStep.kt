@@ -104,8 +104,8 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
   private val disposable by lazy { parentDisposable ?: this }
   private val androidVersionsInfo = AndroidVersionsInfo()
-  private var installRequests: List<UpdatablePackage> = listOf()
-  private var installLicenseRequests: List<RemotePackage> = listOf()
+  private var installRequests: MutableList<UpdatablePackage> = mutableListOf()
+  private var installLicenseRequests: MutableList<RemotePackage> = mutableListOf()
 
   protected val moduleName: JTextField = JBTextField()
   protected val packageName: JTextField = JBTextField()
@@ -165,6 +165,9 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
   private val moduleValidator = ModuleValidator(model.project)
 
+  private val licenseAgreementStep =
+    LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), { installLicenseRequests })
+
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
@@ -207,11 +210,6 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    val licenseAgreementStep =
-      LicenseAgreementStep(
-        LicenseAgreementModel(sdkManagerLocalPath),
-        { installLicenseRequests },
-      )
     val installPackagesStep =
       InstallSelectedPackagesStep(
         installRequests,
@@ -242,8 +240,16 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get())
     )
     model.useGradleKts.set(buildConfigurationLanguage.value == KTS)
-    installRequests = androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
-    installLicenseRequests = installRequests.map { it.remote!! }
+
+    installRequests.clear()
+    installLicenseRequests.clear()
+
+    installRequests.addAll(
+      androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
+    )
+    installLicenseRequests.addAll(installRequests.map { it.remote!! })
+
+    licenseAgreementStep.reload()
   }
 
   public final override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
