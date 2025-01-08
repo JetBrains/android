@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.google.wireless.android.sdk.stats.SetupWizardEvent;
-import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +35,6 @@ public class AehdInstallInfoStep extends FirstRunWizardStep {
   public AehdInstallInfoStep(@NotNull FirstRunWizardTracker tracker) {
     super("Installing Android Emulator hypervisor driver", tracker);
     setComponent(myForm.getRoot());
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return SystemInfo.isWindows;
   }
 
   @Override

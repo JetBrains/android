@@ -32,7 +32,6 @@ import com.android.tools.idea.sdk.wizard.AehdWizardController
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -120,11 +119,6 @@ class AehdWizardTest {
 
   @Test
   fun navigatingThroughWizardInstallsAehd() {
-    // AEHD installation is only supported on Windows
-    if (!SystemInfo.isWindows) {
-      return
-    }
-
     showWizard(mockAehdWizardController, mock()) { fakeUi ->
       val infoStepTitle =
         checkNotNull(
@@ -180,11 +174,6 @@ class AehdWizardTest {
 
   @Test
   fun cancellingWizardTriggersCleanup() {
-    // AEHD installation is only supported on Windows
-    if (!SystemInfo.isWindows) {
-      return
-    }
-
     val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD)
     showWizard(mockAehdWizardController, tracker) { fakeUi ->
       val cancelButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.equals("Cancel") })
@@ -200,11 +189,6 @@ class AehdWizardTest {
 
   @Test
   fun usageMetricsTracked_wizardComplete() {
-    // AEHD installation is only supported on Windows
-    if (!SystemInfo.isWindows) {
-      return
-    }
-
     val mockTracker = mock(FirstRunWizardTracker::class.java)
     showWizard(mockAehdWizardController, mockTracker) { fakeUi ->
       val nextButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") })
@@ -254,11 +238,6 @@ class AehdWizardTest {
 
   @Test
   fun usageMetricsTracked_wizardCancelled() {
-    // AEHD installation is only supported on Windows
-    if (!SystemInfo.isWindows) {
-      return
-    }
-
     val trackerMock = mock(FirstRunWizardTracker::class.java)
     showWizard(mockAehdWizardController, trackerMock) {
       val cancelButton = checkNotNull(it.findComponent<JButton> { it.text.equals("Cancel") })

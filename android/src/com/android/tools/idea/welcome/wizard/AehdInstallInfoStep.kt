@@ -18,7 +18,6 @@ package com.android.tools.idea.welcome.wizard
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
-import com.intellij.openapi.util.SystemInfo
 import javax.swing.JComponent
 
 /** Wizard page for setting up AEHD settings */
@@ -27,8 +26,6 @@ class AehdInstallInfoStep(private val tracker: FirstRunWizardTracker) :
   private val form = AehdInstallInfoStepForm()
 
   override fun getComponent(): JComponent = form.root
-
-  override fun shouldShow(): Boolean = SystemInfo.isWindows
 
   override fun onShowing() {
     super.onShowing()
