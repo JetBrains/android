@@ -438,7 +438,6 @@
     </intentionAction>
 
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidLightOrGeneratedClassIntentionActionFilter"/>
-    <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidFindJarFixIntentionActionFilter"/>
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidOrderEntryFixIntentionActionFilter"/>
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidUpgradeSdkActionFilter"/>
 
