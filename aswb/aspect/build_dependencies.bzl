@@ -77,13 +77,16 @@ def _package_dependencies_impl(target, ctx):
     java_info_file = _write_java_target_info(target, ctx)
     cc_info_file = _write_cc_target_info(target, ctx)
 
+    def noneToEmpty(d):
+        return d if d else depset()
+
     dep_info = target[DependenciesInfo]
     return [OutputGroupInfo(
-        qsync_jars = dep_info.compile_time_jars.to_list() if dep_info.compile_time_jars else [],
+        qsync_jars = noneToEmpty(dep_info.compile_time_jars),
         artifact_info_file = java_info_file,
-        qsync_aars = dep_info.aars.to_list() if dep_info.aars else [],
-        qsync_gensrcs = dep_info.gensrcs.to_list() if dep_info.gensrcs else [],
-        cc_headers = dep_info.cc_headers.to_list() if dep_info.cc_headers else [],
+        qsync_aars = noneToEmpty(dep_info.aars),
+        qsync_gensrcs = noneToEmpty(dep_info.gensrcs),
+        cc_headers = noneToEmpty(dep_info.cc_headers),
         cc_info_file = cc_info_file + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else [],
     )]
 
