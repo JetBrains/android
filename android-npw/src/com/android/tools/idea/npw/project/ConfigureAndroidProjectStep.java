@@ -111,6 +111,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private final ListenerManager myListeners = new ListenerManager();
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
   private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
+  private final LicenseAgreementStep myLicenseAgreementStep;
 
   private final @NotNull JBScrollPane myRootPanel;
   private JPanel myPanel;
@@ -141,18 +142,17 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myRootPanel = wrapWithVScroll(myValidatorPanel);
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+
+    myLicenseAgreementStep = new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), () -> myInstallLicenseRequests);
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
-    LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), () -> myInstallLicenseRequests);
-
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
 
-    return Lists.newArrayList(licenseAgreementStep, installPackagesStep);
+    return Lists.newArrayList(myLicenseAgreementStep, installPackagesStep);
   }
 
   @Override
@@ -292,6 +292,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myInstallRequests.addAll(myFormFactorSdkControls.getSdkInstallPackageList());
     myInstallLicenseRequests.addAll(ContainerUtil.map(myInstallRequests, UpdatablePackage::getRemote));
+
+    myLicenseAgreementStep.reload();
   }
 
   @Override
