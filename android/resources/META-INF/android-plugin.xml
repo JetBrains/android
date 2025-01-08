@@ -591,8 +591,6 @@
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <virtualFileSystem key="apk" implementationClass="com.android.tools.idea.apk.viewer.ApkFileSystem"/>
-    <codeInsight.unresolvedReferenceQuickFixProvider
-        implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
 
     <!-- Translations Editor -->
     <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
