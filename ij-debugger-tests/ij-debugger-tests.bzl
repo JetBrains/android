@@ -9,7 +9,7 @@ def debugger_test(
         expected_to_fail_art = None,
         expected_to_fail_jvm = None,
         art_tags = ["ci:studio-linux-large"],
-        jvm_tags = [],
+        jvm_tags = ["ci:studio-linux-large"],
         module = "kotlin.jvm-debugger.test",
         shard_count = None):
     """Define a debugger test that runs on a ART and JVM.
