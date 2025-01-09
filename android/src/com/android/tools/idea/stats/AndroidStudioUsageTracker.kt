@@ -31,7 +31,6 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
-import com.android.tools.idea.serverflags.protos.Survey
 import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
@@ -59,7 +58,6 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.SystemInfo
@@ -67,9 +65,9 @@ import com.intellij.ui.NewUI
 import com.intellij.ui.scale.JBUIScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -96,8 +94,12 @@ object AndroidStudioUsageTracker {
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
   private const val IDX_ENVIRONMENT_VARIABLE = "GOOGLE_CLOUD_WORKSTATIONS"
 
-  // Broadcast channel for Android Studio events being logged
-  val channel = BroadcastChannel<AndroidStudioEvent.Builder>(BUFFERED)
+  /**
+   * See [kotlinx.coroutines.channels.Channel.CHANNEL_DEFAULT_CAPACITY]
+   */
+  private const val DEFAULT_CHANNEL_CAPACITY = 64
+  private val eventLogFlow_ = MutableSharedFlow<AndroidStudioEvent.Builder>(extraBufferCapacity = DEFAULT_CHANNEL_CAPACITY)
+  val eventLogFlow: SharedFlow<AndroidStudioEvent.Builder> = eventLogFlow_.asSharedFlow()
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -476,12 +478,12 @@ object AndroidStudioUsageTracker {
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     UsageTracker.listener = { event ->
       scope.launch {
-        channel.send(event)
+        eventLogFlow_.emit(event)
       }
     }
 
     scope.launch {
-      channel.openSubscription().consumeEach {
+      eventLogFlow.collect {
         FeatureSurveys.processEvent(it)
         DefaultMetricsLogFileProvider.processEvent(it)
       }
