@@ -36,16 +36,14 @@ import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClien
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.treeStructure.Tree
 import java.util.EnumSet
@@ -291,8 +289,7 @@ class TreeSettingsActionsTest {
           .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
           .add(LAYOUT_INSPECTOR_DATA_KEY, inspector)
           .build()
-      val actionManager: ActionManager = mock()
-      AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+      TestActionEvent.createTestEvent(dataContext)
     }
   }
 

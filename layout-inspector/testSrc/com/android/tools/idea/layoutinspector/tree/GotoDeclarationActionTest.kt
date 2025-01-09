@@ -38,11 +38,9 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -305,19 +303,10 @@ class GotoDeclarationActionTest {
     notificationModel: NotificationModel = mock(),
     fromShortcut: Boolean = false,
   ): AnActionEvent {
-    val dataContext: DataContext = mock()
     val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
-    whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
-    val actionManager: ActionManager = mock()
+    val dataContext = SimpleDataContext.builder().add(LAYOUT_INSPECTOR_DATA_KEY, inspector).build()
     val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<MouseEvent>()
-    return AnActionEvent(
-      inputEvent,
-      dataContext,
-      ActionPlaces.UNKNOWN,
-      Presentation(),
-      actionManager,
-      0,
-    )
+    return TestActionEvent.createTestEvent(null, dataContext, inputEvent)
   }
 
   private fun createLayoutInspector(
