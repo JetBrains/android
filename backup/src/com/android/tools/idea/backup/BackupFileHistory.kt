@@ -27,19 +27,20 @@ private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
 internal class BackupFileHistory(private val project: Project) {
 
   fun getFileHistory(): List<String> {
-    val value =
-      PropertiesComponent.getInstance(project).getValue(FILE_HISTORY_PROPERTY) ?: return emptyList()
-
-    val files = value.lines()
-    val existing = files.filterExisting()
-    if (files.size != existing.size) {
-      setProperty(existing)
+    val value = PropertiesComponent.getInstance(project).getValue(FILE_HISTORY_PROPERTY)
+    if (value.isNullOrEmpty()) {
+      return emptyList()
     }
-    return existing
+    val files = value.lines()
+    val filtered = files.filterExisting().distinct()
+    if (files.size != filtered.size) {
+      setProperty(filtered)
+    }
+    return filtered
   }
 
   fun setFileHistory(history: List<String>) {
-    setProperty(history.filterExisting())
+    setProperty(history)
   }
 
   private fun setProperty(value: List<String>) {

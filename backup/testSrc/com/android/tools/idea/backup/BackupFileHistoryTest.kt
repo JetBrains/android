@@ -131,4 +131,21 @@ class BackupFileHistoryTest {
     // File2 should not show up in history
     assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.path, file3.path)
   }
+
+  @Test
+  fun getHistory_noFilesExist() {
+    val backupFileHistory = BackupFileHistory(project)
+    backupFileHistory.setFileHistory(listOf("file1", "file2"))
+
+    assertThat(backupFileHistory.getFileHistory()).isEmpty()
+  }
+
+  @Test
+  fun getHistory_removesDuplicates() {
+    val backupFileHistory = BackupFileHistory(project)
+    val file1 = temporaryFolder.newFile("1.txt")
+    backupFileHistory.setFileHistory(listOf(file1.path, file1.path))
+
+    assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.path)
+  }
 }
