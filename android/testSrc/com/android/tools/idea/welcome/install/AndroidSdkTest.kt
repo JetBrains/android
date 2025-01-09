@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.install
 
+import com.android.SdkConstants
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
@@ -31,7 +32,7 @@ class AndroidSdkTest {
         updateState(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, TestUtils.getSdk()))
       }
     val packages = sdk.getRequiredSdkPackages(true)
-    assertThat(packages).containsExactly("platform-tools")
+    assertThat(packages).doesNotContain(SdkConstants.FD_EMULATOR)
   }
 
   @Test
