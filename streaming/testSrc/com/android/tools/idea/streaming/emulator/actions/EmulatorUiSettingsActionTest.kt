@@ -37,8 +37,8 @@ import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -250,13 +250,13 @@ class EmulatorUiSettingsActionTest {
     val component = createActionButton(action)
     val input = MouseEvent(component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false)
     val presentation = action.templatePresentation.clone()
-    return AnActionEvent(input, createTestDataContext(controller, view), ActionPlaces.TOOLBAR, presentation, ActionManager.getInstance(), 0)
+    return AnActionEvent.createEvent(createTestDataContext(controller, view), presentation, ActionPlaces.TOOLBAR, ActionUiKind.NONE, input)
   }
 
   private fun createTestKeyEvent(action: AnAction, controller: EmulatorController, view: EmulatorView): AnActionEvent {
     val input = KeyEvent(view, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_B, 'b')
     val presentation = action.templatePresentation.clone()
-    return AnActionEvent(input, createTestDataContext(controller, view), ActionPlaces.TOOLBAR, presentation, ActionManager.getInstance(), 0)
+    return AnActionEvent.createEvent(createTestDataContext(controller, view), presentation, ActionPlaces.TOOLBAR, ActionUiKind.NONE, input)
   }
 
   private fun createActionButton(action: AnAction) = ActionButton(

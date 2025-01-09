@@ -29,6 +29,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -84,7 +85,7 @@ fun createTestEvent(source: Component, project: Project, place: String = ActionP
                     extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
   val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, TestDataSnapshotProvider(source, project, extra))
-  return AnActionEvent(inputEvent, dataContext, place, presentation, ActionManager.getInstance(), 0)
+  return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
 }
 
 private class TestDataSnapshotProvider(
