@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message PageAlign16kb {
+  // Date when the Play Store will require 16k page support (like, November
+  // 2026)
+  optional string play_store_deadline_date = 1;
+  // URL to the 16k page size documentation (no http:// prefix)
+  optional string message_url = 2;
+}
