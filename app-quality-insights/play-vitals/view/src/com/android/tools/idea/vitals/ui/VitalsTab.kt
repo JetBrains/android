@@ -66,6 +66,7 @@ class VitalsTab(
   private val project: Project,
   clock: Clock,
   tracker: AppInsightsTracker,
+  vitalsTabVisibility: Flow<Boolean>,
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
 
@@ -107,7 +108,7 @@ class VitalsTab(
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
-    add(VitalsContentContainerPanel(projectController, project, tracker, this))
+    add(VitalsContentContainerPanel(projectController, project, tracker, this, vitalsTabVisibility))
   }
 
   private fun addActionsToGroup(group: DefaultActionGroup, toolbar: ActionToolbar) {

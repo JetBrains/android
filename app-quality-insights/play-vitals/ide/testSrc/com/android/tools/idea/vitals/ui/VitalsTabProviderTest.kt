@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -88,7 +89,7 @@ class VitalsTabProviderTest {
         }
       }
     )
-    tabProvider.populateTab(projectRule.project, tabPanel)
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     awaitClose()
   }
 

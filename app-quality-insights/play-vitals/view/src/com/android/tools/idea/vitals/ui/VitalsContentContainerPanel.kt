@@ -36,6 +36,7 @@ import com.intellij.util.ui.StatusText
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -49,6 +50,7 @@ class VitalsContentContainerPanel(
   project: Project,
   tracker: AppInsightsTracker,
   parentDisposable: Disposable,
+  tabVisibilityFlow: Flow<Boolean>,
 ) : JPanel(CardLayout()), Disposable {
 
   private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
@@ -107,11 +109,19 @@ class VitalsContentContainerPanel(
               projectController,
               this@VitalsContentContainerPanel,
               VitalsInsightPermissionDeniedHandler(),
+              tabVisibilityFlow,
             )
           )
         }
 
-        add(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state))
+        add(
+          DistributionToolWindow.create(
+            VITALS_WORKBENCH_NAME,
+            scope,
+            projectController.state,
+            tabVisibilityFlow,
+          )
+        )
       }
 
     add(

@@ -38,6 +38,7 @@ import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,7 +48,11 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override val icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 
-  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
+  override fun populateTab(
+    project: Project,
+    tabPanel: AppInsightsTabPanel,
+    activeTabFlow: Flow<Boolean>,
+  ) {
     tabPanel.setComponent(placeholderContent())
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
       val configManager = project.service<VitalsConfigurationService>().manager
@@ -84,6 +89,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   project,
                   Clock.systemDefaultZone(),
                   AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
+                  activeTabFlow,
                 )
               )
             }

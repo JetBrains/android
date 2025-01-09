@@ -23,14 +23,16 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI
 import javax.swing.Icon
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 
 class AppInsightsToolWindowDefinition(
   title: String,
   icon: Icon,
   name: String,
+  tabVisibility: Flow<Boolean>,
   factory: (Disposable) -> ToolContent<AppInsightsToolWindowContext>,
 ) :
   ToolWindowDefinition<AppInsightsToolWindowContext>(
@@ -47,8 +49,8 @@ class AppInsightsToolWindowDefinition(
   ) {
 
   private val _definitionVisibility = MutableStateFlow(false)
-  // TODO(vidish): Combine with tab visibility
-  val toolWindowVisibility: StateFlow<Boolean> = _definitionVisibility
+  val toolWindowVisibility: Flow<Boolean> =
+    combine(tabVisibility, _definitionVisibility) { tab, def -> tab && def }
 
   fun updateVisibility(isVisible: Boolean) {
     _definitionVisibility.update { isVisible }

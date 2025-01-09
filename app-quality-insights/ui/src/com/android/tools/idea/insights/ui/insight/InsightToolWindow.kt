@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -36,6 +37,7 @@ object InsightToolWindow {
     projectController: AppInsightsProjectLevelController,
     parentDisposable: Disposable,
     permissionDeniedHandler: InsightPermissionDeniedHandler,
+    tabVisibility: Flow<Boolean>,
   ): AppInsightsToolWindowDefinition {
     val content =
       InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
@@ -43,6 +45,7 @@ object InsightToolWindow {
         "Insights",
         StudioIcons.StudioBot.LOGO_MONOCHROME,
         "APP_INSIGHTS_INSIGHTS",
+        tabVisibility,
       ) {
         content
       }

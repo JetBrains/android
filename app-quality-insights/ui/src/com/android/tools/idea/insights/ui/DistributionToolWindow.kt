@@ -28,11 +28,13 @@ object DistributionToolWindow {
     name: String,
     scope: CoroutineScope,
     state: Flow<AppInsightsState>,
+    tabVisibility: Flow<Boolean>,
   ): AppInsightsToolWindowDefinition {
     return AppInsightsToolWindowDefinition(
       "Details",
       StudioIcons.AppQualityInsights.DETAILS,
       name,
+      tabVisibility,
     ) {
       DetailsToolWindowContent(scope, state)
     }

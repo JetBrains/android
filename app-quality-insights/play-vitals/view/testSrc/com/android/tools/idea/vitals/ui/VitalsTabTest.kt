@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
@@ -34,6 +35,7 @@ import com.android.tools.idea.insights.IssueStats
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DistributionPanel
@@ -61,6 +63,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.Ignore
 import org.junit.Rule
@@ -77,6 +81,8 @@ class VitalsTabTest {
 
   private val clock: FakeClock
     get() = controllerRule.clock
+
+  private val visibilityFlow = MutableStateFlow(true)
 
   private fun FakeUi.findToolbar(): ActionToolbar = this.findComponent()!!
 
@@ -102,9 +108,14 @@ class VitalsTabTest {
   }
 
   private fun createTab() =
-    VitalsTab(controllerRule.controller, projectRule.project, clock, TestAppInsightsTracker).also {
-      Disposer.register(controllerRule.disposable, it)
-    }
+    VitalsTab(
+        controllerRule.controller,
+        projectRule.project,
+        clock,
+        TestAppInsightsTracker,
+        visibilityFlow,
+      )
+      .also { Disposer.register(controllerRule.disposable, it) }
 
   @Test
   fun `tab shows correct information on startup`() =
@@ -371,6 +382,43 @@ class VitalsTabTest {
           it.icon == StudioIcons.LayoutEditor.Toolbar.ANDROID_API && it.text == "unknown"
         } != null
       }
+    }
+
+  @Test
+  fun `tab not visible does not trigger insight fetch`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      visibilityFlow.update { false }
+      createTab()
+      // Consume Disable from Insight toolwindow being invisible
+      var state = controllerRule.consumeNext()
+      assertThat(state.disabledActions).containsExactly(Action.FetchInsight::class).inOrder()
+
+      state =
+        controllerRule.consumeInitialState(
+          LoadingState.Ready(
+            IssueResponse(
+              listOf(ISSUE1),
+              listOf(DEFAULT_FETCHED_VERSIONS),
+              listOf(DEFAULT_FETCHED_DEVICES),
+              listOf(DEFAULT_FETCHED_OSES),
+              DEFAULT_FETCHED_PERMISSIONS,
+            )
+          ),
+          detailsState =
+            LoadingState.Ready(
+              DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
+            ),
+        )
+
+      assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+      visibilityFlow.update { true }
+      state = controllerRule.consumeNext()
+      assertThat(state.disabledActions).isEmpty()
+
+      controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      state = controllerRule.consumeNext()
+      assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
     }
 
   private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
