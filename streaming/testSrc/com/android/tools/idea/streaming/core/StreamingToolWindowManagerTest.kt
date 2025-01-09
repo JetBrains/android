@@ -73,6 +73,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -396,14 +397,14 @@ class StreamingToolWindowManagerTest {
 
     var action = triggerAddDevicePopup().actions.find { it.templateText == emulator2.avdName }!!
     executeStreamingAction(action, toolWindow.component, project,
-                           extraData = mapOf(PlatformDataKeys.CONTENT_MANAGER.name to bottomContentManager))
+                           extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, bottomContentManager) })
     waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
     assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
 
     val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
     action = triggerAddDevicePopup().actions.find { it.templateText == device2Name }!!
     executeStreamingAction(action, toolWindow.component, project,
-                           extraData = mapOf(PlatformDataKeys.CONTENT_MANAGER.name to topContentManager))
+                           extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, topContentManager) })
     waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
     assertThat(topContentManager.contents[1].displayName).isEqualTo(device2Name)
   }
