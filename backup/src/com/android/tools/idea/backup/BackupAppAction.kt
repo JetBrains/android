@@ -23,7 +23,7 @@ import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.backup.asyncaction.ActionEnableState
 import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
 import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionWithAsyncUpdate
+import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 internal class BackupAppAction(
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
-) : ActionWithAsyncUpdate() {
+) : ActionWithSuspendedUpdate() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -49,7 +49,7 @@ internal class BackupAppAction(
     super.update(e)
   }
 
-  override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
+  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
     if (actionHelper.getApplicationId(project) == null) {
       return Disabled("Selected run configuration is not an app")
     }

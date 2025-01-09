@@ -16,36 +16,31 @@
 
 package com.android.tools.idea.backup.asyncaction
 
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
-import java.util.concurrent.atomic.AtomicReference
-import kotlinx.coroutines.CoroutineScope
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 
 /** An action that computes if it is enabled or disabled in a coroutine */
-internal abstract class ActionWithAsyncUpdate : AnAction() {
-  @VisibleForTesting val updateState = AtomicReference<ActionEnableState?>(null)
-
+internal abstract class ActionWithSuspendedUpdate : AnAction() {
   override fun update(e: AnActionEvent) {
-    updateState.get()?.applyTo(this, e.presentation)
-
     val project = e.project ?: return
-    e.getCoroutineScope().launch {
-      val newState = computeState(project, e)
-      val oldState = updateState.getAndSet(newState)
-      if (oldState != newState) {
-        ActivityTracker.getInstance().inc()
+    val job =
+      project.coroutineScope.launch(AndroidDispatchers.workerThread) {
+        withTimeout(500.milliseconds) {
+          suspendedUpdate(project, e).applyTo(this@ActionWithSuspendedUpdate, e.presentation)
+        }
       }
-    }
+    runBlocking { job.join() }
   }
 
-  open fun AnActionEvent.getCoroutineScope(): CoroutineScope {
-    return project?.coroutineScope ?: throw IllegalStateException("No CoroutineScope provided")
-  }
-
-  abstract suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState
+  protected abstract suspend fun suspendedUpdate(
+    project: Project,
+    e: AnActionEvent,
+  ): ActionEnableState
 }

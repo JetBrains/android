@@ -22,7 +22,7 @@ import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_
 import com.android.tools.idea.backup.asyncaction.ActionEnableState
 import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
 import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionWithAsyncUpdate
+import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Backups the state of the foreground app to a file */
-internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
+internal class BackupForegroundAppAction : ActionWithSuspendedUpdate() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -47,11 +47,10 @@ internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
     super.update(e)
   }
 
-  override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
+  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
     val backupManager = BackupManager.getInstance(project)
     val serialNumber =
-      withContext(uiThread) { getDeviceSerialNumber(e) }
-        ?: return Disabled(message("error.device.not.ready"))
+      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.ready"))
     val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
     val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
     return when (found) {
