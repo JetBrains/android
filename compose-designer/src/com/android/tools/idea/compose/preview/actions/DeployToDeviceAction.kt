@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.intellij.execution.ProgramRunnerUtil
@@ -46,7 +47,7 @@ internal class DeployToDeviceAction :
     e.dataContext.previewElement()?.let {
       val psiElement = it.previewElementDefinition?.element
       val project = psiElement?.project ?: return@actionPerformed
-      val module = psiElement.module ?: return@actionPerformed
+      val module = psiElement.module?.findAndroidModule() ?: return@actionPerformed
 
       runPreviewConfiguration(project, module, it)
     }
@@ -88,7 +89,7 @@ internal class DeployToDeviceAction :
         }
         // Use the container module to make sure we also compile the androidTest module when
         // running this configuration.
-        setModule(module.getHolderModule())
+        setModule((module.findAndroidModule() ?: module).getHolderModule())
       }
 
     val configurationAndSettings =

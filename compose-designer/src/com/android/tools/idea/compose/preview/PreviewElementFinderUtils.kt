@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.compose.MULTIPLATFORM_PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
@@ -51,7 +52,7 @@ import org.jetbrains.uast.UMethod
 internal fun UAnnotation.isPreviewAnnotation() =
   ReadAction.compute<Boolean, Throwable> {
     COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
-      COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
+      (COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName || MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName)
   }
 
 /** Returns true if the [UElement] is a `@Preview` annotation */

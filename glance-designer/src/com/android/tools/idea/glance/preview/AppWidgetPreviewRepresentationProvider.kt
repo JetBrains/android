@@ -25,7 +25,9 @@ import com.android.tools.idea.preview.representation.CommonRepresentationEditorF
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.util.isAndroidModule
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -62,6 +64,8 @@ class AppWidgetPreviewRepresentationProvider(
     if (DumbService.isDumb(project)) return false
     val virtualFile = psiFile.virtualFile
     if (!virtualFile.isKotlinFileType()) return false
+    // App Widget previews are only supported in Android modules.
+    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
 
     return StudioFlags.GLANCE_APP_WIDGET_PREVIEW.get() &&
       filePreviewElementFinder.hasPreviewElements(project, virtualFile)

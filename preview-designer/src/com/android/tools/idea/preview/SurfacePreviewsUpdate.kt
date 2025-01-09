@@ -36,6 +36,8 @@ import com.android.tools.idea.rendering.isSuccess
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
@@ -48,7 +50,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 
 private fun <T : PreviewElement<*>, M> calcAffinityMatrix(
@@ -198,7 +199,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
   val (facet, configurationManager) =
     withContext(AndroidDispatchers.workerThread) {
-      AndroidFacet.getInstance(psiFile)?.let { facet ->
+      ModuleUtilCore.findModuleForFile(psiFile)?.findAndroidModule()?.androidFacet?.let { facet ->
         return@withContext facet to ConfigurationManager.getOrCreateInstance(facet.module)
       } ?: (null to null)
     }

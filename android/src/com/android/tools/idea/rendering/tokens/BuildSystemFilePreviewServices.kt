@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
+import com.android.tools.idea.util.findAndroidModule
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -173,9 +174,9 @@ fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
         .map { (it as? BackedVirtualFile)?.originFile ?: it }
         .mapNotNull {
           val module =
-            projectIndex.getModuleForFile(it) ?: return@mapNotNull null.also {
+            projectIndex.getModuleForFile(it)?.findAndroidModule() ?: return@mapNotNull null.also {
               thisLogger().error(
-                "Cannot find module for: $it",
+                "Cannot find Android module for: $it",
                 Throwable()
               )
             }

@@ -26,7 +26,10 @@ import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.util.isAndroidModule
+import com.android.tools.idea.util.isCommonWithAndroidModule
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -72,10 +75,16 @@ fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
  */
 internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
+    isInAndroidOrCommonModule() &&
     isValidPreviewLocation() &&
     annotationEntries.any { annotation ->
       (annotation.toUElement() as? UAnnotation)?.isPreviewAnnotation() == true
     }
+
+private fun KtNamedFunction.isInAndroidOrCommonModule(): Boolean {
+  val module = ModuleUtilCore.findModuleForFile(containingFile) ?: return false
+  return module.isAndroidModule() || module.isCommonWithAndroidModule()
+}
 
 private fun KtNamedFunction.isInTestFile() =
   isTestFile(this.project, this.containingFile.virtualFile)

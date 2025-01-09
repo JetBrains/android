@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.readAction
@@ -103,6 +104,10 @@ class CommonFastPreviewSurface(
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
+    val previewFileAndroidModule = previewFileModule.findAndroidModule()
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File does not have a valid Android module")
+        )
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
@@ -113,7 +118,9 @@ class CommonFastPreviewSurface(
           // Keep the file if the file is from this module or from a module we depend on
           modifiedFileModule == previewFileModule ||
             ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(previewFileModule, modifiedFileModule)
+              .isModuleDependent(previewFileModule, modifiedFileModule) ||
+            ModuleManager.getInstance(psiFilePointer.project)
+              .isModuleDependent(previewFileAndroidModule, modifiedFileModule)
         }
         .toSet()
 
@@ -122,12 +129,12 @@ class CommonFastPreviewSurface(
 
     return requestFastPreviewRefreshAndTrack(
       parentDisposable = this,
-      previewFileModule,
+      previewFileAndroidModule,
       outOfDateFiles,
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileModule)
+      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }
