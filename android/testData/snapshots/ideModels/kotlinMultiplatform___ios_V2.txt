@@ -13,7 +13,7 @@ MODULE                        : kotlinMultiPlatform
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -591,7 +591,7 @@ MODULE                        : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build
+        buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -849,7 +849,7 @@ MODULE                        : kotlinMultiPlatform
                 group                         : kotlinMultiPlatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/module2
-                buildDir                      : <ROOT>/module2/build [-]
+                buildDir                      : <ROOT>/module2/build
                 buildFile                     : <ROOT>/module2/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1049,14 +1049,17 @@ MODULE                        : kotlinMultiPlatform
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugApiElements              : <empty>
+                        - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
+                        - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugRuntimeOnly              : <empty>
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
@@ -1064,6 +1067,7 @@ MODULE                        : kotlinMultiPlatform
                         default                       : <empty>
                         implementation                : <empty>
                         - iosArm64ApiElements         : <ROOT>/module2/build/libs/module2-iosArm64Main.klib [-]
+                        - iosArm64ApiElements-published         : <ROOT>/module2/build/libs/module2-iosArm64Main.klib [-]
                         iosArm64CInterop              : <empty>
                         - iosArm64CInteropApiElements : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosArm64CompilationApi        : <empty>
@@ -1082,7 +1086,9 @@ MODULE                        : kotlinMultiPlatform
                         iosArm64MainResolvableDependenciesMetadata        : <empty>
                         iosArm64MainRuntimeOnly       : <empty>
                         - iosArm64MetadataElements    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
+                        - iosArm64MetadataElements-published    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
                         - iosArm64SourcesElements     : <ROOT>/module2/build/libs/module2-iosarm64-sources.jar [-]
+                        - iosArm64SourcesElements-published     : <ROOT>/module2/build/libs/module2-iosarm64-sources.jar [-]
                         iosArm64TestApi               : <empty>
                         iosArm64TestApiDependenciesMetadata     : <empty>
                         iosArm64TestCInterop          : <empty>
@@ -1109,6 +1115,7 @@ MODULE                        : kotlinMultiPlatform
                         iosMainResolvableDependenciesMetadata   : <empty>
                         iosMainRuntimeOnly            : <empty>
                         - iosSimulatorArm64ApiElements          : <ROOT>/module2/build/libs/module2-iosSimulatorArm64Main.klib [-]
+                        - iosSimulatorArm64ApiElements-published          : <ROOT>/module2/build/libs/module2-iosSimulatorArm64Main.klib [-]
                         iosSimulatorArm64CInterop     : <empty>
                         - iosSimulatorArm64CInteropApiElements  : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosSimulatorArm64CompilationApi         : <empty>
@@ -1127,7 +1134,9 @@ MODULE                        : kotlinMultiPlatform
                         iosSimulatorArm64MainResolvableDependenciesMetadata         : <empty>
                         iosSimulatorArm64MainRuntimeOnly        : <empty>
                         - iosSimulatorArm64MetadataElements     : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
+                        - iosSimulatorArm64MetadataElements-published     : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
                         - iosSimulatorArm64SourcesElements      : <ROOT>/module2/build/libs/module2-iossimulatorarm64-sources.jar [-]
+                        - iosSimulatorArm64SourcesElements-published      : <ROOT>/module2/build/libs/module2-iossimulatorarm64-sources.jar [-]
                         iosSimulatorArm64TestApi      : <empty>
                         iosSimulatorArm64TestApiDependenciesMetadata      : <empty>
                         iosSimulatorArm64TestCInterop : <empty>
@@ -1154,6 +1163,7 @@ MODULE                        : kotlinMultiPlatform
                         iosTestResolvableDependenciesMetadata   : <empty>
                         iosTestRuntimeOnly            : <empty>
                         - iosX64ApiElements           : <ROOT>/module2/build/libs/module2-iosX64Main.klib [-]
+                        - iosX64ApiElements-published : <ROOT>/module2/build/libs/module2-iosX64Main.klib [-]
                         iosX64CInterop                : <empty>
                         - iosX64CInteropApiElements   : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosX64CompilationApi          : <empty>
@@ -1172,7 +1182,9 @@ MODULE                        : kotlinMultiPlatform
                         iosX64MainResolvableDependenciesMetadata          : <empty>
                         iosX64MainRuntimeOnly         : <empty>
                         - iosX64MetadataElements      : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
+                        - iosX64MetadataElements-published      : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
                         - iosX64SourcesElements       : <ROOT>/module2/build/libs/module2-iosx64-sources.jar [-]
+                        - iosX64SourcesElements-published       : <ROOT>/module2/build/libs/module2-iosx64-sources.jar [-]
                         iosX64TestApi                 : <empty>
                         iosX64TestApiDependenciesMetadata       : <empty>
                         iosX64TestCInterop            : <empty>
@@ -1238,7 +1250,7 @@ MODULE                        : kotlinMultiPlatform
                         metadataNativeMainCompilationImplementation       : <empty>
                         metadataNativeMainCompilationRuntimeOnly          : <empty>
                         metadataNativeMainCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/module2/build/libs/module2-kotlin-sources.jar [-]
                         nativeMainApi                 : <empty>
                         nativeMainApiDependenciesMetadata       : <empty>
                         nativeMainCompileOnly         : <empty>
@@ -1261,14 +1273,17 @@ MODULE                        : kotlinMultiPlatform
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
                         releaseApiElements            : <empty>
+                        - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
+                        - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
@@ -1329,9 +1344,6 @@ MODULE                        : kotlinMultiPlatform
                         testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                             qName                         : :module2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
-            configurationArtifacts
-                kotlinKlibCommonizerClasspath : <empty>
-                kotlinNativeBundleConfiguration         : <empty>
         taskModel                     : DefaultGradleTaskModel
             tasks
                 iosSimulatorArm64Test         : iosSimulatorArm64Test (DefaultExternalTask)
@@ -2427,7 +2439,7 @@ MODULE                        : kotlinMultiPlatform.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 1
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2470,7 +2482,7 @@ MODULE                        : kotlinMultiPlatform.module2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/module2/build [-]
+    BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : kotlinMultiPlatform
