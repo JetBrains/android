@@ -29,8 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -373,7 +372,7 @@ class DeviceAdapterTest {
       spikiness = spikiness,
       timeSource = testTimeSource,
       installer = fakeInstaller,
-      coroutineScope = TestCoroutineScope(TestCoroutineDispatcher()),
+      coroutineScope = TestScope(),
     )
     .apply { setCallbacks(callbacks) }
   }

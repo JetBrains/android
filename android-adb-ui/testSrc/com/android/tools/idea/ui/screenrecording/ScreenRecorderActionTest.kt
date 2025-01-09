@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,7 +43,6 @@ import org.mockito.Mockito.anyInt
  *
  * The getEmulatorScreenRecorderOptions() has been moved to EmulatorConsoleRecordingProviderTest
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class ScreenRecorderActionTest {
   private val projectRule = ProjectRule()
 
@@ -80,7 +79,7 @@ class ScreenRecorderActionTest {
   }
 
   @Test
-  fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
+  fun update_deviceDoesNotSupportScreenRecording_disabled() = runTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
     val event = TestActionEvent.createTestEvent { userData[it] }
 
@@ -90,7 +89,7 @@ class ScreenRecorderActionTest {
   }
 
   @Test
-  fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
+  fun update_deviceDoesSupportScreenRecording_enabled() = runTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
     val event = TestActionEvent.createTestEvent { userData[it] }
 

@@ -21,14 +21,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.junit.Assert
@@ -38,7 +37,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class CoroutinesUtilsTest {
   private val projectRule = ProjectRule()
 
@@ -78,7 +76,7 @@ class CoroutinesUtilsTest {
   fun androidCoroutineScopeAllowsOverridingDispatcher() {
     val disposable = Disposer.newDisposable()
     try {
-      runBlockingTest {
+      runTest {
         // Prepare
         val scope = AndroidCoroutineScope(disposable, coroutineContext)
 
@@ -110,7 +108,7 @@ class CoroutinesUtilsTest {
   @Test
   @Ignore("b/303086924")
   fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() {
-    runBlockingTest {
+    runTest {
       // Prepare
       val disposable = Disposer.newDisposable()
       val scope = AndroidCoroutineScope(disposable, coroutineContext)
@@ -131,7 +129,7 @@ class CoroutinesUtilsTest {
 
   @Test
   fun childScopeIsCancelledOnDispose() {
-    runBlockingTest {
+    runTest {
       // Prepare
       val disposable = Disposer.newDisposable()
       val scope = this.createChildScope(parentDisposable = disposable)
@@ -154,7 +152,7 @@ class CoroutinesUtilsTest {
   fun childScopeIsNotDisposedOnCancel() {
     val disposable = Disposer.newCheckedDisposable()
     try {
-      runBlockingTest {
+      runTest {
         // Prepare
         val scope = this.createChildScope(parentDisposable = disposable)
         scope.launch {
