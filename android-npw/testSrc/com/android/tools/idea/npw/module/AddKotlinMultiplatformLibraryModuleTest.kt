@@ -30,7 +30,7 @@ class AddKotlinMultiplatformLibraryModuleTest {
   companion object {
 
     private fun addNewKotlinMultiplatformLibraryModule(projectRule: AndroidGradleProjectRule) {
-      projectRule.load(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM)
+      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
       val project = projectRule.project
       val model =
