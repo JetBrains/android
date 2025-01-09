@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.preview.PreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.annotations.VisibleForTesting
@@ -224,9 +223,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T):
   return ColorBlindMode.values()
     .map { colorBlindMode ->
       val colorFilterBaseConfig =
-        baseConfig.copy(
-          imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) }
-        )
+        baseConfig.copy(imageTransformation = colorBlindMode.imageTransform)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",

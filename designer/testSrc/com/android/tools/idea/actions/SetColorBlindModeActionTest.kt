@@ -20,14 +20,9 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.android.tools.idea.uibuilder.surface.ScreenView
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.util.androidFacet
-import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -35,23 +30,6 @@ import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-
-private class TestScreenViewProvider : ScreenViewProvider {
-  override val displayName: String = "Test screen view"
-  override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
-  var primarySceneViewCreationCount: Int = 0
-    private set
-
-  override fun createPrimarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView {
-    primarySceneViewCreationCount++
-    return ScreenView.newBuilder(surface, manager).build()
-  }
-
-  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
-}
 
 class SetColorBlindModeActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -61,36 +39,29 @@ class SetColorBlindModeActionTest {
   fun testColorBlindModeChange() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-        AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
-        projectRule.fixture,
-        SdkConstants.FD_RES_LAYOUT,
-        "model.xml",
-        ComponentDescriptor("LinearLayout"),
+          AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+          projectRule.fixture,
+          SdkConstants.FD_RES_LAYOUT,
+          "model.xml",
+          ComponentDescriptor("LinearLayout"),
         )
         .build()
     }
-    val myScreenViewProvider = TestScreenViewProvider()
     val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).join()
 
-    surface.setScreenViewProvider(myScreenViewProvider, false)
-
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
-    val event = createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
+    val event =
+      createTestEvent(
+        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+      )
 
-    // Two things are tested here:
-    // 1. That the color-blind filter is modified according to the setColorBlindModeAction
-    // 2. That the screen views are refreshed when changing the color-blind mode, but without
-    // changing the screen view provider
-    assertEquals(ColorBlindMode.NONE, myScreenViewProvider.colorBlindFilter)
-    assertEquals(1, myScreenViewProvider.primarySceneViewCreationCount)
+    assertEquals(ColorBlindMode.NONE, surface.colorBlindMode)
 
     setColorBlindModeAction.setSelected(event, true)
-    assertEquals(ColorBlindMode.PROTANOPES, myScreenViewProvider.colorBlindFilter)
-    assertEquals(2, myScreenViewProvider.primarySceneViewCreationCount)
+    assertEquals(ColorBlindMode.PROTANOPES, surface.colorBlindMode)
 
     setColorBlindModeAction.setSelected(event, false)
-    assertEquals(ColorBlindMode.NONE, myScreenViewProvider.colorBlindFilter)
-    assertEquals(3, myScreenViewProvider.primarySceneViewCreationCount)
+    assertEquals(ColorBlindMode.NONE, surface.colorBlindMode)
   }
 }

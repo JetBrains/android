@@ -157,7 +157,10 @@ private fun PreviewConfiguration.applyTo(
   }
 
   renderConfiguration.startBulkEditing()
-  renderConfiguration.imageTransformation = imageTransformation
+  if (imageTransformation != null) {
+    renderConfiguration.imageTransformation = imageTransformation
+  }
+
   if (apiLevel != UNDEFINED_API_LEVEL) {
     val newTarget =
       renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }

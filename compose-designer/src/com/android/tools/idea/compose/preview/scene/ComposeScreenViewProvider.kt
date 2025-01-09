@@ -36,14 +36,12 @@ import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
   ScreenViewProvider {
-  override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
   override val displayName: String = "Compose"
 
   override fun createPrimarySceneView(
@@ -66,7 +64,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                 }
               )
             }
-            add(ScreenViewLayer(it, colorBlindFilter, surface, surface::rotateSurfaceDegree))
+            add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
             add(
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true

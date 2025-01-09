@@ -27,8 +27,6 @@ import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -94,7 +92,7 @@ class ComposeViewControlActionTest {
 """
 
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.NONE)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
@@ -139,7 +137,7 @@ class ComposeViewControlActionTest {
 """
 
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.NONE)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
@@ -183,11 +181,8 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val screenViewProviderMock = mock<ScreenViewProvider>()
-
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.PROTANOMALY)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)

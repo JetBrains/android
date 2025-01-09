@@ -197,7 +197,7 @@ class VisualizationForm(
     surface.setSceneViewAlignment(SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
-    updateScreenMode()
+    surface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false)
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
     surface.zoomController.storeId = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
@@ -265,14 +265,6 @@ class VisualizationForm(
     lintToolbar.updateActionsAsync()
     ActionToolbarUtil.makeToolbarNavigable(lintToolbar)
     toolbarPanel.add(lintToolbar.component, BorderLayout.EAST)
-  }
-
-  private fun updateScreenMode() {
-    if (myCurrentConfigurationSet === ConfigurationSet.ColorBlindMode) {
-      surface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false)
-    } else {
-      surface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false)
-    }
   }
 
   override fun dispose() {
@@ -654,7 +646,6 @@ class VisualizationForm(
 
   /** Refresh the previews. This recreates the [NlModel]s from the current [ConfigurationSet]. */
   private fun refresh() {
-    updateScreenMode()
     updateActionToolbar(myActionToolbarPanel)
     // Dispose old models and create new models with new configuration set.
     initModel()

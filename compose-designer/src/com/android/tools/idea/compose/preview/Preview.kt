@@ -539,6 +539,7 @@ class ComposePreviewRepresentation(
   ) {
     log.debug("Starting UI check.")
     val startTime = System.currentTimeMillis()
+    surface.resetColorBlindMode()
     qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, isWearPreview)
     withContext(uiThread) {
@@ -583,6 +584,7 @@ class ComposePreviewRepresentation(
     uiCheckFilterFlow.value.basePreviewInstance?.let { uiCheckPanelCleanup(it.instanceId) }
     (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStop()
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled()
+    surface.resetColorBlindMode()
     withContext(uiThread) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }

@@ -178,14 +178,8 @@ open class LayoutlibSceneManager(
         ?.let {
           ScreenView.newBuilder(designSurface, this)
             .withLayersProvider { sv: ScreenView? ->
-              val colorBlindMode = designSurface.screenViewProvider.colorBlindFilter
               ImmutableList.of(
-                ScreenViewLayer(
-                  sv!!,
-                  colorBlindMode,
-                  designSurface,
-                  designSurface::rotateSurfaceDegree,
-                )
+                ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree)
               )
             }
             .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)

@@ -75,6 +75,8 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Collectors
 import kotlin.math.min
@@ -155,6 +157,8 @@ internal constructor(
 
   /** The rotation degree of the surface to simulate the phone rotation. */
   var rotateSurfaceDegree: Float = Float.NaN
+
+  var colorBlindMode: ColorBlindMode = ColorBlindMode.NONE
 
   private val sceneViewLayoutManager: NlDesignSurfacePositionableContentLayoutManager
     get() = sceneViewPanel.layout as NlDesignSurfacePositionableContentLayoutManager
@@ -250,19 +254,6 @@ internal constructor(
       if (setAsDefault) savePreferredMode(it)
     }
     screenViewProvider = newScreenViewProvider
-  }
-
-  /**
-   * Update the color-blind mode in the [ScreenViewProvider] for this surface and make sure to
-   * update all the SceneViews in this surface to reflect the change.
-   */
-  fun setColorBlindMode(mode: ColorBlindMode) {
-    screenViewProvider.colorBlindFilter = mode
-    for (manager in sceneManagers) {
-      manager.updateSceneViews()
-      manager.requestRender()
-    }
-    revalidateScrollArea()
   }
 
   override fun shouldRenderErrorsPanel(): Boolean {
@@ -611,5 +602,16 @@ internal constructor(
     super.uiDataSnapshot(sink)
     sink[LAYOUT_PREVIEW_HANDLER_KEY] = layoutPreviewHandler
     DataSink.uiDataSnapshot(sink, delegateDataProvider)
+  }
+
+  fun getGlobalImageTransformation(): Consumer<BufferedImage>? {
+    return colorBlindMode.imageTransform
+  }
+
+  fun resetColorBlindMode() {
+    colorBlindMode = ColorBlindMode.NONE
+    for (manager in sceneManagers) {
+      manager.model.configuration.imageTransformation = null
+    }
   }
 }

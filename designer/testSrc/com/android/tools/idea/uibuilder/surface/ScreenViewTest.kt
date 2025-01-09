@@ -22,19 +22,14 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.createDesignSurfaceZoomControllerFake
 import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.rendering.RenderLogger
-import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -185,36 +180,5 @@ class ScreenViewTest {
     // Not modified
     assertEquals(100, outDimension.width)
     assertEquals(167, outDimension.height)
-  }
-
-  @Test
-  fun defaultScreenViewHandlesColorBlindModeCorrectly() {
-    val nlModelMock = mock(NlModel::class.java)
-    val layoutlibSceneManagerMock = mock(LayoutlibSceneManager::class.java)
-    val screenViewProviderMock = mock(ScreenViewProvider::class.java)
-    val designSurfaceMock = mock(NlDesignSurface::class.java)
-    whenever(designSurfaceMock.zoomController)
-      .thenReturn(
-        createDesignSurfaceZoomControllerFake(projectRule.project, projectRule.testRootDisposable)
-      )
-    var colorBlindModeFilter = ColorBlindMode.NONE
-
-    Disposer.register(projectRule.testRootDisposable, layoutlibSceneManagerMock)
-    Disposer.register(projectRule.testRootDisposable, designSurfaceMock)
-
-    whenever(layoutlibSceneManagerMock.model).thenReturn(nlModelMock)
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    whenever(screenViewProviderMock.colorBlindFilter).then {
-      return@then colorBlindModeFilter
-    }
-
-    val screenView = ScreenView.newBuilder(designSurfaceMock, layoutlibSceneManagerMock).build()
-    var screenViewLayer =
-      screenView.createLayers().single { it is ScreenViewLayer } as ScreenViewLayer
-    assertNull(screenViewLayer.colorConverterForTest)
-
-    colorBlindModeFilter = ColorBlindMode.PROTANOMALY
-    screenViewLayer = screenView.createLayers().single { it is ScreenViewLayer } as ScreenViewLayer
-    assertEquals(ColorBlindMode.PROTANOMALY, screenViewLayer.colorConverterForTest.mode)
   }
 }

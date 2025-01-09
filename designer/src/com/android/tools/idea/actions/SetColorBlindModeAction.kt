@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
-/** Action class to switch the [ScreenViewProvider.colorBlindFilter] in a [NlDesignSurface]. */
+/** Action class to switch the overall color blind mode in a [NlDesignSurface]. */
 class SetColorBlindModeAction(val colorBlindMode: ColorBlindMode) :
   ToggleAction(
     colorBlindMode.displayName,
@@ -32,14 +32,16 @@ class SetColorBlindModeAction(val colorBlindMode: ColorBlindMode) :
   ) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.screenViewProvider?.colorBlindFilter ==
-      colorBlindMode
+    return (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.colorBlindMode == colorBlindMode
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.setColorBlindMode(
-      if (state) colorBlindMode else ColorBlindMode.NONE
-    )
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
+    surface.colorBlindMode = if (state) colorBlindMode else ColorBlindMode.NONE
+    for (manager in surface.sceneManagers) {
+      manager.model.configuration.imageTransformation = surface.colorBlindMode.imageTransform
+      manager.model.notifyModified(ChangeType.CONFIGURATION_CHANGE)
+    }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

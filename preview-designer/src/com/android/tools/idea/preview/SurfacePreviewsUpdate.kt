@@ -286,6 +286,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
             )
           val configuration =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
+          configuration.imageTransformation = this.getGlobalImageTransformation()
           newModel =
             NlModel.Builder(
                 parentDisposable,
