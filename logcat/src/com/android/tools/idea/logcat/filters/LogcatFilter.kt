@@ -61,6 +61,7 @@ internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
 
   private fun LogcatMessage.isSpam() =
     settings.ignoredTags.contains(header.tag) ||
+      settings.ignoredApps.contains(header.applicationId) ||
       (ignoreSpam && header.tag.startsWith(STUDIO_SPAM_PREFIX))
 }
 

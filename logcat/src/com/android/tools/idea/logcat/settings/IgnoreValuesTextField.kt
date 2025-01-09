@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.settings
 
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
@@ -29,18 +30,21 @@ import java.awt.Dimension
 import javax.swing.JComponent
 
 /**
- * An expandable text field containing tags.
+ * An expandable text field containing values (tags, apps etc).
  *
- * Autocomplete uses tags from all active Logcat panels.
+ * Autocomplete uses values from all active Logcat panels.
  */
-internal class IgnoreTagsTextField(tags: Set<String>) {
+internal class IgnoreValuesTextField(
+  values: Set<String>,
+  getValues: (LogcatPresenter) -> Set<String>,
+) {
   private val project = ProjectManager.getInstance().defaultProject
-  private val completionProvider = StringsCompletionProvider(loadTagsFromPanels(), null)
+  private val completionProvider = StringsCompletionProvider(loadValuesFromPanels(getValues), null)
   val component =
     TextFieldWithCompletion(
       project,
       completionProvider,
-      tags.joinToString(" "),
+      values.joinToString(" "),
       true,
       true,
       false,
@@ -53,7 +57,7 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
     ExpandableSupport(component)
   }
 
-  fun getIgnoredTags() = component.text.splitAndRemoveBlanks().toSet()
+  fun getIgnoredValues() = component.text.splitAndRemoveBlanks().toSet()
 
   private inner class ExpandableSupport(editor: EditorTextField) :
     ExpandableEditorSupport(
@@ -106,9 +110,9 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
   }
 }
 
-private fun loadTagsFromPanels(): List<String> =
+private fun loadValuesFromPanels(getValues: (LogcatPresenter) -> Set<String>): List<String> =
   LogcatToolWindowFactory.logcatPresenters
-    .flatMapTo(HashSet()) { it.getTags() }
+    .flatMapTo(HashSet(), getValues)
     .filter { it.isNotBlank() }
     .map { "$it " }
 

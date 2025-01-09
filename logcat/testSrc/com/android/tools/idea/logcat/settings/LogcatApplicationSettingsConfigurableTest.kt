@@ -117,19 +117,27 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
-  fun ignoredTagsNote_noPanels() {
-    LogcatToolWindowFactory.logcatPresenters.clear()
+  fun ignoredApps_initialValue() {
+    logcatSettings.ignoredApps = setOf("foo", "bar")
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
 
-    assertThat(configurable.ignoreTagsNote.isVisible).isTrue()
+    assertThat(configurable.ignoreAppsTextField.component.text).isEqualTo("foo bar")
   }
 
   @Test
-  fun ignoredTagsNote_withPanel() {
+  fun ignoredValuesNote_noPanels() {
+    LogcatToolWindowFactory.logcatPresenters.clear()
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.ignoreValuesNote.isVisible).isTrue()
+  }
+
+  @Test
+  fun ignoredValuesNote_withPanel() {
     LogcatToolWindowFactory.logcatPresenters.add(FakeLogcatPresenter().apply { tagSet.add("foo") })
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
 
-    assertThat(configurable.ignoreTagsNote.isVisible).isFalse()
+    assertThat(configurable.ignoreValuesNote.isVisible).isFalse()
   }
 
   @Test
@@ -153,12 +161,14 @@ class LogcatApplicationSettingsConfigurableTest {
         defaultFilter = "foo",
         mostRecentlyUsedFilterIsDefault = false,
         ignoredTags = emptySet(),
+        ignoredApps = emptySet(),
       )
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     configurable.cycleBufferSizeTextField.text = "200"
     configurable.defaultFilterTextField.text = "bar"
     configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
     configurable.ignoreTagsTextField.component.text = " foo  bar "
+    configurable.ignoreAppsTextField.component.text = " app1  app2 "
 
     configurable.apply()
 
@@ -169,6 +179,7 @@ class LogcatApplicationSettingsConfigurableTest {
           defaultFilter = "bar",
           mostRecentlyUsedFilterIsDefault = true,
           ignoredTags = setOf("foo", "bar"),
+          ignoredApps = setOf("app1", "app2"),
         )
       )
   }
@@ -213,7 +224,18 @@ class LogcatApplicationSettingsConfigurableTest {
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     assertThat(configurable.isModified).isFalse()
 
-    runInEdtAndWait { configurable.ignoreTagsTextField.component.text = "foobar" }
+    runInEdtAndWait { configurable.ignoreTagsTextField.component.text = "changed" }
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_ignoredApps() {
+    logcatSettings.ignoredApps = setOf("foo", "bar")
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    runInEdtAndWait { configurable.ignoreAppsTextField.component.text = "changed" }
 
     assertThat(configurable.isModified).isTrue()
   }

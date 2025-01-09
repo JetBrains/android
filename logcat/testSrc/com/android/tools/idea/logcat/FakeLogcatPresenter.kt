@@ -112,9 +112,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getTags(): Set<String> = tagSet
 
-  override fun getPackageNames(): Set<String> {
-    TODO("Not yet implemented")
-  }
+  override fun getPackageNames(): Set<String> = emptySet()
 
   override fun getProcessNames(): Set<String> {
     TODO("Not yet implemented")
