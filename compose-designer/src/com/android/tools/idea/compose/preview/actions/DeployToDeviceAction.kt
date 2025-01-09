@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.intellij.execution.ProgramRunnerUtil
@@ -32,6 +33,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
@@ -88,7 +90,14 @@ internal class DeployToDeviceAction :
         }
         // Use the container module to make sure we also compile the androidTest module when
         // running this configuration.
-        setModule(module.getModuleSystem().getHolderModule())
+        val androidHolderModule = module.findAndroidModule()?.getModuleSystem()?.getHolderModule()
+
+        if (androidHolderModule != null) {
+          setModule(androidHolderModule)
+        }
+        else {
+          thisLogger().warn("Unable to find holder module for $module")
+        }
       }
 
     val configurationAndSettings =

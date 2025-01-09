@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
@@ -51,6 +52,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.util.isAndroidModule
+import com.android.tools.idea.util.isCommonWithAndroidModule
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -63,6 +66,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -70,6 +74,7 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
 private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
@@ -168,7 +173,7 @@ class ComposePreviewRepresentationProvider(
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() &&
-      (readAction { psiFile.getModuleSystem()?.usesCompose ?: false && !psiFile.isInLibrary() })
+      (readAction { (psiFile.getModuleSystem()?.usesCompose == true || isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary() })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
@@ -191,6 +196,20 @@ class ComposePreviewRepresentationProvider(
 
   private fun PsiFile.isInLibrary() =
     ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile)
+}
+
+private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
+  val module = ModuleUtilCore.findModuleForFile(file) ?: return false
+  // we only accept modules that are:
+  // - Android modules
+  // - Common modules, but those having Android counterpart
+  // in all other scenarios, Compose Preview in common should be hidden.
+  if (!module.isAndroidModule() && !module.isCommonWithAndroidModule()) {
+    return false
+  }
+  val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/*includeTests = */true)
+  val foundClasses = KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
+  return foundClasses.isNotEmpty()
 }
 
 private const val PREFIX = "ComposePreview"

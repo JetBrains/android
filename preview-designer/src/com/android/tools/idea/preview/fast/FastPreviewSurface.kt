@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.readAction
@@ -104,6 +105,10 @@ class CommonFastPreviewSurface(
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
+    val previewFileAndroidModule = previewFileBuildTargetReference.module.findAndroidModule()
+                                   ?: return CompilationResult.RequestException(
+                                     IllegalStateException("Preview File does not have a valid Android module")
+                                   )
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
@@ -117,7 +122,7 @@ class CommonFastPreviewSurface(
             // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
             ModuleManager.getInstance(psiFilePointer.project)
               .isModuleDependent(
-                previewFileBuildTargetReference.module,
+                previewFileAndroidModule,
                 modifiedFileBuildTargetReference.module,
               )
         }
@@ -133,7 +138,7 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileBuildTargetReference.module)
+      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }

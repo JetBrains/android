@@ -36,10 +36,12 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
@@ -52,6 +54,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 private fun <T : PreviewElement<*>, M> calcAffinityMatrix(
   elements: List<T>,
@@ -198,9 +201,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
 
   val (facet, configurationManager) =
-    AndroidFacet.getInstance(psiFile)?.let { facet ->
-      facet to ConfigurationManager.getOrCreateInstance(facet.module)
-    } ?: (null to null)
+    readAction { psiFile.module }
+      ?.findAndroidModule()
+      ?.let { module -> AndroidFacet.getInstance(module) }
+      ?.let { facet -> facet to ConfigurationManager.getOrCreateInstance(facet.module) }
+      ?: (null to null)
   if (facet == null || configurationManager == null) return emptyList()
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.

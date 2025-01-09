@@ -241,7 +241,7 @@ private constructor(private val module: Module, private val scope: CompileRootsS
   ClassFileFinder {
 
   override fun findClassFile(fqcn: String): ClassContent? {
-    return module.getCompileOutputs(scope).findClass(fqcn)
+    return module.getCompileOutputs(scope)?.findClass(fqcn)
   }
 
   companion object {

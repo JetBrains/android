@@ -34,6 +34,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -267,7 +268,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       launch(workerThread) {
         val resourceChangedFlow =
           if (StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE.get()) {
-            readAction { psiFilePointer.element?.module }
+            readAction { psiFilePointer.element?.module?.findAndroidModule() }
               ?.let { module ->
                 resourceChangedFlow(module, disposable, log, null)
                   .filter { reasons ->
