@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KE
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.TestActionEvent
@@ -69,22 +70,14 @@ internal class CopyResourceValueActionTest {
   @Test
   fun testActionNotAvailableForMultipleItems() {
     val asset = getColorAsset()
-    val dataContext = DataContext { dataId ->
-      if (dataId == RESOURCE_DESIGN_ASSETS_KEY.name)
-        arrayOf(asset, asset)
-      else null
-    }
+    val dataContext = SimpleDataContext.getSimpleContext(RESOURCE_DESIGN_ASSETS_KEY, arrayOf(asset, asset))
     assertFalse(updateAction(dataContext).second.presentation.isVisible)
   }
 
   @Test
   fun testActionIsAvailable() {
     val asset = getColorAsset()
-    val dataContext = DataContext { dataId ->
-      if (dataId == RESOURCE_DESIGN_ASSETS_KEY.name)
-        arrayOf(asset)
-      else null
-    }
+    val dataContext = SimpleDataContext.getSimpleContext(RESOURCE_DESIGN_ASSETS_KEY, arrayOf(asset))
     val (action, event) = updateAction(dataContext)
     assertTrue(event.presentation.isVisible)
     action.actionPerformed(event)
