@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
@@ -269,13 +270,10 @@ class EmulatorUiSettingsActionTest {
     EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
 
   private fun createTestDataContext(controller: EmulatorController, view: EmulatorView): DataContext {
-    return DataContext { dataId ->
-      when (dataId) {
-        CommonDataKeys.PROJECT.name -> uiRule.project
-        EMULATOR_CONTROLLER_KEY.name -> controller
-        EMULATOR_VIEW_KEY.name -> view
-        else -> null
-      }
-    }
+    return SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, uiRule.project)
+      .add(EMULATOR_CONTROLLER_KEY, controller)
+      .add(EMULATOR_VIEW_KEY, view)
+      .build()
   }
 }

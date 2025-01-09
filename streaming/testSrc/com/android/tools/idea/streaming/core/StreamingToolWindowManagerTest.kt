@@ -75,6 +75,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
@@ -135,12 +136,11 @@ class StreamingToolWindowManagerTest {
 
   private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.disposable
-  private val dataContext = DataContext {
-    when (it) {
-      CommonDataKeys.PROJECT.name -> project
-      PlatformDataKeys.TOOL_WINDOW.name -> toolWindow
-      else -> null
-    }
+  private val dataContext: DataContext by lazy {
+    SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, project)
+      .add(PlatformDataKeys.TOOL_WINDOW, toolWindow)
+      .build()
   }
 
   @Before
