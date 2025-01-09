@@ -110,7 +110,7 @@ class VisualizationActionManager(
   /** Action to delete a custom preview */
   private class RemoveCustomAction(
     private val visualizationModelsProvider: () -> VisualizationModelsProvider
-  ) : AnAction(StudioIcons.Common.CLOSE) {
+  ) : AnAction("Remove from Configuration Set", null, StudioIcons.Common.CLOSE) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
