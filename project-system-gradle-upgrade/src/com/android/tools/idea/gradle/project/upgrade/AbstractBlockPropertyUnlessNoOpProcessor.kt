@@ -23,14 +23,12 @@ import com.intellij.lang.properties.psi.PropertiesList
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.util.SlowOperations.allowSlowOperations
 
 /**
  * Abstract processor that looks for a Gradle property and blocks upgrades unless this property is not present. If the property is present
@@ -46,13 +44,15 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
 
   abstract val featureName: String
   abstract val propertyKey: String
-  abstract val defaultChangedVersion: AgpVersion
   abstract val propertyRemovedVersion: AgpVersion
   abstract val noOpValue: Boolean
   abstract val componentKind: UpgradeAssistantComponentKind
 
   // Make it abstract again to force subclasses to define their own id
   abstract override fun getRefactoringId(): String
+
+  override val necessityInfo
+    get() = PointNecessity(propertyRemovedVersion)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -83,10 +83,7 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
   override fun blockProcessorReasons(): List<BlockReason> {
     val reasons: MutableList<BlockReason> = mutableListOf()
     reasons.addAll(super.blockProcessorReasons())
-    if (this.current < defaultChangedVersion && this.new >= propertyRemovedVersion) {
-      reasons.add(AgpVersionTooOldForPropertyRemoved())
-    }
-    else if (this.current < propertyRemovedVersion && this.new >= propertyRemovedVersion && isPropertyApplied()) {
+    if (this.current < propertyRemovedVersion && this.new >= propertyRemovedVersion && isPropertyApplied()) {
       // Check that the no op value is used
       reasons.add(PropertyUsedAfterRemoval())
     }
@@ -112,9 +109,7 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
     _isPropertyAppliedCache = isPropertyAppliedNoCache()
   }
 
-  inner class AgpVersionTooOldForPropertyRemoved: BlockReason("There have been changes in how $featureName is configured.",description = "Please first update AGP to a version greater or equal to $defaultChangedVersion but lower than $propertyRemovedVersion to make the applicable changes")
-
-  inner class PropertyUsedAfterRemoval: BlockReason("Property $propertyKey has been removed in $propertyRemovedVersion.", description = "Remove it from gradle.properties and make sure your project builds correctly before continuing")
+  protected inner class PropertyUsedAfterRemoval: BlockReason("Property $propertyKey has been removed in $propertyRemovedVersion.", description = "Remove it from gradle.properties and make sure your project builds correctly before continuing")
 
   inner class RemovedPropertyUsageInfo(private val wrappedElement: WrappedPsiElement) : GradleBuildModelUsageInfo(wrappedElement) {
     override fun getTooltipText(): String = "This property has been removed in AGP $propertyRemovedVersion"

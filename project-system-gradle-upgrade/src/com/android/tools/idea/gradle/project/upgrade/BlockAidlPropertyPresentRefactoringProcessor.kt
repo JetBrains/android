@@ -22,14 +22,13 @@ import com.intellij.openapi.project.Project
 /**
  * Processor that blocks AGP upgrades if android.defaults.buildfeatures.aidl is present in gradle.properties after moving to AGP 9.0
  */
-class BlockAidlPropertyPresentRefactoringProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+class BlockAidlPropertyPresentRefactoringProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "AIDL"
   override val propertyKey = "android.defaults.buildfeatures.aidl"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
-  override val necessityInfo = PointNecessity(propertyRemovedVersion)
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_AIDL_PROPERTY_PRESENT
   override val defaultChangedVersion = AidlDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false

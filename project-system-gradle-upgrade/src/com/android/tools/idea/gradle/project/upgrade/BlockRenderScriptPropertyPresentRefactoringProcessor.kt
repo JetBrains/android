@@ -22,14 +22,13 @@ import com.intellij.openapi.project.Project
 /**
  * Processor that blocks AGP upgrades if android.defaults.buildfeatures.renderscript is present in gradle.properties after moving to AGP 9.0
  */
-class BlockRenderScriptPropertyPresentRefactoringProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+class BlockRenderScriptPropertyPresentRefactoringProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Render Script"
   override val propertyKey = "android.defaults.buildfeatures.renderscript"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
-  override val necessityInfo = PointNecessity(propertyRemovedVersion)
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RENDER_SCRIPT_PROPERTY_PRESENT
   override val defaultChangedVersion = RenderScriptDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
