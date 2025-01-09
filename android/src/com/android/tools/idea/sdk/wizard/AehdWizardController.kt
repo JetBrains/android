@@ -114,7 +114,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
   fun handleCancel(installationIntention: InstallationIntention, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, aClass: Class<*>, logger: Logger) {
     // The wizard was invoked to install, but installer invocation failed or was cancelled.
     // Have to ensure the SDK package is removed
-    if (installationIntention.isInstall()) {
+    if (installationIntention != InstallationIntention.UNINSTALL) {
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
         val progress: ProgressIndicator = StudioLoggerProgressIndicator(aClass)

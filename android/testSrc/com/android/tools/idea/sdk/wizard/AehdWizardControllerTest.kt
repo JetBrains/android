@@ -185,6 +185,17 @@ class AehdWizardControllerTest {
   }
 
   @Test
+  fun handleCancel_cleansUpInstalledPackagesWhenInstallationIntentionIsConfigureOnly() {
+    val aehdNode = AehdSdkComponentTreeNode(CONFIGURE_ONLY)
+    aehdNode.updateState(sdkHandler)
+    doNothing().whenever(sdkComponentInstaller).ensureSdkPackagesUninstalled(any(), any(), any())
+
+    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, javaClass, mock())
+
+    verify(sdkComponentInstaller).ensureSdkPackagesUninstalled(eq(sdkHandler), eq(sdkPackages.map { it.path }), any())
+  }
+
+  @Test
   fun handleCancel_doesNotCleanUpWhenInstallationIntentionIsUninstall() {
     val aehdNode = AehdSdkComponentTreeNode(UNINSTALL)
     aehdNode.updateState(sdkHandler)
