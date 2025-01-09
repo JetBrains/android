@@ -1719,7 +1719,7 @@ public final class StudioFlags {
     "device.catalog.enabled",
     "Enable the Device Catalog for virtual device creation",
     "Enable new UI for creating AVDs",
-    enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Boolean> DIRECT_ACCESS_DEVICE_CATALOG_ENABLED = new BooleanFlag(
@@ -1727,7 +1727,7 @@ public final class StudioFlags {
     "direct.access.device.catalog.enabled",
     "Enable the Device Catalog for Direct Access devices",
     "Enable new UI for selecting Firebase devices",
-    enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Boolean> POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED = new BooleanFlag(
