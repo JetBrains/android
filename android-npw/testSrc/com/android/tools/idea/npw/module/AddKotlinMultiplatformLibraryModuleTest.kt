@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -41,7 +42,7 @@ class AddKotlinMultiplatformLibraryModuleTest {
           )
           .apply {
             packageName.set("com.example.shared")
-            agpVersion.set(AgpVersion(8, 1, 0))
+            agpVersionSelector.set(AgpVersionSelector.FixedVersion(AgpVersion(8, 1, 0)))
           }
 
       model.handleFinished() // Generate module files

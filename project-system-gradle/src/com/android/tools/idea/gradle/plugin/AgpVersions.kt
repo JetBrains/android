@@ -150,9 +150,8 @@ object AgpVersions {
     latestKnown: AgpVersion,
     gmavenVersions: Set<AgpVersion>,
     localAndSnapshotVersions: List<NewProjectWizardAgpVersion>,
-    includeHistoricalAgpVersions: Boolean
+    includeHistoricalAgpVersions: Boolean,
   ): List<NewProjectWizardAgpVersion> {
-    val newProjectDefaultVersion = newProject
     val include = setOf(AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED)
     val recommended = mutableListOf<NewProjectWizardAgpVersion>()
     // Offer versions from the development offline repo, if present
@@ -184,7 +183,7 @@ object AgpVersions {
           return recommended
         }
       }
-      recommended.add(NewProjectWizardAgpVersion(version, info = if (version == newProjectDefaultVersion) "New project default" else ""))
+      recommended.add(NewProjectWizardAgpVersion(version))
     }
     return recommended
   }

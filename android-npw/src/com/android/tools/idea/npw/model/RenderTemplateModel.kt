@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -177,7 +178,8 @@ private constructor(
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
-        projectTemplateDataBuilder.agpVersion = agpVersion.get()
+        projectTemplateDataBuilder.agpVersion =
+          agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 

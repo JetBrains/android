@@ -44,7 +44,10 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(
   init {
     model.language.set(Optional.of(Language.Kotlin))
     validatorPanel.registerValidator(model.kgpVersion, MultiplatformKgpMinVersionValidator())
-    validatorPanel.registerValidator(model.agpVersion, MultiplatformAgpMinVersionValidator())
+    validatorPanel.registerValidator(
+      model.agpVersionSelector,
+      MultiplatformAgpMinVersionValidator(),
+    )
   }
 
   override fun createMainPanel(): DialogPanel =

@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.baselineprofiles.ConfigureBaselineProfilesModuleStep
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.observable.BatchInvoker
@@ -76,7 +77,11 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
             targetModule.value = project.findAppModule()
             useGradleKts.set(useGradleKtsParam)
             useGmd.set(useGmdParam)
-            agpVersion.set(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!)
+            agpVersionSelector.set(
+              AgpVersionSelector.FixedVersion(
+                GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!
+              )
+            )
           }
 
       model.handleFinished() // Generate module files

@@ -114,11 +114,11 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
 
     val minAgpVersion = AgpVersion.parse(MACRO_AGP_MIN_VERSION)
     validatorPanel.registerValidator(
-      model.agpVersion,
-      createValidator { version ->
+      model.agpVersionSelector,
+      createValidator { versionSelector ->
         if (
           model.benchmarkModuleType.get() == MACROBENCHMARK &&
-            version.compareIgnoringQualifiers(minAgpVersion) < 0
+            !versionSelector.willSelectAtLeast(minAgpVersion)
         )
           Validator.Result.fromNullableMessage(
             message(

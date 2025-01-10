@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -79,13 +78,15 @@ class ExistingProjectModelData(
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> =
     OptionalValueProperty(getInitialSourceLanguage(project))
-  override val agpVersion =
-    ObjectValueProperty<AgpVersion>(
-      GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
-        ?: AgpVersions.newProject.also {
-          Logger.getInstance(ExistingProjectModelData::class.java)
-            .warn("Unable to determine AGP version for $project, using $it")
-        }
+  override val agpVersionSelector =
+    ObjectValueProperty<AgpVersionSelector>(
+      AgpVersionSelector.FixedVersion(
+        GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
+          ?: AgpVersions.newProject.also {
+            Logger.getInstance(ExistingProjectModelData::class.java)
+              .warn("Unable to determine AGP version for $project, using $it")
+          }
+      )
     )
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->

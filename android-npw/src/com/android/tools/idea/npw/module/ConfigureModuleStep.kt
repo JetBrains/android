@@ -265,9 +265,9 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 fun ValidatorPanel.registerKtsAgpVersionValidation(model: ProjectModelData) {
   val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
   registerValidator(
-    model.agpVersion,
+    model.agpVersionSelector,
     createValidator { version ->
-      if (model.useGradleKts.get() && version.compareIgnoringQualifiers(minKtsAgpVersion) < 0)
+      if (model.useGradleKts.get() && !version.willSelectAtLeast(minKtsAgpVersion))
         Validator.Result.fromNullableMessage(
           message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION)
         )

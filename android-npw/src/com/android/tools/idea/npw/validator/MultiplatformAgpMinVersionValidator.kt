@@ -17,12 +17,13 @@ package com.android.tools.idea.npw.validator
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import org.jetbrains.android.util.AndroidBundle.message
 
 /** Validates that agp version is high enough for kotlin multiplatform module creation */
-class MultiplatformAgpMinVersionValidator : Validator<AgpVersion> {
-  override fun validate(value: AgpVersion): Validator.Result {
-    if (value < MINIMUM_SUPPORTED_AGP_VERSION) {
+class MultiplatformAgpMinVersionValidator : Validator<AgpVersionSelector> {
+  override fun validate(agpVersionSelector: AgpVersionSelector): Validator.Result {
+    if (!agpVersionSelector.willSelectAtLeast(MINIMUM_SUPPORTED_AGP_VERSION)) {
       return Validator.Result(
         Validator.Severity.ERROR,
         message("android.wizard.validate.agp.version.for.kmp.module", MINIMUM_SUPPORTED_AGP_VERSION),

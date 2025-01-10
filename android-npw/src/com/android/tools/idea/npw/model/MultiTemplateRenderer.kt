@@ -51,7 +51,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
 
   interface TemplateRenderer {
     /** Runs any needed Model pre-initialisation, for example, setting Template default values. */
-    @WorkerThread fun init() {}
+    @WorkerThread @Slow fun init() {}
 
     /**
      * Run validation, but don't write any file

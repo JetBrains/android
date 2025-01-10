@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
@@ -70,7 +71,7 @@ class ModuleModelTest : AndroidGradleTestCase() {
     val kmpModuleModel =
       NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
         packageName.set("com.example.shared")
-        agpVersion.set(AgpVersion(8, 1, 0))
+        agpVersionSelector.set(AgpVersionSelector.FixedVersion(AgpVersion(8, 1, 0)))
       }
     multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
 

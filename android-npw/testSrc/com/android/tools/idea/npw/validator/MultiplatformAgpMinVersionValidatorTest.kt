@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.validator
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -46,11 +47,21 @@ class MultiplatformAgpMinVersionValidatorTest {
   }
 
   private fun assertValidVersion(version: AgpVersion) {
+    assertValidVersion(AgpVersionSelector.FixedVersion(version))
+    assertValidVersion(AgpVersionSelector.MaximumPatchVersion(version))
+  }
+
+  private fun assertValidVersion(version: AgpVersionSelector) {
     val result = moduleValidator.validate(version)
     Assert.assertSame(Validator.Severity.OK, result.severity)
   }
 
   private fun assertInvalidVersion(version: AgpVersion) {
+    assertInvalidVersion(AgpVersionSelector.FixedVersion(version))
+    assertInvalidVersion(AgpVersionSelector.MaximumPatchVersion(version))
+  }
+
+  private fun assertInvalidVersion(version: AgpVersionSelector) {
     val result = moduleValidator.validate(version)
     Assert.assertSame(result.message, Validator.Severity.ERROR, result.severity)
     Assert.assertEquals(

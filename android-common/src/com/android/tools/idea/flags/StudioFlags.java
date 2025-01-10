@@ -132,6 +132,11 @@ public final class StudioFlags {
     "Show KTS/Gradle Combobox to which build script is used for the generated code",
     true);
 
+  public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
+    NPW, "use.patch.releases", "Use the latest patch release of AGP",
+    "When enabled Studio will pick future patch releases of AGP for new projects.",
+    false);
+
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
     "Show a combobox to select the version of Android Gradle plugin used for the new project",

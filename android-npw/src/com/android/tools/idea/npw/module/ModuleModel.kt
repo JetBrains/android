@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -123,7 +124,10 @@ abstract class ModuleModel(
         projectTemplateDataBuilder.apply {
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
-          agpVersion = this@ModuleModel.agpVersion.get()
+          agpVersion =
+            this@ModuleModel.agpVersionSelector
+              .get()
+              .resolveVersion(AgpVersions::getAvailableVersions)
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()

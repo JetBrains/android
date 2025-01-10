@@ -144,9 +144,9 @@ class ConfigureBaselineProfilesModuleStep(
 
   private fun validateAgpVersion() =
     validatorPanel.registerValidator(
-      model.agpVersion,
-      createValidator { version ->
-        if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
+      model.agpVersionSelector,
+      createValidator { versionSelector ->
+        if (!versionSelector.willSelectAtLeast(BP_PLUGIN_MIN_SUPPORTED)) {
           Validator.Result.fromNullableMessage(
             AndroidBundle.message(
               "android.wizard.validate.module.needs.new.agp.baseline.profiles",
