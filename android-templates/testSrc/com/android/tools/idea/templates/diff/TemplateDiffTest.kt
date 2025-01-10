@@ -500,6 +500,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
+  fun testComposeNavigationUiActivityMaterial3() {
+    checkCreateTemplate("Navigation UI Activity", withSpecificKotlin) // Compose is always Kotlin
+  }
+
+  @Test
   fun testResponsiveActivity() {
     checkCreateTemplate("Responsive Views Activity")
   }
