@@ -19,10 +19,12 @@ import org.mockito.kotlin.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -31,16 +33,17 @@ import org.mockito.Mockito.verify
 
 @RunWith(JUnit4::class)
 class ZoomActualActionTest {
+  @get:Rule val applicationRule = ApplicationRule()
 
-  val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
-  val dataContext: DataContext = mock(DataContext::class.java)
+  val dataContext: DataContext by lazy {
+    SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable)
+  }
   val zoomable: Zoomable = mock(Zoomable::class.java)
 
   val zoomAction = ZoomActualAction.createInstance()
 
   @Before
   fun setUp() {
-    whenever(dataContext.getData(ZOOMABLE_KEY)).thenReturn(zoomable)
     whenever(zoomable.canZoomToActual()).thenReturn(true)
   }
 
@@ -61,6 +64,5 @@ class ZoomActualActionTest {
     verify(zoomable).zoom(ZoomType.ACTUAL)
   }
 
-  private fun getActionEvent(): AnActionEvent = AnActionEvent(null, dataContext, "Place", zoomAction.templatePresentation.clone(),
-                                                              actionManager, 0)
+  private fun getActionEvent() = TestActionEvent.createTestEvent(zoomAction, dataContext)
 }

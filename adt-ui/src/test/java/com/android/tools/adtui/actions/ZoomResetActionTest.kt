@@ -18,11 +18,16 @@ package com.android.tools.adtui.actions
 import org.mockito.kotlin.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -32,16 +37,16 @@ import kotlin.test.assertEquals
 
 @RunWith(JUnit4::class)
 class ZoomResetActionTest {
+  @get:Rule val applicationRule = ApplicationRule()
 
   val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
-  val dataContext: DataContext = mock(DataContext::class.java)
+  val dataContext: DataContext by lazy { SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable) }
   val zoomable: Zoomable = mock(Zoomable::class.java)
 
   val zoomAction = ZoomResetAction
 
   @Before
   fun setUp() {
-    whenever(dataContext.getData(ZOOMABLE_KEY)).thenReturn(zoomable)
     whenever(zoomable.canZoomToFit()).thenReturn(true)
   }
 
@@ -63,5 +68,5 @@ class ZoomResetActionTest {
     assertEquals("Reset Zoom", otherEvent.presentation.text)
   }
 
-  private fun getActionEvent(place: String): AnActionEvent = AnActionEvent(null, dataContext, place, Presentation(), actionManager, 0)
+  private fun getActionEvent(place: String) = AnActionEvent.createEvent(dataContext, Presentation(), place, ActionUiKind.NONE, null)
 }

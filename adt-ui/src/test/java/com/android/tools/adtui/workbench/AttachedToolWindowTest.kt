@@ -27,8 +27,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -905,11 +905,7 @@ class AttachedToolWindowTest {
     }
 
     private fun createActionEvent(action: AnAction): AnActionEvent {
-      val dataContext = Mockito.mock(DataContext::class.java)
-      return AnActionEvent(
-        null, dataContext, AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE, action.templatePresentation.clone(),
-        ActionManager.getInstance(), 0
-      )
+      return AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, action.templatePresentation.clone(), AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE, ActionUiKind.NONE, null)
     }
   }
 }
