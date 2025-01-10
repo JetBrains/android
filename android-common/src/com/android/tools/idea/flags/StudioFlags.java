@@ -326,7 +326,7 @@ public final class StudioFlags {
     "motion.editor.enabled",
     "Motion Editor enabled",
     "When true, the Motion Editor will be enabled.",
-    true
+    false
   );
   //endregion
 
