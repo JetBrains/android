@@ -6,4 +6,6 @@
   - name: intellij.android.gradle.dsl.kotlin
   - name: intellij.android.gradle.dsl.toml
   - name: intellij.android.gradle.dsl.declarative
+- name: lib/modules/intellij.android.gradle.dsl.flags.jar
+  contentModules:
   - name: intellij.android.gradle.dsl.flags
