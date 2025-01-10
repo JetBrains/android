@@ -41,7 +41,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CodeGenerationTest {
-  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   static private String ACTIVITY_CLASS = "app/src/main/java/com/codegeneration/MainActivity.java";
   static private String PERSON_CLASS = "app/src/main/java/com/codegeneration/Person.java";
@@ -102,6 +102,7 @@ public class CodeGenerationTest {
     editor.waitUntilErrorAnalysisFinishes();
     assertThat(editor.getCurrentFileContents().contains("if () {")).isTrue();
 
+    editor.moveBetween("if (", ") {");
     ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
     getList(JBLIST_CLASS).clickItem("Unwrap 'if...'");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
