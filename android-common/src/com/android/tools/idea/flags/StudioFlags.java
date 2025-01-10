@@ -2063,6 +2063,12 @@ public final class StudioFlags {
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
                     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
+                    "Enable @file attachment and the context drawer.",
+                    "When enabled, @file can be used to attach text files as context. Also enables the context drawer for context management.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",
                     "Suggest missing dependencies when inserting/pasting code snippets",
