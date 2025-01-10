@@ -51,7 +51,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
         IdeSdks.getInstance(),
       ) ?: return null
     val sdkComponentInstaller = SdkComponentInstaller()
-    val tracker = FirstRunWizardTracker(wizardMode.toMetricKind())
+    val tracker = FirstRunWizardTracker(wizardMode.toMetricKind(), !useNewWizard)
     return createWelcomeScreen(useNewWizard, wizardMode, sdkComponentInstaller, tracker)
   }
 

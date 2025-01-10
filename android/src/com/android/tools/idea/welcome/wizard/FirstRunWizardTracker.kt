@@ -34,7 +34,10 @@ import java.time.Instant
  * it's important to ensure this method is called whenever the wizard is finished or cancelled.
  */
 @AnyThread
-class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) {
+class FirstRunWizardTracker(
+  private val mode: SetupWizardEvent.SetupWizardMode,
+  private val isDeprecatedWizard: Boolean,
+) {
   private val eventBuilder =
     AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.SETUP_WIZARD_EVENT)
 
@@ -127,6 +130,8 @@ class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode) 
 
     val timeSpentInWizardMs = Duration.between(wizardStartedTime, Instant.now())
     eventBuilder.setupWizardEventBuilder.timeSpentInWizardMs = timeSpentInWizardMs.toMillis()
+
+    eventBuilder.setupWizardEventBuilder.isDeprecatedWizard = isDeprecatedWizard
 
     UsageTracker.log(eventBuilder)
   }

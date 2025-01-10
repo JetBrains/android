@@ -37,8 +37,9 @@ class AehdWizardService {
    */
   @UiThread
   fun showAndGet(installationIntention: AehdSdkComponentTreeNode.InstallationIntention): Boolean {
-    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD)
-    if (!StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
+    val showDeprecatedWizard = !StudioFlags.NPW_FIRST_RUN_WIZARD.get()
+    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD, showDeprecatedWizard)
+    if (showDeprecatedWizard) {
       val wizard = AehdWizard(installationIntention, AehdWizardController(), tracker)
       wizard.init()
       return wizard.showAndGet()

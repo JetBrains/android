@@ -16,13 +16,12 @@
 package com.android.tools.idea.sdk.wizard
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.isWritable
-import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
 import com.android.tools.idea.welcome.wizard.FirstRunWizardModel
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker
 import com.android.tools.idea.welcome.wizard.InstallComponentsProgressStep
 import com.android.tools.idea.welcome.wizard.InstallSummaryStep
 import com.android.tools.idea.welcome.wizard.SdkComponentsStep
@@ -66,7 +65,8 @@ class SetupSdkApplicationService : Disposable {
   fun showSdkSetupWizard(sdkPathString: String,
                          sdkUpdatedCallback: SdkUpdatedCallback?,
                          sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
-                         tracker: FirstRunWizardTracker) {
+                         tracker: FirstRunWizardTracker,
+                         useDeprecatedWizard: Boolean) {
     val sdkPath =
       if (StringUtil.isEmpty(sdkPathString)) {
         getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK)
@@ -76,10 +76,11 @@ class SetupSdkApplicationService : Disposable {
 
     tracker.trackWizardStarted()
 
-    if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
-      showNewWizard(sdkPath, sdkUpdatedCallback, sdkComponentInstaller, tracker)
-    } else {
+    if (useDeprecatedWizard) {
       showOldWizard(sdkPath, sdkUpdatedCallback, sdkComponentInstaller, tracker)
+    }
+    else {
+      showNewWizard(sdkPath, sdkUpdatedCallback, sdkComponentInstaller, tracker)
     }
   }
 

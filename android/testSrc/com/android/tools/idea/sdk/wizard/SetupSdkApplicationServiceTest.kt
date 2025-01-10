@@ -132,6 +132,7 @@ class SetupSdkApplicationServiceTest {
           {},
           mockInstaller,
           mock(),
+          isTestingLegacyWizard == true
         )
       }
     ) {
@@ -197,6 +198,7 @@ class SetupSdkApplicationServiceTest {
           {},
           mockInstaller,
           mockTracker,
+          isTestingLegacyWizard == true
         )
       }
     ) {

@@ -174,7 +174,11 @@ class AehdWizardTest {
 
   @Test
   fun cancellingWizardTriggersCleanup() {
-    val tracker = FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.AEHD_WIZARD)
+    val tracker =
+      FirstRunWizardTracker(
+        SetupWizardEvent.SetupWizardMode.AEHD_WIZARD,
+        isTestingLegacyWizard == true,
+      )
     showWizard(mockAehdWizardController, tracker) { fakeUi ->
       val cancelButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.equals("Cancel") })
       assertTrue { fakeUi.isShowing(cancelButton) }
