@@ -102,11 +102,6 @@ public final class StudioFlags {
   //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
 
-  public static final Flag<Boolean> NPW_FIRST_RUN_WIZARD = new BooleanFlag(
-    NPW, "first.run.wizard", "Show new Welcome Wizard",
-    "Show new version of the Welcome Wizard when Studio starts",
-    false);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = new BooleanFlag(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",
     "Show the Welcome Wizard when Studio starts",
@@ -2290,6 +2285,36 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEV_SERVICES_DEPRECATED_V1 = new BooleanFlag(
     DEV_SERVICES_SLA, "deprecated.v1", "Dev Services Supported", "Dev Services Deprecated", false);
   // endregion DEV_SERVICES_DEPRECATION_SUPPORT
+
+  // region WIZARD_MIGRATION
+  private static final FlagGroup WIZARD_MIGRATION = new FlagGroup(
+    FLAGS,
+    "wizard.migration",
+    "Wizard Migration"
+  );
+
+  public static final Flag<Boolean> FIRST_RUN_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
+    WIZARD_MIGRATION,
+    "first.run.migrated.wizard.enabled",
+    "Migrated First Run Wizard Enabled",
+    "Show the migrated version of the welcome wizard when Studio first starts",
+    false
+  );
+  public static final Flag<Boolean> SDK_SETUP_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
+    WIZARD_MIGRATION,
+    "sdk.setup.migrated.wizard.enabled",
+    "Migrated SDK Setup Wizard Enabled",
+    "Show the migrated version of the SDK setup wizard",
+    false
+  );
+  public static final Flag<Boolean> AEHD_CONFIGURATION_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
+    WIZARD_MIGRATION,
+    "aehd.configuration.migrated.wizard.enabled",
+    "Migrated AEHD Configuration Wizard Enabled",
+    "Show the migrated version fo the AEHD configuration wizard",
+    false
+  );
+  // endregion WIZARD_MIGRATION
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.

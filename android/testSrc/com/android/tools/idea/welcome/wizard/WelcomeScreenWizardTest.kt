@@ -135,7 +135,7 @@ class WelcomeScreenWizardTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NPW_FIRST_RUN_WIZARD.override(!isTestingLegacyWizard!!)
+    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(!isTestingLegacyWizard!!)
 
     val dialog = TestMessagesDialog(Messages.OK)
     TestDialogManager.setTestDialog(dialog)
@@ -169,7 +169,7 @@ class WelcomeScreenWizardTest {
 
   @After
   fun tearDown() {
-    StudioFlags.NPW_FIRST_RUN_WIZARD.clearOverride()
+    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.clearOverride()
 
     mockFirstRunWizardDefaults.close()
     mockAndroidSdkHandler.close()

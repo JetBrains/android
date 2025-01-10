@@ -306,7 +306,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        boolean useDeprecatedWizard = !StudioFlags.NPW_FIRST_RUN_WIZARD.get();
+        boolean useDeprecatedWizard = !StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.get();
         SetupSdkApplicationService.getInstance().showSdkSetupWizard(
           mySdkLocationTextField.getText(),
           (sdkLocation) -> {

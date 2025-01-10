@@ -22,7 +22,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
+import static com.android.tools.idea.flags.StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -44,44 +44,44 @@ public class FirstRunWizardCancelTest {
 
   @After
   public void tearDown() {
-    NPW_FIRST_RUN_WIZARD.clearOverride();
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.clearOverride();
     setSdkUpdateVersion(mySdkUpdateVersion);
     FirstRunWizardFixture.close(guiTest.robot());
   }
 
   @Test
   public void cancelAndIgnore() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(true);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(true);
     doCancelAndIgnore();
   }
 
   @Test
   public void cancelAndRerunOnNextStartup() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(true);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(true);
     doCancelAndRerunOnNextStartup();
   }
 
   @Test
   public void cancelAndDontRerunOnNextStartup() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(true);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(true);
     doCancelAndDontRerunOnNextStartup();
   }
 
   @Test
   public void cancelAndIgnore_legacy() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(false);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(false);
     doCancelAndIgnore();
   }
 
   @Test
   public void cancelAndRerunOnNextStartup_legacy() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(false);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(false);
     doCancelAndRerunOnNextStartup();
   }
 
   @Test
   public void cancelAndDontRerunOnNextStartup_legacy() throws Exception {
-    NPW_FIRST_RUN_WIZARD.override(false);
+    FIRST_RUN_MIGRATED_WIZARD_ENABLED.override(false);
     doCancelAndDontRerunOnNextStartup();
   }
 

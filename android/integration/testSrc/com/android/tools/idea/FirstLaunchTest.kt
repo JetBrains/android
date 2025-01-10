@@ -31,7 +31,7 @@ class FirstLaunchTest {
 
   @Test
   fun firstLaunchTest() {
-    system.installation.addVmOption("-Dnpw.first.run.wizard=false")
+    system.installation.addVmOption("-Dwizard.migration.first.run.migrated.wizard.enabled=false")
     configureWizardFlags(system)
 
     system.runStudioWithoutProject().use { studio ->

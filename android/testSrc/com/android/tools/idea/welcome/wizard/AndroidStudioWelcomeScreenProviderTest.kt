@@ -71,7 +71,10 @@ class AndroidStudioWelcomeScreenProviderTest {
   fun createWelcomeScreen_returnsOldWizard_whenNewWizardFlagFalse() {
     whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
       .thenReturn(FirstRunWizardMode.NEW_INSTALL)
-    StudioFlags.NPW_FIRST_RUN_WIZARD.overrideForTest(false, projectRule.testRootDisposable)
+    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
     val screen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
 
     assertTrue { screen is FirstRunWizardHost }
@@ -81,7 +84,10 @@ class AndroidStudioWelcomeScreenProviderTest {
   fun createWelcomeScreen_returnsNewWizard_whenNewWizardFlagTrue() {
     whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
       .thenReturn(FirstRunWizardMode.NEW_INSTALL)
-    StudioFlags.NPW_FIRST_RUN_WIZARD.overrideForTest(true, projectRule.testRootDisposable)
+    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.overrideForTest(
+      true,
+      projectRule.testRootDisposable,
+    )
     val screen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
 
     assertTrue { screen is StudioFirstRunWelcomeScreen }

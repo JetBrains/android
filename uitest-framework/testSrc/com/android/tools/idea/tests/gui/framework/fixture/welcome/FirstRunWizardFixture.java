@@ -42,7 +42,7 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
   public static void show() {
     GuiTask.execute(() -> {
       JFrame welcomeFrame = new WelcomeFrame();
-      boolean useNewWizard = StudioFlags.NPW_FIRST_RUN_WIZARD.get();
+      boolean useNewWizard = StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.get();
       FirstRunWizardTracker tracker = new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.NEW_INSTALL, useNewWizard);
       WelcomeScreen welcomeScreen = useNewWizard
                                     ? new StudioFirstRunWelcomeScreen(FirstRunWizardMode.NEW_INSTALL, new SdkComponentInstaller(), tracker)

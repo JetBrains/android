@@ -43,7 +43,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       }
     }
 
-    val useNewWizard = StudioFlags.NPW_FIRST_RUN_WIZARD.get()
+    val useNewWizard = StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.get()
     val wizardMode =
       AndroidStudioWelcomeScreenService.instance.getWizardMode(
         AndroidFirstRunPersistentData.getInstance(),

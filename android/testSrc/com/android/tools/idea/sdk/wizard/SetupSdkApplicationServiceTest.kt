@@ -90,7 +90,7 @@ class SetupSdkApplicationServiceTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NPW_FIRST_RUN_WIZARD.override(isTestingLegacyWizard == false)
+    StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.override(isTestingLegacyWizard == false)
 
     mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
     val fakeRepoManager =

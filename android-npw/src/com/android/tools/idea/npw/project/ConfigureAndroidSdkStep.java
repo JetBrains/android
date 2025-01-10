@@ -28,7 +28,7 @@ public class ConfigureAndroidSdkStep extends ModelWizardStep.WithoutModel {
     super("Configure Android SDK");
     myInstallSDKButton.addActionListener(e -> {
       File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-      boolean useDeprecatedWizard = !StudioFlags.NPW_FIRST_RUN_WIZARD.get();
+      boolean useDeprecatedWizard = !StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.get();
       SetupSdkApplicationService.getInstance().showSdkSetupWizard(
         initialSdkLocation.getPath(),
         null,
