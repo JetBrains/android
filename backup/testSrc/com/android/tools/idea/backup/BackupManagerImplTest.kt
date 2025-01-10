@@ -74,8 +74,7 @@ internal class BackupManagerImplTest {
   private val project
     get() = projectRule.project
 
-  @get:Rule
-  val temporaryFolder =
+  private val temporaryFolder =
     TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
   private val backupFileHelper = BackupFileHelper(temporaryFolder)
 
