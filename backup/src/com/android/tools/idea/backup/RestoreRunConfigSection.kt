@@ -92,11 +92,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
       return listOf(ValidationError.warning(message("backup.file.missing")))
     }
 
-    val path =
-      when (file.startsWith('/')) {
-        true -> Path.of(file)
-        false -> Path.of(project.basePath ?: "", file)
-      }
+    val path = Path.of(file).absoluteInProject(project)
     if (path.notExists()) {
       return listOf(ValidationError.warning(message("backup.file.not.exist")))
     }
