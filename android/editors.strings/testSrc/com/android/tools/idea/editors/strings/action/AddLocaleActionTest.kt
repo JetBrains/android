@@ -29,17 +29,16 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
@@ -103,15 +102,7 @@ class AddLocaleActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)

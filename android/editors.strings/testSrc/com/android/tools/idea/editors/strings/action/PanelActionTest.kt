@@ -18,12 +18,11 @@ package com.android.tools.idea.editors.strings.action
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,7 +38,6 @@ class PanelActionTest {
   @get:Rule val mockitoRule: MockitoRule = MockitoJUnit.rule()
   @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 
-  @Mock private lateinit var actionManager: ActionManager
   @Mock private lateinit var stringResourceEditor: StringResourceEditor
 
   private val falsePanelAction = TestPanelAction(false)
@@ -48,9 +46,9 @@ class PanelActionTest {
   private val project
     get() = projectRule.project
 
-  // Lazy so that actionManager is initialized.
+  // Lazy so that enough of the Application is initialized
   private val e: AnActionEvent by lazy {
-    AnActionEvent(null, dataContextBuilder.build(), "place", Presentation(), actionManager, 0)
+    TestActionEvent.createTestEvent(dataContextBuilder.build())
   }
 
   @Test

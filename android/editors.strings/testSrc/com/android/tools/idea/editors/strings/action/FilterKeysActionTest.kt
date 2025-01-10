@@ -32,11 +32,9 @@ import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.DialogWrapper
@@ -46,6 +44,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -107,15 +106,7 @@ class FilterKeysActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -162,15 +153,7 @@ class FilterKeysActionTest {
     val dataContext =
       SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
-    val noEditorEvent =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     filterKeysAction.update(noEditorEvent)
 

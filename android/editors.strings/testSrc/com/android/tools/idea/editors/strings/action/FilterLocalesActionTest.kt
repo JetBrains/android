@@ -38,6 +38,7 @@ import com.intellij.openapi.wm.WindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -99,15 +100,7 @@ class FilterLocalesActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -154,15 +147,7 @@ class FilterLocalesActionTest {
     val dataContext =
       SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
-    val noEditorEvent =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     filterLocalesAction.update(noEditorEvent)
 
