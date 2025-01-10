@@ -333,10 +333,13 @@ DisplayInfo Agent::GetDisplayInfo(int32_t display_id) {
   return DisplayManager::GetDisplayInfo(Jvm::GetJni(), display_id);
 }
 
-void Agent::InitializeSessionEnvironment() {
+SessionEnvironment& Agent::GetSessionEnvironment() {
   ServiceManager::GetService(Jvm::GetJni(), "settings", true);  // Wait for the "settings" service to initialize.
   unique_lock lock(environment_mutex_);
-  session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
+  if (session_environment_ == nullptr) {
+    session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
+  }
+  return *session_environment_;
 }
 
 void Agent::RestoreEnvironment() {

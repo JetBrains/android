@@ -365,17 +365,18 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Log::D("Display %d: setting video orientation %d", display_id_, orientation);
+  SessionEnvironment& session_environment = Agent::GetSessionEnvironment();
   if (orientation == CURRENT_DISPLAY_ORIENTATION) {
     unique_lock lock(mutex_);
     if (video_orientation_ >= 0) {
-      Agent::session_environment().RestoreAccelerometerRotation();
+      session_environment.RestoreAccelerometerRotation();
       video_orientation_ = -1;
       StopCodecUnlocked();
     }
     return;
   }
 
-  Agent::session_environment().DisableAccelerometerRotation();
+  session_environment.DisableAccelerometerRotation();
 
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni, display_id_);

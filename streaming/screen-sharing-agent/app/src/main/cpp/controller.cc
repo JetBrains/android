@@ -189,8 +189,6 @@ void Controller::Initialize() {
 
   DisplayManager::AddDisplayListener(jni_, this);
   current_displays_ = GetDisplays();
-
-  Agent::InitializeSessionEnvironment();
 }
 
 void Controller::InitializeVirtualKeyboard() {

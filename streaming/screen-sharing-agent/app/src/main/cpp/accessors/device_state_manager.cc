@@ -166,8 +166,10 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
         supported_device_states_.clear();  // A single device state is treated the same as no states.
       }
       if (!supported_device_states_.empty()) {
-        jmethodID register_callback_method =
-            clazz.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
+        const char* signature = Agent::feature_level() < 36 ?
+            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V" :
+            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)Landroid/hardware/devicestate/DeviceStateInfo;";
+        jmethodID register_callback_method = clazz.GetMethod("registerCallback", signature);
         request_state_method_ = clazz.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
         if (Agent::feature_level() >= 33) {
           cancel_state_request_method_ = clazz.GetMethod("cancelStateRequest", "()V");
@@ -179,17 +181,22 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
         binder_class_.MakeGlobal();
         device_state_manager_.MakeGlobal();
 
+        JObject device_state_info2;
         if (Agent::feature_level() != 34 || Agent::device_manufacturer() != XIAOMI) {
           // Instantiate DeviceStateManagerCallback and call IDeviceStateManager.registerCallback passing it as the parameter.
           // Don't do it on Xiaomi API 34 to avoid a crash due to
           // "SecurityException: The calling process has already registered an IDeviceStateManagerCallback"
           clazz = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
           JObject callback = clazz.NewObject(clazz.GetConstructor("()V"));
-          device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
+          if (Agent::feature_level() < 36) {
+            device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
+            // Obtain a fresh device state info after setting up the callback.
+            device_state_info2 = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
+          } else {
+            device_state_info2 = device_state_manager_.CallObjectMethod(jni, register_callback_method, callback.ref());
+          }
         }
 
-        // Obtain a fresh device state info after setting up the callback.
-        JObject device_state_info2 = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
         if (device_state_info2.IsNull()) {
           device_state_info2 = std::move(device_state_info);
         }
