@@ -103,7 +103,7 @@ internal class BackupManagerImplTest {
       project.basePath?.let { Path.of(it) }?.resolve("file.backup")
         ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
-    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("app3"))
     project.replaceService(
       ProjectAppsProvider::class.java,
       object : ProjectAppsProvider {
@@ -147,7 +147,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
-    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
     val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
@@ -161,7 +161,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun restore_success_relativePath(): Unit = runBlocking {
-    val backupService = BackupService.getInstance(FakeAdbServicesFactory())
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
     val projectPath = project.basePath?.let { Path.of(it) } ?: fail("Project base path unavailable")
     val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
     val serialNumber = "serial"
@@ -179,7 +179,7 @@ internal class BackupManagerImplTest {
   fun gmsCoreNotUpdated(): Unit = runBlocking {
     val backupService =
       BackupService.getInstance(
-        FakeAdbServicesFactory {
+        FakeAdbServicesFactory("com.app") {
           it.addCommandOverride(
             Output(
               DUMPSYS_GMSCORE_CMD,
