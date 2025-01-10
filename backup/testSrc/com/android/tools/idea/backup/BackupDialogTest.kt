@@ -18,6 +18,7 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
+import com.android.testutils.AssumeUtil.assumeWindows
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.backup.testing.clickOk
@@ -140,13 +141,36 @@ class BackupDialogTest {
     }
   }
 
+  @Test
+  fun showDialog_okEnabled() {
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = "someDir/foo"
+      assertThat(it.isOKActionEnabled).isTrue()
+    }
+  }
+
+  @Test
+  fun showDialog_emptyFile_okDisabled() {
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = ""
+      assertThat(it.isOKActionEnabled).isFalse()
+    }
+  }
+
+  @Test
+  fun showDialog_illegalPath_okDisabled() {
+    assumeWindows()
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = "foo:bar"
+      assertThat(it.isOKActionEnabled).isFalse()
+    }
+  }
+
   private fun createDialog(
     initialApplication: String = "app",
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
-    createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication)::show
-    ) {
+    createModalDialogAndInteractWithIt(BackupDialog(project, initialApplication)::show) {
       dialogInteractor(it as BackupDialog)
     }
   }

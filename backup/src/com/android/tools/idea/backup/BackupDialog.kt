@@ -22,8 +22,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
+import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
@@ -32,6 +34,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import javax.swing.event.DocumentEvent
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.pathString
@@ -57,7 +60,21 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     }
   private val fileTextField =
     BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }
-      .apply { name = "fileTextField" }
+      .apply {
+        textComponent.document.addDocumentListener(
+          object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+              isOKActionEnabled = text.isNotBlank()
+              try {
+                Path.of(text)
+              } catch (_: InvalidPathException) {
+                isOKActionEnabled = false
+              }
+            }
+          }
+        )
+        name = "fileTextField"
+      }
   private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
