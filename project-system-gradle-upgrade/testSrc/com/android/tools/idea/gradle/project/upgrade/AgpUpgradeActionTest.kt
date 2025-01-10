@@ -22,8 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.setTrusted
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -32,8 +31,6 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class AgpUpgradeActionTest {
@@ -91,10 +88,7 @@ class AgpUpgradeActionTest {
         id 'com.android.application'
       }
     """.trimIndent())
-    val event = mock(AnActionEvent::class.java)
-    val dataContext = mock(DataContext::class.java)
-    whenever(event.project).thenReturn(project)
-    whenever(event.dataContext).thenReturn(dataContext)
+    val event = TestActionEvent.createTestEvent(SimpleDataContext.getProjectContext(project))
     AgpUpgradeAction().actionPerformed(event)
     fun ready(): Boolean {
       return ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.contentManager?.contents?.isNotEmpty() ?: false
