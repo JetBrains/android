@@ -50,10 +50,10 @@ class CreateTypedResourceFileActionTest {
   fun doIsAvailableForTypedResourceDirectory() {
     val dataContext = SimpleDataContext.builder()
     for (folderType in ResourceFolderType.entries) {
-      val filePath = "res/" + folderType.name + "/my_" + folderType.name + ".xml"
+      val filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml"
       dataContext.add(CommonDataKeys.PSI_ELEMENT, fixture.addFileToProject(filePath, "").parent)
-      assertWithMessage("Failed for ${folderType.name}")
-        .that(doIsAvailable(dataContext.build(), folderType.name))
+      assertWithMessage("Failed for ${folderType.getName()}")
+        .that(doIsAvailable(dataContext.build(), folderType))
         .isTrue()
     }
 
@@ -61,7 +61,7 @@ class CreateTypedResourceFileActionTest {
     val psiResDir = fixture.psiManager.findDirectory(resDir)
     dataContext.add(CommonDataKeys.PSI_ELEMENT, psiResDir)
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
-    assertThat(doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE.name)).isFalse()
+    assertThat(doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE)).isFalse()
   }
 
   @Test

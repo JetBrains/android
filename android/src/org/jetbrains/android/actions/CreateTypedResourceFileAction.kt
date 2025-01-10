@@ -150,7 +150,7 @@ open class CreateTypedResourceFileAction(
   }
 
   override fun isAvailable(context: DataContext) =
-    super.isAvailable(context) && doIsAvailable(context, resourceFolderType.name)
+    super.isAvailable(context) && doIsAvailable(context, resourceFolderType)
 
   open fun getAllowedTagNames(facet: AndroidFacet) = listOf(getDefaultRootTag(facet.module))
 
@@ -184,7 +184,7 @@ open class CreateTypedResourceFileAction(
 
   companion object {
     @JvmStatic
-    fun doIsAvailable(context: DataContext, resourceType: String?): Boolean {
+    fun doIsAvailable(context: DataContext, resourceType: ResourceFolderType): Boolean {
       // Requires a given PsiElement.
       val element =
         CommonDataKeys.PSI_ELEMENT.getData(context)?.takeIf { AndroidFacet.getInstance(it) != null }
@@ -193,7 +193,7 @@ open class CreateTypedResourceFileAction(
       return application.runReadAction<Boolean> {
         // Verify the given PsiElement is a directory within a valid resource type folder (e.g:
         // .../res/color).
-        element.parents(withSelf = true).any { it is PsiDirectory && isResourceSubdirectory(it, resourceType, true) }
+        element.parents(withSelf = true).any { it is PsiDirectory && isResourceSubdirectory(it, resourceType.getName(), true) }
       }
     }
 
