@@ -198,7 +198,6 @@ intellij_integration_test_suite(
             "tests/integrationtests/com/google/idea/blaze/android/functional/AswbMergedManifestTest.java",  #b/222322106
         ],
     ),
-    additional_class_rules = [],
     data = [
         "testdata/golden.png",
         "testdata/ic_banner.png",
