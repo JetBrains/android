@@ -47,8 +47,9 @@ class LogcatFormatActionTest {
   private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 popupRule, disposableRule, EdtRule())
+  @get:Rule
+  val rule =
+    RuleChain(projectRule, WaitForIndexRule(projectRule), popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
