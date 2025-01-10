@@ -209,8 +209,7 @@ class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
   fun loadProject(
     projectPath: String,
     chosenModuleName: String? = null,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor =
-      AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+    agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
   ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion)
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.ConfigureBaselineProfilesModuleStep
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
 import com.android.tools.idea.npw.model.AgpVersionSelector
@@ -60,7 +61,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
       useGmdParam: Boolean,
       useGradleKtsParam: Boolean,
     ) {
-      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
       val project = projectRule.project
       val model =
@@ -100,7 +101,8 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
       }
   }
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewBaselineProfilesModuleTest() {
@@ -110,7 +112,9 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
 
 class ConfigureBaselineProfilesModuleStepTest {
 
-  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule
+  val projectRule =
+    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion()).onEdt()
 
   private lateinit var disposable: Disposable
 
@@ -136,7 +140,7 @@ class ConfigureBaselineProfilesModuleStepTest {
           moduleParent = ":",
           projectSyncInvoker = AddBaselineProfilesModuleTest.emptyProjectSyncInvoker,
         )
-      projectRule.loadProject(targetProjectPath)
+      projectRule.loadProject(targetProjectPath, agpVersion = getAgpVersion())
       ConfigureBaselineProfilesModuleStep(disposable = disposable, model = model) to model
     }
   }

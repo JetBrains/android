@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.npw.NewProjectWizardTestUtilsKt.SDK_VERSION_FOR_NPW_TESTS;
+
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.tests.IdeaTestSuiteBase;
@@ -27,7 +29,8 @@ public class NewProjectWizardTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
-    StudioFlags.NPW_COMPILE_SDK_VERSION.override(34);
+    StudioFlags.NPW_COMPILE_SDK_VERSION.override(SDK_VERSION_FOR_NPW_TESTS);
+
   }
 
 }

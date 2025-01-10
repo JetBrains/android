@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
@@ -31,7 +32,7 @@ class AddKotlinMultiplatformLibraryModuleTest {
   companion object {
 
     private fun addNewKotlinMultiplatformLibraryModule(projectRule: AndroidGradleProjectRule) {
-      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
       val project = projectRule.project
       val model =
@@ -71,7 +72,8 @@ class AddKotlinMultiplatformLibraryModuleTest {
       }
   }
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewKotlinMultiplatformLibraryModuleTest() {

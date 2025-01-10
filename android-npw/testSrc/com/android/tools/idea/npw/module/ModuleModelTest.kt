@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -31,7 +32,8 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ModuleModelTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
   private val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
   private val multiTemplateRenderer: MultiTemplateRenderer
     get() = MultiTemplateRenderer { renderer ->
@@ -51,7 +53,7 @@ class ModuleModelTest {
 
   @Test
   fun testInitFillsAllTheDataForLibraryModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION) {
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion()) {
       val libraryModuleModel =
         NewLibraryModuleModel(projectRule.project, ":", projectSyncInvoker).apply {
           packageName.set("com.google.lib")

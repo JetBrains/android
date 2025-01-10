@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.ALREADY_EXISTS;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.DUPLICATE_MODULE_NAME;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.INVALID_NAME;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.OK;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.REQUIRED;
+
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.importing.ModuleListModel;
 import com.google.common.base.Supplier;
@@ -27,12 +33,9 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.IOException;
 import java.util.Collection;
-
-import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.*;
+import org.jetbrains.android.AndroidTestCase;
 
 public final class ModulesListModelTest extends AndroidTestCase {
   public static final String NEW_NAME = "a new name";
@@ -52,6 +55,10 @@ public final class ModulesListModelTest extends AndroidTestCase {
     }
   }
 
+  public ModulesListModelTest() {
+    super(NewProjectWizardTestUtils.getAndroidVersion());
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -66,7 +73,8 @@ public final class ModulesListModelTest extends AndroidTestCase {
         myModule1 = new ModuleToImport(module1vf.getName(), module1vf, NO_DEPS);
         myModule2 =
           new ModuleToImport(module2vf.getName(), module2vf, Suppliers.ofInstance(ImmutableSet.of(module1vf.getName())));
-        VirtualFile existingModule = VfsUtil.createDirectoryIfMissing(PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), EXISTING_MODULE);
+        VirtualFile existingModule =
+          VfsUtil.createDirectoryIfMissing(PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), EXISTING_MODULE);
         if (existingModule == null) {
           throw new IOException("Unable to create fake module directory");
         }

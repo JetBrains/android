@@ -17,13 +17,16 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
+import com.android.tools.idea.npw.SDK_VERSION_FOR_NPW_TESTS
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Category
@@ -42,13 +45,17 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
+private val AGP_CURRENT_WITH_UPDATED_SDK = getAgpVersion()
+
 class GenerateBaselineProfileModuleTest {
 
   companion object {
     private const val MODULE_NAME_APP = "app"
   }
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule =
+    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AGP_CURRENT_WITH_UPDATED_SDK)
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
@@ -61,7 +68,7 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Kotlin,
         useGradleKts = true,
         useGmd = true,
-        projectRuleAgpVersion = AGP_CURRENT,
+        projectRuleAgpVersion = getAgpVersion(),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
@@ -86,7 +93,10 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Kotlin,
         useGradleKts = true,
         useGmd = true,
-        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81,
+        projectRuleAgpVersion =
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(
+            SDK_VERSION_FOR_NPW_TESTS.toString()
+          ),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
@@ -111,7 +121,7 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Java,
         useGradleKts = false,
         useGmd = false,
-        projectRuleAgpVersion = AGP_CURRENT,
+        projectRuleAgpVersion = getAgpVersion(),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
@@ -136,7 +146,10 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Java,
         useGradleKts = false,
         useGmd = false,
-        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81,
+        projectRuleAgpVersion =
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(
+            SDK_VERSION_FOR_NPW_TESTS.toString()
+          ),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
@@ -157,7 +170,7 @@ class GenerateBaselineProfileModuleTest {
     sourceCodeLanguage: Language,
     useGradleKts: Boolean,
     useGmd: Boolean,
-    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
     androidApi: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
   ): Pair<File, File> {
     val name = "baselineprofile"
@@ -260,7 +273,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk ${AGP_CURRENT.compileSdk}
+  compileSdk ${AGP_CURRENT_WITH_UPDATED_SDK.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -269,7 +282,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk ${AGP_CURRENT.targetSdk}
+        targetSdk ${AGP_CURRENT_WITH_UPDATED_SDK.targetSdk}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -308,7 +321,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = ${AGP_CURRENT.compileSdk}
+  compileSdk = ${AGP_CURRENT_WITH_UPDATED_SDK.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -321,7 +334,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = ${AGP_CURRENT.targetSdk}
+        targetSdk = ${AGP_CURRENT_WITH_UPDATED_SDK.targetSdk}
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -332,9 +345,9 @@ android {
     // To use GMD please invoke generation through the command line:
     // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api${AGP_CURRENT.compileSdk}") {
+        create<ManagedVirtualDevice>("pixel6Api34") {
             device = "Pixel 6"
-            apiLevel = ${AGP_CURRENT.compileSdk}
+            apiLevel = 34
             systemImageSource = "google"
         }
     }
@@ -343,7 +356,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-managedDevices += "pixel6Api${AGP_CURRENT.compileSdk}"
+managedDevices += "pixel6Api34"
 useConnectedDevices = false
 }
 
@@ -696,7 +709,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk 34
+  compileSdk $SDK_VERSION_FOR_NPW_TESTS
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -705,7 +718,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk 34
+        targetSdk $SDK_VERSION_FOR_NPW_TESTS
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -734,7 +747,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = 34
+  compileSdk = $SDK_VERSION_FOR_NPW_TESTS
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -747,7 +760,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = 34
+        targetSdk = $SDK_VERSION_FOR_NPW_TESTS
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

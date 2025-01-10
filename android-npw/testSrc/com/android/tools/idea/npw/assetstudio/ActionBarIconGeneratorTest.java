@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils;
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.Theme;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
@@ -24,6 +25,9 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 public class ActionBarIconGeneratorTest extends AndroidTestCase {
+  public ActionBarIconGeneratorTest() {
+    super(NewProjectWizardTestUtils.getAndroidVersion());
+  }
 
   private void checkGraphic(@NotNull String baseName,
                             @NotNull IconGeneratorTestUtil.SourceType sourceType,

@@ -35,6 +35,10 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
  * Tests for {@link AndroidPackageUtils}.
  */
 public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
+  public AndroidPackageUtilsTest() {
+    super(NewProjectWizardTestUtils.getAgpVersion());
+  }
+
   public void testGetPackageForPath() throws Exception {
     loadProject(SIMPLE_APPLICATION);
     // Run assemble task to generate output listing file.

@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeBasicVariant
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.RUN_CONFIGURATION_NAME
@@ -45,7 +46,8 @@ import org.mockito.kotlin.whenever
 
 class BaselineProfilesModuleTest {
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
@@ -63,7 +65,7 @@ class BaselineProfilesModuleTest {
 
   @Test
   fun setupRunConfigurations() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
     val appModule = projectRule.project.findAppModule()
     val runManager = RunManager.getInstance(appModule.project)
 
@@ -112,7 +114,7 @@ class BaselineProfilesModuleTest {
 
   @Test
   fun checkMinSdkUsesLowestPGOOrTargetModule() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
     val project = projectRule.project
 

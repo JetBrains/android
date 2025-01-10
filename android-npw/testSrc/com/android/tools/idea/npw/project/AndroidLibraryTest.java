@@ -25,6 +25,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.npw.NewProjectWizardTestUtils;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
@@ -54,7 +55,8 @@ import org.junit.Test;
 public class AndroidLibraryTest {
 
   @Rule
-  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment(
+    NewProjectWizardTestUtils.getAndroidVersion());
 
   private final TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 
@@ -71,7 +73,8 @@ public class AndroidLibraryTest {
   // b/68150753
   @Test
   public void testRenameLibraryAndAddActivity() throws Exception {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY);
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY, "project",
+                                                   NewProjectWizardTestUtils.getAgpVersion());
     preparedProject.open(it -> it, project -> {
       Module libModule = gradleModule(project, ":lib");
       AndroidFacet libAndroidFacet = AndroidFacet.getInstance(libModule);
