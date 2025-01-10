@@ -16,16 +16,21 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.AndroidXConstants
+import com.android.resources.ScreenOrientation
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
+import com.intellij.testFramework.TestActionEvent
 import java.awt.event.KeyEvent
+import org.intellij.lang.annotations.Language
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
@@ -35,6 +40,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   override fun setUp() {
     super.setUp()
+    DesignerTypeRegistrar.register(LayoutFileType)
     val surface = myModel.surface
     val sceneManager = surface.getSceneManager(myModel)!!
 
@@ -45,6 +51,11 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
 
     whenever(surface.getSceneViewAt(xMatcher, yMatcher)).thenReturn(view)
+  }
+
+  override fun tearDown() {
+    DesignerTypeRegistrar.clearRegisteredTypes()
+    super.tearDown()
   }
 
   fun testNoPopupMenuTriggerWhenNotHoveredOnSceneView() {
@@ -96,6 +107,44 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     assertInstanceOf(interaction, PanInteraction::class.java)
   }
 
+  fun testRemoveCustomConfigurationAction() {
+    val customModelsProviders =
+      CustomModelsProvider(
+        "test",
+        CustomConfigurationSet("Custom", emptyList()),
+        object : ConfigurationSetListener {
+          override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) =
+            Unit
+
+          override fun onCurrentConfigurationSetUpdated() = Unit
+        },
+      )
+
+    customModelsProviders.addCustomConfigurationAttributes(
+      CustomConfigurationAttribute(
+        name = "Preview 1",
+        deviceId = "pixel_xl",
+        apiLevel = 34,
+        orientation = ScreenOrientation.PORTRAIT,
+      )
+    )
+    assertEquals(1, customModelsProviders.customConfigSet.customConfigAttributes.size)
+    val file = myFixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val models = customModelsProviders.createNlModels(testRootDisposable, file, myBuildTarget)
+    assertEquals(2, models.size)
+    val action = RemoveCustomModelAction(customModelsProviders, models[0])
+    val event = TestActionEvent.createTestEvent()
+    action.update(event)
+    assertEquals(false, event.presentation.isEnabled)
+
+    val action2 = RemoveCustomModelAction(customModelsProviders, models[1])
+    val event2 = TestActionEvent.createTestEvent()
+    action2.update(event2)
+    assertEquals(true, event2.presentation.isEnabled)
+    action2.actionPerformed(event2)
+    assertEquals(0, customModelsProviders.customConfigSet.customConfigAttributes.size)
+  }
+
   override fun createModel(): ModelBuilder {
     return model(
       "constraint.xml",
@@ -107,3 +156,10 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     )
   }
 }
+
+@Language("xml")
+private const val LAYOUT_FILE_TEXT =
+  """<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent" />"""

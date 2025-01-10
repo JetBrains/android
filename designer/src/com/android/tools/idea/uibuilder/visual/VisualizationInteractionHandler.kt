@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -165,19 +166,10 @@ class VisualizationInteractionHandler(
     val mouseY = mouseEvent.y
     val sceneView = surface.getSceneViewAt(mouseX, mouseY) ?: return
 
-    val hoveredManager = sceneView.sceneManager
-    val primarySceneManager = surface.model?.let { surface.getSceneManager(it) }
-
     val group =
       DefaultActionGroup().apply {
         // Do not allow to delete the default NlModel (which is the primary one)
-        add(
-          RemoveCustomModelAction(
-            customModelsProvider,
-            hoveredManager.model,
-            hoveredManager != primarySceneManager,
-          )
-        )
+        add(RemoveCustomModelAction(customModelsProvider, sceneView.sceneManager.model))
         // TODO: add edit and copy options.
       }
 
@@ -215,11 +207,9 @@ class VisualizationInteractionHandler(
   }
 }
 
-private class RemoveCustomModelAction(
-  val provider: CustomModelsProvider,
-  val model: NlModel,
-  val enabled: Boolean,
-) : AnAction("Remove Configuration", "Remove a custom configuration", null) {
+@VisibleForTesting
+class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel) :
+  AnAction("Remove Configuration", "Remove a custom configuration", null) {
 
   override fun actionPerformed(e: AnActionEvent) =
     provider.removeCustomConfigurationAttributes(model)
@@ -227,6 +217,7 @@ private class RemoveCustomModelAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    val enabled = model.dataProvider?.getData(IS_CUSTOM_MODEL) == true
     e.presentation.isEnabled = enabled
     e.presentation.isVisible = true
     e.presentation.description = if (enabled) "" else "Cannot remove default preview"
