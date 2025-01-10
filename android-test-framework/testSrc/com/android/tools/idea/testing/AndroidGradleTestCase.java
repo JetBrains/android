@@ -159,7 +159,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     TestApplicationManager.getInstance();
 
-    ensureSdkManagerAvailable(new AndroidVersion(myAgpVersionSoftwareEnvironment.getCompileSdk()));
+    ensureSdkManagerAvailable(AndroidVersion.fromString(myAgpVersionSoftwareEnvironment.getCompileSdk()));
     AndroidTestCase.registerLongRunningThreads();
     if (createDefaultProject()) {
       setUpFixture();
@@ -199,7 +199,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
     fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
-    ensureSdkManagerAvailable(new AndroidVersion(myAgpVersionSoftwareEnvironment.getCompileSdk()));
+    ensureSdkManagerAvailable(AndroidVersion.fromString(myAgpVersionSoftwareEnvironment.getCompileSdk()));
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));

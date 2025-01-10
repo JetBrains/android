@@ -190,7 +190,7 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
       deviceInfo.displayName(),
       deviceInfo.avdName,
       deviceType,
-      AndroidVersion(deviceInfo.apiLevel),
+      AndroidVersion.fromString(deviceInfo.apiLevel),
     ).apply {
       if (deviceInfo.manufacturer.isNotBlank()) {
         additionalInfo["Manufacturer"] = deviceInfo.manufacturer

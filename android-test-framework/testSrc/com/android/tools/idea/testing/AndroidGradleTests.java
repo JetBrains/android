@@ -235,12 +235,8 @@ public class AndroidGradleTests {
 
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
-        try {
-          updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()), new AndroidVersion(agpEnvironment.getCompileSdk()));
-        }
-        catch (AndroidVersion.AndroidVersionException e) {
-          throw new IOException(e);
-        }
+        updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()),
+                               AndroidVersion.fromString(agpEnvironment.getCompileSdk()));
         // We need the wrapper for import to succeed
         createGradleWrapper(path, agpEnvironment.getGradleVersion());
       }

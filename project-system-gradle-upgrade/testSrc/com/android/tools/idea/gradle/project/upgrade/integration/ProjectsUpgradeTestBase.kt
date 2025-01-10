@@ -167,7 +167,7 @@ open class ProjectsUpgradeTestBase {
         when (relative.path) {
           FN_GRADLE_PROPERTIES -> {
             VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion(environment.compileSdk));
+            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion.fromString(environment.compileSdk));
           }
         }
       }
