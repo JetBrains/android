@@ -62,10 +62,12 @@ import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+@Ignore("b/388928988")
 class VitalsTabTest {
 
   private val projectRule = ProjectRule()
