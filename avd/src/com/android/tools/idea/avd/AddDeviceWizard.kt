@@ -16,6 +16,7 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -236,7 +237,7 @@ internal class AddDeviceWizard(
               )
               Divider(
                 orientation = Orientation.Horizontal,
-                Modifier.padding(vertical = 16.dp, horizontal = 2.dp),
+                Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 2.dp),
               )
               CheckboxRow(
                 "Show obsolete device profiles",

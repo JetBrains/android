@@ -384,7 +384,7 @@ fun <T> Table(
       },
       columns,
     )
-    Divider(Orientation.Horizontal)
+    Divider(Orientation.Horizontal, Modifier.fillMaxWidth())
     VerticallyScrollableContainer(scrollState = lazyListState, Modifier) {
       LazyColumn(
         state = lazyListState,

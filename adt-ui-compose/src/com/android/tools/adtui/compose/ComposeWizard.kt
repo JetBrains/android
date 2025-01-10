@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -154,7 +155,7 @@ internal fun WizardPageScope.WizardPageScaffold(
     }
   ) {
     Box(Modifier.weight(1f)) { content() }
-    Divider(Orientation.Horizontal)
+    Divider(Orientation.Horizontal, Modifier.fillMaxWidth())
     WizardButtonBar(
       wizardDialogScope,
       modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),

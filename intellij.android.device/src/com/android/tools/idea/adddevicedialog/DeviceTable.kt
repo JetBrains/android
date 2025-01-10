@@ -148,7 +148,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
               onRowSecondaryClick = onRowSecondaryClick,
             )
             if (showDetailsState.visible) {
-              Divider(orientation = Orientation.Vertical)
+              Divider(orientation = Orientation.Vertical, Modifier.fillMaxHeight())
               when (
                 val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
               ) {

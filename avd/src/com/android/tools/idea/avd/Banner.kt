@@ -65,7 +65,7 @@ private fun Banner(
   rightContent: @Composable () -> Unit = {},
 ) {
   Column(modifier.fillMaxWidth()) {
-    Divider(orientation = Orientation.Horizontal, color = colors.border)
+    Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = colors.border)
     Row(
       modifier = Modifier.background(colors.background).padding(10.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -76,7 +76,7 @@ private fun Banner(
       Spacer(modifier = Modifier.weight(1f))
       rightContent()
     }
-    Divider(orientation = Orientation.Horizontal, color = colors.border)
+    Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = colors.border)
   }
 }
 

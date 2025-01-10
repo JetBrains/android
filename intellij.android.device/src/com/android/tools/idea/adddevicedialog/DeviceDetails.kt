@@ -147,7 +147,7 @@ private fun InfoBanner(text: String, iconKey: IconKey, modifier: Modifier = Modi
   val borderColor = JBUI.CurrentTheme.Banner.INFO_BORDER_COLOR.toComposeColor()
   val backgroundColor = JBUI.CurrentTheme.Banner.INFO_BACKGROUND.toComposeColor()
   Column(modifier.fillMaxWidth()) {
-    Divider(orientation = Orientation.Horizontal, color = borderColor)
+    Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = borderColor)
     Row(
       modifier = Modifier.background(backgroundColor).padding(10.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -156,7 +156,7 @@ private fun InfoBanner(text: String, iconKey: IconKey, modifier: Modifier = Modi
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = text)
     }
-    Divider(orientation = Orientation.Horizontal, color = borderColor)
+    Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = borderColor)
   }
 }
 
