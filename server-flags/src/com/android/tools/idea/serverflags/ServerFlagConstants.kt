@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.serverflags
 
-const val SUPPORTS_MULTI_VALUE_FLAGS = false
+const val SUPPORTS_MULTI_VALUE_FLAGS = true
