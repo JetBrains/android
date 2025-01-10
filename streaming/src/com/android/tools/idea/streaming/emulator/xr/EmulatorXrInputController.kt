@@ -376,45 +376,10 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   }
 
   private fun sendVelocityUpdate(newMask: Int, oldMask: Int) {
-    val subtractions = oldMask and newMask.inv()
-    var mask = subtractions
-    var key = 0
-    while (mask != 0) {
-      if (mask and 1 != 0) {
-        if (key < NavigationKey.ROTATE_RIGHT.ordinal) {
-          when (key) {
-            NavigationKey.MOVE_RIGHT.ordinal, NavigationKey.MOVE_LEFT.ordinal -> velocity.x = 0f
-            NavigationKey.MOVE_UP.ordinal, NavigationKey.MOVE_DOWN.ordinal -> velocity.y = 0f
-            NavigationKey.MOVE_FORWARD.ordinal, NavigationKey.MOVE_BACKWARD.ordinal -> velocity.z = 0f
-          }
-        }
-        else {
-          when (key) {
-            NavigationKey.ROTATE_RIGHT.ordinal, NavigationKey.ROTATE_LEFT.ordinal -> angularVelocity.omegaY = 0f
-            NavigationKey.ROTATE_UP.ordinal, NavigationKey.ROTATE_DOWN.ordinal -> angularVelocity.omegaX = 0f
-          }
-        }
-      }
-      mask = mask ushr 1
-      key++
-    }
-    if ((subtractions and NavigationKey.TRANSLATION_MASK) != 0) {
-      velocity.transitionTimeSec = BREAKING_TIME
-      inputEvent.clear()
-      inputEvent.setXrHeadVelocityEvent(velocity)
-      sendInputEvent(inputEvent.build())
-    }
-    if ((subtractions and NavigationKey.ROTATION_MASK) != 0) {
-      angularVelocity.transitionTimeSec = BREAKING_TIME
-      inputEvent.clear()
-      inputEvent.setXrHeadAngularVelocityEvent(angularVelocity)
-      sendInputEvent(inputEvent.build())
-    }
-
     velocity.clear()
     angularVelocity.clear()
-    mask = newMask
-    key = 0
+    var mask = newMask
+    var key = 0
     while (mask != 0) {
       if (mask and 1 != 0) {
         if (key < NavigationKey.ROTATE_RIGHT.ordinal) {
@@ -439,15 +404,13 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
       mask = mask ushr 1
       key++
     }
-    val additions = newMask and oldMask.inv()
-    if ((additions and NavigationKey.TRANSLATION_MASK) != 0) {
-      velocity.transitionTimeSec = ACCELERATION_TIME
+    val differences = newMask xor oldMask
+    if ((differences and NavigationKey.TRANSLATION_MASK) != 0) {
       inputEvent.clear()
       inputEvent.setXrHeadVelocityEvent(velocity)
       sendInputEvent(inputEvent.build())
     }
-    if ((additions and NavigationKey.ROTATION_MASK) != 0) {
-      angularVelocity.transitionTimeSec = ACCELERATION_TIME
+    if ((differences and NavigationKey.ROTATION_MASK) != 0) {
       inputEvent.clear()
       inputEvent.setXrHeadAngularVelocityEvent(angularVelocity)
       sendInputEvent(inputEvent.build())
@@ -535,13 +498,9 @@ internal class EmulatorXrInputControllerService(project: Project): Disposable {
 
 /** Distance of translational movement in meters when moving mouse across the device display. */
 private const val TRANSLATION_SCALE = 5f
-/** Anngle of rotation in radians when moving mouse across the device display. */
+/** Angle of rotation in radians when moving mouse across the device display. */
 private const val ROTATION_SCALE = PI.toFloat()
 /** Translational velocity in meters per second. */
 private const val VELOCITY = 1f
 /** Angular velocity in radians per second. */
 private const val ANGULAR_VELOCITY = (PI / 6).toFloat()
-/** Time it takes to reach a non-zero velocity in seconds. */
-private const val ACCELERATION_TIME = 1f
-/** Time it takes to stop after moving or rotating in seconds. */
-private const val BREAKING_TIME = 0f

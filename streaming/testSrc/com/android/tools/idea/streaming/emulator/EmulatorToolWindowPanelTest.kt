@@ -498,12 +498,12 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
     ui.keyboard.release(VK_ENTER)
     val velocityKeys = mapOf(
-      VK_W to "xr_head_velocity_event { z: -1.0 transition_time_sec: 1.0 }",
-      VK_A to "xr_head_velocity_event { x: -1.0 transition_time_sec: 1.0 }",
-      VK_S to "xr_head_velocity_event { z: 1.0 transition_time_sec: 1.0 }",
-      VK_D to "xr_head_velocity_event { x: 1.0 transition_time_sec: 1.0 }",
-      VK_Q to "xr_head_velocity_event { y: -1.0 transition_time_sec: 1.0 }",
-      VK_E to "xr_head_velocity_event { y: 1.0 transition_time_sec: 1.0 }",
+      VK_W to "xr_head_velocity_event { z: -1.0 }",
+      VK_A to "xr_head_velocity_event { x: -1.0 }",
+      VK_S to "xr_head_velocity_event { z: 1.0 }",
+      VK_D to "xr_head_velocity_event { x: 1.0 }",
+      VK_Q to "xr_head_velocity_event { y: -1.0 }",
+      VK_E to "xr_head_velocity_event { y: 1.0 }",
     )
     for ((k, event) in velocityKeys) {
       ui.keyboard.press(k)
@@ -512,14 +512,14 @@ class EmulatorToolWindowPanelTest {
       assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
     }
     val angularVelocityKeys = mapOf(
-      VK_RIGHT to "xr_head_angular_velocity_event { omega_y: -0.5235988 transition_time_sec: 1.0 }",
-      VK_LEFT to "xr_head_angular_velocity_event { omega_y: 0.5235988 transition_time_sec: 1.0 }",
-      VK_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 transition_time_sec: 1.0 }",
-      VK_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 transition_time_sec: 1.0 }",
-      VK_PAGE_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: -0.5235988 transition_time_sec: 1.0 }",
-      VK_PAGE_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: -0.5235988 transition_time_sec: 1.0 }",
-      VK_HOME to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: 0.5235988 transition_time_sec: 1.0 }",
-      VK_END to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: 0.5235988 transition_time_sec: 1.0 }",
+      VK_RIGHT to "xr_head_angular_velocity_event { omega_y: -0.5235988 }",
+      VK_LEFT to "xr_head_angular_velocity_event { omega_y: 0.5235988 }",
+      VK_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 }",
+      VK_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 }",
+      VK_PAGE_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: -0.5235988 }",
+      VK_PAGE_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: -0.5235988 }",
+      VK_HOME to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: 0.5235988 }",
+      VK_END to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: 0.5235988 }",
     )
     for ((k, event) in angularVelocityKeys) {
       ui.keyboard.press(k)
@@ -530,23 +530,19 @@ class EmulatorToolWindowPanelTest {
 
     // Two keys pressed together.
     ui.keyboard.press(VK_D)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_velocity_event { x: 1.0 transition_time_sec: 1.0 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: 1.0 }")
     ui.keyboard.press(VK_E)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_velocity_event { x: 1.0 y: 1.0 transition_time_sec: 1.0 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: 1.0 y: 1.0 }")
     ui.keyboard.press(VK_A)
     // D and A cancel each other out.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { y: 1.0 }")
     ui.keyboard.release(VK_D)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_velocity_event { x: -1.0 y: 1.0 transition_time_sec: 1.0 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: 1.0 }")
     ui.keyboard.press(VK_Q)
     // E and Q cancel each other out.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 }")
     ui.keyboard.release(VK_E)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 transition_time_sec: 1.0 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 }")
 
     // Switching to Hardware Input resets state of the navigation keys.
     val toolbar = ui.getComponent<FloatingToolbarContainer>()
@@ -783,6 +779,7 @@ class EmulatorToolWindowPanelTest {
     val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
     whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("Darcula")
     val mockLafManager = mock<LafManager>()
+    @Suppress("UnstableApiUsage")
     whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
