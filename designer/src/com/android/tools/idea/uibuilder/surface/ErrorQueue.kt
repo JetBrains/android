@@ -33,12 +33,13 @@ import com.android.tools.rendering.RenderResult
 import com.android.utils.associateWithNotNull
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
+import java.util.concurrent.Callable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -130,34 +131,37 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
       }
 
       // createErrorModel needs to run in Smart mode to resolve the classes correctly
-      DumbService.getInstance(project).runReadActionInSmartMode {
-        var newRenderIssueProviders: ImmutableList<RenderIssueProvider>? = null
-        if (project.getProjectSystem().getBuildManager().isBuilding) {
-          for ((manager, renderResult) in renderResults) {
-            if (renderResult.logger.hasErrors()) {
-              // We are still building, display the message to the user.
-              newRenderIssueProviders =
-                persistentListOf(
-                  RenderIssueProvider(manager.model, RenderErrorModel.STILL_BUILDING_ERROR_MODEL)
-                )
-              break
-            }
+      var newRenderIssueProviders: ImmutableList<RenderIssueProvider>? = null
+      if (project.getProjectSystem().getBuildManager().isBuilding) {
+        for ((manager, renderResult) in renderResults) {
+          if (renderResult.logger.hasErrors()) {
+            // We are still building, display the message to the user.
+            newRenderIssueProviders =
+              persistentListOf(
+                RenderIssueProvider(manager.model, RenderErrorModel.STILL_BUILDING_ERROR_MODEL)
+              )
+            break
           }
         }
-
-        if (newRenderIssueProviders == null) {
-          newRenderIssueProviders =
-            renderResults
-              .map {
-                val errorModel = RenderErrorModelFactory.createErrorModel(surface, it.value)
-                RenderIssueProvider(it.key.model, errorModel)
-              }
-              .toImmutableList()
-        }
-        renderIssueProviders.forEach { issueModel.removeIssueProvider(it) }
-        renderIssueProviders = newRenderIssueProviders
-        newRenderIssueProviders.forEach { issueModel.addIssueProvider(it) }
       }
+
+      if (newRenderIssueProviders == null) {
+        newRenderIssueProviders =
+          renderResults
+            .map {
+              val errorModel =
+                ReadAction.nonBlocking(
+                    Callable { RenderErrorModelFactory.createErrorModel(surface, it.value) }
+                  )
+                  .expireWith(parentDisposable)
+                  .executeSynchronously()
+              RenderIssueProvider(it.key.model, errorModel)
+            }
+            .toImmutableList()
+      }
+      renderIssueProviders.forEach { issueModel.removeIssueProvider(it) }
+      renderIssueProviders = newRenderIssueProviders
+      newRenderIssueProviders.forEach { issueModel.addIssueProvider(it) }
 
       val hasLayoutValidationOpen = hasVisibleValidationWindow(project)
       var hasRunAtfOnMainPreview = hasLayoutValidationOpen
