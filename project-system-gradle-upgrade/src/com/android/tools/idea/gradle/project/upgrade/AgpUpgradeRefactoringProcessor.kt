@@ -303,8 +303,14 @@ class AgpUpgradeRefactoringProcessor(
     UseAndroidXDefaultRefactoringProcessor(this),
     ExcludeLibraryDefaultRefactoringProcessor(this),
     ResValuesDefaultRefactoringProcessor(this),
-    BlockAidlPropertyPresentRefactoringProcessor(this),
-    BlockRenderScriptPropertyPresentRefactoringProcessor(this),
+    BlockAidlProcessor(this),
+    BlockRenderScriptProcessor(this),
+    BlockAnalysisPerComponentProcessor(this),
+    BlockEmulatorControlProcessor(this),
+    BlockMinifyLocalDependenciesLibrariesProcessor(this),
+    BlockPreciseShrinkingProcessor(this),
+    BlockResourceOptimizationsProcessor(this),
+    BlockUnifiedTestPlatformProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
