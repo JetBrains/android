@@ -140,6 +140,8 @@ maven_repository(
         "@maven//:androidx.compose.material.material_1.4.3",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material3.adaptive.adaptive_1.0.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
+        "@maven//:androidx.compose.material3.material3-adaptive-navigation-suite_1.3.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
         "@maven//:androidx.compose.material3.material3_1.3.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime-saveable_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime_1.7.0",  # Compose BOM 2024.09.00
