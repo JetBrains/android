@@ -1,17 +1,18 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.core.testartifacts",
-    iml_files = ["intellij.android.core.testartifacts.iml"],
-    test_class = "com.android.tools.idea.IdeaTestSuite",
+    name = "intellij.android.testartifacts.tests",
+    iml_files = ["intellij.android.testartifacts.tests.iml"],
+    test_class = "com.android.tools.idea.testartifacts.TestArtifactsTestSuite",
     # keep sorted
     test_data = [
+        ":test_deps",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -35,6 +36,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -63,13 +65,46 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
-        "//tools/adt/idea/android/testartifacts:libstudio.android-test-plugin-host-retention-proto[test]",
+        "//tools/adt/idea/testartifacts:libstudio.android-test-plugin-host-retention-proto[test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "@intellij//:intellij.platform.coverage[test]",
     ],
+)
+
+maven_repository(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:android.arch.persistence.room.runtime_1.0.0",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
+        "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
+        "@maven//:androidx.test.espresso.espresso-core_3.2.0",
+        "@maven//:androidx.test.ext.junit_1.1.2",
+        "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
+        "@maven//:com.android.support.appcompat-v7_25.4.0",
+        "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
+        "@maven//:com.android.support.support-v13_28.0.0",
+        "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.google.code.gson.gson_2.2.4",
+        "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
+        "@maven//:com.google.guava.guava_19.0",
+        "@maven//:com.google.guava.guava_28.2-jre",
+        "@maven//:com.google.truth.truth_0.44",
+        "@maven//:commons-lang.commons-lang_2.4",
+        "@maven//:commons-logging.commons-logging_1.1.1",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
+        "@maven//:org.mockito.mockito-core_5.12.0",
+    ],
+    visibility = ["//tools/adt/idea/testartifacts:__subpackages__"],
 )
 
 # managed by go/iml_to_build
