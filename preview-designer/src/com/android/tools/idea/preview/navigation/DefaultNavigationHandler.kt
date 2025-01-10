@@ -36,9 +36,14 @@ import kotlinx.coroutines.withContext
  */
 open class DefaultNavigationHandler(
   private val componentNavigationDelegate:
-    (sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String) -> List<
-        Navigatable?
-      >
+    (
+      sceneView: SceneView,
+      hitX: Int,
+      hitY: Int,
+      requestFocus: Boolean,
+      fileName: String,
+      shouldFindAllNavigatables: Boolean,
+    ) -> List<Navigatable?>
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
   // Default location to use when components are not found
@@ -65,9 +70,10 @@ open class DefaultNavigationHandler(
     @SwingCoordinate hitX: Int,
     @SwingCoordinate hitY: Int,
     requestFocus: Boolean,
+    isOptionDown: Boolean,
   ): List<Navigatable?> {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
-    return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName)
+    return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
   }
 
   override suspend fun navigateTo(

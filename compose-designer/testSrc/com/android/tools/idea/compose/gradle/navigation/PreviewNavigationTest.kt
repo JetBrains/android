@@ -82,6 +82,7 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     x: Int,
     y: Int,
     requestFocus: Boolean,
+    shouldFindAllNavigatables: Boolean,
   ): List<Navigatable> {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
     expectedInvocationsCountDownLatch.countDown()

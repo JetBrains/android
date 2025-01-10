@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SourceLocation
 import com.android.tools.idea.compose.preview.findHitWithDepth
+import com.android.tools.idea.compose.preview.findLeafHitsInFile
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
@@ -118,10 +119,10 @@ fun findNavigatableComponentHit(
 
 /**
  * Returns a list of [Navigatable]s that references to the source code position of the Composable at
- * the given x, y pixel coordinates. This function will only ever return one navigatable at the
- * moment but full implementation will follow. If requestFocus is false the function will only
- * return navigatables in the same file that was passed in. The navigatable it returns is the
- * deepest navigatable (with the most depth in the tree) that has these coordinates.
+ * the given x, y pixel coordinates. If [shouldFindAllNavigatables] then returns a list of all
+ * navigatables under coordinates else returns one navigatable; the deepest navigatable (with the
+ * most depth in the tree) that has these coordinates. If [requestFocus] is false the function will
+ * only return navigatables in the same file that was passed in.
  */
 private fun findNavigatableComponents(
   sceneView: SceneView,
@@ -129,6 +130,7 @@ private fun findNavigatableComponents(
   @SwingCoordinate hitY: Int,
   requestFocus: Boolean,
   fileName: String,
+  shouldFindAllNavigatables: Boolean,
 ): List<Navigatable?> {
   val x = Coordinates.getAndroidX(sceneView, hitX)
   val y = Coordinates.getAndroidY(sceneView, hitY)
@@ -144,6 +146,14 @@ private fun findNavigatableComponents(
 
   if (LOG.isDebugEnabled) {
     dumpViewInfosToLog(module, allViewInfos)
+  }
+
+  if (shouldFindAllNavigatables) {
+    val allNavigatables =
+      allViewInfos.first().findLeafHitsInFile(x, y, fileName).map {
+        it.sourceLocation.toNavigatable(module)
+      }
+    return allNavigatables
   }
 
   var navigatable =

@@ -446,7 +446,7 @@ class CommonPreviewRepresentationTest {
 
       withContext(uiThread) {
         preview.navigationHandler
-          .findNavigatablesWithCoordinates(sceneView, sceneView.x, sceneView.y, false)
+          .findNavigatablesWithCoordinates(sceneView, sceneView.x, sceneView.y, false, false)
           .firstOrNull()
           ?.let { preview.navigationHandler.navigateTo(sceneView, it, false) }
       }

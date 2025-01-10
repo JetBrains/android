@@ -97,6 +97,71 @@ class ComposeViewInfoTest {
   }
 
   @Test
+  fun checkLeafHits() {
+    //              root
+    //            /     \
+    //          fileA    fileC
+    //           /
+    //        fileB (line 4)
+    //       /              \
+    //     fileA (line 5)    fileB  (line 7)
+    //                             \
+    //                             fileA (line 8)
+    //
+    // Given that all the components shown above contain the point x, y and the file A is passed
+    // into the function findLeafHitsInFile will return both components on line 5 and line 8 of
+    // file A.
+
+    val root =
+      ComposeViewInfo(
+        TestSourceLocation("root"),
+        PxBounds(0, 0, 1000, 300),
+        children =
+          listOf(
+            ComposeViewInfo(TestSourceLocation("fileA"), PxBounds(0, 0, 0, 0), children = listOf()),
+            ComposeViewInfo(
+              TestSourceLocation("fileB", lineNumber = 4),
+              PxBounds(0, 0, 200, 200),
+              children =
+                listOf(
+                  ComposeViewInfo(
+                    TestSourceLocation("fileA", lineNumber = 5),
+                    PxBounds(0, 0, 200, 200),
+                    children = listOf(),
+                  ),
+                  ComposeViewInfo(
+                    TestSourceLocation("fileB", lineNumber = 7),
+                    PxBounds(0, 0, 200, 200),
+                    children =
+                      listOf(
+                        ComposeViewInfo(
+                          TestSourceLocation("fileA", lineNumber = 8),
+                          PxBounds(0, 0, 200, 200),
+                          children = listOf(),
+                        )
+                      ),
+                  ),
+                ),
+            ),
+            ComposeViewInfo(
+              TestSourceLocation("fileC", lineNumber = 10),
+              PxBounds(400, 200, 1000, 300),
+              children = listOf(),
+            ),
+          ),
+      )
+
+    assertTrue(root.findLeafHitsInFile(2000, 2000, "fileA").isEmpty())
+
+    val leafHits = root.findLeafHitsInFile(125, 125, "fileA")
+    assertEquals(leafHits.size, 2)
+    assertEquals(leafHits.first().sourceLocation.fileName, "fileA")
+    assertEquals(leafHits.first().sourceLocation.lineNumber, 8)
+    assertEquals(leafHits[1].sourceLocation.fileName, "fileA")
+    assertEquals(leafHits[1].sourceLocation.lineNumber, 5)
+  }
+
+  @Test
   fun checkBoundsMethods() {
     assertTrue(PxBounds(0, 0, 0, 0).isEmpty())
     assertFalse(PxBounds(0, 0, 0, 0).isNotEmpty())

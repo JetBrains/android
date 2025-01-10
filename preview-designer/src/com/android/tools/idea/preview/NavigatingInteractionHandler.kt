@@ -62,7 +62,7 @@ class NavigatingInteractionHandler(
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Highlight the clicked widget but keep focus in DesignSurface.
-      clickPreview(x, y, false)
+      clickPreview(x, y, false, modifiersEx)
     }
   }
 
@@ -104,7 +104,7 @@ class NavigatingInteractionHandler(
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Navigate the caret to the clicked widget and focus on text editor.
-      clickPreview(x, y, true)
+      clickPreview(x, y, true, modifiersEx)
     }
   }
 
@@ -312,26 +312,23 @@ class NavigatingInteractionHandler(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
     needsFocusEditor: Boolean,
+    modifiersEx: Int,
   ) {
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
+    val isOptionDown = isOptionDown(modifiersEx)
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      var navigatableElement =
-        navigationHandler
-          .findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor)
-          .firstOrNull()
       val navigated =
         navigationHandler
-          .findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor)
+          .findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor, isOptionDown)
           .firstOrNull()
-          ?.let { navigationHandler.navigateTo(sceneView, navigatableElement!!, needsFocusEditor) }
+          ?.let { navigationHandler.navigateTo(sceneView, it!!, needsFocusEditor) }
           ?: run {
             if (needsFocusEditor) {
               // Only allow default navigation when double clicking since it might take us to a
-              // different
-              // file
+              // different file
               navigationHandler.handleNavigate(sceneView, needsFocusEditor)
             }
             return@run false
@@ -343,6 +340,9 @@ class NavigatingInteractionHandler(
       }
     }
   }
+
+  // TODO(b/257534922): Make sure that this modifier works for linux as well.
+  private fun isOptionDown(modifiersEx: Int) = (modifiersEx and (InputEvent.ALT_DOWN_MASK)) != 0
 
   private fun isShiftDown(modifiersEx: Int) = (modifiersEx and (InputEvent.SHIFT_DOWN_MASK)) != 0
 }

@@ -294,6 +294,7 @@ class WearTilePreviewRepresentationTest {
               sceneViewWithNormalPreviewAnnotation.x,
               sceneViewWithNormalPreviewAnnotation.y,
               false,
+              false,
             )
             .firstOrNull()
             ?.let {
@@ -326,6 +327,7 @@ class WearTilePreviewRepresentationTest {
               sceneViewWithMultiPreviewAnnotation,
               sceneViewWithMultiPreviewAnnotation.x,
               sceneViewWithMultiPreviewAnnotation.y,
+              false,
               false,
             )
             .firstOrNull()

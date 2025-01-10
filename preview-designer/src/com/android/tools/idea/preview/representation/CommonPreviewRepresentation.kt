@@ -217,7 +217,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @VisibleForTesting
   val navigationHandler =
-    DefaultNavigationHandler { sceneView, _, _, _, _ ->
+    DefaultNavigationHandler { sceneView, _, _, _, _, _ ->
         val model = sceneView.sceneManager.model
         val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
         val navigatableElement =
