@@ -18,6 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.annotations.Nullable;
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.android.tools.asdriver.tests.base.IDE;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
@@ -25,24 +26,19 @@ import com.android.tools.perflogger.Benchmark;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.system.CpuArch;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
 
-public class AndroidStudio implements AutoCloseable {
+public class AndroidStudio extends IDE  {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
@@ -55,127 +51,12 @@ public class AndroidStudio implements AutoCloseable {
 
   private Benchmark benchmark = null;
 
-  static public AndroidStudio run(AndroidStudioInstallation installation,
-                                  Display display,
-                                  Map<String, String> env,
-                                  String[] args) throws IOException, InterruptedException {
-    return run(installation, display, env, args, false);
-  }
-
-  static public AndroidStudio run(AndroidStudioInstallation installation,
-                       Display display,
-                       Map<String, String> env,
-                       String[] args,
-                       boolean safeMode) throws IOException, InterruptedException {
-    Path workDir = installation.getWorkDir();
-
-    ArrayList<String> command = new ArrayList<>(args.length + 1);
-
-    String studioExecutable = getStudioExecutable(safeMode);
-    command.add(workDir.resolve(studioExecutable).toString());
-    command.addAll(Arrays.asList(args));
-    ProcessBuilder pb = new ProcessBuilder(command);
-    pb.environment().clear();
-
-    for (Map.Entry<String, String> entry : env.entrySet()) {
-      pb.environment().put(entry.getKey(), entry.getValue());
-    }
-    if (display.getDisplay() != null) {
-      pb.environment().put("DISPLAY", display.getDisplay());
-    }
-    pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
-    String shell = System.getenv("SHELL");
-    if (shell != null && !shell.isEmpty()) {
-      pb.environment().put("SHELL", shell);
-    }
-
-    TestLogger.log("Starting Android Studio");
-    installation.getStdout().reset();
-    installation.getStderr().reset();
-    pb.redirectOutput(installation.getStdout().getPath().toFile());
-    pb.redirectError(installation.getStderr().getPath().toFile());
-    // We execute it and let the process instance go, as it reflects
-    // the shell process, not the idea one.
-    pb.start();
-    // Now we attach to the real one from the logs
-    AndroidStudio studio = attach(installation);
-    studio.startCapturingScreenshotsOnWindows();
-    return studio;
-  }
-
-  static private String getStudioExecutable(boolean useSafeMode) {
-    String studioExecutable;
-
-    if (useSafeMode) {
-      studioExecutable = "android-studio/bin/studio_safe.sh";
-      if (SystemInfo.isMac) {
-        studioExecutable = "Android Studio Preview.app/Contents/bin/studio_safe.sh";
-      } else if (SystemInfo.isWindows) {
-        studioExecutable = "android-studio/bin/studio_safe.bat";
-      }
-    } else {
-      studioExecutable = "android-studio/bin/studio.sh";
-      if (SystemInfo.isMac) {
-        studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
-      } else if (SystemInfo.isWindows) {
-        studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
-      }
-    }
-
-    return studioExecutable;
-  }
-
-  static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
-    int pid;
-    try {
-      pid = waitForDriverPid(installation.getIdeaLog());
-    } catch (InterruptedException e) {
-      checkForJdwpError(installation);
-      throw e;
-    }
-
-    ProcessHandle process = ProcessHandle.of(pid).get();
-    int port = waitForDriverServer(installation.getIdeaLog());
-    return new AndroidStudio(installation, process, port);
-  }
-
-  private AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
+  public AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
     this.install = install;
     this.process = process;
     creationTime = Instant.now();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
-  }
-
-  /**
-   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
-   * This method will throw an exception in the test process rather than the developer having to
-   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
-   * when testing locally.
-   */
-  static private void checkForJdwpError(AndroidStudioInstallation installation) {
-    try {
-      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
-      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
-      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
-      if (hasJdwpError && isAddressInUse) {
-        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
-                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
-      }
-    }
-    catch (IOException e) {
-      // We tried our best. :(
-    }
-  }
-
-  static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
-  }
-
-  static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
   }
 
   public void waitForProcess() throws ExecutionException, InterruptedException {
@@ -336,7 +217,7 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  private void startCapturingScreenshotsOnWindows() throws IOException {
+  public void startCapturingScreenshotsOnWindows() throws IOException {
     if (!SystemInfo.isWindows) {
       return;
     }

@@ -21,11 +21,12 @@ import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.android.tools.asdriver.tests.base.IdeInstallation;
 import com.android.utils.FileUtils;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.EarlyAccessRegistryManager;
+import com.intellij.util.system.CpuArch;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,27 +37,21 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.io.File;
-import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
-public class AndroidStudioInstallation {
-
-  public final TestFileSystem fileSystem;
-  private final Path workDir;
-  private final LogFile stdout;
-  private final LogFile stderr;
-  private final LogFile ideaLog;
+public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
   // File for storing memory usage statistics. The file is written by calling the `CollectMemoryUsageStatisticsInternalAction` action.
   // After migrating to gRPC API should be removed as a part of b/256132435.
   private final LogFile memoryReportFile;
-  private final Path studioDir;
-  private final Path vmOptionsPath;
-  private final Path configDir;
-  private final Path logsDir;
   private final Path studioEventsDir;
   private final Path telemetryJsonFile;
+
+  private boolean forceSafeMode = false;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
     Options options = new Options(testFileSystem);
@@ -116,26 +111,19 @@ public class AndroidStudioInstallation {
                                     Path studioDir,
                                     AndroidStudioFlavor androidStudioFlavor,
                                     Boolean disableFirstRun) throws IOException {
-    this.fileSystem = testFileSystem;
-    this.workDir = workDir;
-    this.studioDir = studioDir;
+    super("studio-sdk", testFileSystem, workDir, studioDir);
 
-    logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
+    if (disableFirstRun) {
+      this.addVmOption("-Ddisable.android.first.run=true");
+    }
+
     studioEventsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "studio_events");
-    ideaLog = new LogFile(logsDir.resolve("idea.log"));
-    Files.createFile(ideaLog.getPath());
     memoryReportFile = new LogFile(logsDir.resolve("memory_usage_report.log"));
     Files.createFile(memoryReportFile.getPath());
-    stdout = new LogFile(logsDir.resolve("stdout.txt"));
-    stderr = new LogFile(logsDir.resolve("stderr.txt"));
 
-    vmOptionsPath = workDir.resolve("studio.vmoptions");
-    configDir = workDir.resolve("config");
-    Files.createDirectories(configDir);
     telemetryJsonFile = logsDir.resolve("opentelemetry.json");
 
     setConsentGranted(true);
-    createVmOptionsFile(disableFirstRun);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
 
     TestLogger.log("AndroidStudioInstallation created with androidStudioFlavor== %s" , androidStudioFlavor);
@@ -170,31 +158,21 @@ public class AndroidStudioInstallation {
     }
   }
 
-  private void createVmOptionsFile(Boolean disableFirstRun) throws IOException {
+  @Override
+  protected void createVmOptions(StringBuilder vmOptions) throws IOException {
+    super.createVmOptions(vmOptions);
+
     Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
     if (!Files.exists(threadingCheckerAgentZip)) {
       // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
       throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
     }
 
-    StringBuilder vmOptions = new StringBuilder();
     vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
     // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
-    if (disableFirstRun) {
-      vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));
-    }
     vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
-    vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
-    vmOptions.append(String.format("-Didea.plugins.path=%s/plugins%n", configDir));
-    vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));
-    vmOptions.append(String.format("-Djava.io.tmpdir=%s%n", Files.createTempDirectory(workDir, "tmp")));
     // Prevent our crash metrics from going to the production URL
     vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
-    // Work around b/247532990, which is that libnotify.so.4 is missing on our
-    // test machines.
-    vmOptions.append(String.format("-Dide.libnotify.enabled=false%n"));
-    vmOptions.append(String.format("-Didea.log.path=%s%n", logsDir));
-    vmOptions.append(String.format("-Duser.home=%s%n", fileSystem.getHome()));
     // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
     vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
     vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
@@ -214,13 +192,6 @@ public class AndroidStudioInstallation {
       String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
     vmOptions.append(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
     vmOptions.append(String.format("-Dstudio.event.dump.dir=%s%n", studioEventsDir));
-
-    Files.writeString(vmOptionsPath, vmOptions.toString());
-
-    // Handy utility to allow run configurations to force debugging
-    if (Sets.newHashSet("true", "1").contains(System.getenv("AS_TEST_DEBUG"))) {
-      addDebugVmOption(true);
-    }
   }
 
   public void enableBleak() throws IOException {
@@ -236,14 +207,6 @@ public class AndroidStudioInstallation {
         throw new IllegalStateException("BLeak JVMTI agent not found");
       }
     }
-  }
-
-  private static void unzip(Path zipFile, Path outDir) throws IOException {
-    TestLogger.log("Unzipping... %s", zipFile);
-    long startTime = System.currentTimeMillis();
-    InstallerUtil.unzip(zipFile, outDir, Files.size(zipFile), new FakeProgressIndicator());
-    long elapsedTime = System.currentTimeMillis() - startTime;
-    TestLogger.log("Unzipping took %d ms", elapsedTime);
   }
 
   /**
@@ -431,20 +394,12 @@ public class AndroidStudioInstallation {
     Files.writeString(dest, generalPropertyContents, StandardCharsets.UTF_8);
   }
 
-  public Path getWorkDir() {
-    return workDir;
-  }
-
   public Path getConfigDir() {
     return configDir;
   }
 
   public Path getTelemetryJsonFile() {
     return telemetryJsonFile;
-  }
-
-  public Path getStudioDir() {
-    return studioDir;
   }
 
   public Path getStudioEventsDir() {
@@ -455,51 +410,8 @@ public class AndroidStudioInstallation {
     return fileSystem.getHome().resolve("AndroidStudioProjects");
   }
 
-  public LogFile getStdout() {
-    return stdout;
-  }
-
-  public LogFile getStderr() {
-    return stderr;
-  }
-
-  public LogFile getIdeaLog() {
-    return ideaLog;
-  }
-
   public LogFile getMemoryReportFile() {
     return memoryReportFile;
-  }
-
-  public void addVmOption(String line) throws IOException {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
-      writer.append(line).append("\n");
-    }
-  }
-
-  private void addDebugVmOption(boolean suspend) throws IOException {
-    // It's easy to forget that debugging was left on, so this emits a warning in that case.
-    if (suspend) {
-      String hr = "*".repeat(80);
-      System.out.println(hr);
-      System.out.println("The JDWP suspend option is enabled, meaning the agent's VM will be suspended immediately.\n" +
-                         "If you do not attach a debugger to it, your test will time out.");
-      System.out.println(hr);
-    }
-    String s = suspend ? "y" : "n";
-    addVmOption("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + s + ",address=localhost:5006\n");
-  }
-
-  public AndroidStudio attach() throws IOException, InterruptedException {
-    return AndroidStudio.attach(this);
-  }
-
-  public AndroidStudio run(Display display) throws IOException, InterruptedException {
-    return run(display, new HashMap<>(), new String[] {});
-  }
-
-  public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
-    return run(display, env, new String[] {});
   }
 
   /**
@@ -518,29 +430,8 @@ public class AndroidStudioInstallation {
     return run(display, env, new String[]{ targetProject.toString() });
   }
 
-  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
-    Path projectPath = project.install(fileSystem.getRoot());
-    project.setSdkDir(sdkDir);
-    // Mark that project as trusted
-    trustPath(projectPath);
-    return run(display, env, new String[]{ projectPath.toString() });
-  }
-
-  public AndroidStudio run(Display display, Map<String, String> env, String[] args) throws IOException, InterruptedException {
-    return run(display, env, args, false);
-  }
-
-  public AndroidStudio run(Display display, Map<String, String> env, String[] args, boolean safeMode) throws IOException, InterruptedException {
-    Map<String, String> newEnv = new HashMap<>(env);
-    newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
-    newEnv.put("HOME", fileSystem.getHome().toString());
-    newEnv.put("ANDROID_USER_HOME", this.fileSystem.getAndroidHome().toString());
-
-    return AndroidStudio.run(this, display, newEnv, args, safeMode);
-  }
-
-  public AndroidStudio runInSafeMode(Display display) throws IOException, InterruptedException {
-    return run(display, new HashMap<>(), new String[] {}, true);
+  public void forceSafeMode() {
+    this.forceSafeMode = true;
   }
 
   public void trustPath(Path path) throws IOException {
@@ -577,6 +468,94 @@ public class AndroidStudioInstallation {
     }
   }
 
+  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
+    Path projectPath = project.install(fileSystem.getRoot());
+    project.setSdkDir(sdkDir);
+    // Mark that project as trusted
+    trustPath(projectPath);
+    return run(display, env, new String[]{ projectPath.toString() });
+  }
+
+  @Override
+  protected String getExecutable() {
+    String studioExecutable;
+
+    if (forceSafeMode) {
+      studioExecutable = "android-studio/bin/studio_safe.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/bin/studio_safe.sh";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = "android-studio/bin/studio_safe.bat";
+      }
+    } else {
+      studioExecutable = "android-studio/bin/studio.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
+      }
+    }
+
+    return workDir.resolve(studioExecutable).toString();
+  }
+
+  @Override
+  protected AndroidStudio createAndAttach() throws IOException, InterruptedException {
+    AndroidStudio studio = attach();
+    studio.startCapturingScreenshotsOnWindows();
+    return studio;
+  }
+
+  @Override
+  protected String vmOptionEnvName() {
+    return "STUDIO_VM_OPTIONS";
+  }
+
+  public AndroidStudio attach() throws IOException, InterruptedException {
+    int pid;
+    try {
+      pid = waitForDriverPid(getIdeaLog());
+    } catch (InterruptedException e) {
+      checkForJdwpError(this);
+      throw e;
+    }
+
+    ProcessHandle process = ProcessHandle.of(pid).get();
+    int port = waitForDriverServer(getIdeaLog());
+    return new AndroidStudio(this, process, port);
+  }
+
+  /**
+   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
+   * This method will throw an exception in the test process rather than the developer having to
+   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
+   * when testing locally.
+   */
+  static private void checkForJdwpError(AndroidStudioInstallation installation) {
+    try {
+      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
+      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
+      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
+      if (hasJdwpError && isAddressInUse) {
+        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
+                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
+      }
+    }
+    catch (IOException e) {
+      // We tried our best. :(
+    }
+  }
+
+  static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
+    return Integer.parseInt(matcher.group(1));
+  }
+
+  static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
+    return Integer.parseInt(matcher.group(1));
+  }
+
   public enum AndroidStudioFlavor {
     // This is the most common version of Android Studio and is what can be found on
     // https://developer.android.com/studio.
@@ -594,7 +573,7 @@ public class AndroidStudioInstallation {
   }
 
   public static class Options {
-    @NotNull public TestFileSystem testFileSystem;
+    public TestFileSystem testFileSystem;
     AndroidStudioFlavor androidStudioFlavor = AndroidStudioFlavor.FOR_EXTERNAL_USERS;
     boolean disableFirstRun = true;
 

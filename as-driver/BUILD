@@ -39,6 +39,16 @@ intellij_plugin(
     ],
 )
 
+alias(
+    name = "studio_zips",
+    actual = select({
+        "@platforms//os:linux": "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/base/bazel/platforms:macos-x86_64": "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/base/bazel/platforms:macos-arm64": "//tools/adt/idea/studio:android-studio.mac_arm.zip",
+        "@platforms//os:windows": "//tools/adt/idea/studio:android-studio.win.zip",
+    }),
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "as-driver.utils",
@@ -49,11 +59,8 @@ iml_module(
         "//tools/vendor/google/testing/display:ffmpeg_files",
         "//tools/vendor/google/testing/display:xvfb",
     ] + select({
-        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
-        "//tools/base/bazel/platforms:macos-x86_64": ["//tools/adt/idea/studio:android-studio.mac.zip"],
-        "//tools/base/bazel/platforms:macos-arm64": ["//tools/adt/idea/studio:android-studio.mac_arm.zip"],
-        "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
-        "//conditions:default": [],
+        "@intellij//:studio-sdk": [":studio_zips"],
+        "//conditions:default": ["@intellij//:distribution-zip"],
     }),
     iml_files = ["utils/as-driver.utils.iml"],
     test_srcs = ["utils/testSrc"],

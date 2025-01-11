@@ -1338,6 +1338,16 @@ def intellij_platform_import(name, spec):
         visibility = ["//visibility:public"],
     )
 
+    dir_archive(
+        name = name + "-dist",
+        dir = "../" + name,
+        files = native.glob(
+            include = ["**"],
+            exclude = ["spec.bzl", "BUILD.bazel", "WORKSPACE"],
+        ),
+        visibility = ["//visibility:public"],
+    )
+
     for plugin, jars in spec.plugin_jars.items():
         # 'kind' indicates whether this is a top-level plugin, or a plugin module inside a host plugin.
         kind = "module" if len(jars) == 1 and "/modules/" in jars[0] else "plugin"
