@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
@@ -50,7 +51,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 
     JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(JLabel.TOP);
+    label.setVerticalAlignment(SwingConstants.TOP);
     label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     JPanel axisPanel = new JBPanel(new BorderLayout());

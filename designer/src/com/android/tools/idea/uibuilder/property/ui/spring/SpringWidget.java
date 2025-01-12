@@ -37,7 +37,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -52,6 +51,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import kotlin.text.StringsKt;
@@ -1359,7 +1359,7 @@ public class SpringWidget extends JPanel {
           JLabel title = new JLabel(spacing);
           title.setPreferredSize(title.getPreferredSize());
           title.setText(parameter.displayName);
-          title.setHorizontalAlignment(JLabel.RIGHT);
+          title.setHorizontalAlignment(SwingConstants.RIGHT);
           SliderSpec sliderSpec = getSliderSpec(parameter);
           if (sliderSpec == null) {
             continue;
@@ -1404,7 +1404,7 @@ public class SpringWidget extends JPanel {
         JLabel title = new JLabel(spacing);
         title.setPreferredSize(title.getPreferredSize());
         title.setText("Bounce");
-        title.setHorizontalAlignment(JLabel.RIGHT);
+        title.setHorizontalAlignment(SwingConstants.RIGHT);
         JCheckBox checkBox = new JCheckBox();
         components.add(title);
         components.add(checkBox);

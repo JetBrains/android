@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.concurrency.UiThread;
@@ -7,7 +8,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.CustomizedDataContext;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
@@ -197,7 +197,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
 
   @NotNull
   protected static XmlTag[] getXmlTagsFromExternalContext(DataContext dataContext) {
-    PsiElement[] data = LangDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
+    PsiElement[] data = PlatformCoreDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
     if (data instanceof XmlTag[]) {
       return (XmlTag[])data;
     }
