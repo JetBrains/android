@@ -15,48 +15,36 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dependencies.DependenciesConfig
 import com.android.tools.idea.gradle.dependencies.DependenciesProcessor
 import com.android.tools.idea.gradle.dependencies.DependencyDescription
 import com.android.tools.idea.gradle.dependencies.PluginDescription
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths.EMPTY_APPLICATION_DECLARATIVE
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
+import com.android.tools.idea.testing.withDeclarative
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class DependenciesProcessorTest : AndroidGradleTestCase() {
+class DependenciesProcessorTest {
 
-  @Before
-  fun onBefore() {
-    DeclarativeStudioSupport.override(true)
-    DeclarativeIdeSupport.override(true)
-  }
-
-  @After
-  fun onAfter() {
-    DeclarativeStudioSupport.clearOverride()
-    DeclarativeIdeSupport.clearOverride()
-  }
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().withDeclarative()
+  private val project get() = projectRule.project
 
   @Test
   fun simpleAddPluginAndDependency() {
-    loadProject(SIMPLE_APPLICATION)
+    projectRule.loadProject(SIMPLE_APPLICATION)
     val projectBuildModel = ProjectBuildModel.get(project)
     val appModule = project.findModule("app")
     val config = DependenciesConfig.defaultConfig().withDependency(
@@ -83,7 +71,7 @@ class DependenciesProcessorTest : AndroidGradleTestCase() {
 
   @Test
   fun simpleAddEcosystemPluginAndDependency() {
-    importProjectWithRecentGradle(EMPTY_APPLICATION_DECLARATIVE)
+    projectRule.loadProject(EMPTY_APPLICATION_DECLARATIVE)
     val projectBuildModel = ProjectBuildModel.get(project)
     val appModule = project.findModule("app")
     val env = BuildEnvironment.getInstance()
@@ -107,13 +95,6 @@ class DependenciesProcessorTest : AndroidGradleTestCase() {
       assertThat(project.getTextForFile("app/build.gradle.dcl"))
         .contains("androidApp {")
     }
-  }
-
-  private fun importProjectWithRecentGradle(relativePath: String){
-    prepareProjectForImport(relativePath)
-    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true))
-    setupGradleSnapshotToWrapper(project)
-    importProject()
   }
 
 }

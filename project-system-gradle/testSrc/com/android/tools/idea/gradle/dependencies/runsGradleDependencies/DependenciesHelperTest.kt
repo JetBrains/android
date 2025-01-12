@@ -22,7 +22,8 @@ import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
-import com.android.tools.idea.testing.AndroidGradleTestCase
+
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.android.tools.idea.testing.findModule
@@ -32,12 +33,18 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import org.apache.commons.lang3.StringUtils.countMatches
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class DependenciesHelperTest: AndroidGradleTestCase() {
+class DependenciesHelperTest {
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  private val fixture get() = projectRule.fixture
+  private val project get() = projectRule.project
 
   @Test
   fun testSimpleAddWithCatalog() {
@@ -239,18 +246,20 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
                      updateFiles: () -> Unit,
                      change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {
-    prepareProjectForImport(projectPath)
-    updateFiles()
-    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true))
-    importProject()
-    prepareProjectForTest(project, null)
-    myFixture.allowTreeAccessForAllFiles()
+    projectRule.loadProject(projectPath){ projectRoot ->
+      updateFiles()
+      VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true))
+    }
+
+    fixture.allowTreeAccessForAllFiles()
+
     val projectBuildModel = ProjectBuildModel.get(project)
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()
     val helper = DependenciesHelper.withModel(projectBuildModel)
-    change.invoke(projectBuildModel, moduleModel!!, helper)
     WriteCommandAction.runWriteCommandAction(project) {
+      change.invoke(projectBuildModel, moduleModel!!, helper)
+
       projectBuildModel.applyChanges()
       moduleModel.applyChanges()
     }
