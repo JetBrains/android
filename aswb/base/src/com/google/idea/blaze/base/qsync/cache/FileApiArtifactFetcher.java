@@ -61,4 +61,9 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
   public Class<LocalFileOutputArtifact> supportedArtifactType() {
     return LocalFileOutputArtifact.class;
   }
+
+  @Override
+  public String toString() {
+    return "file system artifact fetcher";
+  }
 }

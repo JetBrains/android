@@ -59,6 +59,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -263,32 +264,35 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
       synchronized (activeFetches) {
         Instant accessTime = Instant.now();
         // filter out any duplicate artifacts, and those for which there is already a fetch pending:
-        ImmutableList<OutputArtifact> allArtifacts =
-            artifacts.stream()
-                .filter(distinctBy(OutputArtifact::getDigest))
-                .filter(a -> !activeFetches.containsKey(a.getDigest()))
-                .collect(toImmutableList());
-        long totalSize = allArtifacts.stream().collect(Collectors.summarizingLong(BlazeArtifact::getLength)).getSum();
-        context.output(PrintOutput.output("Fetching %d new artifacts (%,.2f MB) out of %d requested...",
-                                          allArtifacts.size(),
-                                          (totalSize / (1024f*1024)),
-                                          artifacts.size()));
-
+        final var allDistinctArtifacts = artifacts.stream()
+          .filter(distinctBy(OutputArtifact::getDigest))
+          .collect(toImmutableList());
+        ImmutableList<OutputArtifact> allDistinctNotBeingFetchedArtifacts =
+          allDistinctArtifacts.stream()
+            .filter(a -> !activeFetches.containsKey(a.getDigest()))
+            .collect(toImmutableList());
         // group them based on whether the artifact is already cached
         ImmutableListMultimap<Boolean, OutputArtifact> artifactsByPresence =
-            Multimaps.index(allArtifacts, this::contains);
+          Multimaps.index(allDistinctNotBeingFetchedArtifacts, this::contains);
 
         // Fetch absent artifacts
-        ListenableFuture<?> fetch = startFetch(artifactsByPresence.get(false), accessTime, context);
+        ImmutableList<OutputArtifact> missingArtifactsToFetch = artifactsByPresence.get(false);
+        long totalSize = missingArtifactsToFetch.stream().collect(Collectors.summarizingLong(BlazeArtifact::getLength)).getSum();
+        context.output(PrintOutput.output("Fetching %d new artifacts (%,.2f MB) out of %d requested...",
+                                          missingArtifactsToFetch.size(),
+                                          (totalSize / (1000f*1000)),
+                                          allDistinctArtifacts.size()));
+
+        ListenableFuture<?> fetch = startFetch(missingArtifactsToFetch, accessTime, context);
         context.addCancellationHandler(() -> fetch.cancel(false));
 
         // mark the  artifacts as being actively fetched. If they are requested in the meantime,
         // the future will be used to wait until the fetch is complete.
         // They are unmarked by the future listener above.
-        markAsActive(artifactsByPresence.get(false), fetch);
+        markAsActive(missingArtifactsToFetch, fetch);
         fetch.addListener(() -> {
           context.output(PrintOutput.output("Downloading done."));
-          unmarkAsActive(artifactsByPresence.get(false));
+          unmarkAsActive(missingArtifactsToFetch);
         }, directExecutor());
 
         // Update metadata for present artifacts

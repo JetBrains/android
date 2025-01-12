@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -36,6 +37,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.proto.ProtoStringInterner;
@@ -63,6 +65,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -349,8 +352,10 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
             outputInfo.getTargetsWithErrors());
 
+    final var sw = Stopwatch.createStarted();
     Map<Label, TargetBuildInfo> newTargetInfo =
         getUniqueTargetBuildInfos(getTargetBuildInfo(outputInfo, digestMap));
+    context.output(PrintOutput.output("Target build info map built in %dms", sw.elapsed(TimeUnit.MILLISECONDS)));
 
     ImmutableList<CcToolchain> newToolchains = getCcToolchains(outputInfo);
 
