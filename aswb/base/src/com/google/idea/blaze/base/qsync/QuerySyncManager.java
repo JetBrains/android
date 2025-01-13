@@ -158,7 +158,7 @@ public class QuerySyncManager implements Disposable {
   }
 
   protected ProjectLoader createProjectLoader(ListeningExecutorService executor, Project project) {
-    return new ProjectLoader(executor, project);
+    return new ProjectLoaderImpl(executor, project);
   }
 
   public ModificationTracker getProjectModificationTracker() {
