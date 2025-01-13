@@ -87,17 +87,6 @@ abstract class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProv
   }
 }
 
-/** Issue that highlights */
-interface VisualLintHighlightingIssue {
-
-  /**
-   * return true if the issue should be highlighting when selected.
-   *
-   * @param model Currently displaying model.
-   */
-  fun shouldHighlight(model: NlModel): Boolean
-}
-
 interface VisualLintSuppressTask : Runnable {
   fun isValid(): Boolean
 }

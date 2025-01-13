@@ -52,8 +52,7 @@ private const val COLOR_BLIND_ISSUE_SUMMARY = "Insufficient color contrast for c
 private const val VISUAL_LINT_ISSUE_CATEGORY = "Visual Lint Issue"
 
 /** Lint issues that is generated from visual sources (e.g. Layout Validation) */
-class VisualLintRenderIssue private constructor(builder: Builder) :
-  Issue(), VisualLintHighlightingIssue {
+class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   private val _models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
   private var isComponentSuppressed: (NlComponent) -> Boolean = { false }
   private val _components = builder.components!!
@@ -74,7 +73,12 @@ class VisualLintRenderIssue private constructor(builder: Builder) :
   override val category = VISUAL_LINT_ISSUE_CATEGORY
   override val hyperlinkListener = builder.hyperlinkListener
 
-  override fun shouldHighlight(model: NlModel): Boolean {
+  /**
+   * Returns true if the issue should be highlighting when selected.
+   *
+   * @param model Currently displaying model.
+   */
+  fun shouldHighlight(model: NlModel): Boolean {
     return components.map { it.model }.contains(model)
   }
 

@@ -19,7 +19,6 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
@@ -27,7 +26,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -76,16 +75,14 @@ class VisualizationActionManager(
             JBColor.background(),
           )
         ) {
-        private val issueListener =
-          object : IssueListener {
-            override fun onIssueSelected(issue: Issue?) {
-              isVisible =
-                (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
-                  sceneView.sceneManager.model
-                ) ?: false
-              (issue as? VisualLintHighlightingIssue)?.let { toolTipText = issue.summary }
-            }
+        private val issueListener = IssueListener { issue ->
+          if (issue is VisualLintRenderIssue) {
+            isVisible = issue.shouldHighlight(sceneView.sceneManager.model)
+            toolTipText = issue.summary
+          } else {
+            isVisible = false
           }
+        }
 
         init {
           isOpaque = true
