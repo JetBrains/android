@@ -52,5 +52,5 @@ bazel_dep(
 archive_override(
     module_name = "rules_cc",
     integrity = "sha256-11oEDDKVTaDTCNPy6iunNUkPSbOnqj5LQCWcpLgU+CU=",
-    urls = "https://github.com/bazelbuild/rules_cc/releases/download/0.0.10-rc1/rules_cc-0.0.10-rc1.tar.gz",
+    urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.10-rc1/rules_cc-0.0.10-rc1.tar.gz"],
 )
