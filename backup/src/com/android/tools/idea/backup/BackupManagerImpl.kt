@@ -26,7 +26,7 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
-import com.android.backup.ErrorCode
+import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
@@ -231,7 +231,10 @@ internal constructor(
           ErrorDetailDialog(title, content, throwable.stackTraceToString()).show()
         }
       )
-      if ((throwable as? BackupException)?.errorCode == ErrorCode.GMSCORE_IS_TOO_OLD) {
+      if (
+        (throwable as? BackupException)?.errorCode == GMSCORE_IS_TOO_OLD &&
+          backupService.isPlayStoreInstalled(serialNumber)
+      ) {
         add(DialogButton(message("notification.update.gms")) { sendUpdateGmsIntent(serialNumber) })
       }
     }

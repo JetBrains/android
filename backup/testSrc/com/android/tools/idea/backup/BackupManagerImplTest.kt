@@ -210,6 +210,48 @@ internal class BackupManagerImplTest {
       )
   }
 
+  @Test
+  fun gmsCoreNotUpdated_noPlayStore(): Unit = runBlocking {
+    val backupService =
+      BackupService.getInstance(
+        FakeAdbServicesFactory("com.app") {
+          it.addCommandOverride(
+            Output(
+              DUMPSYS_GMSCORE_CMD,
+              """
+                Packages:
+                    versionCode=50 minSdk=31 targetSdk=34
+              """
+                .trimIndent(),
+            )
+          )
+          it.addCommandOverride(
+            Output(
+              "pm resolve-activity market://details?id=com.android.vending",
+              "No activity found\n",
+            )
+          )
+        }
+      )
+    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val serialNumber = "serial"
+    val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
+
+    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
+
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
+    assertThat(notificationRule.notifications).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData(
+          "Restore Failed",
+          "Google Services version is too old (50).  Min version is 100",
+          listOf("Show Full Error"),
+        )
+      )
+  }
+
   private fun NotificationInfo.assert(
     title: String,
     text: String,
