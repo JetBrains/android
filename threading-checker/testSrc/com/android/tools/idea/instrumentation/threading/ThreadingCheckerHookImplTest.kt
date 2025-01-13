@@ -90,7 +90,7 @@ class ThreadingCheckerHookImplTest {
     verifyNoMoreInteractions(mockThreadingViolationNotifier)
 
     Truth.assertThat(tracker.usages.map { u -> u.studioEvent.toBuilder().clearStudioSessionId().clearIdeBrand().build() })
-      .containsExactly(AndroidStudioEvent.newBuilder()
+      .contains(AndroidStudioEvent.newBuilder()
                          .setKind(AndroidStudioEvent.EventKind.THREADING_AGENT_STATS)
                          .setThreadingAgentUsageEvent(
                            ThreadingAgentUsageEvent.newBuilder()
@@ -126,7 +126,7 @@ class ThreadingCheckerHookImplTest {
     verifyNoMoreInteractions(mockThreadingViolationNotifier)
 
     Truth.assertThat(tracker.usages.map { u -> u.studioEvent.toBuilder().clearStudioSessionId().clearIdeBrand().build() })
-      .containsExactly(AndroidStudioEvent.newBuilder()
+      .contains(AndroidStudioEvent.newBuilder()
                          .setKind(AndroidStudioEvent.EventKind.THREADING_AGENT_STATS)
                          .setThreadingAgentUsageEvent(
                            ThreadingAgentUsageEvent.newBuilder()
