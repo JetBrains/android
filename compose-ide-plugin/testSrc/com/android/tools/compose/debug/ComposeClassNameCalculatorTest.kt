@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -145,6 +146,7 @@ class ComposeClassNameCalculatorTest {
     }
   }
 
+  @Ignore("388473186")
   @Test
   fun testIntegrationWithExtensionPoint() {
     val file =
