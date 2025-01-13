@@ -106,9 +106,9 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       // Check if a baseline profile fit the device
       for (bpSet in app.baselineProfiles) {
           if (device.version.apiLevel in bpSet.minApi..bpSet.maxApi) {
-            for (bp in bpSet.baselineProfiles) {
+            for (bpFile in bpSet.baselineProfileFiles) {
               val artifactDetailBuilder = ArtifactDetail.newBuilder()
-              artifactDetailBuilder.setSize(bp.length())
+              artifactDetailBuilder.setSize(bpFile.length())
               artifactDetailBuilder.setType(ArtifactDetail.ArtifactType.BASELINE_PROFILE)
               addArtifact(artifactDetailBuilder)
             }

@@ -256,7 +256,7 @@ public abstract class AbstractDeployTask {
     return profiles.stream().map(p -> new BaselineProfile(
       p.getMinApi(),
       p.getMaxApi(),
-      p.getBaselineProfiles().stream().map(File::toPath).collect(Collectors.toList()))
+      p.getBaselineProfileFiles().stream().map(File::toPath).collect(Collectors.toList()))
     ).collect(Collectors.toList());
   }
 

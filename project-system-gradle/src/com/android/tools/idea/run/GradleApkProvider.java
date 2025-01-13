@@ -322,7 +322,7 @@ public final class GradleApkProvider implements ApkProvider {
       }
       for (BaselineProfileDetails bps: info.getBaselineProfiles()) {
         logger.info("    baseline prof: api ["+ bps.getMinApi()+","+bps.getMaxApi()+"]");
-        for (File f: bps.getBaselineProfiles()) {
+        for (File f: bps.getBaselineProfileFiles()) {
           logger.info("        md : '" + f.getName() + "'");
         }
       }
