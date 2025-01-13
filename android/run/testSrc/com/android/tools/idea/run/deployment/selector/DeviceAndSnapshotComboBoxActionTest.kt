@@ -99,4 +99,23 @@ class DeviceAndSnapshotComboBoxActionTest {
     comboBox.update(event)
     assertThat(event.presentation.text).isEqualTo(devices[1].name)
   }
+
+  @Test
+  fun selectSnapshotTarget() = runTestWithFixture {
+    RunManager.getInstance(project).createTestConfig()
+    devicesFlow.value = listOf(FakeDeviceHandle(scope, null, handleId("1"), hasSnapshots = true))
+    sendLaunchCompatibility()
+
+    val devices =
+      devicesSelectedService.devicesAndTargetsFlow.first { it.allDevices.size == 1 }.allDevices
+
+    SelectTargetAction(devices[0].targets.last()).actionPerformed(actionEvent(dataContext(project)))
+    testScope.advanceUntilIdle()
+
+    val event = actionEvent(dataContext(project), place = ActionPlaces.MAIN_TOOLBAR)
+
+    comboBox.update(event)
+    assertThat(event.presentation.text)
+      .isEqualTo("${devices[0].name} - ${devices[0].snapshots[0].name}")
+  }
 }
