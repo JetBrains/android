@@ -96,6 +96,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder {
@@ -135,6 +136,13 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   protected final ImmutableSet<String> handledRuleKinds;
   protected final BuildArtifactCache buildArtifactCache;
 
+  /**
+   * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build dependencies and metadata required by query
+   *                     sync.
+   * @param requestedOutputGroups lists output groups that are requested by {@code argsAndFlags}.
+   */
+  public record BuildDependenciesBazelInvocationInfo(ImmutableList<String> argsAndFlags, ImmutableSet<OutputGroup> requestedOutputGroups) {}
+
   public BazelDependencyBuilder(
     Project project,
     BuildSystem buildSystem,
@@ -167,78 +175,93 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public OutputInfo build(
       BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages)
       throws IOException, BuildException {
-    BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
-    Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
-        BuildDepsStatsScope.fromContext(context);
-    buildDepsStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
     try (
       final var ignoredLock = ApplicationManager.getApplication().getService(BuildDependenciesLockService.class)
-        .lockWorkspace(workspaceRoot.path().toString());
-      BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
-      ImmutableList<String> includes =
-          projectDefinition.projectIncludes().stream()
-              .map(path -> "//" + path)
-              .collect(toImmutableList());
-      ImmutableList<String> excludes =
-          projectDefinition.projectExcludes().stream()
-              .map(path -> "//" + path)
-              .collect(toImmutableList());
-      ImmutableList<String> alwaysBuildRules =
-        ImmutableList.copyOf(Sets.difference(BlazeQueryParser.ALWAYS_BUILD_RULE_KINDS, handledRuleKinds));
-      final var parameters = new BuildDependencyParameters(
-        includes,
-        excludes,
-        alwaysBuildRules,
-        true,
-        buildGeneratedSrcJars.getValue()
-      );
-      String aspectLocation = prepareAspect(context, parameters);
+        .lockWorkspace(workspaceRoot.path().toString())) {
+      BuildDependenciesBazelInvocationInfo buildDependenciesFlags = prepareAspectAndGetInvocationFlags(
+        context, buildTargets, languages);
 
-      ImmutableSet<OutputGroup> outputGroups =
-          languages.stream()
-              .map(OUTPUT_GROUPS_BY_LANGUAGE::get)
-              .flatMap(Collection::stream)
-              .collect(ImmutableSet.toImmutableSet());
-
-      ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-      // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
-      // of flags need to be passed here.
-      List<String> additionalBlazeFlags =
-          BlazeFlags.blazeFlags(
-              project,
-              projectViewSet,
-              BlazeCommandName.BUILD,
-              context,
-              BlazeInvocationContext.OTHER_CONTEXT);
-
-      BlazeCommand.Builder builder =
+      BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
+      try (
+        BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
+        Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
+          BuildDepsStatsScope.fromContext(context);
+        buildDepsStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
+        BlazeCommand.Builder builder =
           BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-              .addBlazeFlags(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
-              .addBlazeFlags(buildResultHelper.getBuildFlags())
-              .addBlazeFlags(additionalBlazeFlags)
-              .addBlazeFlags(
-                  String.format(
-                      "--aspects=%1$s%%collect_dependencies,%1$s%%package_dependencies",
-                      aspectLocation))
-              .addBlazeFlags("--noexperimental_run_validations")
-              .addBlazeFlags("--keep_going");
-      outputGroups.stream()
-          .map(g -> "--output_groups=" + g.outputGroupName())
-          .forEach(builder::addBlazeFlags);
-      buildDepsStatsBuilder.ifPresent(
+            .addBlazeFlags(buildDependenciesFlags.argsAndFlags())
+            .addBlazeFlags(buildResultHelper.getBuildFlags());
+        buildDepsStatsBuilder.ifPresent(
           stats -> stats.setBuildFlags(builder.build().toArgumentList()));
-      Instant buildTime = Instant.now();
-      BlazeBuildOutputs outputs =
+        Instant buildTime = Instant.now();
+        BlazeBuildOutputs outputs =
           invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
 
-      BazelExitCodeException.throwIfFailed(
+        BazelExitCodeException.throwIfFailed(
           builder,
           outputs.buildResult(),
           ThrowOption.ALLOW_PARTIAL_SUCCESS,
           ThrowOption.ALLOW_BUILD_FAILURE);
 
-      return createOutputInfo(outputs, outputGroups, buildTime, context);
+        return createOutputInfo(outputs, buildDependenciesFlags.requestedOutputGroups(), buildTime, context);
+      }
     }
+  }
+
+  @VisibleForTesting
+  public BuildDependenciesBazelInvocationInfo prepareAspectAndGetInvocationFlags(BlazeContext context,
+                                                                                 Set<Label> buildTargets,
+                                                                                 Set<QuerySyncLanguage> languages)
+    throws IOException, BuildException {
+    ImmutableList<String> includes =
+      projectDefinition.projectIncludes().stream()
+        .map(path -> "//" + path)
+        .collect(toImmutableList());
+    ImmutableList<String> excludes =
+      projectDefinition.projectExcludes().stream()
+        .map(path -> "//" + path)
+        .collect(toImmutableList());
+    ImmutableList<String> alwaysBuildRules =
+      ImmutableList.copyOf(Sets.difference(BlazeQueryParser.ALWAYS_BUILD_RULE_KINDS, handledRuleKinds));
+    final var parameters = new BuildDependencyParameters(
+      includes,
+      excludes,
+      alwaysBuildRules,
+      true,
+      buildGeneratedSrcJars.getValue()
+    );
+    String aspectLocation = prepareAspect(context, parameters);
+
+    ImmutableSet<OutputGroup> outputGroups =
+      languages.stream()
+        .map(OUTPUT_GROUPS_BY_LANGUAGE::get)
+        .flatMap(Collection::stream)
+        .collect(ImmutableSet.toImmutableSet());
+
+    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
+    // of flags need to be passed here.
+    List<String> additionalBlazeFlags =
+      BlazeFlags.blazeFlags(
+        project,
+        projectViewSet,
+        BlazeCommandName.BUILD,
+        context,
+        BlazeInvocationContext.OTHER_CONTEXT);
+
+    final var querySyncFlags = ImmutableList.<String>builder()
+      .addAll(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
+      .addAll(additionalBlazeFlags)
+      .add(
+        String.format(
+          "--aspects=%1$s%%collect_dependencies,%1$s%%package_dependencies",
+          aspectLocation))
+      .add("--noexperimental_run_validations")
+      .add("--keep_going")
+      .addAll(
+        outputGroups.stream().map(g -> "--output_groups=" + g.outputGroupName()).collect(toImmutableList()))
+      .build();
+    return new BuildDependenciesBazelInvocationInfo(querySyncFlags, outputGroups);
   }
 
   /**
