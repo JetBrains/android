@@ -20,17 +20,19 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionUtil.SHOW_TEXT_IN_TOOLBAR
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
 
 private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 
@@ -306,8 +308,7 @@ class SelectProcessActionTest {
     assertThat(children).hasLength(2)
     val device = children[0]
     assertThat(device.templateText).isEqualTo("FakeDevice")
-    assertThat(device.getChildren().map { it.templateText })
-      .containsExactly("B")
+    assertThat(device.getChildren().map { it.templateText }).containsExactly("B")
 
     val stop = children[1]
     assertThat(stop.templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
@@ -354,15 +355,27 @@ class SelectProcessActionTest {
       verify(processAttribution).invoke(eq(processes[index]), eq(event))
     }
   }
+
+  @Test
+  fun createCustomComponent_setsSHOW_TEXT_IN_TOOLBAR() {
+    val testNotifier = TestProcessDiscovery()
+    val model = ProcessesModel(testNotifier)
+    val selectProcessAction = SelectProcessAction(model)
+
+    val presentation = Presentation()
+    selectProcessAction.createCustomComponent(presentation, "place")
+
+    assertThat(presentation.getClientProperty(SHOW_TEXT_IN_TOOLBAR)).isTrue()
+  }
 }
 
 private fun update(action: AnAction): AnActionEvent {
   val presentation = action.templatePresentation.clone()
   val event: AnActionEvent = mock()
   whenever(event.presentation).thenReturn(presentation)
-  @Suppress("OverrideOnly")
-  action.update(event)
+  @Suppress("OverrideOnly") action.update(event)
   return event
 }
 
-private fun AnAction.getChildren() = (this as? DefaultActionGroup)?.getChildren(null) ?: emptyArray()
+private fun AnAction.getChildren() =
+  (this as? DefaultActionGroup)?.getChildren(null) ?: emptyArray()

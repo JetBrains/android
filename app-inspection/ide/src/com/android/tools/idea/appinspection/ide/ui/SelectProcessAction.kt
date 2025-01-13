@@ -139,6 +139,7 @@ class SelectProcessAction(
     private set
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     return super.createCustomComponent(presentation, place).also { button = it }
   }
 
@@ -212,7 +213,6 @@ class SelectProcessAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
-      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       customProcessAttribution(processDescriptor, event)
     }
   }
