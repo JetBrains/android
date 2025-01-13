@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -67,6 +68,7 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -83,11 +85,17 @@ public class ProjectLoaderImpl implements ProjectLoader {
   public final static BoolExperiment enableExperimentalQuery = new BoolExperiment("query.sync.experimental.query", false);
   public final static BoolExperiment runQueryInWorkspace = new BoolExperiment("query.sync.run.query.in.workspace", true);
 
-  private final ListeningExecutorService executor;
+  protected final ListeningExecutorService executor;
+
   private final SimpleModificationTracker projectModificationTracker;
   protected final Project project;
 
-  public ProjectLoaderImpl(ListeningExecutorService executor, Project project) {
+  public ProjectLoaderImpl(Project project) {
+    this(MoreExecutors.listeningDecorator(
+      AppExecutorUtil.createBoundedApplicationPoolExecutor("QuerySync", 128)), project);
+  }
+
+  protected ProjectLoaderImpl(ListeningExecutorService executor, Project project) {
     this.executor = executor;
     this.project = project;
     this.projectModificationTracker = new SimpleModificationTracker();
