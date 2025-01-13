@@ -296,6 +296,44 @@ class SceneViewPanelTest {
   }
 
   @Test
+  fun changeOrganizationGroup(): Unit = runBlocking {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("1", "1")
+    val layoutManager = TestLayoutManager(organizationEnabled = true)
+    val sceneViews = mutableListOf(createSceneView(group1), createSceneView(group2))
+    val panel =
+      SceneViewPanel(
+          sceneViewProvider = { sceneViews },
+          interactionLayersProvider = { emptyList() },
+          actionManagerProvider = { TestActionManager(Mockito.mock()) },
+          shouldRenderErrorsPanel = { false },
+          layoutManager = layoutManager,
+        )
+        .apply {
+          setNoComposeHeadersForTests()
+          size = Dimension(300, 300)
+        }
+    // No groups should be created at first
+    panel.doLayout()
+    delayUntilCondition(100, 1.seconds) { panel.findAllDescendants<SceneViewHeader>().count() == 0 }
+
+    // Update organization group for sceneView[1], sceneViews now have groups - [group1, group1] -
+    // one group/header should be created.
+    Mockito.`when`(sceneViews[1].sceneManager.model.organizationGroup).then { group1 }
+    panel.doLayout()
+    delayUntilCondition(100, 1.seconds) { panel.findAllDescendants<SceneViewHeader>().count() == 1 }
+
+    // Update organization group for sceneView[0], sceneViews now have groups - [group2, group1] -
+    // no group/header should be created.
+    Mockito.`when`(sceneViews[0].sceneManager.model.organizationGroup).then { group2 }
+    panel.doLayout()
+    delayUntilCondition(100, 1.seconds) { panel.findAllDescendants<SceneViewHeader>().count() == 0 }
+
+    sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+    Disposer.dispose(panel)
+  }
+
+  @Test
   fun panelIsDisposed() = runBlocking {
     val sceneViews = (1..6).map { createSceneView(null) }
     val panel =

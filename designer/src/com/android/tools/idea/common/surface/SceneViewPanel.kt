@@ -120,6 +120,9 @@ class SceneViewPanel(
   /** List of [SceneView] to display. */
   private val sceneViews = MutableStateFlow<Collection<SceneView>>(emptyList())
 
+  /** List of [OrganizationGroup] for [sceneViews]. */
+  private val organizationGroups = MutableStateFlow<Collection<OrganizationGroup?>>(emptyList())
+
   /** List of [OrganizationGroup] to display. */
   private val activeGroups = MutableStateFlow<Collection<OrganizationGroup>>(emptyList())
 
@@ -166,7 +169,9 @@ class SceneViewPanel(
    */
   private fun launchLayoutUpdate() {
     scope.launch {
-      combine(isOrganizationEnabled, sceneViews) { p1, p2 -> Pair(p1, p2) }
+      // organizationGroups are checked as SceneView is mutable, even if sceneViews is unchanged,
+      // OrganizationGroup might change
+      combine(isOrganizationEnabled, sceneViews, organizationGroups) { p1, p2, _ -> Pair(p1, p2) }
         .collectLatest { collected ->
           val isOrganizationEnabled = collected.first
           val sceneViews = collected.second
@@ -297,7 +302,11 @@ class SceneViewPanel(
   }
 
   override fun doLayout() {
-    sceneViews.value = sceneViewProvider()
+    sceneViewProvider().let {
+      sceneViews.value = it
+      organizationGroups.value =
+        it.map { sceneView -> sceneView.sceneManager.model.organizationGroup }
+    }
     super.doLayout()
   }
 
