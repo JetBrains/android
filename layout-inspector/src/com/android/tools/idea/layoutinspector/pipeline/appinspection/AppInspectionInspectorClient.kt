@@ -20,6 +20,7 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -326,6 +327,7 @@ class AppInspectionInspectorClient(
       when (throwable) {
         is CancellationException -> null
         is ConnectionFailedException -> throwable.message
+        is AppInspectionAgentUnattachableException -> "Failed to attach layout inspector agent."
         is AppInspectionCrashException -> "Layout Inspector crashed on the device."
         else -> "An unknown error happened."
       }

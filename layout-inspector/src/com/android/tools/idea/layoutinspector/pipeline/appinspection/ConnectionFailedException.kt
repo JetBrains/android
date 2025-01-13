@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
@@ -69,6 +70,8 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
     is AppInspectionLibraryMissingException ->
       AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.toInfo()
     is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP.toInfo()
+    is AppInspectionAgentUnattachableException ->
+      AttachErrorCode.APP_INSPECTION_UNATTACHABLE_AGENT.toInfo()
     is TransportNonExistingFileException ->
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()

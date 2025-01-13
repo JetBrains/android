@@ -21,6 +21,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
@@ -39,6 +40,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
+import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
@@ -111,11 +113,17 @@ internal suspend fun attachAppInspectionTarget(
       eventKind = AGENT,
       startTimeNs = { lastAgentAttachedEventTimestampNs },
       filter = {
-        it.agentData.status == ATTACHED && it.timestamp >= lastAgentAttachedEventTimestampNs
+        (it.agentData.status == UNATTACHABLE || it.agentData.status == ATTACHED) &&
+          it.timestamp >= lastAgentAttachedEventTimestampNs
       },
     )
-  transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
 
+  val streamEventResult =
+    transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
+
+  if (streamEventResult.agentData.status == UNATTACHABLE) {
+    throw AppInspectionAgentUnattachableException()
+  }
   return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
 }
 
