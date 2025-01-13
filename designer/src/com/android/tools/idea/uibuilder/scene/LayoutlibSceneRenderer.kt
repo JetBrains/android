@@ -337,8 +337,18 @@ class LayoutlibSceneRenderer(
       }
     } catch (throwable: Throwable) {
       if (!model.isDisposed) {
+        val renderService = StudioRenderService.getInstance(model.project)
+        val logger =
+          if (sceneRenderConfiguration.logRenderErrors)
+            renderService.createHtmlLogger(model.project)
+          else renderService.nopLogger
+
         result =
-          createRenderTaskErrorResult(file, (throwable as? CompletionException)?.cause ?: throwable)
+          createRenderTaskErrorResult(
+            file,
+            throwable = (throwable as? CompletionException)?.cause ?: throwable,
+            logger = logger,
+          )
       }
       throw throwable
     } finally {
@@ -401,7 +411,7 @@ class LayoutlibSceneRenderer(
       newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
       result = newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
     } catch (throwable: Throwable) {
-      result = createRenderTaskErrorResult(file, throwable)
+      result = createRenderTaskErrorResult(file, throwable, logger)
       if (throwable is CancellationException) {
         // Re-throw any CancellationException to correctly propagate cancellations upward
         throw throwable

@@ -1023,7 +1023,7 @@ public class RenderTaskTest extends AndroidTestCase {
 
   public void testTaskError() {
     PsiFile file = myFixture.addFileToProject("src/EmptyFile.kt", "");
-    RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"));
+    RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"), null);
 
     assertTrue(result.getLogger().hasErrors());
     assertEquals("Render error (<A HREF=\"\">Details</A>)", result.getLogger().getMessages().get(0).getHtml());

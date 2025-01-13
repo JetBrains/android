@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.rendering.ExecuteCallbacksResult
+import com.android.tools.rendering.HtmlLinkManager
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderResultStats
@@ -330,6 +331,30 @@ class LayoutlibSceneRendererTest {
     renderer.requestRenderAndWait(trigger = null)
     assertEquals(4, taskRenderCount.get())
     assertEquals(2, executeCallbacksCount)
+  }
+
+  // Regression test for b/389598837
+  @Test
+  fun testExceptionOnInflate(): Unit = runBlocking {
+    val exception = IllegalStateException()
+    simulatedInflateResult = createRenderResult(Result.Status.ERROR_INFLATION, exception)
+    renderer.requestRenderAndWait(trigger = null)
+
+    val result = renderer.renderResult!!
+    assertFalse(result.renderResult.isSuccess)
+    assertEquals(exception, result.renderResult.exception)
+    assertNotEquals(
+      "NoOp Link Manager should not be used when there is a valid render error. Doing this would cause link actions to be ignored.",
+      result.logger.linkManager,
+      HtmlLinkManager.NOOP_LINK_MANAGER,
+    )
+    assertEquals(
+      """
+        Error inflating the preview (<A HREF="runnable:0">Details</A>): java.lang.IllegalStateException
+      """
+        .trimIndent(),
+      result.logger.messages.joinToString("\n") { "${it.html}: ${it.throwable}" },
+    )
   }
 
   private fun blockInflationAndRequestRender() = runBlocking {
