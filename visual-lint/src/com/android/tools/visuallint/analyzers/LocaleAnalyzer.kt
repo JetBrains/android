@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.visuallint.analyzers
 
 import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.parsers.TagSnapshot
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
 /** [VisualLintAnalyzer] for issues with texts in different locales. */
@@ -37,9 +37,8 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
     configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
-    val config = renderResult.renderContext?.configuration
 
-    if (isBaseConfig(config)) {
+    if (isBaseConfig(configuration)) {
       val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
       while (viewsToAnalyze.isNotEmpty()) {
         val view = viewsToAnalyze.removeLast()

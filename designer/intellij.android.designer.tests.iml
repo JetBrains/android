@@ -71,6 +71,7 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>

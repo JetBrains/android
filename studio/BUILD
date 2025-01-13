@@ -487,6 +487,7 @@ studio_plugin(
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
             "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
             "//tools/adt/idea/motion-editor:intellij.android.motion-editor",
+            "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
         ],
     },
     resources = {

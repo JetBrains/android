@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint
-
-import com.intellij.psi.xml.XmlTag
+package com.android.tools.visuallint
 
 /** Meta data for base config issues. */
 class VisualLintBaseConfigIssues {
@@ -27,8 +25,8 @@ class VisualLintBaseConfigIssues {
   )
 
   /**
-   * State of the component. Key is hashcode of the [XmlTag] and value shows what state
-   * configuration is in.
+   * State of the component. Key is hashcode of the [com.intellij.psi.xml.XmlTag] and value shows
+   * what state configuration is in.
    */
   val componentState: MutableMap<Int, BaseConfigComponentState> = HashMap()
 

@@ -62,5 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.environment-services" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" />
   </component>
 </module>

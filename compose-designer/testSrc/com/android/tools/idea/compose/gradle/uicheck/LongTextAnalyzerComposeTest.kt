@@ -23,10 +23,10 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
+import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

@@ -32,12 +32,12 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
+import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.intellij.openapi.application.smartReadActionBlocking
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil

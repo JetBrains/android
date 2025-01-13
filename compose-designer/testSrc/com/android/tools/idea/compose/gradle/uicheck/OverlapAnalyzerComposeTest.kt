@@ -21,8 +21,8 @@ import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForRes
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.visuallint.analyzers.OverlapAnalyzer
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

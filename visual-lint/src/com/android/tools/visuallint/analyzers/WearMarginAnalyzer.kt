@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.visuallint.analyzers
 
 import android.view.ViewGroup
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
 private const val MIN_ROUND_MARGIN_RATIO = 0.052
@@ -42,7 +42,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
     val viewsToAnalyze = ArrayDeque<ViewWithParentBounds>()
     val orientation = configuration.deviceState?.orientation ?: return issues
     val width = configuration.device?.getScreenSize(orientation)?.width ?: return issues
-    val isRound = configuration.device?.isScreenRound ?: false
+    val isRound = configuration.device?.isScreenRound == true
     val minPercent = if (isRound) MIN_ROUND_MARGIN_RATIO else MIN_RECT_MARGIN_RATIO
     val minLeft = minPercent * width
     val maxRight = width - minLeft
@@ -98,10 +98,10 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
       viewObject !is ViewGroup
     }
   }
-}
 
-data class ViewWithParentBounds(
-  val view: ViewInfo,
-  val absoluteParentLeft: Int,
-  val absoluteParentRight: Int,
-)
+  private data class ViewWithParentBounds(
+    val view: ViewInfo,
+    val absoluteParentLeft: Int,
+    val absoluteParentRight: Int,
+  )
+}

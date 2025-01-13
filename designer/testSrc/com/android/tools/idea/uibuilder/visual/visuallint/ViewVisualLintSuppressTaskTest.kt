@@ -24,8 +24,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
+import com.android.tools.visuallint.analyzers.BoundsAnalyzer
+import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditorManager

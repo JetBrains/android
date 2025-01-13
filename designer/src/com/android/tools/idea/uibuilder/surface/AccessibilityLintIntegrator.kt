@@ -31,10 +31,10 @@ import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.describe
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.summarize
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
+import com.android.tools.visuallint.analyzers.describe
+import com.android.tools.visuallint.analyzers.summarize
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity

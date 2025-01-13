@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.android.tools.visuallint.VisualLintErrorType
 import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.options.OptPane
 import com.intellij.codeInspection.options.OptPane.checkbox

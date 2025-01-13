@@ -19,6 +19,7 @@ import com.android.AndroidXConstants
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.visuallint.analyzers.BottomNavAnalyzer
 import com.google.common.collect.ImmutableList
 
 class BottomNavAnalyzerTest : LayoutTestCase() {

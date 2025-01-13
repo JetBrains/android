@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.VisualLintErrorType
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import java.util.concurrent.ExecutorService

@@ -27,11 +27,12 @@ import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.describe
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.isLowContrast
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.rendering.parsers.TagSnapshot
+import com.android.tools.visuallint.VisualLintAnalyzer.VisualLintIssueContent
+import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.analyzers.describe
+import com.android.tools.visuallint.analyzers.isLowContrast
 import com.android.utils.HtmlBuilder
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.designer.model.EmptyXmlTag
@@ -299,7 +300,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
         issueType = VisualLintErrorType.ATF_COLORBLIND
         summary = COLOR_BLIND_ISSUE_SUMMARY
         descriptionProvider = { count ->
-          colorBLindModeDescriptionProvider(content.atfIssue, model, count)
+          colorBLindModeDescriptionProvider(content.atfIssue!!, model, count)
         }
       }
       val component = componentFromViewInfo(content.view, model)

@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.visuallint.analyzers.BottomAppBarAnalyzer
 import com.google.common.collect.ImmutableList
 
 class BottomAppBarAnalyzerTest : LayoutTestCase() {

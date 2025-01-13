@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.analyzers.AtfAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
 import org.intellij.lang.annotations.Language

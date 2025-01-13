@@ -18,8 +18,9 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.visuallint.analyzers.LocaleAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet

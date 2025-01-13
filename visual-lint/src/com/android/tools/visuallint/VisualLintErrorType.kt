@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint
+package com.android.tools.visuallint
 
 enum class VisualLintErrorType(val shortName: String) {
   TEXT_FIELD_SIZE("TextFieldSize"),
@@ -42,7 +42,7 @@ enum class VisualLintErrorType(val shortName: String) {
     private const val ATTRIBUTE_PREFIX = "VisualLint"
 
     fun getTypeByIgnoredAttribute(value: String): VisualLintErrorType? {
-      return values().firstOrNull { it.ignoredAttributeValue == value }
+      return VisualLintErrorType.entries.firstOrNull { it.ignoredAttributeValue == value }
     }
   }
 }

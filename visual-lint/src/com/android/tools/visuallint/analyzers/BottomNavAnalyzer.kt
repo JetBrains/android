@@ -13,44 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.visuallint.analyzers
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
-private const val BOTTOM_APP_BAR_CLASS_NAME =
-  "com.google.android.material.bottomappbar.BottomAppBar"
+private const val BOTTOM_NAVIGATION_CLASS_NAME =
+  "com.google.android.material.bottomnavigation.BottomNavigationView"
 private const val NAVIGATION_RAIL_URL =
   "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
 private const val NAVIGATION_DRAWER_URL =
   "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
-private const val TOP_APP_BAR_URL =
-  "https://d.android.com/r/studio-ui/designer/material/top-app-bar"
 
-/** [VisualLintAnalyzer] for issues where a BottomAppBar is used on non-compact screens. */
-object BottomAppBarAnalyzer : VisualLintAnalyzer() {
+/** [VisualLintAnalyzer] for issues where a BottomNavigationView is wider than 600dp. */
+object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
-    get() = VisualLintErrorType.BOTTOM_APP_BAR
+    get() = VisualLintErrorType.BOTTOM_NAV
 
   override fun findIssues(
     renderResult: RenderResult,
     configuration: Configuration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
-    val orientation = configuration.deviceState?.orientation ?: return issues
-    val dimension = configuration.device?.getScreenSize(orientation) ?: return issues
-    val width = pxToDp(configuration, dimension.width)
-    val height = pxToDp(configuration, dimension.height)
-    if (width > 600 && height > 360) {
-      val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
-      while (viewsToAnalyze.isNotEmpty()) {
-        val view = viewsToAnalyze.removeLast()
-        view.children.forEach { viewsToAnalyze.addLast(it) }
-        if (view.className == BOTTOM_APP_BAR_CLASS_NAME) {
+    val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
+    while (viewsToAnalyze.isNotEmpty()) {
+      val view = viewsToAnalyze.removeLast()
+      view.children.forEach { viewsToAnalyze.addLast(it) }
+      if (view.className == BOTTOM_NAVIGATION_CLASS_NAME) {
+        /* This is needed, as visual lint analysis need to run outside the context of scene. */
+        val widthInDp = pxToDp(configuration, view.right - view.left)
+        if (widthInDp > 600) {
           issues.add(createIssueContent(view))
         }
       }
@@ -61,20 +57,18 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val content = { count: Int ->
       HtmlBuilder()
-        .add("Bottom app bars are only recommended for compact screens, ")
+        .add("Bottom navigation bar is not recommended for breakpoints >= 600dp, ")
         .add("which affects ${previewConfigurations(count)}.")
         .newline()
-        .add("Material Design recommends replacing bottom app bar with ")
+        .add("Material Design recommends replacing bottom navigation bar with ")
         .addLink("navigation rail", NAVIGATION_RAIL_URL)
-        .add(", ")
-        .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
         .add(" or ")
-        .addLink("top app bar", TOP_APP_BAR_URL)
-        .add(" for breakpoints over 600dp.")
+        .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
+        .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(
       view = view,
-      message = "Bottom app bars are only recommended for compact screens",
+      message = "Bottom navigation bar is not recommended for breakpoints over 600dp",
       descriptionProvider = content,
     )
   }

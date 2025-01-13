@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.visuallint.analyzers
 
 import android.graphics.RectF
 import android.view.View
@@ -22,9 +22,9 @@ import android.widget.Button
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import java.awt.Rectangle
 import kotlin.jvm.java

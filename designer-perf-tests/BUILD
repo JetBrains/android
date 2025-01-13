@@ -133,6 +133,7 @@ iml_module(
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
+        "//tools/adt/idea/visual-lint:intellij.android.visual-lint[module, test]",
     ],
 )
 

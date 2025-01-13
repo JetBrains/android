@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint
+package com.android.tools.visuallint
 
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.SdkConstants

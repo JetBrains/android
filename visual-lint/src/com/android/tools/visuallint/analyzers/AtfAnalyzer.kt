@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.visuallint.analyzers
 
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintAnalyzer.VisualLintIssueContent
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import java.util.EnumSet
 

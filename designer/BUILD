@@ -56,7 +56,7 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/avd:intellij.android.avd[module]",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/adt/idea/visual-lint:intellij.android.visual-lint[module]",
     ],
 )
 
@@ -147,6 +147,7 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/visual-lint:intellij.android.visual-lint[module, test]",
     ],
 )
 
