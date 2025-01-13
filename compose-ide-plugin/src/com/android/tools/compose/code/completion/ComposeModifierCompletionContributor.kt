@@ -289,11 +289,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      return isVisible(
-        elementToAnalyze.symbol,
-        useSiteFile = ktFile.symbol,
-        position = completionPosition,
-      )
+      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
+      return visibilityChecker.isVisible(elementToAnalyze.symbol)
     }
   }
 
@@ -409,6 +406,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.symbol
 
+    @OptIn(KaExperimentalApi::class)
+    val visibilityChecker = createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
     return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
@@ -416,7 +415,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       )
       .filter {
         @OptIn(KaExperimentalApi::class)
-        isVisible(it, fileSymbol, receiverExpression, originalPosition)
+        visibilityChecker.isVisible(it)
       }
       .toList()
   }
