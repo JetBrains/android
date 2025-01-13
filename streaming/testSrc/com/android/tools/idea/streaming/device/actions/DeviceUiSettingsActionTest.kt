@@ -38,8 +38,8 @@ import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -221,7 +221,7 @@ class DeviceUiSettingsActionTest {
     val keyEvent = createTestKeyEvent(view)
     val component = createActionButton(action)
     val input = MouseEvent(component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false)
-    return AnActionEvent(input, keyEvent.dataContext, ActionPlaces.TOOLBAR, keyEvent.presentation, ActionManager.getInstance(), 0)
+    return AnActionEvent.createEvent(keyEvent.dataContext, keyEvent.presentation, ActionPlaces.TOOLBAR, ActionUiKind.TOOLBAR, input)
   }
 
   private fun createTestKeyEvent(view: DeviceView): AnActionEvent =
