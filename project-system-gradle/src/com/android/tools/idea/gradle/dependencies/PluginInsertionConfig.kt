@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import com.android.tools.idea.gradle.dependencies.PluginsInserter.PluginClasspathInfo
+import com.android.tools.idea.gradle.dependencies.PluginsInserter.TryAddResult
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+
 data class PluginInsertionConfig(
   val trySteps: LinkedHashSet<PluginInsertionStep>,
   val whenFoundSame: MatchedStrategy,
@@ -27,17 +31,164 @@ data class PluginInsertionConfig(
     UPDATE_VERSION, DO_NOTHING
   }
 
-  // specifies where to try insert plugin
-  enum class PluginInsertionStep {
-    BUILDSCRIPT_CLASSPATH, BUILDSCRIPT_CLASSPATH_WITH_VARIABLE, PLUGIN_MANAGEMENT, PLUGIN_BLOCK
+  sealed class PluginInsertionStep {
+    abstract fun getAddLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult>
+
+    abstract fun getUpdateLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult>
+  }
+
+  object BuildscriptClasspathInsertionStep : PluginInsertionStep() {
+    override fun getAddLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      pluginMatcher: PluginMatcher,
+      classpathInfo: PluginClasspathInfo?): Lazy<TryAddResult> =
+      lazy {
+        require(classpathInfo != null) {
+          "classpathInfo name must not be null for BUILDSCRIPT_CLASSPATH"
+        }
+        helper.tryAddToBuildscriptDependencies(classpathInfo.dependency, classpathInfo.matcher).also {
+          helper.maybeAddRepoToBuildscript(config, version, it) { model -> model.buildscript() }
+        }
+      }
+
+    override fun getUpdateLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult> =
+      lazy {
+        require(classpathInfo != null) {
+          "classpathDependency and classpathMatcher name must not be null for BUILDSCRIPT_CLASSPATH"
+        }
+        helper.updateDependencyVersion(classpathInfo.dependency) { projectBuildModel-> projectBuildModel.buildscript().dependencies() }.also {
+          helper.maybeAddRepoToBuildscript(config, version, it) { model -> model.buildscript() }
+        }
+      }
+  }
+
+  object BuildscriptClasspathWithVariableInsertionStep : PluginInsertionStep() {
+    override fun getAddLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      pluginMatcher: PluginMatcher,
+      classpathInfo: PluginClasspathInfo?): Lazy<TryAddResult> =
+      lazy {
+        require(config.variableName != null && classpathInfo != null) {
+          "classpathInfo and classpathMatcher name must not be null for BUILDSCRIPT_CLASSPATH_WITH_VARIABLE"
+        }
+        helper.tryAddClasspathDependencyWithVersionVariable(
+          classpathInfo.dependency,
+          config.variableName,
+          listOf(),
+          classpathInfo.matcher
+        ).also {
+          helper.maybeAddRepoToBuildscript(config, version, it){ model -> model.buildscript() }
+        }
+      }
+
+    override fun getUpdateLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult> =
+      lazy {
+        require(classpathInfo != null) {
+          "classpathDependency and classpathMatcher name must not be null for BUILDSCRIPT_CLASSPATH"
+        }
+        helper.updateDependencyVersion(classpathInfo.dependency) { projectBuildModel-> projectBuildModel.buildscript().dependencies() }.also {
+          helper.maybeAddRepoToBuildscript(config, version, it) { model -> model.buildscript() }
+        }
+      }
+  }
+
+  object PluginManagementInsertionStep : PluginInsertionStep() {
+    override fun getAddLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      pluginMatcher: PluginMatcher,
+      classpathInfo: PluginClasspathInfo?): Lazy<TryAddResult> =
+      lazy {
+        helper.tryAddToPluginsManagementBlock(pluginId, version, pluginMatcher).also {
+          helper.maybeAddRepoToPluginManagement(config, version, it) { model -> model.projectSettingsModel?.pluginManagement() }
+        }
+      }
+
+    override fun getUpdateLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult> =
+      lazy {
+        helper.updatePluginForPluginsBlock(pluginId, version) {
+          projectModel: ProjectBuildModel -> projectModel.projectSettingsModel?.pluginManagement()?.plugins()
+        }.also {
+          helper.maybeAddRepoToPluginManagement(config, version, it) { model -> model.projectSettingsModel?.pluginManagement() }
+        }
+      }
+  }
+
+  object PluginBlockInsertionStep : PluginInsertionStep() {
+    override fun getAddLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      pluginMatcher: PluginMatcher,
+      classpathInfo: PluginClasspathInfo?): Lazy<TryAddResult> =
+      lazy {
+        helper.tryAddToPluginsBlock(pluginId, version, pluginMatcher).also {
+          helper.maybeAddRepoToPluginManagement(config, version, it) { model -> model.projectSettingsModel?.pluginManagement() }
+        }
+      }
+
+    override fun getUpdateLazyCall(
+      helper: PluginsInserter,
+      config: PluginInsertionConfig,
+      pluginId: String,
+      version: String,
+      classpathInfo: PluginClasspathInfo?
+    ): Lazy<TryAddResult> =
+      lazy {
+        helper.updatePluginForBuildModel(pluginId, version) {
+          projectModel: ProjectBuildModel -> projectModel.projectBuildModel
+        }.also {
+          helper.maybeAddRepoToPluginManagement(config, version, it) { model -> model.projectSettingsModel?.pluginManagement() }
+        }
+      }
   }
 
   companion object {
     fun defaultInsertionConfig(): PluginInsertionConfig {
       val steps = LinkedHashSet<PluginInsertionStep>()
-      steps.addAll(listOf(PluginInsertionStep.PLUGIN_MANAGEMENT,
-                          PluginInsertionStep.PLUGIN_BLOCK,
-                          PluginInsertionStep.BUILDSCRIPT_CLASSPATH))
+      steps.addAll(listOf(PluginManagementInsertionStep,
+                          PluginBlockInsertionStep,
+                          BuildscriptClasspathInsertionStep))
       return PluginInsertionConfig(
         steps,
         MatchedStrategy.DO_NOTHING

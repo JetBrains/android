@@ -19,10 +19,6 @@ import com.android.ide.common.gradle.Dependency
 import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.Companion.defaultInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep.BUILDSCRIPT_CLASSPATH
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep.BUILDSCRIPT_CLASSPATH_WITH_VARIABLE
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep.PLUGIN_BLOCK
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep.PLUGIN_MANAGEMENT
 import com.android.tools.idea.gradle.dsl.api.BasePluginsModel
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -84,7 +80,7 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     val updatedFiles = mutableSetOf<PsiFile>()
     if (!hasPlugin(pluginMatcher, classpathInfo?.matcher)) {
       val result = config.trySteps.map { tryStep ->
-        getAddLazyCall(tryStep, config, pluginId, version, pluginMatcher, classpathInfo)
+        tryStep.getAddLazyCall(this, config, pluginId, version, pluginMatcher, classpathInfo)
       }.firstOrNull { it.value.succeed }?.value
 
       // in case there is nothing - we force adding plugin to root project plugins block
@@ -94,7 +90,7 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     }
     else if (config.whenFoundSame == MatchedStrategy.UPDATE_VERSION) {
       val result = config.trySteps.map { tryStep ->
-        getUpdateLazyCall(tryStep, config, pluginId, version, classpathInfo)
+        tryStep.getUpdateLazyCall(this, config, pluginId, version, classpathInfo)
       }.firstOrNull { it.value.succeed }?.value
       result?.changedFiles?.let { updatedFiles.addAll(it) } ?:
       projectBuildModel.psiFile?.let {
@@ -110,58 +106,43 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     return updatedFiles
   }
 
-  private fun getAddLazyCall(step: PluginInsertionConfig.PluginInsertionStep,
-                             config: PluginInsertionConfig,
-                             pluginId: String,
-                             version: String,
-                             pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
-                             classpathInfo: PluginClasspathInfo?): Lazy<TryAddResult> {
-    val projectBuildModel = projectModel.projectBuildModel ?: error("Build model for root project not found")
-    return when (step) {
-      BUILDSCRIPT_CLASSPATH -> lazy {
-        require(classpathInfo != null) { "classpathInfo name must not be null for BUILDSCRIPT_CLASSPATH" }
-        tryAddToBuildscriptDependencies(classpathInfo.dependency, projectBuildModel, classpathInfo.matcher).also {
-          it.maybeAddRepo(config, projectBuildModel.buildscript(), version)
-        }
-      }
-
-      PLUGIN_MANAGEMENT -> lazy {
-        tryAddToPluginsManagementBlock(pluginId, version, projectBuildModel, pluginMatcher).also {
-          it.maybeAddRepo(config, projectModel.projectSettingsModel?.pluginManagement(), version)
-        }
-      }
-
-      PLUGIN_BLOCK -> lazy {
-        tryAddToPluginsBlock(pluginId, version, projectBuildModel, pluginMatcher).also {
-          it.maybeAddRepo(config, projectModel.projectSettingsModel?.pluginManagement(), version)
-        }
-      }
-
-      BUILDSCRIPT_CLASSPATH_WITH_VARIABLE -> lazy {
-        require(config.variableName != null && classpathInfo != null) {
-          "classpathInfo and classpathMatcher name must not be null for BUILDSCRIPT_CLASSPATH_WITH_VARIABLE"
-        }
-        tryAddClasspathDependencyWithVersionVariable(
-          classpathInfo.dependency,
-          config.variableName,
-          listOf(),
-          classpathInfo.matcher
-        ).also {
-          it.maybeAddRepo(config, projectBuildModel.buildscript(), version)
-        }
-      }
+  fun maybeAddRepoToPluginManagement(config: PluginInsertionConfig,
+                                     version: String,
+                                     result: TryAddResult,
+                                     model: (ProjectBuildModel) -> PluginManagementModel?) {
+    if (config.addRepoForSnapshots == true) result.appendWhenSuccess {
+      model(projectModel)?.repositories()?.let { addRepositoryFor(version, it) }
     }
   }
 
-  private fun TryAddResult.maybeAddRepo(config: PluginInsertionConfig, model: PluginManagementModel?, version: String){
-    if (config.addRepoForSnapshots == true) appendWhenSuccess {
-      model?.repositories()?.let { addRepositoryFor(version, it) }
+  fun maybeAddRepoToBuildscript(config: PluginInsertionConfig,
+                                version: String,
+                                result: TryAddResult,
+                                model: (GradleBuildModel) -> BuildScriptModel?) {
+    if (config.addRepoForSnapshots == true) result.appendWhenSuccess {
+      model(getProjectBuildModel())?.repositories()?.let { addRepositoryFor(version, it) }
     }
   }
-  private fun TryAddResult.maybeAddRepo(config: PluginInsertionConfig, model: BuildScriptModel?, version: String){
-    if (config.addRepoForSnapshots == true) appendWhenSuccess {
-      model?.repositories()?.let { addRepositoryFor(version, it) }
-    }
+
+  private fun getProjectBuildModel() =
+    projectModel.projectBuildModel ?: error("Build model for root project not found")
+
+  internal fun updatePluginForBuildModel(
+    pluginId: String,
+    version: String,
+    getModel: (ProjectBuildModel) -> GradleBuildModel?
+  ): TryAddResult {
+    val model = getModel(projectModel) ?: return TryAddResult.failed()
+    return updatePlugin(pluginId, version, model, model.psiFile)
+  }
+
+  internal fun updatePluginForPluginsBlock(
+    pluginId: String,
+    version: String,
+    getModel: (ProjectBuildModel) -> PluginsBlockModel?
+  ): TryAddResult {
+    val model = getModel(projectModel) ?: return TryAddResult.failed()
+    return updatePlugin(pluginId, version, model, model.psiElement?.containingFile)
   }
 
   fun addRepositoryFor(version: String, model: RepositoriesModel): PsiFile? {
@@ -177,47 +158,11 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     return model.psiElement?.containingFile?.takeIf { updated }
   }
 
-  private fun getUpdateLazyCall(
-    step: PluginInsertionConfig.PluginInsertionStep,
-    config: PluginInsertionConfig,
-    pluginId: String,
-    version: String,
-    classpathInfo: PluginClasspathInfo?
-  ): Lazy<TryAddResult> {
-    val projectBuildModel = projectModel.projectBuildModel ?: error("Build model for root project not found")
-    return when (step) {
-      BUILDSCRIPT_CLASSPATH, BUILDSCRIPT_CLASSPATH_WITH_VARIABLE ->
-        lazy {
-          require(classpathInfo != null){
-            "classpathDependency and classpathMatcher name must not be null for BUILDSCRIPT_CLASSPATH"
-          }
-          projectBuildModel.buildscript().dependencies().updateDependencyVersion(classpathInfo.dependency, projectBuildModel).also {
-            it.maybeAddRepo(config, projectBuildModel.buildscript(), version)
-          }
-        }
-
-      PLUGIN_MANAGEMENT -> lazy {
-        val settings = projectModel.projectSettingsModel ?: return@lazy TryAddResult.failed()
-        val file = settings.psiFile ?: return@lazy TryAddResult.failed()
-        updatePlugin(pluginId, version, settings.pluginManagement().plugins(), file).also {
-          it.maybeAddRepo(config, projectModel.projectSettingsModel?.pluginManagement(), version)
-        }
-      }
-
-      PLUGIN_BLOCK -> lazy {
-        val file =  projectBuildModel.psiFile ?: return@lazy TryAddResult.failed()
-        updatePlugin(pluginId, version, projectBuildModel, file).also {
-          it.maybeAddRepo(config, projectModel.projectSettingsModel?.pluginManagement(), version)
-        }
-      }
-    }
-  }
-
   internal open fun tryAddToBuildscriptDependencies(
     classpathDependency: String,
-    buildModel: GradleBuildModel,
     classpathMatcher: DependencyMatcher
   ): TryAddResult {
+    val buildModel = getProjectBuildModel()
     buildModel.buildscript().dependencies().takeIf { it.psiElement != null }
       ?.let {
         val changedFiles = addClasspathDependency(classpathDependency, listOf(), classpathMatcher)
@@ -226,12 +171,12 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     return TryAddResult.failed()
   }
 
-  private fun tryAddToPluginsBlock(
+  internal fun tryAddToPluginsBlock(
     pluginId: String,
     version: String,
-    buildModel: GradleBuildModel,
     matcher: PluginMatcher,
   ): TryAddResult {
+    val buildModel = getProjectBuildModel()
     buildModel.plugins().takeIf { buildModel.pluginsPsiElement != null }
       ?.let { plugins ->
         val updatedFiles = mutableSetOf<PsiFile>()
@@ -249,7 +194,7 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
   private fun updatePlugin(pluginId: String,
                            version: String,
                            pluginModel: BasePluginsModel,
-                           psiFile: PsiFile): TryAddResult {
+                           psiFile: PsiFile?): TryAddResult {
     val plugin = pluginModel.hasDifferentPluginVersion(pluginId, version)
     if (plugin != null) {
       plugin.version().resolve().setValue(version)
@@ -260,12 +205,12 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     return TryAddResult.failed()
   }
 
-  private fun tryAddToPluginsManagementBlock(
+  internal fun tryAddToPluginsManagementBlock(
     pluginId: String,
     version: String,
-    buildModel: GradleBuildModel,
     matcher: PluginMatcher
   ): TryAddResult {
+    val buildModel = getProjectBuildModel()
     projectModel.projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
       ?.let { plugins ->
         val existing = plugins.plugins().firstOrNull { matcher.match(it) }
@@ -473,9 +418,6 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
   private fun BasePluginsModel.hasDifferentPluginVersion(pluginId: String, version: String): PluginModel? =
     plugins().firstOrNull { it.name().toString() == pluginId && it.version().toString() != version }
 
-  private fun PluginsBlockModel.hasDifferentVersion(pluginId: String, version: String): PluginModel? =
-    plugins().firstOrNull { it.name().toString() == pluginId && it.version().toString() != version }
-
   private fun DependenciesModel.hasDifferentVersion(dep: Dependency): ArtifactDependencyModel? {
     return artifacts().firstOrNull {
       it.name().toString() == dep.name &&
@@ -499,15 +441,17 @@ open class PluginsInserter(private val projectModel: ProjectBuildModel) {
     return TryAddResult.failed()
   }
 
-  private fun DependenciesModel.updateDependencyVersion(
+  internal fun updateDependencyVersion(
     dependency: String,
-    buildModel: GradleBuildModel
+    dependenciesModel: (GradleBuildModel) -> DependenciesModel
   ): TryAddResult {
+    val buildModel = getProjectBuildModel()
     val updatedFiles = mutableSetOf<PsiFile>()
-    val dep = Dependency.parse(dependency)
-    val artifact = hasDifferentVersion(dep)
-    if (dep.version != null && artifact != null) {
-      artifact.version().resolve().setValue(dep.version.toString())
+    val dependencyObject = Dependency.parse(dependency)
+    val artifact = dependenciesModel(buildModel).hasDifferentVersion(dependencyObject)
+    val version = dependencyObject.version
+    if (version != null && artifact != null) {
+      artifact.version().resolve().setValue(version.toString())
       updatedFiles.addIfNotNull(buildModel.psiFile)
       return TryAddResult(updatedFiles,true)
     }

@@ -49,7 +49,6 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Plug
   // Avoid insertion to buildscript when using catalog
   override fun tryAddToBuildscriptDependencies(
     classpathDependency: String,
-    buildModel: GradleBuildModel,
     classpathMatcher: DependencyMatcher
   ): TryAddResult = TryAddResult.failed()
 
