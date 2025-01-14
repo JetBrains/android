@@ -31,7 +31,9 @@ import com.intellij.openapi.vfs.VfsUtilCore.loadText
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findFile
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -99,6 +101,10 @@ class VersionCatalogRenamingKtsTest  {
 
   @Test
   fun testRenamePluginInCatalog() {
+    // TODO(b/381140436): temporarily disabled for K2 given that is causing flakiness
+    // due that our GradleKtsVersionCatalogReferencesSearcher isn't prioritized over KotlinGradleTomIVersionCatalogReferencesSearcher
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     fixture.configureFromExistingVirtualFile(project.findPrimaryCatalog())
 
