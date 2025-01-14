@@ -162,7 +162,8 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
       when {
         isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
         androidVersion == null -> SdkConstants.ABI_INTEL_ATOM
-        androidVersion.compareTo(MAX_X86_API_LEVEL, null) > 0 -> SdkConstants.ABI_INTEL_ATOM64
+        // Note that this covers previews for MAX_X86_API_LEVEL + 1 as well.
+        androidVersion > AndroidVersion(MAX_X86_API_LEVEL) -> SdkConstants.ABI_INTEL_ATOM64
         else -> SdkConstants.ABI_INTEL_ATOM
       },
     )
