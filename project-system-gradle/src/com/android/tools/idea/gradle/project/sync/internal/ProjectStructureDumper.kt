@@ -65,6 +65,7 @@ import com.intellij.openapi.util.Version
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
+import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridgeImpl
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
@@ -88,7 +89,9 @@ fun ProjectDumper.dumpProject(project: Project) {
     if (libraries.isNotEmpty()) {
       head("LIBRARY_TABLE")
       nest {
-        libraries.sortedBy { it.name }.forEach { dump(it) }
+        libraries.filterIsInstance<LibraryBridgeImpl>()
+          .filter { it.externalSource != null }
+          .sortedBy { it.name }.forEach { dump(it) }
       }
     }
     @Suppress("UnstableApiUsage")
