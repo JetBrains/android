@@ -252,6 +252,7 @@ class DeviceAdapterTest {
           KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
           KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
         )
+    waitForCondition(2.seconds) { keyEvents.size == expectedKeyEvents.size }
     assertThat(keyEvents).isEqualTo(expectedKeyEvents)
   }
 
