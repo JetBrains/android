@@ -103,7 +103,12 @@ class DownloadEventsProcessorTest {
         downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor)),
         downloadFinishEventStub(
           downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
-          downloadFailureStub(0, 100, 10000, listOf(failureStub("Failed request 1", listOf(failureStub("Caused by 1", emptyList())))))
+          downloadFailureStub(0, 100, 10000, listOf(
+            failureStub(
+              "Failed request 1",
+              listOf(failureStub("Caused by 1", emptyList(), emptyList())),
+              emptyList()
+            )))
         )
       ),
       expectedModelUpdates = listOf(

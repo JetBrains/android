@@ -40,6 +40,7 @@ import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
 import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.tooling.events.download.FileDownloadStartEvent
+import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskSuccessResult
@@ -198,10 +199,11 @@ fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Fail
   override fun getFailures(): List<Failure> = failures
 }
 
-fun failureStub(message: String, causes: List<Failure>) = object : Failure {
+fun failureStub(message: String, causes: List<Failure>, problems: List<Problem>) = object : Failure {
   override fun getMessage(): String = message
   override fun getCauses(): List<Failure> = causes
   override fun getDescription(): String = "Failure description"
+  override fun getProblems(): List<Problem> = problems
 }
 
 
