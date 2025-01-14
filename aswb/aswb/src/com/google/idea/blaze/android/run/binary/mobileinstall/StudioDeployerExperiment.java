@@ -23,19 +23,11 @@ import com.intellij.openapi.util.SystemInfo;
  * instead of using the one present in mobile-install.
  */
 public class StudioDeployerExperiment {
-  /** Indicates if we should deploy via Studio or via MI. */
-  private static final FeatureRolloutExperiment useStudioDeployer =
-      new FeatureRolloutExperiment("aswb.use.studio.deployer.2");
-
   /** Returns whether mobile install deployments should happen via the studio deployer. */
   public static boolean isEnabled() {
     // The Studio deployer experiment is specific to local builds on Linux. For other platforms,
     // we'll rely entirely on the new Blaze specific deployment flow.
-    if (!SystemInfo.isLinux) {
-      return false;
-    }
-
-    return useStudioDeployer.isEnabled();
+    return SystemInfo.isLinux;
   }
 
   private StudioDeployerExperiment() {}
