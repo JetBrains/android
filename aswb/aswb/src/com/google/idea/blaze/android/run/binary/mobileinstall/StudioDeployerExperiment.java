@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.run.binary.mobileinstall;
 
-import com.google.idea.common.experiments.FeatureRolloutExperiment;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.util.SystemInfo;
 
 /**
@@ -23,11 +23,13 @@ import com.intellij.openapi.util.SystemInfo;
  * instead of using the one present in mobile-install.
  */
 public class StudioDeployerExperiment {
+  /** Indicates if studio deployer should be enabled for Mac. */
+  private static final BoolExperiment enableStudioDeployerForMac =
+    new BoolExperiment("aswb.enable.studio.deployer.mac", true);
+
   /** Returns whether mobile install deployments should happen via the studio deployer. */
   public static boolean isEnabled() {
-    // The Studio deployer experiment is specific to local builds on Linux. For other platforms,
-    // we'll rely entirely on the new Blaze specific deployment flow.
-    return SystemInfo.isLinux;
+    return SystemInfo.isLinux || enableStudioDeployerForMac.getValue();
   }
 
   private StudioDeployerExperiment() {}
