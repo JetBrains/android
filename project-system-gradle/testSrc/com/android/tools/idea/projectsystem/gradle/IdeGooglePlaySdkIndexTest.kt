@@ -95,6 +95,7 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
     val testUsageTracker = TestUsageTracker(scheduler)
     setWriterForTest(testUsageTracker)
     val ideIndex = IdeGooglePlaySdkIndex
+    ideIndex.showDeprecationIssues = true
     ideIndex.initialize()
     ideIndex.isLibraryDeprecated(groupId, artifactId, version, null)
     val loggedEvents = testUsageTracker.usages

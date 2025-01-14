@@ -250,6 +250,7 @@ class PsAnalyzerDaemonKtTest {
               .build()
           )
           .build()
+        this.showDeprecationIssues = true
         this.initialize(ByteArrayInputStream(proto.toByteArray()))
         this.showNotesFromDeveloper = showNotes
       }

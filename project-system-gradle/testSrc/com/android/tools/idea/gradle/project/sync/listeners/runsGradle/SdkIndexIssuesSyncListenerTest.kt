@@ -60,6 +60,7 @@ class SdkIndexIssuesSyncListenerTest {
   @Before
   fun initializeSdkIndexAndTracker() {
     IdeGooglePlaySdkIndex.initialize(null)
+    IdeGooglePlaySdkIndex.showDeprecationIssues = true
     setWriterForTest(testUsageTracker)
   }
 
