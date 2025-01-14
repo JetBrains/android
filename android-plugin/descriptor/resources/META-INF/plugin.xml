@@ -97,4 +97,5 @@
   <xi:include href="/META-INF/aiplugin-api.xml"/>
   <xi:include href="/META-INF/server-flags.xml"/>
   <xi:include href="/META-INF/studio-labs.xml" />
+  <xi:include href="/META-INF/settings-sync.xml" />
 </idea-plugin>

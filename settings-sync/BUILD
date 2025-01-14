@@ -11,5 +11,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//prebuilts/tools/common/m2:google-api-services-drive-v3-rev20241027-2.0.0",
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )

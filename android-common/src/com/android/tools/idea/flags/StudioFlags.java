@@ -2326,5 +2326,16 @@ public final class StudioFlags {
            : false;
   }
 
+  // region Settings Sync
+  private static final FlagGroup SETTINGS_SYNC = new FlagGroup(FLAGS, "settingssync", "Settings Sync");
+  public static final Flag<Boolean> SETTINGS_SYNC_ENABLED =
+    new BooleanFlag(
+      SETTINGS_SYNC,
+      "enable",
+      "Enable Settings Sync feature",
+      "Enable Settings Sync feature",
+      false);
+  // endregion Settings sync
+
   private StudioFlags() { }
 }
