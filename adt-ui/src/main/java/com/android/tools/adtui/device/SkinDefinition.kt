@@ -210,6 +210,13 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @Slow
     @Throws(IOException::class, InvalidSkinException::class)
     @JvmStatic
+    fun getSkinDisplaySize(skinFolder: Path) : Dimension {
+      return createLayoutDescriptor(skinFolder).displaySize
+    }
+
+    @Slow
+    @Throws(IOException::class, InvalidSkinException::class)
+    @JvmStatic
     private fun createLayoutDescriptor(skinFolder: Path): LayoutDescriptor {
       val layoutFile = skinFolder.resolve("layout")
       val contents = Files.readAllBytes(layoutFile).toString(UTF_8)

@@ -188,7 +188,7 @@ class ScreenshotOptions(
       if (!skinFolder.isAbsolute) {
         skinFolder = skinHome?.resolve(skinFolder) ?: return null
       }
-      if (!Files.exists(skinFolder.resolve("layout"))) {
+      if (!Files.exists(skinFolder.resolve("layout")) && !Files.exists(skinFolder.resolve("default/layout"))) {
         return null
       }
       return skinFolder

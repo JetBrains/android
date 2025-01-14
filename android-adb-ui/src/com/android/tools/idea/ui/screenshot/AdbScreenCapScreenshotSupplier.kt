@@ -45,7 +45,7 @@ class AdbScreenCapScreenshotSupplier(
 ) : ScreenshotSupplier {
   private val coroutineScope = AndroidCoroutineScope(this)
   private val adbLibService = AdbLibService.getInstance(project)
-  private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.*)")
+  private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)")
 
   @WorkerThread
   override fun captureScreenshot(): ScreenshotImage {

@@ -18,6 +18,9 @@ package com.android.tools.idea.ui.screenshot
 import com.android.adblib.DevicePropertyNames
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.testutils.ImageDiffUtil.assertImageSimilar
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.ui.screenshot.ScreenshotAction.ScreenshotRotation
@@ -28,6 +31,7 @@ import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
+import java.nio.file.Path
 
 /** Tests for [ScreenshotOptions]. */
 class ScreenshotOptionsTest {
@@ -96,6 +100,21 @@ class ScreenshotOptionsTest {
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+  }
+
+  @Test
+  fun testFramingFoldable() {
+    val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pixel Fold"))
+    val screenshotOptions = createScreenshotOptions(deviceProperties)
+    val image = createImage(1080, 2092, Color.WHITE)
+    val displayInfo = "DisplayDeviceInfo{..., 1080 x 2092, ..., density 420, ...}"
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.HANDHELD)
+    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Pixel Fold")
+    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    val framingOption = framingOptions[screenshotOptions.getDefaultFramingOption()]
+    val decoratedImage = screenshotOptions.screenshotDecorator.decorate(screenshotImage, ScreenshotDecorationOption(framingOption))
+    assertImageSimilar(getGoldenFile("FramingFoldable"), scale(decoratedImage, 0.125))
   }
 
   @Test
@@ -171,6 +190,9 @@ class ScreenshotOptionsTest {
 
   private fun createScreenshotOptions(deviceProperties: DeviceProperties, screenshotRotation: ScreenshotRotation? = null) =
       ScreenshotOptions(serialNumber, deviceProperties.model, screenshotRotation?.let { { it } })
+
+  private fun getGoldenFile(name: String): Path =
+      TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
 private fun createDeviceProperties(propertyMap: Map<String, String>): DeviceProperties {
@@ -184,3 +206,4 @@ private val emptyDeviceProperties: DeviceProperties = createDeviceProperties(map
 
 private val SKIN_FOLDER = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath()
 
+private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotOptionsTest/golden"
