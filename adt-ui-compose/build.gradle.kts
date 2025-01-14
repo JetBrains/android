@@ -19,6 +19,7 @@ plugins {
   kotlin("jvm")
   id("org.jetbrains.intellij.platform.module")
   id("org.jetbrains.compose")
+  id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
 }
 
 repositories {
