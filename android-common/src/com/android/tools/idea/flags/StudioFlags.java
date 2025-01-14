@@ -1498,13 +1498,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_ZOOM_CONTROLS_DROPDOWN = new BooleanFlag(
-    COMPOSE, "preview.zoom.controls.dropdown",
-    "Include Zoom Controls in the Compose Preview dropdown action",
-    "If enabled, the zoom controls will also be displayed in the Compose Preview dropdown action, located on the top-left corner",
-    false
-  );
-
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = new IntFlag(
     COMPOSE, "preview.interactive.fps.limit",
     "Interactive Preview FPS limit",

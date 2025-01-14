@@ -55,13 +55,11 @@ class ComposeViewControlActionTest {
   fun tearDown() {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.clearOverride()
   }
 
   @Suppress("SpellCheckingInspection")
   @Test
-  fun testZoomActionsWithFlagDisabled() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(false)
+  fun testZoomActions() {
     val options =
       listOf(
         SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
@@ -78,51 +76,6 @@ class ComposeViewControlActionTest {
     Layout A
     Layout B
     Layout C
-    ------------------------------------------------------
-    Show Inspection Tooltips
-    ------------------------------------------------------
-    Color Blind Modes
-        ✔ Original
-        Protanopes
-        Protanomaly
-        Deuteranopes
-        Deuteranomaly
-        Tritanopes
-        Tritanomaly
-"""
-
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.NONE)
-    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
-
-    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
-    assertEquals(expected, actionContent)
-  }
-
-  @Suppress("SpellCheckingInspection")
-  @Test
-  fun testZoomActionsWithFlagEnabled() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
-    val options =
-      listOf(
-        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
-        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
-        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
-      )
-
-    val viewControlAction =
-      ComposeViewControlAction(options, additionalActionProvider = ColorBlindModeAction())
-
-    val expected =
-      """View Control
-    Switch Layout
-    Layout A
-    Layout B
-    Layout C
-    ------------------------------------------------------
-    Zoom In
-    Zoom Out
-    Zoom to 100%
     ------------------------------------------------------
     Show Inspection Tooltips
     ------------------------------------------------------
@@ -147,7 +100,6 @@ class ComposeViewControlActionTest {
   @Suppress("SpellCheckingInspection")
   @Test
   fun testColorBlindModeIsSelectedBasedOnTheScreenViewProvider() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
         SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
@@ -164,10 +116,6 @@ class ComposeViewControlActionTest {
     Layout A
     Layout B
     Layout C
-    ------------------------------------------------------
-    Zoom In
-    Zoom Out
-    Zoom to 100%
     ------------------------------------------------------
     Show Inspection Tooltips
     ------------------------------------------------------
