@@ -41,7 +41,8 @@ import org.junit.runner.RunWith;
 public class AddRemoveCppDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
-
+  private static final String NativeLibFilePath = "app/src/main/cpp/native-lib.cpp";
+  private static final String CMakeListsFilePath = "app/src/main/cpp/CMakeLists.txt";
   /**
    * To verify project deploys successfully after adding and removing dependency
    * <p>
@@ -68,10 +69,10 @@ public class AddRemoveCppDependencyTest {
   @Test
   public void addRemoveCppDependency() {
     createCppProject(CppStandardType.DEFAULT, guiTest);
-
     IdeFrameFixture ideFixture = guiTest.ideFrame();
 
-    assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp");
+    ideFixture.getProjectView().assertFilesExist(NativeLibFilePath, CMakeListsFilePath);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Remove externalNativeBuild block programmatically.
     // This test does not care about removing the block with UI actions only
