@@ -40,6 +40,7 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.TableView
 import com.intellij.util.applyIf
@@ -56,7 +57,11 @@ import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
 /** View to display a single network interception rule and its detailed information. */
-class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPanel() {
+class RuleDetailsView(
+  private val getRuleNames: () -> Set<String>,
+  private val usageTracker: NetworkInspectorTracker,
+) : JPanel() {
+
   var selectedRule = RuleData(-1, "", false)
     set(value) {
       if (field == value) {
@@ -86,15 +91,24 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
   }
 
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
-    detailsPanel.add(
-      createCategoryPanel(
-        null,
-        JBLabel("Name:") to
-          createTextField(rule.name, "Enter rule name", "nameTextField") { text ->
-            rule.name = text
-          },
-      )
-    )
+    val nameWarningLabel = createWarningLabel("", "nameWarningLabel")
+    val nameTextField =
+      createTextField(rule.name, "Enter rule name", "nameTextField") { text ->
+        if (text != rule.name) {
+          val warningText = validateRuleName(text)
+          if (warningText != null) {
+            nameWarningLabel.isVisible = true
+            nameWarningLabel.text = warningText
+            return@createTextField
+          }
+        }
+        rule.name = text
+      }
+    nameTextField.installWarningLabelFilter(nameWarningLabel)
+
+    val namePanel = createPanelWithTextFieldAndWarningLabel(nameTextField, nameWarningLabel)
+    val nameCategoryPanel = createCategoryPanel(null, JBLabel("Name:") to namePanel)
+    detailsPanel.add(nameCategoryPanel)
 
     detailsPanel.add(createOriginCategoryPanel(rule))
 
@@ -110,10 +124,19 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     detailsPanel.background = primaryContentBackground
   }
 
+  private fun validateRuleName(name: String): String? {
+    return when {
+      name.isBlank() -> "Rule name cannot be blank"
+      getRuleNames().contains(name) -> "Rule named '$name' already exists"
+      else -> null
+    }
+  }
+
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
     val statusCodeData = rule.statusCodeRuleData
     fun validateStatusCode(text: String, isEmptyValid: Boolean) =
       validateIntegerInput(text, isEmptyValid, 100, 599)
+
     val findCodeWarningLabel =
       createWarningLabel(
         "Status code should be an integer between 100 and 599",
@@ -137,8 +160,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
           usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
         }
       }
-    (newCodeTextField.document as AbstractDocument).documentFilter =
-      ClearWarningLabelDocumentFilter(newCodeWarningLabel)
+    newCodeTextField.installWarningLabelFilter(newCodeWarningLabel)
     val newCodePanel =
       createPanelWithTextFieldAndWarningLabel(newCodeTextField, newCodeWarningLabel)
 
@@ -157,8 +179,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
           usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
         }
       }
-    (findCodeTextField.document as AbstractDocument).documentFilter =
-      ClearWarningLabelDocumentFilter(findCodeWarningLabel)
+    findCodeTextField.installWarningLabelFilter(findCodeWarningLabel)
     val findCodePanel =
       createPanelWithTextFieldAndWarningLabel(findCodeTextField, findCodeWarningLabel)
 
@@ -221,8 +242,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
         }
       }
     val urlPanel = createPanelWithTextFieldAndWarningLabel(urlTextField, urlWarningLabel)
-    (urlTextField.document as AbstractDocument).documentFilter =
-      ClearWarningLabelDocumentFilter(urlWarningLabel)
+    urlTextField.installWarningLabelFilter(urlWarningLabel)
 
     val portWarningLabel =
       createWarningLabel("Port should be an integer between 0 and 65535", "portWarningLabel")
@@ -239,8 +259,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
           }
         }
       }
-    (portTextField.document as AbstractDocument).documentFilter =
-      ClearWarningLabelDocumentFilter(portWarningLabel)
+    portTextField.installWarningLabelFilter(portWarningLabel)
     val portPanel = createPanelWithTextFieldAndWarningLabel(portTextField, portWarningLabel)
 
     val pathTextField =
@@ -415,4 +434,10 @@ private fun validateIntegerInput(
   if (text.isEmpty()) return isEmptyValid
   val intInput = text.toIntOrNull() ?: return false
   return intInput in lowerBound..upperBound
+}
+
+private fun JBTextField.installWarningLabelFilter(warningLabel: JBLabel) {
+  ClearWarningLabelDocumentFilter(warningLabel).also {
+    (document as AbstractDocument).documentFilter = it
+  }
 }
