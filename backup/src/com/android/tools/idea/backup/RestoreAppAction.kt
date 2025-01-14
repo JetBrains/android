@@ -86,14 +86,14 @@ internal class RestoreAppAction(
     data object Standalone : Config() {
       override val presentation =
         Presentation().apply {
-          text = "Restore Application"
-          description = "Restore Application from file"
+          text = message("restore.action.title")
+          description = message("restore.action.description")
           icon = AllIcons.Actions.Download
         }
     }
 
     data object Browse : Config() {
-      override val presentation = Presentation("Browse...")
+      override val presentation = Presentation(message("restore.action.browse"))
     }
 
     class File(val path: Path) : Config() {

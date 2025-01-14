@@ -23,9 +23,9 @@ import javax.swing.Icon
 class RestoreMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return if (context == MenuContext.Toolbar) {
-      "<html><b>Restore app</b><br>Restores app from a backup file</html>"
+      "<html><b>Restore app data</b><br>Restores app from a backup file</html>"
     } else {
-      "Restore app"
+      "Restore app data"
     }
   }
 

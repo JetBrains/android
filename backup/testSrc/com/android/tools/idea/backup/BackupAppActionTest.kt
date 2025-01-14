@@ -131,7 +131,7 @@ internal class BackupAppActionTest {
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
     assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup Application", "Selected device is not running"))
+      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
   }
 
   @Test
@@ -145,7 +145,7 @@ internal class BackupAppActionTest {
     verifyNoInteractions(mockBackupManager)
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
-        DialogData("Cannot Backup Application", "Action is not supported for multiple devices")
+        DialogData("Cannot Backup App Data", "Action is not supported for multiple devices")
       )
   }
 
@@ -160,7 +160,7 @@ internal class BackupAppActionTest {
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
     assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup Application", "Selected device is not running"))
+      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
   }
 }
 
