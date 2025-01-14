@@ -49,7 +49,6 @@ class ComposeViewControlAction(
         templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
       }
     )
-    // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
     addSeparator()
     add(ShowInspectionTooltipsAction())
     additionalActionProvider?.let {
