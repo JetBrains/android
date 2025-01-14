@@ -207,7 +207,31 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertTrue("Number of rows should not be empty", beforeDelete > 0);
     myPanel.deleteSelectedKeys();
     assertTrue(deleted.get());
-    assertTrue("Number of rows should not have changed", myTable.getModel().getRowCount() < beforeDelete);
+    assertThat(myTable.getModel().getRowCount()).named("Number of rows should have changed").isEqualTo(beforeDelete - 1);
+    assertThat(myTable.getModel().getKeys().stream().map(key -> key.getName()).toList()).containsNoneIn(new Object[]{"key1"});
+  }
+
+  public void testDeleteKeysInSortedTable() {
+    AtomicBoolean deleted = new AtomicBoolean(true);
+    myStringResourceWriter = new StringResourceWriterDelegate(StringResourceWriter.INSTANCE) {
+      @Override
+      public void safeDelete(@NotNull Project project,
+                             @NotNull Collection<? extends ResourceItem> items,
+                             @NotNull Runnable successCallback) {
+        deleted.set(true);
+        delete(project, items);
+        successCallback.run();
+      }
+    };
+
+    myTable.getScrollableTable().getRowSorter().toggleSortOrder(0);
+    myTable.selectCellAt(0, 0);
+    int beforeDelete = myTable.getModel().getRowCount();
+    assertTrue("Number of rows should not be empty", beforeDelete > 0);
+    myPanel.deleteSelectedKeys();
+    assertTrue(deleted.get());
+    assertThat(myTable.getModel().getRowCount()).named("Number of rows should have changed").isEqualTo(beforeDelete - 1);
+    assertThat(myTable.getModel().getKeys().stream().map(key -> key.getName()).toList()).containsNoneIn(new Object[]{"key5"});
   }
 
   private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {
