@@ -302,6 +302,9 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
   bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec_, StringPrintf("Display %d: ", display_id_));
+    if (frame_number_ == initial_frame_number_) {
+      Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
+    }
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
