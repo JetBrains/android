@@ -211,7 +211,7 @@ void DisplayStreamer::Run() {
   }
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
-  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
+  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
 
@@ -322,8 +322,8 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
       continue;
     }
 
-    if (packet_header->frame_number == 0) {
-      Log::D("Display %d: first video frame produced by the encoder", display_id_) ;
+    if (frame_number_ == initial_frame_number_) {
+      Log::D("Display %d: video frame #%d produced by the encoder", display_id_, frame_number_ + 1) ;
     }
 
     if (request_sync_frame) {
@@ -355,7 +355,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
       continue_streaming = false;
     }
     if (!codec_buffer.IsConfig()) {
-      packet_header->frame_number++;
+      packet_header->frame_number = ++frame_number_;
     }
     bit_rate_reduced_ = false;
     packet_header->flags &= ~VideoPacketHeader::FLAG_BIT_RATE_REDUCED;
@@ -437,6 +437,7 @@ void DisplayStreamer::DeleteCodec() {
 
 void DisplayStreamer::StartCodecUnlocked() {
   Log::D("Display %d: starting codec", display_id_);
+  initial_frame_number_ = frame_number_;
   media_status_t status = AMediaCodec_start(codec_);
   if (status != AMEDIA_OK) {
     Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);
