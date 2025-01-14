@@ -22,7 +22,6 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.android.utils.FileUtils;
-import com.esotericsoftware.kryo.NotNull;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -39,6 +38,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidStudioInstallation {
 
