@@ -18,17 +18,17 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_PLATFORM_INSTALLED
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
@@ -133,7 +133,7 @@ class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>)
       }
       val dialog = SdkQuickfixUtils.createDialogForPaths(project, platforms)
       if (dialog != null && dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_PLATFORM_INSTALLED)
+        project.getSyncManager().requestSyncProject(TRIGGER_QF_PLATFORM_INSTALLED.toReason())
       }
       future.complete(null)
     }

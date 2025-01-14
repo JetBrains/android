@@ -18,15 +18,14 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.gradle.isMainModule
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.Language
@@ -36,7 +35,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
@@ -46,7 +44,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.systemIndependentPath
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.findFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiDocumentManager
@@ -57,7 +54,6 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
-import java.io.File
 import java.util.Locale
 
 private const val RES_VALUES_PROPERTY = "android.defaults.buildfeatures.resvalues"
@@ -221,16 +217,13 @@ class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
       }
     }
 
-    val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES)
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, request)
+    myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES.toReason())
     UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
       override fun undo() {
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncInvoker.Request(
-          GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE))
+        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
       }
       override fun redo() {
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncInvoker.Request(
-          GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE))
+        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
       }
     })
   }

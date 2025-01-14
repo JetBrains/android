@@ -16,14 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -81,7 +81,7 @@ class UnsupportedJdkMinimumVersionIssueChecker : GradleIssueChecker {
       val future = CompletableFuture<Nothing>()
       invokeLater {
         runWriteAction { JdkUtils.setProjectGradleJvmToUseJavaHome(project, project.basePath.orEmpty()) }
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT)
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT.toReason())
         future.complete(null)
       }
       return future
@@ -96,7 +96,7 @@ class UnsupportedJdkMinimumVersionIssueChecker : GradleIssueChecker {
       val future = CompletableFuture<Nothing>()
       invokeLater {
         runWriteAction { JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, project.basePath.orEmpty()) }
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED)
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED.toReason())
         future.complete(null)
       }
       return future

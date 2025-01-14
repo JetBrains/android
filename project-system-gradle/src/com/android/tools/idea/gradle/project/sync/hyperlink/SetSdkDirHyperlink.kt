@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.google.common.annotations.VisibleForTesting
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.util.LocalProperties
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.sdk.AndroidSdkData
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.ModalityUiUtil
-import com.android.tools.sdk.AndroidSdkData
 import java.io.File
 
 class SetSdkDirHyperlink(
@@ -88,7 +89,7 @@ class SetSdkDirHyperlink(
             val undoableAction = SetSdkDirUndoableAction(localProperties, sdkData)
             undoableAction.redo()
             UndoManager.getInstance(project).undoableActionPerformed(undoableAction)
-            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_QF_SDK_PATH_CHANGED))
+            project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED.toReason())
           }, SDK_DIR_UNDO_NAME, null)
         }
     }

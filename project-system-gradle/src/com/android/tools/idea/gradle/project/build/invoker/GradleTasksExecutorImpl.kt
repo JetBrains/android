@@ -30,14 +30,14 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.hasCause
 import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.SelectSdkDialog
 import com.android.tools.idea.ui.GuiTestingService
@@ -403,7 +403,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           .getNotificationGroup("Android Gradle Sync Issues")
           .createNotification("Gradle sync needed", incompatibilityMessage, NotificationType.ERROR)
           .addAction(NotificationAction.createSimpleExpiring("Sync project") {
-            getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null)
+            project.getSyncManager().requestSyncProject(TRIGGER_USER_STALE_CHANGES.toReason())
           })
           .setImportant(true)
           .notify(project)

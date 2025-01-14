@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.run
 
+import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SIGNING_CONFIG_SELECTED
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ConfigurationQuickFix
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -100,22 +101,9 @@ constructor(
               { gradleBuildModel.applyChanges() },
             )
             // Trigger Gradle sync for the signingConfig to take effect.
-            GradleSyncInvoker.getInstance()
-              .requestProjectSync(
-                module.project,
-                GradleSyncInvoker.Request(
-                  GradleSyncStats.Trigger.TRIGGER_QF_SIGNING_CONFIG_SELECTED
-                ),
-                object : GradleSyncListener {
-                  override fun syncSucceeded(project: Project) {
-                    callback?.run()
-                  }
-
-                  override fun syncFailed(project: Project, errorMessage: String) {
-                    callback?.run()
-                  }
-                },
-              )
+            module.project.getSyncManager()
+              .requestSyncProject(TRIGGER_QF_SIGNING_CONFIG_SELECTED.toReason())
+              .finallySync(MoreExecutors.directExecutor()) { callback?.run() }
           }
       }
     } else {

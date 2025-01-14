@@ -20,7 +20,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -31,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class AddRepoProcessor extends BaseRefactoringProcessor {
@@ -130,7 +130,8 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
         settingsModel.dependencyResolutionManagement().repositories().addGoogleMavenRepository();
         projectBuildModel.applyChanges();
         if (myRequestSync) {
-          GradleSyncInvoker.getInstance().requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_REPOSITORY_ADDED), null);
+          ProjectSystemService.getInstance(myProject).getProjectSystem().getSyncManager()
+            .requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_QF_REPOSITORY_ADDED));
         }
         return;
       }
@@ -156,7 +157,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
     projectBuildModel.applyChanges();
 
     if (myRequestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_REPOSITORY_ADDED), null);
+      ProjectSystemService.getInstance(myProject).getProjectSystem().getSyncManager().requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_QF_REPOSITORY_ADDED));
     }
   }
 

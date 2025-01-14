@@ -20,9 +20,10 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.application.ApplicationManager;
@@ -126,7 +127,8 @@ public class SupportedModuleChecker {
         unsupportedModules.forEach(modifiableModule::disposeModule);
         modifiableModule.commit();
       });
-      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES), null);
+      ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
+        .requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES));
     }
   }
 }

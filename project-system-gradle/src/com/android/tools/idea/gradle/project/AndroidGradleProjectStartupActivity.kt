@@ -225,6 +225,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
     //  path individually.
     LOG.info("Requesting Gradle sync (${e.reason}).")
+    // TODO ag/29995010 - add auto-sync check to stop if user opted for it
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
   }
 }

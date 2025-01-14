@@ -52,15 +52,19 @@ import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
@@ -275,20 +279,20 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener() {
+    ListenableFuture<ProjectSystemSyncManager.SyncResult> result =
+      ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
+        .requestSyncProject(new ProjectSystemSyncManager.SyncReason(trigger));
+    Futures.addCallback(result, new FutureCallback<>() {
       @Override
-      public void syncSucceeded(@NotNull Project project) {
+      public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
         promise.setResult(null);
       }
 
       @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        promise.setError(errorMessage);
+      public void onFailure(Throwable t) {
+        promise.setError(t.getMessage());
       }
-    });
-
+    }, MoreExecutors.directExecutor());
     return promise;
   }
 

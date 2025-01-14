@@ -23,16 +23,16 @@ import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -74,7 +74,7 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
           settings.distributionType = DistributionType.DEFAULT_WRAPPED
         }
 
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED)
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED.toReason())
         future.complete(null)
       }
       catch (e: IOException) {
@@ -103,7 +103,7 @@ class InstallBuildToolsQuickFix(private val version: String,
           processor.run()
         }
         else {
-          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_INSTALLED)
+          project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_INSTALLED.toReason())
         }
       }
       future.complete(null)
@@ -154,7 +154,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
           // Found: Trigger installation of the package.
           val dialog = SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(cmakePackage.path), true)
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)
+            project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
           }
           future.complete(null)
           return@invokeLater
@@ -271,7 +271,7 @@ class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
       val localProperties = LocalProperties(getBaseDirPath(project))
       localProperties.androidCmakePath = myPath
       localProperties.save()
-      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)
+      project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
       future.complete(null)
     }
     return future
@@ -285,7 +285,7 @@ class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, arrayOf("--refresh-dependencies"))
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES)
+    project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES.toReason())
     return CompletableFuture.completedFuture<Any>(null)
   }
 }
@@ -298,8 +298,7 @@ class ToggleOfflineModeQuickFix(val enableOfflineMode: Boolean) : BuildIssueQuic
 
     invokeLater {
       GradleSettings.getInstance(project).isOfflineWork = enableOfflineMode
-      val trigger = GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED
-      GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
+      project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED.toReason())
       future.complete(null)
     }
     return future

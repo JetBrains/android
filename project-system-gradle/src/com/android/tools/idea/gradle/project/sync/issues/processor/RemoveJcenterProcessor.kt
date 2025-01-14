@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -98,8 +98,7 @@ class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Mod
 
   public override fun performRefactoring(usages: Array<out UsageInfo>) {
     updateProjectBuildModel(usages)
-
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES)
+    project.getSyncManager().requestSyncProject(TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES.toReason())
   }
 
   @VisibleForTesting
