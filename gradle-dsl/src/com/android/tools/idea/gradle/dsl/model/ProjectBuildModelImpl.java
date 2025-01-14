@@ -34,6 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -166,11 +167,12 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void applyChanges() {
-    runOverProjectTree(file -> {
-      file.applyChanges();
-      file.saveAllChanges();
-    });
-
+    PostprocessReformattingAspect.getInstance(myBuildModelContext.getProject())
+      .postponeFormattingInside(() ->
+                                  runOverProjectTree(file -> {
+                                    file.applyChanges();
+                                    file.saveAllChanges();
+                                  }));
   }
 
   @Override

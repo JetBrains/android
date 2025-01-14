@@ -42,6 +42,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -358,8 +359,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public final void applyChanges() {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    apply();
-    commit();
+    PostprocessReformattingAspect.getInstance(myDslFile.getProject())
+        .postponeFormattingInside(() -> {
+          apply();
+          commit();
+        });
   }
 
   protected abstract void apply();
