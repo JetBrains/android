@@ -69,8 +69,6 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
         failure {
           error {
             exception: org.gradle.tooling.GradleConnectionException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
-            exception: org.gradle.tooling.GradleConnectionException
               at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
             exception: java.lang.RuntimeException
               at: [0]org.gradle.internal.file.locking.ExclusiveFileAccessManager#access
@@ -115,8 +113,6 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedFailureDetailsString = """
         failure {
           error {
-            exception: org.gradle.tooling.GradleConnectionException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
             exception: org.gradle.tooling.GradleConnectionException
               at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
             exception: java.net.ConnectException
@@ -163,8 +159,6 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedFailureDetailsString = """
         failure {
           error {
-            exception: org.gradle.tooling.GradleConnectionException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
             exception: org.gradle.tooling.GradleConnectionException
               at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
             exception: java.net.UnknownHostException

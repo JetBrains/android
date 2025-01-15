@@ -2202,7 +2202,7 @@ android-studio/plugins/gradle/lib/ant/ant-swing.jar
 android-studio/plugins/gradle/lib/ant/ant-testutil.jar
 android-studio/plugins/gradle/lib/ant/ant-xz.jar
 android-studio/plugins/gradle/lib/ant/ant.jar
-android-studio/plugins/gradle/lib/gradle-api-8.10.jar
+android-studio/plugins/gradle/lib/gradle-api-8.12.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle.jar

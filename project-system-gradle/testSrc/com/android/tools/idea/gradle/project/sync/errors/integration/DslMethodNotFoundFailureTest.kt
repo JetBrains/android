@@ -75,8 +75,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
-            exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.GradleScriptException
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
@@ -108,8 +106,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedFailureDetailsString = """
         failure {
           error {
-            exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
             exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.ProjectConfigurationException
@@ -144,8 +140,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
-            exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
@@ -178,8 +172,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedFailureDetailsString = """
         failure {
           error {
-            exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
             exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.ProjectConfigurationException
@@ -216,8 +208,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
-            exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
@@ -251,8 +241,6 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedFailureDetailsString = """
         failure {
           error {
-            exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
             exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: org.gradle.api.ProjectConfigurationException

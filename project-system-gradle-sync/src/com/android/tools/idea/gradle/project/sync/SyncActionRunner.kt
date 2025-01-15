@@ -172,7 +172,7 @@ data class ActionToRun<T>(
       @Suppress("UnstableApiUsage")
       override fun getCanQueryProjectModelInParallel(p0: Class<*>?): Boolean = error("Not intended to be used")
 
-      override fun <T : Any?> send(p0: T): Unit = error("Not intended to be used")
+      override fun send(p0: Any): Unit = error("Not intended to be used")
     }
   }
 }
@@ -303,7 +303,7 @@ private fun BuildController.toMeasuringController(syncCounters: SyncCounters): B
     @Suppress("UnstableApiUsage")
     override fun getCanQueryProjectModelInParallel(p0: Class<*>?): Boolean = error("Not intended to be used")
 
-    override fun <T : Any?> send(p0: T): Unit = error("Not intended to be used")
+    override fun send(p0: Any): Unit = error("Not intended to be used")
   }
 }
 

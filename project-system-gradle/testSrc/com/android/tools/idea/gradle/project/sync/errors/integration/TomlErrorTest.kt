@@ -57,8 +57,6 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
-            exception: org.gradle.tooling.BuildActionFailureException
               at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
             exception: java.lang.RuntimeException
               at: [0]org.gradle.api.internal.catalog.DefaultDependenciesAccessors#generateAccessors
