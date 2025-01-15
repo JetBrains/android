@@ -15,40 +15,29 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.editor.BasicDesignSurfaceActionGroups
 import com.android.tools.idea.uibuilder.editor.EditableDesignSurfaceActionGroups
 import com.intellij.openapi.Disposable
 import javax.swing.JComponent
+import kotlinx.coroutines.launch
 
 /** Creates the floating actions toolbar used on the [DesignSurface] */
 class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface<*>,
   component: JComponent,
   parentDisposable: Disposable,
-) :
-  EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface"),
-  DesignSurfaceListener {
+) : EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface") {
+
+  private val scope = AndroidCoroutineScope(this)
 
   init {
-    designSurface.addListener(this)
-    designSurface.addPanZoomListener(this)
-    updateToolbar()
-  }
-
-  override fun dispose() {
-    super.dispose()
-    designSurface.removeListener(this)
-    designSurface.removePanZoomListener(this)
-  }
-
-  @UiThread
-  override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+    scope.launch { designSurface.zoomChanged.collect { zoomChanged() } }
+    scope.launch { designSurface.panningChanged.collect { panningChanged() } }
+    scope.launch { designSurface.modelChanged.collect { updateToolbar() } }
     updateToolbar()
   }
 

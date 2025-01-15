@@ -20,13 +20,14 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -40,10 +41,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.flow.flowOn
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -51,8 +56,10 @@ import org.jetbrains.annotations.TestOnly
  * no selection, the root layout)
  */
 class ActionsToolbar(private val parent: Disposable, private val surface: DesignSurface<*>) :
-  DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener, ModelListener {
+  DesignSurfaceListener, Disposable, ConfigurationListener, ModelListener {
   val toolbarComponent: JComponent
+
+  val scope = AndroidCoroutineScope(this)
 
   @get:TestOnly
   var northToolbar: ActionToolbar? = null
@@ -80,8 +87,14 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
   init {
     Disposer.register(parent, this)
+    scope.launch {
+      merge(surface.panningChanged, surface.zoomChanged).flowOn(uiThread).collect {
+        northEastToolbar?.updateActionsAsync()
+
+      }
+    }
+
     surface.addListener(this)
-    surface.addPanZoomListener(this)
     // TODO: Update to support multiple configurations
     configuration = surface.configurations.firstOrNull()
     configuration?.addListener(this)
@@ -91,7 +104,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   override fun dispose() {
-    surface.removePanZoomListener(this)
     surface.removeListener(this)
     configuration?.removeListener(this)
     model?.removeListener(this)
@@ -260,14 +272,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
         updateActions()
       }
     }
-  }
-
-  override fun zoomChanged(previousScale: Double, newScale: Double) {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsAsync() }
-  }
-
-  override fun panningChanged() {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsAsync() }
   }
 
   override fun changed(flags: Int): Boolean {
