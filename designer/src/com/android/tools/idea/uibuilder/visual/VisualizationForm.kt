@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
@@ -100,7 +99,7 @@ class VisualizationForm(
   private val project: Project,
   parentDisposable: Disposable,
   private val initializer: ContentInitializer,
-) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
+) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener {
   private val scope = AndroidCoroutineScope(this)
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
@@ -195,7 +194,6 @@ class VisualizationForm(
         }
         .build()
     surface.setSceneViewAlignment(SceneViewAlignment.LEFT)
-    surface.addPanZoomListener(this)
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
     surface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false)
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
@@ -219,6 +217,13 @@ class VisualizationForm(
         Alarm.ThreadToUse.POOLED_THREAD,
       )
     myUpdateQueue.setRestartTimerOnAdd(true)
+
+    scope.launch {
+      surface.zoomChanged.collect {
+        VisualizationToolProjectSettings.getInstance(project).projectState.scale =
+          surface.zoomController.scale
+      }
+    }
 
     visualLintHandler = VisualizationFormVisualLintHandler(this, project, surface.issueModel)
   }
@@ -649,13 +654,6 @@ class VisualizationForm(
     // Dispose old models and create new models with new configuration set.
     initModel()
   }
-
-  override fun zoomChanged(previousScale: Double, newScale: Double) {
-    VisualizationToolProjectSettings.getInstance(project).projectState.scale =
-      surface.zoomController.scale
-  }
-
-  override fun panningChanged() = Unit
 
   /** A disabled action for displaying text in action toolbar. It does nothing. */
   private class TextLabelAction(private val text: String) : AnAction(null as String?) {
