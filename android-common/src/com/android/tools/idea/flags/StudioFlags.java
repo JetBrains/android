@@ -544,13 +544,6 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> ADBLIB_MIGRATION_WIFI_PAIRING = new BooleanFlag(
-    RUNDEBUG,
-    "adblib.migration.wifi.pairing",
-    "Use adblib in Pair Device over Wi-Fi",
-    "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
-    true);
-
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = new BooleanFlag(
     RUNDEBUG,
     "adblib.migration.ddmlib.clientmanager",

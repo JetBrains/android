@@ -59,12 +59,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @get:Rule val iconLoaderRule = IconLoaderRule()
 
-  private val timeProvider: MockNanoTimeProvider by lazy { MockNanoTimeProvider() }
-
   private val randomProvider by lazy { MockRandomProvider() }
 
-  private val adbService =
-    mockOrActual<AdbServiceWrapper> { AdbServiceWrapperImpl(project, timeProvider) }
+  private val adbService = mockOrActual<AdbServiceWrapper> { AdbServiceWrapperAdbLibImpl(project) }
   private val mDNSConfigurationRetriever = mockOrActual {}
 
   class MockableSystem {

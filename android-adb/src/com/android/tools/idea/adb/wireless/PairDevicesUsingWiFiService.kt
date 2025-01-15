@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.ddmlib.TimeoutRemainder
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -30,19 +28,9 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
       project.getService(PairDevicesUsingWiFiService::class.java)!!
   }
 
-  private val timeProvider: TimeoutRemainder.SystemNanoTimeProvider by lazy {
-    TimeoutRemainder.DefaultSystemNanoTime()
-  }
-
   private val randomProvider by lazy { RandomProvider() }
 
-  private val adbService: AdbServiceWrapper by lazy {
-    if (StudioFlags.ADBLIB_MIGRATION_WIFI_PAIRING.get()) {
-      AdbServiceWrapperAdbLibImpl(project)
-    } else {
-      AdbServiceWrapperImpl(project, timeProvider)
-    }
-  }
+  private val adbService: AdbServiceWrapper by lazy { AdbServiceWrapperAdbLibImpl(project) }
 
   private val devicePairingService: WiFiPairingService by lazy {
     WiFiPairingServiceImpl(randomProvider, adbService)
