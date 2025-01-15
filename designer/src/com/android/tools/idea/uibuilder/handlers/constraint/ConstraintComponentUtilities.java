@@ -1024,7 +1024,7 @@ public final class ConstraintComponentUtilities {
     // cleanup needs to be sdk range specific
     //
     AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(component.getModel().getFacet());
-    boolean remove_left_right = moduleInfo.getMinSdkVersion().isGreaterOrEqualThan(17);
+    boolean remove_left_right = moduleInfo.getMinSdkVersion().isAtLeast(17);
 
     margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
     if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
