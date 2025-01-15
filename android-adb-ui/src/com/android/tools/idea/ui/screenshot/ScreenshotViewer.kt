@@ -375,7 +375,7 @@ class ScreenshotViewer(
   }
 
   private fun processScreenshot(rotationQuadrants: Int) {
-    val rotatedImage = sourceImageRef.get()?.rotated(rotationQuadrants) ?: return
+    val rotatedImage = sourceImageRef.get().rotated(rotationQuadrants)
     val processedImage = processImage(rotatedImage)
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
