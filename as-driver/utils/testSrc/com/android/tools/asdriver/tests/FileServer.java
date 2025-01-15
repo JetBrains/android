@@ -62,7 +62,7 @@ public class FileServer implements AutoCloseable {
     server.setExecutor(Executors.newCachedThreadPool());
     server.start();
 
-    System.out.println("FileServer listening on port " + server.getAddress().getPort());
+    TestLogger.log("FileServer listening on port %d", server.getAddress().getPort());
   }
 
   public List<URI> getRequestHistoryForPath(String httpPath) {
@@ -101,7 +101,7 @@ public class FileServer implements AutoCloseable {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
       String path = exchange.getRequestURI().getPath();
-      System.out.println("FileServer request received for " + path);
+      TestLogger.log("FileServer request received for %s", path);
       addHistory(path, exchange.getRequestURI());
       Path path1 = fileServer.fileMap.get(path);
       if (path1 == null) {

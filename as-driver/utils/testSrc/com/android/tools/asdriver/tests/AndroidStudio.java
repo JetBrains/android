@@ -31,8 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class AndroidStudio implements AutoCloseable {
 
@@ -90,7 +89,7 @@ public class AndroidStudio implements AutoCloseable {
       pb.environment().put("SHELL", shell);
     }
 
-    System.out.println("Starting Android Studio");
+    TestLogger.log("Starting Android Studio");
     installation.getStdout().reset();
     installation.getStderr().reset();
     pb.redirectOutput(installation.getStdout().getPath().toFile());
@@ -250,17 +249,15 @@ public class AndroidStudio implements AutoCloseable {
       }
       Throwable t = throwableRef.get();
       if (t != null) {
-        System.out.printf(
-          "%s Studio quitting has thrown an error: %s",
-          LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-          t.getMessage());
+        TestLogger.log("Studio quitting has thrown an error: %s", t.getMessage());
         throw new RuntimeException(t);
       }
     }
     catch (InterruptedException e) {
       thread.interrupt();
       Thread.currentThread().interrupt();
-      throw new RuntimeException(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Quitting Studio was interrupted.", e);
+      TestLogger.log("Quitting Studio was interrupted.");
+      throw new RuntimeException("Quitting Studio was interrupted.", e);
     }
   }
 
@@ -296,7 +293,7 @@ public class AndroidStudio implements AutoCloseable {
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
-    System.out.printf("%s Quitting Studio...", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+    TestLogger.log("Quitting Studio...");
     waitToWorkAroundWindowsIssue();
     try {
       quit(false);
@@ -304,7 +301,7 @@ public class AndroidStudio implements AutoCloseable {
         install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
       } catch (InterruptedException e) {
         // Sometimes, it just doesn't print the shutdown.
-        System.out.printf("%s VFS dispose did not occur/complete during shutdown.", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        TestLogger.log("VFS dispose did not occur/complete during shutdown.");
       }
     }
     catch (Throwable t) {
@@ -345,8 +342,7 @@ public class AndroidStudio implements AutoCloseable {
     }
 
     Path destination = VideoStitcher.getScreenshotFolder();
-    System.out.printf("Setting up screenshot capture (to %s) since this is Windows%n", destination);
-
+    TestLogger.log("Setting up screenshot capture (to %s) since this is Windows", destination);
     ASDriver.StartCapturingScreenshotsRequest rq =
       ASDriver.StartCapturingScreenshotsRequest.newBuilder().setDestinationPath(destination.toString())
         .setScreenshotNameFormat(VideoStitcher.SCREENSHOT_NAME_FORMAT).build();
@@ -406,7 +402,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void waitForIndex() throws IOException, InterruptedException {
     benchmarkLog("calling_waitForIndex");
-    System.out.println("Waiting for indexing to complete");
+    TestLogger.log("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
     install.getIdeaLog().reset(); //Log position can be moved past if used after waitForBuild
@@ -625,7 +621,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void waitForProjectInit() {
     // Need to wait for the device selector to be ready
-    System.out.println("Wait for ActionToolBar");
+    TestLogger.log("Wait for ActionToolBar");
     this.waitForComponentByClass(true, "MainToolbar", "MyActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
   }
 
@@ -648,10 +644,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    System.out.printf("Waiting up to %d %s for Gradle build%n", timeout, unit);
+    TestLogger.log("Waiting up to %d %s for Gradle build", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
-    System.out.println("Build took " + matcher.group(1));
+    TestLogger.log("Build took %s", matcher.group(1));
   }
 
   public void waitForSync() throws IOException, InterruptedException {
@@ -662,10 +658,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    System.out.printf("Waiting up to %d %s for Gradle sync%n", timeout, unit);
+    TestLogger.log("Waiting up to %d %s for Gradle sync", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
-    System.out.println("Sync took " + matcher.group(1));
+    TestLogger.log("Sync took %s", matcher.group(1));
   }
 
   /**

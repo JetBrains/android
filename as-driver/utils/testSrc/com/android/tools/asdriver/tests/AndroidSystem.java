@@ -193,12 +193,12 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     // hook is triggered, so we have to emit the remediation steps ahead of time (without knowing
     // if they'll even be needed).
     if (SystemInfo.isWindows && TestUtils.runningFromBazel()) {
-      System.out.println("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
-                         "check go/e2e-find-log-files for more information on how to diagnose test issues.");
+      TestLogger.log("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
+                     "check go/e2e-find-log-files for more information on how to diagnose test issues.");
     }
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      System.out.println("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
-                         "go/e2e-find-log-files for more information on how to diagnose test issues.");
+      TestLogger.log("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
+                     "go/e2e-find-log-files for more information on how to diagnose test issues.");
     }));
   }
 
@@ -361,7 +361,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       }
     }
     catch (RuntimeException | IOException e) {
-      System.out.printf("*** Files being written while shutting down system: ***%n");
+      TestLogger.log("*** Files being written while shutting down system: ***");
       printContents(fileSystem.getRoot().toFile());
       throw e;
     }

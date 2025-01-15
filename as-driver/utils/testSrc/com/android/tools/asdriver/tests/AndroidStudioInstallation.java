@@ -71,7 +71,7 @@ public class AndroidStudioInstallation {
 
   public static AndroidStudioInstallation fromZip(Options options) throws IOException {
     Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "android-studio");
-    System.out.println("workDir: " + workDir);
+    TestLogger.log("workDir: %s", workDir);
     String platform = "linux";
     String studioDir = "android-studio";
     if (SystemInfo.isMac) {
@@ -138,7 +138,7 @@ public class AndroidStudioInstallation {
     createVmOptionsFile(disableFirstRun);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
 
-    System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
+    TestLogger.log("AndroidStudioInstallation created with androidStudioFlavor== %s" , androidStudioFlavor);
   }
 
   public void bundlePlugin(Path pluginZipPath) throws IOException {
@@ -164,7 +164,7 @@ public class AndroidStudioInstallation {
         .sorted(Comparator.reverseOrder())
         .map(Path::toFile)
         .forEach(File::delete);
-      System.out.println("Successfully deleted directory: " + directoryPath);
+      TestLogger.log("Successfully deleted directory: %s", directoryPath);
     } catch (IOException e) {
       System.err.println("Error deleting directory: " + directoryPath + " - " + e.getMessage());
     }
@@ -239,11 +239,11 @@ public class AndroidStudioInstallation {
   }
 
   private static void unzip(Path zipFile, Path outDir) throws IOException {
-    System.out.println("Unzipping...");
+    TestLogger.log("Unzipping... %s", zipFile);
     long startTime = System.currentTimeMillis();
     InstallerUtil.unzip(zipFile, outDir, Files.size(zipFile), new FakeProgressIndicator());
     long elapsedTime = System.currentTimeMillis() - startTime;
-    System.out.println("Unzipping took " + elapsedTime + "ms");
+    TestLogger.log("Unzipping took %d ms", elapsedTime);
   }
 
   /**
@@ -379,7 +379,7 @@ public class AndroidStudioInstallation {
    */
   public void createFirstRunXml() throws IOException {
     Path dest = configDir.resolve("options/androidStudioFirstRun.xml");
-    System.out.println("Creating " + dest);
+    TestLogger.log("Creating - %s", dest);
 
     Files.createDirectories(dest.getParent());
     String firstRunContents =
@@ -393,7 +393,7 @@ public class AndroidStudioInstallation {
 
   public void setNewUi() throws IOException {
     Path dest = configDir.resolve(EarlyAccessRegistryManager.fileName);
-    System.out.println("Creating " + dest);
+    TestLogger.log("Creating - %s", dest);
     Files.createDirectories(dest.getParent());
     String contents =
       "ide.experimental.ui\n" +
@@ -406,8 +406,7 @@ public class AndroidStudioInstallation {
 
   public void createGeneralPropertiesXml() throws IOException {
     Path dest = configDir.resolve("options").resolve("ide.general.xml");
-    System.out.println("Creating " + dest);
-
+    TestLogger.log("Creating - %s", dest);
     Files.createDirectories(dest.getParent());
     String registryChanges = "";
     if (SystemInfo.isWindows) {
