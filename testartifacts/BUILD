@@ -4,6 +4,21 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
+    name = "intellij.android.testartifacts",
+    srcs = ["src"],
+    iml_files = ["intellij.android.testartifacts.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
     name = "intellij.android.testartifacts.tests",
     iml_files = ["intellij.android.testartifacts.tests.iml"],
     test_class = "com.android.tools.idea.testartifacts.TestArtifactsTestSuite",

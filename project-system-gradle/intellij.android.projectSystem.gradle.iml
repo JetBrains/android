@@ -69,5 +69,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
+    <orderEntry type="module" module-name="intellij.android.testartifacts" />
   </component>
 </module>

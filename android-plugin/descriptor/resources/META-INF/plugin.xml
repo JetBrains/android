@@ -70,6 +70,7 @@
   <xi:include href="/META-INF/build-attribution.xml"/>
   <xi:include href="/META-INF/lint-plugin.xml"/>
   <xi:include href="/META-INF/network-inspector.xml"/>
+  <xi:include href="/META-INF/testartifacts.xml"/>
   <xi:include href="/META-INF/utp.xml"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
