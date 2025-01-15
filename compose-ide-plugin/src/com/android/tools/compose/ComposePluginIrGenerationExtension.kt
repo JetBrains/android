@@ -41,7 +41,8 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
       ComposeIrGenerationExtension(
-          generateFunctionKeyMetaClasses = true,
+          // Enable FunctionKeyMeta annotation to be generated wherever possible to help live-edit & previews.
+          generateFunctionKeyMetaAnnotations = true,
           useK2 = KotlinPluginModeProvider.isK2Mode(),
           messageCollector = messageCollector,
           featureFlags = FeatureFlags().apply { setFeature(FeatureFlag.IntrinsicRemember, false) },

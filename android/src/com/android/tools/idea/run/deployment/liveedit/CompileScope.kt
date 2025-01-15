@@ -28,9 +28,7 @@ import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilat
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.config.phaser.PhaseConfig
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
@@ -224,7 +222,7 @@ private object CompileScopeImpl : CompileScope {
     }
 
     try {
-      KotlinCodegenFacade.compileCorrectFiles(input, generationState, analysisResult.bindingContext, codegenFactory)
+      codegenFactory.convertAndGenerate(input, generationState, analysisResult.bindingContext)
     } catch (e: Throwable) {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
