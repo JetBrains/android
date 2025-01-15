@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.preview.util.device.DeviceSpecLanguage
@@ -23,6 +22,7 @@ import com.android.tools.idea.testing.caret
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.InjectionTestFixture
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Before
 import org.junit.Rule

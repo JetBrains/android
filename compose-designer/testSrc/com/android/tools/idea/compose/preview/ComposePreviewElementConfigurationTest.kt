@@ -28,7 +28,6 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewConfiguration
@@ -37,6 +36,7 @@ import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.applyConfigurationForTest
 import com.android.tools.res.FrameworkOverlay
 import kotlin.math.sqrt
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

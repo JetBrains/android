@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
 import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
@@ -27,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
