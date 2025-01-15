@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.bleak;
 
+import java.util.regex.Matcher;
+
 public class IgnoredDisposerRef implements IgnoreListEntry<DisposerLeakInfo> {
 
   private final String parentClass;
@@ -28,7 +30,7 @@ public class IgnoredDisposerRef implements IgnoreListEntry<DisposerLeakInfo> {
   }
 
   private static String stripLambdaIdentifier(String className) {
-    return className.replaceFirst("\\$\\$Lambda.*", "$$Lambda");
+    return className.replaceFirst("\\$\\$Lambda.*", Matcher.quoteReplacement("$$Lambda"));
   }
 
   @Override
