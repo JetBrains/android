@@ -25,10 +25,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.PsiShortNamesCache
 import kotlin.text.RegexOption.IGNORE_CASE
 
-// This regex is pretty liberal, but we don't allow whitespace in a filename. This is so we don't
-// have to wrap the name with some delimiter.
+// Only include Java and Kotlin files because logs tend to have a lot of irrelevant
+// matches otherwise and Kotlin/Java are typically all we care about.
 private val fileAndLineRegex =
-  "\\b(?<filename>[a-z_][a-z0-9._-]*):(?<line>[0-9]+)\\b".toRegex(IGNORE_CASE)
+  "\\b(?<filename>[a-z_][a-z0-9._-]*\\.(kt|java)):(?<line>[0-9]+)\\b".toRegex(IGNORE_CASE)
 
 /**
  * A simple [Filter] that detects project file links
