@@ -1857,7 +1857,7 @@ public final class StudioFlags {
       "crashlytics.show.insight.tool.window",
       "Show insight toolwindow in Crashlytics",
       "Show AI generated insights for Crashlytics issue in insight toolwindow",
-      enabledUpTo(CANARY)
+      true
     );
 
   // Must re-enable firebase onboarding flow should this be set to true.
@@ -1899,7 +1899,7 @@ public final class StudioFlags {
       "play.vitals.show.insight.tool.window",
       "Show insight toolwindow in Play Vitals",
       "Show AI generated insights for Play Vitals issue in insight toolwindow",
-      enabledUpTo(CANARY)
+      true
     );
   // endregion App Insights
 
