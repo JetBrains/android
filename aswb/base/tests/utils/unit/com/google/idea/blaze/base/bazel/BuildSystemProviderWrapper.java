@@ -287,11 +287,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public Optional<BuildInvoker> getLocalBuildInvoker(Project project, BlazeContext context) {
-      return inner.getLocalBuildInvoker(project, context).map(i -> new BuildInvokerWrapper(i));
-    }
-
-    @Override
     public SyncStrategy getSyncStrategy(Project project) {
       if (syncStrategy != null) {
         return syncStrategy;
