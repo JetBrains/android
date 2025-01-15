@@ -1484,6 +1484,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RESIZING = new BooleanFlag(
+    COMPOSE, "preview.resizing",
+    "Enable resizing for Compose Preview",
+    "If enabled, the user can resize the Compose Preview",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",

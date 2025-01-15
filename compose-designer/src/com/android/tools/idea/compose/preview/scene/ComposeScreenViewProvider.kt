@@ -105,6 +105,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
         else SQUARE_SHAPE_POLICY
       )
       .decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }
+      .apply { if (StudioFlags.COMPOSE_PREVIEW_RESIZING.get()) this.resizeable() }
       .build()
 
   override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
