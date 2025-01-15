@@ -72,12 +72,24 @@ class LanguageHighlightingTest {
         /* lineNumber = */ 11))
 
       // 4. Error from Kotlin plugin.
-      assertThat(analysisResults).contains(AnalysisResult(
+      val absent = "someMethodThatDoesNotExist"
+      val k1Description = "Unresolved reference: $absent"
+      val k2Description = "Unresolved reference '$absent'."
+      val k1Result = AnalysisResult(
         HighlightSeverity.ERROR,
-        "someMethodThatDoesNotExist",
-        /* description = */ "Unresolved reference: someMethodThatDoesNotExist",
+        /* text */ absent,
+        /* description = */ k1Description,
         /* toolId = */ null,
-        /* lineNumber = */ 15))
+        /* lineNumber = */ 15
+      )
+      val k2Result = AnalysisResult(
+        HighlightSeverity.ERROR,
+        /* text */ absent,
+        /* description = */ k2Description,
+        /* toolId = */ null,
+        /* lineNumber = */ 15
+      )
+      assertThat(analysisResults).containsAnyOf(k1Result, k2Result)
     }
   }
 }
