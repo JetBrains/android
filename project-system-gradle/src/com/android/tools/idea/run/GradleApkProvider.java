@@ -174,7 +174,7 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   private static boolean deviceSupportsPrivacySandbox(@NotNull IDevice device) {
-    return device.getVersion().isGreaterOrEqualThan(34) && device.services().containsKey("sdk_sandbox");
+    return device.getVersion().isAtLeast(34) && device.services().containsKey("sdk_sandbox");
   }
 
   @NotNull
@@ -591,9 +591,8 @@ public final class GradleApkProvider implements ApkProvider {
             // Get the output from the test artifact
             for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
               if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
-                int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
                 if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE &&
-                    !deviceVersion.isGreaterOrEqualThan(apiWithSplitApk)) {
+                    deviceVersion.compareTo(AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION) < 0) {
                   // b/119663247
                   throw new ApkProvisionException(
                     "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
