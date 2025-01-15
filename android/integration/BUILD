@@ -734,6 +734,7 @@ iml_test(
     timeout = "moderate",
     data = first_launch_test_data,
     module = ":intellij.android.core.integration",
+    tags = ["manual"],  # b/389922725
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
