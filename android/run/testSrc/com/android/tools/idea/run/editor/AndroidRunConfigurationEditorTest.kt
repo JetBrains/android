@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.editor
 
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
@@ -54,8 +56,12 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -64,8 +70,7 @@ import javax.swing.JLabel
 
 @RunsInEdt
 class AndroidRunConfigurationEditorTest {
-  @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule
+  private  val projectRule: EdtAndroidProjectRule = AndroidProjectRule
     .withAndroidModels(
       rootModuleBuilder,
       AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder(dynamicFeatures = { listOf(":feature") })),
@@ -74,9 +79,16 @@ class AndroidRunConfigurationEditorTest {
       AndroidModuleModelBuilder(":test_only", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_TEST })),
     )
     .onEdt()
+  private val expect: Expect = Expect.createAndEnableStackTrace()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  val rule = RuleChain(projectRule, expect, disposableRule)
+
+  @Before
+  fun setUp() {
+    projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, FakeBackupManager(), disposableRule.disposable)
+  }
 
   @After
   fun tearDown() {

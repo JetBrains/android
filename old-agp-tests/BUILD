@@ -87,6 +87,7 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
     ],
 )
 

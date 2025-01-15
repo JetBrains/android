@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.run.editor
 
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.ui.components.JBCheckBox
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -32,11 +37,15 @@ class ApplicationRunParametersTest {
   private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidRunConfiguration>
   private lateinit var myModuleSelector: ConfigurationModuleSelector
 
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
+  private val disposableRule = DisposableRule()
+
   @get:Rule
-  val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
+  val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {
+    projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, FakeBackupManager(), disposableRule.disposable)
     myModuleSelector = mock<ConfigurationModuleSelector>()
     myApplicationRunParameters = ApplicationRunParameters(projectRule.project, myModuleSelector)
   }

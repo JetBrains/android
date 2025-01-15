@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.gradle.preview.runconfiguration
 
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -30,11 +32,15 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,7 +49,18 @@ class ComposePreviewRunConfigurationGradleTest {
   private val noValidComposableErrorMessage =
     message("run.configuration.no.valid.composable.set", "")
 
-  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  private val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
+
+  @Before
+  fun setUp() {
+    projectRule.project.registerOrReplaceServiceInstance(
+      BackupManager::class.java,
+      FakeBackupManager(),
+      disposableRule.disposable,
+    )
+  }
 
   @Test
   fun testValidatePreview_app_main() {

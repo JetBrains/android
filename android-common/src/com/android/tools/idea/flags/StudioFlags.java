@@ -2224,7 +2224,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      false);
+      true);
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
@@ -2232,7 +2232,7 @@ public final class StudioFlags {
       "gmscore.min.version",
       "Minimum version of the GmsCore Backup module that is supported",
       "Minimum version of the GmsCore Backup module that is supported",
-      Integer.MAX_VALUE); // TODO(b/356613310) Replace with actual version when available
+      250231000);
 
   public static final Flag<Boolean> BACKUP_ACTION_IN_RUNNING_DEVICES =
     new BooleanFlag(
