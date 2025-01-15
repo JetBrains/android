@@ -115,6 +115,8 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -582,11 +584,17 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
+  private val _modelChanged = MutableSharedFlow<Unit>()
+
+  /** The [DesignSurface]'s [models] has changed. */
+  val modelChanged = _modelChanged.asSharedFlow()
+
   private fun notifyModelsChanged(models: List<NlModel?>) {
     val listeners = getSurfaceListeners()
     for (listener in listeners) {
       runInEdt { listener.modelsChanged(this, models) }
     }
+    scope.launch { _modelChanged.emit(Unit) }
   }
 
   private fun notifySelectionChanged(newSelection: List<NlComponent>) {
@@ -700,12 +708,24 @@ abstract class DesignSurface<T : SceneManager>(
     for (listener in getZoomListeners()) {
       listener.zoomChanged(previousScale, newScale)
     }
+    scope.launch { _zoomChanged.emit(Unit) }
   }
+
+  private val _zoomChanged = MutableSharedFlow<Unit>()
+
+  /** The [DesignSurface] screen scale has changed. */
+  val zoomChanged = _zoomChanged.asSharedFlow()
+
+  private val _panningChanged = MutableSharedFlow<Unit>()
+
+  /** The scrollbars value has changed. */
+  val panningChanged = _panningChanged.asSharedFlow()
 
   protected fun notifyPanningChanged() {
     for (listener in getZoomListeners()) {
       listener.panningChanged()
     }
+    scope.launch { _panningChanged.emit(Unit) }
   }
 
   /**
