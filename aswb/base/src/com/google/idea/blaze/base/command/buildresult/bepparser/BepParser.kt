@@ -15,7 +15,7 @@
  */
 @file:JvmName("BepParser")
 
-package com.google.idea.blaze.base.command.buildresult.bepparser;
+package com.google.idea.blaze.base.command.buildresult.bepparser
 
 import com.google.common.base.Preconditions
 import com.google.common.base.Strings
@@ -67,11 +67,11 @@ fun parseBepArtifacts(stream: BuildEventStreamProvider, nullableInterner: Intern
     }
 
     override fun getOutputGroupTargetArtifacts(outputGroup: String, label: String): List<OutputArtifact> {
-      return state.traverseFileSets(state.outputs.outputGroupTargetFileSetStream(outputGroup, label)).toList()
+      return state.traverseFileSets(state.outputs.outputGroupTargetFileSetStream(outputGroup, label)).toDistinctOutputArtifacts().toList()
     }
 
     override fun getOutputGroupArtifacts(outputGroup: String): List<OutputArtifact> {
-      return state.traverseFileSets(state.outputs.outputGroupFileSetStream(outputGroup)).toList()
+      return state.traverseFileSets(state.outputs.outputGroupFileSetStream(outputGroup)).toDistinctOutputArtifacts().toList()
     }
 
     override fun targetsWithErrors(): Set<String> {
@@ -79,9 +79,9 @@ fun parseBepArtifacts(stream: BuildEventStreamProvider, nullableInterner: Intern
     }
 
     override fun getAllOutputArtifactsForTesting(): List<OutputArtifact> {
-      return state.traverseFileSets(state.outputs.fileSetStream()).toList()
+      return state.traverseFileSets(state.outputs.fileSetStream()).toDistinctOutputArtifacts().toList()
     }
-  };
+  }
 }
 
 /**
@@ -125,7 +125,7 @@ private data class OutputGroupTargetConfigFileSets(
  * at each level of the hierarchy.
  */
 private class OutputGroupTargetConfigFileSetMap {
-  private val data: MutableMap<String, MutableMap<String, MutableMap<String, List<String>>>> = mutableMapOf();
+  private val data: MutableMap<String, MutableMap<String, MutableMap<String, List<String>>>> = mutableMapOf()
 
   private fun getOutputGroup(outputGroup: String): MutableMap<String, MutableMap<String, List<String>>> {
     return data.computeIfAbsent(outputGroup) { mutableMapOf() }
@@ -140,9 +140,9 @@ private class OutputGroupTargetConfigFileSetMap {
   }
 
   fun setOutputGroupTargetConfig(outputGroup: String, target: String, config: String, fileSetNames: List<String>) {
-    val previous = getOutputGroupTarget(outputGroup, target).put(config, fileSetNames.toList());
+    val previous = getOutputGroupTarget(outputGroup, target).put(config, fileSetNames.toList())
     if (previous != null) {
-      error("$outputGroup:$target:$config already present");
+      error("$outputGroup:$target:$config already present")
     }
   }
 
@@ -158,7 +158,7 @@ private class OutputGroupTargetConfigFileSetMap {
   }
 
   fun outputGroupFileSetStream(outputGroup: String): Sequence<OutputGroupTargetConfigFileSets> {
-    val outputGroupData = data[outputGroup] ?: return emptySequence();
+    val outputGroupData = data[outputGroup] ?: return emptySequence()
     return outputGroupData.entries.asSequence().flatMap { target ->
       target.value.entries.asSequence().map { config ->
         OutputGroupTargetConfigFileSets(outputGroup, target.key,
@@ -184,14 +184,14 @@ private class FileSets {
   val data: MutableMap<String, BuildEventStreamProtos.NamedSetOfFiles> = mutableMapOf()
 
   fun add(name: String, fileSet: BuildEventStreamProtos.NamedSetOfFiles) {
-    val existing = data.put(name, fileSet);
+    val existing = data.put(name, fileSet)
     if (existing != null) {
       error("File set named $name already exists")
     }
   }
 
   fun toImmutableMap(): ImmutableMap<String, BuildEventStreamProtos.NamedSetOfFiles> {
-    return ImmutableMap.copyOf(data);
+    return ImmutableMap.copyOf(data)
   }
 }
 
@@ -203,10 +203,9 @@ private class BepParserState {
   var startTimeMillis: Long = 0L
   var buildResult: Int = 0
 
-  fun traverseFileSets(fileSetNames: Sequence<OutputGroupTargetConfigFileSets>): Sequence<OutputArtifact> {
+  fun traverseFileSets(fileSetNames: Sequence<OutputGroupTargetConfigFileSets>): Sequence<NamedFileSet> {
     val queue = ArrayDeque<String>()
     val visited = HashSet<String>()
-    val emitted = HashSet<String>()
 
     fileSetNames.flatMap { it.fileSetNames.asSequence() }.distinct().forEach { filesetName ->
       if (visited.add(filesetName)) {
@@ -215,20 +214,27 @@ private class BepParserState {
     }
     return sequence {
       while (!queue.isEmpty()) {
-        val fileSetName = queue.removeFirst();
-        val fileSet = fileSets.data[fileSetName] ?: error("Unknown fileSetId: $fileSetName")
+        val fileSetId = queue.removeFirst()
+        val fileSet = fileSets.data[fileSetId] ?: error("Unknown fileSetId: $fileSetId")
         for (fileSetId in fileSet.fileSetsList) {
           if (visited.add(fileSetId.id)) {
             queue.addLast(fileSetId.id)
           }
         }
-        val artifacts = parseFiles(fileSet, startTimeMillis)
-        for (artifact in artifacts) {
-          if (emitted.add(artifact.getArtifactPath().toString())) {
-            yield(artifact)
-          }
-        }
+        yield(NamedFileSet(fileSetId, startTimeMillis, fileSet))
       }
+    }
+  }
+}
+
+private data class NamedFileSet(val id: String, val startTimeMillis: Long, val fileSet: BuildEventStreamProtos.NamedSetOfFiles)
+
+private fun Sequence<NamedFileSet>.toDistinctOutputArtifacts(): Sequence<OutputArtifact> {
+  val emitted = HashSet<String>()
+  return flatMap { fileSet ->
+    val artifacts = parseFiles(fileSet.fileSet, fileSet.startTimeMillis)
+    artifacts.mapNotNull { artifact ->
+      if (emitted.add(artifact.getArtifactPath().toString())) artifact else null
     }
   }
 }
@@ -241,11 +247,11 @@ class BepParserSemaphore {
   @Throws(BuildEventStreamProvider.BuildEventStreamException::class)
   fun start() {
     try {
-      parallelParsingSemaphore?.acquire();
+      parallelParsingSemaphore?.acquire()
     }
     catch (e: InterruptedException) {
-      Thread.currentThread().interrupt();
-      throw BuildEventStreamProvider.BuildEventStreamException("Failed to acquire a parser semphore permit", e);
+      Thread.currentThread().interrupt()
+      throw BuildEventStreamProvider.BuildEventStreamException("Failed to acquire a parser semphore permit", e)
     }
   }
 
@@ -273,7 +279,7 @@ private class FileSetBuilder {
   }
 
   fun build(startTimeMillis: Long): ParsedBepOutput.Legacy.FileSet {
-    return ParsedBepOutput.Legacy.FileSet(parseFiles(namedSet!!, startTimeMillis).toList(), outputGroups, targets);
+    return ParsedBepOutput.Legacy.FileSet(parseFiles(namedSet!!, startTimeMillis).toList(), outputGroups, targets)
   }
 }
 
@@ -288,7 +294,7 @@ private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interne
     when (event.id.idCase) {
       NAMED_SET -> {
         val namedSet = internNamedSet(event.getNamedSetOfFiles(), interner)
-        state.fileSets.add(interner.intern(event.id.namedSet.id), namedSet);
+        state.fileSets.add(interner.intern(event.id.namedSet.id), namedSet)
       }
 
       ACTION_COMPLETED -> {
@@ -303,7 +309,7 @@ private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interne
         val configId = event.id.targetCompleted.configuration.id
 
         for (o in event.completed.outputGroupList) {
-          val fileSetNames = getFileSets(o, interner);
+          val fileSetNames = getFileSets(o, interner)
           state.outputs.setOutputGroupTargetConfig(interner.intern(o.name), interner.intern(label), interner.intern(configId),
                                                    fileSetNames)
         }
@@ -326,7 +332,7 @@ private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interne
   if (emptyBuildEventStream) {
     throw BuildEventStreamProvider.BuildEventStreamException("No build events found")
   }
-  return state;
+  return state
 }
 
 private fun getFileSets(group: BuildEventStreamProtos.OutputGroup, interner: Interner<String>): List<String> {
