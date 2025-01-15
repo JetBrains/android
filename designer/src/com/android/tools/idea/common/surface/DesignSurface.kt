@@ -24,7 +24,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.CONFIGURATIONS
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
@@ -531,8 +530,6 @@ abstract class DesignSurface<T : SceneManager>(
 
   @GuardedBy("listenersLock") private val listeners = mutableListOf<DesignSurfaceListener>()
 
-  @GuardedBy("listenersLock") private val zoomListeners = mutableListOf<PanZoomListener>()
-
   fun addListener(listener: DesignSurfaceListener) {
     listenersLock.withLock {
       // Ensure single registration
@@ -545,33 +542,8 @@ abstract class DesignSurface<T : SceneManager>(
     listenersLock.withLock { listeners.remove(listener) }
   }
 
-  fun addPanZoomListener(listener: PanZoomListener) {
-    listenersLock.withLock {
-      // Ensure single registration
-      zoomListeners.remove(listener)
-      zoomListeners.add(listener)
-    }
-  }
-
-  fun removePanZoomListener(listener: PanZoomListener) {
-    listenersLock.withLock { zoomListeners.remove(listener) }
-  }
-
   private fun clearListeners() {
-    listenersLock.withLock {
-      listeners.clear()
-      zoomListeners.clear()
-    }
-  }
-
-  /**
-   * Gets a copy of [zoomListeners] under a lock. Use this method instead of accessing the listeners
-   * directly.
-   */
-  private fun getZoomListeners(): ImmutableList<PanZoomListener> {
-    listenersLock.withLock {
-      return ImmutableList.copyOf(zoomListeners)
-    }
+    listenersLock.withLock { listeners.clear() }
   }
 
   /**
@@ -691,7 +663,7 @@ abstract class DesignSurface<T : SceneManager>(
     }
     models.firstOrNull()?.let { storeCurrentScale(it) }
     revalidateScrollArea()
-    notifyScaleChanged(update.previousScale, update.newScale)
+    scope.launch { _zoomChanged.emit(Unit) }
   }
 
   /** Save the current zoom level from the file of the given [NlModel]. */
@@ -702,13 +674,6 @@ abstract class DesignSurface<T : SceneManager>(
     val state = getInstance(project).surfaceState
     // TODO Maybe have a reference to virtualFile directly instead of from NlModel
     state.saveFileScale(project, model.virtualFile, zoomController)
-  }
-
-  private fun notifyScaleChanged(previousScale: Double, newScale: Double) {
-    for (listener in getZoomListeners()) {
-      listener.zoomChanged(previousScale, newScale)
-    }
-    scope.launch { _zoomChanged.emit(Unit) }
   }
 
   private val _zoomChanged = MutableSharedFlow<Unit>()
@@ -722,9 +687,6 @@ abstract class DesignSurface<T : SceneManager>(
   val panningChanged = _panningChanged.asSharedFlow()
 
   protected fun notifyPanningChanged() {
-    for (listener in getZoomListeners()) {
-      listener.panningChanged()
-    }
     scope.launch { _panningChanged.emit(Unit) }
   }
 
