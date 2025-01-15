@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
@@ -24,12 +25,15 @@ import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
+import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
+import javax.swing.JPanel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -198,6 +202,21 @@ class DeviceManagerPanelTest {
       .containsExactly(ValueRowKey<DeviceRowData>(pixel4))
   }
 
+  @Test
+  fun tracksNotificationBanners() = runTestWithFixture {
+    val banner = EditorNotificationPanel().apply { text = "Warnings" }
+    notificationBanners.send(listOf(banner))
+    panel.setBounds(0, 0, 800, 400)
+
+    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    fakeUi.layout()
+    assertThat(((panel.components[0]) as JPanel).components[0]).isEqualTo(banner)
+
+    // Banner component gets removed with notificationBanners flow.
+    notificationBanners.send(listOf())
+    yieldUntil { panel.findAllDescendants<EditorNotificationPanel>().none() }
+  }
+
   fun <T : Any> CategoryTable<T>.visibleKeys() =
     values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
 
@@ -212,6 +231,7 @@ class DeviceManagerPanelTest {
   private class Fixture(project: Project, testScope: TestScope) {
     val deviceHandles = Channel<List<DeviceHandle>>(Channel.UNLIMITED)
     val deviceTemplates = Channel<List<DeviceTemplate>>(Channel.UNLIMITED)
+    val notificationBanners = Channel<List<EditorNotificationPanel>>(Channel.UNLIMITED)
     val pairedDevices = Channel<Map<String, List<PairingStatus>>>(Channel.UNLIMITED)
 
     // UnconfinedTestDispatcher is extremely useful here to cause actions to run to completion.
@@ -226,6 +246,7 @@ class DeviceManagerPanelTest {
         dispatcher,
         deviceHandles.consumeAsFlow().stateIn(scope, SharingStarted.Lazily, emptyList()),
         deviceTemplates.consumeAsFlow().stateIn(scope, SharingStarted.Lazily, emptyList()),
+        notificationBanners.consumeAsFlow().stateIn(scope, SharingStarted.Lazily, emptyList()),
         emptyList(),
         emptyList(),
         pairedDevices.consumeAsFlow().stateIn(scope, SharingStarted.Lazily, emptyMap()),
