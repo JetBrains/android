@@ -124,9 +124,8 @@ object TestVisualizationContentProvider : VisualizationContentProvider {
       addDataProvider(
         EdtNoGetDataProvider { sink -> sink[VisualizationContent.VISUALIZATION_CONTENT] = panel }
       )
-      val context = (DataManager.getInstance() as HeadlessDataManager).dataContext
       (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
-        if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else context.getData(it)
+        if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else null
       }
 
       addContent(content)
