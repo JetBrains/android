@@ -71,6 +71,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "@intellij//:intellij.platform.coverage[test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
 )
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -405,10 +406,10 @@ class UtpTestResultAdapterTest {
   fun importManagedDevice() {
     val deviceName = "really_long_avd_name"
     val dslName = "myDevice"
-    val deviceApi = 29
+    val deviceApi = "Tiramisu"
     val deviceInfoProtoFile = temporaryFolder.newFile()
     AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
-      apiLevel = deviceApi.toString()
+      apiLevel = deviceApi
       name = deviceName
       avdName = deviceName
       gradleDslDeviceName = dslName
@@ -441,7 +442,8 @@ class UtpTestResultAdapterTest {
     val deviceMatcher = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == "Gradle:$dslName" &&
       device.avdName == deviceName &&
-      device.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
+      device.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR &&
+      device.version == AndroidVersion(32, "Tiramisu")
     }
     val testCaseMatcher = ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod && testCase.className == testClass && testCase.packageName == TEST_PACKAGE_NAME
