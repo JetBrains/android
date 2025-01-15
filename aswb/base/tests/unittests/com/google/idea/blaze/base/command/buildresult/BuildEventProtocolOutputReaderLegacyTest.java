@@ -53,6 +53,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.TestOnly;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,8 +83,8 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
                                                                            String outputGroup,
                                                                            String label) {
     return fileSets.values().stream()
-      .filter(f -> f.targets.contains(label) && f.outputGroups.contains(outputGroup))
-      .map(f -> f.parsedOutputs)
+      .filter(f -> f.getTargets().contains(label) && f.getOutputGroups().contains(outputGroup))
+      .map(ParsedBepOutput.Legacy.FileSet::getParsedOutputs)
       .flatMap(List::stream)
       .distinct()
       .collect(toImmutableSet());
@@ -92,8 +93,8 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
   @TestOnly
   public static ImmutableList<OutputArtifact> getOutputGroupArtifacts(ImmutableMap<String, ParsedBepOutput.Legacy.FileSet> fileSets, String outputGroup) {
     return fileSets.values().stream()
-        .filter(f -> f.outputGroups.contains(outputGroup))
-        .map(f -> f.parsedOutputs)
+        .filter(f -> f.getOutputGroups().contains(outputGroup))
+        .map(ParsedBepOutput.Legacy.FileSet::getParsedOutputs)
         .flatMap(List::stream)
         .distinct()
         .collect(toImmutableList());
@@ -128,7 +129,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
                 "config-id",
                 ImmutableList.of(outputGroup("name", ImmutableList.of("set-id")))));
 
-    ImmutableSet<OutputArtifact> parsedFilenames =
+    Set<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifactsForLegacySync(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
             .getAllOutputArtifactsForTesting();
 
@@ -143,7 +144,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
         BuildEvent.newBuilder()
             .setCompleted(TargetComplete.getDefaultInstance());
 
-    ImmutableSet<OutputArtifact> parsedFilenames =
+    Set<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifactsForLegacySync(BuildEventStreamProvider.fromInputStream(asInputStream(targetFinishedEvent)), null)
             .getAllOutputArtifactsForTesting();
 
@@ -170,7 +171,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
                 "config-id",
                 ImmutableList.of(outputGroup("name", ImmutableList.of("set-id")))));
 
-    ImmutableSet<OutputArtifact> parsedFilenames =
+    Set<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifactsForLegacySync(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
             .getAllOutputArtifactsForTesting();
 
@@ -215,7 +216,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
             .map(File::new)
             .collect(toImmutableList());
 
-    ImmutableSet<OutputArtifact> parsedFilenames =
+    Set<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifactsForLegacySync(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
             .getAllOutputArtifactsForTesting();
 
@@ -252,7 +253,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
             .map(File::new)
             .collect(toImmutableList());
 
-    ImmutableSet<OutputArtifact> parsedFilenames =
+    Set<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifactsForLegacySync(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
             .getAllOutputArtifactsForTesting();
 

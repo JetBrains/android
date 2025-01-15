@@ -138,17 +138,17 @@ public interface BlazeBuildOutputs {
     return new BlazeBuildOutputs() {
       @Override
       public ImmutableList<OutputArtifact> getOutputGroupTargetArtifacts(String outputGroup, String label) {
-        return parsedOutput.getOutputGroupTargetArtifacts(outputGroup, label);
+        return ImmutableList.copyOf(parsedOutput.getOutputGroupTargetArtifacts(outputGroup, label));
       }
 
       @Override
       public ImmutableList<OutputArtifact> getOutputGroupArtifacts(String outputGroup) {
-        return parsedOutput.getOutputGroupArtifacts(outputGroup);
+        return ImmutableList.copyOf(parsedOutput.getOutputGroupArtifacts(outputGroup));
       }
 
       @Override
       public ImmutableSet<String> targetsWithErrors() {
-        return parsedOutput.targetsWithErrors();
+        return ImmutableSet.copyOf(parsedOutput.targetsWithErrors());
       }
 
       @Override
@@ -177,8 +177,8 @@ public interface BlazeBuildOutputs {
     ParsedBepOutput.Legacy parsedOutput) {
     final var result = BuildResult.fromExitCode(parsedOutput.getBuildResult());
     ImmutableMap<String, BuildResult> buildIdWithResult =
-      parsedOutput.buildId != null
-      ? ImmutableMap.of(parsedOutput.buildId, result)
+      parsedOutput.getBuildId() != null
+      ? ImmutableMap.of(parsedOutput.getBuildId(), result)
       : ImmutableMap.of();
     return new BlazeBuildOutputsImpl(
       result,
