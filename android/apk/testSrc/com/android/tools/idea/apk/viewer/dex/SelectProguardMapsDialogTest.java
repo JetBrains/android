@@ -49,6 +49,7 @@ public class SelectProguardMapsDialogTest extends AndroidTestCase {
   public void testBadFolderLayout() throws Exception {
     VirtualFile selected =
       SelectProguardMapsDialog.getDefaultFolderToSelect(dataRoot.findFileByRelativePath("oldStructure"));
-    assertEquals(selected, selected);
+    // check that path is unchanged if SelectProguardMapsDialog can't recognize the folder layout
+    assertEquals(dataRoot, selected);
   }
 }
