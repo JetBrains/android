@@ -45,7 +45,7 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
     // On api 28 the whole debugger hangs when attaching the agent.
     // for now we're disabling it, but we could investigate this further and re-enable it later on.
     // Since this check doesn't prevent the coroutine debugger panel from showing up, we should consider moving it into the agent.
-    if (!device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)) {
+    if (!device.version.isAtLeast(AndroidVersion.VersionCodes.Q)) {
       return ""
     }
 

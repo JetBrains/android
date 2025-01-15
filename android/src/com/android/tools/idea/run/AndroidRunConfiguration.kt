@@ -253,7 +253,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     }
 
     // Default Activity behavior has changed to not show the splashscreen in Tiramisu. We need to add the splashscreen back.
-    if (device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)) {
+    if (device.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
       extraFlags += (if (extraFlags.isEmpty()) "" else " ") + "--splashscreen-show-icon"
     }
     val startActivityFlagsProvider = if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {

@@ -87,7 +87,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean supportsMultipleScreenFormats() {
-    return myDevice.getVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
+    return myDevice.getVersion().isAtLeast(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
            && "resizable".equals(myDevice.getProperty(PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME));
   }
 
@@ -154,7 +154,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean getSupportsSdkRuntime() {
-    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isGreaterOrEqualThan(34);
+    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isAtLeast(34);
   }
 
   @NotNull

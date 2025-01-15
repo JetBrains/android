@@ -231,7 +231,7 @@ public abstract class BaseAction extends AnAction {
                                 "the selected device is not authorized");
     }
 
-    if (devices.stream().anyMatch(d -> !d.getVersion().isGreaterOrEqualThan(MIN_API_VERSION))) {
+    if (devices.stream().anyMatch(d -> !d.getVersion().isAtLeast(MIN_API_VERSION))) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
                                 "its API level is lower than 26");
     }

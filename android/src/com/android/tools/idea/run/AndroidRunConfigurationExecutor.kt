@@ -201,7 +201,7 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Terminating the app"
       val results = devices.filter {
         // Starting with API33, we will purely rely on Package Manager to handle process termination.
-        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
+        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)
       }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
 
       if (results.any { !it }) {
@@ -467,7 +467,7 @@ class AndroidRunConfigurationExecutor(
     stats.setIsComposeProject(LiveEditService.usesCompose(project))
     // Only applicable 35+
     stats.setUseAssumeVerified(configuration.ALLOW_ASSUME_VERIFIED &&
-                               devices.any { it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) })
+                               devices.any { it.version.isAtLeast(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) })
   }
 
   private fun isApplyCodeChangesFallbackToRun(): Boolean {

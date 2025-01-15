@@ -834,7 +834,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
 
   public static boolean supportLiveEdits(IDevice device) {
-    return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
+    return device.getVersion().isAtLeast(AndroidVersion.VersionCodes.R);
   }
 
   // TODO: Unify this part.

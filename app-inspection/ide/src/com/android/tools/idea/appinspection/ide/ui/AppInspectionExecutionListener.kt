@@ -46,7 +46,7 @@ class AppInspectionExecutionListener : ExecutionListener {
   private fun displayStripeButton(project: Project, device: IDevice) {
     ApplicationManager.getApplication().invokeLater {
       val window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)
-      if (window != null && device.version.isGreaterOrEqualThan(26)) {
+      if (window != null && device.version.isAtLeast(26)) {
         // For discoverability, we always show the "app inspection" tool window button to users
         // if they are targeting a device that supports JVMTI, since that means it can support
         // inspectors. We'll always at least have the database inspector available, and more and
