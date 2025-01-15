@@ -96,12 +96,13 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
 
   init {
     init()
-    title = "Backup App State"
+    title = "Backup App Data"
     if (applicationIds.contains(initialApplicationId)) {
       applicationIdComboBox.item = initialApplicationId
     }
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
+    isResizable = false
   }
 
   override fun createCenterPanel(): JComponent {

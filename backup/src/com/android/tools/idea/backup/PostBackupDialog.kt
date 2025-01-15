@@ -63,6 +63,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
   init {
     init()
     title = "Add To Run Configuration"
+    isResizable = false
   }
 
   override fun createCenterPanel(): JComponent {
