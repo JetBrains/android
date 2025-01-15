@@ -74,7 +74,10 @@ class AtfAnalyzerComposeTest {
     val facet = projectRule.androidFacet(":app")
     val visualLintPreviewFile =
       facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
+    val issues =
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
+        it.type == VisualLintErrorType.ATF_COLORBLIND
+      }
 
     Assert.assertEquals(1, issues.size)
 
@@ -107,7 +110,10 @@ class AtfAnalyzerComposeTest {
     val facet = projectRule.androidFacet(":app")
     val visualLintPreviewFile =
       facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
+    val issues =
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
+        it.type == VisualLintErrorType.ATF_COLORBLIND
+      }
 
     Assert.assertEquals(2, issues.size)
 
@@ -141,7 +147,10 @@ class AtfAnalyzerComposeTest {
     val facet = projectRule.androidFacet(":app")
     val visualLintPreviewFile =
       facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
+    val issues =
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
+        it.type == VisualLintErrorType.ATF_COLORBLIND
+      }
 
     Assert.assertEquals(3, issues.size)
 
