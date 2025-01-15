@@ -34,7 +34,10 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 
-/** [DropDownAction] that allows switching the layout manager in the surface. */
+/**
+ * [DropDownAction] that allows switching the layout manager in the surface. Only add if there is
+ * more than one option.
+ */
 class SwitchSurfaceLayoutManagerAction(
   layoutManagers: List<SurfaceLayoutOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
@@ -93,11 +96,7 @@ class SwitchSurfaceLayoutManagerAction(
 
   init {
     templatePresentation.isHideGroupIfEmpty = true
-
-    // We will only add the actions and be visible if there are more than one option
-    if (layoutManagers.size > 1) {
-      layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
-    }
+    layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

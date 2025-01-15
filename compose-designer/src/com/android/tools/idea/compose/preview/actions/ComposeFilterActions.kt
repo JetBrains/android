@@ -21,6 +21,8 @@ import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -50,6 +52,11 @@ class ComposeShowFilterAction :
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  companion object {
+    fun shouldBeEnabled() =
+      StudioFlags.COMPOSE_VIEW_FILTER.get() && !PreviewEssentialsModeManager.isEssentialsModeEnabled
+  }
 }
 
 /** The action to exit the query mode in compose preview. */

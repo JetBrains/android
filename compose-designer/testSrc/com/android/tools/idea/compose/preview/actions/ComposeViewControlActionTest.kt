@@ -163,6 +163,7 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         listOf(SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }))
       )
+
     fun ComposePreviewManager.Status.setAndUpdate() {
       manager.currentStatus =
         this.also {
@@ -182,5 +183,48 @@ class ComposeViewControlActionTest {
 
     nonRefreshingStatus.setAndUpdate()
     assertTrue(event.presentation.isEnabled)
+  }
+
+  @Test
+  fun testNotVisibleIfNoActionsAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent()
+    assertFalse(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfFilterActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(true)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent()
+    assertTrue(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfInspectorActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
+    val event = createAndUpdateEvent()
+    assertTrue(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfAdditionalActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent(ColorBlindModeAction())
+    assertTrue(event.presentation.isVisible)
+  }
+
+  private fun createAndUpdateEvent(
+    additionalActionProvider: ColorBlindModeAction? = null
+  ): AnActionEvent {
+    val viewControlAction =
+      ComposeViewControlAction(emptyList(), additionalActionProvider = additionalActionProvider)
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, mock<NlDesignSurface>())
+    val event = TestActionEvent.createTestEvent(dataContext)
+    viewControlAction.update(event)
+    return event
   }
 }

@@ -15,41 +15,39 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
 class ComposeViewControlAction(
-  layoutOptions: List<SurfaceLayoutOption>,
+  val layoutOptions: List<SurfaceLayoutOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  additionalActionProvider: AnAction? = null,
+  val additionalActionProvider: ColorBlindModeAction? = null,
 ) :
   ViewControlAction(
     isEnabled = { !isPreviewRefreshing(it.dataContext) },
     essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
   ) {
   init {
-    if (
-      StudioFlags.COMPOSE_VIEW_FILTER.get() && !PreviewEssentialsModeManager.isEssentialsModeEnabled
-    ) {
+    if (ComposeShowFilterAction.shouldBeEnabled()) {
       add(ComposeShowFilterAction())
       addSeparator()
     }
-    add(
-      SwitchSurfaceLayoutManagerAction(layoutOptions, isSurfaceLayoutActionEnabled).apply {
-        isPopup = false
-        templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
-      }
-    )
-    addSeparator()
+    if (layoutOptions.shouldBeEnabled()) {
+      add(
+        SwitchSurfaceLayoutManagerAction(layoutOptions, isSurfaceLayoutActionEnabled).apply {
+          isPopup = false
+          templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
+        }
+      )
+      addSeparator()
+    }
     add(ShowInspectionTooltipsAction())
     additionalActionProvider?.let {
       addSeparator()
@@ -57,8 +55,25 @@ class ComposeViewControlAction(
     }
   }
 
+  /**
+   * Action is visible if any of the following are enabled
+   * * [ComposeShowFilterAction]
+   * * [SwitchSurfaceLayoutManagerAction]
+   * * [ShowInspectionTooltipsAction]
+   * * [additionalActionProvider]
+   */
+  private fun hasVisibleActions(e: AnActionEvent): Boolean {
+    return ComposeShowFilterAction.shouldBeEnabled() ||
+      layoutOptions.shouldBeEnabled() ||
+      ShowInspectionTooltipsAction.shouldBeEnabled() ||
+      additionalActionProvider?.shouldBeEnabled(e) == true
+  }
+
+  /** [SwitchSurfaceLayoutManagerAction] is enabled only if there is more than one option. */
+  private fun List<SurfaceLayoutOption>.shouldBeEnabled() = this.size > 1
+
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
+    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext) && hasVisibleActions(e)
   }
 }
