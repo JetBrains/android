@@ -303,7 +303,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     result.append(")\n");
     result.append("\n");
     result.append("collect_dependencies = _collect_dependencies(_config)\n");
-    result.append("package_dependencies = _package_dependencies\n");
+    result.append("package_dependencies = _package_dependencies(_config)\n");
     return result.toString();
   }
 

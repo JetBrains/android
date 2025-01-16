@@ -59,7 +59,7 @@ load(
     "ALWAYS_BUILD_RULES",
     "DependenciesInfo",
     "collect_all_dependencies_for_tests",
-    "package_dependencies",
+    "package_dependencies_for_tests",
 )
 
 def _test_build_deps_impl(ctx):
@@ -267,7 +267,7 @@ test_build_deps_desc = rule(
     implementation = _test_build_dep_desc_impl,
     attrs = {
         "deps": attr.label_list(
-            aspects = [collect_all_dependencies_for_tests, package_dependencies],
+            aspects = [collect_all_dependencies_for_tests, package_dependencies_for_tests],
         ),
     },
 )

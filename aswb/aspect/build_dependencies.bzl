@@ -76,10 +76,19 @@ JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_KOTLIN.srcs_at
 def _noneToEmpty(d):
     return d if d else depset()
 
-def _package_dependencies_impl(target, ctx):
+def _package_dependencies_impl(target, ctx, params):
     dep_info = target[DependenciesInfo]
-    java_info_file = _write_java_target_info(target, ctx)
-    cc_info_files = _write_cc_target_info(target, ctx) + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else []
+    target_to_artifacts = target[DependenciesInfo].target_to_artifacts
+    if target_to_artifacts:
+        java_info_file = [_write_java_target_info(target.label, target_to_artifacts, ctx)]
+    else:
+        java_info_file = []
+
+    cc_compilation_info = target[DependenciesInfo].cc_compilation_info
+    if cc_compilation_info:
+        cc_info_files = [_write_cc_target_info(target.label, cc_compilation_info, ctx)] + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else []
+    else:
+        cc_info_files = []
 
     return [OutputGroupInfo(
         qs_jars = _noneToEmpty(dep_info.compile_time_jars),
@@ -90,36 +99,31 @@ def _package_dependencies_impl(target, ctx):
         qs_cc_info = cc_info_files,
     )]
 
-def _write_java_target_info(target, ctx, custom_prefix = ""):
+def _write_java_target_info(label, target_to_artifacts, ctx, custom_prefix = ""):
     """Write java target info to a file in proto format.
 
     The proto format used is defined by proto bazel.intellij.JavaArtifacts.
     """
-    target_to_artifacts = target[DependenciesInfo].target_to_artifacts
-    if not target_to_artifacts:
-        return []
-    file_name = custom_prefix + target.label.name + ".java-info.txt"
+    file_name = custom_prefix + label.name + ".java-info.txt"
     artifact_info_file = ctx.actions.declare_file(file_name)
     ctx.actions.write(
         artifact_info_file,
         _encode_target_info_proto(target_to_artifacts),
     )
-    return [artifact_info_file]
+    return artifact_info_file
 
-def _write_cc_target_info(target, ctx):
+def _write_cc_target_info(label, cc_compilation_info, ctx):
     """Write CC target info to a file in proto format.
 
     The proto format used defined by proto bazel.intellij.CcCompilationInfo.
     """
-    if not target[DependenciesInfo].cc_compilation_info:
-        return []
-    cc_info_file_name = target.label.name + ".cc-info.txt"
+    cc_info_file_name = label.name + ".cc-info.txt"
     cc_info_file = ctx.actions.declare_file(cc_info_file_name)
     ctx.actions.write(
         cc_info_file,
-        _encode_cc_compilation_info_proto(target.label, target[DependenciesInfo].cc_compilation_info),
+        _encode_cc_compilation_info_proto(label, cc_compilation_info),
     )
-    return [cc_info_file]
+    return cc_info_file
 
 DependenciesInfo = provider(
     "The out-of-project dependencies",
@@ -292,10 +296,16 @@ def _encode_cc_compilation_info_proto(label, cc_compilation_info):
         ]),
     )
 
-package_dependencies = aspect(
-    implementation = _package_dependencies_impl,
-    required_aspect_providers = [[DependenciesInfo]],
-)
+def package_dependencies(parameters):
+    def _impl(target, ctx):
+        return _package_dependencies_impl(target, ctx, parameters)
+
+    return aspect(
+        implementation = _impl,
+        required_aspect_providers = [[DependenciesInfo]],
+    )
+
+package_dependencies_for_tests = package_dependencies(struct())
 
 def declares_android_resources(target, ctx):
     """
@@ -1007,7 +1017,9 @@ collect_all_dependencies_for_tests = aspect(
 def _write_java_info_txt_impl(ctx):
     info_txt_files = []
     for dep in ctx.attr.deps:
-        info_txt_files.extend(_write_java_target_info(dep, ctx, custom_prefix = ctx.label.name + "."))
+        target_to_artifacts = dep[DependenciesInfo].target_to_artifacts
+        if target_to_artifacts:
+            info_txt_files.extend([_write_java_target_info(dep.label, target_to_artifacts, ctx, custom_prefix = ctx.label.name + ".")])
     return DefaultInfo(files = depset(info_txt_files))
 
 def collect_dependencies_aspect_for_tests(custom_aspect_impl):

@@ -103,7 +103,7 @@ _config = struct(
 )
 
 collect_dependencies = _collect_dependencies(_config)
-package_dependencies = _package_dependencies
+package_dependencies = _package_dependencies(_config)
 """);
   }
 }
