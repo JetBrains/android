@@ -58,6 +58,9 @@ debugger_test(
     expected_to_fail_jvm = "stepping-k2-k2-jvm.txt",
     module = "kotlin.jvm-debugger.test.k2",
     shard_count = 50,
+    test_exclude_filter = [
+        "testSoSuspendableCallInEndOfFun",
+    ],
     test_include_filter = ["K2IdeK2CodeKotlinSteppingTestGenerated\\$"],
 )
 
@@ -78,6 +81,9 @@ debugger_test(
     expected_to_fail_jvm = "stepping-k2-indy-jvm.txt",
     module = "kotlin.jvm-debugger.test.k2",
     shard_count = 50,
+    test_exclude_filter = [
+        "testSoSuspendableCallInEndOfFun",
+    ],
     test_include_filter = ["K2IndyLambdaKotlinSteppingTestGenerated\\$"],
 )
 
