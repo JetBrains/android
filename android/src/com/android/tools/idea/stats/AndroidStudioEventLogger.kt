@@ -15,14 +15,31 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceFolderType.ANIMATOR
+import com.android.resources.ResourceFolderType.COLOR
+import com.android.resources.ResourceFolderType.DRAWABLE
+import com.android.resources.ResourceFolderType.FONT
+import com.android.resources.ResourceFolderType.INTERPOLATOR
+import com.android.resources.ResourceFolderType.LAYOUT
+import com.android.resources.ResourceFolderType.MENU
+import com.android.resources.ResourceFolderType.MIPMAP
+import com.android.resources.ResourceFolderType.NAVIGATION
+import com.android.resources.ResourceFolderType.RAW
+import com.android.resources.ResourceFolderType.TRANSITION
+import com.android.resources.ResourceFolderType.VALUES
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
 import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
+import com.google.wireless.android.sdk.stats.EditorFileType
+import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_ANIM
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
 import com.google.wireless.android.sdk.stats.IntelliJNewUISwitch
@@ -44,10 +61,12 @@ import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.internal.statistic.eventLog.events.EventFields
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
@@ -63,6 +82,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     val callbacks = mapOf("debugger.breakpoints.usage" to ::logDebuggerBreakpointsUsage,
+                          "documentation" to ::logQuickDocEvent,
                           "experimental.ui.interactions" to ::logNewUIStateChange,
                           "file.types" to ::logFileType,
                           "file.types.usage" to ::logFileTypeUsage,
@@ -73,8 +93,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                           "startup" to ::logStartupEvent,
                           "vfs" to ::logVfsEvent,
                           "xdebugger.actions" to ::logDebuggerEvent)
-    val c = callbacks[group.id] ?: return CompletableFuture.completedFuture(null)
-    val builder = c(eventId, data) ?: return CompletableFuture.completedFuture(null)
+    val builder = callbacks[group.id]?.invoke(eventId, data) ?: return CompletableFuture.completedFuture(null)
     return CompletableFuture.runAsync({ UsageTracker.log(builder) }, logExecutor)
   }
 
@@ -409,6 +428,42 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }
     return AndroidStudioEvent.newBuilder().setKind(DEBUGGER_EVENT).setDebuggerEvent(event)
   }
+
+  private fun logQuickDocEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    if (eventId != "quick.doc.closed") return null
+    val fileTypeString = data["file_type"] as? String
+    val durationMsLong = data["duration_ms"] as? Long
+    if (fileTypeString == null) {
+      thisLogger().error("file_type was not a String, instead was $fileTypeString")
+      return null
+    }
+    if (durationMsLong == null) {
+      thisLogger().error("duration_ms was not a Long, instead was $durationMsLong")
+      return null
+    }
+    return AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
+      editingMetricsEventBuilder.apply {
+        quickDocEventBuilder.apply {
+          fileType = fileTypeString.toEditorFileType()
+          shownDurationMs = durationMsLong
+        }
+      }
+    }
+  }
+
+  private fun String.toEditorFileType() = when(this) {
+    "JAVA" -> EditorFileType.JAVA
+    "Kotlin" -> EditorFileType.KOTLIN
+    "Groovy" -> EditorFileType.GROOVY
+    "Properties" -> EditorFileType.PROPERTIES
+    "JSON" -> EditorFileType.JSON
+    "ObjectiveC" -> EditorFileType.NATIVE // Derived from OCLanguage constructor.
+    "XML" -> EditorFileType.XML
+    "protobuf" -> EditorFileType.PROTO
+    "TOML" -> EditorFileType.TOML
+    "Dart" -> EditorFileType.DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
+    else -> EditorFileType.UNKNOWN
+    }
 
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
