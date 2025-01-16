@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -146,7 +145,6 @@ class ComposeClassNameCalculatorTest {
     }
   }
 
-  @Ignore("388473186")
   @Test
   fun testIntegrationWithExtensionPoint() {
     val file =
@@ -176,6 +174,34 @@ class ComposeClassNameCalculatorTest {
         ),
         allClassNames,
       )
+    }
+  }
+
+  @Test
+  fun cachesResult() {
+    val file =
+      projectRule.fixture.addFileToProject(
+        "src/a/App.kt",
+        """
+      package a
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun MyComposable(child: @Composable () -> Unit) {}
+
+       @Composable
+      fun App() {
+        MyComposable { } // <- This Lambda is expected to generate a special class by compose
+      }
+    """
+          .trimIndent(),
+      ) as KtFile
+
+    runReadAction {
+      val calculated = ComposeClassNameCalculator().getClassNames(file)
+      val cached = ComposeClassNameCalculator().getClassNames(file)
+
+      Assert.assertSame(calculated, cached)
     }
   }
 }

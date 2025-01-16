@@ -448,6 +448,14 @@ public final class StudioFlags {
     "Enable support and UI element for Run configuration that deploys a custom artifact",
     false);
 
+  // This should be used by AndroidX team. See b/388473186
+  public static final Flag<Boolean> COMPOSE_CLASS_NAME_CALCULATOR_CANONICAL_FILE_CACHE = new BooleanFlag(
+    RUNDEBUG,
+    "compose.class.name.calculator.canonical.file.cache",
+    "Enable canonical filename cache in ComposeClassNameCalculator.",
+    "Turns on a canonical file cache for projects that have multiple versions of the same file as dependancies",
+    false);
+
   /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support
