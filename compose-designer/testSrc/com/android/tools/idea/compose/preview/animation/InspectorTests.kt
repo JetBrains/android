@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -87,5 +88,8 @@ open class InspectorTests {
           it.animationClock = AnimationClock(TestClock())
           Disposer.register(parentDisposable, it)
         }
+
+    // Create VisualLintService early to avoid it being created at the time of project disposal
+    VisualLintService.getInstance(projectRule.project)
   }
 }
