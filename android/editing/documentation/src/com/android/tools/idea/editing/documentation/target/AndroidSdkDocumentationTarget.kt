@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.editing.documentation.target
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.downloads.UrlFileCache
+import com.android.tools.idea.downloads.UrlFileCache.FetchStats
+import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
+import com.google.wireless.android.sdk.stats.EditorFileType
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter
 import com.intellij.codeInsight.navigation.SingleTargetElementInfo
 import com.intellij.codeInsight.navigation.targetPresentation
@@ -70,16 +76,17 @@ sealed class AndroidSdkDocumentationTarget<T>(
   }
 
   override fun computeDocumentation(): DocumentationResult {
-    val deferredPath =
-      UrlFileCache.getInstance(targetElement.project).get(url, maxFileAge = 1.days) {
+    val deferredPathAndStats =
+      UrlFileCache.getInstance(targetElement.project).getWithStats(url, maxFileAge = 1.days) {
         it.filterStream()
       }
-    return if (deferredPath.isCompleted) {
-      DocumentationResult.documentation(getDocumentationHtml(deferredPath)).externalUrl(url)
+    return if (deferredPathAndStats.isCompleted) {
+      DocumentationResult.documentation(getDocumentationHtml(deferredPathAndStats)).externalUrl(url)
     } else {
       DocumentationResult.asyncDocumentation {
-        deferredPath.join() // It will be completed after this.
-        DocumentationResult.documentation(getDocumentationHtml(deferredPath)).externalUrl(url)
+        deferredPathAndStats.join() // It will be completed after this.
+        DocumentationResult.documentation(getDocumentationHtml(deferredPathAndStats))
+          .externalUrl(url)
       }
     }
   }
@@ -114,16 +121,27 @@ sealed class AndroidSdkDocumentationTarget<T>(
   ): AndroidSdkDocumentationTarget<T>?
 
   /**
-   * Retrieves the documentation HTML from the file pointed to by [deferredPath], which must be a
-   * completed [Deferred].
+   * Retrieves the documentation HTML from the file pointed to by [deferredPathAndStats], which must
+   * be a completed [Deferred]. We wait to unwrap the [Deferred] until inside this method so we need
+   * not write the exception-handling logic twice.
+   *
+   * This method also logs metrics related to the fetch/display.
    */
-  private fun getDocumentationHtml(completedDeferredPath: Deferred<Path>): String {
-    require(completedDeferredPath.isCompleted) { "Can only pass a completed Deferred!" }
+  private fun getDocumentationHtml(
+    completedDeferredPathAndStats: Deferred<Pair<Path, FetchStats>>
+  ): String {
+    require(completedDeferredPathAndStats.isCompleted) { "Can only pass a completed Deferred!" }
+    @OptIn(ExperimentalCoroutinesApi::class)
     try {
-      @OptIn(ExperimentalCoroutinesApi::class)
-      completedDeferredPath.getCompleted().readText().let { if (it.isNotEmpty()) return it }
+      val (path, stats) = completedDeferredPathAndStats.getCompleted()
+      val text = path.readText()
+      logFetchStats(stats, text.toByteArray().size)
+      path.readText().let { if (it.isNotEmpty()) return it }
+    } catch (e: UrlFileCache.UrlFileCacheException) {
+      logFetchStats(e.fetchStats, numDisplayedHtmlBytes = 0)
+      thisLogger().warn("Failure fetching documentation URL.", e.cause)
     } catch (e: Exception) {
-      thisLogger().warn("Failed to fetch documentation URL.", e)
+      thisLogger().error("Unexpected failure fetching documentation URL.", e)
     }
 
     if (localJavaDocInfo != null) return localJavaDocInfo
@@ -153,6 +171,27 @@ sealed class AndroidSdkDocumentationTarget<T>(
     fun filterFromStream(reader: Reader, stringBuilder: StringBuilder) {
       doBuildFromStream(url, reader, stringBuilder, true, true)
     }
+  }
+
+  private fun logFetchStats(fetchStats: FetchStats, numDisplayedHtmlBytes: Int) {
+    val builder =
+      AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
+        editingMetricsEventBuilder.apply {
+          externalQuickDocEventBuilder.apply {
+            fileType =
+              sourceElement?.language?.id?.let(::getEditorFileTypeForAnalytics)
+                ?: EditorFileType.UNKNOWN
+            fetchDurationMs = fetchStats.fetchDuration.inWholeMilliseconds
+            success = fetchStats.success
+            cacheHit = fetchStats.cacheHit
+            serverNotModified = fetchStats.notModified
+            numBytesFetched = fetchStats.numBytesFetched
+            numBytesCached = fetchStats.numBytesCached
+            numBytesDisplayed = numDisplayedHtmlBytes.toLong()
+          }
+        }
+      }
+    UsageTracker.log(builder)
   }
 
   companion object {
