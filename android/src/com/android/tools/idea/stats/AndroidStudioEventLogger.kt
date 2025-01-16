@@ -15,22 +15,8 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceFolderType.ANIMATOR
-import com.android.resources.ResourceFolderType.COLOR
-import com.android.resources.ResourceFolderType.DRAWABLE
-import com.android.resources.ResourceFolderType.FONT
-import com.android.resources.ResourceFolderType.INTERPOLATOR
-import com.android.resources.ResourceFolderType.LAYOUT
-import com.android.resources.ResourceFolderType.MENU
-import com.android.resources.ResourceFolderType.MIPMAP
-import com.android.resources.ResourceFolderType.NAVIGATION
-import com.android.resources.ResourceFolderType.RAW
-import com.android.resources.ResourceFolderType.TRANSITION
-import com.android.resources.ResourceFolderType.VALUES
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
@@ -39,7 +25,6 @@ import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
 import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
 import com.google.wireless.android.sdk.stats.EditorFileType
-import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_ANIM
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
 import com.google.wireless.android.sdk.stats.IntelliJNewUISwitch
@@ -61,19 +46,22 @@ import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.internal.statistic.eventLog.events.EventFields
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import com.intellij.util.application
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
-import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
-object AndroidStudioEventLogger : StatisticsEventLogger {
+@Service(Service.Level.APP)
+class AndroidStudioEventLogger : StatisticsEventLogger {
 
   private val logExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidStudioEventLogger", 1)
 
@@ -474,5 +462,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     val project = ProjectManager.getInstance().openProjects
       .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
     return this.withProjectId(project)
+  }
+
+  companion object {
+    fun getInstance() : AndroidStudioEventLogger = application.service()
   }
 }
