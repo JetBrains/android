@@ -200,6 +200,9 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
       return false
     }
 
+    //Check if the current module is a valid AndroidTest module to setup the Run Configuration from
+    if (AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration(module) == null) return false
+
     val project = module.project
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
       project, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())

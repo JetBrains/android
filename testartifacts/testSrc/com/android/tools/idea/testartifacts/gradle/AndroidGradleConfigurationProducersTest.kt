@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_ANDROID_TEST_DISABLED
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.TEST_RESOURCES
@@ -302,6 +303,21 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       ":kmpFirstLib:testAndroidUnitTest",
       "--tests", "\"com.example.kmpfirstlib.KmpCommonFirstLibClassTest\""
     )
+  }
+
+  // For reference: b/389733593
+  fun testOnlyUnitTestConfigurationIsCreatedWhenAndroidTestIsDisabled() {
+    loadProject(SIMPLE_APP_ANDROID_TEST_DISABLED)
+    // Verify we cannot create androidTest RC from UnitTest class.
+    assertNull(TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, "google.simpleapplication.UnitTest"))
+    // Verify we cannot create androidTest RC from UnitTest method.
+    assertNull(TestConfigurationTesting.createAndroidTestConfigurationFromMethod(project, "google.simpleapplication.UnitTest", "passingTest"))
+    // Verify we cannot create androidTest RC from UnitTest directory.
+    assertNull(TestConfigurationTesting.createAndroidTestConfigurationFromDirectory(project, "app/src/test/java"))
+
+    // Now verify that we can instead create unitTest RCs from all these contexts.
+    assertNotNull(createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java"))
+    assertNotNull(createAndroidGradleTestConfigurationFromClass(project, "google.simpleapplication.UnitTest"))
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {
