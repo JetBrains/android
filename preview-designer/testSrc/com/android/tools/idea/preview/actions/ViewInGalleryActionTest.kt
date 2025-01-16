@@ -33,6 +33,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
@@ -52,15 +53,18 @@ class ViewInGalleryActionTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val dataContext: DataContext = mock()
+  private lateinit var dataContext: DataContext
   private val designSurface: NlDesignSurface = mock()
   private val modeManager: PreviewModeManager = mock()
 
   @Before
   fun setUp() {
     StudioFlags.VIEW_IN_GALLERY.override(true)
-    whenever(dataContext.getData(DESIGN_SURFACE)).thenReturn(designSurface)
-    whenever(dataContext.getData(PreviewModeManager.KEY)).thenReturn(modeManager)
+    dataContext =
+      SimpleDataContext.builder()
+        .add(DESIGN_SURFACE, designSurface)
+        .add(PreviewModeManager.KEY, modeManager)
+        .build()
   }
 
   @After
