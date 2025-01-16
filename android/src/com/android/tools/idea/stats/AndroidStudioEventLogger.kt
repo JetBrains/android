@@ -52,8 +52,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
 import com.intellij.util.application
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
@@ -61,9 +62,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
 @Service(Service.Level.APP)
-class AndroidStudioEventLogger : StatisticsEventLogger {
-
-  private val logExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidStudioEventLogger", 1)
+class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : StatisticsEventLogger {
 
   override fun cleanup() {}
   override fun getActiveLogFile(): Nothing? = null
@@ -82,7 +81,14 @@ class AndroidStudioEventLogger : StatisticsEventLogger {
                           "vfs" to ::logVfsEvent,
                           "xdebugger.actions" to ::logDebuggerEvent)
     val builder = callbacks[group.id]?.invoke(eventId, data) ?: return CompletableFuture.completedFuture(null)
-    return CompletableFuture.runAsync({ UsageTracker.log(builder) }, logExecutor)
+    val job = coroutineScope.launch { UsageTracker.log(builder) }
+    // This silliness is required because "Void" does not play nicely with Kotlin at all.
+    return CompletableFuture<Void>().also {
+      job.invokeOnCompletion { cause ->
+        if (cause === null) it.complete(null)
+        else it.completeExceptionally(cause)
+      }
+    }
   }
 
   override fun logAsync(group: EventLogGroup,
