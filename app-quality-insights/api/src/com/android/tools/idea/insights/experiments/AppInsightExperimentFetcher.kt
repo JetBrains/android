@@ -19,6 +19,7 @@ import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
 import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 
 interface AppInsightsExperimentFetcher {
   fun getCurrentExperiment(experimentGroup: ExperimentGroup): Experiment
@@ -31,18 +32,28 @@ interface AppInsightsExperimentFetcher {
 
 class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
 
+  private var loggedExperiment: Experiment? = null
+
   override fun getCurrentExperiment(experimentGroup: ExperimentGroup): Experiment {
     experimentGroup.experiments.forEach { experiment ->
       if (isFlagExpected("experiments/aqi/${experiment.flagName}", experiment.protoType))
-        return experiment
+        return logAndReturn(experiment)
     }
-    return Experiment.UNKNOWN
+    return logAndReturn(Experiment.UNKNOWN)
   }
 
   private fun isFlagExpected(flag: String, expected: ExperimentType) =
     ServerFlagService.instance
       .getProto(flag, AqiExperimentsConfig.getDefaultInstance())
       .experimentType == expected
+
+  private fun logAndReturn(experiment: Experiment): Experiment {
+    if (loggedExperiment != experiment) {
+      thisLogger().info("Assigned to AQI experiment: $experiment")
+      loggedExperiment = experiment
+    }
+    return experiment
+  }
 }
 
 private val CONTEXT_SHARING_EXPERIMENTS =

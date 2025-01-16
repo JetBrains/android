@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.insights.experiments
 
+import com.android.mockito.kotlin.whenever
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import org.junit.Before
@@ -77,5 +80,35 @@ class AppInsightsExperimentFetcherTest {
     activeExperiment = Experiment.CONTROL
     assertThat(experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT))
       .isEqualTo(Experiment.CONTROL)
+  }
+
+  @Test
+  fun `test logs experiment once`() {
+    val mockLogger = mockStatic<Logger>(projectRule.disposable)
+    val logs = mutableListOf<String?>()
+    val fakeLogger =
+      object : Logger() {
+        override fun isDebugEnabled() = false
+
+        override fun debug(message: String?, t: Throwable?) = Unit
+
+        override fun info(message: String?, t: Throwable?) {
+          logs.add(message)
+        }
+
+        override fun warn(message: String?, t: Throwable?) = Unit
+
+        override fun error(message: String?, t: Throwable?, vararg details: String?) = Unit
+      }
+
+    mockLogger
+      .whenever<Any> { Logger.getInstance(AppInsightExperimentFetcherImpl::class.java) }
+      .thenReturn(fakeLogger)
+
+    activeExperiment = Experiment.TOP_THREE_SOURCES
+    repeat(10) { experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT) }
+
+    assertThat(logs.size).isEqualTo(1)
+    assertThat(logs[0]).isEqualTo("Assigned to AQI experiment: TOP_THREE_SOURCES")
   }
 }
