@@ -56,6 +56,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBTabbedPane
+import com.jetbrains.rd.generator.nova.fail
 import icons.StudioIcons
 import java.awt.Dimension
 import javax.swing.JComponent
@@ -63,15 +64,15 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-@Ignore("b/388928988")
 class VitalsTabTest {
 
   private val projectRule = ProjectRule()
@@ -268,8 +269,7 @@ class VitalsTabTest {
     runBlocking(AndroidDispatchers.uiThread) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
-      // Consume Enable from Insight toolwindow being visible
-      controllerRule.consumeNext()
+
       controllerRule.consumeInitialState(
         LoadingState.Ready(
           IssueResponse(
@@ -297,8 +297,7 @@ class VitalsTabTest {
     runBlocking(AndroidDispatchers.uiThread) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
-      // Consume Enable from Insight toolwindow being visible
-      controllerRule.consumeNext()
+
       controllerRule.consumeInitialState(
         LoadingState.Ready(
           IssueResponse(
@@ -328,8 +327,7 @@ class VitalsTabTest {
     runBlocking(AndroidDispatchers.uiThread) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
-      // Consume Enable from Insight toolwindow being visible
-      controllerRule.consumeNext()
+
       controllerRule.consumeInitialState(
         LoadingState.Ready(
           IssueResponse(
@@ -359,8 +357,7 @@ class VitalsTabTest {
     runBlocking(AndroidDispatchers.uiThread) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
-      // Consume Enable from Insight toolwindow being visible
-      controllerRule.consumeNext()
+
       controllerRule.consumeInitialState(
         LoadingState.Ready(
           IssueResponse(
@@ -387,30 +384,41 @@ class VitalsTabTest {
   @Test
   fun `tab not visible does not trigger insight fetch`() =
     runBlocking(AndroidDispatchers.uiThread) {
-      visibilityFlow.update { false }
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS,
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
+          ),
+      )
+
       createTab()
-      // Consume Disable from Insight toolwindow being invisible
+      controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
       var state = controllerRule.consumeNext()
+      assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+
+      // Hide tab
+      visibilityFlow.update { false }
+      state = controllerRule.consumeNext()
       assertThat(state.disabledActions).containsExactly(Action.FetchInsight::class).inOrder()
 
-      state =
-        controllerRule.consumeInitialState(
-          LoadingState.Ready(
-            IssueResponse(
-              listOf(ISSUE1),
-              listOf(DEFAULT_FETCHED_VERSIONS),
-              listOf(DEFAULT_FETCHED_DEVICES),
-              listOf(DEFAULT_FETCHED_OSES),
-              DEFAULT_FETCHED_PERMISSIONS,
-            )
-          ),
-          detailsState =
-            LoadingState.Ready(
-              DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-            ),
-        )
-
+      controllerRule.controller.refreshInsight(false)
+      state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+      try {
+        withTimeout(1000) {
+          controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+        }
+        fail("Should have timed out")
+      } catch (_: TimeoutCancellationException) {}
 
       visibilityFlow.update { true }
       state = controllerRule.consumeNext()

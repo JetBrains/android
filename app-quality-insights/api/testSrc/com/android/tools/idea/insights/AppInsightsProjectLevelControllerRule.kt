@@ -196,7 +196,7 @@ class AppInsightsProjectLevelControllerRule(
     insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
   ): AppInsightsState {
     connections.emit(connectionsState)
-    val loadingState = consumeNext()
+    val loadingState = consumeWhile { it.connections.items != connectionsState }
     assertThat(loadingState.connections)
       .isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
     assertThat(loadingState.issues).isInstanceOf(LoadingState.Loading::class.java)
@@ -215,6 +215,14 @@ class AppInsightsProjectLevelControllerRule(
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
+
+  suspend fun consumeWhile(condition: (AppInsightsState) -> Boolean): AppInsightsState {
+    var state = consumeNext()
+    while (condition(state)) {
+      state = consumeNext()
+    }
+    return state
+  }
 
   private suspend fun consumeLoading(): AppInsightsState {
     return internalState.receiveWithTimeout().also {
