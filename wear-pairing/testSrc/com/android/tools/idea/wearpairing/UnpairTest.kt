@@ -44,7 +44,7 @@ class UnpairTest {
       state = ConnectionState.ONLINE,
     )
   private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
     AvdInfo(
       Paths.get("ini"),

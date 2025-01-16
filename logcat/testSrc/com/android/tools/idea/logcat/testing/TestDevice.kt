@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.testing
 import com.android.adblib.DeviceState
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
+import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -127,7 +128,7 @@ private fun makeAvdInfo(
     mapOf(
       ConfigKey.DEVICE_MANUFACTURER to manufacturer,
       ConfigKey.DEVICE_NAME to model,
-      ConfigKey.ANDROID_API to androidVersion.apiStringWithoutExtension,
+      ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(androidVersion),
       ConfigKey.ABI_TYPE to Abi.ARM64_V8A.toString(),
       ConfigKey.DISPLAY_NAME to avdName,
     ),
