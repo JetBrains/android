@@ -147,6 +147,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.appcompat.appcompat_1.7.0",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.4",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.collection.collection-ktx_1.4.0",
         "@maven//:androidx.collection.collection-ktx_1.5.0-alpha06",
