@@ -53,9 +53,8 @@ class AndroidTestExtraParamsTable(
 
   override fun createRemoveAction() = if (showAddAndDeleteElementButton) super.createRemoveAction() else null
 
-  override fun createExtraActions(): Array<AnActionButton> {
-    val extraActions = super.createExtraActions()
-    return if (showRevertElementButton) {
+  override fun createExtraToolbarActions(): Array<AnActionButton> {
+    return (if (showRevertElementButton) {
       val revertAction = object : AnActionButton(ActionsBundle.message("action.ChangesView.Revert.text"),
                                                  AllIcons.Actions.Rollback) {
 
@@ -74,15 +73,15 @@ class AndroidTestExtraParamsTable(
         override fun isEnabled(): Boolean {
           return selection.any { selectedParam ->
             selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE
-            && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
+              && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
           }
         }
       }
-      extraActions + revertAction
+      arrayOf(revertAction)
     }
     else {
-      extraActions
-    }
+      emptyArray<AnActionButton>()
+    })
   }
 
   /**
