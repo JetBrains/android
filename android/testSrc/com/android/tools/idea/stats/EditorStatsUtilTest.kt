@@ -40,6 +40,31 @@ class EditorStatsUtilTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test
+  fun getEditorFileTypeForAnalytics_fromStringOnly() {
+    val map = mapOf(
+      "JAVA" to EditorFileType.JAVA,
+      "Java" to EditorFileType.JAVA,
+      "java" to EditorFileType.JAVA,
+      "Kotlin" to EditorFileType.KOTLIN,
+      "kotlin" to EditorFileType.KOTLIN,
+      "groovy" to EditorFileType.GROOVY,
+      "properties" to EditorFileType.PROPERTIES,
+      "json" to EditorFileType.JSON,
+      "ObjectiveC" to EditorFileType.NATIVE,
+      "XML" to EditorFileType.XML,
+      "xml" to EditorFileType.XML,
+      "protobuf" to EditorFileType.PROTO,
+      "TOML" to EditorFileType.TOML,
+      "Dart" to EditorFileType.DART,
+      "fhqwhgads" to EditorFileType.UNKNOWN,
+    )
+
+    for ((id, fileType) in map) {
+      assertThat(getEditorFileTypeForAnalytics(id)).isEqualTo(fileType)
+    }
+  }
+
+  @Test
   fun simpleFileTypes() = runBlocking {
     // EditorFileType.NATIVE is not tested, because there is no file extension registered for it. It's unclear whether it's needed at all,
     // but since this test is being added to document existing behavior I'm leaving it in the source code for now.
