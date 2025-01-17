@@ -53,7 +53,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.dsl.builder.Align
@@ -387,7 +386,7 @@ class ScreenshotViewer(
         }
       }
       catch (e: IOException) {
-        thisLogger().error("Unexpected error while writing to " + VfsUtilCore.virtualToIoFile(backingFile).toPath(), e)
+        thisLogger().error("Unexpected error while writing to ${backingFile.toNioPath()}", e)
       }
     })
     sourceImageRef.set(rotatedImage)
