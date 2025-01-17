@@ -220,13 +220,13 @@ class NewAndroidModuleModel(
               )
             }
           FormFactor.XR -> { data: TemplateData ->
-            generateXRModule(
-              data = data as ModuleTemplateData,
-              appTitle = applicationName.get(),
-              useKts = useGradleKts.get(),
-              useVersionCatalog = useVersionCatalog.get(),
-            )
-          }
+              generateXRModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                useKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            }
           FormFactor.Generic -> { data: TemplateData ->
               generateGenericModule(data as ModuleTemplateData)
             }

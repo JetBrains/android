@@ -69,9 +69,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
      */
     @UiThread fun finish() {}
 
-    /**
-     * Logs as INFO the template name and/or relevant info, to better help with user reports
-     */
+    /** Logs as INFO the template name and/or relevant info, to better help with user reports */
     fun logUsage()
   }
 
