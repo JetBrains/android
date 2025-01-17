@@ -139,6 +139,7 @@ object DesignSurfaceTestUtil {
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     whenever(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod()
     whenever(surface.focusedSceneView).thenReturn(sceneManager.sceneViews.firstOrNull())
+    whenever(surface.sceneViews).thenReturn(sceneManager.sceneViews)
     val scene = sceneManager.scene
     sceneManager.update()
     whenever(surface.scene).thenReturn(scene)

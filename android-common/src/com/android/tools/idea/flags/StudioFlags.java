@@ -1503,7 +1503,7 @@ public final class StudioFlags {
     COMPOSE, "preview.resizing",
     "Enable resizing for Compose Preview",
     "If enabled, the user can resize the Compose Preview",
-    false
+    enabledUpTo(DEV)
   );
 
   public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(

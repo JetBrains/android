@@ -1008,13 +1008,8 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
   /** Returns the list of [SceneView]s attached to this [DesignSurface]. */
-  val sceneViews: ImmutableCollection<SceneView>
-    get() {
-      return sceneManagers
-        .stream()
-        .flatMap { sceneManager: T -> sceneManager.sceneViews.stream() }
-        .collect(ImmutableList.toImmutableList())
-    }
+  val sceneViews: List<SceneView>
+    get() = sceneManagers.flatMap { sceneManager: T -> sceneManager.sceneViews }
 
   @Deprecated("b/352512443 Owner can have multiple scenes")
   override val scene: Scene?
