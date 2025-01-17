@@ -44,6 +44,7 @@ import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -63,6 +64,8 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 private const val DUMPSYS_GMSCORE_CMD = "dumpsys package com.google.android.gms"
 
@@ -81,6 +84,8 @@ internal class BackupManagerImplTest {
   private val usageTrackerRule = UsageTrackerRule()
   private val notificationRule = NotificationRule(projectRule)
   private val disposableRule = DisposableRule()
+
+  private val mockVirtualFileManager = mock<VirtualFileManager>()
 
   @get:Rule
   val rule =
@@ -112,7 +117,8 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val backupManagerImpl =
+      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     createModalDialogAndInteractWithIt({
@@ -141,6 +147,7 @@ internal class BackupManagerImplTest {
         "ShowPostBackupDialogAction",
       )
     assertThat(fakeDialogFactory.dialogs).isEmpty()
+    verify(mockVirtualFileManager).refreshAndFindFileByNioPath(backupFile)
     backupFile.deleteExisting()
   }
 

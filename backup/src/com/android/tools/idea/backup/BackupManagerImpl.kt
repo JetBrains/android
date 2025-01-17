@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
@@ -67,6 +68,7 @@ internal constructor(
   private val project: Project,
   private val backupService: BackupService,
   private val dialogFactory: DialogFactory,
+  private val virtualFileManager: VirtualFileManager = VirtualFileManager.getInstance(),
 ) : BackupManager {
   @Suppress("unused") // Used by the plugin XML
   constructor(
@@ -192,8 +194,9 @@ internal constructor(
         if (notify) {
           result.notify(operation, backupFile, serialNumber)
         }
-        if (result is Error) {
-          logger.warn(message("notification.error", operation), result.throwable)
+        when (result) {
+          is Success -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
+          is Error -> logger.warn(message("notification.error", operation), result.throwable)
         }
         BackupUsageTracker.logBackup(DEVICE_TO_DEVICE, source, result)
         result
