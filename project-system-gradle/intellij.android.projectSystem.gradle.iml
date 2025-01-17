@@ -66,5 +66,7 @@
     <orderEntry type="library" name="agp-version" level="project" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.gmaven" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
   </component>
 </module>

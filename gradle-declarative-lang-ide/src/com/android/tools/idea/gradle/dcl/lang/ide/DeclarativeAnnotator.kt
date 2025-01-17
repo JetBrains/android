@@ -15,48 +15,55 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignableProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataMemberFunction
-import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 
 class DeclarativeAnnotator : Annotator {
-
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!DeclarativeIdeSupport.isEnabled()) return
-    if (element !is com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement) return
+    if (element !is DeclarativeElement) return
 
-    fun getSchema(): DeclarativeSchema? {
-      val schema = element.project.getSchema() ?: return null
-      if (schema.failureHappened) return null // partial schema is useless here
+    fun getSchema(): BuildDeclarativeSchemas? {
+      val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
       return schema
     }
 
     // check element naming
-    if (element is DeclarativeIdentifier) {
+    if (element is DeclarativeIdentifier && element.parent !is DeclarativeProperty) {
       val schema = getSchema() ?: return
       val path = getPath(element)
-      val result = searchForType(path, schema, element.containingFile.name)
+      var result = searchForType(path, schema, element.containingFile.name)
+      if (element.parent is DeclarativeFactory) {
+        // search for plain function like uri, file etc
+        element.name?.let {
+          result += searchForType(listOf(it), schema, element.containingFile.name)
+        }
+      }
       if (result.isEmpty()) {
         showUnknownName(holder)
       }
     }
     // check element type
+    // checking the whole element - assignment, function, block
+    // does not check embedded elements
     if (element.isMainLevelElement()) {
       val identifier = element.findIdentifier() ?: return
       val path = getPath(identifier)
       val schema = getSchema() ?: return
       val result = searchForType(path, schema, element.containingFile.name)
       if (result.isEmpty()) return
-      val types = result.mapNotNull { it.toElementType() }
+      val types = result.map { it.toElementType() }.distinct()
       val foundType = types.any { it == element.getElementType() }
       if (!foundType) {
         showWrongType(types.map { it.str }, holder)
@@ -64,14 +71,9 @@ class DeclarativeAnnotator : Annotator {
     }
   }
 
-  private fun Project.getSchema(): DeclarativeSchema? {
-    val service = DeclarativeService.getInstance(this)
-    return service.getSchema()
-  }
-
   // psi element that has identifier we can build path to the root element
   private fun PsiElement.isMainLevelElement() =
-    this is DeclarativeIdentifierOwner
+    this is DeclarativeEntry
 
   private fun PsiElement.findIdentifier() =
     when (this) {
@@ -80,81 +82,60 @@ class DeclarativeAnnotator : Annotator {
     }
 
   sealed class SearchResult {
-    fun toElementType(): ElementType? {
+    // TODO make it dynamic in future by requesting this from schema
+    private var producerFunctionAvailable = listOf("java.net.URI")
+    fun toElementType(): ElementType {
       return when (this) {
-        is FoundFunction -> ElementType.FACTORY
-        is FoundClass -> ElementType.BLOCK
-        is FoundProperty -> getType(type)
-        else -> null
+        is FoundFunction -> when (type.semantic) {
+          is PlainFunction -> ElementType.FACTORY
+          is BlockFunction -> if (type.parameters.isNotEmpty()) ElementType.FACTORY_BLOCK else ElementType.BLOCK
+        }
+        is FoundClass ->
+          if (producerFunctionAvailable.contains(type.name.name))
+            ElementType.FACTORY_VALUE
+          else
+            ElementType.BLOCK
+        is FoundProperty -> getSimpleType(type)
+        is FoundEnum -> ElementType.ENUM
       }
     }
   }
 
-  data class FoundClass(val type: DataClass) : SearchResult()
-  data class FoundFunction(val type: DataMemberFunction) : SearchResult()
-  data class FoundProperty(val type: DataType) : SearchResult()
-  data object NDOC : SearchResult() // dynamic naming - we cannot verify it for now
+  data class FoundClass(val type: ClassModel) : SearchResult()
+  data class FoundEnum(val type: EnumModel) : SearchResult()
+  data class FoundFunction(val type: SchemaFunction) : SearchResult()
+  data class FoundProperty(val type: SimpleDataType) : SearchResult()
 
-  private fun searchForType(path: List<String>, schema: DeclarativeSchema, fileName: String): List<SearchResult> {
+  private fun searchForType(path: List<String>, schema: BuildDeclarativeSchemas, fileName: String): List<SearchResult> {
     if (path.isEmpty()) return listOf()
 
-    var currentReceiver: List<Receiver> = getTopLevelReceiversByName(path[0], schema, fileName)
-    var hasNdocFlag = hasNDOC(currentReceiver, schema)
+    var receivers: List<Entry> = schema.getTopLevelEntriesByName(path[0], fileName)
     val last = path.size - 1
     for (index in 1..last) {
-      if (currentReceiver.isEmpty()) {
-        return if (hasNdocFlag) listOf(NDOC) else listOf()
+      if (receivers.isEmpty()) {
+        return listOf()
       }
 
-      val name = path[index]
-
-      currentReceiver = currentReceiver.flatMap { element ->
-        when (element) {
-          // TODO need to verify type of function parameter
-          is Function -> when (val receiver = element.type.receiver) {
-            // assumption is that receiver is the same as for parent function for example `implementation(project(...))`
-            // TODO need to make it universal (b/355179149)
-            is DataTypeRef.Name -> schema.getDataClassesByFqName()[receiver.fqName]?.let {
-              getAllMembersByName(it, name)
-            } ?: listOf()
-
-            is DataTypeRef.Type -> listOf() // no children for simple type
-          }
-
-          is ObjectRef -> getAllMembersByName(element, name, schema)
-          is SimpleType -> listOf() // no children for simple type
-        }
-      }
-      if (currentReceiver.isNotEmpty()) hasNdocFlag = hasNDOC(currentReceiver, schema)
+      receivers = receivers.flatMap { it.getNextLevel(path[index]) }
     }
 
-    return currentReceiver.flatMap { receiver ->
+    return receivers.flatMap { receiver ->
       when (receiver) {
-        is Function -> listOf(FoundFunction(receiver.type))
-        is ObjectRef -> schema.getDataClassesByFqName()[receiver.fqName]?.let { listOf(FoundClass(it)) } ?: listOf()
-        is SimpleType -> listOf(FoundProperty(receiver.type))
-      }
-    }
-  }
-
-  private fun getAllMembersByName(o: ObjectRef, memberName: String, schema: DeclarativeSchema): List<Receiver> {
-    val dataClass = schema.getDataClassesByFqName()[o.fqName] ?: return listOf()
-    return getAllMembersByName(dataClass, memberName)
-  }
-
-  private fun hasNDOC(receivers: List<Receiver>, schema: DeclarativeSchema): Boolean =
-    receivers.any { element ->
-      when (element) {
-        is ObjectRef -> {
-          schema.getDataClassesByFqName()[element.fqName]?.let { isNDOC(it) } ?: false
+        is SchemaFunction -> listOf(FoundFunction(receiver))
+        is DataProperty -> when (val type = receiver.valueType) {
+          is DataClassRef -> receiver.resolveRef(type.fqName)?.let {
+            listOf(
+              when (it) {
+                is ClassModel -> FoundClass(it)
+                is EnumModel -> FoundEnum(it)
+              }
+            )
+          } ?: listOf()
+          is SimpleTypeRef -> listOf(FoundProperty(type.dataType))
         }
-
-        else -> false
       }
     }
-
-  private fun isNDOC(parentDataClass: DataClass?) =
-    parentDataClass?.supertypes?.contains(DefaultFqName("org.gradle.api", "NamedDomainObjectContainer")) == true
+  }
 
   private fun showUnknownName(holder: AnnotationHolder) {
     holder.newAnnotation(HighlightSeverity.ERROR, "Unknown identifier").create()
@@ -172,13 +153,40 @@ class DeclarativeAnnotator : Annotator {
   private fun getPath(element: DeclarativeIdentifier): List<String> {
     val result = mutableListOf<String>()
     var current: PsiElement = element
-    while (current.parent != null && current is com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement) {
-      if (current is DeclarativeIdentifierOwner) {
-        current.identifier?.name?.let { result.add(it) }
+    while (current.parent != null && current is DeclarativeElement) {
+      when (current) {
+        is DeclarativeArgumentsList -> current = skip<DeclarativeFactory>(current)
+
+        is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
+        is DeclarativeFactory ->
+          // factory has reversed presentation of receivers
+          current = parseReceiver<DeclarativeFactory>(current, result)
+
+        else -> {
+          if (current is DeclarativeIdentifierOwner) current.identifier?.name?.let { result.add(it) }
+          current = current.parent
+        }
       }
-      current = current.parent
     }
     return result.reversed()
   }
-}
 
+  private inline fun <reified T:DeclarativeElement> skip(current: PsiElement): PsiElement {
+    var element: PsiElement = current
+    while (element.parent != null && element.parent is T) {
+      element = element.parent
+    }
+    return element.parent
+  }
+
+  private inline fun <reified T: DeclarativeReceiverPrefixed<T>> parseReceiver(property: DeclarativeReceiverPrefixed<T>, list: MutableList<String>): PsiElement {
+    var currentProperty = property
+    currentProperty.identifier?.name?.let { list.add(it) }
+
+    while (currentProperty.getReceiver() != null) {
+      currentProperty = currentProperty.getReceiver()!!
+      currentProperty.identifier?.name?.let { list.add(it) }
+    }
+    return skip<T>(currentProperty)
+  }
+}

@@ -69,19 +69,38 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
 }
 
 private fun findDslElementClassName(path: List<String>, element: DeclarativeIdentifier): String? {
-  val service = DeclarativeService.getInstance(element.project)
-  val schema = service.getSchema() ?: return null
+  val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
+  val fileName = element.containingFile.name
+
+  fun extractFqName(receivers: List<Entry>): String? =
+    receivers.firstNotNullOf {
+      when (it) {
+        is SchemaFunction ->
+          when (it.semantic) {
+            is BlockFunction -> it.semantic.accessor.fqName.name
+            is PlainFunction -> null
+          }
+
+        is DataProperty ->
+          when (it.valueType) {
+            is DataClassRef -> it.valueType.fqName.name
+            is SimpleTypeRef -> null
+          }
+      }
+    }
 
   if (path.isEmpty()) {
-    return element.name?.let { getTopLevelReceiverByName(it, schema) }?.qualifiedName
+    return element.name?.let {
+      val result = schema.getTopLevelEntriesByName(it, fileName)
+      extractFqName(result)
+    }
   }
   else {
-    var fqName = getTopLevelReceiverByName(path[0], schema)
+    var receivers = schema.getTopLevelEntriesByName(path[0], fileName)
     for (i in 1 until path.size) {
-      val dataClass = schema.getDataClassesByFqName()[fqName] ?: return null
-      fqName = getReceiverByName(path[i], dataClass.memberFunctions)
+      receivers = receivers.flatMap { it.getNextLevel (path[i]) }
     }
-    return fqName?.qualifiedName
+    return extractFqName(receivers)
   }
 }
 

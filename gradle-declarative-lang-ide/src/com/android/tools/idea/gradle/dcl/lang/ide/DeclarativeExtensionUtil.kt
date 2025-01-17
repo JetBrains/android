@@ -17,56 +17,108 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.STRING
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.intellij.psi.PsiElement
-import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
 
 enum class ElementType(val str: String) {
   STRING("String"),
   INTEGER("Integer"),
   LONG("Long"),
   BOOLEAN("Boolean"),
+  ENUM("Enum"),
   BLOCK("Block element"),
+  FACTORY_BLOCK("Factory block"),
+  FACTORY_VALUE("Factory value"),
   FACTORY("Factory"),
-  PROPERTY("Property")
+  PROPERTY("Property"),
+  ENUM_CONSTANT("Enum Constant")
 }
 
-fun getType(type: DataTypeRef): ElementType = when (type) {
-  is DataTypeRef.Name -> BLOCK
-  is DataTypeRef.Type -> when (type.dataType) {
-    is DataType.IntDataType -> INTEGER
-    is DataType.LongDataType -> LONG
-    is DataType.StringDataType -> STRING
-    is DataType.BooleanDataType -> BOOLEAN
-    else -> ElementType.PROPERTY
+fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve: (FullName) -> ClassType?): ElementType = when (type) {
+  is DataClassRef ->
+    when (resolve(type.fqName)) {
+      is ClassModel ->
+        if (rootFunction
+            .map { it.returnValue }
+            .filterIsInstance<DataClassRef>()
+            .any { it.fqName == type.fqName }) FACTORY_VALUE
+        else ElementType.PROPERTY
+      is EnumModel -> ENUM
+      else -> BLOCK
+    }
+
+  is SimpleTypeRef -> getSimpleType(type.dataType)
+}
+
+fun getType(type: SchemaFunction): ElementType = when (type.semantic) {
+  is PlainFunction -> FACTORY
+  is BlockFunction -> if (type.parameters.isNotEmpty()) FACTORY_BLOCK else BLOCK
+}
+
+fun getType(type: Entry, rootFunction: List<PlainFunction>): ElementType = when (type) {
+  is SchemaFunction -> getType(type)
+  is DataProperty -> getType(type.valueType, rootFunction, type::resolveRef)
+}
+
+fun getEnumConstants(type: Entry?): List<String> {
+  if (type is DataProperty && type.valueType is DataClassRef) {
+    val enumEntity = type.resolveRef(type.valueType.fqName)
+    if (enumEntity is EnumModel)
+      return enumEntity.entryNames
   }
+  return listOf()
 }
 
-fun getType(type: DataType): ElementType = when (type) {
-  is DataType.IntDataType -> INTEGER
-  is DataType.LongDataType -> LONG
-  is DataType.StringDataType -> STRING
-  is DataType.BooleanDataType -> BOOLEAN
+
+fun getSimpleType(type: SimpleDataType): ElementType = when (type) {
+  SimpleDataType.INT -> INTEGER
+  SimpleDataType.LONG -> LONG
+  SimpleDataType.STRING -> STRING
+  SimpleDataType.BOOLEAN -> BOOLEAN
   else -> ElementType.PROPERTY
 }
 
 fun PsiElement.getElementType(): ElementType? = when (this) {
-  is DeclarativeBlock -> BLOCK
+  is DeclarativeBlock -> if (embeddedFactory != null) FACTORY_BLOCK else BLOCK
   is DeclarativeFactory -> FACTORY
-  is DeclarativeAssignment -> when (this.literal?.value) {
-    is String -> STRING
-    is Int -> INTEGER
-    is Boolean -> BOOLEAN
-    is Long -> LONG
-    else -> null
-  }
-
+  is DeclarativeAssignment ->
+    when (val rvalue = value) {
+      is DeclarativeBare -> ENUM
+      is DeclarativeLiteral ->
+        when (rvalue.value) {
+          is String -> STRING
+          is Int -> INTEGER
+          is Boolean -> BOOLEAN
+          is Long -> LONG
+          else -> ENUM
+        }
+      is DeclarativeFactory -> FACTORY_VALUE
+      else -> null
+    }
   else -> null
 }
+
+// getting all service function like `uri(string)`
+fun getRootFunctions(parent: PsiElement, schemas: BuildDeclarativeSchemas): List<SchemaFunction> =
+  schemas.getTopLevelEntries(parent.containingFile.name)
+    .filterIsInstance<SchemaFunction>()
+    .filter { function ->
+      when(val semantic = function.semantic) {
+        is PlainFunction -> semantic.returnValue != SimpleTypeRef(SimpleDataType.UNIT)
+        else -> false
+      }
+    }.distinct()
+
+fun getRootPlainFunctions(parent: PsiElement, schemas: BuildDeclarativeSchemas): List<PlainFunction> =
+  getRootFunctions(parent, schemas).map { it.semantic }.filterIsInstance<PlainFunction>()

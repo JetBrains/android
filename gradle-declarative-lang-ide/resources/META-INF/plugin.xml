@@ -64,6 +64,9 @@
                      implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeUnresolvedReferenceInspection"/>
 
   </extensions>
-
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"
+                    interface="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeSchemaProvider"/>
+  </extensionPoints>
   <xi:include href="/META-INF/gradle-declarative-lang.xml"/>
 </idea-plugin>

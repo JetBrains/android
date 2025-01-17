@@ -207,6 +207,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.actions.annotations">
     <inferAnnotationsToken implementation="com.android.tools.idea.actions.annotations.InferAnnotationsGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.gradle.dcl.ide">
+    <declarativeSchemaProvider implementation="com.android.tools.idea.gradle.dcl.DeclarativeGradleSchemaProvider"/>
+  </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
     <experimentalSettingsContributor implementation="com.android.tools.idea.gradle.project.GradleExperimentalSettingsContributor"/>
   </extensions>
@@ -263,6 +266,7 @@
     <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
+    <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.GradleSchemaProjectResolver"/>
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.output.DataBindingIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.AarDependencyCompatibilityIssueChecker"/>

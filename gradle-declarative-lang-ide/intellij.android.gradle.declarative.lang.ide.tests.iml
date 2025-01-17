@@ -17,5 +17,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" scope="TEST" />
+    <orderEntry type="library" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
   </component>
 </module>
