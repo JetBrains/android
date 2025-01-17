@@ -2903,8 +2903,6 @@ Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
-Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative-dsl-core-8.9-20240529002035+0000.jar
-Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative-dsl-tooling-models-8.9-20240529002035+0000.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar

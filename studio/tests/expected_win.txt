@@ -2173,8 +2173,6 @@ android-studio/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
-android-studio/plugins/gradle-declarative/lib/gradle-declarative-dsl-core-8.9-20240529002035+0000.jar
-android-studio/plugins/gradle-declarative/lib/gradle-declarative-dsl-tooling-models-8.9-20240529002035+0000.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar

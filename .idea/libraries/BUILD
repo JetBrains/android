@@ -326,13 +326,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "gradle-declarative-dsl",
-    jars = ["//prebuilts/tools/common/m2:gradle-declarative-dsl_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "junit4",
     jars = ["//prebuilts/tools/common/m2:junit4_files"],
     visibility = ["//visibility:public"],

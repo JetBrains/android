@@ -696,9 +696,6 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.gradle.dcl",
     directory = "gradle-declarative",
-    libs = [
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
-    ],
     modules = {
         "gradle-declarative.jar": [
             "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",

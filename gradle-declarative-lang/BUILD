@@ -14,7 +14,6 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
     ],

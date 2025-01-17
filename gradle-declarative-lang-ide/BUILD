@@ -13,7 +13,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module]",
         "@intellij//:org.jetbrains.kotlin",
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "@intellij//:com.intellij.java",
     ],
 )
