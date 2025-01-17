@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.res.FileRelevanceKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -32,17 +31,11 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiTreeChangeAdapter;
-import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
-import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopes;
-import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,11 +48,9 @@ import kotlin.jvm.functions.Function1;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
 public class GradleFiles implements Disposable.Default {
-  @NotNull private final Project myProject;
+  @NotNull final Project myProject;
 
   @NotNull private final Object myLock = new Object();
 
@@ -81,7 +72,7 @@ public class GradleFiles implements Disposable.Default {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
-  @NotNull private final GlobalSearchScope myScope;
+  @NotNull final GlobalSearchScope myScope;
 
   @NotNull private final GradleFilesUpdater myUpdater;
 
@@ -199,7 +190,7 @@ public class GradleFiles implements Disposable.Default {
     }
   }
 
-  private void addChangedFile(@NotNull VirtualFile file, boolean isExternal) {
+  void addChangedFile(@NotNull VirtualFile file, boolean isExternal) {
     synchronized (myLock) {
       if (isExternal) {
         myChangedExternalFiles.add(file);
@@ -222,7 +213,7 @@ public class GradleFiles implements Disposable.Default {
     }
   }
 
-  private boolean containsChangedFile(@NotNull VirtualFile file) {
+  boolean containsChangedFile(@NotNull VirtualFile file) {
     synchronized (myLock) {
       return myChangedFiles.contains(file) || myChangedExternalFiles.contains(file);
     }
@@ -339,137 +330,10 @@ public class GradleFiles implements Disposable.Default {
     scheduleUpdateFileHashes();
     removeChangedFiles();
   }
-
   public void maybeProcessSyncStarted() {
     if (!myProject.isInitialized()) {
       return;
     }
     resetChangedFilesState();
-  }
-
-  /**
-   * Listens for changes to the PsiTree of gradle build files. If a tree changes in any
-   * meaningful way then relevant file is recorded. A change is meaningful under the following
-   * conditions:
-   * <p>
-   * 1) Only whitespace has been added and deleted
-   * 2) The whitespace doesn't affect the structure of the files psi tree
-   * <p>
-   * For example, adding spaces to the end of a line is not a meaningful change, but adding a new
-   * line in between a line i.e "apply plugin: 'java'" -> "apply plugin: \n'java'" will be meaningful.
-   * <p>
-   * Note: We need to use both sets of before (beforeChildAddition, etc) and after methods (childAdded, etc)
-   * on the listener. This is because, for some reason, the events we care about on some files are sometimes
-   * only triggered with the children set in the after method and sometimes no after method is triggered
-   * at all.
-   */
-  private static class GradleFileChangeListener extends PsiTreeChangeAdapter {
-    @NotNull
-    private final GradleFiles myGradleFiles;
-
-    private GradleFileChangeListener(@NotNull GradleFiles gradleFiles) {
-      myGradleFiles = gradleFiles;
-    }
-
-    @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
-    }
-
-    @Override
-    public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void childMoved(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
-    }
-
-    private void processEvent(@NotNull PsiTreeChangeEvent event, @NotNull PsiElement... elements) {
-      PsiFile psiFile = event.getFile();
-      if (psiFile == null) {
-        return;
-      }
-
-      boolean isExternalBuildFile = myGradleFiles.isExternalBuildFile(psiFile);
-
-      if (!myGradleFiles.isGradleFile(psiFile) && !isExternalBuildFile) {
-        return;
-      }
-
-      if (myGradleFiles.containsChangedFile(psiFile.getVirtualFile())) {
-        EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
-        return;
-      }
-
-      if (myGradleFiles.myProject != psiFile.getProject()) {
-        return;
-      }
-
-      if (!myGradleFiles.myScope.contains(psiFile.getVirtualFile())) {
-        return;
-      }
-
-      boolean foundChange = false;
-      for (PsiElement element : elements) {
-        if (element == null || element instanceof PsiWhiteSpace || element instanceof PsiComment) {
-          continue;
-        }
-
-        if (element.getNode().getElementType().equals(GroovyTokenTypes.mNLS)) {
-          if (element.getParent() == null) {
-            continue;
-          }
-          if (element.getParent() instanceof GrCodeBlock || element.getParent() instanceof PsiFile) {
-            continue;
-          }
-        }
-
-        foundChange = true;
-        break;
-      }
-
-      if (foundChange) {
-        myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
-        EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
-        myGradleFiles.myProject.getService(AssistantInvoker.class).expireProjectUpgradeNotifications(myGradleFiles.myProject);
-      }
-    }
   }
 }
