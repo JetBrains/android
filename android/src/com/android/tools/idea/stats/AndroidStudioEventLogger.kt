@@ -24,7 +24,6 @@ import com.google.wireless.android.sdk.stats.DebuggerEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
 import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
-import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
 import com.google.wireless.android.sdk.stats.IntelliJNewUISwitch
@@ -438,26 +437,12 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     return AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
       editingMetricsEventBuilder.apply {
         quickDocEventBuilder.apply {
-          fileType = fileTypeString.toEditorFileType()
+          fileType = getEditorFileTypeForAnalytics(fileTypeString)
           shownDurationMs = durationMsLong
         }
       }
     }
   }
-
-  private fun String.toEditorFileType() = when(this) {
-    "JAVA" -> EditorFileType.JAVA
-    "Kotlin" -> EditorFileType.KOTLIN
-    "Groovy" -> EditorFileType.GROOVY
-    "Properties" -> EditorFileType.PROPERTIES
-    "JSON" -> EditorFileType.JSON
-    "ObjectiveC" -> EditorFileType.NATIVE // Derived from OCLanguage constructor.
-    "XML" -> EditorFileType.XML
-    "protobuf" -> EditorFileType.PROTO
-    "TOML" -> EditorFileType.TOML
-    "Dart" -> EditorFileType.DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
-    else -> EditorFileType.UNKNOWN
-    }
 
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
