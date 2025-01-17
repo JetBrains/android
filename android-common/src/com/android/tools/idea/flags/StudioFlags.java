@@ -2100,6 +2100,12 @@ public final class StudioFlags {
                     "When enabled, add prompt library settings screen.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
+                    "Enable Scroll to Bottom button",
+                    "When enabled, the chat will show a Scroll to Bottom button as needed.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
