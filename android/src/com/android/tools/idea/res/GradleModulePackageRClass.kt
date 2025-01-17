@@ -79,11 +79,12 @@ class ModuleRClass(
     lightVirtualFile.putUserData(FILE_SOURCE_SET_KEY, sourceSet)
   }
 
-  override fun getScopeType() =
-    when (sourceSet) {
-      MAIN -> ScopeType.MAIN
-      TEST -> ScopeType.ANDROID_TEST
-    }
+  override val scopeType: ScopeType
+    get() =
+      when (sourceSet) {
+        MAIN -> ScopeType.MAIN
+        TEST -> ScopeType.ANDROID_TEST
+      }
 
   private class ModuleResourcesSource(
     val facet: AndroidFacet,

@@ -4,9 +4,7 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProviders
-import com.intellij.openapi.extensions.ExtensionPointName.forEachExtensionSafe
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.projectRoots.Sdk
@@ -51,301 +49,201 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.PsiUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.IncorrectOperationException
+import javax.swing.Icon
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 import org.jetbrains.kotlin.idea.base.projectStructure.customLibrary
 import org.jetbrains.kotlin.idea.base.projectStructure.customSdk
 import org.jetbrains.kotlin.idea.base.projectStructure.customSourceRootType
-import java.util.function.Consumer
-import javax.swing.Icon
 
-abstract class AndroidLightClassBase protected constructor(psiManager: PsiManager, modifiers: MutableCollection<String>) :
+abstract class AndroidLightClassBase
+protected constructor(psiManager: PsiManager, modifiers: Iterable<String>) :
   LightElement(psiManager, JavaLanguage.INSTANCE), PsiClass, SyntheticElement {
-  private val myPsiModifierList: LightModifierList
-
-  init {
-    myPsiModifierList = LightModifierList(psiManager)
-    for (modifier in modifiers) {
-      myPsiModifierList.addModifier(modifier)
+  private val psiModifierList: LightModifierList =
+    LightModifierList(psiManager).apply {
+      for (modifier in modifiers) {
+        addModifier(modifier)
+      }
     }
-  }
 
   /**
-   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Module], so that the Kotlin IDE
-   * plugin knows how to handle this light class.
+   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Module], so
+   * that the Kotlin IDE plugin knows how to handle this light class.
    */
   protected fun setModuleInfo(module: Module, isTest: Boolean) {
-    this.putUserData<Module?>(ModuleUtilCore.KEY_MODULE, module)
+    putUserData(ModuleUtilCore.KEY_MODULE, module)
+
     // Some scenarios move up to the file level and then attempt to get the module from the file.
-    val containingFile = getContainingFile()
-    if (containingFile != null) {
-      containingFile.putUserData<Module?>(ModuleUtilCore.KEY_MODULE, module)
-      KotlinRegistrationHelper.setModuleInfo(containingFile, isTest)
-    }
+    val containingFile = getContainingFile() ?: return
+    containingFile.putUserData(ModuleUtilCore.KEY_MODULE, module)
+    KotlinRegistrationHelper.setModuleInfo(containingFile, isTest)
   }
 
   /**
-   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Library], so that the Kotlin IDE
-   * plugin knows how to handle this light class.
+   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Library], so
+   * that the Kotlin IDE plugin knows how to handle this light class.
    */
   protected fun setModuleInfo(library: Library) {
-    putUserData<Library?>(LIBRARY, library)
+    putUserData(LIBRARY, library)
 
-    val containingFile = getContainingFile()
-    if (containingFile != null) {
-      KotlinRegistrationHelper.setModuleInfo(containingFile, library)
-    }
+    val containingFile = getContainingFile() ?: return
+    KotlinRegistrationHelper.setModuleInfo(containingFile, library)
   }
 
   /**
-   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Sdk], so that the Kotlin IDE
-   * plugin knows how to handle this light class.
+   * Sets the forced [ModuleInfo] of the containing [PsiFile] to point to the given [Sdk], so that
+   * the Kotlin IDE plugin knows how to handle this light class.
    */
   protected fun setModuleInfo(sdk: Sdk) {
-    val containingFile = getContainingFile()
-    if (containingFile != null) {
-      KotlinRegistrationHelper.setModelInfo(containingFile, sdk)
-    }
+    val containingFile = getContainingFile() ?: return
+    KotlinRegistrationHelper.setModelInfo(containingFile, sdk)
   }
 
-  @Throws(IncorrectOperationException::class)
   override fun checkAdd(element: PsiElement) {
     throw IncorrectOperationException("Cannot add elements to R class")
   }
 
-  @Throws(IncorrectOperationException::class)
   override fun add(element: PsiElement): PsiElement? {
     throw IncorrectOperationException()
   }
 
-  @Throws(IncorrectOperationException::class)
   override fun addBefore(element: PsiElement, anchor: PsiElement?): PsiElement? {
     throw IncorrectOperationException()
   }
 
-  @Throws(IncorrectOperationException::class)
   override fun addAfter(element: PsiElement, anchor: PsiElement?): PsiElement? {
     throw IncorrectOperationException()
   }
 
-  override fun isInterface(): Boolean {
-    return false
-  }
+  override fun isInterface() = false
 
-  override fun isAnnotationType(): Boolean {
-    return false
-  }
+  override fun isAnnotationType() = false
 
-  override fun isEnum(): Boolean {
-    return false
-  }
+  override fun isEnum() = false
 
-  override fun getExtendsList(): PsiReferenceList? {
-    return LightEmptyImplementsList(myManager)
-  }
+  override fun getExtendsList(): PsiReferenceList = LightEmptyImplementsList(myManager)
 
-  override fun getImplementsList(): PsiReferenceList? {
-    return LightEmptyImplementsList(myManager)
-  }
+  override fun getImplementsList(): PsiReferenceList = LightEmptyImplementsList(myManager)
 
-  override fun getExtendsListTypes(): Array<PsiClassType?> {
-    return PsiClassType.EMPTY_ARRAY
-  }
+  override fun getExtendsListTypes(): Array<PsiClassType> = PsiClassType.EMPTY_ARRAY
 
-  override fun getImplementsListTypes(): Array<PsiClassType?> {
-    return PsiClassType.EMPTY_ARRAY
-  }
+  override fun getImplementsListTypes(): Array<PsiClassType> = PsiClassType.EMPTY_ARRAY
 
-  override fun getSuperClass(): PsiClass? {
-    return null
-  }
+  override fun getSuperClass(): PsiClass? = null
 
-  override fun getInterfaces(): Array<PsiClass?> {
-    return PsiClass.EMPTY_ARRAY
-  }
+  override fun getInterfaces(): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
-  override fun getSupers(): Array<PsiClass?> {
-    return PsiClass.EMPTY_ARRAY
-  }
+  override fun getSupers(): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
-  override fun getSuperTypes(): Array<PsiClassType?> {
-    return PsiClassType.EMPTY_ARRAY
-  }
+  override fun getSuperTypes(): Array<PsiClassType> = PsiClassType.EMPTY_ARRAY
 
-  override fun getFields(): Array<PsiField> {
-    return PsiField.EMPTY_ARRAY
-  }
+  override fun getFields(): Array<PsiField> = PsiField.EMPTY_ARRAY
 
-  override fun getMethods(): Array<PsiMethod?> {
-    return PsiMethod.EMPTY_ARRAY
-  }
+  override fun getMethods(): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
 
-  override fun getConstructors(): Array<PsiMethod?> {
-    return PsiMethod.EMPTY_ARRAY
-  }
+  override fun getConstructors(): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
 
-  override fun getInnerClasses(): Array<PsiClass?> {
-    return PsiClass.EMPTY_ARRAY
-  }
+  override fun getInnerClasses(): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
-  override fun getInitializers(): Array<PsiClassInitializer?> {
-    return PsiClassInitializer.EMPTY_ARRAY
-  }
+  override fun getInitializers(): Array<PsiClassInitializer> = PsiClassInitializer.EMPTY_ARRAY
 
-  override fun getAllFields(): Array<PsiField> {
-    return getFields()
-  }
+  override fun getAllFields(): Array<PsiField> = getFields()
 
-  override fun getAllMethods(): Array<PsiMethod?> {
-    return PsiMethod.EMPTY_ARRAY
-  }
+  override fun getAllMethods(): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
 
-  override fun getAllInnerClasses(): Array<PsiClass?> {
-    return getInnerClasses()
-  }
+  override fun getAllInnerClasses(): Array<PsiClass> = getInnerClasses()
 
-  override fun findFieldByName(name: @NonNls String, checkBases: Boolean): PsiField? {
-    val fields = getFields()
-    for (field in fields) {
-      if (name == field.getName()) return field
-    }
-    return null
-  }
+  override fun findFieldByName(name: @NonNls String, checkBases: Boolean): PsiField? =
+    fields.firstOrNull { it.name == name }
 
-  override fun findMethodBySignature(patternMethod: PsiMethod?, checkBases: Boolean): PsiMethod? {
-    return null
-  }
+  override fun findMethodBySignature(patternMethod: PsiMethod, checkBases: Boolean): PsiMethod? =
+    null
 
-  override fun findMethodsBySignature(patternMethod: PsiMethod?, checkBases: Boolean): Array<PsiMethod?> {
-    return PsiMethod.EMPTY_ARRAY
-  }
+  override fun findMethodsBySignature(
+    patternMethod: PsiMethod,
+    checkBases: Boolean,
+  ): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
 
-  override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod?> {
-    val methods: MutableList<PsiMethod?> = ArrayList<PsiMethod?>()
-    for (method in getMethods()) {
-      if (method!!.getName() == name) {
-        methods.add(method)
-      }
-    }
-    return if (methods.isEmpty()) PsiMethod.EMPTY_ARRAY else methods.toArray<PsiMethod?>(PsiMethod.EMPTY_ARRAY)
-  }
+  override fun findMethodsByName(name: @NonNls String, checkBases: Boolean): Array<PsiMethod> =
+    methods.filter { it.name == name }.toTypedArray()
 
   override fun findMethodsAndTheirSubstitutorsByName(
-    name: @NonNls String?,
-    checkBases: Boolean
-  ): MutableList<Pair<PsiMethod?, PsiSubstitutor?>?> {
-    return mutableListOf<Pair<PsiMethod?, PsiSubstitutor?>?>()
+    name: @NonNls String,
+    checkBases: Boolean,
+  ): MutableList<Pair<PsiMethod, PsiSubstitutor>> = mutableListOf()
+
+  override fun getAllMethodsAndTheirSubstitutors(): MutableList<Pair<PsiMethod?, PsiSubstitutor>> =
+    mutableListOf()
+
+  override fun findInnerClassByName(name: @NonNls String, checkBases: Boolean): PsiClass? =
+    innerClasses.firstOrNull { it.name == name }
+
+  override fun getLBrace(): PsiElement? = null
+
+  override fun getRBrace(): PsiElement? = null
+
+  override fun getNameIdentifier(): PsiIdentifier? = null
+
+  override fun getScope(): PsiElement? = null
+
+  override fun isInheritor(baseClass: PsiClass, checkDeep: Boolean) =
+    InheritanceImplUtil.isInheritor(this, baseClass, checkDeep)
+
+  override fun isInheritorDeep(baseClass: PsiClass, classToByPass: PsiClass?) =
+    InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass)
+
+  override fun getVisibleSignatures(): MutableCollection<HierarchicalMethodSignature> =
+    mutableListOf()
+
+  override fun setName(name: @NonNls String): PsiElement {
+    throw IncorrectOperationException("Cannot change the name of $qualifiedName class")
   }
 
-  override fun getAllMethodsAndTheirSubstitutors(): MutableList<Pair<PsiMethod?, PsiSubstitutor?>?> {
-    return mutableListOf<Pair<PsiMethod?, PsiSubstitutor?>?>()
-  }
+  override fun getDocComment(): PsiDocComment? = null
 
-  override fun findInnerClassByName(name: @NonNls String, checkBases: Boolean): PsiClass? {
-    for (aClass in getInnerClasses()) {
-      if (name == aClass!!.getName()) {
-        return aClass
-      }
-    }
-    return null
-  }
+  override fun isDeprecated() = false
 
-  override fun getLBrace(): PsiElement? {
-    return null
-  }
+  override fun hasTypeParameters() = false
 
-  override fun getRBrace(): PsiElement? {
-    return null
-  }
+  override fun getTypeParameterList(): PsiTypeParameterList =
+    LightTypeParameterListBuilder(myManager, language)
 
-  override fun getNameIdentifier(): PsiIdentifier? {
-    return null
-  }
+  override fun getTypeParameters(): Array<PsiTypeParameter> = PsiTypeParameter.EMPTY_ARRAY
 
-  override fun getScope(): PsiElement? {
-    return null
-  }
+  final override fun getModifierList(): PsiModifierList = psiModifierList
 
-  override fun isInheritor(baseClass: PsiClass, checkDeep: Boolean): Boolean {
-    return InheritanceImplUtil.isInheritor(this, baseClass, checkDeep)
-  }
+  override fun hasModifierProperty(@PsiModifier.ModifierConstant name: @NonNls String) =
+    psiModifierList.hasModifierProperty(name)
 
-  override fun isInheritorDeep(baseClass: PsiClass, classToByPass: PsiClass?): Boolean {
-    return InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass)
-  }
+  override fun isVisibilitySupported() = true
 
-  override fun getVisibleSignatures(): MutableCollection<HierarchicalMethodSignature?> {
-    return mutableListOf<HierarchicalMethodSignature?>()
-  }
+  override fun getElementIcon(@Iconable.IconFlags flags: Int): Icon =
+    PsiClassImplUtil.getClassIcon(flags, this)
 
-  @Throws(IncorrectOperationException::class)
-  override fun setName(name: @NonNls String): PsiElement? {
-    throw IncorrectOperationException("Cannot change the name of " + getQualifiedName() + " class")
-  }
-
-  override fun getDocComment(): PsiDocComment? {
-    return null
-  }
-
-  override fun isDeprecated(): Boolean {
-    return false
-  }
-
-  override fun hasTypeParameters(): Boolean {
-    return false
-  }
-
-  override fun getTypeParameterList(): PsiTypeParameterList? {
-    return LightTypeParameterListBuilder(myManager, getLanguage())
-  }
-
-  override fun getTypeParameters(): Array<PsiTypeParameter?> {
-    return PsiTypeParameter.EMPTY_ARRAY
-  }
-
-  override fun getModifierList(): PsiModifierList {
-    return myPsiModifierList
-  }
-
-  override fun hasModifierProperty(@PsiModifier.ModifierConstant name: @NonNls String): Boolean {
-    val list = getModifierList()
-    return list != null && list.hasModifierProperty(name)
-  }
-
-  override fun isVisibilitySupported(): Boolean {
-    return true
-  }
-
-  override fun getElementIcon(@Iconable.IconFlags flags: Int): Icon? {
-    return PsiClassImplUtil.getClassIcon(flags, this)
-  }
-
-  override fun isEquivalentTo(another: PsiElement?): Boolean {
-    return PsiClassImplUtil.isClassEquivalentTo(this, another)
-  }
+  override fun isEquivalentTo(another: PsiElement?) =
+    PsiClassImplUtil.isClassEquivalentTo(this, another)
 
   override fun getUseScope(): SearchScope {
-    // For the common case of a public light class, getMemberUseScope below cannot determine the owning module and falls back to using the
-    // entire project. Here we compute a more accurate scope, see ResolveScopeManagerImpl#getUseScope.
-    val modifierList = getModifierList()
-    if (modifierList != null) {
-      if (PsiUtil.getAccessLevel(modifierList) == PsiUtil.ACCESS_LEVEL_PUBLIC) {
-        val module = ModuleUtilCore.findModuleForPsiElement(this) // see setModuleInfo.
-        if (module != null) {
-          if (this.scopeType == ScopeType.MAIN) {
-            return GlobalSearchScope.moduleWithDependentsScope(module)
-          } else {
-            return GlobalSearchScope.moduleTestsWithDependentsScope(module)
-          }
+    // For the common case of a public light class, getMemberUseScope below cannot determine the
+    // owning module and falls back to using the entire project. Here we compute a more accurate
+    // scope, see ResolveScopeManagerImpl#getUseScope.
+    val modifierList = psiModifierList
+    if (PsiUtil.getAccessLevel(modifierList) == PsiUtil.ACCESS_LEVEL_PUBLIC) {
+      val module = ModuleUtilCore.findModuleForPsiElement(this) // see setModuleInfo.
+      if (module != null) {
+        return if (this.scopeType == ScopeType.MAIN) {
+          GlobalSearchScope.moduleWithDependentsScope(module)
+        } else {
+          GlobalSearchScope.moduleTestsWithDependentsScope(module)
         }
+      }
 
-        val library = getUserData<Library?>(LIBRARY)
-        if (library != null) {
-          val root = ArrayUtil.getFirstElement<VirtualFile?>(library.getFiles(OrderRootType.CLASSES))
-          if (root != null) {
-            return LibraryScopeCache.getInstance(getProject()).getLibraryUseScope(root)
-          }
+      val library = getUserData<Library>(LIBRARY)
+      if (library != null) {
+        val root = ArrayUtil.getFirstElement<VirtualFile?>(library.getFiles(OrderRootType.CLASSES))
+        if (root != null) {
+          return LibraryScopeCache.getInstance(getProject()).getLibraryUseScope(root)
         }
       }
     }
@@ -353,26 +251,19 @@ abstract class AndroidLightClassBase protected constructor(psiManager: PsiManage
     return PsiImplUtil.getMemberUseScope(this)
   }
 
-  override fun getPresentation(): ItemPresentation? {
-    return ItemPresentationProviders.getItemPresentation(this)
-  }
+  override fun getPresentation() = ItemPresentationProviders.getItemPresentation(this)
 
-  override fun getContainingFile(): PsiFile? {
-    val containingClass = getContainingClass()
-    return if (containingClass == null) null else containingClass.getContainingFile()
-  }
+  override fun getContainingFile() = containingClass?.containingFile
 
-  override fun getTextRange(): TextRange? {
-    return TextRange.EMPTY_RANGE
-  }
+  override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 
   override fun processDeclarations(
     processor: PsiScopeProcessor,
     state: ResolveState,
     lastParent: PsiElement?,
-    place: PsiElement
-  ): Boolean {
-    return PsiClassImplUtil.processDeclarationsInClass(
+    place: PsiElement,
+  ) =
+    PsiClassImplUtil.processDeclarationsInClass(
       this,
       processor,
       state,
@@ -380,20 +271,21 @@ abstract class AndroidLightClassBase protected constructor(psiManager: PsiManage
       lastParent,
       place,
       PsiUtil.getLanguageLevel(place),
-      false
+      false,
     )
-  }
 
   override fun toString(): String {
-    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString()
+    return MoreObjects.toStringHelper(this).addValue(qualifiedName).toString()
   }
 
   /**
-   * Encapsulates calls to Kotlin IDE plugin to prevent [NoClassDefFoundError] when Kotlin is not installed.
+   * Encapsulates calls to Kotlin IDE plugin to prevent [NoClassDefFoundError] when Kotlin is not
+   * installed.
    */
   private object KotlinRegistrationHelper {
     fun setModuleInfo(file: PsiFile, isTest: Boolean) {
-      file.customSourceRootType = if (isTest) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
+      file.customSourceRootType =
+        if (isTest) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
     }
 
     fun setModuleInfo(file: PsiFile, library: Library) {
@@ -409,25 +301,24 @@ abstract class AndroidLightClassBase protected constructor(psiManager: PsiManage
     get() = ScopeType.MAIN
 
   override fun getResolveScope(): GlobalSearchScope {
-    val module = ModuleUtilCore.findModuleForPsiElement(this)
-    if (module == null) {
-      // Some light classes come from libraries not modules.
-      return super.getResolveScope()
-    }
+    // Some light classes come from libraries not modules. In that case the module can't be found,
+    // so fall back to the super class's logic.
+    val module = ModuleUtilCore.findModuleForPsiElement(this) ?: return super.getResolveScope()
 
     val scopeType = this.scopeType
     val moduleResolveScope = module.getModuleSystem().getResolveScope(scopeType)
-    val result = Ref.create<GlobalSearchScope?>(moduleResolveScope)
-    KotlinResolveScopeEnlarger.Companion.getEP_NAME().forEachExtensionSafe(Consumer { enlarger: KotlinResolveScopeEnlarger? ->
-      val additionalResolveScope = enlarger!!.getAdditionalResolveScope(module, scopeType.isForTest)
-      if (additionalResolveScope != null) {
-        result.set(result.get().union(additionalResolveScope))
+    val result = Ref.create<GlobalSearchScope>(moduleResolveScope)
+    KotlinResolveScopeEnlarger.EP_NAME.forEachExtensionSafe { ext: KotlinResolveScopeEnlarger ->
+      ext.getAdditionalResolveScope(module, scopeType.isForTest)?.let {
+        result.set(result.get().union(it))
       }
-    })
+    }
+
     return result.get()
   }
 
   companion object {
-    private val LIBRARY = Key.create<Library?>(AndroidLightClassBase::class.java.getName() + ".LIBRARY")
+    private val LIBRARY =
+      Key.create<Library>(AndroidLightClassBase::class.java.getName() + ".LIBRARY")
   }
 }

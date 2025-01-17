@@ -247,7 +247,7 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
 
   override fun getAllMethods() = psiAllMethods
 
-  override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod> {
+  override fun findMethodsByName(name: @NonNls String, checkBases: Boolean): Array<PsiMethod> {
     val methods = if (checkBases) allMethods else methods
     val matched = methods.filter { it.name == name }
     return if (matched.isEmpty()) PsiMethod.EMPTY_ARRAY else matched.toTypedArray()

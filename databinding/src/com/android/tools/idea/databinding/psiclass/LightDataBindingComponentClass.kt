@@ -174,7 +174,7 @@ class LightDataBindingComponentClass(psiManager: PsiManager, private val facet: 
 
   override fun getAllMethods() = getMethods()
 
-  override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod> {
+  override fun findMethodsByName(name: @NonNls String, checkBases: Boolean): Array<PsiMethod> {
     val result = methodCache.value.filter { it.name == name }
     return if (result.isEmpty()) PsiMethod.EMPTY_ARRAY else result.toTypedArray()
   }
