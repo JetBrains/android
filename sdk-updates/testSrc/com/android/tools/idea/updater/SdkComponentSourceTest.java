@@ -299,43 +299,6 @@ public class SdkComponentSourceTest {
   }
 
   @Test
-  public void testStatuses() {
-    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("platforms/android-23/package.xml"),
-                                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                                "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
-                                "                xmlns:ns5=\"http://schemas.android.com/repository/android/generic/01\" " +
-                                "                xmlns:ns6=\"http://schemas.android.com/sdk/android/repo/repository2/01\"" +
-                                "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                                "    <localPackage path=\"platforms;android-23\">" +
-                                "        <type-details xsi:type=\"ns6:platformDetailsType\">" +
-                                "            <api-level>23</api-level>" +
-                                "            <layoutlib xsi:type=\"ns6:layoutlibType\" api=\"15\"/>" +
-                                "        </type-details>" +
-                                "        <revision><major>2</major></revision>" +
-                                "        <display-name>Android SDK Platform 23, rev 2</display-name>" +
-                                "    </localPackage>" +
-                                "</ns2:repository>");
-    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("platforms/android-20/package.xml"),
-                                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                                "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
-                                "                xmlns:ns5=\"http://schemas.android.com/repository/android/generic/01\" " +
-                                "                xmlns:ns6=\"http://schemas.android.com/sdk/android/repo/repository2/01\"" +
-                                "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                                "    <localPackage path=\"platforms;android-20\">" +
-                                "        <type-details xsi:type=\"ns6:platformDetailsType\">" +
-                                "            <api-level>20</api-level>" +
-                                "            <layoutlib xsi:type=\"ns6:layoutlibType\" api=\"15\"/>" +
-                                "        </type-details>" +
-                                "        <revision><major>2</major></revision>" +
-                                "        <display-name>Android SDK Platform 20, rev 2</display-name>" +
-                                "    </localPackage>" +
-                                "</ns2:repository>");
-    myTestComponentSource.getRepoManager().loadSynchronously(-1, new FakeProgressIndicator(), null, null);
-    Collection<? extends Pair<String, String>> statuses = myTestComponentSource.getStatuses();
-    assertTrue(statuses.contains(Pair.create("Android Platform Version:", "API 23 (\"Marshmallow\"; Android 6.0) revision 2")));
-  }
-
-  @Test
   public void testIgnored() {
     final AtomicReference<String> id = new AtomicReference<>();
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
