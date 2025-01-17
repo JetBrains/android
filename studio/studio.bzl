@@ -669,23 +669,26 @@ def _stamp_platform(ctx, platform, platform_files):
 
     idea_properties, stamped_idea_properties = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/idea.properties")
     args = ctx.actions.args()
-    args.add("--replace_selector", ctx.attr.selector)
+
+    system_selector = ctx.attr.selector + ctx.attr.platform[IntellijInfo].major_version + "." + ctx.attr.platform[IntellijInfo].minor_version + "." + micro
+
+    args.add("--replace_selector", system_selector)
     _stamp(ctx, args, [], idea_properties, stamped_idea_properties)
 
     if platform == LINUX:
         studio_sh, stamped_studio_sh = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio.sh")
         args = ctx.actions.args()
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [], studio_sh, stamped_studio_sh)
 
         game_tools_sh, stamped_game_tools_sh = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/game-tools.sh")
         args = ctx.actions.args()
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [], game_tools_sh, stamped_game_tools_sh)
 
         install_txt, stamped_install_txt = _declare_stamped_file(ctx, ret, platform, platform.base_path + "Install-Linux-tar.txt")
         args = ctx.actions.args()
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [], install_txt, stamped_install_txt)
 
     if platform == MAC or platform == MAC_ARM:
@@ -693,23 +696,23 @@ def _stamp_platform(ctx, platform, platform_files):
         args = ctx.actions.args()
         args.add("--info_file", ctx.info_file)
         args.add("--replace_build_number")
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [ctx.info_file], info_plist, stamped_info_plist)
 
     if platform == WIN:
         studio_exe, stamped_studio_exe = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio64.exe")
         args = ctx.actions.args()
-        args.add_all(["--replace_resource", "_ANDROID_STUDIO_SYSTEM_SELECTOR_", ctx.attr.selector])
+        args.add_all(["--replace_resource", "_ANDROID_STUDIO_SYSTEM_SELECTOR_", system_selector])
         _stamp_exe(ctx, args, [], studio_exe, stamped_studio_exe)
 
         studio_bat, stamped_studio_bat = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio.bat")
         args = ctx.actions.args()
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [], studio_bat, stamped_studio_bat)
 
         game_tools_bat, stamped_game_tools_bat = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/game-tools.bat")
         args = ctx.actions.args()
-        args.add("--replace_selector", ctx.attr.selector)
+        args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [], game_tools_bat, stamped_game_tools_bat)
 
     product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
@@ -717,7 +720,7 @@ def _stamp_platform(ctx, platform, platform_files):
     args.add("--info_file", ctx.info_file)
     args.add("--build_txt", stamped_build_txt)
     args.add("--stamp_product_info")
-    args.add("--replace_selector", ctx.attr.selector)
+    args.add("--replace_selector", system_selector)
     _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
 
     return ret
