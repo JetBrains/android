@@ -29,7 +29,6 @@ class ScreenshotImage(
 
   val width: Int
     get() = image.width
-
   val height: Int
     get() = image.height
 
