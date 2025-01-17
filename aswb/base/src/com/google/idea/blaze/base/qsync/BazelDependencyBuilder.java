@@ -107,7 +107,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       new BoolExperiment("qsync.build.generated.src.jars", false);
 
   public static final BoolExperiment multiInfoFile =
-      new BoolExperiment("qsync.multi.info.file.mode", false);
+      new BoolExperiment("qsync.multi.info.file.mode", true);
 
   public static final StringExperiment aspectLocation =
     new StringExperiment("qsync.build.aspect.location");
