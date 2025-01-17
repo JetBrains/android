@@ -728,6 +728,41 @@
                             "simpleName": "PluginManagementSpec"
                         }
                     },
+                    "simpleName": "repositories",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "accessAndConfigure",
+                        "accessor": {
+                            "type": "configuringLambdaArgument",
+                            "objectType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "org.gradle.api.artifacts.dsl",
+                                    "simpleName": "RepositoryHandler"
+                                }
+                            }
+                        },
+                        "returnType": {
+                            "type": "unit"
+                        },
+                        "configureBlockRequirement": {
+                            "type": "required"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.plugin.management",
+                            "simpleName": "PluginManagementSpec"
+                        }
+                    },
                     "simpleName": "includeBuild",
                     "parameters": [
                         {
@@ -756,41 +791,6 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
-                        }
-                    }
-                },
-                {
-                    "type": "dataMemberFunction",
-                    "receiver": {
-                        "type": "dataTypeRefName",
-                        "fqName": {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                            "packageName": "org.gradle.plugin.management",
-                            "simpleName": "PluginManagementSpec"
-                        }
-                    },
-                    "simpleName": "repositories",
-                    "parameters": [
-                    ],
-                    "isDirectAccessOnly": false,
-                    "semantics": {
-                        "type": "accessAndConfigure",
-                        "accessor": {
-                            "type": "configuringLambdaArgument",
-                            "objectType": {
-                                "type": "dataTypeRefName",
-                                "fqName": {
-                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                                    "packageName": "org.gradle.api.artifacts.dsl",
-                                    "simpleName": "RepositoryHandler"
-                                }
-                            }
-                        },
-                        "returnType": {
-                            "type": "unit"
-                        },
-                        "configureBlockRequirement": {
-                            "type": "required"
                         }
                     }
                 }

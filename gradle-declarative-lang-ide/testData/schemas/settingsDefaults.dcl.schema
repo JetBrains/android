@@ -502,46 +502,6 @@
                             "simpleName": "BaseAppModuleExtensionInternal"
                         }
                     },
-                    "simpleName": "getDefaultProguardFile",
-                    "parameters": [
-                        {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
-                            "name": "name",
-                            "privateType": {
-                                "type": "dataTypeRefType",
-                                "dataType": {
-                                    "type": "string"
-                                }
-                            },
-                            "isDefault": false,
-                            "semantics": {
-                                "type": "unknown"
-                            }
-                        }
-                    ],
-                    "isDirectAccessOnly": false,
-                    "semantics": {
-                        "type": "pure",
-                        "returnValueType": {
-                            "type": "dataTypeRefName",
-                            "fqName": {
-                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                                "packageName": "java.io",
-                                "simpleName": "File"
-                            }
-                        }
-                    }
-                },
-                {
-                    "type": "dataMemberFunction",
-                    "receiver": {
-                        "type": "dataTypeRefName",
-                        "fqName": {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                            "packageName": "com.android.build.gradle.internal.dsl",
-                            "simpleName": "BaseAppModuleExtensionInternal"
-                        }
-                    },
                     "simpleName": "lint",
                     "parameters": [
                     ],
@@ -3852,45 +3812,6 @@
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-            "packageName": "java.io",
-            "simpleName": "File"
-        },
-        {
-            "type": "data",
-            "name": {
-                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                "packageName": "java.io",
-                "simpleName": "File"
-            },
-            "javaTypeName": "java.io.File",
-            "javaTypeArgumentTypeNames": [
-            ],
-            "supertypes": [
-                {
-                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                    "packageName": "java.io",
-                    "simpleName": "Serializable"
-                },
-                {
-                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                    "packageName": "kotlin",
-                    "simpleName": "Any"
-                },
-                {
-                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                    "packageName": "kotlin",
-                    "simpleName": "Comparable"
-                }
-            ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
-        },
-        {
-            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
             "packageName": "com.android.build.gradle.internal.dsl",
             "simpleName": "BaseAppModuleExtension"
         },
@@ -4114,46 +4035,6 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
-                        }
-                    }
-                },
-                {
-                    "type": "dataMemberFunction",
-                    "receiver": {
-                        "type": "dataTypeRefName",
-                        "fqName": {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                            "packageName": "com.android.build.gradle.internal.dsl",
-                            "simpleName": "BaseAppModuleExtension"
-                        }
-                    },
-                    "simpleName": "getDefaultProguardFile",
-                    "parameters": [
-                        {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
-                            "name": "name",
-                            "privateType": {
-                                "type": "dataTypeRefType",
-                                "dataType": {
-                                    "type": "string"
-                                }
-                            },
-                            "isDefault": false,
-                            "semantics": {
-                                "type": "unknown"
-                            }
-                        }
-                    ],
-                    "isDirectAccessOnly": false,
-                    "semantics": {
-                        "type": "pure",
-                        "returnValueType": {
-                            "type": "dataTypeRefName",
-                            "fqName": {
-                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                                "packageName": "java.io",
-                                "simpleName": "File"
-                            }
                         }
                     }
                 },
@@ -4824,6 +4705,20 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "namespace",
+                    "valueType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "string"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": false
+                }
             ],
             "memberFunctions": [
                 {
@@ -5453,6 +5348,20 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "namespace",
+                    "valueType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "string"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": false
+                }
             ],
             "memberFunctions": [
                 {
@@ -6077,6 +5986,20 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "namespace",
+                    "valueType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "string"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": false
+                }
             ],
             "memberFunctions": [
                 {
@@ -6686,6 +6609,20 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "namespace",
+                    "valueType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "string"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": false
+                }
             ],
             "memberFunctions": [
                 {
@@ -12078,6 +12015,45 @@
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "java.io",
+            "simpleName": "File"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "java.io",
+                "simpleName": "File"
+            },
+            "javaTypeName": "java.io.File",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "java.io",
+                    "simpleName": "Serializable"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Comparable"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
             "packageName": "com.android.build.api.dsl",
             "simpleName": "ApplicationExtension"
         },
@@ -13309,46 +13285,6 @@
                             "simpleName": "LibraryExtensionInternal"
                         }
                     },
-                    "simpleName": "getDefaultProguardFile",
-                    "parameters": [
-                        {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
-                            "name": "name",
-                            "privateType": {
-                                "type": "dataTypeRefType",
-                                "dataType": {
-                                    "type": "string"
-                                }
-                            },
-                            "isDefault": false,
-                            "semantics": {
-                                "type": "unknown"
-                            }
-                        }
-                    ],
-                    "isDirectAccessOnly": false,
-                    "semantics": {
-                        "type": "pure",
-                        "returnValueType": {
-                            "type": "dataTypeRefName",
-                            "fqName": {
-                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                                "packageName": "java.io",
-                                "simpleName": "File"
-                            }
-                        }
-                    }
-                },
-                {
-                    "type": "dataMemberFunction",
-                    "receiver": {
-                        "type": "dataTypeRefName",
-                        "fqName": {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                            "packageName": "com.android.build.gradle",
-                            "simpleName": "LibraryExtensionInternal"
-                        }
-                    },
                     "simpleName": "lint",
                     "parameters": [
                     ],
@@ -14560,46 +14496,6 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
-                        }
-                    }
-                },
-                {
-                    "type": "dataMemberFunction",
-                    "receiver": {
-                        "type": "dataTypeRefName",
-                        "fqName": {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                            "packageName": "com.android.build.gradle",
-                            "simpleName": "LibraryExtension"
-                        }
-                    },
-                    "simpleName": "getDefaultProguardFile",
-                    "parameters": [
-                        {
-                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
-                            "name": "name",
-                            "privateType": {
-                                "type": "dataTypeRefType",
-                                "dataType": {
-                                    "type": "string"
-                                }
-                            },
-                            "isDefault": false,
-                            "semantics": {
-                                "type": "unknown"
-                            }
-                        }
-                    ],
-                    "isDirectAccessOnly": false,
-                    "semantics": {
-                        "type": "pure",
-                        "returnValueType": {
-                            "type": "dataTypeRefName",
-                            "fqName": {
-                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
-                                "packageName": "java.io",
-                                "simpleName": "File"
-                            }
                         }
                     }
                 },

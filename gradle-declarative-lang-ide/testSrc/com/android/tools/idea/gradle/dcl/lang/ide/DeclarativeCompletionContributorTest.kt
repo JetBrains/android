@@ -71,7 +71,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
       )
     }
   }
@@ -109,7 +109,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
       )
     }
   }
@@ -138,7 +138,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
         "buildFeatures", "buildOutputs", "buildTypes", "compileOptions",
-        "compileSdk", "defaultConfig", "dependenciesDcl", "getDefaultProguardFile", "lint", "namespace",
+        "compileSdk", "defaultConfig", "dependenciesDcl", "lint", "namespace",
         "productFlavors", "signingConfigs", "sourceSets"
       )
     }
