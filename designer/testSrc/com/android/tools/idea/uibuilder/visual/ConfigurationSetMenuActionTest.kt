@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import java.lang.StringBuilder
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
 
 class ConfigurationSetMenuActionTest : AndroidTestCase() {
 
@@ -43,9 +42,7 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
     val firstOption = menuGroups.firstOrNull()?.firstOrNull() ?: return
     val menuAction = ConfigurationSetMenuAction(firstOption)
     // Call update(AnActionEvent) for updating text of menuAction.
-    menuAction.update(
-      createTestActionEvent(menuAction, dataContext = Mockito.mock(DataContext::class.java))
-    )
+    menuAction.update(createTestActionEvent(menuAction, dataContext = DataContext.EMPTY_CONTEXT))
 
     val actual = prettyPrintActions(menuAction)
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices

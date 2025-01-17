@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.tools.idea.uibuilder.surface.NlBuilderKt.defaultActionHandlerProvider;
 
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
@@ -44,7 +43,6 @@ import com.intellij.openapi.util.Disposer;
 import java.awt.Point;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 public class NlDesignSurfaceTest extends LayoutTestCase {
   private NlDesignSurface mySurface;
@@ -170,7 +168,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCopy(dataContext);
@@ -202,7 +200,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
@@ -238,7 +236,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     NlComponent button2 = model.getTreeReader().find("cuteLittleButton2");
     NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
@@ -278,7 +276,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     NlComponent button2 = model.getTreeReader().find("cuteLittleButton2");
     NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
@@ -306,7 +304,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
@@ -339,7 +337,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
-    DataContext dataContext = Mockito.mock(DataContext.class);
+    DataContext dataContext = DataContext.EMPTY_CONTEXT;
     NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);

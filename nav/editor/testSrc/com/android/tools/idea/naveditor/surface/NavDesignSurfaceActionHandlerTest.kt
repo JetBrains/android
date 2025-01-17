@@ -28,7 +28,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
@@ -245,10 +244,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
-    handler.performCut(mock<DataContext>())
+    handler.performCut(DataContext.EMPTY_CONTEXT)
     surface.currentNavigation = subnav
     surface.selectionModel.clear()
-    handler.performPaste(mock<DataContext>())
+    handler.performPaste(DataContext.EMPTY_CONTEXT)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(root.children, fragment2, subnav)
@@ -280,10 +279,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(action1))
-    handler.performCut(mock<DataContext>())
+    handler.performCut(DataContext.EMPTY_CONTEXT)
     surface.currentNavigation = subnav
     surface.selectionModel.setSelection(listOf(fragment2))
-    handler.performPaste(mock<DataContext>())
+    handler.performPaste(DataContext.EMPTY_CONTEXT)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(fragment1.children, action2)
@@ -302,8 +301,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
-    handler.performCopy(mock<DataContext>())
-    handler.performPaste(mock<DataContext>())
+    handler.performCopy(DataContext.EMPTY_CONTEXT)
+    handler.performPaste(DataContext.EMPTY_CONTEXT)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val fragment = model.treeReader.find("fragment")

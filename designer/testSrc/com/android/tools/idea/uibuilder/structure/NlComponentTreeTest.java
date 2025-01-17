@@ -39,7 +39,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -65,7 +64,6 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.ui.IdeUiService;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
@@ -102,11 +100,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class NlComponentTreeTest extends LayoutTestCase {
+  private static final DataContext myDataContext = DataContext.EMPTY_CONTEXT;
 
   @Mock
   private BrowserLauncher myBrowserLauncher;
-  @Mock
-  private DataContext myDataContext;
   @Nullable
   private ComponentStack componentStack = null;
 
@@ -125,7 +122,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myBrowserLauncher = null;
-      myDataContext = null;
       if (componentStack != null) {
         componentStack.restore();
         componentStack = null;
@@ -500,7 +496,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     SelectionModel selectionModel = surface.getSelectionModel();
 
     selectionModel.setSelection(Arrays.asList(components));
-    getActionHandler(tree).performCopy(mock(DataContext.class));
+    getActionHandler(tree).performCopy(myDataContext);
     selectionModel.clear();
   }
 
@@ -511,7 +507,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     List<NlComponent> list = Arrays.asList(components);
     selectionModel.setSelection(list);
-    getActionHandler(tree).performCut(mock(DataContext.class));
+    getActionHandler(tree).performCut(myDataContext);
     selectionModel.clear();
   }
 
