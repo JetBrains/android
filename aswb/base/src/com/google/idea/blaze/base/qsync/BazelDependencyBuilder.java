@@ -105,6 +105,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", false);
 
+  public static final BoolExperiment multiInfoFile =
+      new BoolExperiment("qsync.multi.info.file.mode", false);
+
   public static final StringExperiment aspectLocation =
     new StringExperiment("qsync.build.aspect.location");
 
@@ -113,7 +116,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     ImmutableList<String> exclude,
     ImmutableList<String> alwaysBuildRules,
     boolean generateIdlClasses,
-    boolean useGeneratedSrcJars
+    boolean useGeneratedSrcJars,
+    boolean experimentMultiInfoFile
   ){}
 
   /**
@@ -228,7 +232,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       excludes,
       alwaysBuildRules,
       true,
-      buildGeneratedSrcJars.getValue()
+      buildGeneratedSrcJars.getValue(),
+      multiInfoFile.getValue()
     );
     String aspectLocation = prepareAspect(context, parameters);
 
@@ -300,6 +305,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     appendStringList(result, "always_build_rules", parameters.alwaysBuildRules);
     appendBoolean(result, "generate_aidl_classes", parameters.generateIdlClasses);
     appendBoolean(result, "use_generated_srcjars", parameters.useGeneratedSrcJars);
+    appendBoolean(result, "experiment_multi_info_file", parameters.experimentMultiInfoFile);
     result.append(")\n");
     result.append("\n");
     result.append("collect_dependencies = _collect_dependencies(_config)\n");
