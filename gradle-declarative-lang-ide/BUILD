@@ -12,6 +12,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module]",
+        "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync[module]",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.java",
     ],
@@ -38,5 +39,6 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync[module, test]",
     ],
 )

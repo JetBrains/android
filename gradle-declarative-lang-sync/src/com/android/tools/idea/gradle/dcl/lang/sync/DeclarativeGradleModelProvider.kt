@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea
+package com.android.tools.idea.gradle.dcl.lang.sync
 
-import com.android.tools.idea.gradle.dcl.lang.ide.BlockFunction
-import com.android.tools.idea.gradle.dcl.lang.ide.BuildDeclarativeSchema
-import com.android.tools.idea.gradle.dcl.lang.ide.ClassModel
-import com.android.tools.idea.gradle.dcl.lang.ide.ClassType
-import com.android.tools.idea.gradle.dcl.lang.ide.DataClassRef
-import com.android.tools.idea.gradle.dcl.lang.ide.DataProperty
-import com.android.tools.idea.gradle.dcl.lang.ide.DataTypeReference
-import com.android.tools.idea.gradle.dcl.lang.ide.EnumModel
-import com.android.tools.idea.gradle.dcl.lang.ide.FullName
-import com.android.tools.idea.gradle.dcl.lang.ide.FunctionSemantic
-import com.android.tools.idea.gradle.dcl.lang.ide.IdeDataParameter
-import com.android.tools.idea.gradle.dcl.lang.ide.PlainFunction
-import com.android.tools.idea.gradle.dcl.lang.ide.ProjectSchemas
-import com.android.tools.idea.gradle.dcl.lang.ide.SchemaFunction
-import com.android.tools.idea.gradle.dcl.lang.ide.SettingsSchemas
-import com.android.tools.idea.gradle.dcl.lang.ide.SimpleDataType
-import com.android.tools.idea.gradle.dcl.lang.ide.SimpleTypeRef
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.diagnostic.Logger

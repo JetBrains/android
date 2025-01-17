@@ -68,5 +68,6 @@
     <orderEntry type="module" module-name="intellij.android.gmaven" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
   </component>
 </module>

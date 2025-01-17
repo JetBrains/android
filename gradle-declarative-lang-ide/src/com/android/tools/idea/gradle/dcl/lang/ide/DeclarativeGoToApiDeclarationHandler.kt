@@ -17,6 +17,13 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
+import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.JavaPsiFacade
@@ -76,14 +83,14 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
     receivers.firstNotNullOf {
       when (it) {
         is SchemaFunction ->
-          when (it.semantic) {
-            is BlockFunction -> it.semantic.accessor.fqName.name
+          when (val semantic = it.semantic) {
+            is BlockFunction -> semantic.accessor.fqName.name
             is PlainFunction -> null
           }
 
         is DataProperty ->
-          when (it.valueType) {
-            is DataClassRef -> it.valueType.fqName.name
+          when (val type = it.valueType) {
+            is DataClassRef -> type.fqName.name
             is SimpleTypeRef -> null
           }
       }

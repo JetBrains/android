@@ -24,6 +24,17 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
+import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
+import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity

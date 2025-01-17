@@ -99,6 +99,7 @@ iml_module(
         "//tools/adt/idea/gmaven:intellij.android.gmaven[module]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module]",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module]",
+        "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync[module]",
     ],
 )
 

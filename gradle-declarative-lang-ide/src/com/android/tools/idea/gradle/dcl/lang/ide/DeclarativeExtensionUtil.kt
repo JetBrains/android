@@ -29,6 +29,20 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchemas
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
+import com.android.tools.idea.gradle.dcl.lang.sync.FullName
+import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.psi.PsiElement
 
 enum class ElementType(val str: String) {
@@ -73,7 +87,7 @@ fun getType(type: Entry, rootFunction: List<PlainFunction>): ElementType = when 
 
 fun getEnumConstants(type: Entry?): List<String> {
   if (type is DataProperty && type.valueType is DataClassRef) {
-    val enumEntity = type.resolveRef(type.valueType.fqName)
+    val enumEntity = type.resolveRef((type.valueType as DataClassRef).fqName)
     if (enumEntity is EnumModel)
       return enumEntity.entryNames
   }

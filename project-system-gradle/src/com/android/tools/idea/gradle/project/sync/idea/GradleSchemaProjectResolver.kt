@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.dcl.lang.ide.ProjectSchemas
-import com.android.tools.idea.gradle.dcl.lang.ide.SettingsSchemas
+import com.android.tools.idea.gradle.dcl.lang.sync.DeclarativeGradleModelProvider
+import com.android.tools.idea.gradle.dcl.lang.sync.ProjectSchemas
+import com.android.tools.idea.gradle.dcl.lang.sync.SettingsSchemas
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
