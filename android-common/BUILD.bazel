@@ -73,6 +73,7 @@ jvm_library(
     "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/core",
+    "//plugins/kotlin/base/facet:kotlin-base-facet",
   ],
   runtime_deps = [
     ":common_resources",

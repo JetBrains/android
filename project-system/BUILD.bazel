@@ -38,6 +38,8 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//xml/dom-openapi:dom",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/core-impl",
   ],
   runtime_deps = [":projectSystem_resources"]
 )
