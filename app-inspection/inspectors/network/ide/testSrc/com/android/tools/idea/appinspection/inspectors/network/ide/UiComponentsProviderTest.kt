@@ -119,6 +119,22 @@ class UiComponentsProviderTest {
   }
 
   @Test
+  fun multipartBody_createsTextViewer() {
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+
+    val viewer =
+      componentsProvider.createDataViewer(
+        "content".toByteArray(),
+        ContentType.DEFAULT.withType("multipart"),
+        DataViewer.Style.RAW,
+        false,
+      )
+    assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
+    assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
+  }
+
+  @Test
   fun createPrettyDataViewer() {
     val componentsProvider =
       DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
