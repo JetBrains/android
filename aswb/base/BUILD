@@ -428,6 +428,7 @@ java_library(
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
         ":base",
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/plugin_api",
