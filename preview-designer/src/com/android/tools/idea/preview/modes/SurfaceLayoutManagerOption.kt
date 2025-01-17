@@ -28,21 +28,21 @@ import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 /** [PreviewMode.Gallery] layout option which shows once centered element. */
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
-    message("gallery.mode.title"),
-    { GalleryLayoutManager() },
-    false,
-    SceneViewAlignment.LEFT,
-    SurfaceLayoutOption.LayoutType.Gallery,
+    displayName = message("gallery.mode.title"),
+    createLayoutManager = { GalleryLayoutManager() },
+    organizationEnabled = false,
+    sceneViewAlignment = SceneViewAlignment.LEFT,
+    layoutType = SurfaceLayoutOption.LayoutType.Gallery,
   )
 
 /** Grid layout option which doesn't group elements. */
 val GRID_NO_GROUP_LAYOUT_OPTION =
   SurfaceLayoutOption(
-    message("grid.layout.title"),
-    { GridLayoutManager() },
-    false,
-    SceneViewAlignment.LEFT,
-    SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    displayName = message("grid.layout.title"),
+    createLayoutManager = { GridLayoutManager() },
+    organizationEnabled = false,
+    sceneViewAlignment = SceneViewAlignment.LEFT,
+    layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
   )
 
 /**
@@ -51,17 +51,17 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
  */
 val GRID_LAYOUT_OPTION =
   SurfaceLayoutOption(
-    message("grid.layout.title"),
-    {
+    displayName = message("grid.layout.title"),
+    createLayoutManager = {
       GridLayoutManager(
         transform =
           if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) GROUP_BY_BASE_COMPONENT
           else NO_GROUP_TRANSFORM
       )
     },
-    true,
-    SceneViewAlignment.LEFT,
-    SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    organizationEnabled = true,
+    sceneViewAlignment = SceneViewAlignment.LEFT,
+    layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
   )
 
 /**
@@ -80,7 +80,7 @@ val UI_CHECK_LAYOUT_OPTION =
     },
     organizationEnabled = StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get(),
     sceneViewAlignment = SceneViewAlignment.LEFT,
-    SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
   )
 
 /** The default layout that should appear when the Preview is open. */
