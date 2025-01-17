@@ -124,10 +124,11 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myProjectLocationField.addBrowseFolderListener(SamplesBrowserBundle.message("select.project.location"), null, null,
-                                                   FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    myProjectLocationField.addBrowseFolderListener(
+      null,
+      FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle(SamplesBrowserBundle.message("select.project.location")));
 
-    myBindings.bind(myProjectName, new TransformOptionalExpression<Sample, String>("", getModel().sample()) {
+    myBindings.bind(myProjectName, new TransformOptionalExpression<>("", getModel().sample()) {
       @Override
       @NotNull
       protected String transform(@NotNull Sample sample) {
@@ -145,7 +146,7 @@ public class SampleSetupStep extends ModelWizardStep<SampleModel> {
             : Validator.Result.OK));
 
     PathValidator pathValidator = PathValidator.createDefault("sample location");
-    Expression<Path> myDirFile = new Expression<Path>(myDir) {
+    Expression<Path> myDirFile = new Expression<>(myDir) {
       @NotNull
       @Override
       public Path get() {
