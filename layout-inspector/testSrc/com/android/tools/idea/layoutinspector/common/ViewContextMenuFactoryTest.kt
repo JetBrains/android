@@ -257,6 +257,29 @@ class ViewContextMenuFactoryTest {
     showSubTree.update(fakeEvent2)
     assertThat(fakeEvent2.presentation.isEnabled).isFalse()
   }
+
+  @Test
+  fun testHideSubtreeVisibility() {
+    val model = inspectorModel!!
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
+      .containsExactly(
+        "Hide Subtree",
+        "Show Subtree",
+        "Show Only Subtree",
+        "Show Only Parents",
+        "Show All",
+        "Go To Declaration",
+      )
+      .inOrder()
+    val hideSubtree = createdGroup?.getChildren(event)?.get(0)!!
+
+    model.hideSubtree(model[VIEW2]!!)
+
+    val fakeEvent1 = createFakeEvent()
+    hideSubtree.update(fakeEvent1)
+    assertThat(fakeEvent1.presentation.isEnabled).isFalse()
+  }
 }
 
 class ViewContextMenuFactoryLegacyTest {

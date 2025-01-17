@@ -138,6 +138,11 @@ private class HideSubtreeAction(
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = inspectorModel.isVisible(topView)
+  }
 }
 
 private class ShowOnlySubtreeAction(
