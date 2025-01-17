@@ -42,6 +42,14 @@ interface ProjectSystemSyncManager {
   fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult>
 
   /**
+   * Replaced by requestSyncProject
+   *
+   * Kept for runtime compatibility with the Gradle profiler
+   */
+  @Deprecated("Replaced by requestSyncProject", replaceWith = ReplaceWith("requestSyncProject(reason)"), level = DeprecationLevel.HIDDEN)
+  fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> = requestSyncProject(reason)
+
+  /**
    * Returns whether or not a sync is in progress. The return value of this method can change at any time as syncs are performed.
    * To listen for changes in the return value due to a sync ending, subscribe to [PROJECT_SYSTEM_SYNC_TOPIC].
    *
