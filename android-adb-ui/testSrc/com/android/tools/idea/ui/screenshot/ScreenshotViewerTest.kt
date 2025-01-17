@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.ui.screenshot.ScreenshotViewer.ScreenshotConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -147,6 +148,7 @@ class ScreenshotViewerTest {
     dispatchAllEventsInIdeEventQueue()
     findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
     dispatchAllEventsInIdeEventQueue()
+    service<ScreenshotConfiguration>().loadState(ScreenshotConfiguration())
   }
 
   @Test
@@ -441,7 +443,7 @@ class ScreenshotViewerTest {
   @Test
   fun testScreenshotViewerWithoutFramingOptionsDoesNotAttemptToSelectFrameOption() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    projectRule.project.service<ScreenshotViewer.PersistentState>().frameScreenshot = true
+    service<ScreenshotConfiguration>().frameScreenshot = true
 
     // test that no exceptions are thrown
     createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), framingOptions = listOf())

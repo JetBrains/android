@@ -65,7 +65,7 @@ class ScreenshotAction : DumbAwareAction(
         try {
           val screenshotDecorator = screenshotOptions.screenshotDecorator
           val framingOptions = screenshotOptions.getFramingOptions(screenshot)
-          val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull(), project)
+          val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull())
           val processedImage = screenshotDecorator.decorate(screenshot, decoration)
           indicator.checkCanceled()
           val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()

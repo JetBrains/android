@@ -84,7 +84,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val emulatorController = emulatorView.emulator
         val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
         val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
-        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull(), project)
+        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
         val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
         val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
         processedImage.writeImage("PNG", file)
