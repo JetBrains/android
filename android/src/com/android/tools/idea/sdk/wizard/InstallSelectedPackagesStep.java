@@ -236,7 +236,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
         }
         else {
           myProgressDetailLabel.setText("Done");
-          checkForUpgrades(myInstallRequests);
           myInstallRequests.clear();
           myUninstallRequests.clear();
         }
@@ -265,30 +264,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     customLogger.setIndicator(indicator);
     indicator.setIndeterminate(false);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
-  }
-
-  /**
-   * Look through the list of completed changes, and set a key if any new platforms
-   * were installed.
-   */
-  private static void checkForUpgrades(@Nullable List<UpdatablePackage> completedChanges) {
-    if (completedChanges == null) {
-      return;
-    }
-    int highestNewApiLevel = 0;
-    for (UpdatablePackage updated : completedChanges) {
-      TypeDetails details = updated.getRepresentative().getTypeDetails();
-      if (details instanceof DetailsTypes.PlatformDetailsType) {
-        int api = ((DetailsTypes.PlatformDetailsType)details).getApiLevel();
-        if (api > highestNewApiLevel) {
-          highestNewApiLevel = api;
-        }
-      }
-    }
-    if (highestNewApiLevel > 0) {
-      // TODO: Fix this code after we delete WizardConstants
-      PropertiesComponent.getInstance().setValue(WizardConstants.NEWLY_INSTALLED_API_KEY.name, highestNewApiLevel, -1);
-    }
   }
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
