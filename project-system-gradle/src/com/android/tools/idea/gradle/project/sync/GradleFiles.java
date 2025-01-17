@@ -434,6 +434,7 @@ public class GradleFiles implements Disposable.Default {
       }
 
       if (myGradleFiles.containsChangedFile(psiFile.getVirtualFile())) {
+        EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
         return;
       }
 
@@ -466,7 +467,7 @@ public class GradleFiles implements Disposable.Default {
 
       if (foundChange) {
         myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
-        EditorNotifications.getInstance(psiFile.getProject()).updateNotifications(psiFile.getVirtualFile());
+        EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
         myGradleFiles.myProject.getService(AssistantInvoker.class).expireProjectUpgradeNotifications(myGradleFiles.myProject);
       }
     }

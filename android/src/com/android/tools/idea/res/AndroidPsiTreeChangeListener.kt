@@ -27,7 +27,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.Consumer
 
 /**
@@ -39,7 +38,6 @@ import com.intellij.util.Consumer
  * * [ResourceFolderRegistry] and from there to [ResourceFolderRepository] and [LayoutLibrary]
  * * [SampleDataListener] and from there to [SampleDataResourceRepository]
  * * [ResourceNotificationManager]
- * * [EditorNotifications] when a Gradle file is modified
  */
 @Service(Service.Level.PROJECT)
 class AndroidPsiTreeChangeListener(private val project: Project) :
@@ -62,7 +60,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
         }
       }
       isRelevantFile(psiFile) -> dispatchChildAdded(event, psiFile.virtualFile)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childAdded(event)
@@ -89,7 +86,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
         }
       }
       isRelevantFile(psiFile) -> dispatchChildRemoved(event, psiFile.virtualFile)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childRemoved(event)
@@ -112,7 +108,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
     when {
       isRelevantFile(psiFile) -> dispatchChildReplaced(event, file)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childReplaced(event)
@@ -120,10 +115,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   private fun dispatchChildReplaced(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
     dispatch(virtualFile) { it?.childReplaced(event) }
-  }
-
-  private fun notifyGradleEdit() {
-    EditorNotifications.getInstance(project).updateAllNotifications()
   }
 
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
