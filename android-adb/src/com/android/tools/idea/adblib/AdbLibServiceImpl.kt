@@ -71,7 +71,10 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
           parentSession = AdbLibApplicationService.instance.session,
           host = host,
           channelProvider = channelProvider,
-          connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong()),
+          // Double the preferred timeout for remote devices that need more time to execute
+          // commands.
+          // TODO (b/390732614) Set higher timeout only for remote devices.
+          connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong() * 2),
         )
         .also { projectSession ->
           // Ensure all JDWP connections are delegated to the application session
