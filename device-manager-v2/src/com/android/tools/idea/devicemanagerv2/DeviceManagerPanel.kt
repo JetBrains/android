@@ -75,6 +75,7 @@ import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -217,10 +218,11 @@ constructor(
   private val notificationHolderPanel = JPanel(VerticalLayout(0))
 
   init {
-    layout = VerticalLayout(0)
-    add(notificationHolderPanel)
-    add(toolbar.component)
-
+    layout = BorderLayout()
+    val northPanel = JPanel(VerticalLayout(0))
+    northPanel.add(notificationHolderPanel)
+    northPanel.add(toolbar.component)
+    add(northPanel, BorderLayout.NORTH)
     deviceTable.categoryIndent = 0
 
     val persistentState = project?.service<DeviceTablePersistentStateComponent>()
@@ -233,7 +235,7 @@ constructor(
 
     splitter.firstComponent = scrollPane
     // second component will be the details panel if/when it's created
-    add(splitter)
+    add(splitter, BorderLayout.CENTER)
 
     panelScope.launch(uiDispatcher) { trackDevices() }
     panelScope.launch(uiDispatcher) { trackDeviceTemplates() }

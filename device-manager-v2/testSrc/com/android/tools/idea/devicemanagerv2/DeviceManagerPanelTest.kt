@@ -210,7 +210,8 @@ class DeviceManagerPanelTest {
 
     val fakeUi = FakeUi(panel, createFakeWindow = true)
     fakeUi.layout()
-    assertThat(((panel.components[0]) as JPanel).components[0]).isEqualTo(banner)
+    assertThat((((panel.components[0]) as JPanel).components[0] as JPanel).components[0])
+      .isEqualTo(banner)
 
     // Banner component gets removed with notificationBanners flow.
     notificationBanners.send(listOf())
