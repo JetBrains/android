@@ -274,6 +274,10 @@
           <separator/>
         </group>
       </group>
+      <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
+        <reference ref="android.streaming.hardware.input"/>
+        <separator/>
+      </group>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
       <group id="android.emulator.wear.health.services"/>
@@ -283,9 +287,6 @@
       <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
-      <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
-        <reference ref="android.streaming.hardware.input"/>
-      </group>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -305,13 +306,14 @@
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
       <separator/>
+      <reference ref="android.streaming.hardware.input"/>
+      <separator/>
       <reference ref="android.streaming.ui.settings"/>
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
       <reference ref="android.streaming.backup"/>
       <separator/>
-      <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
     </group>
 
