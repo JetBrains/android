@@ -16,6 +16,7 @@
 package com.google.idea.common.experiments;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.common.util.MorePlatformUtils;
@@ -76,8 +77,8 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   ExperimentServiceImpl(@Nullable CoroutineScope scope, Supplier<String> buildSupplier, Supplier<String> versionSupplier,
       ExperimentLoader... loaders) {
     services = ImmutableList.copyOf(loaders);
-    this.buildSupplier = buildSupplier;
-    this.versionSupplier = versionSupplier;
+    this.buildSupplier = Suppliers.memoize(buildSupplier::get);
+    this.versionSupplier = Suppliers.memoize(versionSupplier::get);
     // Bypass unregistered application service AlarmSharedCoroutineScopeHolder. It's a private service which hard to mock
     this.alarm = new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication(), null,
         scope);
