@@ -18,6 +18,7 @@ package com.google.idea.common.util;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PlatformUtils;
+import java.util.Locale;
 
 /** Additional helpers for {@link PlatformUtils}. */
 public final class MorePlatformUtils {
@@ -56,6 +57,7 @@ public final class MorePlatformUtils {
 
   public static String getIdeAbBuildNumber() {
     String fullVersion = ApplicationInfo.getInstance().getBuild().toString();
-    return StringUtil.substringAfterLast(fullVersion, ".");
+    String rawAbBuildNumber = StringUtil.substringAfterLast(fullVersion, ".");
+    return rawAbBuildNumber != null ? rawAbBuildNumber.toLowerCase(Locale.ROOT) : null; // SNAPSHOT -> snapshot
   }
 }
