@@ -26,13 +26,14 @@ class DependenciesProcessor(private val projectModel: ProjectBuildModel) {
     val helper = DependenciesHelper.withModel(projectModel)
     for (plugin in config.plugins) {
       // TODO rethink input types in DependenciesConfig
-      helper.addPluginOrClasspath(plugin.pluginId,
-                                  plugin.classpathModule,
-                                  plugin.version,
-                                  listOf(moduleModel),
-                                  config.pluginMatcherFactory(plugin),
-                                  config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version))
-        .also { result = result.appendAll(it) }
+      PluginsHelper.withModel(projectModel).addPluginOrClasspath(
+        plugin.pluginId,
+        plugin.classpathModule,
+        plugin.version,
+        listOf(moduleModel),
+        config.pluginMatcherFactory(plugin),
+        config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version)
+      ).also { result = result.appendAll(it) }
     }
     for (dependency in config.dependencies) {
       helper.addDependency(dependency.configurationName, dependency.dependency, listOf(), moduleModel,

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
@@ -68,7 +68,7 @@ class AddComposeCompilerGradlePluginProcessor(
   fun updateProjectBuildModel() {
     val projectBuildModel = ProjectBuildModel.get(myProject)
     val moduleBuildModels = affectedModules.mapNotNull { projectBuildModel.getModuleBuildModel(it) }
-    DependenciesHelper.withModel(projectBuildModel)
+    PluginsHelper.withModel(projectBuildModel)
       .addPluginOrClasspath(
         "org.jetbrains.kotlin.plugin.compose",
         "org.jetbrains.kotlin:compose-compiler-gradle-plugin",

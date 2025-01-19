@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep
+import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -119,7 +120,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
         val pluginId = "org.jetbrains.kotlin.android"
         val classpathModule = "org.jetbrains.kotlin:kotlin-gradle-plugin"
-        val helper = DependenciesHelper.withModel(projectBuildModel)
+        val helper = PluginsHelper.withModel(projectBuildModel)
         val kotlinPluginAddedFiles = helper.addPluginOrClasspath(
             pluginId,
             classpathModule,

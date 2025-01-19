@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 
 /**
- * We assume for now that declarative project is pure (no non-declarative modules)
- * and no version catalog in it.
+ * Similar to DependenciesHelper to manage adding plugins
+ * to studio projects
  */
-class DeclarativeDependenciesInserter(private val projectModel: ProjectBuildModel): DependenciesInserter() {
-
-
+abstract class PluginsHelper {
+  companion object {
+    @JvmStatic
+    fun withModel(projectModel: ProjectBuildModel): PluginsInserter =
+      when (calculateAddDependencyPolicy(projectModel)) {
+        AddDependencyPolicy.VERSION_CATALOG -> CatalogPluginsInserter(projectModel)
+        AddDependencyPolicy.BUILD_FILE -> PluginsInserter(projectModel)
+        AddDependencyPolicy.DECLARATIVE -> DeclarativePluginsInserter(projectModel)
+      }
+  }
 }

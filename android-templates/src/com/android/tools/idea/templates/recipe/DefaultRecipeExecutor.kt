@@ -25,6 +25,7 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
+import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -46,7 +47,6 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -75,6 +75,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
+import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 
 private val LOG = Logger.getInstance(DefaultRecipeExecutor::class.java)
 
@@ -202,8 +203,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel: GradleBuildModel
   ) {
     val projectModel = projectBuildModel ?: return
-    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
-    dependenciesHelper.addPluginOrClasspath(plugin, classpathModule, version, listOf(buildModel))
+    val pluginsHelper = PluginsHelper.withModel(projectModel)
+    pluginsHelper.addPluginOrClasspath(plugin, classpathModule, version, listOf(buildModel))
   }
 
   private fun applyPluginInBuildModel(
@@ -213,11 +214,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     minRev: String?,
   ) {
     val projectModel = projectBuildModel ?: return
-    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
+    val pluginsHelper = PluginsHelper.withModel(projectModel)
     if (revision == null) {
       // When the revision is null, just apply the plugin without a revision.
       // Version catalogs don't support the plugins without versions.
-      dependenciesHelper.addPlugin(plugin, buildModel)
+      pluginsHelper.addPlugin(plugin, buildModel)
       return
     }
 
@@ -226,7 +227,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
-    dependenciesHelper.findPlaceAndAddPlugin(plugin, resolvedVersion, listOf(buildModel))
+    pluginsHelper.findPlaceAndAddPlugin(plugin, resolvedVersion, listOf(buildModel))
   }
 
   override fun addClasspathDependency(
@@ -249,7 +250,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)
 
     projectBuildModel?.let {
-        DependenciesHelper.withModel(it)
+        PluginsHelper.withModel(it)
           .addClasspathDependency(resolvedCoordinate, listOf(), GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, resolvedCoordinate))
       }
   }
