@@ -88,6 +88,7 @@ jvm_library(
     "//android/project-system:projectSystem",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
+    "//platform/usageView",
     "//android/android-lang:lang",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/android-test-framework:testFramework_test_lib",

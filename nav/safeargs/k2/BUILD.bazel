@@ -22,6 +22,7 @@ jvm_library(
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
     "//android/nav/safeargs/common:android-nav-safeargs-common",
     "//plugins/kotlin/base/util:kotlin-base-util",
+    "//platform/util",
     "//plugins/kotlin/base/analysis:kotlin-base-analysis",
     "@lib//:kotlinc-analysis-api-provided",
     "@lib//:kotlinc-analysis-api-platform-interface-provided",
