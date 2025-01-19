@@ -257,19 +257,18 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         context,
         BlazeInvocationContext.OTHER_CONTEXT);
 
-    final var querySyncFlags = ImmutableList.<String>builder()
-      .addAll(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
-      .addAll(additionalBlazeFlags)
-      .add(
+    final var querySyncFlags = ImmutableList.<String>builder();
+    querySyncFlags.addAll(buildTargets.stream().map(Label::toString).collect(toImmutableList()));
+    querySyncFlags.addAll(additionalBlazeFlags);
+    querySyncFlags.add(
         String.format(
           "--aspects=%1$s%%collect_dependencies,%1$s%%package_dependencies",
-          invocationFiles.aspectFileLabel()))
-      .add("--noexperimental_run_validations")
-      .add("--keep_going")
-      .addAll(
-        outputGroups.stream().map(g -> "--output_groups=" + g.outputGroupName()).collect(toImmutableList()))
-      .build();
-    return new BuildDependenciesBazelInvocationInfo(querySyncFlags, outputGroups);
+          invocationFiles.aspectFileLabel()));
+    querySyncFlags.add("--noexperimental_run_validations");
+    querySyncFlags.add("--keep_going");
+    querySyncFlags.addAll(
+        outputGroups.stream().map(g -> "--output_groups=" + g.outputGroupName()).collect(toImmutableList()));
+    return new BuildDependenciesBazelInvocationInfo(querySyncFlags.build(), outputGroups);
   }
 
   public record InvocationFiles(ImmutableMap<Path, ByteSource> files, String aspectFileLabel){}
@@ -282,13 +281,13 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   @VisibleForTesting
   public final InvocationFiles getInvocationFiles(BuildDependencyParameters parameters) {
     String aspectFileName = String.format("qs-%s.bzl", getProjectHash());
+    ImmutableMap.Builder<Path, ByteSource> files = ImmutableMap.builder();
+    files.put(Path.of(".aswb/BUILD"), ByteSource.empty());
+    files.put(Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")));
+    files.put(Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
+    files.put(Path.of(".aswb/" + aspectFileName), getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
     return new InvocationFiles(
-      ImmutableMap.of(
-        Path.of(".aswb/BUILD"), ByteSource.empty(),
-        Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")),
-        Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()),
-        Path.of(".aswb/" + aspectFileName), getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters))
-      ),
+      files.build(),
       Label.of(String.format("//.aswb:" + aspectFileName)).toString()
     );
   }
