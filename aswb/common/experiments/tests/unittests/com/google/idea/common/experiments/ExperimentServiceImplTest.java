@@ -46,9 +46,12 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ExperimentServiceImplTest {
 
+  enum TestEnum {AA, DefaultBB, CC}
+
   private static final BoolExperiment BOOL_EXPERIMENT = new BoolExperiment("test.property", false);
   private static final StringExperiment STRING_EXPERIMENT = new StringExperiment("test.property");
   private static final IntExperiment INT_EXPERIMENT = new IntExperiment("test.property", 0);
+  private static final EnumExperiment<TestEnum>ENUM_EXPERIMENT = new EnumExperiment<>("test.enum", TestEnum.DefaultBB);
   private static final CoroutineScope DUMMY_SCOPE = CoroutineScopeKt.CoroutineScope(
       EmptyCoroutineContext.INSTANCE);
 
@@ -98,6 +101,39 @@ public class ExperimentServiceImplTest {
     assertThat(experimentService.getExperimentString(STRING_EXPERIMENT, null)).isEqualTo("hi");
     assertThat(experimentService.getAllQueriedExperiments())
         .containsExactly(STRING_EXPERIMENT.getKey(), STRING_EXPERIMENT);
+  }
+
+  @Test
+  public void testEnumProperty() {
+    ExperimentService experimentService =
+        new ExperimentServiceImpl(DUMMY_SCOPE,
+            new MapExperimentLoader("id", ENUM_EXPERIMENT.getKey(), "cc"));
+    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.CC);
+    assertThat(experimentService.getAllQueriedExperiments())
+        .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);
+  }
+
+  @Test
+  public void testEnumProperty_caseInsensitivity() {
+    ExperimentService experimentService =
+        new ExperimentServiceImpl(DUMMY_SCOPE,
+            new MapExperimentLoader("id", ENUM_EXPERIMENT.getKey(), "Aa"));
+    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.AA);
+    assertThat(experimentService.getAllQueriedExperiments())
+        .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);
+  }
+
+  @Test
+  public void testEnumProperty_default() {
+    ExperimentService experimentService =
+        new ExperimentServiceImpl(DUMMY_SCOPE,
+            new MapExperimentLoader("id"));
+    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.DefaultBB);
+    assertThat(experimentService.getAllQueriedExperiments())
+        .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);
   }
 
   @Test
