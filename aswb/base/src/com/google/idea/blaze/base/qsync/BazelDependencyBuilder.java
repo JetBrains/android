@@ -236,7 +236,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       buildGeneratedSrcJars.getValue(),
       multiInfoFile.getValue()
     );
-    String aspectLocation = prepareAspect(context, parameters);
+
+    InvocationFiles invocationFiles = getInvocationFiles(parameters);
+    prepareInvocation(context, invocationFiles.files());
 
     ImmutableSet<OutputGroup> outputGroups =
       languages.stream()
@@ -261,7 +263,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       .add(
         String.format(
           "--aspects=%1$s%%collect_dependencies,%1$s%%package_dependencies",
-          aspectLocation))
+          invocationFiles.aspectFileLabel()))
       .add("--noexperimental_run_validations")
       .add("--keep_going")
       .addAll(
@@ -270,29 +272,36 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     return new BuildDependenciesBazelInvocationInfo(querySyncFlags, outputGroups);
   }
 
+  public record InvocationFiles(ImmutableMap<Path, ByteSource> files, String aspectFileLabel){}
+
   /**
    * Provides information about files that must be create in the workspace root for the aspect to operate.
    *
    * @return A map of (workspace-relative path) to (contents to write there).
    */
-  public final ImmutableMap<Path, ByteSource> getAspectFiles(BuildDependencyParameters parameters) {
-    return ImmutableMap.of(
-      Path.of(".aswb/BUILD"), ByteSource.empty(),
-      Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")),
-      Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()),
-      Path.of(String.format(".aswb/qs-%s.bzl", getProjectHash())), getBuildDependenciesParametersByteSource(parameters)
-      );
+  @VisibleForTesting
+  public final InvocationFiles getInvocationFiles(BuildDependencyParameters parameters) {
+    String aspectFileName = String.format("qs-%s.bzl", getProjectHash());
+    return new InvocationFiles(
+      ImmutableMap.of(
+        Path.of(".aswb/BUILD"), ByteSource.empty(),
+        Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")),
+        Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()),
+        Path.of(".aswb/" + aspectFileName), getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters))
+      ),
+      Label.of(String.format("//.aswb:" + aspectFileName)).toString()
+    );
   }
 
   protected Path getBundledAspectDepsFilePath() {
     return getBundledAspectPath("build_dependencies_deps.bzl");
   }
 
-  private ByteSource getBuildDependenciesParametersByteSource(BuildDependencyParameters parameters) {
+  private ByteSource getByteSourceFromString(String content) {
     return new ByteSource() {
       @Override
       public InputStream openStream()  {
-        return new ByteArrayInputStream(getBuildDependenciesParametersFileContent(parameters).getBytes(UTF_8));
+        return new ByteArrayInputStream(content.getBytes(UTF_8));
       }
     };
   }
@@ -326,14 +335,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     result.append("  ],\n");
   }
 
-  /**
-   * Returns the label of the build_dependencies aspect. This must refer to a file populated from {@link #getAspectFiles()}.
-   */
-  protected Label getGeneratedAspectLabel() {
-    return Label.of(String.format("//.aswb:qs-%s.bzl", getProjectHash()));
-  }
-
-  private String getProjectHash() {
+  @VisibleForTesting
+  public String getProjectHash() {
     return sanitizeJavaIdentifier(project.getName() + project.getLocationHash());
   }
 
@@ -366,13 +369,13 @@ public class BazelDependencyBuilder implements DependencyBuilder {
    * <p>The return value is a string in the format expected by bazel for an aspect file, omitting
    * the name of the aspect within that file. For example, {@code //package:aspect.bzl}.
    */
-  protected String prepareAspect(BlazeContext context, BuildDependencyParameters parameters) throws IOException, BuildException {
-    for (Map.Entry<Path, ByteSource> e : getAspectFiles(parameters).entrySet()) {
+  protected void prepareInvocation(BlazeContext context,
+                                     ImmutableMap<Path, ByteSource> invocationFiles) throws IOException, BuildException {
+    for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
       Path absolutePath = workspaceRoot.path().resolve(e.getKey());
       Files.createDirectories(absolutePath.getParent());
       Files.copy(e.getValue().openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
     }
-    return getGeneratedAspectLabel().toString();
   }
 
   private OutputInfo createOutputInfo(

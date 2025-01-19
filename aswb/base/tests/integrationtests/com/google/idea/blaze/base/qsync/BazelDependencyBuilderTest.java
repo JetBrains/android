@@ -74,9 +74,8 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                                  ImmutableSet.of("always_build_rule1", "always_build_rule2")
                                  );
 
-    assertThat(dependencyBuilder.getGeneratedAspectLabel().toString()).startsWith("//.aswb:qs-");
-    final var generatedAspectName = dependencyBuilder.getGeneratedAspectLabel().name();
-    ImmutableMap<Path, ByteSource> aspectFiles = dependencyBuilder.getAspectFiles(new BazelDependencyBuilder.BuildDependencyParameters(
+    final var generatedAspectName = String.format("qs-%s.bzl", dependencyBuilder.getProjectHash());
+    final var invocationFiles = dependencyBuilder.getInvocationFiles(new BazelDependencyBuilder.BuildDependencyParameters(
       ImmutableList.of("dir1", "dir2"),
       ImmutableList.of("dir1/sub1"),
       ImmutableList.of("always_build_rule1", "always_build_rule2"),
@@ -84,7 +83,8 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
       false,
       true
     ));
-    assertThat(new String(aspectFiles.get(Path.of(".aswb", generatedAspectName)).openStream().readAllBytes(), StandardCharsets.UTF_8))
+    assertThat(invocationFiles.aspectFileLabel()).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()));
+    assertThat(new String(invocationFiles.files().get(Path.of(".aswb", generatedAspectName)).openStream().readAllBytes(), StandardCharsets.UTF_8))
       .isEqualTo("""
 load(':build_dependencies.bzl', _collect_dependencies = 'collect_dependencies', _package_dependencies = 'package_dependencies')
 _config = struct(
