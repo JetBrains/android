@@ -20,10 +20,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * A service that tracks what files in the project can be analyzed and what is the status of their
@@ -41,8 +38,6 @@ public interface DependencyTracker {
   /** Request to {@link #buildDependenciesForTargets(BlazeContext, DependencyBuildRequest)}. */
   class DependencyBuildRequest {
     enum RequestType {
-      /** Build a single target and do not check if its dependencies were built. */
-      SINGLE_TARGET,
       /**
        * Build multiple targets and mark all dependencies as built even if they produce no
        * artifacts.
@@ -61,10 +56,6 @@ public interface DependencyTracker {
     private DependencyBuildRequest(RequestType type, ImmutableSet<Label> targets) {
       this.requestType = type;
       this.targets = targets;
-    }
-
-    public static DependencyBuildRequest singleTarget(Label target) {
-      return new DependencyBuildRequest(RequestType.SINGLE_TARGET, ImmutableSet.of(target));
     }
 
     public static DependencyBuildRequest multiTarget(Set<Label> targets) {

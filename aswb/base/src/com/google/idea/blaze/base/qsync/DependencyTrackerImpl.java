@@ -91,8 +91,6 @@ public class DependencyTrackerImpl implements DependencyTracker {
     switch (request.requestType) {
       case MULTIPLE_TARGETS:
         return snapshot.graph().computeRequestedTargets(request.targets);
-      case SINGLE_TARGET:
-        return Optional.of(new RequestedTargets(request.targets, request.targets));
       case WHOLE_PROJECT:
         return Optional.of(
             new RequestedTargets(
