@@ -38,7 +38,7 @@
                         overrides="true"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFilesUpdater$UpdateHashesProjectActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFilesProjectActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidStudioProjectActivity" />
 
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />

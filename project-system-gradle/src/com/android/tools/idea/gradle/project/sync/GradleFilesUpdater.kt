@@ -79,7 +79,7 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
     callback(result)
   }
 
-  private suspend fun computeFileHashes(): Result {
+  suspend fun computeFileHashes(): Result {
     suspend fun computeWrapperPropertiesHash(): Result {
       return readAction {
         GradleWrapper.find(project)?.propertiesFile?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: return@readAction Result.EMPTY
@@ -167,13 +167,6 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
 
       fun from(files: Set<VirtualFile>, externalBuildFiles: Set<VirtualFile>): Result =
         Result(files.mapNotNull { f -> hash(f)?.let { h -> f to h } }.toMap(), externalBuildFiles)
-    }
-  }
-
-  class UpdateHashesProjectActivity : ProjectActivity {
-    override suspend fun execute(project: Project) {
-      val result = getInstance(project).computeFileHashes();
-      GradleFiles.getInstance(project).updateCallback().invoke(result)
     }
   }
 }
