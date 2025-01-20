@@ -163,6 +163,7 @@ iml_module(
                 "//tools/data-binding:data_binding_runtime.zip",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
             ],
         },
         "runs_gradle_dependencies": {

@@ -31,7 +31,9 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -47,6 +49,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -54,8 +57,11 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -91,9 +97,40 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     simulateSyncForGradleFilesUpdate();
     return projectRoot;
   }
+
+  private File loadSimpleDeclarativeApplication() throws Exception {
+    assertTrue(DeclarativeStudioSupport.isEnabled());
+    assertTrue(DeclarativeIdeSupport.isEnabled());
+    File file = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE);
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(getProjectFolderPath(), true));
+    setupGradleSnapshotToWrapper();
+    importProject();
+    prepareProjectForTest(myFixture.getProject(), null);
+    return file;
+  }
+
+  private void runWithDeclarativeSupport(ThrowableRunnable<Exception> runnable) throws Exception {
+    try {
+      DeclarativeStudioSupport.override(true);
+      DeclarativeIdeSupport.override(true);
+      runnable.run();
+    }
+    finally {
+      DeclarativeIdeSupport.clearOverride();
+      DeclarativeStudioSupport.clearOverride();
+    }
+  }
+
   private void simulateSyncForGradleFilesUpdate() {
     myGradleFiles.maybeProcessSyncStarted();
     UIUtil.dispatchAllInvocationEvents();
+  }
+
+  private void setupGradleSnapshotToWrapper() throws IOException {
+    Path distribution = TestUtils.resolveWorkspacePath("tools/external/gradle");
+    Path gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip");
+    GradleWrapper wrapper = GradleWrapper.find(myFixture.getProject());
+    wrapper.updateDistributionUrl(gradle.toFile());
   }
 
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {
@@ -381,22 +418,28 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
-    loadSimpleApplication();
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
-    runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
-                                       virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      simulateSyncForGradleFilesUpdate();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
+                                         virtualFile);
+    });
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
-    loadSimpleApplication();
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-    runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
-                                       virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      simulateSyncForGradleFilesUpdate();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
+                                         virtualFile);
+    });
   }
 
   public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
+    simulateSyncForGradleFilesUpdate();
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
     runKtsFakeModificationTest((factory, file) -> file.add(factory.createProperty("val coolexpression by extra(\"nice!\")")),
                                true, true, virtualFile);
@@ -417,25 +460,26 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
-    runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createNewline()), false, virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createNewline()), false, virtualFile);
+    });
   }
 
 
   public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
     runKtsFakeModificationTest((factory, file) -> file.add(factory.createNewLine(1)), false, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeBuildFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    });
   }
 
   @NotNull
@@ -516,13 +560,9 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                                                   boolean expectedResult,
                                                   boolean preCheckEnabled,
                                                   @NotNull VirtualFile file) {
-    DeclarativeStudioSupport.override(true);
-    try {
-      runGenericFakeModificationTest(DeclarativePsiFactory::new, editFunction, expectedResult, preCheckEnabled, file);
-    }
-    finally {
-      DeclarativeStudioSupport.clearOverride();
-    }
+    assertTrue(DeclarativeStudioSupport.isEnabled());
+    assertTrue(DeclarativeIdeSupport.isEnabled());
+    runGenericFakeModificationTest(DeclarativePsiFactory::new, editFunction, expectedResult, preCheckEnabled, file);
   }
 
   private void runTomlFakeModificationTest(@NotNull BiConsumer<TomlPsiFactory, PsiFile> editFunction,
