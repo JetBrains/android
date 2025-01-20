@@ -56,6 +56,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,7 +100,7 @@ class LayoutlibSceneRenderer(
    * Worker thread based coroutine scope used for processing render requests, and performing
    * inflation and rendering.
    */
-  private val scope = AndroidCoroutineScope(this)
+  private val scope: CoroutineScope
 
   /** Lock guarding execution of [NlModelHierarchyUpdater.updateHierarchy] for [model]. */
   private val updateHierarchyLock = ReentrantLock()
@@ -127,10 +128,6 @@ class LayoutlibSceneRenderer(
    */
   var lastRenderQuality = 0f
     private set
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
 
   @GuardedBy("renderTaskLock")
   internal var renderTask: RenderTask? = null
@@ -204,6 +201,11 @@ class LayoutlibSceneRenderer(
   private val lastProcessedRenderRequestTime = MutableStateFlow<Long>(-1)
 
   init {
+    // Order here is relevant. We need to register first to ensure that the scope does not get
+    // leaked
+    // if this class is disposed before the scope is correctly initialized.
+    Disposer.register(parentDisposable, this)
+    scope = AndroidCoroutineScope(this)
     scope.launch {
       requestsChannel.receiveAsFlow().collect {
         renderIsRunning.set(true)
