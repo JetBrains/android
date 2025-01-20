@@ -38,7 +38,7 @@ import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
 import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
-import com.intellij.openapi.application.smartReadActionBlocking
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.IndexingTestUtil
@@ -70,7 +70,7 @@ class ComposeVisualLintSuppressTaskTest {
           )
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
-          smartReadActionBlocking(projectRule.project) {
+          smartReadAction(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
@@ -176,7 +176,7 @@ class ComposeVisualLintSuppressTaskTest {
           )
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
-          smartReadActionBlocking(projectRule.project) {
+          smartReadAction(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
