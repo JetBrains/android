@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.markup.AnalyzerStatus;
 import com.intellij.openapi.editor.markup.InspectionsLevel;
 import com.intellij.openapi.editor.markup.LanguageHighlightLevel;
 import com.intellij.openapi.editor.markup.UIController;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.GridBag;
 import java.awt.Container;
@@ -50,7 +51,11 @@ public class QuerySyncTrafficLightRendererContributor implements TrafficLightRen
       @Override
       @NotNull
       public AnalyzerStatus getStatus() {
-        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (virtualFile == null) {
+          return super.getStatus();
+        }
+        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(virtualFile)) {
           return super.getStatus();
         }
         return new AnalyzerStatus(

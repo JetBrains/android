@@ -516,11 +516,11 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
-  public boolean isReadyForAnalysis(PsiFile psiFile) {
+  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
     if (loadedProject == null) {
       return false;
     }
-    return loadedProject.isReadyForAnalysis(psiFile);
+    return loadedProject.isReadyForAnalysis(virtualFile);
   }
 
   /**

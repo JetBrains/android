@@ -444,11 +444,7 @@ public class QuerySyncProject {
     }
   }
 
-  public boolean isReadyForAnalysis(PsiFile psiFile) {
-    VirtualFile virtualFile = psiFile.getVirtualFile();
-    if (virtualFile == null) {
-      return true;
-    }
+  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
     Path p = virtualFile.getFileSystem().getNioPath(virtualFile);
     if (p == null || !p.startsWith(workspaceRoot.path())) {
       // Not in the workspace.
