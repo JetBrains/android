@@ -6,13 +6,16 @@ import com.intellij.openapi.project.ProjectType
 import com.intellij.openapi.project.ProjectTypesProvider
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.ProjectScope.getLibrariesScope
+import com.intellij.util.SlowOperations
 
 val ANDROID_PROJECT_TYPE = ProjectType("Android")
 
 internal class AndroidProjectTypesProvider : ProjectTypesProvider {
   override fun inferProjectTypes(project: Project): Collection<ProjectType> {
-    if (JavaPsiFacade.getInstance(project).findClass("android.app.Activity", getLibrariesScope(project)) != null) {
-      return listOf(ANDROID_PROJECT_TYPE)
+    SlowOperations.knownIssue("b/391099539").use {
+      if (JavaPsiFacade.getInstance(project).findClass("android.app.Activity", getLibrariesScope(project)) != null) {
+        return listOf(ANDROID_PROJECT_TYPE)
+      }
     }
     return emptyList()
   }

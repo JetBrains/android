@@ -76,6 +76,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
+import com.intellij.util.SlowOperations
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -147,7 +148,9 @@ private suspend fun performActivity(project: Project) {
 
   if (shouldSyncOrAttachModels()) {
     withContext(Dispatchers.EDT) {
-      removePointlessModules(project)
+      SlowOperations.knownIssue("b/391099534").use {
+        removePointlessModules(project)
+      }
       addJUnitProducersToIgnoredList(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
       subscribeToGradleSettingChanges(project)
@@ -277,12 +280,14 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
             }
           }
         }
-        val localAndroidSdkPath = LocalProperties(File(externalProjectPath)).androidSdkPath
-        if (localAndroidSdkPath == null || localAndroidSdkPath.path.isNullOrBlank()) {
-          requestSync("No SDK path defined in local.properties.", Trigger.TRIGGER_PROJECT_MODIFIED)
-        }
-        if (localAndroidSdkPath.path != IdeSdks.getInstance().androidSdkPath?.path) {
-          requestSync("SDK path defined in local.properties is invalid.", Trigger.TRIGGER_PROJECT_MODIFIED)
+        SlowOperations.knownIssue("b/391098343").use {
+          val localAndroidSdkPath = LocalProperties(File(externalProjectPath)).androidSdkPath
+          if (localAndroidSdkPath == null || localAndroidSdkPath.path.isNullOrBlank()) {
+            requestSync("No SDK path defined in local.properties.", Trigger.TRIGGER_PROJECT_MODIFIED)
+          }
+          if (localAndroidSdkPath.path != IdeSdks.getInstance().androidSdkPath?.path) {
+            requestSync("SDK path defined in local.properties is invalid.", Trigger.TRIGGER_PROJECT_MODIFIED)
+          }
         }
 
         val moduleVariants = project.getSelectedVariantAndAbis()
