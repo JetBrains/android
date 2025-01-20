@@ -123,6 +123,7 @@ sealed class PreviewMode {
     }
   }
 
+  // TODO("b/391292814"): Rename Gallery in Focus
   class Gallery(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
     override val layoutOption: SurfaceLayoutOption = GALLERY_LAYOUT_OPTION
 

@@ -166,7 +166,7 @@ internal class GalleryTabs<Key : TitledKey>(
 
   /** Toolbar button that shows all available previews in a dropdown. */
   private inner class AllTabsDropdown :
-    DumbAwareAction(message("action.gallery.show.hidden"), null, AllIcons.General.ChevronDown) {
+    DumbAwareAction(message("action.focus.show.hidden"), null, AllIcons.General.ChevronDown) {
 
     var popup: ListPopup? = null
 

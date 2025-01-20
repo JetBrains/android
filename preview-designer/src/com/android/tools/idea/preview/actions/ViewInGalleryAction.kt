@@ -37,7 +37,7 @@ import com.intellij.openapi.diagnostic.Logger
 class ViewInGalleryAction(
   @SwingCoordinate private val x: Int,
   @SwingCoordinate private val y: Int,
-) : AnAction(message("action.view.in.gallery")) {
+) : AnAction(message("action.view.in.focus.mode")) {
 
   private val logger = Logger.getInstance(ViewInGalleryAction::class.java)
 

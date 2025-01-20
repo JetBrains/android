@@ -28,7 +28,7 @@ import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 /** [PreviewMode.Gallery] layout option which shows once centered element. */
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
-    displayName = message("gallery.mode.title"),
+    displayName = message("focus.mode.title"),
     createLayoutManager = { GalleryLayoutManager() },
     organizationEnabled = false,
     sceneViewAlignment = SceneViewAlignment.LEFT,

@@ -1397,8 +1397,8 @@ public final class StudioFlags {
     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> VIEW_IN_GALLERY = new BooleanFlag(
-    PREVIEW_COMMON, "view.preview.in.gallery", "View preview in Gallery mode",
-    "If enabled, shows a menu item to open the selected preview in Gallery mode.",
+    PREVIEW_COMMON, "view.preview.in.focus", "View preview in Focus mode",
+    "If enabled, shows a menu item to open the selected preview in Focus mode.",
     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> ADD_PREVIEW_IMAGE_TO_AI_REQUEST_FOR_CODE_GENERATION = new BooleanFlag(

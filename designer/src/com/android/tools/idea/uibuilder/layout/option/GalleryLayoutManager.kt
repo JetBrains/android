@@ -16,4 +16,5 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 /** [SurfaceLayoutManager] for Gallery mode. */
+// TODO("b/391292814"): Rename GalleryLayoutManager in FocusLayoutManager
 class GalleryLayoutManager : GridLayoutManager()

@@ -67,7 +67,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
    */
   public enum LayoutType {
     GRID("Grid"),
-    GALLERY("Gallery");
+    GALLERY("Focus");
 
     @NotNull
     private final String myDisplayName;
