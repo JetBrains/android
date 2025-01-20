@@ -392,6 +392,9 @@ public abstract class QuerySummary {
       case QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS -> {
         return QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS;
       }
+      case QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS -> {
+        return QuerySpec.QueryStrategy.PLAIN_WITH_SAFE_FILTERS;
+      }
       case QUERY_STRATEGY_PLAIN, QUERY_STRATEGY_UNKNOWN -> {
         return QuerySpec.QueryStrategy.PLAIN;
       }
@@ -405,6 +408,7 @@ public abstract class QuerySummary {
     switch(queryStrategy) {
       case PLAIN: return Summary.QueryStrategy.QUERY_STRATEGY_PLAIN;
       case FILTERING_TO_KNOWN_AND_USED_TARGETS: return Summary.QueryStrategy.QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS;
+      case PLAIN_WITH_SAFE_FILTERS: return Summary.QueryStrategy.QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS;
       default: throw new IllegalStateException(queryStrategy.toString());
     }
   }
