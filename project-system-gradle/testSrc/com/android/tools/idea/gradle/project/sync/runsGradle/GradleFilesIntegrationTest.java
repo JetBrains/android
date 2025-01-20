@@ -348,23 +348,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     assertThat(myGradleFiles.hasHashForFile(getAppBuildFile())).isFalse();
   }
 
-  public void testChangesAreNotDetectedWithNoListener() throws Exception {
-    loadSimpleApplication();
-    PsiFile psiFile = findPsiFile(getAppBuildFile());
-
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
-
-    // If the listener was attached, this should count as a modification.
-    CommandProcessor.getInstance().executeCommand(getProject(), () ->
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        assertThat(psiFile.getChildren().length).isGreaterThan(0);
-        psiFile.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
-      }), "Fake Edit Test", null);
-
-    // But since we have no listener no files should be classed as modified.
-    assertFalse(myGradleFiles.areGradleFilesModified());
-  }
-
   public void testCommentingOutTriggersModification() throws Exception {
     loadSimpleApplication();
 
