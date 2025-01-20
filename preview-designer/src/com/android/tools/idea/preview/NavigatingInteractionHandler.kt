@@ -55,14 +55,14 @@ class NavigatingInteractionHandler(
 
   private val scope = AndroidCoroutineScope(surface)
 
-  override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
+  override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
     // then no navigation will happen. Only selection may be affected (see
     // mouseReleaseWhenNoInteraction)
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Highlight the clicked widget but keep focus in DesignSurface.
-      clickPreview(x, y, false, modifiersEx)
+      clickPreview(mouseEvent, false, modifiersEx)
     }
   }
 
@@ -97,14 +97,14 @@ class NavigatingInteractionHandler(
     return super.keyPressedWithoutInteraction(keyEvent)
   }
 
-  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {
+  override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
     // then
     // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Navigate the caret to the clicked widget and focus on text editor.
-      clickPreview(x, y, true, modifiersEx)
+      clickPreview(mouseEvent, true, modifiersEx)
     }
   }
 
@@ -308,12 +308,9 @@ class NavigatingInteractionHandler(
    * Handles a click in a preview. The click is handled asynchronously since finding the component
    * to navigate might be a slow operation.
    */
-  private fun clickPreview(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    needsFocusEditor: Boolean,
-    modifiersEx: Int,
-  ) {
+  private fun clickPreview(mouseEvent: MouseEvent, needsFocusEditor: Boolean, modifiersEx: Int) {
+    val x = mouseEvent.x
+    val y = mouseEvent.y
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
@@ -329,7 +326,7 @@ class NavigatingInteractionHandler(
             if (needsFocusEditor) {
               // Only allow default navigation when double clicking since it might take us to a
               // different file
-              navigationHandler.handleNavigate(sceneView, needsFocusEditor)
+              navigationHandler.handleNavigate(sceneView, true)
             }
             return@run false
           }

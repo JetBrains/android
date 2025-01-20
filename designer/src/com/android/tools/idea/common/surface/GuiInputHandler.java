@@ -66,7 +66,6 @@ import org.jetbrains.annotations.TestOnly;
 
 /**
  * The {@linkplain GuiInputHandler} is the handler of user input events.
- *
  * It is responsible for converting the events into {@link Interaction}s. It listens to the mouse and keyboard events to find out when
  * to start {@link Interaction}, update them and terminate them.
  */
@@ -220,6 +219,7 @@ public class GuiInputHandler implements Disposable {
   /**
    * This will register all the listeners to {@link Interactable} needed by the {@link GuiInputHandler}.<br>
    * Do nothing if it is listening already.
+   *
    * @see #stopListening()
    */
   public void startListening() {
@@ -242,6 +242,7 @@ public class GuiInputHandler implements Disposable {
   /**
    * This will unregister all the listeners previously registered by from {@link Interactable}.<br>
    * Do nothing if it is not listening.
+   *
    * @see #startListening()
    */
   public void stopListening() {
@@ -390,13 +391,13 @@ public class GuiInputHandler implements Disposable {
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        myInteractionHandler.doubleClick(x, y, myLastModifiersEx);
+        myInteractionHandler.doubleClick(event, myLastModifiersEx);
         return;
       }
 
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
-        myInteractionHandler.singleClick(x, y, myLastModifiersEx);
+        myInteractionHandler.singleClick(event, myLastModifiersEx);
       }
 
       if (event.isPopupTrigger()) {

@@ -71,24 +71,16 @@ class VisualizationInteractionHandler(
     @JdkConstants.InputEventMask modifiersEx: Int,
   ) = Unit
 
-  override fun singleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
-  ) {
-    val view = surface.getSceneViewAt(x, y) ?: return
-    val xDp = Coordinates.getAndroidXDip(view, x)
-    val yDp = Coordinates.getAndroidYDip(view, y)
+  override fun singleClick(mouseEvent: MouseEvent, @JdkConstants.InputEventMask modifiersEx: Int) {
+    val view = surface.getSceneViewAt(mouseEvent.x, mouseEvent.y) ?: return
+    val xDp = Coordinates.getAndroidXDip(view, mouseEvent.x)
+    val yDp = Coordinates.getAndroidYDip(view, mouseEvent.y)
     val clickedComponent = view.scene.findComponent(view.context, xDp, yDp) ?: return
     navigateToComponent(clickedComponent.nlComponent, false)
   }
 
-  override fun doubleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
-  ) {
-    val view = surface.getSceneViewAt(x, y) ?: return
+  override fun doubleClick(mouseEvent: MouseEvent, @JdkConstants.InputEventMask modifiersEx: Int) {
+    val view = surface.getSceneViewAt(mouseEvent.x, mouseEvent.y) ?: return
 
     val currentEditor = FileEditorManager.getInstance(surface.project).selectedEditor ?: return
     val sourceFile = currentEditor.file ?: return
