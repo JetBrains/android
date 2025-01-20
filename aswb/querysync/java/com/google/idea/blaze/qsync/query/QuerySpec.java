@@ -79,7 +79,13 @@ public abstract class QuerySpec implements TruncatingFormattable {
         if (baseExpression.isEmpty()) {
           return Optional.empty();
         }
-        return Optional.of("(" + baseExpression + ")");
+        final var baseQuery = baseExpression(querySpec);
+        return Optional.of(
+          "let base = " +
+        baseQuery +
+        "\n" +
+        """
+    in $base - attr("tags", "[\\[,]no-ide[\\],]", $base)""");
       }
     },
 
