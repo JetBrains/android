@@ -640,7 +640,7 @@ class GradleModuleSystem(
 
   override fun getProductionAndroidModule() = when (val linkedModuleData = module.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)) {
     null -> super.getProductionAndroidModule()
-    else -> linkedModuleData.main
+    else -> linkedModuleData.main?.module
   }
 
   override fun getHolderModule(): Module = module.getHolderModule()

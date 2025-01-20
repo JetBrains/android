@@ -18,7 +18,9 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModulePointer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
@@ -29,17 +31,17 @@ import org.jetbrains.android.facet.AndroidFacet
  * to all Android modules.  This class should not be accessed directly from outside the Gradle project system.
  */
 data class LinkedAndroidGradleModuleGroup(
-  val holder: Module,
-  val main: Module,
-  val unitTest: Module?,
-  val androidTest: Module?,
-  val testFixtures: Module?,
-  val screenshotTest: Module?
+  val holder: ModulePointer,
+  val main: ModulePointer,
+  val unitTest: ModulePointer?,
+  val androidTest: ModulePointer?,
+  val testFixtures: ModulePointer?,
+  val screenshotTest: ModulePointer?
 ) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest)
+  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest).mapNotNull { it.module }
   override fun toString(): String =
-    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, " +
-    "androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}, screenshotTest=${screenshotTest?.name}"
+    "holder=${holder.moduleName}, main=${main.moduleName}, unitTest=${unitTest?.moduleName}, " +
+    "androidTest=${androidTest?.moduleName}, testFixtures=${testFixtures?.moduleName}, screenshotTest=${screenshotTest?.moduleName}"
 }
 
 /**
@@ -49,17 +51,23 @@ data class LinkedAndroidGradleModuleGroup(
 val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
 fun Module.isHolderModule() : Boolean = getHolderModule() == this
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
+fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder?.getMandatoryModuleOrLog(this) ?: this
 fun Module.isMainModule() : Boolean = getMainModule() == this
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
+fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main?.getMandatoryModuleOrLog(this) ?: this
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
-fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest
+fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest?.module
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
+fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest?.module
 fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
-fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
+fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest?.module
 fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures
+fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures?.module
+
+private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? = module.also {
+  if (it == null) {
+    Logger.getInstance(LinkedAndroidGradleModuleGroup::class.java).error("Missing mandatory module $moduleName in group for $originalModule")
+  }
+}
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true

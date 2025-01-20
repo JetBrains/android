@@ -30,6 +30,8 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModulePointerManager
+import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinTargetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
@@ -49,7 +51,7 @@ object ModuleUtil {
    * @return if android module group was successfully linked
    */
   @JvmStatic
-  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): Boolean {
+  fun DataNode<out ModuleData>.linkAndroidModuleGroup(project: Project, dataToModuleMap: (ModuleData) -> Module?): Boolean {
     val holderModule = dataToModuleMap(data) ?: return false
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
@@ -80,10 +82,15 @@ object ModuleUtil {
       return false
     }
 
-    val androidModuleGroup = LinkedAndroidGradleModuleGroup(holderModule, mainModule, ideArtifactNameToModule[IdeArtifactName.UNIT_TEST],
-                                                            ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST],
-                                                            ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES],
-                                                            ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST])
+    val modulePointerManager = ModulePointerManager.getInstance(project)
+    val androidModuleGroup = LinkedAndroidGradleModuleGroup(
+      modulePointerManager.create(holderModule),
+      modulePointerManager.create(mainModule),
+      ideArtifactNameToModule[IdeArtifactName.UNIT_TEST]?.let { modulePointerManager.create(it) },
+      ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST]?.let { modulePointerManager.create(it) },
+      ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES]?.let { modulePointerManager.create(it) },
+      ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it) }
+    )
     androidModuleGroup.getModules().forEach { module ->
       module.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
     }
@@ -91,8 +98,8 @@ object ModuleUtil {
   }
 
   @JvmStatic
-  fun DataNode<ModuleData>.linkAndroidModuleGroup(ideModelProvider: IdeModifiableModelsProvider) =
-    linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
+  fun DataNode<ModuleData>.linkAndroidModuleGroup(project: Project, ideModelProvider: IdeModifiableModelsProvider) =
+    linkAndroidModuleGroup(project) { ideModelProvider.findIdeModule(it) }
 
   @JvmStatic
   fun Module.unlinkAndroidModuleGroup() {

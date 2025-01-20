@@ -112,7 +112,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       val androidModel = nodeToImport.data
 
-      mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
+      mainModuleDataNode.linkAndroidModuleGroup(project, modelsProvider)
 
       val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->

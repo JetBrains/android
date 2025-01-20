@@ -513,12 +513,12 @@ private fun ProjectDumper.dump(testModuleProperties: TestModuleProperties?) {
 private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGradleModuleGroup) {
   head("LINKED_ANDROID_MODULE_GROUP") { null }
   nest {
-    prop("holder") { linkedAndroidGradleModuleGroup.holder.name }
-    prop("main") { linkedAndroidGradleModuleGroup.main.name }
-    prop("unitTest") { linkedAndroidGradleModuleGroup.unitTest?.name }
-    prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.name }
-    prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.name }
-    prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.name }
+    prop("holder") { linkedAndroidGradleModuleGroup.holder.moduleName }
+    prop("main") { linkedAndroidGradleModuleGroup.main.moduleName }
+    prop("unitTest") { linkedAndroidGradleModuleGroup.unitTest?.moduleName }
+    prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.moduleName }
+    prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.moduleName }
+    prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.moduleName }
   }
 }
 
