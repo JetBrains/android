@@ -68,8 +68,10 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
   }
 
   override fun buildFinalComponent(): JComponent {
-    @Suppress("UNCHECKED_CAST") listWithFilter = ListWithFilter.wrap(list, ListWrapper(builder, list),
-                                                                     builder.itemsNamer) as ListWithFilter<T>
+    @Suppress("UNCHECKED_CAST")
+    listWithFilter = ListWithFilter.wrap(
+      list, ListWrapper(builder, list), builder.itemsNamer
+    ) as ListWithFilter<T>
     listWithFilter.setAutoPackHeight(builder.isAutoPackHeightOnFiltering)
     return listWithFilter
   }
