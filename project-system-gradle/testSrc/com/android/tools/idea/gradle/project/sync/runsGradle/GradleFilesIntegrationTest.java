@@ -28,8 +28,6 @@ import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGrad
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
@@ -45,8 +43,6 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -80,7 +76,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
 
     myGradleFiles = GradleFiles.getInstance(getProject());
   }
@@ -584,10 +579,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     @NotNull VirtualFile file
   ) {
     PsiFile psiFile = findPsiFile(file);
-
-    FileEditorManager mockManager = mock(FileEditorManager.class);
-
-    myGradleFiles.getFileEditorListener().selectionChanged(new FileEditorManagerEvent(mockManager, null, null, null, file, null, null));
 
     T factory = factoryFactory.apply(getProject());
 

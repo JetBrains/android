@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.notification
 
+import com.android.tools.idea.gradle.project.sync.GradleFiles
+import com.android.tools.idea.gradle.project.sync.GradleFilesUpdater
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteIntentReadAction
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -62,12 +67,19 @@ class GradleSyncRequiredNotificationTest {
   }
 
   private fun openFileInEditor(filePath: String, editFile: Boolean = false) {
-    WriteCommandAction.runWriteCommandAction(project) {
-      val path = filePath.split("/").toTypedArray()
-      val buildGradleFile = VfsUtil.findRelativeFile(project.baseDir, *path)
-      fixture.openFileInEditor(buildGradleFile!!)
-      if (editFile) {
-        fixture.editor.executeAndSave { fixture.editor.insertText("test") }
+    ApplicationManager.getApplication().invokeAndWait {
+      WriteIntentReadAction.run {
+        WriteCommandAction.runWriteCommandAction(project) {
+          val path = filePath.split("/").toTypedArray()
+          val buildGradleFile = VfsUtil.findRelativeFile(project.baseDir, *path)
+          fixture.openFileInEditor(buildGradleFile!!)
+        }
+        GradleFilesUpdater.getInstance(project).updateFileHashes(GradleFiles.getInstance(project).updateCallback())
+        if (editFile) {
+          WriteCommandAction.runWriteCommandAction(project) {
+            fixture.editor.executeAndSave { fixture.editor.insertText("test") }
+          }
+        }
       }
     }
   }
@@ -75,8 +87,8 @@ class GradleSyncRequiredNotificationTest {
   private fun assertNotificationPanelText(expectedText: String) {
     val selectedEditor = FileEditorManager.getInstance(project).selectedEditor
     val notificationData = ProjectSyncStatusNotificationProvider(project).collectNotificationData(project, selectedEditor?.file!!)
-    val notificationPanel = notificationData?.apply(selectedEditor) as EditorNotificationPanel
+    val notificationPanel = notificationData?.apply(selectedEditor) as? EditorNotificationPanel
 
-    assertEquals(expectedText, notificationPanel.text)
+    assertEquals(expectedText, notificationPanel?.text)
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -42,17 +44,17 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock
  * only triggered with the children set in the after method and sometimes no after method is triggered
  * at all.
  */
-class GradleFileChangeListener(val gradleFiles: GradleFiles) : PsiTreeChangeListener {
+@Service(Service.Level.PROJECT)
+class GradleFileChangeListener(private val project: Project) : PsiTreeChangeListener {
+  val gradleFiles: GradleFiles = GradleFiles.getInstance(project)
+
   fun handleEvent(event: PsiTreeChangeEvent, vararg elements: PsiElement) {
-    val psiFile = event.file ?: return
+    val psiFile = event.file?.takeIf { it.virtualFile?.let(gradleFiles::hasHashForFile) == true } ?: return
     val isExternalBuildFile = gradleFiles.isExternalBuildFile(psiFile)
-    if (!gradleFiles.isGradleFile(psiFile) && !isExternalBuildFile) return
     if (gradleFiles.containsChangedFile(psiFile.virtualFile)) {
       EditorNotifications.getInstance(psiFile.project).updateAllNotifications()
       return
     }
-    if (gradleFiles.myProject != psiFile.project) return
-    if (!gradleFiles.myScope.contains(psiFile.virtualFile)) return
 
     var foundChange = false
     for (element in elements) {

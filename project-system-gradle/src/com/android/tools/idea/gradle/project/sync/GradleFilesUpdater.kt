@@ -74,7 +74,7 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
     }
   }
 
-  private fun updateFileHashes(callback: (Result) -> Unit) {
+  fun updateFileHashes(callback: (Result) -> Unit) {
     val result = runBlocking { computeFileHashes() }
     callback(result)
   }

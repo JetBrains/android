@@ -17,10 +17,14 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.psi.PsiManager
 
 class GradleFilesProjectActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     val result = GradleFilesUpdater.getInstance(project).computeFileHashes()
-    GradleFiles.getInstance(project).updateCallback().invoke(result)
+    val gradleFilesService = GradleFiles.getInstance(project)
+    gradleFilesService.updateCallback().invoke(result)
+    val listener = project.getService(GradleFileChangeListener::class.java)
+    PsiManager.getInstance(project).addPsiTreeChangeListener(listener, gradleFilesService)
   }
 }
