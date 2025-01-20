@@ -96,11 +96,6 @@
       text="Export Run Configurations"
       icon="AllIcons.ToolbarDecorator.Export">
     </action>
-    <action id="Blaze.FileGitHubIssueAction"
-        class="com.google.idea.blaze.base.actions.FileGitHubIssueAction"
-        text="File an issue on GitHub"
-        icon="BlazeIcons.Logo">
-    </action>
     <action id="Blaze.NewPackageAction"
       class="com.google.idea.blaze.base.ide.NewBlazePackageAction"
       text="New Package">
@@ -175,7 +170,6 @@
       <separator/>
       <reference ref="Blaze.ExportRunConfigurations"/>
       <reference ref="Blaze.ResetQuerySync" />
-      <reference ref="Blaze.FileGitHubIssueAction"/>
       <!--Add single menu items anchored after this bookmark-->
       <group id="Blaze.MenuFooter"/>
     </group>
