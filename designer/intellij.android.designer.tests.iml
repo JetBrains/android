@@ -108,7 +108,6 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
-    <orderEntry type="library" scope="PROVIDED" name="jetbrains.kotlin.compose.compiler.plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
