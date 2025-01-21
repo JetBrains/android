@@ -81,9 +81,13 @@
   implements("assignable_property")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
   ]
-  implements("property|assignable_property|property_receiver|factory_receiver")=[
-    "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed"
-  ]
+
+  // DeclarativeReceiverPrefixed<T>
+  implements("property")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativeProperty>"]
+  implements("assignable_property")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativeAssignableProperty>"]
+  implements("property_receiver")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativePropertyReceiver>"]
+  implements("factory_receiver")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativeFactoryReceiver>"]
+
   implements("property|property_receiver")=[
     "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValueFieldOwner"
   ]
