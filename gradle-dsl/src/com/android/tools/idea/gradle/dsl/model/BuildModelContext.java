@@ -366,32 +366,30 @@ public final class BuildModelContext {
     }
     GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
     GradleSettingsModel model = new GradleSettingsModelImpl(settingsFile);
-    if (isSettingsFileUnsuitable(buildDslFile, maybeSettingsFile, model)) {
+    if (!canBuildUseSettingsModel(buildDslFile, maybeSettingsFile, model)) {
       return null;
     }
     return model;
   }
 
   /**
-   * @return `true` if the build file and the settings file are located in different directories, but a module of the build file is not a
-   * subproject of the build the settings file belongs to. In such a case, the module could be an included build and cannot use
-   * a settings file of its composite build.
+   * @return `true` if the settings file either:
+   * - is located in the build directory
+   * - includes the build as a subproject via `include(":myBuild")`
+   * It should return `false` if the settings file includes the build as a part of a composite build via `includeBuild("myBuild")`.
+   * In this case, the build should have another settings model, because it cannot use version catalogs from this one.
    */
-  private static boolean isSettingsFileUnsuitable(
+  private static boolean canBuildUseSettingsModel(
     @NotNull GradleBuildFile buildFile,
     @NotNull VirtualFile settingsFile,
     @NotNull GradleSettingsModel model
   ) {
     VirtualFile buildDirectory = buildFile.getFile().getParent();
     VirtualFile settingsDirectory = settingsFile.getParent();
-    if (!buildDirectory.equals(settingsDirectory)) {
-      String modulePath = ":" + VfsUtilCore.getRelativePath(buildDirectory, settingsDirectory, ':');
-      // the settings file is unsuitable if it doesn't contain `include("$modulePath")` call
-      if (!model.modulePaths().contains(modulePath)) {
-        return true;
-      }
-    }
-    return false;
+    if (buildDirectory.equals(settingsDirectory)) return true;
+    // check if the build was added in the settings file as a subproject via `include(":subproject:path")`
+    String modulePath = ":" + VfsUtilCore.getRelativePath(buildDirectory, settingsDirectory, ':');
+    return model.modulePaths().contains(modulePath);
   }
 
   private void populateDeclarativeSoftwareTypes(@NotNull GradleBuildFile buildDslFile,
