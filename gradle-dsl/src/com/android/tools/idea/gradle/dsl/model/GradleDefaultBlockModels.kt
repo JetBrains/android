@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
+import com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
@@ -45,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDclElement
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
@@ -85,7 +87,8 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
     private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
       "androidApp" to AndroidDslElement.ANDROID_APP,
-      "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY
+      "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY,
+      "javaApplication" to JavaDclElement.JAVA_APPLICATION
     )
 
     private fun declarativeBuilder(file: GradleBuildFile): AndroidModel {
@@ -102,6 +105,9 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
     private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
       AndroidModel::class.java from {
         declarativeBuilder(it)
+      },
+      JavaDeclarativeModelImpl::class.java from {
+        JavaDeclarativeModelImpl(it.ensurePropertyElement(JavaDclElement.JAVA_APPLICATION))
       }
     )
 

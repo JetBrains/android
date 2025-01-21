@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
+import com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -302,6 +303,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public JavaModel java() {
     return getModel(JavaModel.class);
+  }
+
+  @NotNull
+  @Override
+  public JavaDeclarativeModelImpl javaApplication() {
+    return getModel(JavaDeclarativeModelImpl.class);
   }
 
   @NotNull
