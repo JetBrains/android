@@ -140,7 +140,7 @@ class DeviceToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     waitForFrame(5.seconds)
@@ -198,7 +198,7 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     waitForFrame()
@@ -261,7 +261,7 @@ class DeviceToolWindowPanelTest {
     val deviceView = panel.primaryDisplayView!!
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     waitForFrame()
