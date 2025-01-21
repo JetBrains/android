@@ -33,11 +33,7 @@ import kotlin.io.path.pathString
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Restores an Android Application from a backup file
- *
- * TODO(b/348406593): Add tests
- */
+/** Restores an Android Application from a backup file */
 internal class RestoreFileAction(
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),

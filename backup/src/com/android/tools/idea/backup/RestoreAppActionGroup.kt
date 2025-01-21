@@ -33,8 +33,8 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /** A Restore App popup [ActionGroup] containing recently used backup files and a browse action */
-internal class RestoreAppActionGroup : ActionGroupWithSuspendedUpdate() {
-  private val actionHelper: ActionHelper = ActionHelperImpl()
+internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = ActionHelperImpl()) :
+  ActionGroupWithSuspendedUpdate() {
 
   override fun getActionUpdateThread() = BGT
 

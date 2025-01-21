@@ -24,6 +24,7 @@ internal class FakeActionHelper(
   private val applicationId: String?,
   private val targetCount: Int,
   private val serialNumber: String?,
+  private val isCompatibleApp: Boolean = true,
 ) : ActionHelper {
   override fun getApplicationId(project: Project) = applicationId
 
@@ -32,6 +33,6 @@ internal class FakeActionHelper(
   override suspend fun getDeployTargetSerial(project: Project) = serialNumber
 
   override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
-    return true
+    return isCompatibleApp
   }
 }
