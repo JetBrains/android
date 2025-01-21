@@ -129,7 +129,7 @@ private fun Tabs(
     } else {
       SystemImageFilterState(
         selectedApi =
-          AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
+          AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
         selectedServices = initialSystemImage.getServices(),
         showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
         showUnsupportedSystemImages = !initialSystemImage.isSupported(),

@@ -29,7 +29,7 @@ class SystemImageFilterStateTest {
   @Test
   fun systemImageFilterState() {
     // Arrange
-    val images = listOf(mockSystemImage(AndroidVersion(34, null, 9, false)))
+    val images = listOf(mockSystemImage(AndroidVersion(34).withExtensionLevel(9)))
 
     // Act
     val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
@@ -78,8 +78,8 @@ class SystemImageFilterStateTest {
   @Test
   fun systemImageFilterStateApiLevelsAreEqual() {
     // Arrange
-    val image = mockSystemImage(AndroidVersion(34, null, 7, true))
-    val images = listOf(mockSystemImage(AndroidVersion(34, null, 8, false)), image)
+    val image = mockSystemImage(AndroidVersion(34).withBaseExtensionLevel())
+    val images = listOf(mockSystemImage(AndroidVersion(34).withExtensionLevel(8)), image)
 
     // Act
     val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
@@ -91,8 +91,8 @@ class SystemImageFilterStateTest {
   @Test
   fun systemImageFilterStateApiLevelsArentEqual() {
     // Arrange
-    val image = mockSystemImage(AndroidVersion(34, null, 9, false))
-    val images = listOf(mockSystemImage(AndroidVersion(33, null, 3, true)), image)
+    val image = mockSystemImage(AndroidVersion(34).withExtensionLevel(9))
+    val images = listOf(mockSystemImage(AndroidVersion(33).withBaseExtensionLevel()), image)
 
     // Act
     val state = SystemImageFilterState(API, null, showUnsupportedSystemImages = true)
@@ -102,7 +102,7 @@ class SystemImageFilterStateTest {
   }
 
   private companion object {
-    private val API = AndroidVersionSelection(AndroidVersion(34, null, null, true))
+    private val API = AndroidVersionSelection(AndroidVersion(34).withBaseExtensionLevel())
 
     private fun mockSystemImage(version: AndroidVersion): ISystemImage {
       val image = mock<ISystemImage>()

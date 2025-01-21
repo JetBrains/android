@@ -99,8 +99,7 @@ class AndroidPlatformSdkComponentTreeNode(
       installUpdates: Boolean,
       api: Int,
     ): AndroidPlatformSdkComponentTreeNode {
-      val version =
-        AndroidVersion(api, null, AndroidVersion.getBaseExtensionLevel(api).takeIf { it > 0 }, true)
+      val version = AndroidVersion(api).withBaseExtensionLevel()
       val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
       val description = "Android platform libraries for targeting platform: $versionName"
       return AndroidPlatformSdkComponentTreeNode(
