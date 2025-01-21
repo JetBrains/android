@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
+import com.android.tools.idea.gradle.dsl.api.java.JavaDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -106,7 +107,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       AndroidModel::class.java from {
         declarativeBuilder(it)
       },
-      JavaDeclarativeModelImpl::class.java from {
+      JavaDeclarativeModel::class.java from {
         JavaDeclarativeModelImpl(it.ensurePropertyElement(JavaDclElement.JAVA_APPLICATION))
       }
     )

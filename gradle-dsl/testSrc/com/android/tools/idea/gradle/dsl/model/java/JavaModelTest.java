@@ -257,7 +257,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void declarative() throws IOException {
+  public void testDeclarative() throws IOException {
     isIrrelevantForGroovy("no reason");
     isIrrelevantForKotlinScript("no reason");
 
