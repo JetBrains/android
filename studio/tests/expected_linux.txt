@@ -415,7 +415,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-243.22562.218.2432.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-243.23654.117.2432.__BUILD_NUMBER__
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
@@ -2950,9 +2950,9 @@ android-studio/plugins/java/lib/modules/intellij.java.structuralSearch.jar
 android-studio/plugins/java/lib/modules/intellij.java.unscramble.jar
 android-studio/plugins/java/lib/modules/intellij.java.vcs.jar
 android-studio/plugins/java/lib/modules/intellij.jvm.analysis.impl.jar
-android-studio/plugins/java/lib/netty-codec-protobuf.jar
 android-studio/plugins/java/lib/resources/jdkAnnotations.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
+android-studio/plugins/java/lib/rt/netty-jps.jar
 android-studio/plugins/java/lib/sa-jdwp.jar
 android-studio/plugins/json/lib/json-split.jar
 android-studio/plugins/json/lib/json.jar

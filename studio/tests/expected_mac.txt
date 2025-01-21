@@ -2969,9 +2969,9 @@ Android Studio Preview.app/Contents/plugins/java/lib/modules/intellij.java.struc
 Android Studio Preview.app/Contents/plugins/java/lib/modules/intellij.java.unscramble.jar
 Android Studio Preview.app/Contents/plugins/java/lib/modules/intellij.java.vcs.jar
 Android Studio Preview.app/Contents/plugins/java/lib/modules/intellij.jvm.analysis.impl.jar
-Android Studio Preview.app/Contents/plugins/java/lib/netty-codec-protobuf.jar
 Android Studio Preview.app/Contents/plugins/java/lib/resources/jdkAnnotations.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent.jar
+Android Studio Preview.app/Contents/plugins/java/lib/rt/netty-jps.jar
 Android Studio Preview.app/Contents/plugins/java/lib/sa-jdwp.jar
 Android Studio Preview.app/Contents/plugins/json/lib/json-split.jar
 Android Studio Preview.app/Contents/plugins/json/lib/json.jar
