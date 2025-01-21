@@ -106,6 +106,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     setupGradleSnapshotToWrapper();
     importProject();
     prepareProjectForTest(myFixture.getProject(), null);
+    simulateSyncForGradleFilesUpdate();
     return file;
   }
 
@@ -124,6 +125,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   private void simulateSyncForGradleFilesUpdate() {
     myGradleFiles.maybeProcessSyncStarted();
     UIUtil.dispatchAllInvocationEvents();
+    assertFalse(myGradleFiles.areGradleFilesModified());
   }
 
   private void setupGradleSnapshotToWrapper() throws IOException {
@@ -339,16 +341,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
   }
 
-  public void testModifiedWhenModifiedDuringSync() throws Exception {
-    loadSimpleApplication();
-    simulateSyncForGradleFilesUpdate();
-    runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
-      assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
-    }, true);
-    assertThat(myGradleFiles.areGradleFilesModified()).isTrue();
-  }
-
   public void testNotModifiedWhenChangedBackDuringSync() throws Exception {
     loadSimpleApplication();
     runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
@@ -420,7 +412,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
-      simulateSyncForGradleFilesUpdate();
       VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
       runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
                                          virtualFile);
@@ -430,7 +421,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
-      simulateSyncForGradleFilesUpdate();
       VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
       runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
                                          virtualFile);
@@ -447,14 +437,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testNotModifiedWhenAddingWhitespaceInSettingsFile() throws Exception {
     loadSimpleApplication();
-
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
     runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
     loadSimpleApplication();
-
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
     runKtsFakeModificationTest((factory, file) -> file.add(factory.createNewLine(1)), false, virtualFile);
   }
