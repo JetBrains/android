@@ -250,16 +250,19 @@ class ComposePreviewRepresentationGradleTest {
         FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
-    fakeUi.findComponent<SceneViewPanel>()?.doLayout()
+    withContext(uiThread) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
+    projectRule.validate()
+
     delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 4 }
 
+    val allSceneViewPeerPanels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    val sceneViewPeerPanelsText =
+      allSceneViewPeerPanels.joinToString(", ") { "${it.displayName} showing=${it.isShowing}" }
+
     assertEquals(
+      "Unexpected visible panels. Current is '$sceneViewPeerPanelsText'",
       listOf("DefaultPreview", "MyPreviewWithInline", "OnlyATextNavigation", "TwoElementsPreview"),
-      fakeUi
-        .findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }
-        .map { it.displayName }
-        .sorted(),
+      allSceneViewPeerPanels.filter { it.isShowing }.map { it.displayName }.sorted(),
     )
   }
 
