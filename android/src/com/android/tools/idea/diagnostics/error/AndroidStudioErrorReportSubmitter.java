@@ -27,7 +27,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
-import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeaReportingEvent;
 import com.intellij.diagnostic.KotlinCompilerCrash;
 import com.intellij.diagnostic.LogMessage;
@@ -107,10 +106,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
       return true;
     }
 
-    Object data = event.getData();
-    if (data instanceof AbstractMessage) {
-      bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
-    }
+    bean.setAttachments(event.getIncludedAttachments());
 
     // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
     // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
@@ -141,6 +137,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     };
 
     Task.Backgroundable feedbackTask;
+    Object data = event.getData();
     if (data instanceof ErrorReportCustomizer) {
       feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
