@@ -35,7 +35,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Backups the state of the foreground app to a file */
-internal class BackupForegroundAppAction : ActionWithSuspendedUpdate() {
+internal class BackupForegroundAppAction(
+  private val actionHelper: ActionHelper = ActionHelperImpl()
+) : ActionWithSuspendedUpdate() {
+
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -48,12 +51,9 @@ internal class BackupForegroundAppAction : ActionWithSuspendedUpdate() {
   }
 
   override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
-    val backupManager = BackupManager.getInstance(project)
     val serialNumber =
       getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.ready"))
-    val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
-    val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
-    return when (found) {
+    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
       true -> Enabled
       else -> Disabled(message("error.applications.not.installed"))
     }

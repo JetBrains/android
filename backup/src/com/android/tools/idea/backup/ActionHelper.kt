@@ -32,4 +32,11 @@ internal interface ActionHelper {
    * @return null if there is more than one target or if the target is not running
    */
   suspend fun getDeployTargetSerial(project: Project): String?
+
+  /**
+   * Returns true if a compatible app is installed
+   *
+   * A compatible app is an app that is part of the project
+   */
+  suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetContext
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.intellij.execution.RunManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /** Production implementation of [ActionHelper] */
@@ -40,6 +41,12 @@ class ActionHelperImpl : ActionHelper {
       return null
     }
     return targets.first().ddmlibDevice?.serialNumber
+  }
+
+  override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
+    val backupManager = BackupManager.getInstance(project)
+    val applicationIds = project.service<ProjectAppsProvider>().getApplicationIds()
+    return applicationIds.any { backupManager.isInstalled(serialNumber, it) }
   }
 
   private fun getDeployTarget(project: Project): DeployTarget? {

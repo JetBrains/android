@@ -19,16 +19,20 @@ package com.android.tools.idea.backup
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
 import com.android.tools.idea.backup.RestoreAppAction.Config.Standalone
+import com.android.tools.idea.backup.asyncaction.ActionEnableState
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
+import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.launch
@@ -38,7 +42,7 @@ internal class RestoreAppAction(
   private val config: Config = Standalone,
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
-) : AnAction() {
+) : ActionWithSuspendedUpdate() {
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -50,11 +54,28 @@ internal class RestoreAppAction(
     if (config == Standalone && RestoreAppActionGroup.showGroup(project)) {
       return
     }
-    e.presentation.isEnabledAndVisible = actionHelper.getDeployTargetCount(project) == 1
 
+    e.presentation.isVisible = true
     e.presentation.icon = config.presentation.icon
     e.presentation.text = config.presentation.text
     e.presentation.description = config.presentation.description
+
+    super.update(e)
+  }
+
+  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
+    if (
+      (e.place == "MainToolbar" || e.place == "MainMenu") &&
+        actionHelper.getDeployTargetCount(project) != 1
+    ) {
+      return Disabled(message("error.multiple.devices"))
+    }
+    val serialNumber =
+      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
+    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
+      true -> Enabled
+      else -> Disabled(message("error.applications.not.installed"))
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

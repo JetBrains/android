@@ -51,15 +51,15 @@ internal class RestoreAppActionGroup : ActionGroupWithSuspendedUpdate() {
   }
 
   override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
-    if (actionHelper.getDeployTargetCount(project) != 1) {
+    if (
+      (e.place == "MainToolbar" || e.place == "MainMenu") &&
+        actionHelper.getDeployTargetCount(project) != 1
+    ) {
       return Disabled(message("error.multiple.devices"))
     }
     val serialNumber =
       getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
-    val backupManager = BackupManager.getInstance(project)
-    val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
-    val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
-    return when (found) {
+    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
       true -> Enabled
       else -> Disabled(message("error.applications.not.installed"))
     }

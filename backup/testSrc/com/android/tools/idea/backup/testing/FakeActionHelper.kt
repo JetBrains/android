@@ -30,4 +30,8 @@ internal class FakeActionHelper(
   override fun getDeployTargetCount(project: Project) = targetCount
 
   override suspend fun getDeployTargetSerial(project: Project) = serialNumber
+
+  override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
+    return true
+  }
 }
