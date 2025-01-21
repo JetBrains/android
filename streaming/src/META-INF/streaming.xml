@@ -284,6 +284,7 @@
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
@@ -312,6 +313,7 @@
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.device.reservation.extend"/>
