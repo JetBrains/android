@@ -41,6 +41,9 @@
   <xi:include href="/META-INF/android-navigator.xml"/>
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>
+  <xi:include href="/META-INF/apkanalyzer.xml" />
+  <xi:include href="/META-INF/apkanalyzer-gradle.xml" />
+  <xi:include href="/META-INF/apkanalyzer-apk.xml" />
   <xi:include href="/META-INF/app-insights-api.xml"/>
   <xi:include href="/META-INF/app-insights.xml"/>
   <xi:include href="/META-INF/databinding.xml"/>

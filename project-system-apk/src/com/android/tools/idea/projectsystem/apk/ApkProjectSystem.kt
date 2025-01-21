@@ -87,10 +87,6 @@ class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
     override fun getLastSyncResult() = ProjectSystemSyncManager.SyncResult.SUCCESS
   }
 
-  override fun getDefaultApkFile(): VirtualFile? =
-    ProjectFacetManager.getInstance(project).getFacets(ApkFacet.getFacetTypeId())
-      .firstNotNullOfOrNull { facet -> facet?.configuration?.APK_PATH?.let { File(it).toVirtualFile() } }
-
   override fun allowsFileCreation(): Boolean = false
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory =

@@ -59,12 +59,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getBootClasspath(module: Module): Collection<String>
 
   /**
-   * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
-   * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
-   */
-  fun getDefaultApkFile(): VirtualFile?
-
-  /**
    * Returns true if the project allows adding new modules.
    */
   fun allowsFileCreation(): Boolean

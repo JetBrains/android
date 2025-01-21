@@ -100,8 +100,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
         return VfsUtil.findFileByIoFile(f, true);
       }
     }
-
-    return ProjectSystemUtil.getProjectSystem(project).getDefaultApkFile();
+    return ApkAnalyzerToken.getDefaultApkToAnalyze(project);
   }
 
   private static void saveLastSelectedApk(Project project, VirtualFile apk) {

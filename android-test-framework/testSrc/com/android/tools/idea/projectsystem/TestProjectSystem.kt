@@ -303,9 +303,6 @@ class TestProjectSystem @JvmOverloads constructor(
 
   private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
 
-  override fun getDefaultApkFile(): VirtualFile? {
-    error("not supported for the test implementation")
-  }
 
   override fun allowsFileCreation(): Boolean {
     error("not supported for the test implementation")

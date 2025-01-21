@@ -84,8 +84,6 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     throw IllegalStateException("Not implemented")
   }
 
-  override fun getDefaultApkFile(): VirtualFile? = null
-
   override fun allowsFileCreation() = false
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {

@@ -79,6 +79,7 @@ import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
@@ -144,7 +145,10 @@ import com.intellij.build.BuildProgressListener
 import com.intellij.build.BuildViewManager
 import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.internal.DummySyncViewManager
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
@@ -202,6 +206,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
@@ -235,6 +240,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 data class AndroidProjectModels(
@@ -2607,6 +2613,30 @@ fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStart
   finally {
     Disposer.dispose(disposable)
   }
+}
+
+class GradleBuildResultWithEvents<T: GradleBuildResult>(val result: T, val events: List<BuildEvent>): GradleBuildResult by result
+
+fun <T: GradleBuildResult> Project.buildAndAssertSuccess(expectSuccess: Boolean = true, invoker: (GradleBuildInvoker) -> ListenableFuture<T>) : GradleBuildResultWithEvents<T> {
+  val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
+  val allBuildEventsProcessedLatch = CountDownLatch(1)
+  // Build
+  val result = buildAndWait(eventHandler = { event ->
+    if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
+    buildEvents.add(event)
+    // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+    // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+    if (event is FinishBuildEventImpl) {
+      allBuildEventsProcessedLatch.countDown()
+    }
+  }, invoker = invoker)
+  if (result.isBuildSuccessful == expectSuccess) {
+    for (event in buildEvents) {
+      println(event.message)
+    }
+  }
+  allBuildEventsProcessedLatch.await(30, TimeUnit.SECONDS)
+  return GradleBuildResultWithEvents<T>(result, buildEvents)
 }
 
 // HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"

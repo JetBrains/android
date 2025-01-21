@@ -95,12 +95,6 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return true;
   }
 
-  @Nullable
-  @Override
-  public VirtualFile getDefaultApkFile() {
-    return null;
-  }
-
   @Override
   public ProjectSystemBuildManager getBuildManager() {
     return buildManager;

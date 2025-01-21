@@ -119,30 +119,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
   override fun allowsFileCreation() = true
 
-  override fun getDefaultApkFile(): VirtualFile? {
-    return ModuleManager.getInstance(project).modules.asSequence()
-      .mapNotNull { GradleAndroidModel.get(it) }
-      .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
-      .flatMap { androidModel ->
-        if (androidModel.features.isBuildOutputFileSupported) {
-          androidModel
-            .selectedVariant
-            .mainArtifact
-            .buildInformation
-            .getOutputListingFile(OutputType.Apk)
-            ?.let { getOutputFilesFromListingFile(it) }
-            ?.asSequence()
-            .orEmpty()
-        }
-        else {
-          emptySequence()
-        }
-      }
-      .filterNotNull()
-      .find { it.exists() }
-      ?.let { VfsUtil.findFileByIoFile(it, true) }
-  }
-
   override fun getModuleSystem(module: Module): GradleModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }

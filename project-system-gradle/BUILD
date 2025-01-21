@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
         # Project System Token implementation modules
+        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle",
         "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
         "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
         "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
