@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignableProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
@@ -28,7 +30,6 @@ import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
-import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
@@ -53,11 +54,16 @@ class DeclarativeAnnotator : Annotator {
     if (element is DeclarativeIdentifier && element.parent !is DeclarativeProperty) {
       val schema = getSchema() ?: return
       val path = getPath(element)
-      var result = searchForType(path, schema, element.containingFile.name)
-      if (element.parent is DeclarativeFactory) {
+      val result = mutableListOf<SearchResult>()
+      result.addAll(searchForType(path, schema, element.containingFile.name))
+      if (element.parent is DeclarativeFactoryReceiver) {
         // search for plain function like uri, file etc
         element.name?.let {
-          result += searchForType(listOf(it), schema, element.containingFile.name)
+          result.addAll(searchForType(listOf(it), schema, element.containingFile.name))
+          // also check direct parent if it has function like dependenciesDcl.project
+          findParentBlock(element)?.let { parentBlock ->
+            result.addAll(searchForType(getPath(parentBlock.identifier)+it, schema, element.containingFile.name))
+          }
         }
       }
       if (result.isEmpty()) {
@@ -90,6 +96,15 @@ class DeclarativeAnnotator : Annotator {
       is DeclarativeIdentifierOwner -> identifier
       else -> null
     }
+
+  private fun findParentBlock(psi: PsiElement):DeclarativeBlock?{
+    var current = psi
+
+    while (current.parent!=null && current.parent !is DeclarativeBlock) {
+      current = current.parent
+    }
+    return current.parent as? DeclarativeBlock
+  }
 
   sealed class SearchResult {
     // TODO make it dynamic in future by requesting this from schema
@@ -166,14 +181,13 @@ class DeclarativeAnnotator : Annotator {
     while (current.parent != null && current is DeclarativeElement) {
       when (current) {
         is DeclarativeArgumentsList -> current = skip<DeclarativeFactory>(current)
-
         is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
+        is DeclarativeFactoryReceiver ->
+          current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
         is DeclarativeFactory ->
-          // factory has reversed presentation of receivers
-          current = parseReceiver<DeclarativeFactory>(current, result)
-
+          current = current.parent
         else -> {
-          if (current is DeclarativeIdentifierOwner) current.identifier?.name?.let { result.add(it) }
+          (current as? DeclarativeIdentifierOwner)?.identifier?.name?.let { result.add(it) }
           current = current.parent
         }
       }
@@ -191,11 +205,11 @@ class DeclarativeAnnotator : Annotator {
 
   private inline fun <reified T: DeclarativeReceiverPrefixed<T>> parseReceiver(property: DeclarativeReceiverPrefixed<T>, list: MutableList<String>): PsiElement {
     var currentProperty = property
-    currentProperty.identifier?.name?.let { list.add(it) }
+    currentProperty.identifier.name?.let { list.add(it) }
 
     while (currentProperty.getReceiver() != null) {
       currentProperty = currentProperty.getReceiver()!!
-      currentProperty.identifier?.name?.let { list.add(it) }
+      currentProperty.identifier.name?.let { list.add(it) }
     }
     return skip<T>(currentProperty)
   }
