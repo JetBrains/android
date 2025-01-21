@@ -33,10 +33,11 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
@@ -89,7 +90,7 @@ private val afterSimpleFactory = object : PatternCondition<PsiElement>(null) {
       if (leaf.text == ".") {
         sawDot = true
       }
-      else if (sawDot && leaf.text == ")" && leaf.parent is DeclarativeSimpleFactory) {
+      else if (sawDot && leaf.text == ")" && leaf.parent is DeclarativeReceiverSimpleFactory) {
         return true
       }
       else {
@@ -272,12 +273,12 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
   }
 
-  private fun findPreviousSimpleFunction(position: PsiElement): DeclarativeSimpleFactory? {
+  private fun findPreviousSimpleFunction(position: PsiElement): DeclarativeReceiverSimpleFactory? {
     for (leaf in position.prevLeafs) {
       if (psiElement().whitespaceCommentOrError().accepts(leaf) || leaf.text == ".")
         continue
-      else if (leaf.text == ")" && leaf.parent is DeclarativeSimpleFactory) {
-        return leaf.parent as DeclarativeSimpleFactory
+      else if (leaf.text == ")" && leaf.parent is DeclarativeReceiverSimpleFactory) {
+        return leaf.parent as DeclarativeReceiverSimpleFactory
       }
       else return null
     }
@@ -433,9 +434,11 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       (parent as? DeclarativeIdentifierOwner) ?: parent.findParentNamedBlock()
     else parent.findParentNamedBlock()
     // to go bubble up through all elements with name
-    while (current != null && current.parent != null && current is DeclarativeIdentifierOwner) {
-      current.identifier.name?.let { result.add(it) }
-      current = current.parent.parent
+    while (current != null && current.parent != null) {
+      // iterate trough identifier owners but skip factory as a wrapper
+      if(current is DeclarativeIdentifierOwner && current !is DeclarativeFactory)
+        current.identifier.name?.let { result.add(it) }
+      current = current.parent
     }
     return result.reversed()
   }
