@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_4804_1527)"><g clip-path="url(#clip1_4804_1527)" fill-rule="evenodd" clip-rule="evenodd" fill="#6C707E"><path d="M13.594 2.108c.653.22 1.136.734 1.369 1.213.066.128.113.264.143.403a4.305 4.305 0 01.115 1.63c-.1.843-.459 1.84-1.338 2.862a4.487 4.487 0 00-1.175-.211c.675-.654 1.066-1.284 1.285-1.845-.386.252-.86.41-1.409.41-.65 0-1.27-.267-1.847-.557-.182-.091-.36-.185-.54-.279-.42-.22-.841-.443-1.317-.636-1.291-.525-2.879-.79-5.114.312a.449.449 0 00-.21.546l.117.36.002.008.578 1.902c.039.106.136.197.322.238.197.043.42.01.571-.076l.007-.004a8.836 8.836 0 001.725-1.21.5.5 0 01.67.743 9.835 9.835 0 01-1.916 1.345c-.377.21-.85.272-1.273.178-.431-.095-.876-.372-1.054-.899l-.003-.007-.002-.008-.38-1.246a4.843 4.843 0 00-1.482 1.959c-.358.868-.499 1.9-.414 3.108h.617a1.987 1.987 0 013.7-.001h.66a1.987 1.987 0 012.215-1.229 4.479 4.479 0 00-.198.98.987.987 0 00-1.119.712.72.72 0 01-.69.537H5.133a.72.72 0 01-.69-.536.987.987 0 00-1.904 0 .72.72 0 01-.69.537H.657a.6.6 0 01-.597-.539c-.153-1.48-.019-2.805.454-3.95.428-1.04 1.126-1.906 2.091-2.593v-.002c-.214-.663.058-1.424.719-1.75 2.528-1.246 4.417-.957 5.933-.341.523.213 1.016.471 1.451.7.168.088.328.172.478.247.569.286 1.005.45 1.398.45a1.54 1.54 0 001.32-.705c.218-.332.273-.673.226-.915a2.104 2.104 0 00-.062-.18l-.005-.012a1.437 1.437 0 00-.788-.7c-.325-.11-.775-.097-1.324.383a.5.5 0 11-.658-.753c.788-.689 1.604-.813 2.3-.579z"/><path d="M8.882 7.32c-.095-.06-.153-.172-.115-.28a.798.798 0 111.306.84c-.082.078-.207.072-.303.011l-.888-.57zM12.5 16a3.5 3.5 0 100-7 3.5 3.5 0 000 7zm1.854-4.354l-1.5-1.5a.5.5 0 00-.708 0l-1.5 1.5a.5.5 0 00.708.708l.646-.647V14.5a.5.5 0 001 0v-2.793l.646.647a.5.5 0 00.708-.708z"/></g></g><defs><clipPath id="clip0_4804_1527"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath><clipPath id="clip1_4804_1527"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

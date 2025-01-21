@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.125 13.386l-3.093-2.97.29-.767.898-.524 2.09 1.29V9.76l.287-6.372h1.516l.266 1.024V2.056l1.373-.184.737 1.68 1.107-.164.471 1.537h.45l1.19.102.245 4.098v3.38l-.615.881-1.967.943H7.604l-2.479-.943z" fill="#25324D"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.196 6a.5.5 0 01.5.5v3.42a.55.55 0 01-.796.491l-1.644-.895a.559.559 0 00-.645.895l3.06 2.857A2.5 2.5 0 007.44 14h2.757a2.5 2.5 0 002.5-2.5V8a.5.5 0 111 0v3.5a3.5 3.5 0 01-3.5 3.5H7.44a3.5 3.5 0 01-2.475-1.025l-3.06-2.857a1.559 1.559 0 011.8-2.496l.992.569V6.5a.5.5 0 01.5-.5zM7.802 2.167a.62.62 0 00-.106.333v3a.5.5 0 01-1 0v-3c0-.247.07-.606.295-.917C7.233 1.246 7.633 1 8.196 1c.563 0 .963.246 1.206.583.224.311.294.67.294.917v3a.5.5 0 01-1 0v-3a.62.62 0 00-.105-.333C8.533 2.087 8.433 2 8.196 2c-.237 0-.337.088-.394.167z" fill="#548AF7"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9.802 3.667A.62.62 0 009.696 4v3a.5.5 0 01-1 0V4c0-.247.07-.606.295-.917.242-.337.642-.583 1.205-.583.563 0 .963.246 1.206.583.225.311.294.67.294.917v3a.5.5 0 01-1 0V4a.62.62 0 00-.105-.333c-.058-.08-.158-.167-.395-.167-.237 0-.337.088-.394.167z" fill="#548AF7"/><path fill-rule="evenodd" clip-rule="evenodd" d="M11.802 5.317a.62.62 0 00-.106.333v2.5a.5.5 0 01-1 0v-2.5c0-.247.07-.606.295-.917.242-.337.642-.583 1.205-.583.563 0 .963.246 1.206.583.225.311.294.67.294.917v3a.5.5 0 01-1 0v-3a.62.62 0 00-.105-.333c-.058-.08-.158-.167-.395-.167-.237 0-.337.088-.394.167zM5.802 3.667A.62.62 0 005.696 4v3a.5.5 0 01-1 0V4c0-.247.07-.606.295-.917.242-.337.642-.583 1.205-.583.563 0 .963.246 1.206.583.224.311.294.67.294.917v3a.5.5 0 01-1 0V4a.62.62 0 00-.105-.333c-.058-.08-.158-.167-.395-.167-.237 0-.337.088-.394.167z" fill="#548AF7"/></svg>

@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_4376_1811)"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.7 13.225a.5.5 0 01.6 0l3.1 2.325a.25.25 0 01-.15.45h-6.5a.25.25 0 01-.15-.45l3.1-2.325z" fill="#3574F0"/><path d="M3.18.6h1.602L7.92 9h-1.5l-.714-2.022H2.328L1.668 9H.126L3.18.6zm2.124 5.208L4.092 2.436l-.126-.522-.132.522L2.7 5.808h2.604zM8.921.6h1.422V9H8.92V.6zm3.516 8.544c-.508 0-.956-.112-1.344-.336a2.338 2.338 0 01-.9-.948c-.212-.408-.32-.88-.324-1.416h.426V5.412h-.426c.004-.536.112-1.008.324-1.416.216-.408.516-.724.9-.948.388-.224.836-.336 1.344-.336.552 0 1.044.136 1.476.408.432.268.768.646 1.008 1.134.244.488.366 1.046.366 1.674 0 .628-.122 1.186-.366 1.674-.24.488-.576.868-1.008 1.14a2.742 2.742 0 01-1.476.402zm-.36-1.278c.34 0 .64-.082.9-.246a1.64 1.64 0 00.612-.684 2.2 2.2 0 00.222-1.008 2.2 2.2 0 00-.222-1.008 1.64 1.64 0 00-.612-.684 1.65 1.65 0 00-.9-.246c-.34 0-.644.082-.912.246a1.68 1.68 0 00-.618.684 2.25 2.25 0 00-.216 1.008c0 .38.072.716.216 1.008.148.292.354.52.618.684.268.164.572.246.912.246z" fill="#6C707E"/><path d="M0 11h.5a.5.5 0 010 1H0v-1zM15 11.5a.5.5 0 01.5-.5h.5v1h-.5a.5.5 0 01-.5-.5z" fill="#3574F0"/><path fill-rule="evenodd" clip-rule="evenodd" d="M0 11.5a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM3 11.5a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM6 11.5a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM9.043 11.5a.5.5 0 01.5-.5h1a.5.5 0 110 1h-1a.5.5 0 01-.5-.5zM12.086 11.5a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5z" fill="#3574F0"/></g><defs><clipPath id="clip0_4376_1811"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 9.5h-3a1 1 0 00-1 1v3h5v-3a1 1 0 00-1-1z" fill="#EDF3FF" stroke="#3574F0" stroke-linecap="round"/><path d="M6.5 4.5h-4v2a1 1 0 001 1h2a1 1 0 001-1v-2zM3.5 2.5v2M5.5 2.5v2" stroke="#6C707E" stroke-linecap="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10 8a1 1 0 112 0h1a2 2 0 10-4 0v1.5a.5.5 0 001 0V8z" fill="#3574F0"/><circle cx="6.5" cy="12.5" r=".5" fill="#6C707E"/><circle cx="4.5" cy="12.5" r=".5" fill="#6C707E"/><circle cx="4.5" cy="10.5" r=".5" fill="#EBECF0"/><circle cx="4.5" cy="10.5" r=".5" fill="#6C707E"/><path d="M4.5 7.5v1" stroke="#6C707E" stroke-linecap="round"/></svg>

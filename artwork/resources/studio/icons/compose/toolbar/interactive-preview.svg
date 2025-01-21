@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.106 8.667A.619.619 0 0012 9v.5a.5.5 0 01-1 0V9c0-.247.07-.606.294-.917.243-.337.643-.583 1.206-.583s.963.246 1.206.583c.224.311.294.67.294.917v1a.5.5 0 01-1 0V9a.619.619 0 00-.106-.333c-.057-.08-.157-.167-.394-.167-.237 0-.337.088-.394.167z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10.106 7.817A.619.619 0 0010 8.15v.5a.5.5 0 11-1 0v-.5c0-.247.07-.606.294-.917.243-.337.643-.583 1.206-.583s.963.246 1.206.583c.224.311.294.67.294.917v1a.5.5 0 01-1 0v-1a.619.619 0 00-.106-.333c-.057-.08-.157-.167-.394-.167-.237 0-.337.088-.394.167z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.106 7.667A.62.62 0 008 8v.5a.5.5 0 01-1 0V8c0-.247.07-.606.294-.917.243-.337.643-.583 1.206-.583s.963.246 1.206.583c.224.311.294.67.294.917v1a.5.5 0 01-1 0V8a.62.62 0 00-.106-.333c-.057-.08-.157-.167-.394-.167-.237 0-.337.088-.394.167z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.106 4.167A.62.62 0 006 4.5v3a.5.5 0 01-1 0v-3c0-.247.07-.606.294-.917C5.537 3.246 5.937 3 6.5 3s.963.246 1.206.583c.224.311.294.67.294.917v4a.5.5 0 01-1 0v-4a.62.62 0 00-.106-.333C6.837 4.087 6.737 4 6.5 4c-.237 0-.337.088-.394.167z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.83 5A3 3 0 104 6.236v1.229A4 4 0 119.874 5H8.829z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 6a.5.5 0 01.5.5v4.42a.55.55 0 01-.797.491l-1.644-.895a.559.559 0 00-.645.895l3.06 2.857A2.5 2.5 0 007.742 15h2.757a2.5 2.5 0 002.5-2.5V9a.5.5 0 011 0v3.5a3.5 3.5 0 01-3.5 3.5H7.742a3.5 3.5 0 01-2.475-1.025l-3.06-2.857a1.559 1.559 0 011.799-2.496l.993.569V6.5a.5.5 0 01.5-.5z" fill="#6C707E"/></svg>
