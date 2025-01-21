@@ -29,11 +29,13 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.test.assertEquals
@@ -46,6 +48,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -359,6 +362,56 @@ class SceneViewPanelTest {
     assertEquals(0, panel.findAllDescendants<SceneViewPeerPanel>().count())
 
     sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+  }
+
+  @Test
+  fun collapseGroup() = runBlocking {
+    val newGroup = OrganizationGroup("new", "new")
+    val oldGroup = OrganizationGroup("old", "old")
+    val sceneViewWithLateUpdatedGroup = createSceneView(oldGroup)
+    val sceneViews =
+      mutableListOf(
+        createSceneView(newGroup),
+        createSceneView(newGroup),
+        sceneViewWithLateUpdatedGroup,
+      )
+    val panel =
+      SceneViewPanel(
+          sceneViewProvider = { sceneViews },
+          interactionLayersProvider = { emptyList() },
+          actionManagerProvider = { TestActionManager(Mockito.mock()) },
+          shouldRenderErrorsPanel = { false },
+          layoutManager = TestLayoutManager(organizationEnabled = true),
+        )
+        .apply {
+          setNoComposeHeadersForTests()
+          size = Dimension(300, 300)
+        }
+
+    // Check panels are already created.
+    withContext(uiThread) { panel.doLayout() }
+    delayUntilCondition(100, 1.seconds) { panel.positionableContent.size == 4 }
+
+    // Update organizationGroup for sceneViewWithLateUpdatedGroup and group visibility for newGroup
+    Mockito.`when`(sceneViewWithLateUpdatedGroup.sceneManager.model.organizationGroup).then {
+      newGroup
+    }
+    newGroup.setOpened(false)
+    withContext(uiThread) { panel.doLayout() }
+    // Even if organizationGroup was updated later than the panel was created, visibility is still
+    // updated.
+    delayUntilCondition(100, 1.seconds) {
+      panel.components.filterIsInstance<SceneViewPeerPanel>().any {
+        it.sceneView == sceneViewWithLateUpdatedGroup
+      }
+    }
+    val scenePanel =
+      panel.components.filterIsInstance<SceneViewPeerPanel>().first {
+        it.sceneView == sceneViewWithLateUpdatedGroup
+      } as Component
+    delayUntilCondition(100, 1.seconds) { scenePanel.isVisible == false }
+    sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+    Disposer.dispose(panel)
   }
 
   @Test

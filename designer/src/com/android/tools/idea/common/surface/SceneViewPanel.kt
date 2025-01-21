@@ -252,7 +252,10 @@ class SceneViewPanel(
     sceneScope: CoroutineScope,
   ): SceneViewPeerPanel {
     val partOfTheGroup =
-      combine(activeGroups, isOrganizationEnabled) { activeGroups, isOrganizationEnabled ->
+      combine(activeGroups, isOrganizationEnabled, organizationGroups) {
+          activeGroups,
+          isOrganizationEnabled,
+          _ ->
           isOrganizationEnabled &&
             activeGroups.contains(sceneView.sceneManager.model.organizationGroup)
         }
