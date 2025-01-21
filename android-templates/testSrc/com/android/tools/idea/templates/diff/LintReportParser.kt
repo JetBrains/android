@@ -22,7 +22,7 @@ import java.nio.charset.Charset
 import java.nio.file.Path
 
 class LintReportParser(private val out: PrintStream) {
-  private val endOfReportRegex = Regex("(\\d+) errors?, \\d+ warnings?.*")
+  private val endOfReportRegex = Regex("(\\d+) errors?(, \\d+ warnings?)?.*")
   private val issueRegex = Regex(".*: Error:.*\\[(.*?)]")
 
   fun parseLintReportInProject(projectDir: Path): Int {
