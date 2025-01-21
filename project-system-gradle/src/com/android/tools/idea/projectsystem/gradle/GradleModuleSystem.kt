@@ -584,7 +584,8 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
-  override val generateManifestClass: Boolean get() = agpBuildGlobalFlags.generateManifestClass
+  override val generateManifestClass: Boolean
+    get() = agpBuildGlobalFlags.generateManifestClass && module.isMainModule()
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
