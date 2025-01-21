@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.downloads
 
-import com.android.tools.idea.downloads.UrlFileCache.FetchStats
+import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.HttpRequests.HttpStatusException
 import com.sun.net.httpserver.Headers
@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpServer
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
+import java.net.MalformedURLException
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
@@ -98,6 +99,18 @@ class UrlFileCacheTest {
     if (::server.isInitialized) {
       server.stop(0)
     }
+  }
+
+  /** Tests that we properly enforce identifiers to be valid URLs. */
+  @Test
+  fun get_invalidUrl() = runTest {
+    val deferred = urlFileCache.get("hey, this isn't a valid URL?!")
+    assertThat(deferred.isCompleted).isFalse()
+
+    advanceUntilIdle()
+    assertThat(deferred.isCompleted).isTrue()
+
+    assertFailsWith<MalformedURLException> { deferred.getCompleted() }
   }
 
   /**
@@ -299,7 +312,7 @@ class UrlFileCacheTest {
     }
 
     val e =
-      assertFailsWith<UrlFileCache.UrlFileCacheException> {
+      assertFailsWith<RemoteFileCache.RemoteFileCacheException> {
         val job = urlFileCache.getWithStats(url + FILES[0].first)
         testTimeSource += FETCH_DURATION
         job.await()

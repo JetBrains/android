@@ -18,8 +18,9 @@ package com.android.tools.idea.editing.documentation
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.downloads.RemoteFileCache
+import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.android.tools.idea.downloads.UrlFileCache
-import com.android.tools.idea.downloads.UrlFileCache.FetchStats
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
@@ -237,7 +238,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     assertThat(documentation).isInstanceOf(AsyncDocumentation::class.java)
 
     completableDeferred.completeExceptionally(
-      UrlFileCache.UrlFileCacheException(FETCH_STATS, IOException())
+      RemoteFileCache.RemoteFileCacheException(FETCH_STATS, IOException())
     )
 
     val documentationData = runBlocking { (documentation as AsyncDocumentation).supplier() }

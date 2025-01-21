@@ -16,8 +16,9 @@
 package com.android.tools.idea.editing.documentation.target
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
+import com.android.tools.idea.downloads.RemoteFileCache.RemoteFileCacheException
 import com.android.tools.idea.downloads.UrlFileCache
-import com.android.tools.idea.downloads.UrlFileCache.FetchStats
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
@@ -137,7 +138,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
       val text = path.readText()
       logFetchStats(stats, text.toByteArray().size)
       path.readText().let { if (it.isNotEmpty()) return it }
-    } catch (e: UrlFileCache.UrlFileCacheException) {
+    } catch (e: RemoteFileCacheException) {
       logFetchStats(e.fetchStats, numDisplayedHtmlBytes = 0)
       thisLogger().warn("Failure fetching documentation URL.", e.cause)
     } catch (e: Exception) {
