@@ -16,12 +16,18 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceState.Connected
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
@@ -37,24 +43,44 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 
 class SelectDeviceActionTest {
+  private val deviceProvisionerRule = DeviceProvisionerRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rule = RuleChain(deviceProvisionerRule, disposableRule)
+
+  private val deviceProvisioner
+    get() = deviceProvisionerRule.deviceProvisioner
+
+  private val plugin
+    get() = deviceProvisionerRule.deviceProvisionerPlugin
 
   private val FAKE_MANUFACTURER_NAME = "FAKEMANUFACTURERNAME"
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
+  private lateinit var scope: CoroutineScope
+
   @Before
   fun setUp() {
+    scope = projectRule.project.coroutineScope
     projectRule.mockService(ActionManager::class.java)
   }
 
@@ -70,6 +96,24 @@ class SelectDeviceActionTest {
       .setCpuAbi("arm64-v8a")
       .setState(Common.Device.State.ONLINE)
       .build()
+  }
+
+  private suspend fun createFakeProvisionerDevice(
+    serial: String = FakeTransportService.FAKE_DEVICE_NAME
+  ) {
+    val device =
+      plugin.addNewDevice(
+        serial,
+        DeviceProperties.buildForTest {
+          manufacturer = "Google"
+          model = "test"
+          androidVersion = AndroidVersion(31)
+          androidRelease = "11"
+          icon = ICON_PHONE
+        },
+      )
+    device.activationAction.activate()
+    device.stateFlow.takeWhile { it !is Connected }.collect()
   }
 
   private fun createFakeStream(
@@ -109,7 +153,7 @@ class SelectDeviceActionTest {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
     val deviceModel = DeviceModel(projectRule.testRootDisposable, model)
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
     Truth.assertThat(children).hasLength(2)
@@ -118,12 +162,13 @@ class SelectDeviceActionTest {
   }
 
   @Test
-  fun displayTextForDevicesSetAsExpected() {
+  fun displayTextForDevicesSetAsExpected() = runBlocking {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
 
     val physicalStream = createFakeStream(isEmulator = false)
     val emulatorStream = createFakeStream(isEmulator = true)
+    createFakeProvisionerDevice()
 
     val deviceModel =
       DeviceModel(
@@ -134,7 +179,7 @@ class SelectDeviceActionTest {
           emulatorStream.device.toDeviceDescriptor(),
         ),
       )
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
 
     testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
     testNotifier.addDevice(emulatorStream.device.toDeviceDescriptor())
@@ -149,6 +194,28 @@ class SelectDeviceActionTest {
     Truth.assertThat(children[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
     // Stop button
     Truth.assertThat(children[2].templateText).isEqualTo("Stop Inspector")
+  }
+
+  @Test
+  fun testShowCorrectDeviceIcon() = runBlocking {
+    val testNotifier = TestProcessDiscovery()
+    val model = ProcessesModel(testNotifier)
+    val physicalStream = createFakeStream(isEmulator = false)
+    val deviceModel =
+      DeviceModel(
+        projectRule.testRootDisposable,
+        model,
+        setOf(physicalStream.device.toDeviceDescriptor()),
+      )
+    createFakeProvisionerDevice(physicalStream.device.serial)
+
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
+
+    testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
+    waitForCondition(10.seconds) { !selectDeviceAction.deviceIcons.isEmpty() }
+    selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectDeviceAction.getChildren(null)
+    Truth.assertThat(children[0].templatePresentation.icon).isEqualTo(ICON_PHONE)
   }
 
   @Test
@@ -173,7 +240,8 @@ class SelectDeviceActionTest {
           fakeStream3.device.toDeviceDescriptor(),
         ),
       )
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
+
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
@@ -187,7 +255,7 @@ class SelectDeviceActionTest {
   }
 
   @Test
-  fun deadDeviceFilteredOut() {
+  fun deadDeviceFilteredOut() = runBlocking {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
 
@@ -200,7 +268,7 @@ class SelectDeviceActionTest {
         model,
         setOf(fakeStream.device.toDeviceDescriptor()),
       )
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     Truth.assertThat(selectDeviceAction.childrenCount).isEqualTo(2)
@@ -232,6 +300,8 @@ class SelectDeviceActionTest {
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction =
       SelectDeviceAction(
+        deviceProvisioner,
+        scope,
         deviceModel,
         {},
         onDetachAction = { callbackFiredLatch.countDown() },
@@ -266,6 +336,8 @@ class SelectDeviceActionTest {
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction =
       SelectDeviceAction(
+        deviceProvisioner,
+        scope,
         deviceModel,
         {},
         onDetachAction = {
@@ -337,7 +409,14 @@ class SelectDeviceActionTest {
     val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = mock()
 
     val selectDeviceAction =
-      SelectDeviceAction(deviceModel, {}, {}, customDeviceAttribution = deviceAttribution)
+      SelectDeviceAction(
+        deviceProvisioner,
+        scope,
+        deviceModel,
+        {},
+        {},
+        customDeviceAttribution = deviceAttribution,
+      )
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
@@ -365,6 +444,8 @@ class SelectDeviceActionTest {
     var actionPerformed = false
     val selectDeviceAction =
       SelectDeviceAction(
+        deviceProvisioner,
+        scope,
         deviceModel,
         onDeviceSelected = {
           actionPerformed = true
@@ -374,6 +455,7 @@ class SelectDeviceActionTest {
       )
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
+
     val children = selectDeviceAction.getChildren(null)
     Truth.assertThat(children).hasLength(2)
     val device = children[0]
@@ -404,7 +486,7 @@ class SelectDeviceActionTest {
         model,
         setOf(physicalStream.device.toDeviceDescriptor()),
       )
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
@@ -460,6 +542,8 @@ class SelectDeviceActionTest {
     var actionPerformed = false
     val selectDeviceAction =
       SelectDeviceAction(
+        deviceProvisioner,
+        scope,
         deviceModel,
         {},
         {

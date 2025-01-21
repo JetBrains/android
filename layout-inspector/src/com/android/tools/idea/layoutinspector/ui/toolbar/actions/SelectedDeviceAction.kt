@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
+import com.android.adblib.DeviceSelector
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_DEVICE_ACTION
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
@@ -35,8 +36,14 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import java.util.concurrent.ConcurrentHashMap
 import javax.swing.Icon
 import javax.swing.JComponent
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -45,6 +52,8 @@ import org.jetbrains.annotations.VisibleForTesting
  * The UI of this action always reflects the [DeviceModel] passed as argument.
  */
 class SelectDeviceAction(
+  private val deviceProvisioner: DeviceProvisioner,
+  private val scope: CoroutineScope,
   private val deviceModel: DeviceModel,
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
@@ -52,6 +61,17 @@ class SelectDeviceAction(
   private val onDetachAction: (() -> Unit) = {},
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
 ) : DropDownAction("Select device", "Select a device to connect to.", ICON_PHONE) {
+
+  init {
+    scope.launch {
+      while (isActive) {
+        updateDeviceIcons(deviceModel.devices)
+        delay(1000)
+      }
+    }
+  }
+
+  @VisibleForTesting val deviceIcons = ConcurrentHashMap<String, Icon?>()
 
   var button: JComponent? = null
     private set
@@ -211,6 +231,29 @@ class SelectDeviceAction(
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
+
+  /** Retrieves and updates device icons for the provided list of devices. */
+  private suspend fun updateDeviceIcons(devices: Set<DeviceDescriptor>) {
+    devices.forEach {
+      val icon =
+        deviceProvisioner
+          .findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)
+          ?.state
+          ?.properties
+          ?.icon
+
+      if (icon != null) {
+        deviceIcons[it.serial] = icon
+      }
+    }
+  }
+
+  private fun DeviceDescriptor.toIcon(): Icon? {
+    // If the icon is not found, display no icon to prevent replacing the placeholder icon after the
+    // actual icon is done loading. Which would result in a jarring user experience, Also the
+    // placeholder icon does not hold significant meaning about the device type.
+    return deviceIcons[serial]
+  }
 }
 
 private fun createDeviceLabel(
@@ -223,7 +266,5 @@ private fun createDeviceLabel(
     device.buildDeviceName()
   }
 }
-
-private fun DeviceDescriptor.toIcon() = if (isEmulator) ICON_EMULATOR else ICON_PHONE
 
 private data class DropDownPresentation(val text: String, val icon: Icon?)

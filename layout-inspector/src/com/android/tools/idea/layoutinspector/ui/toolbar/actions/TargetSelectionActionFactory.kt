@@ -22,11 +22,13 @@ import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.ui.LayeredIcon
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -101,6 +103,8 @@ object TargetSelectionActionFactory {
   private fun getDeviceSelectorAction(layoutInspector: LayoutInspector): SelectDeviceAction? {
     val model = layoutInspector.deviceModel ?: return null
     return SelectDeviceAction(
+      layoutInspector.inspectorModel.project.service<DeviceProvisionerService>().deviceProvisioner,
+      layoutInspector.inspectorModel.scope,
       deviceModel = model,
       onDeviceSelected = { newDevice ->
         layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice)
