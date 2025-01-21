@@ -27,7 +27,6 @@ import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
@@ -35,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
@@ -80,8 +78,6 @@ public class LightModelClass extends AndroidLightClassBase {
   @NotNull
   private final LightModelClassConfig myClassConfig;
   @NotNull
-  private final PsiJavaFile myContainingFile;
-  @NotNull
   private final CachedValue<MyClassMembers> myCachedMembers;
   @NotNull
   private final APIVersion myAPIVersion;
@@ -89,18 +85,19 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod[] myConstructors;
   private boolean myGenerateFallbackApiOnly;
 
-  public LightModelClass(@NotNull Module module, @NotNull VirtualFile modelFile, @NotNull LightModelClassConfig classConfig) {
-    super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
+  public LightModelClass(@NotNull Module module,
+                         @NotNull VirtualFile modelFile,
+                         @NotNull LightModelClassConfig classConfig) {
+    super(
+      PsiManager.getInstance(module.getProject()),
+      ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
+      new ContainingFileProvider.Builder(classConfig.myClassName + SdkConstants.DOT_JAVA)
+        .setPackageName(classConfig.myPackageName));
+
     myModelFile = modelFile;
     myClassConfig = classConfig;
     myAPIVersion = APIVersion.fromProject(module.getProject());
     myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(getModelInfo().getMinParserVersion());
-
-    myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
-      myClassConfig.myClassName + SdkConstants.DOT_JAVA,
-      JavaFileType.INSTANCE,
-      "// This class is generated on-the-fly by the IDE.");
-    myContainingFile.setPackageName(classConfig.myPackageName);
 
     setModuleInfo(module, false);
 
@@ -192,12 +189,6 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public String getQualifiedName() {
     return myClassConfig.myPackageName + "." + getName();
-  }
-
-  @NotNull
-  @Override
-  public PsiFile getContainingFile() {
-    return myContainingFile;
   }
 
   @Override

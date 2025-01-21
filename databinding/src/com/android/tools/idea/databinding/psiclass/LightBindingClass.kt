@@ -33,7 +33,6 @@ import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
 import com.android.utils.TraceUtils
 import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.util.Ref
@@ -45,8 +44,6 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
@@ -79,7 +76,12 @@ import org.jetbrains.annotations.NonNls
  * generated.
  */
 class LightBindingClass(psiManager: PsiManager, private val config: LightBindingClassConfig) :
-  AndroidLightClassBase(psiManager, setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
+  AndroidLightClassBase(
+    psiManager,
+    setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
+    ContainingFileProvider.Builder("${config.className}.java")
+      .setPackageName(StringUtil.getPackageName(config.qualifiedName)),
+  ) {
 
   private enum class NullabilityType {
     UNSPECIFIED,
@@ -89,18 +91,6 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
     val isNullable: Boolean
       get() = this == NULLABLE
   }
-
-  // Create a fake backing file to represent this binding class
-  private val backingFile =
-    PsiFileFactory.getInstance(project)
-      .createFileFromText(
-        "${config.className}.java",
-        JavaFileType.INSTANCE,
-        "// This class is generated on-the-fly by the IDE.",
-      )
-      .apply {
-        (this@apply as PsiJavaFile).packageName = StringUtil.getPackageName(config.qualifiedName)
-      }
 
   private val psiSupers: Array<PsiClass> by
     lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -536,8 +526,6 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
   }
 
   override fun getName() = config.className
-
-  override fun getContainingFile() = backingFile
 
   override fun isValid() =
     // It is always valid. Not having this valid creates IDE errors because it is not always

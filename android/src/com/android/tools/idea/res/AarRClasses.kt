@@ -70,7 +70,7 @@ class SmallAarRClass(
 
   init {
     setModuleInfo(library)
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, SmallAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
@@ -136,7 +136,7 @@ class TransitiveAarRClass(
 
   init {
     setModuleInfo(library)
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, TransitiveAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }

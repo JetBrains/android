@@ -7,7 +7,6 @@ import com.android.tools.idea.res.AndroidInternalRClassFinder
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.AndroidTargetData
 import com.google.common.collect.ImmutableSet
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -15,8 +14,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
 
@@ -28,14 +25,12 @@ class AndroidInternalRClass(
   AndroidLightClassBase(
     psiManager,
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
+    ContainingFileProvider.Builder("R.java").setContents(""),
   ) {
-  private val file: PsiFile =
-    PsiFileFactory.getInstance(myManager.project)
-      .createFileFromText("R.java", JavaFileType.INSTANCE, "")
   private val innerClasses: Array<PsiClass>
 
   init {
-    file.viewProvider.virtualFile.putUserData(ANDROID_INTERNAL_R, sdk)
+    containingFile.viewProvider.virtualFile.putUserData(ANDROID_INTERNAL_R, sdk)
     setModuleInfo(sdk)
     innerClasses = ResourceType.values().map(::MyInnerClass).toTypedArray()
   }
@@ -43,8 +38,6 @@ class AndroidInternalRClass(
   override fun getQualifiedName() = AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME
 
   override fun getName() = "R"
-
-  override fun getContainingFile() = file
 
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 

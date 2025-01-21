@@ -67,8 +67,6 @@ class LightActionBuilderClass(
 
   override fun getQualifiedName() = qualifiedName
 
-  override fun getContainingFile() = directionsClass.containingFile
-
   override fun getParent() = directionsClass
 
   override fun isValid() = true

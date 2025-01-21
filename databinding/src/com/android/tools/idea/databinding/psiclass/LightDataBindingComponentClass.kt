@@ -17,18 +17,15 @@ package com.android.tools.idea.databinding.psiclass
 
 import com.android.SdkConstants
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
@@ -56,35 +53,26 @@ import org.jetbrains.annotations.NonNls
  *
  * See also: https://developer.android.com/reference/android/databinding/DataBindingComponent
  */
-class LightDataBindingComponentClass(psiManager: PsiManager, private val facet: AndroidFacet) :
-  AndroidLightClassBase(psiManager, setOf(PsiModifier.PUBLIC)), ModificationTracker {
+class LightDataBindingComponentClass
+private constructor(
+  psiManager: PsiManager,
+  private val facet: AndroidFacet,
+  private val dataBindingMode: DataBindingMode,
+) :
+  AndroidLightClassBase(
+    psiManager,
+    setOf(PsiModifier.PUBLIC),
+    createContainingFileInfo(dataBindingMode),
+  ),
+  ModificationTracker {
 
-  private val dataBindingMode = LayoutBindingModuleCache.getInstance(facet).dataBindingMode
+  constructor(
+    psiManager: PsiManager,
+    facet: AndroidFacet,
+  ) : this(psiManager, facet, LayoutBindingModuleCache.getInstance(facet).dataBindingMode)
 
   private val methodCache: CachedValue<Array<PsiMethod>> =
     CachedValuesManager.getManager(facet.module.project).createCachedValue(::computeMethods)
-
-  private val containingFile: NotNullLazyValue<PsiFile> =
-    NotNullLazyValue.atomicLazy {
-      val packageName = dataBindingMode.packageName
-      val normalizedPackageName =
-        if (packageName.endsWith(".")) packageName.substring(0, packageName.length - 1)
-        else packageName
-      PsiFileFactory.getInstance(facet.module.project)
-        .createFileFromText(
-          "${SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT}.java",
-          JavaLanguage.INSTANCE,
-          // language=Java
-          """
-          package $normalizedPackageName;
-          public interface DataBindingComponent {}
-          """
-            .trimIndent(),
-          false,
-          true,
-          true,
-        )
-    }
 
   init {
     setModuleInfo(facet.module, false)
@@ -177,11 +165,28 @@ class LightDataBindingComponentClass(psiManager: PsiManager, private val facet: 
     return if (result.isEmpty()) PsiMethod.EMPTY_ARRAY else result.toTypedArray()
   }
 
-  override fun getContainingFile() = containingFile.value
-
   override fun getNameIdentifier() = LightIdentifier(manager, name)
 
   override fun getNavigationElement() = getContainingFile()
 
   override fun getModificationCount() = 0L
+
+  companion object {
+    private fun createContainingFileInfo(
+      dataBindingMode: DataBindingMode
+    ): ContainingFileProvider.Builder {
+      val normalizedPackageName = dataBindingMode.packageName.removeSuffix(".")
+      return ContainingFileProvider.Builder(
+          "${SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT}.java"
+        )
+        .setContents(
+          // language=Java
+          """
+          package $normalizedPackageName;
+          public interface DataBindingComponent {}
+          """
+            .trimIndent()
+        )
+    }
+  }
 }

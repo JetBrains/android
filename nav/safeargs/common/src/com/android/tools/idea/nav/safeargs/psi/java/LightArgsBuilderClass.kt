@@ -65,8 +65,6 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
 
   override fun getQualifiedName() = qualifiedName
 
-  override fun getContainingFile() = argsClass.containingFile
-
   override fun getParent() = argsClass
 
   override fun isValid() = true

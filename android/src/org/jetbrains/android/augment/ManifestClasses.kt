@@ -56,7 +56,7 @@ class ManifestClass(val facet: AndroidFacet, psiManager: PsiManager) :
 
   init {
     setModuleInfo(facet.module, false)
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(
       MODULE_POINTER_KEY,
       ModulePointerManager.getInstance(project).create(facet.module),

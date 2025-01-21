@@ -57,7 +57,7 @@ class ModuleRClass(
         TEST -> true
       },
     )
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
 
     if (fieldModifier == AndroidLightField.FieldModifier.FINAL) {
       // If the R fields are final, we try to find the actual physical R class to use real values.

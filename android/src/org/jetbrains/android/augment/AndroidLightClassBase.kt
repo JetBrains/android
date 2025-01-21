@@ -3,10 +3,12 @@ package org.jetbrains.android.augment
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.MoreObjects
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.ItemPresentationProviders
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.LibraryScopeCache
@@ -24,7 +26,9 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
@@ -58,14 +62,33 @@ import org.jetbrains.kotlin.idea.base.projectStructure.customSdk
 import org.jetbrains.kotlin.idea.base.projectStructure.customSourceRootType
 
 abstract class AndroidLightClassBase
-private constructor(psiManager: PsiManager, modifiers: Iterable<String>, private val containingLightClass: AndroidLightClassBase?) :
-  LightElement(psiManager, JavaLanguage.INSTANCE), PsiClass, SyntheticElement {
+private constructor(
+  psiManager: PsiManager,
+  modifiers: Iterable<String>,
+  private val containingLightClass: AndroidLightClassBase?,
+  private val backingFile: PsiFile,
+) : LightElement(psiManager, JavaLanguage.INSTANCE), PsiClass, SyntheticElement {
 
-  protected constructor(psiManager: PsiManager, modifiers: Iterable<String>)
-    : this(psiManager, modifiers, null)
+  protected constructor(
+    psiManager: PsiManager,
+    modifiers: Iterable<String>,
+    containingFileProvider: ContainingFileProvider.Builder,
+  ) : this(
+    psiManager,
+    modifiers,
+    null,
+    containingFileProvider.build(psiManager.project).getContainingFile(psiManager.project),
+  )
 
-  protected constructor(containingLightClass: AndroidLightClassBase, modifiers: Iterable<String>)
-    : this(containingLightClass.manager, modifiers, containingLightClass)
+  protected constructor(
+    containingLightClass: AndroidLightClassBase,
+    modifiers: Iterable<String>,
+  ) : this(
+    containingLightClass.manager,
+    modifiers,
+    containingLightClass,
+    containingLightClass.backingFile,
+  )
 
   private val psiModifierList: LightModifierList =
     LightModifierList(psiManager).apply {
@@ -262,7 +285,7 @@ private constructor(psiManager: PsiManager, modifiers: Iterable<String>, private
 
   final override fun getContainingClass(): AndroidLightClassBase? = containingLightClass
 
-  override fun getContainingFile(): PsiFile? = containingLightClass?.containingFile
+  final override fun getContainingFile(): PsiFile = backingFile
 
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 
@@ -285,6 +308,48 @@ private constructor(psiManager: PsiManager, modifiers: Iterable<String>, private
 
   override fun toString(): String {
     return MoreObjects.toStringHelper(this).addValue(qualifiedName).toString()
+  }
+
+  /**
+   * For light classes that need a backing in-memory file (ie, any non-inner files that can't use
+   * the containing class's containingFile), this provider builds a backing Java file with name and
+   * package information appropriately set.
+   */
+  protected sealed interface ContainingFileProvider {
+    fun getContainingFile(project: Project): PsiFile
+
+    class Builder(private val fileName: String) {
+      private var contents: String = "// This class is generated on-the-fly by the IDE."
+
+      fun setContents(value: String): Builder {
+        contents = value
+        return this
+      }
+
+      private var packageName: String? = null
+
+      fun setPackageName(value: String?): Builder {
+        packageName = value
+        return this
+      }
+
+      fun build(project: Project): ContainingFileProvider {
+        require(fileName.endsWith(".java")) { "File name $fileName must end with '.java'." }
+
+        val javaFile =
+          PsiFileFactory.getInstance(project)
+            .createFileFromText(fileName, JavaFileType.INSTANCE, contents) as PsiJavaFile
+
+        packageName?.let { javaFile.packageName = it }
+
+        return ContainingFileProviderImpl(javaFile)
+      }
+    }
+
+    private class ContainingFileProviderImpl(private val psiFile: PsiJavaFile) :
+      ContainingFileProvider {
+      override fun getContainingFile(project: Project): PsiFile = psiFile
+    }
   }
 
   /**

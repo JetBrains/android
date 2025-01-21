@@ -18,60 +18,61 @@ package com.android.tools.idea.nav.safeargs.psi.java
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
 import org.jetbrains.android.augment.AndroidLightClassBase
 
 /** Common functionality for all safe args light classes. */
-abstract class SafeArgsLightBaseClass(
+abstract class SafeArgsLightBaseClass
+private constructor(
   protected val navInfo: NavInfo,
   protected val navEntry: NavEntry,
   val destination: NavDestinationData,
-  suffix: String,
+  names: Names,
 ) :
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
+    ContainingFileProvider.Builder(names.simple + ".java")
+      .setPackageName(names.qualified.substringBeforeLast('.')),
   ) {
 
-  private val name: String
-  private val qualifiedName: String
-  private val backingFile: PsiJavaFile
+  protected constructor(
+    navInfo: NavInfo,
+    navEntry: NavEntry,
+    destination: NavDestinationData,
+    suffix: String,
+  ) : this(navInfo, navEntry, destination, getNames(navInfo, destination, suffix))
+
+  private val qualifiedName = names.qualified
+  private val name = names.simple
 
   init {
     super.setModuleInfo(navInfo.facet.module, false)
-    val fileFactory = PsiFileFactory.getInstance(project)
-
-    qualifiedName =
-      destination.name.let { name ->
-        val nameWithoutSuffix = if (!name.startsWith('.')) name else "${navInfo.packageName}$name"
-        "$nameWithoutSuffix$suffix"
-      }
-    name = qualifiedName.substringAfterLast('.')
-
-    // Create a placeholder backing file to represent this light class
-    backingFile =
-      fileFactory.createFileFromText(
-        "${name}.java",
-        JavaFileType.INSTANCE,
-        "// This class is generated on-the-fly by the IDE.",
-      ) as PsiJavaFile
-    backingFile.packageName = (qualifiedName.substringBeforeLast('.'))
   }
 
   override fun getName() = name
 
   override fun getQualifiedName() = qualifiedName
 
-  override fun getContainingFile() = backingFile
-
   override fun isValid() = true
 
   override fun getNavigationElement(): PsiElement {
     return navEntry.backingXmlFile ?: return super.getNavigationElement()
+  }
+
+  private data class Names(val qualified: String, val simple: String)
+
+  companion object {
+    private fun getNames(navInfo: NavInfo, destination: NavDestinationData, suffix: String): Names {
+      val qualifiedName =
+        destination.name.let { name ->
+          val nameWithoutSuffix = if (!name.startsWith('.')) name else "${navInfo.packageName}$name"
+          "$nameWithoutSuffix$suffix"
+        }
+
+      return Names(qualifiedName, qualifiedName.substringAfterLast('.'))
+    }
   }
 }

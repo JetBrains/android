@@ -17,14 +17,12 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.resources.ResourceRepository;
 import com.google.common.base.Verify;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNameHelper;
@@ -44,14 +42,26 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
   @NotNull protected final CachedValue<PsiClass[]> myClassCache;
   @NotNull protected final String myShortName;
-  @NotNull protected final PsiJavaFile myFile;
   @Nullable private final String myPackageName;
 
-  public AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
-                                              @Nullable String packageName,
-                                              @NotNull PsiManager psiManager,
-                                              @NotNull Collection<String> modifiers) {
-    super(psiManager, modifiers);
+  protected AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
+                                                 @Nullable String packageName,
+                                                 @NotNull PsiManager psiManager,
+                                                 @NotNull Collection<String> modifiers) {
+    this(shortName,
+         packageName,
+         psiManager,
+         modifiers,
+         new ContainingFileProvider.Builder(shortName + ".java")
+           .setPackageName(packageNameForContainingFile(packageName, psiManager.getProject())));
+  }
+
+  private AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
+                                               @Nullable String packageName,
+                                               @NotNull PsiManager psiManager,
+                                               @NotNull Collection<String> modifiers,
+                                               @NotNull ContainingFileProvider.Builder containingFileProvider) {
+    super(psiManager, modifiers, containingFileProvider);
     Project project = getProject();
 
     myShortName = shortName;
@@ -72,18 +82,13 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
         return CachedValueProvider.Result.create(innerClasses, dependencies);
       });
+  }
 
-    PsiFileFactory factory = PsiFileFactory.getInstance(project);
-    myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", JavaFileType.INSTANCE,
-                                                     "// This class is generated on-the-fly by the IDE.");
-
-    // We need to set the package name of the file, otherwise Util#checkReference will highlight all references to the class. This name is
-    // sometimes shown in "quick documentation" for the R class itself, but is not considered when resolving references etc., where
-    // getQualifiedName is what matters and needs to stay up-to-date with the manifest etc.
+  private static String packageNameForContainingFile(String packageName, Project project) {
     if (packageName == null || !PsiNameHelper.getInstance(project).isQualifiedName(packageName)) {
-      packageName = "_";
+      return "_";
     }
-    myFile.setPackageName(packageName);
+    return packageName;
   }
 
   @Nullable
@@ -111,12 +116,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @NotNull
   public final String getName() {
     return myShortName;
-  }
-
-  @NotNull
-  @Override
-  public final PsiFile getContainingFile() {
-    return myFile;
   }
 
   @Override

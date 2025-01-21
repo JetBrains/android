@@ -70,7 +70,7 @@ public class BlazeRClass extends ResourceRepositoryRClass {
         });
     this.androidFacet = androidFacet;
     setModuleInfo(getModule(), false);
-    VirtualFile virtualFile = myFile.getViewProvider().getVirtualFile();
+    VirtualFile virtualFile = getContainingFile().getViewProvider().getVirtualFile();
     virtualFile.putUserData(
         MODULE_POINTER_KEY, ModulePointerManager.getInstance(getProject()).create(getModule()));
     virtualFile.putUserData(LIGHT_CLASS_KEY, ResourceRepositoryRClass.class);
