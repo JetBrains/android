@@ -99,7 +99,7 @@ sealed class PreviewMode {
     }
   }
 
-  sealed class Focus<T : PreviewElement<*>>(override val selected: T) : PreviewMode()
+  sealed class SingleItemMode<T : PreviewElement<*>>(override val selected: T) : PreviewMode()
 
   /** Represents a mode that can be restored when clicking on "Stop" when inside a mode. */
   sealed class RestorePreviewMode : PreviewMode()
@@ -159,12 +159,13 @@ sealed class PreviewMode {
     }
   }
 
-  class Interactive(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
+  class Interactive(selected: PreviewElement<*>) : SingleItemMode<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
   }
 
-  class AnimationInspection(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
+  class AnimationInspection(selected: PreviewElement<*>) :
+    SingleItemMode<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
   }

@@ -34,8 +34,8 @@ class CommonPreviewModeManager : PreviewModeManager {
     }
 
   /**
-   * When entering one of the [PreviewMode.Focus] modes (interactive, animation, etc.), the previous
-   * mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
+   * When entering one of the [PreviewMode.SingleItemMode] modes (interactive, animation, etc.), the
+   * previous mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
    *
    * TODO(b/293257529) Need to restore selected tab as well in Gallery mode.
    */
