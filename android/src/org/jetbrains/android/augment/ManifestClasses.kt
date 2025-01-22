@@ -24,7 +24,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.util.text.StringUtil.getShortName
-import com.intellij.platform.ide.progress.ModalTaskOwner.project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -92,7 +91,7 @@ class ManifestClass(val facet: AndroidFacet, psiManager: PsiManager) :
 sealed class ManifestInnerClass(
   private val myFacet: AndroidFacet,
   name: String,
-  parentClass: PsiClass,
+  parentClass: AndroidLightClassBase,
 ) : AndroidLightInnerClassBase(parentClass, name) {
 
   protected data class FieldInfo(val fieldName: String, val fieldValue: String)
@@ -141,15 +140,19 @@ sealed class ManifestInnerClass(
 }
 
 /** Light implementation of `Manifest.permission`. */
-internal class PermissionClass(private val facet: AndroidFacet, parentClass: PsiClass) :
-  ManifestInnerClass(facet, "permission", parentClass) {
+internal class PermissionClass(
+  private val facet: AndroidFacet,
+  parentClass: AndroidLightClassBase,
+) : ManifestInnerClass(facet, "permission", parentClass) {
   override fun getNamesFromManifest(): Collection<String> =
     getCustomPermissions(facet) ?: emptySet()
 }
 
 /** Light implementation of `Manifest.permission_group`. */
-internal class PermissionGroupClass(private val facet: AndroidFacet, parentClass: PsiClass) :
-  ManifestInnerClass(facet, "permission_group", parentClass) {
+internal class PermissionGroupClass(
+  private val facet: AndroidFacet,
+  parentClass: AndroidLightClassBase,
+) : ManifestInnerClass(facet, "permission_group", parentClass) {
   override fun getNamesFromManifest(): Collection<String> =
     getCustomPermissionGroups(facet) ?: emptySet()
 }

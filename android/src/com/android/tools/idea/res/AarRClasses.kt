@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_KEY
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
+import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
@@ -92,7 +93,7 @@ class SmallAarRClass(
 
 /** Implementation of [InnerRClassBase] used by [SmallAarRClass]. */
 private class SmallAarInnerRClass(
-  parent: PsiClass,
+  parent: AndroidLightClassBase,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
   private val aarResources: ResourceRepository,
@@ -186,7 +187,7 @@ class TransitiveAarRClass(
  * It eagerly computes names and types of fields and releases the [SymbolTable].
  */
 private class TransitiveAarInnerRClass(
-  parent: PsiClass,
+  parent: AndroidLightClassBase,
   resourceType: ResourceType,
   symbolTable: SymbolTable,
 ) : InnerRClassBase(parent, resourceType) {

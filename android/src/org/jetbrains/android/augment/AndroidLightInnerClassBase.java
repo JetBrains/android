@@ -11,10 +11,10 @@ import org.jetbrains.annotations.NotNull;
  * Base for all light inner classes implementations, e.g. {@code R.string} or {@code Manifest.permission}.
  */
 public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
-  @NotNull private final PsiClass myContainingClass;
+  @NotNull private final AndroidLightClassBase myContainingClass;
   @NotNull protected final String myName;
 
-  protected AndroidLightInnerClassBase(@NotNull PsiClass context, @NotNull String name) {
+  protected AndroidLightInnerClassBase(@NotNull AndroidLightClassBase context, @NotNull String name) {
     super(context.getManager(), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myContainingClass = context;
     myName = name;

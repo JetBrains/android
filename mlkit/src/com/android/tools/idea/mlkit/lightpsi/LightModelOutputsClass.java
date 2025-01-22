@@ -71,7 +71,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   public static final String TAG_GROUP_METHOD = "group method";
 
   @NotNull
-  private final PsiClass containingClass;
+  private final LightModelClass containingClass;
   @NotNull
   private final String qualifiedName;
   @NotNull
@@ -80,7 +80,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   private final APIVersion myAPIVersion;
   private final boolean myGenerateFallbackApiOnly;
 
-  public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull PsiClass containingClass) {
+  public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull LightModelClass containingClass) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;

@@ -56,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LightModelGroupClass extends AndroidLightClassBase {
   @NotNull
-  private final PsiClass containingClass;
+  private final LightModelClass containingClass;
   @NotNull
   private final String qualifiedName;
   @NotNull
@@ -67,7 +67,7 @@ public class LightModelGroupClass extends AndroidLightClassBase {
   public LightModelGroupClass(@NotNull Module module,
                               @NotNull List<TensorInfo> tensorInfos,
                               @NotNull TensorGroupInfo tensorGroupInfo,
-                              @NotNull PsiClass containingClass) {
+                              @NotNull LightModelClass containingClass) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.myClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), myClassName);
