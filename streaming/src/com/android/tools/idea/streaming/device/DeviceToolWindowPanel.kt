@@ -21,7 +21,6 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -44,8 +43,6 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.android.utils.HashCodes
-import com.android.utils.TraceUtils.currentStack
-import com.android.utils.TraceUtils.simpleId
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
@@ -130,9 +127,6 @@ internal class DeviceToolWindowPanel(
   }
 
   init {
-    if (StudioFlags.B_364541401_LOGGING.get()) {
-      thisLogger().info("$simpleId created deviceClient=${deviceClient.simpleId}\n$currentStack")
-    }
     Disposer.register(disposableParent, this)
   }
 

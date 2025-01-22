@@ -164,9 +164,6 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    if (StudioFlags.B_364541401_LOGGING.get()) {
-      logger.info("$simpleId.establishAgentConnection($maxVideoSize, $initialDisplayOrientation, $startVideoStream, ${project.name})")
-    }
     try {
       streamingSessionTracker.streamingStarted()
       val newConnection = Connection(this)
@@ -187,10 +184,6 @@ internal class DeviceClient(
       }
       connection.established.await()
 
-      if (StudioFlags.B_364541401_LOGGING.get()) {
-        logger.info(
-            "$simpleId.establishAgentConnection: connection=$connection, completion=$newConnection, startVideoStream=$startVideoStream")
-      }
       if (connection !== newConnection && startVideoStream) {
         startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
       }
@@ -270,9 +263,6 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    if (StudioFlags.B_364541401_LOGGING.get()) {
-      logger.info("$simpleId.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)")
-    }
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -280,9 +270,6 @@ internal class DeviceClient(
   }
 
   fun stopVideoStream(requester: Any, displayId: Int) {
-    if (StudioFlags.B_364541401_LOGGING.get()) {
-      logger.info("$simpleId.stopVideoStream(${requester.simpleId}, $displayId)")
-    }
     synchronized(videoStreams) {
       videoStreams[displayId]?.let { arbiter ->
         arbiter.stopVideoStream(requester)
@@ -360,9 +347,6 @@ internal class DeviceClient(
   }
 
   override fun dispose() {
-    if (StudioFlags.B_364541401_LOGGING.get()) {
-      logger.info("$simpleId.dispose()")
-    }
     disposed = true
     streamingSessionTracker.streamingEnded()
   }
@@ -696,10 +680,6 @@ internal class DeviceClient(
     }
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
-      if (StudioFlags.B_364541401_LOGGING.get()) {
-        logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                    " requestedVideoResolutions=$requestedVideoResolutions")
-      }
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
@@ -714,9 +694,6 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
-      if (StudioFlags.B_364541401_LOGGING.get()) {
-        logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.stopVideoStream(${requester.simpleId})")
-      }
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
@@ -776,9 +753,6 @@ internal class DeviceClient(
     }
 
     override fun dispose() {
-      if (StudioFlags.B_364541401_LOGGING.get()) {
-        logger.info("$simpleId.dispose()")
-      }
     }
   }
 }
