@@ -231,6 +231,31 @@ class CodeSwapActionTest {
 
   @Test
   @RunsInEdt
+  fun `disabled, device property not populated`() {
+    // Set up
+    val device = createMockDevice(propertiesSet = false)
+
+    setExecutionTargetForConfiguration(
+      project,
+      device,
+      RunManager.getInstance(project).selectedConfiguration!!.configuration,
+      projectRule.testRootDisposable
+    )
+
+    // Update
+    val action = CodeSwapAction()
+    val event = TestActionEvent.createTestEvent(SimpleDataContext.getSimpleContext(CommonDataKeys.PROJECT, project))
+    action.update(event)
+
+    // Assert
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.description).isEqualTo(
+      "Apply Code Changes is disabled for this device because the selected device is not ready yet.")
+  }
+
+  @Test
+  @RunsInEdt
   fun `disabled, app not detected`() {
     // Set up
     val device = createMockDevice()
@@ -275,10 +300,11 @@ class CodeSwapActionTest {
   }
 
 
-  private fun createMockDevice(apiLevel: Int = 33): IDevice {
+  private fun createMockDevice(apiLevel: Int = 33, propertiesSet: Boolean = true): IDevice {
     val mockDevice = mock<IDevice>()
     whenever(mockDevice.isOnline).thenReturn(true)
     whenever(mockDevice.version).thenReturn(AndroidVersion(apiLevel))
+    whenever(mockDevice.arePropertiesSet()).thenReturn(propertiesSet)
     return mockDevice
   }
 }
