@@ -705,6 +705,7 @@ class ComposePreviewRepresentation(
           composeWorkBench.mainSurface,
           navigationHandler,
           isSelectionEnabled = true,
+          isPopUpEnabled =  { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() }
         ),
       )
       .also { delegateInteractionHandler.delegate = it }
