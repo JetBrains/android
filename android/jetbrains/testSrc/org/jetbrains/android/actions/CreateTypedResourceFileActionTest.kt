@@ -51,7 +51,7 @@ class CreateTypedResourceFileActionTest {
     val dataContext = SimpleDataContext.builder()
     for (folderType in ResourceFolderType.entries) {
       val filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml"
-      dataContext.add(CommonDataKeys.PSI_ELEMENT, fixture.addFileToProject(filePath, "").parent)
+      dataContext.add(CommonDataKeys.PSI_ELEMENT, fixture.addFileToProject(filePath, ""))
       assertWithMessage("Failed for ${folderType.getName()}")
         .that(doIsAvailable(dataContext.build(), folderType))
         .isTrue()

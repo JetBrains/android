@@ -192,8 +192,10 @@ open class CreateTypedResourceFileAction(
 
       return application.runReadAction<Boolean> {
         // Verify the given PsiElement is a directory within a valid resource type folder (e.g:
-        // .../res/color).
-        element.parents(withSelf = true).any { it is PsiDirectory && isResourceSubdirectory(it, resourceType.getName(), true) }
+        // .../res/color). Don't call .parents because it only works within files.
+        generateSequence(element, PsiElement::getParent)
+          .filterIsInstance<PsiDirectory>()
+          .any { isResourceSubdirectory(it, resourceType.getName(), true) }
       }
     }
 
