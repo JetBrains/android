@@ -360,9 +360,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = true
 
-  /** Whether to generate manifest classes. */
-  val generateManifestClass: Boolean get() = false
-
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
 

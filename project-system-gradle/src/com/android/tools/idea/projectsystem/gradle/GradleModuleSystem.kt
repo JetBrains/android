@@ -584,7 +584,8 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
-  override val generateManifestClass: Boolean
+  /** Whether to generate manifest classes. */
+  val generateManifestClass: Boolean
     get() = agpBuildGlobalFlags.generateManifestClass && module.isMainModule()
 
   override val submodules: Collection<Module>
