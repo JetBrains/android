@@ -1194,6 +1194,14 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Screenshot and Screen Recording
+  private static final FlagGroup SCREENSHOT = new FlagGroup(FLAGS, "screenshot", "Screenshot and Screen Recording");
+  public static final Flag<Boolean> SCREENSHOT_STREAMLINED_SAVING = new BooleanFlag(
+    SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
+    "Save screenshots and screen recordings without asking user",
+    false);
+  //endregion
+
   // region Device Definition Download Service
   private static final FlagGroup DEVICE_DEFINITION_DOWNLOAD_SERVICE =
     new FlagGroup(FLAGS,

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.SdkConstants
+import com.android.SdkConstants.EXT_PNG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.save.SaveConfiguration
+import com.android.tools.idea.ui.save.SaveConfigurationDialog
 import com.android.tools.pixelprobe.color.Colors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -52,6 +55,8 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtilRt.getExtension
+import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.IdeFocusManager
@@ -75,7 +80,9 @@ import java.io.IOException
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
@@ -124,7 +131,8 @@ class ScreenshotViewer(
   private val editorProvider: FileEditorProvider = getImageFileEditorProvider()
   private val imageFileEditor = editorProvider.createEditor(project, backingFile) as ImageFileEditor
 
-  private val screenshotConfiguration = service<ScreenshotConfiguration>()
+  private val config = service<ScreenshotConfiguration>()
+  private val saveConfig = project.service<SaveConfiguration>()
 
   private var decorationComboBox = ComboBox<ScreenshotDecorationOption>()
 
@@ -143,7 +151,7 @@ class ScreenshotViewer(
   /**
    * Reference to the framed screenshot displayed on screen. Accessed from both EDT and background threads.
    */
-  private val displayedImageRef = AtomicReference<BufferedImage>()
+  private val displayedImageRef = AtomicReference<TimestampedImage>()
 
   /**
    * The user specified destination where the screenshot was saved, or null of the screenshot was not saved.
@@ -188,7 +196,7 @@ class ScreenshotViewer(
     decorationComboBox.setModel(decorationOptions)
 
     when {
-      screenshotConfiguration.frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
+      config.frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
           decorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex) // Select the default framing option.
       isPlayCompatibleWearScreenshot -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
       canClipDeviceMask -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
@@ -196,7 +204,7 @@ class ScreenshotViewer(
     }
 
     val decorationListener = ActionListener {
-      screenshotConfiguration.frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
+      config.frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
       updateImageFrame()
     }
     decorationComboBox.addActionListener(decorationListener)
@@ -227,6 +235,11 @@ class ScreenshotViewer(
       row {
         cell(imageFileEditor.component).align(Align.FILL)
       }.resizableRow()
+      if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+        row {
+          button(message("screenshot.dialog.configure.save.button.text")) { configureScreenshot() }.align(AlignX.RIGHT)
+        }
+      }
     }
 
     // The following panel prevents the minimum size of the dialog from growing when it is resized.
@@ -253,24 +266,83 @@ class ScreenshotViewer(
   }
 
   override fun doOKAction() {
-    val descriptor = FileSaverDescriptor(message("screenshot.dialog.title"), "", SdkConstants.EXT_PNG)
+    if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+      if (!saveScreenshotWithoutAsking()) {
+        return
+      }
+    }
+    else {
+      if (!saveScreenshotAfterAsking()) {
+        return
+      }
+    }
+
+    super.doOKAction()
+  }
+
+  private fun saveScreenshotWithoutAsking(): Boolean {
+    val image = displayedImageRef.get() ?: return false
+    val expandedFilename =
+        saveConfig.expandFilenamePattern(config.saveLocation, config.filenameTemplate, EXT_PNG, image.timestamp, config.screenshotCount + 1)
+    val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
+    try {
+      Files.createDirectories(file.parent)
+      writePng(image.image, file)
+      config.screenshotCount++
+      screenshotFile = file
+      logScreenshotUsage()
+    }
+    catch (e: IOException) {
+      val error = e.message ?: e.javaClass.name
+      Messages.showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
+      return false
+    }
+
+    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)
+    if (virtualFile != null) {
+      FileEditorManager.getInstance(project).openFile(virtualFile, true)
+    }
+
+    return true
+  }
+
+  private fun adjustToAvoidExistingFiles(file: Path): Path {
+    if (!Files.exists(file)) {
+      return file
+    }
+    val filename = file.fileName.toString()
+    val name = getNameWithoutExtension(filename)
+    val extension = getExtension(name)
+    val dir = file.parent
+    var i = 0
+    while (true) {
+      val adjusted = dir.resolve("$name (${++i}).$extension")
+      if (!Files.exists(file) || i > 100) {
+        return adjusted
+      }
+    }
+  }
+
+  private fun saveScreenshotAfterAsking(): Boolean {
+    val descriptor = FileSaverDescriptor(message("screenshot.dialog.title"), "", EXT_PNG)
     val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
     val baseDir = loadScreenshotPath()
     val fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(defaultFileName))
     if (fileWrapper == null) {
-      return
+      return false
     }
 
     val file = fileWrapper.file.toPath()
     try {
-      val image = displayedImageRef.get()!!
+      val image = displayedImageRef.get().image
       writePng(image, file)
       screenshotFile = file
       logScreenshotUsage()
     }
     catch (e: IOException) {
-      Messages.showErrorDialog(project, message("screenshot.dialog.error", e), message("screenshot.action.title"))
-      return
+      val error = e.message ?: e.javaClass.name
+      Messages.showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
+      return false
     }
 
     val virtualFile = fileWrapper.virtualFile
@@ -280,8 +352,7 @@ class ScreenshotViewer(
 
       FileEditorManager.getInstance(project).openFile(virtualFile, true)
     }
-
-    super.doOKAction()
+    return true
   }
 
   /**
@@ -373,6 +444,18 @@ class ScreenshotViewer(
     logScreenshotUsage()
   }
 
+  private fun configureScreenshot() {
+    val saveLocation = config.saveLocation
+    val filenameTemplate = config.filenameTemplate
+    val screenshotCount = config.screenshotCount
+    val timestamp = displayedImageRef.get()?.timestamp ?: Instant.now()
+    val dialog = SaveConfigurationDialog(project, saveLocation, filenameTemplate, EXT_PNG, timestamp, screenshotCount + 1)
+    if (dialog.createWrapper(null, rootPane).showAndGet()) {
+      config.filenameTemplate = dialog.filenameTemplate
+      config.saveLocation = dialog.saveLocation
+    }
+  }
+
   private fun processScreenshot(rotationQuadrants: Int) {
     val rotatedImage = sourceImageRef.get().rotated(rotationQuadrants)
     val processedImage = processImage(rotatedImage)
@@ -390,7 +473,7 @@ class ScreenshotViewer(
       }
     })
     sourceImageRef.set(rotatedImage)
-    displayedImageRef.set(processedImage)
+    displayedImageRef.set(TimestampedImage(processedImage))
     updateEditorImage()
   }
 
@@ -400,7 +483,7 @@ class ScreenshotViewer(
   }
 
   private fun updateEditorImage() {
-    imageFileEditor.imageEditor.document.value = displayedImageRef.get()
+    imageFileEditor.imageEditor.document.value = displayedImageRef.get().image
     pack()
 
     // After image has updated, set the focus to image to allow keyboard shortcut copying.
@@ -463,6 +546,9 @@ class ScreenshotViewer(
   @State(name = "ScreenshotConfiguration", storages = [Storage(NON_ROAMABLE_FILE)])
   internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
     var frameScreenshot: Boolean = false
+    var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
+    var filenameTemplate: String = "Screenshot_%Y%M%D_%H%M%S"
+    var screenshotCount: Int = 0
 
     override fun getState(): ScreenshotConfiguration {
       return this
@@ -471,6 +557,10 @@ class ScreenshotViewer(
     override fun loadState(state: ScreenshotConfiguration) {
       XmlSerializerUtil.copyBean<ScreenshotConfiguration>(state, this)
     }
+  }
+
+  private class TimestampedImage(val image: BufferedImage) {
+    val timestamp: Instant = Instant.now()
   }
 
   companion object {
@@ -510,7 +600,7 @@ class ScreenshotViewer(
     @Throws(IOException::class)
     private fun writePng(image: BufferedImage, outputStream: OutputStream) {
       val imageType = ImageTypeSpecifier.createFromRenderedImage(image)
-      val iterator = ImageIO.getImageWriters(imageType, SdkConstants.EXT_PNG)
+      val iterator = ImageIO.getImageWriters(imageType, EXT_PNG)
       if (!iterator.hasNext()) {
         throw IOException("Failed to find PNG writer")
       }
