@@ -231,7 +231,7 @@ def merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchai
     """
 
     if not java_dep_info and not cc_dep_info and not cc_toolchain_dep_info:
-        return []
+        return create_dependencies_info(label = target.label)
 
     if cc_dep_info and cc_toolchain_dep_info:
         test_mode_cc_src_deps = depset(transitive = [cc_dep_info.test_mode_cc_src_deps, cc_toolchain_dep_info.test_mode_cc_src_deps])
@@ -467,7 +467,7 @@ def _get_followed_java_proto_dependencies(rule):
         deps.extend(_get_dependency_attribute(rule, "_toolchain"))
     return deps
 
-def _get_followed_java_dependency_infos(rule):
+def _get_followed_java_dependency_infos(label, rule):
     deps = []
     for attr in FOLLOW_JAVA_ATTRIBUTES:
         deps.extend(_get_dependency_attribute(rule, attr))
@@ -751,6 +751,10 @@ def _collect_dependencies_core_impl(
         ctx,
         params,
         test_mode):
+    if hasattr(ctx.rule.attr, "tags"):
+        if "no-ide" in ctx.rule.attr.tags:
+            return create_dependencies_info(label = target.label)
+
     java_dep_info = _collect_java_dependencies_core_impl(
         target,
         ctx,
@@ -771,7 +775,7 @@ def _collect_java_dependencies_core_impl(
         params,
         test_mode):
     target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude) and not test_mode
-    dependency_infos = _get_followed_java_dependency_infos(ctx.rule)
+    dependency_infos = _get_followed_java_dependency_infos(target.label, ctx.rule)
 
     target_to_artifacts, compile_jars, aars, gensrcs = _collect_own_and_dependency_java_artifacts(
         target,

@@ -32,3 +32,13 @@ java_library(
         "//java_and_deps/deps/top_level_lib_2",
     ],
 )
+
+java_library(
+    name = "dep_on_no_ide",
+    srcs = glob(["java/com/example/dep_on_no_ide/*.java"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//java_and_deps/deps/no_ide",
+        "//java_and_deps/deps/top_level_lib_1",
+    ],
+)
