@@ -56,11 +56,11 @@ sealed class PreviewMode {
 
   /**
    * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
+   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Focus] are
    * normal modes.
    */
   val isNormal: Boolean
-    get() = this is Default || this is Gallery
+    get() = this is Default || this is Focus
 
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
@@ -123,20 +123,19 @@ sealed class PreviewMode {
     }
   }
 
-  // TODO("b/391292814"): Rename Gallery in Focus
-  class Gallery(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
-    override val layoutOption: SurfaceLayoutOption = GALLERY_LAYOUT_OPTION
+  class Focus(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
+    override val layoutOption: SurfaceLayoutOption = FOCUS_MODE_LAYOUT_OPTION
 
     /**
-     * If list of previews is updated while [PreviewMode.Gallery] is selected - [selected] element
-     * might become invalid and new [Gallery] mode with new corresponding [selected] element should
-     * be created. At the moment there is no exact match which preview element is which after
-     * update. So we are doing our best guess to select new element.
+     * If list of previews is updated while [PreviewMode.Focus] is selected - [selected] element
+     * might become invalid and new [Focus] mode with new corresponding [selected] element should be
+     * created. At the moment there is no exact match which preview element is which after update.
+     * So we are doing our best guess to select new element.
      */
     fun newMode(
       newElements: Collection<PreviewElement<*>>,
       previousElements: Set<PreviewElement<*>>,
-    ): Gallery {
+    ): Focus {
       // Try to match which element was selected before
       // If selectedKey was removed select first key. If it was only updated (i.e. if a
       // parameter value has changed), we select the new key corresponding to it.
@@ -155,7 +154,7 @@ sealed class PreviewMode {
 
       // TODO(b/292482974): Find the correct key when there are Multipreview changes
 
-      return Gallery(newSelected)
+      return Focus(newSelected)
     }
   }
 

@@ -75,8 +75,8 @@ import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
-import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -743,8 +743,8 @@ class ComposePreviewRepresentation(
 
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
-  private val galleryEssentialsModeManager =
-    CommonGalleryEssentialsModeManager(
+  private val focusEssentialsModeManager =
+    CommonFocusEssentialsModeManager(
         project = psiFile.project,
         lifecycleManager = lifecycleManager,
         previewFlowManager = composePreviewFlowManager,
@@ -910,10 +910,10 @@ class ComposePreviewRepresentation(
       launch { delegateFastPreviewSurface.requestFastPreviewRefreshSync() }
     } else if (invalidated.get()) requestRefresh()
 
-    // Gallery mode should be updated only if Preview is active / in foreground.
-    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
+    // Focus mode should be updated only if Preview is active / in foreground.
+    // It will help to avoid enabling Focus mode while Preview is inactive, as it will also save
     // this state for later to restore.
-    galleryEssentialsModeManager.activate()
+    focusEssentialsModeManager.activate()
   }
 
   override fun onDeactivate() {
@@ -1538,9 +1538,9 @@ class ComposePreviewRepresentation(
         }
         invalidateAndRefresh()
       }
-      is PreviewMode.Gallery -> {
+      is PreviewMode.Focus -> {
         withContext(uiThread) {
-          composeWorkBench.galleryMode = GalleryMode(composeWorkBench.mainSurface)
+          composeWorkBench.focusMode = FocusMode(composeWorkBench.mainSurface)
         }
         resetZoomToFitOnAfterRender()
       }
@@ -1573,8 +1573,8 @@ class ComposePreviewRepresentation(
         currentAnimationPreview = null
         requestVisibilityAndNotificationsUpdate()
       }
-      is PreviewMode.Gallery -> {
-        withContext(uiThread) { composeWorkBench.galleryMode = null }
+      is PreviewMode.Focus -> {
+        withContext(uiThread) { composeWorkBench.focusMode = null }
       }
     }
     resetZoomToFitOnAfterRender()

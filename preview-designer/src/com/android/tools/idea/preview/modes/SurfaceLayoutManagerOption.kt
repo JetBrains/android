@@ -20,19 +20,19 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
-import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.FocusLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
 import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 
-/** [PreviewMode.Gallery] layout option which shows once centered element. */
-val GALLERY_LAYOUT_OPTION =
+/** [PreviewMode.Focus] layout option which shows once centered element. */
+val FOCUS_MODE_LAYOUT_OPTION =
   SurfaceLayoutOption(
     displayName = message("focus.mode.title"),
-    createLayoutManager = { GalleryLayoutManager() },
+    createLayoutManager = { FocusLayoutManager() },
     organizationEnabled = false,
     sceneViewAlignment = SceneViewAlignment.LEFT,
-    layoutType = SurfaceLayoutOption.LayoutType.Gallery,
+    layoutType = SurfaceLayoutOption.LayoutType.Focus,
   )
 
 /** Grid layout option which doesn't group elements. */
@@ -87,4 +87,4 @@ val UI_CHECK_LAYOUT_OPTION =
 val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION
 
 /** List of available layouts for the Preview Surface. */
-val PREVIEW_LAYOUT_OPTIONS = listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
+val PREVIEW_LAYOUT_OPTIONS = listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.findPreviewManager
@@ -27,15 +27,15 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
- * If Gallery mode is enabled, one preview at a time is available with dropdown to select between
- * them. Gallery mode is always enabled for Essentials mode.
+ * If Focus mode is enabled, one preview at a time is available with dropdown to select between
+ * them. Focus mode is always enabled for Essentials mode.
  */
-class GalleryMode(rootComponent: JComponent) {
+class FocusMode(rootComponent: JComponent) {
 
   private val selectionListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, key ->
     val previewElement = key?.element
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
-      previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
+      previewElement?.let { previewManager.setMode(PreviewMode.Focus(previewElement)) }
     }
   }
 
@@ -51,15 +51,15 @@ class GalleryMode(rootComponent: JComponent) {
 
   private val selectedProvider: (DataContext) -> PreviewElementKey? = { dataContext ->
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
-      (previewManager.mode.value as? PreviewMode.Gallery)?.selected?.let { PreviewElementKey(it) }
+      (previewManager.mode.value as? PreviewMode.Focus)?.selected?.let { PreviewElementKey(it) }
     }
   }
 
-  private val galleryTabs =
-    GalleryTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
+  private val focusModeTabs =
+    FocusModeTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
 
-  /** [JPanel] for [GalleryTabs]. */
-  val component: JComponent = galleryTabs.component
+  /** [JPanel] for [FocusTabs]. */
+  val component: JComponent = focusModeTabs.component
 
   /**
    * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
@@ -72,5 +72,5 @@ class GalleryMode(rootComponent: JComponent) {
 
   @get:TestOnly
   val selectedKey: PreviewElementKey?
-    get() = galleryTabs.selectedKey
+    get() = focusModeTabs.selectedKey
 }

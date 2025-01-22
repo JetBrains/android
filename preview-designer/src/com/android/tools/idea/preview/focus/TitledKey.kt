@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
-import com.android.tools.preview.PreviewElement
-
-/** [TitledKey] for [GalleryTabs]. */
-data class PreviewElementKey(val element: PreviewElement<*>) : TitledKey {
-  override val title: String = element.displaySettings.name
+/** A key for each element in [FocusModeTabs]. */
+interface TitledKey {
+  /** A title of the element in [FocusModeTabs]. */
+  val title: String
 }

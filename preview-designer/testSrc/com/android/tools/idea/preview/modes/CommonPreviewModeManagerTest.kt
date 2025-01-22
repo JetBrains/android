@@ -59,8 +59,8 @@ class CommonPreviewModeManagerTest {
 
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
-    manager.setMode(PreviewMode.Gallery(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GALLERY_LAYOUT_OPTION)
+    manager.setMode(PreviewMode.Focus(previewElement))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false)))
     assertThat(manager.mode.value.layoutOption).isEqualTo(UI_CHECK_LAYOUT_OPTION)
@@ -103,14 +103,14 @@ class CommonPreviewModeManagerTest {
   }
 
   @Test
-  fun testGalleryLayoutModeDefaultPreference_GalleryIsDefault(): Unit = runBlocking {
-    // Gallery is set as a preference
+  fun testFocusLayoutModeDefaultPreference_FocusIsDefault(): Unit = runBlocking {
+    // Focus is set as a preference
     androidEditorSettings.globalState.preferredPreviewLayoutMode =
       AndroidEditorSettings.LayoutType.GALLERY
 
     val manager = CommonPreviewModeManager()
 
-    // The default value is a gallery view mode, no option set (null)
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Gallery(null))
+    // The default value is a focus view mode, no option set (null)
+    assertThat(manager.mode.value).isEqualTo(PreviewMode.Focus(null))
   }
 }

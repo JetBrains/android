@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
-import com.android.tools.idea.preview.gallery.GalleryModeProperty
+import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -76,7 +76,7 @@ class TestComposePreviewView(
   private val nextRefreshLock = Any()
   private var nextRefreshListener: CompletableDeferred<Unit>? = null
 
-  override var galleryMode by GalleryModeProperty(this, mainSurface)
+  override var focusMode by FocusModeProperty(this, mainSurface)
 
   init {
     layout = BorderLayout()

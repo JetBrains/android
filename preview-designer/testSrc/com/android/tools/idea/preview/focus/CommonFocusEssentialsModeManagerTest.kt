@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FlowableCollection
@@ -39,7 +39,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-class CommonGalleryEssentialsModeManagerTest {
+class CommonFocusEssentialsModeManagerTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -75,7 +75,7 @@ class CommonGalleryEssentialsModeManagerTest {
   @Test
   fun testNoUpdatesOccurWhenThePreviewIsInactive() {
     val refreshCount = AtomicInteger(0)
-    galleryEssentialsModeManager { refreshCount.incrementAndGet() }
+    focusEssentialsModeManager { refreshCount.incrementAndGet() }
 
     triggerPreviewEssentialsModeUpdate(true)
     assertEquals(0, refreshCount.get())
@@ -83,18 +83,18 @@ class CommonGalleryEssentialsModeManagerTest {
 
   @Test(expected = IllegalStateException::class)
   fun testLifecycleShouldBeActiveWhenCallingActivate() {
-    val manager = galleryEssentialsModeManager {}
+    val manager = focusEssentialsModeManager {}
 
     manager.activate()
   }
 
   @Test
-  fun testNoUpdatesOccurWhenGalleryModeAndEssentialsModeAreAlreadySet() {
+  fun testNoUpdatesOccurWhenFocusModeAndEssentialsModeAreAlreadySet() {
     triggerPreviewEssentialsModeUpdate(true)
-    previewModeManager.setMode(PreviewMode.Gallery(null))
+    previewModeManager.setMode(PreviewMode.Focus(null))
 
     val refreshCount = AtomicInteger(0)
-    val manager = galleryEssentialsModeManager { refreshCount.incrementAndGet() }
+    val manager = focusEssentialsModeManager { refreshCount.incrementAndGet() }
     lifecycleManager.activate()
 
     manager.activate()
@@ -104,7 +104,7 @@ class CommonGalleryEssentialsModeManagerTest {
   }
 
   @Test
-  fun testGalleryModeShouldBeSetWhenPreviewEssentialsModeIsEnabled() {
+  fun testFocusModeShouldBeSetWhenPreviewEssentialsModeIsEnabled() {
     val previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2"))
     testRefreshIsRequested(
       previewElements = previewElements,
@@ -112,11 +112,11 @@ class CommonGalleryEssentialsModeManagerTest {
     ) {
       triggerPreviewEssentialsModeUpdate(true)
     }
-    assertEquals(PreviewMode.Gallery(previewElements.first()), previewModeManager.mode.value)
+    assertEquals(PreviewMode.Focus(previewElements.first()), previewModeManager.mode.value)
   }
 
   @Test
-  fun testGalleryModeShouldBeSetWhenManagerIsActivated() {
+  fun testFocusModeShouldBeSetWhenManagerIsActivated() {
     val previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2"))
     triggerPreviewEssentialsModeUpdate(true)
     testRefreshIsRequested(
@@ -125,43 +125,43 @@ class CommonGalleryEssentialsModeManagerTest {
     ) { manager ->
       manager.activate()
     }
-    assertEquals(PreviewMode.Gallery(previewElements.first()), previewModeManager.mode.value)
+    assertEquals(PreviewMode.Focus(previewElements.first()), previewModeManager.mode.value)
   }
 
   @Test
-  fun testGalleryModeStaysAfterExitingPreviewEssentialsMode() {
+  fun testFocusModeStaysAfterExitingPreviewEssentialsMode() {
     triggerPreviewEssentialsModeUpdate(true)
-    previewModeManager.setMode(PreviewMode.Gallery(null))
+    previewModeManager.setMode(PreviewMode.Focus(null))
     testRefreshIsRequested(
       previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2")),
       expectedUpdatedFromPreviewEssentialsModeCount = 1,
     ) {
       triggerPreviewEssentialsModeUpdate(false)
     }
-    assertEquals(PreviewMode.Gallery(null), previewModeManager.mode.value)
+    assertEquals(PreviewMode.Focus(null), previewModeManager.mode.value)
   }
 
   @Test
-  fun testGalleryModeStaysAfterManagerIsActivated() {
-    previewModeManager.setMode(PreviewMode.Gallery(null))
+  fun testFocusModeStaysAfterManagerIsActivated() {
+    previewModeManager.setMode(PreviewMode.Focus(null))
     testRefreshIsRequested(
       previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2")),
       expectedUpdatedFromPreviewEssentialsModeCount = 0,
     ) { manager ->
       manager.activate()
     }
-    assertEquals(PreviewMode.Gallery(null), previewModeManager.mode.value)
+    assertEquals(PreviewMode.Focus(null), previewModeManager.mode.value)
   }
 
   private fun testRefreshIsRequested(
     previewElements: Collection<PreviewElement<*>>,
     expectedUpdatedFromPreviewEssentialsModeCount: Int,
-    trigger: (CommonGalleryEssentialsModeManager<*>) -> Unit,
+    trigger: (CommonFocusEssentialsModeManager<*>) -> Unit,
   ) {
     val refreshCount = AtomicInteger(0)
     val updatedFromPreviewEssentialsModeCount = AtomicInteger(0)
     val manager =
-      galleryEssentialsModeManager(
+      focusEssentialsModeManager(
         previewElements = previewElements,
         onUpdatedFromPreviewEssentialsMode = {
           updatedFromPreviewEssentialsModeCount.incrementAndGet()
@@ -180,16 +180,16 @@ class CommonGalleryEssentialsModeManagerTest {
     )
   }
 
-  private fun galleryEssentialsModeManager(
+  private fun focusEssentialsModeManager(
     previewElements: Collection<PreviewElement<*>> = listOf(),
     onUpdatedFromPreviewEssentialsMode: () -> Unit = {},
     requestRefresh: () -> Unit,
-  ): CommonGalleryEssentialsModeManager<PreviewElement<*>> {
+  ): CommonFocusEssentialsModeManager<PreviewElement<*>> {
     val previewFlowManager = mock<PreviewFlowManager<PreviewElement<*>>>()
     whenever(previewFlowManager.allPreviewElementsFlow)
       .thenReturn(MutableStateFlow(FlowableCollection.Present(previewElements)))
 
-    return CommonGalleryEssentialsModeManager(
+    return CommonFocusEssentialsModeManager(
         project = project,
         lifecycleManager = lifecycleManager,
         previewFlowManager = previewFlowManager,

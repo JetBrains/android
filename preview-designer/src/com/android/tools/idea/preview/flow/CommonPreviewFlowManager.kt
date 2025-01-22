@@ -193,7 +193,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           .collectLatest {
             val previousElements = allPreviewElementsFlow.value
             allPreviewElementsFlow.value = it
-            (previewModeManager.mode.value as? PreviewMode.Gallery)?.let { oldMode ->
+            (previewModeManager.mode.value as? PreviewMode.Focus)?.let { oldMode ->
               oldMode
                 .newMode(it.asCollection().toSet(), previousElements.asCollection().toSet())
                 .let { newMode -> previewModeManager.setMode(newMode) }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -52,15 +52,15 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Shows a tab for each [Key]. [GalleryTabs] always track the list of currently available tabs using
- * [keysProvider] and currently selected tab using [selectedProvider]. [tabChangeListener] is called
- * only if tab is changed by interacting with [GalleryTabs].
+ * Shows a tab for each [Key]. [FocusModeTabs] always track the list of currently available tabs
+ * using [keysProvider] and currently selected tab using [selectedProvider]. [tabChangeListener] is
+ * called only if tab is changed by interacting with [FocusModeTabs].
  *
- * @param root a root [JComponent] for this [GalleryTabs].
- * @param tabChangeListener is called when new [Key] is selected. [GalleryTabs] insures
+ * @param root a root [JComponent] for this [FocusModeTabs].
+ * @param tabChangeListener is called when new [Key] is selected. [FocusModeTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
-internal class GalleryTabs<Key : TitledKey>(
+internal class FocusModeTabs<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
@@ -129,7 +129,7 @@ internal class GalleryTabs<Key : TitledKey>(
     fun updateFocus(): Boolean {
       val sameTabInToolbar =
         previousToolbar?.components?.filterIsInstance<ActionButtonWithText>()?.firstOrNull {
-          (it.action as? GalleryTabs<*>.TabLabelAction)?.key == key
+          (it.action as? FocusModeTabs<*>.TabLabelAction)?.key == key
         }
       sameTabInToolbar?.let {
         focusOnComponent(it)
@@ -196,7 +196,7 @@ internal class GalleryTabs<Key : TitledKey>(
     }
 
     override fun update(e: AnActionEvent) {
-      e.presentation.isVisible = centerPanel.width > this@GalleryTabs.width
+      e.presentation.isVisible = centerPanel.width > this@FocusModeTabs.width
     }
   }
 
@@ -205,7 +205,7 @@ internal class GalleryTabs<Key : TitledKey>(
 
   /**
    * Notify [tabChangeListener] about change in [selectedKey]. Should only be called if
-   * [selectedKey] is modified by interaction with [GalleryTabs].
+   * [selectedKey] is modified by interaction with [FocusModeTabs].
    */
   private fun updateSelectedKey(e: AnActionEvent, key: Key?) {
     // Avoid setting same value twice.
@@ -242,7 +242,7 @@ internal class GalleryTabs<Key : TitledKey>(
 
   private fun createEmptyToolbar() {
     previousToolbar =
-      createToolbarWithNavigation(root, "Gallery Tabs", GalleryActionGroup(emptyList()))
+      createToolbarWithNavigation(root, "Focus Tabs", FocusModeActionGroup(emptyList()))
         .component
         .apply {
           background = Colors.DEFAULT_BACKGROUND_COLOR
@@ -257,7 +257,7 @@ internal class GalleryTabs<Key : TitledKey>(
    */
   private fun updateKeys(keys: Set<Key>, selected: Key?) {
 
-    // If [GalleryTabs] needs update, [previousToolbar] will be removed and new toolbar will be
+    // If [FocusTabs] needs update, [previousToolbar] will be removed and new toolbar will be
     // created and added with available [labelActions].
     val needsUpdate =
       labelActions.keys.any { !keys.contains(it) } || keys.any { !labelActions.keys.contains(it) }
@@ -274,8 +274,8 @@ internal class GalleryTabs<Key : TitledKey>(
       val toolbar =
         createToolbarWithNavigation(
             root,
-            "Gallery Tabs",
-            GalleryActionGroup(labelActions.values.toList()),
+            "Focus Tabs",
+            FocusModeActionGroup(labelActions.values.toList()),
           )
           .component
           .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
@@ -292,7 +292,7 @@ internal class GalleryTabs<Key : TitledKey>(
     updateToolbarExecutor = executor
   }
 
-  private inner class GalleryActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
+  private inner class FocusModeActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
 
     private var setFocusFirstTime = false
 
@@ -300,7 +300,7 @@ internal class GalleryTabs<Key : TitledKey>(
       super.update(e)
       e.dataContext.let { updateKeys(keysProvider(it), selectedProvider(it)) }
       if (!setFocusFirstTime) {
-        // If we are opening GalleryTabs for the first time we want to make sure
+        // If we are opening FocusTabs for the first time we want to make sure
         // that the focus of the group is on the selected button and the button
         // is visible.
         setFocusFirstTime = labelActions[selectedKey]?.updateFocus() ?: false

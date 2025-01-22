@@ -49,7 +49,7 @@ import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -617,16 +617,16 @@ class CommonPreviewRepresentationTest {
       val persistedPreviewRepresentation = createPreviewRepresentation()
       persistedPreviewRepresentation.compileAndWaitForRefresh()
       // We can't use Grid layout option in this test as it's default layout.
-      assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Gallery(null))
-      persistedPreviewRepresentation.setMode(PreviewMode.Gallery(null))
-      assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Gallery(null))
+      assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
+      persistedPreviewRepresentation.setMode(PreviewMode.Focus(null))
+      assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(null))
       retryUntilPassing(1.seconds) {
         assertThat(
             persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayoutOption
               ?.value
           )
-          .isEqualTo(GALLERY_LAYOUT_OPTION)
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
       }
 
       val state = persistedPreviewRepresentation.getState()
@@ -634,18 +634,18 @@ class CommonPreviewRepresentationTest {
       persistedPreviewRepresentation.onDeactivateImmediately()
 
       val restoredPreviewRepresentation = createPreviewRepresentation()
-      assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Gallery(null))
+      assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
       restoredPreviewRepresentation.setState(state)
       restoredPreviewRepresentation.compileAndWaitForRefresh()
       assertThat(restoredPreviewRepresentation.mode.value)
-        .isInstanceOf(PreviewMode.Gallery::class.java)
+        .isInstanceOf(PreviewMode.Focus::class.java)
       retryUntilPassing(1.seconds) {
         assertThat(
             restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayoutOption
               ?.value
           )
-          .isEqualTo(GALLERY_LAYOUT_OPTION)
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
       }
 
       restoredPreviewRepresentation.onDeactivateImmediately()
@@ -653,7 +653,7 @@ class CommonPreviewRepresentationTest {
 
   // Regression test for b/373572532
   @Test
-  fun galleryLayoutOptionIsPersisted(): Unit =
+  fun focusLayoutOptionIsPersisted(): Unit =
     runBlocking(workerThread) {
       val previewElement = PsiTestPreviewElement("test element")
       val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
@@ -661,17 +661,17 @@ class CommonPreviewRepresentationTest {
       persistedPreviewRepresentation.compileAndWaitForRefresh()
 
       assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
-        .isNotEqualTo(GALLERY_LAYOUT_OPTION)
-      persistedPreviewRepresentation.setMode(PreviewMode.Gallery(previewElement))
+        .isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      persistedPreviewRepresentation.setMode(PreviewMode.Focus(previewElement))
       assertThat(persistedPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Gallery(previewElement))
+        .isEqualTo(PreviewMode.Focus(previewElement))
       retryUntilPassing(1.seconds) {
         assertThat(
             persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayoutOption
               ?.value
           )
-          .isEqualTo(GALLERY_LAYOUT_OPTION)
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
       }
 
       val state = persistedPreviewRepresentation.getState()
@@ -682,14 +682,14 @@ class CommonPreviewRepresentationTest {
       restoredPreviewRepresentation.setState(state)
       restoredPreviewRepresentation.compileAndWaitForRefresh()
       assertThat(restoredPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Gallery(previewElement))
+        .isEqualTo(PreviewMode.Focus(previewElement))
       retryUntilPassing(1.seconds) {
         assertThat(
             restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayoutOption
               ?.value
           )
-          .isEqualTo(GALLERY_LAYOUT_OPTION)
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
       }
 
       restoredPreviewRepresentation.onDeactivateImmediately()

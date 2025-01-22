@@ -30,38 +30,38 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * [AnAction] that open the selected sceneView in Gallery Mode. The current mouse position
- * determines the selected sceneView when the action is created. The action is not enabled if the
- * current mode is Gallery already.
+ * [AnAction] that open the selected sceneView in Focus Mode. The current mouse position determines
+ * the selected sceneView when the action is created. The action is not enabled if the current mode
+ * is Focus already.
  */
-class ViewInGalleryAction(
+class ViewInFocusModeAction(
   @SwingCoordinate private val x: Int,
   @SwingCoordinate private val y: Int,
 ) : AnAction(message("action.view.in.focus.mode")) {
 
-  private val logger = Logger.getInstance(ViewInGalleryAction::class.java)
+  private val logger = Logger.getInstance(ViewInFocusModeAction::class.java)
 
   override fun update(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface
     val modeManager = e.dataContext.findPreviewManager(PreviewModeManager.KEY)
 
     val sceneView = surface?.getSceneViewAt(x, y)
-    val isGallery: Boolean = modeManager?.mode?.value is PreviewMode.Gallery
+    val isFocusMode: Boolean = modeManager?.mode?.value is PreviewMode.Focus
     val isDefault: Boolean = modeManager?.mode?.value is PreviewMode.Default
 
     // Hide completely the action if:
-    // * View-in-gallery flag is disabled
-    // * The selected preview mode is neither Default nor Gallery.
-    // When in Gallery mode, we want to show up the action, but disabled.
-    e.presentation.isVisible = StudioFlags.VIEW_IN_GALLERY.get() && (isDefault || isGallery)
+    // * View-in-focus flag is disabled
+    // * The selected preview mode is neither Default nor Focus.
+    // When in Focus mode, we want to show up the action, but disabled.
+    e.presentation.isVisible = StudioFlags.VIEW_IN_FOCUS_MODE.get() && (isDefault || isFocusMode)
 
     val hasRendered: Boolean =
       (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
 
     // Disable the button if:
     // * SceneView has not finished to render yet.
-    // * If we are in Gallery mode already.
-    e.presentation.isEnabled = !isGallery && hasRendered
+    // * If we are in Focus mode already.
+    e.presentation.isEnabled = !isFocusMode && hasRendered
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -88,6 +88,6 @@ class ViewInGalleryAction(
       logger.error("Cannot find any preview manager")
       return
     }
-    modeManager.setMode(PreviewMode.Gallery(previewElementInstance))
+    modeManager.setMode(PreviewMode.Focus(previewElementInstance))
   }
 }

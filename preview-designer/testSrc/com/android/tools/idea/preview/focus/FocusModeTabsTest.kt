@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.preview.gallery.GalleryTabs.Companion.truncate
+import com.android.tools.idea.preview.focus.FocusModeTabs.Companion.truncate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
@@ -42,7 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class GalleryTabsTest {
+class FocusModeTabsTest {
   @get:Rule val rule = RuleChain(AndroidProjectRule.inMemory(), EdtRule())
 
   private var rootComponent = JPanel(BorderLayout())
@@ -53,7 +53,7 @@ class GalleryTabsTest {
   fun `first tab is selected`() {
     val selected = TestKey("First Tab")
     val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
+    val tabs = FocusModeTabs(rootComponent, { selected }, { keys }, { _, _ -> })
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
     assertEquals(TestKey("First Tab"), tabs.selectedKey)
@@ -63,7 +63,7 @@ class GalleryTabsTest {
   fun `second tab is selected`() {
     val selected = TestKey("Second Tab")
     val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
+    val tabs = FocusModeTabs(rootComponent, { selected }, { keys }, { _, _ -> })
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
     assertEquals(TestKey("Second Tab"), tabs.selectedKey)
@@ -73,7 +73,7 @@ class GalleryTabsTest {
   fun `update selected tab`() {
     var selected = TestKey("First Tab")
     val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }, { _, _ -> })
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }, { _, _ -> })
     selected = TestKey("Second Tab")
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
@@ -84,7 +84,8 @@ class GalleryTabsTest {
   fun `update provided tabs`() {
     val keys = setOf(TestKey("Second Tab"), TestKey("Third Tab"))
     var providedKeys = setOf(TestKey("First Tab")) + keys
-    val tabs = GalleryTabs(rootComponent, { TestKey("Second Tab") }, { providedKeys }, { _, _ -> })
+    val tabs =
+      FocusModeTabs(rootComponent, { TestKey("Second Tab") }, { providedKeys }, { _, _ -> })
     providedKeys = keys
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
@@ -96,7 +97,7 @@ class GalleryTabsTest {
     val newTab = TestKey("newTab")
     val selected = TestKey("Tab")
     val providedKeys = mutableSetOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
     tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
@@ -115,7 +116,7 @@ class GalleryTabsTest {
     val keyThree = TestKey("Third")
     var providedKeys = setOf(keyTwo)
     val selected = TestKey("First")
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
     tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
@@ -133,13 +134,13 @@ class GalleryTabsTest {
   fun `toolbar is not updated`() {
     val selected = TestKey("First Tab")
     val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    val toolbar = findGalleryTabs(tabs)
+    val toolbar = findFocusModeTabs(tabs)
     // Update toolbars
     ui.updateNestedActions()
-    val updatedToolbar = findGalleryTabs(tabs)
+    val updatedToolbar = findFocusModeTabs(tabs)
     // Toolbar was not updated, it's same as before.
     assertEquals(toolbar, updatedToolbar)
   }
@@ -149,14 +150,14 @@ class GalleryTabsTest {
     val selected = TestKey("First Tab")
     val providedKeys =
       mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    val toolbar = findGalleryTabs(tabs)
+    val toolbar = findFocusModeTabs(tabs)
     // Set new set of keys.
     providedKeys += TestKey("New Tab")
     ui.updateNestedActions()
-    val updatedToolbar = findGalleryTabs(tabs)
+    val updatedToolbar = findFocusModeTabs(tabs)
     // New toolbar was created.
     assertNotEquals(toolbar, updatedToolbar)
   }
@@ -167,14 +168,14 @@ class GalleryTabsTest {
     val selected = TestKey("First Tab")
     val providedKeys =
       mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"), keyToRemove)
-    val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
+    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     ui.updateNestedActions()
-    val toolbar = findGalleryTabs(tabs)
+    val toolbar = findFocusModeTabs(tabs)
     // Set updated set of keys
     providedKeys.remove(keyToRemove)
     ui.updateNestedActions()
-    val updatedToolbar = findGalleryTabs(tabs)
+    val updatedToolbar = findFocusModeTabs(tabs)
     // New toolbar was created.
     assertNotEquals(toolbar, updatedToolbar)
   }
@@ -189,7 +190,7 @@ class GalleryTabsTest {
   fun `preview tabs`() {
     val selected = TestKey("First Tab")
     val tabs =
-      GalleryTabs(
+      FocusModeTabs(
         rootComponent,
         { selected },
         { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
@@ -206,7 +207,7 @@ class GalleryTabsTest {
   fun `click on tabs`() {
     var selected = TestKey("First Tab")
     val tabs =
-      GalleryTabs(
+      FocusModeTabs(
         rootComponent,
         { selected },
         { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
@@ -237,7 +238,7 @@ class GalleryTabsTest {
   fun `clicked tab is always visible`() {
     var selected = TestKey("First Tab")
     val tabs =
-      GalleryTabs(
+      FocusModeTabs(
         rootComponent,
         { selected },
         { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
@@ -279,7 +280,7 @@ class GalleryTabsTest {
   fun `selected tab is always visible`() {
     val selected = TestKey("Sixth Tab")
     val tabs =
-      GalleryTabs(
+      FocusModeTabs(
         rootComponent,
         { selected },
         {
@@ -315,10 +316,10 @@ class GalleryTabsTest {
   }
 
   @Test
-  fun `empty gallery`() {
+  fun `empty focus`() {
     var selected: TestKey? = null
     val tabs =
-      GalleryTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
+      FocusModeTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
     tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())

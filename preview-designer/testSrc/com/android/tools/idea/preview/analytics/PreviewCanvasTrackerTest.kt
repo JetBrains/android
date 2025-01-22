@@ -32,7 +32,7 @@ class PreviewCanvasTrackerTest {
   @Test
   fun testSetLayout() {
     previewCanvasTracker.logSwitchLayout(SurfaceLayoutOption.LayoutType.OrganizationGrid)
-    previewCanvasTracker.logSwitchLayout(SurfaceLayoutOption.LayoutType.Gallery)
+    previewCanvasTracker.logSwitchLayout(SurfaceLayoutOption.LayoutType.Focus)
 
     assertEquals(2, trackedEvents.size)
     trackedEvents.poll().let { event ->

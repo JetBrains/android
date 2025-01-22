@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.uibuilder.layout.option
 
-/** A key for each element in [GalleryTabs]. */
-interface TitledKey {
-  /** A title of the element in [GalleryTabs]. */
-  val title: String
-}
+/** [SurfaceLayoutManager] for Focus mode. */
+class FocusLayoutManager : GridLayoutManager()

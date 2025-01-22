@@ -54,7 +54,13 @@ class PreviewCanvasTrackerImpl(
     try {
       val layoutName =
         when (layoutType) {
-          SurfaceLayoutOption.LayoutType.Gallery -> ComposePreviewCanvasEvent.LayoutName.GALLERY
+          // While the class name has been renamed from `Gallery` to `Focus` we can't rename the
+          // LayoutName.GALLERY key.
+          // Changing the name of this key would invalidate previously collected analytics data
+          // associated with the `Gallery` class.
+          // Maintaining consistency with the original key ensures continuity in our data analysis
+          // and reporting.
+          SurfaceLayoutOption.LayoutType.Focus -> ComposePreviewCanvasEvent.LayoutName.GALLERY
           SurfaceLayoutOption.LayoutType.SingleDirection ->
             ComposePreviewCanvasEvent.LayoutName.LIST
           SurfaceLayoutOption.LayoutType.OrganizationGrid ->

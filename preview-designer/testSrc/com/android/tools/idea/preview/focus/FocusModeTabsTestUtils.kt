@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.adtui.TreeWalker
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import java.awt.Component
 import java.util.stream.Collectors
 
-/** Find [ActionToolbarImpl] corresponding to [GalleryTabs]. */
-fun findGalleryTabs(parent: Component) = findToolbar(parent, "Gallery Tabs")
+/** Find [ActionToolbarImpl] corresponding to [FocusModeTabs]. */
+fun findFocusModeTabs(parent: Component) = findToolbar(parent, "Focus Tabs")
 
 private fun findToolbar(parent: Component, place: String): ActionToolbarImpl =
   TreeWalker(parent)

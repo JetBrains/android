@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.layout.option
+package com.android.tools.idea.preview.focus
 
-/** [SurfaceLayoutManager] for Gallery mode. */
-// TODO("b/391292814"): Rename GalleryLayoutManager in FocusLayoutManager
-class GalleryLayoutManager : GridLayoutManager()
+import com.android.tools.preview.PreviewElement
+
+/** [TitledKey] for [FocusModeTabs]. */
+data class PreviewElementKey(val element: PreviewElement<*>) : TitledKey {
+  override val title: String = element.displaySettings.name
+}

@@ -39,7 +39,7 @@ data class SurfaceLayoutOption(
 
   enum class LayoutType {
     Default,
-    Gallery,
+    Focus,
     OrganizationGrid,
     SingleDirection,
   }

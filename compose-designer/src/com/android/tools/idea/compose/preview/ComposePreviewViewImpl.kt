@@ -43,7 +43,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.gallery.GalleryModeProperty
+import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
@@ -62,7 +62,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.ex.ActionUtil.invokeAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -159,9 +158,9 @@ interface ComposePreviewView : PreviewRepresentationView {
   ): List<PsiComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
-      // Don't reuse models when in gallery mode to avoid briefly showing an unexpected/mixed
+      // Don't reuse models when in focus mode to avoid briefly showing an unexpected/mixed
       // state of the old and new preview.
-      tryReusingModels = galleryMode == null,
+      tryReusingModels = focusMode == null,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),
@@ -407,7 +406,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var galleryMode by GalleryModeProperty(content, mainSurface)
+  override var focusMode by FocusModeProperty(content, mainSurface)
 
   override fun updateProgress(message: String) =
     UIUtil.invokeLaterIfNeeded {

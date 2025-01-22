@@ -323,7 +323,7 @@ class RenderErrorTest {
     runBlocking(workerThread) {
       lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
 
-      // We ensure we are starting from a non-Gallery mode.
+      // We ensure we are starting from a non-Focus mode.
       assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
 
       // Render the Preview of the current mode.
@@ -332,21 +332,21 @@ class RenderErrorTest {
         fakeUi.root.validate()
       }
 
-      // We ensure there are no render errors for the preview we want to open in Gallery mode
-      val previewToOpenInGalleryMode = "PreviewWithoutRenderErrors"
+      // We ensure there are no render errors for the preview we want to open in Focus mode
+      val previewToOpenInFocusMode = "PreviewWithoutRenderErrors"
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
-          .firstOrNull { it.displayName == previewToOpenInGalleryMode }
+          .firstOrNull { it.displayName == previewToOpenInFocusMode }
           ?.also { sceneViewPanelWithoutErrors = it } != null
       }
       assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
 
-      // We can now switch to Gallery mode selecting [previewToOpenInGalleryMode] and waiting for
+      // We can now switch to Focus mode selecting [previewToOpenInFocusMode] and waiting for
       // render and refresh.
-      setPreviewModeAndWaitForRefresh(previewToOpenInGalleryMode) { PreviewMode.Gallery(it) }
+      setPreviewModeAndWaitForRefresh(previewToOpenInFocusMode) { PreviewMode.Focus(it) }
 
-      // Wait to render the selected preview that is now in Gallery mode.
-      // Notice Gallery Mode shows only one item per tab and we shouldn't have more than one item.
+      // Wait to render the selected preview that is now in Focus mode.
+      // Notice Focus Mode shows only one item per tab and we shouldn't have more than one item.
       withContext(uiThread) {
         waitForRender(setOf(sceneViewPanelWithoutErrors), timeout = 2.minutes)
         fakeUi.root.validate()
@@ -355,12 +355,12 @@ class RenderErrorTest {
       // Update the sceneViewPanel.
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
-          .singleOrNull { it.displayName == previewToOpenInGalleryMode }
+          .singleOrNull { it.displayName == previewToOpenInFocusMode }
           ?.also { sceneViewPanelWithoutErrors = it } != null
       }
 
-      // Ensure we are in Gallery mode
-      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Gallery)
+      // Ensure we are in Focus mode
+      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
 
       // The selected sceneViewPanel shouldn't have render errors.
       assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())

@@ -19,7 +19,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -44,38 +44,37 @@ class SwitchSurfaceLayoutManagerActionTest {
   @JvmField @Rule val rule = AndroidProjectRule.inMemory()
 
   @Test
-  fun testPreviewModeIsUpdatedWithGalleryModeOption() {
+  fun testPreviewModeIsUpdatedWithFocusModeOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
     val (dataContext, previewModeManager, _) =
       setupTestData(listOf(previewElement1, previewElement2))
 
-    val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
+    val actionWithFocusModeOption =
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
-    val setGalleryOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GALLERY_LAYOUT_OPTION)
+    val setFocusModeOption =
+      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(FOCUS_MODE_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
-      setGalleryOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
+      setFocusModeOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
       verifyNoInteractions(previewModeManager)
     }
 
-    // check that the gallery mode is set with the first preview element
+    // check that the focus mode is set with the first preview element
     run {
-      setGalleryOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      verify(previewModeManager, times(1)).setMode(PreviewMode.Gallery(previewElement1))
+      setFocusModeOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
+      verify(previewModeManager, times(1)).setMode(PreviewMode.Focus(previewElement1))
     }
   }
 
   @Test
-  fun testPreviewModeIsUpdatedWithoutGalleryModeOption() {
+  fun testPreviewModeIsUpdatedWithoutFocusModeOption() {
     val (dataContext, previewModeManager, _) = setupTestData()
-    val actionWithGalleryModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION))
+    val actionWithFocusModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION))
 
-    val setGridOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
+    val setGridOption = actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -83,7 +82,7 @@ class SwitchSurfaceLayoutManagerActionTest {
       verifyNoInteractions(previewModeManager)
     }
 
-    // check that the gallery mode is set with the first preview element
+    // check that the focus mode is set with the first preview element
     run {
       setGridOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
       verify(previewModeManager, times(1)).setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
@@ -91,20 +90,20 @@ class SwitchSurfaceLayoutManagerActionTest {
   }
 
   @Test
-  fun testPreviewModeResetsToDefaultWhenCurrentModeIsGalleryMode() {
+  fun testPreviewModeResetsToDefaultWhenCurrentModeIsFocusMode() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
     val (dataContext, previewModeManager, _) =
       setupTestData(
         listOf(previewElement1, previewElement2),
-        currentPreviewMode = PreviewMode.Gallery(previewElement2),
+        currentPreviewMode = PreviewMode.Focus(previewElement2),
       )
 
-    val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
+    val actionWithFocusModeOption =
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
     val setGridLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
+      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -120,7 +119,7 @@ class SwitchSurfaceLayoutManagerActionTest {
   }
 
   @Test
-  fun testPreviewModeDerivesCurrentModeWithLayoutWithGalleryOption() {
+  fun testPreviewModeDerivesCurrentModeWithLayoutWithFocusModeOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
     val uiCheckMode =
@@ -131,11 +130,11 @@ class SwitchSurfaceLayoutManagerActionTest {
     val (dataContext, previewModeManager, _) =
       setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
 
-    val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
+    val actionWithFocusModeOption =
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
     val setGridLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
+      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {

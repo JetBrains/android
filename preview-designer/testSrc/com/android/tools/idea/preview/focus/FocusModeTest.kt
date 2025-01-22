@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -37,7 +37,7 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
-class GalleryModeTest() {
+class FocusModeTest() {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -55,23 +55,23 @@ class GalleryModeTest() {
         )
       )
 
-    previewModeManager.setMode(PreviewMode.Gallery(firstElement))
-    val (gallery, _) = setupGallery { previewFlowManager }
-    assertEquals(firstElement, gallery.selectedKey!!.element)
-    assertInstanceOf<PreviewMode.Gallery>(previewModeManager.mode.value)
-    assertEquals(GALLERY_LAYOUT_OPTION, previewModeManager.mode.value.layoutOption)
-    assertEquals(firstElement, (previewModeManager.mode.value as PreviewMode.Gallery).selected)
+    previewModeManager.setMode(PreviewMode.Focus(firstElement))
+    val (focusMode, _) = setupFocusMode { previewFlowManager }
+    assertEquals(firstElement, focusMode.selectedKey!!.element)
+    assertInstanceOf<PreviewMode.Focus>(previewModeManager.mode.value)
+    assertEquals(FOCUS_MODE_LAYOUT_OPTION, previewModeManager.mode.value.layoutOption)
+    assertEquals(firstElement, (previewModeManager.mode.value as PreviewMode.Focus).selected)
   }
 
   @Test
-  fun nothingSelectedInGallery() {
+  fun nothingSelectedInFocus() {
     val previewFlowManager = previewFlowManagerFor(emptyList())
 
-    previewModeManager.setMode(PreviewMode.Gallery(null))
-    val (gallery, _) = setupGallery { previewFlowManager }
-    assertNull(gallery.selectedKey)
-    assertInstanceOf<PreviewMode.Gallery>(previewModeManager.mode.value)
-    assertNull((previewModeManager.mode.value as PreviewMode.Gallery).selected)
+    previewModeManager.setMode(PreviewMode.Focus(null))
+    val (focus, _) = setupFocusMode { previewFlowManager }
+    assertNull(focus.selectedKey)
+    assertInstanceOf<PreviewMode.Focus>(previewModeManager.mode.value)
+    assertNull((previewModeManager.mode.value as PreviewMode.Focus).selected)
   }
 
   @Test
@@ -86,11 +86,11 @@ class GalleryModeTest() {
         )
       )
 
-    previewModeManager.setMode(PreviewMode.Gallery(secondElement))
-    val (gallery, _) = setupGallery { previewFlowManager }
-    assertEquals(secondElement, gallery.selectedKey!!.element)
-    assertInstanceOf<PreviewMode.Gallery>(previewModeManager.mode.value)
-    assertEquals(secondElement, (previewModeManager.mode.value as PreviewMode.Gallery).selected)
+    previewModeManager.setMode(PreviewMode.Focus(secondElement))
+    val (focus, _) = setupFocusMode { previewFlowManager }
+    assertEquals(secondElement, focus.selectedKey!!.element)
+    assertInstanceOf<PreviewMode.Focus>(previewModeManager.mode.value)
+    assertEquals(secondElement, (previewModeManager.mode.value as PreviewMode.Focus).selected)
   }
 
   @Test
@@ -106,25 +106,25 @@ class GalleryModeTest() {
         )
       )
 
-    previewModeManager.setMode(PreviewMode.Gallery(selected))
-    val (gallery, refresh) = setupGallery { previewFlowManager }
+    previewModeManager.setMode(PreviewMode.Focus(selected))
+    val (focus, refresh) = setupFocusMode { previewFlowManager }
 
-    assertEquals(selected, gallery.selectedKey!!.element)
-    assertInstanceOf<PreviewMode.Gallery>(previewModeManager.mode.value)
-    assertEquals(selected, (previewModeManager.mode.value as PreviewMode.Gallery).selected)
+    assertEquals(selected, focus.selectedKey!!.element)
+    assertInstanceOf<PreviewMode.Focus>(previewModeManager.mode.value)
+    assertEquals(selected, (previewModeManager.mode.value as PreviewMode.Focus).selected)
 
     // Update selected key
-    previewModeManager.setMode(PreviewMode.Gallery(newSelected))
+    previewModeManager.setMode(PreviewMode.Focus(newSelected))
     refresh()
-    assertEquals(newSelected, gallery.selectedKey!!.element)
-    assertEquals(newSelected, (previewModeManager.mode.value as PreviewMode.Gallery).selected)
+    assertEquals(newSelected, focus.selectedKey!!.element)
+    assertEquals(newSelected, (previewModeManager.mode.value as PreviewMode.Focus).selected)
   }
 
-  private fun setupGallery(
+  private fun setupFocusMode(
     previewFlowManager: () -> PreviewFlowManager<PreviewElement<*>>
-  ): Pair<GalleryMode, () -> Unit> {
-    val gallery = GalleryMode(JPanel())
-    val tabsToolbar = findGalleryTabs(gallery.component)
+  ): Pair<FocusMode, () -> Unit> {
+    val focus = FocusMode(JPanel())
+    val tabsToolbar = findFocusModeTabs(focus.component)
     val refresh = {
       val context =
         SimpleDataContext.builder()
@@ -135,7 +135,7 @@ class GalleryModeTest() {
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
     }
     refresh()
-    return Pair(gallery, refresh)
+    return Pair(focus, refresh)
   }
 
   private fun previewFlowManagerFor(previewElements: Collection<PreviewElement<*>>) =

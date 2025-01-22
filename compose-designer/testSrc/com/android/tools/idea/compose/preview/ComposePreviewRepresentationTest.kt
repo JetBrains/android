@@ -44,7 +44,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -134,7 +134,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
-  override var galleryMode: GalleryMode? = null
+  override var focusMode: FocusMode? = null
 
   val refreshCompletedListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -745,7 +745,7 @@ class ComposePreviewRepresentationTest {
     runComposePreviewRepresentationTest {
       composePreviewEssentialsModeEnabled = true
 
-      // Only one preview/model is shown in gallery mode
+      // Only one preview/model is shown in focus mode
       val preview = createPreviewAndCompile(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)

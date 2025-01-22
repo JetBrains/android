@@ -171,20 +171,20 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testGalleryMode() =
+  fun testFocusMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
-      // go into gallery mode
+      // go into focus mode
       run {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
-        preview.previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+        preview.previewModeManager.setMode(PreviewMode.Focus(previewElement))
 
-        expectGalleryModeIsSet(preview, previewElement)
+        expectFocusModeIsSet(preview, previewElement)
       }
 
       preview.onDeactivate()
@@ -196,9 +196,9 @@ class WearTilePreviewRepresentationTest {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
-      // go into gallery mode
+      // go into focus mode
       run {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
@@ -213,12 +213,12 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testGalleryModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
+  fun testFocusModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
       // enable tile preview essentials mode
       run {
@@ -227,7 +227,7 @@ class WearTilePreviewRepresentationTest {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
 
-        expectGalleryModeIsSet(preview, previewElement)
+        expectFocusModeIsSet(preview, previewElement)
       }
 
       preview.onDeactivate()
@@ -414,12 +414,12 @@ class WearTilePreviewRepresentationTest {
     }
   }
 
-  private suspend fun expectGalleryModeIsSet(
+  private suspend fun expectFocusModeIsSet(
     preview: WearTilePreviewRepresentation,
     previewElement: PreviewElement<*>,
   ) {
     delayUntilCondition(250) {
-      preview.previewView.mainSurface.models.size == 1 && preview.previewView.galleryMode != null
+      preview.previewView.mainSurface.models.size == 1 && preview.previewView.focusMode != null
     }
 
     val previewElements =
@@ -427,7 +427,7 @@ class WearTilePreviewRepresentationTest {
         it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
       }
     assertThat(previewElements).containsExactly(previewElement)
-    assertThat(preview.previewView.galleryMode).isNotNull()
+    assertThat(preview.previewView.focusMode).isNotNull()
   }
 
   private val WearTilePreviewRepresentation.mainSurfaceDataContext

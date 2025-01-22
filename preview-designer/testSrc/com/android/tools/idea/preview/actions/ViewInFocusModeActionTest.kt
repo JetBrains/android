@@ -49,7 +49,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class ViewInGalleryActionTest {
+class ViewInFocusModeActionTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -59,7 +59,7 @@ class ViewInGalleryActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.VIEW_IN_GALLERY.override(true)
+    StudioFlags.VIEW_IN_FOCUS_MODE.override(true)
     dataContext =
       SimpleDataContext.builder()
         .add(DESIGN_SURFACE, designSurface)
@@ -69,11 +69,11 @@ class ViewInGalleryActionTest {
 
   @After
   fun tearDown() {
-    StudioFlags.VIEW_IN_GALLERY.clearOverride()
+    StudioFlags.VIEW_IN_FOCUS_MODE.clearOverride()
   }
 
   @Test
-  fun `selected sceneView can be opened to gallery`() {
+  fun `selected sceneView can be opened to focus`() {
     // We are in Default Mode
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
 
@@ -81,10 +81,10 @@ class ViewInGalleryActionTest {
     val sceneManagerMock = createSceneManagerMock()
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should be visible.
     assertTrue(event.presentation.isVisible)
@@ -95,18 +95,18 @@ class ViewInGalleryActionTest {
   }
 
   @Test
-  fun `Cannot click on the action, we are in Gallery mode already`() {
-    // We are in Gallery Mode.
-    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Gallery>()))
+  fun `Cannot click on the action, we are in Focus mode already`() {
+    // We are in Focus Mode.
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Focus>()))
 
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should be visible.
     assertTrue(event.presentation.isVisible)
@@ -124,10 +124,10 @@ class ViewInGalleryActionTest {
     // We aren't clicking on any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should be visible.
     assertTrue(event.presentation.isVisible)
@@ -137,20 +137,20 @@ class ViewInGalleryActionTest {
 
   @Test
   fun `Action not visible, Flag is disabled`() {
-    StudioFlags.VIEW_IN_GALLERY.override(false)
+    StudioFlags.VIEW_IN_FOCUS_MODE.override(false)
 
     // We aren't focussing any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should not be visible.
     assertFalse(event.presentation.isVisible)
 
-    StudioFlags.VIEW_IN_GALLERY.clearOverride()
+    StudioFlags.VIEW_IN_FOCUS_MODE.clearOverride()
   }
 
   // Regression test for b/385686357
@@ -162,10 +162,10 @@ class ViewInGalleryActionTest {
     // We aren't focussing any screen view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should not be visible.
     assertFalse(event.presentation.isVisible)
@@ -181,10 +181,10 @@ class ViewInGalleryActionTest {
     // We are focussing a scene view, but hasn't rendered yet.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.update(event)
+    viewInFocusModeAction.update(event)
 
     // Action should be visible.
     assertTrue(event.presentation.isVisible)
@@ -195,7 +195,7 @@ class ViewInGalleryActionTest {
   }
 
   @Test
-  fun `selected preview opens to gallery correctly`() {
+  fun `selected preview opens to focus correctly`() {
     val previewInstanceOfClickedSceneView = createSingleElementInstance("Right Clicked")
     val sceneManagerMock =
       createSceneManagerMock(previewElement = previewInstanceOfClickedSceneView)
@@ -203,19 +203,19 @@ class ViewInGalleryActionTest {
     // We are right-clicking a scene view.
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.actionPerformed(event)
+    viewInFocusModeAction.actionPerformed(event)
 
-    // The Mode we are going to open is Gallery with the selected preview element.
-    verify(modeManager).setMode(PreviewMode.Gallery(previewInstanceOfClickedSceneView))
+    // The Mode we are going to open is Focus with the selected preview element.
+    verify(modeManager).setMode(PreviewMode.Focus(previewInstanceOfClickedSceneView))
 
     Disposer.register(projectRule.testRootDisposable, sceneManagerMock)
   }
 
   @Test
-  fun `selected preview opens to gallery correctly with parametrized previews`() {
+  fun `selected preview opens to focus correctly with parametrized previews`() {
     // List of compose preview element.
     val parametrizedPreviewElements =
       ParametrizedComposePreviewElementInstance(
@@ -231,13 +231,13 @@ class ViewInGalleryActionTest {
     val rightClickedSceneView = TestSceneView(3, 4, sceneManagerMock)
     whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(rightClickedSceneView)
 
-    val viewInGalleryAction = ViewInGalleryAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInGalleryAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
-    viewInGalleryAction.actionPerformed(event)
+    viewInFocusModeAction.actionPerformed(event)
 
-    // The Mode we are going to open is Gallery with the selected preview element.
-    verify(modeManager).setMode(PreviewMode.Gallery(parametrizedPreviewElements))
+    // The Mode we are going to open is Focus with the selected preview element.
+    verify(modeManager).setMode(PreviewMode.Focus(parametrizedPreviewElements))
 
     Disposer.register(projectRule.testRootDisposable, sceneManagerMock)
   }

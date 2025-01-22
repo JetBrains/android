@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -84,11 +84,11 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
 
       PREVIEW_LAYOUT_OPTIONS.find { it.displayName == previewLayoutName }
         ?.let {
-          // If gallery mode was selected before - need to restore this type of layout.
-          if (it == GALLERY_LAYOUT_OPTION) {
+          // If focus mode was selected before - need to restore this type of layout.
+          if (it == FOCUS_MODE_LAYOUT_OPTION) {
             previewFlowManager.allPreviewElementsFlow.value.asCollection().firstOrNull().let {
               previewElement ->
-              previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+              previewModeManager.setMode(PreviewMode.Focus(previewElement))
             }
           } else {
             previewModeManager.setMode(PreviewMode.Default(it))

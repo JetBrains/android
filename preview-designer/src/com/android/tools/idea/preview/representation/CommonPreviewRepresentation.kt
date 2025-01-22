@@ -61,8 +61,8 @@ import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
-import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -388,8 +388,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
-  private val galleryEssentialsModeManager =
-    CommonGalleryEssentialsModeManager(
+  private val focusEssentialsModeManager =
+    CommonFocusEssentialsModeManager(
         project = psiFile.project,
         lifecycleManager = lifecycleManager,
         previewFlowManager = previewFlowManager,
@@ -757,10 +757,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       launch { delegateFastPreviewSurface.requestFastPreviewRefreshSync() }
     } else if (invalidated.get()) requestRefresh()
 
-    // Gallery mode should be updated only if Preview is active / in foreground.
-    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
+    // Focus mode should be updated only if Preview is active / in foreground.
+    // It will help to avoid enabling focus mode while Preview is inactive, as it will also save
     // this state for later to restore.
-    galleryEssentialsModeManager.activate()
+    focusEssentialsModeManager.activate()
   }
 
   private fun CoroutineScope.initializeFlows() {
@@ -839,8 +839,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Interactive -> {
         stopInteractivePreview()
       }
-      is PreviewMode.Gallery -> {
-        withContext(uiThread) { previewView.galleryMode = null }
+      is PreviewMode.Focus -> {
+        withContext(uiThread) { previewView.focusMode = null }
       }
       is PreviewMode.AnimationInspection -> {
         stopAnimationInspector()
@@ -858,10 +858,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Interactive -> {
         startInteractivePreview(mode.selected)
       }
-      is PreviewMode.Gallery -> {
+      is PreviewMode.Focus -> {
         invalidateAndRefresh()
         surface.repaint()
-        withContext(uiThread) { previewView.galleryMode = GalleryMode(surface) }
+        withContext(uiThread) { previewView.focusMode = FocusMode(surface) }
       }
       is PreviewMode.AnimationInspection -> {
         startAnimationInspector(mode.selected)

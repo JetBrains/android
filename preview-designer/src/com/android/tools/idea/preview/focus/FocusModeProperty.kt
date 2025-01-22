@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.gallery
+package com.android.tools.idea.preview.focus
 
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.preview.Colors
@@ -23,28 +23,28 @@ import javax.swing.JPanel
 import kotlin.reflect.KProperty
 
 /**
- * [GalleryMode] property delegate to be used by views which need [GalleryMode] support.
+ * [FocusMode] property delegate to be used by views which need [FocusMode] support.
  *
- * When the [GalleryMode] is not null, this property delegate replaces the given [mainSurface] from
- * the given [component] with a [JPanel] containing tabs provided by [GalleryMode.component] at the
+ * When the [FocusMode] is not null, this property delegate replaces the given [mainSurface] from
+ * the given [component] with a [JPanel] containing tabs provided by [FocusMode.component] at the
  * north and [mainSurface] in the center.
  *
- * When the [GalleryMode] is null, the [mainSurface] is restored within [content] and the [JPanel]
- * with the gallery tabs is removed.
+ * When the [FocusMode] is null, the [mainSurface] is restored within [content] and the [JPanel]
+ * with the focus tabs is removed.
  */
-class GalleryModeProperty(private val content: JPanel, private val mainSurface: NlDesignSurface) :
+class FocusModeProperty(private val content: JPanel, private val mainSurface: NlDesignSurface) :
   JPanel(BorderLayout()) {
 
-  private var galleryMode: GalleryMode? = null
+  private var focusMode: FocusMode? = null
 
-  operator fun getValue(thisRef: Any?, property: KProperty<*>) = galleryMode
+  operator fun getValue(thisRef: Any?, property: KProperty<*>) = focusMode
 
-  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: GalleryMode?) {
+  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: FocusMode?) {
     // Avoid repeated values.
-    if (value == galleryMode) return
+    if (value == focusMode) return
     // If essentials mode is enabled, disabled or updated - components should be rearranged.
     // Remove components from its existing places.
-    if (galleryMode == null) {
+    if (focusMode == null) {
       content.remove(mainSurface)
     } else {
       removeAll()
@@ -61,6 +61,6 @@ class GalleryModeProperty(private val content: JPanel, private val mainSurface: 
       add(mainSurface, BorderLayout.CENTER)
       content.add(this)
     }
-    galleryMode = value
+    focusMode = value
   }
 }

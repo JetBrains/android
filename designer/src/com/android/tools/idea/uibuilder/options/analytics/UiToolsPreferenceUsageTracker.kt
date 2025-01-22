@@ -88,6 +88,12 @@ interface UiToolsPreferenceUsageTracker {
       builder.setPreviewLayoutMode(
         when (it) {
           GRID -> LayoutMode.GRID
+          // While the class name has been renamed from `Gallery` to `Focus` we can't rename neither
+          // the LayoutMode.GALLERY nor LayoutType.GALLERY keys.
+          // Changing the name of this key would invalidate previously collected analytics data
+          // associated with the `Gallery` class.
+          // Maintaining consistency with the original key ensures continuity in our data analysis
+          // and reporting.
           GALLERY -> LayoutMode.GALLERY
         }
       )

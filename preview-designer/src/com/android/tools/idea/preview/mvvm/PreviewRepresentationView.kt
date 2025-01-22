@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.mvvm
 
-import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import javax.swing.JComponent
@@ -41,8 +41,8 @@ interface PreviewRepresentationView {
   val mainSurface: NlDesignSurface
 
   /**
-   * Set if Gallery Mode is enabled, null if mode is disabled. In Gallery Mode only one preview at a
+   * Set if Focus Mode is enabled, null if mode is disabled. In Focus Mode only one preview at a
    * time is rendered. It is always on for Essentials Mode.
    */
-  var galleryMode: GalleryMode?
+  var focusMode: FocusMode?
 }
