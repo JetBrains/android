@@ -151,6 +151,15 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
+
+  suspend fun runAndWaitForRefresh(runnable: () -> Unit) {
+    var refreshCompleted = false
+    val listener = { refreshCompleted = true }
+    refreshCompletedListeners.add(listener)
+    runnable()
+    delayUntilCondition(250) { refreshCompleted }
+    refreshCompletedListeners.remove(listener)
+  }
 }
 
 class ComposePreviewRepresentationTest {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.datasource
 
-import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
@@ -25,7 +24,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TestComposePreviewView
-import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
@@ -57,7 +55,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -229,7 +226,6 @@ class ParametrizedPreviewTest {
     }
   }
 
-  @Ignore("b/385137823")
   @Test
   fun testUiCheckForParametrizedPreview(): Unit = runBlocking {
     val project = projectRule.project
@@ -258,15 +254,12 @@ class ParametrizedPreviewTest {
         composeView
       }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
-    preview.onActivate()
 
-    waitForAllRefreshesToFinish(30.seconds)
+    composeView.runAndWaitForRefresh { preview.onActivate() }
+
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance<*>
-    run {
-      var refreshCompleted = false
-      composeView.refreshCompletedListeners.add { refreshCompleted = true }
+    composeView.runAndWaitForRefresh {
       preview.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
-      delayUntilCondition(250) { refreshCompleted }
     }
 
     assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
