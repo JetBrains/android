@@ -62,7 +62,7 @@ class DeclarativeAnnotator : Annotator {
           result.addAll(searchForType(listOf(it), schema, element.containingFile.name))
           // also check direct parent if it has function like dependenciesDcl.project
           findParentBlock(element)?.let { parentBlock ->
-            result.addAll(searchForType(getPath(parentBlock.identifier)+it, schema, element.containingFile.name))
+            result.addAll(searchForType(getPath(parentBlock.identifier) + it, schema, element.containingFile.name))
           }
         }
       }
@@ -97,10 +97,10 @@ class DeclarativeAnnotator : Annotator {
       else -> null
     }
 
-  private fun findParentBlock(psi: PsiElement):DeclarativeBlock?{
+  private fun findParentBlock(psi: PsiElement): DeclarativeBlock? {
     var current = psi
 
-    while (current.parent!=null && current.parent !is DeclarativeBlock) {
+    while (current.parent != null && current.parent !is DeclarativeBlock) {
       current = current.parent
     }
     return current.parent as? DeclarativeBlock
@@ -115,11 +115,13 @@ class DeclarativeAnnotator : Annotator {
           is PlainFunction -> ElementType.FACTORY
           is BlockFunction -> if (type.parameters.isNotEmpty()) ElementType.FACTORY_BLOCK else ElementType.BLOCK
         }
+
         is FoundClass ->
           if (producerFunctionAvailable.contains(type.name.name))
             ElementType.FACTORY_VALUE
           else
             ElementType.BLOCK
+
         is FoundProperty -> getSimpleType(type)
         is FoundEnum -> ElementType.ENUM
       }
@@ -156,6 +158,7 @@ class DeclarativeAnnotator : Annotator {
               }
             )
           } ?: listOf()
+
           is SimpleTypeRef -> listOf(FoundProperty(type.dataType))
         }
       }
@@ -184,8 +187,10 @@ class DeclarativeAnnotator : Annotator {
         is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
         is DeclarativeFactoryReceiver ->
           current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
+
         is DeclarativeFactory ->
           current = current.parent
+
         else -> {
           (current as? DeclarativeIdentifierOwner)?.identifier?.name?.let { result.add(it) }
           current = current.parent
@@ -195,7 +200,7 @@ class DeclarativeAnnotator : Annotator {
     return result.reversed()
   }
 
-  private inline fun <reified T:DeclarativeElement> skip(current: PsiElement): PsiElement {
+  private inline fun <reified T : DeclarativeElement> skip(current: PsiElement): PsiElement {
     var element: PsiElement = current
     while (element.parent != null && element.parent is T) {
       element = element.parent
@@ -203,7 +208,8 @@ class DeclarativeAnnotator : Annotator {
     return element.parent
   }
 
-  private inline fun <reified T: DeclarativeReceiverPrefixed<T>> parseReceiver(property: DeclarativeReceiverPrefixed<T>, list: MutableList<String>): PsiElement {
+  private inline fun <reified T : DeclarativeReceiverPrefixed<T>> parseReceiver(property: DeclarativeReceiverPrefixed<T>,
+                                                                                list: MutableList<String>): PsiElement {
     var currentProperty = property
     currentProperty.identifier.name?.let { list.add(it) }
 

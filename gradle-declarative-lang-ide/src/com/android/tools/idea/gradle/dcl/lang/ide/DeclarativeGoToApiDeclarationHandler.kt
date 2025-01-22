@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
-import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
@@ -79,7 +78,7 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
   val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
   val fileName = element.containingFile.name
 
-  fun extractFqName(receivers: List<EntryWithContext>): String? =
+  fun extractFqName(receivers: List<EntryWithContext>): String =
     receivers.map { it.entry }.firstNotNullOf {
       when (it) {
         is SchemaFunction ->
@@ -105,7 +104,7 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
   else {
     var receivers = schema.getTopLevelEntriesByName(path[0], fileName)
     for (i in 1 until path.size) {
-      receivers = receivers.flatMap { it.getNextLevel (path[i]) }
+      receivers = receivers.flatMap { it.getNextLevel(path[i]) }
     }
     return extractFqName(receivers)
   }

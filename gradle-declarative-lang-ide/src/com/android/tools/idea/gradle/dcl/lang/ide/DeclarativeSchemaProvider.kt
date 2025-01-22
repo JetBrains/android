@@ -51,6 +51,7 @@ class DeclarativeService(val project: Project) {
     return null
   }
 }
+
 data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, val projects: Set<BuildDeclarativeSchema>) : Serializable {
   fun merge(schema: BuildDeclarativeSchemas) =
     BuildDeclarativeSchemas(this.settings + schema.settings, this.projects + schema.projects)
@@ -71,7 +72,7 @@ data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, va
   private fun isSettings(name: String) = name == "settings.gradle.dcl"
 }
 
-data class EntryWithContext(val entry: Entry, val schema: BuildDeclarativeSchema){
+data class EntryWithContext(val entry: Entry, val schema: BuildDeclarativeSchema) {
   fun resolveRef(fqName: FullName): ClassType? = schema.resolveRef(fqName)
 
   fun getNextLevel(name: String): List<EntryWithContext> = entry.getNextLevel(schema, name).map {

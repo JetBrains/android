@@ -64,7 +64,7 @@ class DeclarativeFormatBlock(
     ctx.spacingBuilder.getSpacing(this, child1, child2)
 
   override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
-    return if (TokenSet.create(BLOCK_GROUP).contains(node.getElementType())) {
+    return if (TokenSet.create(BLOCK_GROUP).contains(node.elementType)) {
       ChildAttributes(Indent.getNormalIndent(), null)
     }
     else ChildAttributes(Indent.getNoneIndent(), null)

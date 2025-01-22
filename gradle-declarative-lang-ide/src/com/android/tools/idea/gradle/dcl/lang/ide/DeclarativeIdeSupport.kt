@@ -26,9 +26,13 @@ object DeclarativeIdeSupport {
 
   @TestOnly
   @JvmStatic
-  fun override(value: Boolean) { getRegistryValue().setValue(value) }
+  fun override(value: Boolean) {
+    getRegistryValue().setValue(value)
+  }
 
   @TestOnly
   @JvmStatic
-  fun clearOverride() { getRegistryValue().resetToDefault() }
+  fun clearOverride() {
+    getRegistryValue().resetToDefault()
+  }
 }

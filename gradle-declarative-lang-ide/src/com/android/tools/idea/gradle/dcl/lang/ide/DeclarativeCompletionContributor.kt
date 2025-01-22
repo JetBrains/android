@@ -184,7 +184,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     if (context.file is DeclarativeFile) {
       val offset = context.startOffset
       val psiFile = context.file
-      val token = psiFile.findElementAt(max(0, offset-1))
+      val token = psiFile.findElementAt(max(0, offset - 1))
       if (token != null && (AFTER_ASSIGNMENT_IDENTIFIER.accepts(token) || AFTER_BLOCK_IDENTIFIER.accepts(token))) {
         context.dummyIdentifier = "" // do not insert dummy identifier before = in assignment or {
       }
@@ -196,13 +196,13 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun PsiElement.beforeElement(text: String) =
     this.skipWhitespaces()?.text == text
 
-  override fun fillCompletionVariants(parameters: CompletionParameters, _result: CompletionResultSet) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     val position = parameters.position
     if (AFTER_NUMBER_LITERAL.accepts(position)) {
-      _result.stopHere()
+      resultSet.stopHere()
       return
     }
-    super.fillCompletionVariants(parameters, _result)
+    super.fillCompletionVariants(parameters, resultSet)
   }
 
   private fun createCompletionProvider(): CompletionProvider<CompletionParameters> {
@@ -230,7 +230,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
         val identifier = parameters.position.findParentOfType<DeclarativeAssignment>()?.identifier ?: return
         var suggestions = getEnumList(identifier, schema)
-        if(suggestions.isEmpty()){
+        if (suggestions.isEmpty()) {
           suggestions = getRootFunctions(identifier, schema).map { Suggestion(it.name, FACTORY) }
         }
         result.addAllElements(suggestions.map {
@@ -287,7 +287,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
   private fun PsiElement.findParentNamedBlock() = findParentInFile(false) { it is DeclarativeBlock || it is DeclarativeFile }
 
-  private fun insert(type: ElementType):InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
+  private fun insert(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
     val editor = context.editor
     val document = editor.document
     val file = editor.virtualFile.toPsiFile(context.project)
@@ -318,13 +318,13 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
 
       FACTORY_BLOCK -> {
-        if (element?.beforeElement("(") == true ) return@InsertHandler
+        if (element?.beforeElement("(") == true) return@InsertHandler
         document.insertString(context.tailOffset, "(){ }")
         editor.caretModel.moveToOffset(context.tailOffset - 4)
       }
 
       INTEGER, LONG, BOOLEAN, ENUM -> {
-        if (element?.beforeElement("=") == true ) return@InsertHandler
+        if (element?.beforeElement("=") == true) return@InsertHandler
         document.insertString(context.tailOffset, " = ")
         editor.caretModel.moveToOffset(context.tailOffset)
       }
@@ -333,7 +333,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
   }
 
-  private fun smartInsert(suggestion: Suggestion, parent: PsiElement, entry: Entry?, schemas: BuildDeclarativeSchemas): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, item: LookupElement ->
+  private fun smartInsert(suggestion: Suggestion,
+                          parent: PsiElement,
+                          entry: Entry?,
+                          schemas: BuildDeclarativeSchemas): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, item: LookupElement ->
     val editor = context.editor
     val document = editor.document
     val file = editor.virtualFile.toPsiFile(context.project)
@@ -384,7 +387,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   }
 
   private fun PsiElement.skipWhitespaces(): PsiElement? {
-    var nextLeaf:PsiElement? = this
+    var nextLeaf: PsiElement? = this
     while (nextLeaf != null && nextLeaf is PsiWhiteSpace) {
       nextLeaf = PsiTreeUtil.nextLeaf(nextLeaf, true)
     }
@@ -402,7 +405,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return getEnumConstants(enum).map { Suggestion(it, ElementType.ENUM_CONSTANT) }
   }
 
-  private fun getSuggestionEntries(parent: PsiElement, schemas: BuildDeclarativeSchemas, includeCurrent: Boolean = false): List<EntryWithContext> {
+  private fun getSuggestionEntries(parent: PsiElement,
+                                   schemas: BuildDeclarativeSchemas,
+                                   includeCurrent: Boolean = false): List<EntryWithContext> {
     val path = getPath(parent, includeCurrent)
     val fileName = parent.containingFile.name
     return getSuggestionEntries(path, fileName, schemas)
@@ -435,8 +440,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     else parent.findParentNamedBlock()
     // to go bubble up through all elements with name
     while (current != null && current.parent != null) {
-      // iterate trough identifier owners but skip factory as a wrapper
-      if(current is DeclarativeIdentifierOwner && current !is DeclarativeFactory)
+      // iterate through identifier owners but skip factory as a wrapper
+      if (current is DeclarativeIdentifierOwner && current !is DeclarativeFactory)
         current.identifier.name?.let { result.add(it) }
       current = current.parent
     }

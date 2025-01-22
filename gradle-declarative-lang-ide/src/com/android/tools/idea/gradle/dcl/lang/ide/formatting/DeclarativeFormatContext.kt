@@ -71,7 +71,7 @@ data class DeclarativeFormatContext(
                                               QUALIFIED,
                                               QUALIFIED_RECEIVER,
                                               RECEIVER_PREFIXED_FACTORY))
-           .spacing(0, 0, 0, false, 0)
+        .spacing(0, 0, 0, false, 0)
 
       return DeclarativeFormatContext(commonSettings, builder)
     }
