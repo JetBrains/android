@@ -23,11 +23,18 @@ interface ResourceIdManagerModelModule {
 
   val namespacing: ResourceNamespacing
 
+  /**
+   * When true, the R classes belonging to this Module will be loaded using bytecode parsing and not reflection.
+   */
+  val useRBytecodeParsing: Boolean
+
   companion object {
-    @JvmField
-    val NO_NAMESPACING_APP = object : ResourceIdManagerModelModule {
+    @JvmOverloads
+    @JvmStatic
+    fun noNamespacingApp(useRBytecodeParsing: Boolean = true): ResourceIdManagerModelModule = object : ResourceIdManagerModelModule {
       override val isAppOrFeature: Boolean = true
       override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
+      override val useRBytecodeParsing: Boolean = useRBytecodeParsing
     }
   }
 }

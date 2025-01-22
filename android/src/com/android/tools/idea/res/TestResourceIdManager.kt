@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.StubbedResourceIdManager
 import com.intellij.openapi.module.Module
 
-class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager() {
+class TestResourceIdManager private constructor(module: Module) :
+  StubbedResourceIdManager(StudioFlags.USE_BYTECODE_R_CLASS_PARSING.get()) {
   private var _finalIdsUsed = true
   override val finalIdsUsed: Boolean
     get() = _finalIdsUsed

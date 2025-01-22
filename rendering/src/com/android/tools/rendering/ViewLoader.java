@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.log.LogAnonymizer;
 import com.android.tools.module.ViewClass;
 import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.rendering.log.LogAnonymizerUtil;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.ids.ResourceIdManager;
@@ -37,6 +38,7 @@ import com.google.common.collect.Multiset;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -66,16 +68,19 @@ public class ViewLoader {
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */
   @NotNull private IRenderLogger myLogger;
-  @NotNull private final ClassLoader myClassLoader;
+  @NotNull private final DelegatingClassLoader myClassLoader;
+  /** If true, the loading of the R classes will use bytecode parsing and not reflection. */
+  private final boolean myUseRBytecodeParsing;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull RenderModelModule module, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull ClassLoader classLoader) {
+                    @NotNull DelegatingClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
     myModule = module;
     myLogger = logger;
     myCredential = credential;
     myClassLoader = classLoader;
+    myUseRBytecodeParsing = module.getEnvironment().getUseRBytecodeParser();
   }
 
   /**
@@ -420,12 +425,8 @@ public class ViewLoader {
     });
   }
 
-  @VisibleForTesting
-  public void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadAndParseRClass(%s)", LogAnonymizer.anonymizeClassName(className)));
-    }
-
+  private void loadAndParseRClassViaReflection(String className, ResourceIdManager.RClassParser rClassParser)
+    throws ClassNotFoundException {
     Class<?> aClass = myLoadedClasses.get(className);
 
     if (aClass == null) {
@@ -455,7 +456,38 @@ public class ViewLoader {
       myLogger.setHasLoadedClasses();
     }
 
-    rClassParser.parse(aClass);
+    rClassParser.parseUsingReflection(aClass);
+  }
+
+  private void loadAndParseRClassFromBytecode(String className, ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
+    byte[] rClassBytes = myClassLoader.loadClassBytes(className);
+    rClassParser.parseBytecode(rClassBytes, rClass -> {
+      try {
+        // We receive the name of the type R class to load (e.g. R$attr) so we take the root R class
+        // name and use it to get the fully qualified name for the class.
+        // From R$attr to com.example.R$attr
+        String typeClassName = className + "$" + StringUtil.substringAfterLast(rClass, "$");
+        return myClassLoader.loadClassBytes(typeClassName);
+      }
+      catch (ClassNotFoundException e) {
+        LOG.error("   Unable to find R class " + rClass + ".", e);
+        return new byte[0];
+      }
+    });
+  }
+
+  @VisibleForTesting
+  public void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadAndParseRClass(%s, useRBytecodeParsing=%s)", LogAnonymizer.anonymizeClassName(className), myUseRBytecodeParsing));
+    }
+
+    if (myUseRBytecodeParsing) {
+      loadAndParseRClassFromBytecode(className, rClassParser);
+    }
+    else {
+      loadAndParseRClassViaReflection(className, rClassParser);
+    }
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", LogAnonymizer.anonymizeClassName(className)));

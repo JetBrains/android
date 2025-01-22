@@ -112,8 +112,13 @@ class NonTransitiveResourcesLoaderTest() {
     val staticLoader = StaticLoader(
       R::class.java.name to loadClassBytes(
         R::class.java),
+      R.string::class.java.name to loadClassBytes(
+        R.string::class.java),
       org.jetbrains.android.uipreview.nontransitive.lib.R::class.java.name to loadClassBytes(
-        org.jetbrains.android.uipreview.nontransitive.lib.R::class.java)
+        org.jetbrains.android.uipreview.nontransitive.lib.R::class.java,
+      ),
+      org.jetbrains.android.uipreview.nontransitive.lib.R.string::class.java.name to loadClassBytes(
+        org.jetbrains.android.uipreview.nontransitive.lib.R.string::class.java)
     )
     val delegateClassLoader = DelegatingClassLoader(
       NonTransitiveResourcesLoaderTest::class.java.classLoader,

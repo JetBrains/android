@@ -39,7 +39,15 @@ interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
 
   fun resetDynamicIds()
 
-  fun interface RClassParser {
-    fun parse(rClass: Class<*>)
+  interface RClassParser {
+    fun parseUsingReflection(rClass: Class<*>)
+
+    /**
+     * Method called when an R class should be parsed from byte code.
+     *
+     * @param rClass contains the bytecode of the to R class.
+     * @param rClassProvider will be called to resolve the different R type classes (e.g. R$string).
+     */
+    fun parseBytecode(rClass: ByteArray, rClassProvider: (String) -> ByteArray)
   }
 }

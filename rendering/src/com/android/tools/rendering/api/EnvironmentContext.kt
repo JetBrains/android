@@ -66,4 +66,10 @@ interface EnvironmentContext {
   fun isInTest(): Boolean
 
   val downloadableFontCacheService: DownloadableFontCacheService
+
+  /**
+   * If true, the rendering pipeline will parse the R class using bytecode parsing instead of
+   * reflection.
+   */
+  val useRBytecodeParser: Boolean
 }

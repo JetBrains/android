@@ -24,6 +24,7 @@ import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -147,4 +148,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
 
   override val downloadableFontCacheService: DownloadableFontCacheService
     get() = StudioDownloadableFontCacheService.getInstance()
+
+  override val useRBytecodeParser: Boolean
+    get() = StudioFlags.USE_BYTECODE_R_CLASS_PARSING.get()
 }
