@@ -2308,17 +2308,6 @@ public final class StudioFlags {
   );
   // endregion JOURNEYS_WITH_GEMINI
 
-  // region DEV_SERVICES_DEPRECATION_SUPPORT
-  // See go/android-studio-developer-services-compat-policy and go/as-kill-feature-past-deadline
-  // These flags are mostly meant to be changed via server flags.
-  private static final FlagGroup DEV_SERVICES_SLA = new FlagGroup(FLAGS, "gservices", "Dev Services Support SLA");
-
-  public static final Flag<Boolean> DEV_SERVICES_SUPPORTED_V1 = new BooleanFlag(
-    DEV_SERVICES_SLA, "supported.v1", "Dev Services Supported", "Dev Services Supported", true);
-  public static final Flag<Boolean> DEV_SERVICES_DEPRECATED_V1 = new BooleanFlag(
-    DEV_SERVICES_SLA, "deprecated.v1", "Dev Services Supported", "Dev Services Deprecated", false);
-  // endregion DEV_SERVICES_DEPRECATION_SUPPORT
-
   // region WIZARD_MIGRATION
   private static final FlagGroup WIZARD_MIGRATION = new FlagGroup(
     FLAGS,
