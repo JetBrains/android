@@ -1048,14 +1048,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun update(event: AnActionEvent) {
       super.update(event)
       // Enabled only for non-XR devices.
-      event.presentation.isEnabledAndVisible =
-          event.toolWindowContents.find { it.isSelected &&it.component.isNonXrDevicePanel() } != null
+      event.presentation.isEnabledAndVisible = event.toolWindowContents.find { it.isSelected && it.component.isNonXrDevicePanel() } != null
     }
 
-    private fun JComponent.isNonXrDevicePanel(): Boolean {
-      this as? StreamingDevicePanel ?: return false
-      return deviceType != DeviceType.XR
-    }
+    private fun JComponent.isNonXrDevicePanel(): Boolean =
+        this is StreamingDevicePanel && deviceType != DeviceType.XR
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }
