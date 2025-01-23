@@ -36,6 +36,7 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 class BazelBuildSystem implements BuildSystem {
@@ -43,14 +44,7 @@ class BazelBuildSystem implements BuildSystem {
   class BazelInvoker extends AbstractBuildInvoker {
 
     public BazelInvoker(Project project, BlazeContext blazeContext, String path) {
-      super(
-          project,
-          blazeContext,
-          BuildBinaryType.BAZEL,
-          path,
-          false,
-          BazelBuildSystem.this,
-          new CommandLineBlazeCommandRunner());
+      super(project, blazeContext, BuildBinaryType.BAZEL, path, false, BazelBuildSystem.this, new CommandLineBlazeCommandRunner());
     }
 
     @Override
@@ -66,14 +60,17 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(
-      Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker(project, context);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(
-      Project project, BlazeContext context, BlazeCommandName command) {
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
+    return getBuildInvoker(project, context);
+  }
+
+  @Override
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, BlazeCommandName command) {
     return getBuildInvoker(project, context);
   }
 
@@ -83,7 +80,8 @@ class BazelBuildSystem implements BuildSystem {
     File projectSpecificBinary = getProjectSpecificBazelBinary(project);
     if (projectSpecificBinary != null) {
       binaryPath = projectSpecificBinary.getPath();
-    } else {
+    }
+    else {
       BlazeUserSettings settings = BlazeUserSettings.getInstance();
       binaryPath = settings.getBazelBinaryPath();
     }
@@ -110,8 +108,7 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public void populateBlazeVersionData(
-      WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
+  public void populateBlazeVersionData(WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
     builder.setBazelVersion(BazelVersion.parseVersion(blazeInfo));
   }
 

@@ -19,9 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
+import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -32,8 +34,13 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,37 +77,35 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
    * BuildSystemProvider} and can be injected using {@link BuildSystemProvider#EP_NAME}.
    *
    * @param projectSupplier Supplier of the project used to create the build system provider. The
-   *     project will not be requested until the code under test calls {@link
-   *     Blaze#getBuildSystemProvider(Project)}.
+   *                        project will not be requested until the code under test calls {@link
+   *                        Blaze#getBuildSystemProvider(Project)}.
    */
   public BuildSystemProviderWrapper(Supplier<Project> projectSupplier) {
-    this.innerProvider =
-        () -> {
-          // Note: this basically duplicates the functionality of Blaze.getBuildSystemProvider,
-          // but with the added instanceof check to ensure we don't infinitely recurse here. This
-          // allows this class to be injected in tests using BuildSystemProvider.EP_NAME, and have
-          // it behave transparently in this context.
-          Project project = projectSupplier.get();
-          BuildSystemName name = Blaze.getBuildSystemName(project);
-          for (BuildSystemProvider provider : BuildSystemProvider.EP_NAME.getExtensions()) {
-            if (provider instanceof BuildSystemProviderWrapper) {
-              continue;
-            }
-            if (provider.buildSystem() == name) {
-              return provider;
-            }
-          }
-          throw new IllegalStateException("No BuildSystemProvider found");
-        };
+    this.innerProvider = () -> {
+      // Note: this basically duplicates the functionality of Blaze.getBuildSystemProvider,
+      // but with the added instanceof check to ensure we don't infinitely recurse here. This
+      // allows this class to be injected in tests using BuildSystemProvider.EP_NAME, and have
+      // it behave transparently in this context.
+      Project project = projectSupplier.get();
+      BuildSystemName name = Blaze.getBuildSystemName(project);
+      for (BuildSystemProvider provider : BuildSystemProvider.EP_NAME.getExtensions()) {
+        if (provider instanceof BuildSystemProviderWrapper) {
+          continue;
+        }
+        if (provider.buildSystem() == name) {
+          return provider;
+        }
+      }
+      throw new IllegalStateException("No BuildSystemProvider found");
+    };
   }
 
   public static BuildSystemProviderWrapper getInstance(Project project) {
     BuildSystemProvider provider = Blaze.getBuildSystemProvider(project);
     if (provider instanceof BuildSystemProviderWrapper) {
-      return (BuildSystemProviderWrapper) provider;
+      return (BuildSystemProviderWrapper)provider;
     }
-    throw new IllegalStateException(
-        "BuildSystemProvider not an instance of BuildSystemProviderWrapper");
+    throw new IllegalStateException("BuildSystemProvider not an instance of BuildSystemProviderWrapper");
   }
 
   private synchronized BuildSystemProvider inner() {
@@ -215,6 +220,36 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
+    public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) throws BuildException {
+      return inner.invoke(blazeCommandBuilder);
+    }
+
+    @Override
+    public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) throws BuildException {
+      try (InputStream in = inner.invokeQuery(blazeCommandBuilder)) {
+        return in;
+      }
+      catch (IOException e) {
+        throw new BuildException(String.format("Error invoking blaze query with %s", inner.getClass().getSimpleName()), e);
+      }
+    }
+
+    @Override
+    public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) throws BuildException {
+      try (InputStream in = inner.invokeInfo(blazeCommandBuilder)) {
+        return in;
+      }
+      catch (IOException e) {
+        throw new BuildException(String.format("Error invoking blaze info with %s", inner.getClass().getSimpleName()), e);
+      }
+    }
+
+    @Override
+    public List<String> getBuildFlags() {
+      return inner.getBuildFlags();
+    }
+
+    @Override
     public BuildBinaryType getType() {
       if (buildBinaryType != null) {
         return buildBinaryType;
@@ -271,13 +306,17 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
+    public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
+      return inner.getBuildInvoker(project, context, requirements);
+    }
+
+    @Override
     public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
       return new BuildInvokerWrapper(inner.getBuildInvoker(project, context));
     }
 
     @Override
-    public BuildInvoker getBuildInvoker(
-        Project project, BlazeContext context, BlazeCommandName command) {
+    public BuildInvoker getBuildInvoker(Project project, BlazeContext context, BlazeCommandName command) {
       return new BuildInvokerWrapper(inner.getBuildInvoker(project, context));
     }
 
@@ -295,8 +334,7 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public void populateBlazeVersionData(
-        WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
+    public void populateBlazeVersionData(WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
       inner.populateBlazeVersionData(workspaceRoot, blazeInfo, builder);
     }
 

@@ -203,7 +203,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
               .run();
       SyncQueryStatsScope.fromContext(context).ifPresent(stats -> stats.setBazelExitCode(retVal));
       BazelExitCodeException.throwIfFailed(
-          blazeCommandBuilder, retVal, ThrowOption.ALLOW_PARTIAL_SUCCESS);
+          blazeCommandBuilder.build(), retVal, ThrowOption.ALLOW_PARTIAL_SUCCESS);
       return new BufferedInputStream(
           Files.newInputStream(tempFile, StandardOpenOption.DELETE_ON_CLOSE));
     } catch (IOException e) {
@@ -238,7 +238,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
               .ignoreExitCode(true)
               .build()
               .run();
-      BazelExitCodeException.throwIfFailed(blazeCommandBuilder, exitCode);
+      BazelExitCodeException.throwIfFailed(blazeCommandBuilder.build(), exitCode);
       return new BufferedInputStream(
           Files.newInputStream(tmpFile, StandardOpenOption.DELETE_ON_CLOSE));
     } catch (IOException e) {
