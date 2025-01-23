@@ -35,6 +35,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.util.messages.Topic
 
 
 class ApplicationDeployerImpl(private val project: Project, private val stats: RunStats) : ApplicationDeployer {
@@ -42,6 +43,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Full deploy on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+
     // Add packages to the deployment,
     val deployTask = DeployTask(
       project,
@@ -59,6 +62,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
                                   deployOptions: DeployOptions,
                                   indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Changes on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+
     val deployTask = ApplyChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -74,6 +79,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
                                       deployOptions: DeployOptions,
                                       indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Code Changes on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+
     val deployTask = ApplyCodeChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -133,6 +140,14 @@ class AdbCommandCaptureLoggerWithConsole(logger: Logger, val console: ConsoleVie
   override fun warning(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
     console.printlnError(msgFormat + "\n")
     super.info(msgFormat, *args)
+  }
+}
+
+interface ApplicationDeployListener {
+  fun beforeDeploy(apkInfo : ApkInfo)
+  companion object {
+    @JvmField
+    val TOPIC = Topic("Notification on application deployment", ApplicationDeployListener::class.java)
   }
 }
 

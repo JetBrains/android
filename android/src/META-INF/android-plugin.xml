@@ -623,6 +623,7 @@
     <notificationGroup id="Import Android Test Results" displayType="BALLOON" />
     <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Android Debug Bridge (adb)" displayType="BALLOON"/>
+    <notificationGroup id="Android 16 KB Alignment" displayType="BALLOON"/>
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
@@ -647,6 +648,7 @@
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
+    <postStartupActivity implementation="com.android.tools.idea.ndk.PageAlignProjectActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
