@@ -265,7 +265,7 @@ java_library(
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:java_target_info_java_proto",
         "@bazel_tools//tools/java/runfiles",
-        "@com_google_protobuf//:protobuf_java",
         "@maven//:com.google.guava.guava",
+        "@maven//:com.google.protobuf.protobuf-java",
     ],
 )
