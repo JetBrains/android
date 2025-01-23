@@ -419,6 +419,13 @@ public final class StudioFlags {
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
 
+  public static final Flag<Integer> DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE = new IntFlag(
+    RUNDEBUG,
+    "deltainstall.custom.max.patch.size",
+    "Delta install Max Patch Size",
+    "The upper limit of number of bytes a delta install patch set can be before bailing out to a full install.",
+    -1); // Negative to use the PatchSetGenerator's default value of 40MB.
+
   public static final Flag<Boolean> INSTALL_WITH_ADBLIB = new BooleanFlag(
     RUNDEBUG,
     "installwithadblib",
