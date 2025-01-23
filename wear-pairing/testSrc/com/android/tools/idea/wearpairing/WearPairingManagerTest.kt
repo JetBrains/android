@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
@@ -42,7 +43,7 @@ class WearPairingManagerTest {
     PairingDevice(
       deviceID = "localhost:4432",
       displayName = "My Phone",
-      apiLevel = 34,
+      androidVersion = AndroidVersion(34),
       isWearDevice = false,
       isEmulator = false,
       hasPlayStore = true,
@@ -52,7 +53,7 @@ class WearPairingManagerTest {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,
@@ -278,7 +279,7 @@ class WearPairingManagerTest {
       PairingDevice(
         deviceID = "phoneId",
         displayName = "My Phone",
-        apiLevel = 34,
+        androidVersion = AndroidVersion(34),
         isWearDevice = false,
         isEmulator = true,
         hasPlayStore = true,

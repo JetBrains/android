@@ -18,7 +18,6 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.AvdData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdInfo
 import com.google.common.util.concurrent.Futures
 import org.mockito.kotlin.any
@@ -50,7 +49,7 @@ internal fun PairingDevice.buildIDevice(
     whenever(name).thenReturn(displayName)
     whenever(serialNumber).thenReturn("serialNumber")
     whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
-    whenever(version).thenReturn(AndroidVersion(apiLevel, null))
+    whenever(version).thenReturn(androidVersion)
     whenever(getProperty(any())).thenAnswer { properties[it.arguments.single() as String] }
     whenever(this.avdData).thenAnswer {
       if (avdInfo != null) {

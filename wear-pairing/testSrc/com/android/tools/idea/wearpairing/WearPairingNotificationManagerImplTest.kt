@@ -1,5 +1,6 @@
 package com.android.tools.idea.wearpairing
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.notification.ActionCenter
 import org.junit.After
@@ -21,8 +22,26 @@ class WearPairingNotificationManagerImplTest {
 
     val pairing =
       WearPairingManager.PhoneWearPair(
-        phone = PairingDevice("phone1", "Phone", 34, true, false, true, ConnectionState.ONLINE),
-        wear = PairingDevice("wear1", "Wear", 30, true, true, true, ConnectionState.ONLINE),
+        phone =
+          PairingDevice(
+            "phone1",
+            "Phone",
+            AndroidVersion(34),
+            true,
+            false,
+            true,
+            ConnectionState.ONLINE,
+          ),
+        wear =
+          PairingDevice(
+            "wear1",
+            "Wear",
+            AndroidVersion(30),
+            true,
+            true,
+            true,
+            ConnectionState.ONLINE,
+          ),
       )
     assertTrue(
       "No notifications are expected at this point",
@@ -41,8 +60,26 @@ class WearPairingNotificationManagerImplTest {
 
     val secondPairing =
       WearPairingManager.PhoneWearPair(
-        phone = PairingDevice("phone2", "Phone", 34, true, false, true, ConnectionState.ONLINE),
-        wear = PairingDevice("wear2", "Wear", 30, true, true, true, ConnectionState.ONLINE),
+        phone =
+          PairingDevice(
+            "phone2",
+            "Phone",
+            AndroidVersion(34),
+            true,
+            false,
+            true,
+            ConnectionState.ONLINE,
+          ),
+        wear =
+          PairingDevice(
+            "wear2",
+            "Wear",
+            AndroidVersion(30),
+            true,
+            true,
+            true,
+            ConnectionState.ONLINE,
+          ),
       )
     notificationManager.dismissNotifications(secondPairing)
     assertFalse(
@@ -63,8 +100,26 @@ class WearPairingNotificationManagerImplTest {
 
     val pairing =
       WearPairingManager.PhoneWearPair(
-        phone = PairingDevice("phone1", "Phone", 34, true, false, true, ConnectionState.ONLINE),
-        wear = PairingDevice("wear1", "Wear", 30, true, true, true, ConnectionState.ONLINE),
+        phone =
+          PairingDevice(
+            "phone1",
+            "Phone",
+            AndroidVersion(34),
+            true,
+            false,
+            true,
+            ConnectionState.ONLINE,
+          ),
+        wear =
+          PairingDevice(
+            "wear1",
+            "Wear",
+            AndroidVersion(30),
+            true,
+            true,
+            true,
+            ConnectionState.ONLINE,
+          ),
       )
     notificationManager.showReconnectMessageBalloon(pairing, null)
     assertTrue(

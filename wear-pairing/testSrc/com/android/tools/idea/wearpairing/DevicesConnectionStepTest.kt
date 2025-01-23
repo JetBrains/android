@@ -17,6 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.HtmlLabel
@@ -57,7 +58,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
@@ -67,7 +68,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,

@@ -545,7 +545,7 @@ private fun IDevice.toPairingDevice(deviceID: String, avdDevice: PairingDevice?)
   return PairingDevice(
       deviceID = deviceID,
       displayName = avdDevice?.displayName ?: getDeviceName(name),
-      apiLevel = avdDevice?.apiLevel ?: version.featureLevel,
+      androidVersion = avdDevice?.androidVersion ?: version,
       isEmulator = isEmulator,
       isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(HardwareFeature.WATCH),
       state = if (isOnline) ConnectionState.ONLINE else ConnectionState.OFFLINE,
@@ -558,7 +558,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
   return PairingDevice(
       deviceID = deviceID,
       displayName = displayName,
-      apiLevel = androidVersion.featureLevel,
+      androidVersion = androidVersion,
       isEmulator = true,
       isWearDevice = SystemImageTags.isWearImage(tags),
       state = ConnectionState.OFFLINE,
