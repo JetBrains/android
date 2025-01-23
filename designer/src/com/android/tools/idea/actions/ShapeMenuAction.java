@@ -23,6 +23,8 @@ import com.android.tools.configurations.Configuration;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +36,21 @@ public class ShapeMenuAction extends DropDownAction {
 
   public ShapeMenuAction() {
     super("Adaptive Icon Shape", "Adaptive Icon Shape", null);
-    for (AdaptiveIconShape shape : AdaptiveIconShape.values()) {
-      add(new SetShapeAction(shape));
+  }
+
+  @Override
+  protected boolean updateActions(@NotNull DataContext context) {
+    removeAll();
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return true;
     }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    AdaptiveIconShape currentShape = configuration != null ? configuration.getAdaptiveShape() : AdaptiveIconShape.getDefaultShape();
+    for (AdaptiveIconShape shape : AdaptiveIconShape.values()) {
+      add(new SetShapeAction(shape, shape == currentShape));
+    }
+    return true;
   }
 
   @Override
@@ -59,15 +73,28 @@ public class ShapeMenuAction extends DropDownAction {
 
   private static class SetShapeAction extends ConfigurationAction {
     private final AdaptiveIconShape myShape;
+    private final boolean myIsCurrentShape;
 
-    private SetShapeAction(@NotNull AdaptiveIconShape shape) {
+    private SetShapeAction(@NotNull AdaptiveIconShape shape, boolean isCurrentShape) {
       super(shape.getName());
       myShape = shape;
+      myIsCurrentShape = isCurrentShape;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      Toggleable.setSelected(e.getPresentation(), myIsCurrentShape);
     }
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setAdaptiveShape(myShape);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 }
