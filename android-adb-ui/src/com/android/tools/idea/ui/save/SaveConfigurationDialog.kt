@@ -146,16 +146,23 @@ class SaveConfigurationDialog(
 
     override fun validate(): ValidationInfo? {
       val saveLocation = saveLocationField.text.trim().replace('/', File.separatorChar)
-      checkPath(saveLocation)?.let { return ValidationInfo("Invalid filename - $it", saveLocationField as JComponent) }
+      checkPath(saveLocation)?.let {
+          return ValidationInfo(message("configure.screenshot.dialog.error.invalid.directory", it), saveLocationField as JComponent)
+      }
 
       val filenamePattern = normalizeFilename(filenameTemplateField.text)
       return when {
-        filenamePattern.isEmpty() -> ValidationInfo("No filename provided", filenameTemplateField)
+        filenamePattern.isEmpty() ->
+            ValidationInfo(message("configure.screenshot.dialog.error.empty.filename"), filenameTemplateField)
         filenamePattern.startsWith(File.separator) ->
-            ValidationInfo("Filename cannot start with directory separator", filenameTemplateField)
-        filenamePattern.endsWith(File.separator) -> ValidationInfo("Filename cannot end with directory separator", filenameTemplateField)
-        filenamePattern.contains("..") || filenamePattern.contains(":") -> ValidationInfo("Invalid filename", filenameTemplateField)
-        else -> checkPath(filenamePattern)?.let { ValidationInfo("Invalid filename - $it", filenameTemplateField) }
+            ValidationInfo(message("configure.screenshot.dialog.error.leading.separator"), filenameTemplateField)
+        filenamePattern.endsWith(File.separator) ->
+            ValidationInfo(message("configure.screenshot.dialog.error.trailing.separator"), filenameTemplateField)
+        filenamePattern.contains("..") || filenamePattern.contains(":") ->
+            ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename.generic"), filenameTemplateField)
+        else -> checkPath(filenamePattern)?.let {
+            ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename", it), filenameTemplateField)
+        }
       }
     }
 
