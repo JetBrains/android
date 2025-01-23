@@ -450,6 +450,17 @@ java_library(
 )
 
 java_library(
+    name = "version_checker",
+    srcs = [
+        "src/com/google/idea/blaze/base/util/VersionChecker.java",
+    ],
+    visibility = G3PLUGINS_VISIBILITY,
+    deps = [
+        "//tools/vendor/google/aswb/plugin_api",
+    ],
+)
+
+java_library(
     name = "unit_test_utils",
     testonly = 1,
     srcs = glob(["tests/utils/unit/**/*.java"]),
