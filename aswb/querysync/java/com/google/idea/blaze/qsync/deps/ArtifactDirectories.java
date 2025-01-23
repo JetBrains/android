@@ -43,6 +43,9 @@ public class ArtifactDirectories {
 
   /** Application inspectors runtime jar storage. */
   public static final ProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
+
+  /** APKs storage. */
+  public static final ProjectPath RUNFILES = ProjectPath.projectRelative(".").resolveChild(Path.of(".runfiles"));
   private ArtifactDirectories() {}
 
   /**

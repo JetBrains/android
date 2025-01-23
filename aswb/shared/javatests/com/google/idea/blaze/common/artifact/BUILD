@@ -1,5 +1,6 @@
 package(
     default_visibility = [
+        "//tools/adt/idea/aswb/aswb:__subpackages__",
         "//tools/adt/idea/aswb/base:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
         "//tools/adt/idea/aswb/shared:__subpackages__",

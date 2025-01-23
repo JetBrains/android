@@ -7,6 +7,7 @@ package(default_visibility = [
     "//tools/adt/idea/aswb/cpp:__subpackages__",
     "//tools/adt/idea/aswb/java:__subpackages__",
     "//tools/adt/idea/aswb/querysync/javatests:__subpackages__",
+    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/base:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/cpp:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/querysync:__subpackages__",

@@ -15,41 +15,141 @@
  */
 package com.google.idea.blaze.android.run;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.android.filecache.LocalArtifactCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
-import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
+import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
+import com.google.idea.blaze.qsync.project.ProjectProto;
+import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
-  private final LocalArtifactCache cache;
+  private static final Logger logger = Logger.getInstance(RuntimeArtifactCacheImpl.class);
+  private final Map<Label, Map<Path, ProjectProto.ProjectArtifact>> artifactCacheMap = new HashMap<>();
+  private final Path runfilesDirectory;
+  private static final String SEPARATOR_DIR_NAME = "_";
+  private final BuildArtifactCache buildArtifactCache;
+  private final Path workspaceRoot;
+
+  public RuntimeArtifactCacheImpl(
+    Path runfilesDirectory, BuildArtifactCache buildArtifactCache, Path workspaceRoot)
+      throws IOException {
+    this.runfilesDirectory = runfilesDirectory;
+    this.buildArtifactCache = buildArtifactCache;
+    this.workspaceRoot = workspaceRoot;
+  }
 
   private RuntimeArtifactCacheImpl(Project project) throws IOException {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    Preconditions.checkNotNull(
-        importSettings, "Could not get directory for project '%s'", project.getName());
-
-    Path folder = BlazeDataStorage.getProjectDataDir(importSettings).toPath().resolve("apkCache");
-    Files.createDirectories(folder);
-    cache = new LocalArtifactCache(project, "APK Cache", folder);
+    this(
+        Paths.get(checkNotNull(project.getBasePath()))
+            .resolve(ArtifactDirectories.RUNFILES.relativePath()),
+        project.getService(BuildArtifactCache.class),
+        WorkspaceRoot.fromProject(project).path());
   }
 
   @Override
   public ImmutableList<Path> fetchArtifacts(
       Label target, List<? extends OutputArtifact> artifacts, BlazeContext context) {
-    cache.putAll(artifacts, context, true);
-    return artifacts.stream().map(a -> cache.get(a)).collect(toImmutableList());
+    final var artifactsCachedFuture =
+        buildArtifactCache.addAll(artifacts.stream().collect(toImmutableList()), context);
+    artifactCacheMap.put(target, buildArtifactLayout(target, artifacts));
+    final var artifactDirectoryContents = buildArtifactDirectoryContents(artifactCacheMap);
+    waitForArtifacts(artifactsCachedFuture);
+    updateArtifactDirectory(artifactDirectoryContents);
+
+    return resolveArtifactLayoutPaths(target, artifactCacheMap.get(target).keySet());
+  }
+
+  private ImmutableList<Path> resolveArtifactLayoutPaths(Label target, Set<Path> artifactPaths) {
+    return artifactPaths.stream()
+        .map(artifactPath -> runfilesDirectory.resolve(getArtifactLocalPath(target, artifactPath)))
+        .collect(toImmutableList());
+  }
+
+  private static void waitForArtifacts(ListenableFuture<?> artifactsCachedFuture) {
+    try {
+      artifactsCachedFuture.get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("Interrupted exception while fetching artifacts", e);
+    } catch (ExecutionException e) {
+      throw new IllegalStateException("Exception while fetching artifacts", e);
+    }
+  }
+
+  private static ImmutableMap<Path, ProjectArtifact> buildArtifactLayout(
+      Label target, List<? extends OutputArtifact> artifacts) {
+    final var resultBuilder = ImmutableMap.<Path, ProjectProto.ProjectArtifact>builder();
+    for (OutputArtifact artifact : artifacts) {
+      resultBuilder.put(
+          artifact.getArtifactPath(),
+          ProjectProto.ProjectArtifact.newBuilder()
+              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest(artifact.getDigest()))
+              .setTarget(target.toString())
+              .setTransform(ProjectProto.ProjectArtifact.ArtifactTransform.COPY)
+              .build());
+    }
+    return resultBuilder.build();
+  }
+
+  private void updateArtifactDirectory(
+      ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) {
+    try {
+      new ArtifactDirectoryUpdate(
+        buildArtifactCache,
+              workspaceRoot,
+              runfilesDirectory,
+              artifactDirectoryContents,
+              null,
+              false)
+          .update();
+    } catch (IOException e) {
+      throw new IllegalStateException("Exception while updating artifact directory", e);
+    }
+  }
+
+  /**
+   * Builds {@link ProjectProto.ArtifactDirectoryContents} from a map from artifact label -> artifact
+   * path -> project artifact.
+   */
+  private static ProjectProto.ArtifactDirectoryContents buildArtifactDirectoryContents(
+      Map<Label, Map<Path, ProjectProto.ProjectArtifact>> artifacts) {
+    final var artifactDirectoryContents = ProjectProto.ArtifactDirectoryContents.newBuilder();
+    for (final var entry : artifacts.entrySet()) {
+      final var target = entry.getKey();
+      for (final var artifactPathAndDigest : entry.getValue().entrySet()) {
+        final var artifactPath = artifactPathAndDigest.getKey();
+        final var artifact = artifactPathAndDigest.getValue();
+        artifactDirectoryContents.putContents(
+            getArtifactLocalPath(target, artifactPath).toString(), artifact);
+      }
+    }
+    return artifactDirectoryContents.build();
+  }
+
+  /**
+   * Generates the local artifact path from the target and artifact path. Local Artifact path ->
+   * Target + SEPARATOR_DIR_NAME + artifactPath.
+   */
+  public static Path getArtifactLocalPath(Label target, Path artifactPath) {
+    return target.toFilePath().resolve(Path.of(SEPARATOR_DIR_NAME)).resolve(artifactPath);
   }
 }

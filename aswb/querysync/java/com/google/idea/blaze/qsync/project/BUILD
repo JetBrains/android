@@ -1,5 +1,6 @@
 package(default_visibility = [
     "//tools/adt/idea/aswb/querysync:__subpackages__",
+    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
     "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
 ])
 
