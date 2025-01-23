@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.build.events
 
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
 import com.android.tools.idea.gradle.project.build.output.toBuildIssueEventWithAdditionalDescription
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.FilePosition
@@ -35,7 +34,13 @@ import org.junit.Test
 import java.io.File
 
 class BuildIssueEventWrappersTest {
-  private val buildIssueFix = OpenStudioBotBuildIssueQuickFix(GradleErrorContext(null, "some error message", null, null))
+  private val buildIssueFix = object : DescribedBuildIssueQuickFix {
+    override val description: String
+      get() = "Ask Gemini"
+    override val id: String
+      get() = "open.plugin.studio.bot"
+
+  }
   private val additionalDescription = BuildIssueDescriptionComposer().apply {
     addQuickFix(buildIssueFix)
   }

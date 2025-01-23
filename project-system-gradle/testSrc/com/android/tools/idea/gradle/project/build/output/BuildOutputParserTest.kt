@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
+import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.build.BuildProgressListener
@@ -74,11 +75,23 @@ abstract class BuildOutputParserTest {
       parsers.addAll(it.getBuildOutputParsers(taskId))
     }
 
-    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
+    val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
       override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun askGemini(context: GradleErrorContext, project: Project) {}
+      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
+      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        val messageEvent = buildEvent as? MessageEvent
+        if(messageEvent?.kind != MessageEvent.Kind.ERROR) {
+          return null
+        }
+        return object: DescribedBuildIssueQuickFix {
+          override val description: String
+            get() = "Ask Gemini"
+          override val id: String
+            get() = "open.plugin.studio.bot"
+        }
+      }
     }
-    ApplicationManager.getApplication().registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
   }
 
   private fun parseOutput(parentEventId: String, gradleOutput: String, expectedEvents: String) {

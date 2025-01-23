@@ -16,17 +16,13 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueEvent
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.events.copyWithQuickFix
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.extractTaskNameFromId
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.DuplicateMessageAware
-import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
@@ -34,10 +30,7 @@ import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.util.function.Consumer
 
 
@@ -47,54 +40,21 @@ import java.util.function.Consumer
 class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: ExternalSystemTaskId) : BuildOutputParser {
 
   private val explainerAvailable
-    get() = StudioBotQuickFixProvider.getInstance().isAvailable()
+    get() = GradleErrorQuickFixProvider.getInstance().isAvailable()
 
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     if(!explainerAvailable) {
       return parser.parse(line, reader, messageConsumer)
     }
     return parser.parse(line, reader) {
-      val messageEvent = it as? MessageEvent
-
-      // We are only adding links for build events that are of severity ERROR. All other types such as warnings and info messages are
-      // excluded.
-      val event =
-        if (messageEvent != null && messageEvent.kind == MessageEvent.Kind.ERROR)
-        {
-          val context = GradleErrorContext(
-            gradleTask = extractTaskNameFromId(it.parentId?:""),
-            errorMessage = it.message,
-            fullErrorDetails = it.description,
-            source = extractSourceFromTaskId(taskId),
-            sourceFiles = it.getVirtualFiles()
-          )
-          val quickFix = OpenStudioBotBuildIssueQuickFix(context)
-          it.toBuildIssueEventWithQuickFix(quickFix)
+      val quickFix = GradleErrorQuickFixProvider.getInstance().createBuildIssueQuickFixFor(it, taskId)
+      val event = if(quickFix != null) {
+        it.toBuildIssueEventWithQuickFix(quickFix)
         } else {
           it
         }
       messageConsumer?.accept(event)
     }
-  }
-
-  private fun MessageEvent.getVirtualFiles(): List<VirtualFile> {
-    if(this !is FileMessageEvent) {
-      return emptyList()
-    }
-
-    return buildList {
-      filePosition.file.toVirtualFile()?.let {
-        add(it)
-      }
-    }
-  }
-
-  private fun extractSourceFromTaskId(taskId: ExternalSystemTaskId): GradleErrorContext.Source? {
-      return when(taskId.type) {
-        ExternalSystemTaskType.RESOLVE_PROJECT -> GradleErrorContext.Source.SYNC
-        ExternalSystemTaskType.EXECUTE_TASK -> GradleErrorContext.Source.BUILD
-        else -> null
-      }
   }
 }
 

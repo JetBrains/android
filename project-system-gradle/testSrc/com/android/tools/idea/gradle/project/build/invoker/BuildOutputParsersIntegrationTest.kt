@@ -18,8 +18,9 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
+import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -31,6 +32,8 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage.FileType.UNKNOWN_
 import com.intellij.build.BuildTreeConsoleView
 import com.intellij.build.BuildViewManager
 import com.intellij.build.ExecutionNode
+import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FailureResultImpl
 import com.intellij.build.events.impl.FinishEventImpl
 import com.intellij.build.events.impl.StartEventImpl
@@ -111,12 +114,24 @@ class BuildOutputParsersIntegrationTest {
     buildViewTestFixture = BuildViewTestFixture(projectRule.project)
     buildViewTestFixture.setUp()
 
-    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
+    val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
       override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun askGemini(context: GradleErrorContext, project: Project) {}
+      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
+      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        val messageEvent = buildEvent as? MessageEvent
+        if(messageEvent?.kind != MessageEvent.Kind.ERROR) {
+          return null
+        }
+        return object: DescribedBuildIssueQuickFix {
+          override val description: String
+            get() = "Ask Gemini"
+          override val id: String
+            get() = "com.plugin.gradle.quickfix"
+        }
+      }
     }
     ApplicationManager.getApplication()
-      .registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
+      .registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
   }
 
   @After

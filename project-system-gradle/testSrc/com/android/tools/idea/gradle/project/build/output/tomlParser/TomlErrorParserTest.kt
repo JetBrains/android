@@ -16,15 +16,17 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
+import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.truth.Truth
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
@@ -393,11 +395,20 @@ class TomlErrorParserTest {
   }
 
   private fun registerStudioBotQuickFixProvider() {
-    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
+    val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
       override fun isAvailable(): Boolean = true
-      override fun askGemini(context: GradleErrorContext, project: Project) {}
+      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
+      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        return object : DescribedBuildIssueQuickFix {
+          override val description: String
+            get() = "Ask Gemini"
+          override val id: String
+            get() = "open.plugin.studio.bot"
+
+        }
+      }
     }
-    ApplicationManager.getApplication().registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
   }
 
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)

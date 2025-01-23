@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext.Source.SYNC;
+import static com.android.tools.idea.gradle.project.build.events.GradleErrorContext.Source.SYNC;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gradle.GradleProjectSystemBundle;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext;
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider;
+import com.android.tools.idea.gradle.project.build.events.GradleErrorContext;
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
@@ -137,7 +137,7 @@ public class SyncIssuesReporter {
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
 
-    StudioBotQuickFixProvider provider = StudioBotQuickFixProvider.Companion.getInstance();
+    GradleErrorQuickFixProvider provider = GradleErrorQuickFixProvider.Companion.getInstance();
     if (provider.isAvailable()) {
       // this only covers sync warning, but sync errors are handled by AndroidGradleExecutionConsoleManager
       addIssueExplanationLinks(syncMessages);
@@ -165,10 +165,10 @@ public class SyncIssuesReporter {
                                                          AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX) {
         @Override
         protected void execute(@NotNull Project project) {
-          StudioBotQuickFixProvider provider = StudioBotQuickFixProvider.Companion.getInstance();
-          provider.askGemini(new GradleErrorContext(
+          GradleErrorQuickFixProvider provider = GradleErrorQuickFixProvider.Companion.getInstance();
+          provider.runQuickFix(new GradleErrorContext(
                                /* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC, /* sourceFiles = */ getErrorSourceFiles(syncMessage)),
-                             project);
+                               project);
         }
       });
     }

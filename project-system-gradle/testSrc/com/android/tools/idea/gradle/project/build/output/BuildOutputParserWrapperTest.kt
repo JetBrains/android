@@ -16,28 +16,19 @@
 package com.android.tools.idea.gradle.project.build.output
 
 
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
-import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildIssueEvent
-import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.MessageEvent.Kind.ERROR
-import com.intellij.build.events.MessageEvent.Kind.INFO
-import com.intellij.build.events.MessageEvent.Kind.WARNING
-import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.registerExtension
 import org.junit.Before
 import org.junit.Rule
@@ -55,22 +46,9 @@ class BuildOutputParserWrapperTest {
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
-  private val fakeStudioBotQuickFixProvider = FakeStudioBotQuickFixProvider()
+  private val mockGradleErrorQuickFixProvider = mock<GradleErrorQuickFixProvider>()
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
-
-  private class FakeStudioBotQuickFixProvider: StudioBotQuickFixProvider {
-    var sentContext: GradleErrorContext? = null
-    var sentProject: Project? = null
-    var available = true
-    override fun askGemini(context: GradleErrorContext, project: Project) {
-      sentContext  = context
-      sentProject = project
-    }
-    override fun isAvailable(): Boolean {
-      return available
-    }
-  }
 
   @Before
   fun setup() {
@@ -80,199 +58,39 @@ class BuildOutputParserWrapperTest {
     }
     myParserWrapper = BuildOutputParserWrapper(parser, ID)
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
-    ApplicationManager.getApplication().registerExtension(StudioBotQuickFixProvider.EP_NAME, fakeStudioBotQuickFixProvider, projectRule.project)
-  }
 
-  @Test
-  fun `test 'Ask Gemini' link is added for ERROR FileMessageEvent`() {
-    messageEvent = createFileMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes).hasSize(1)
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' link is added for ERROR MessageEvent`() {
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes).hasSize(1)
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' link is not added for WARNING MessageEvent`() {
-    messageEvent = createFileMessageEvent(WARNING)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
-    }
+    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, mockGradleErrorQuickFixProvider, projectRule.project)
   }
 
 
   @Test
-  fun `test 'Ask Gemini' link is not added for INFO MessageEvent`() {
-    messageEvent = createFileMessageEvent(INFO)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
-    }
-  }
-
-  @Test
-  fun `test when StudioBotQuickFixProvider is not available, 'Ask Gemini' link is not added for ERROR MessageEvent`() {
-    fakeStudioBotQuickFixProvider.available = false
+  fun `test when GradleErrorQuickFixProvider is not available, quick fix is not added to the build event`() {
+    whenever(mockGradleErrorQuickFixProvider.isAvailable()).thenReturn(false)
 
     messageEvent = createMessageEvent(ERROR)
     myParserWrapper.parse(null, null) { event ->
-
-      // MessageEvent is not converted into a BuildIssueEvent which holds the link.
+      // MessageEvent is not converted into a BuildIssueEvent which holds the quickfix.
       assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
     }
   }
 
   @Test
-  fun `test 'Ask Gemini' quick fix sends context without gradle command when not available`() {
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
-    messageEvent = createMessageEvent(ERROR, "", "", "")
+  fun `test when GradleErrorQuickFixProvider is available, a quick fix is added to the build event`() {
+    messageEvent = createMessageEvent(ERROR)
 
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      val expected = """
-            GradleErrorContext:
-        """.trimIndent()
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo(expected)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix parses Gradle command from projectId`() {
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
-    messageEvent = createMessageEvent(ERROR, id = "[-4474:2441] > [Task :app:compileDebugJavaWithJavac]", group = "", message = "", detailedMessage = "")
-
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      val expected =
-        """
-        GradleErrorContext:
-        gradleTask: :app:compileDebugJavaWithJavac
-        """.trimIndent()
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo(expected)
-    }
-  }
-
-
-  @Test
-  fun `test 'Ask Gemini' quick fix sets RequestSource as BUILD for EXECUTE_TASK`() {
-    messageEvent = createMessageEvent(ERROR, "", "", "")
-
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
-
-    myParserWrapper.parse(null, null) { event ->
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      val expected =
-        """
-        GradleErrorContext:
-        source: build
-        """.trimIndent()
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo(expected)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix sets RequestSource as SYNC for RESOLVE_PROJECT`() {
-    messageEvent = createMessageEvent(ERROR, "", "", "")
-
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
-
-    myParserWrapper.parse(null, null) { event ->
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      val expected =
-        """
-        GradleErrorContext:
-        source: sync
-        """.trimIndent()
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo(expected)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix sends query with file contents for FileMessageEvent`() {
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
-    val file = tempDirRule.createVirtualFile(
-      "MyFile.kt",
-      """
-        class MyClass {
-          println("Hello") return
-        }
-      """
-        .trimIndent()
+    whenever(mockGradleErrorQuickFixProvider.isAvailable()).thenReturn(true)
+    whenever(mockGradleErrorQuickFixProvider.createBuildIssueQuickFixFor(messageEvent, ID)).thenReturn(
+      object: DescribedBuildIssueQuickFix{
+        override val description: String
+          get() = "Quick fix description"
+        override val id: String
+          get() = "com.some.plugin.quickfix"
+      }
     )
 
-    messageEvent = createFileMessageEvent(ERROR, file = file)
-
     myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.sourceFiles).isEqualTo(listOf(file))
-      assertThat(fakeStudioBotQuickFixProvider.sentContext!!.formatForTests()).isEqualTo("""
-            GradleErrorContext:
-            errorMessage: !!some error message!!
-            fullErrorDetails: Detailed error message
-            source: build
-            Source files included:
-            ${file.name}
-      """.trimIndent())
-    }
-  }
-
-  private fun GradleErrorContext.formatForTests() = buildString {
-    append("GradleErrorContext:")
-    if (!gradleTask.isNullOrEmpty()) {
-      append("\ngradleTask: $gradleTask")
-    }
-    if (!errorMessage.isNullOrEmpty()) {
-      append("\nerrorMessage: $errorMessage")
-    }
-    if (!fullErrorDetails.isNullOrEmpty()) {
-      append("\nfullErrorDetails: $fullErrorDetails")
-    }
-    if (source != null) {
-      append("\nsource: $source")
-    }
-    if (sourceFiles.isNotEmpty()) {
-      append("\nSource files included:")
-      sourceFiles.forEach {
-        append("\n${it.name}")
-      }
+      // MessageEvent is converted into a BuildIssueEvent which holds the quickfix.
+      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
     }
   }
 
@@ -289,24 +107,6 @@ class BuildOutputParserWrapperTest {
       group,
       message,
       detailedMessage)
-  }
-
-  private fun createFileMessageEvent(
-    kind: MessageEvent.Kind,
-    group: String = "Compiler",
-    message: String = "!!some error message!!",
-    detailedMessage: String = "Detailed error message",
-    id: Any = ID,
-    file: VirtualFile = tempDirRule.createVirtualFile("Main.kt"),
-  ): FileMessageEvent {
-    val folder = temporaryFolder.newFolder("test")
-    return FileMessageEventImpl(
-      id,
-      kind,
-      group,
-      message,
-      detailedMessage,
-      FilePosition(file.toIoFile(),1, 1))
   }
 
   companion object {

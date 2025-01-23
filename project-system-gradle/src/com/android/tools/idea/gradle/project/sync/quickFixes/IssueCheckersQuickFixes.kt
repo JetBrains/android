@@ -22,10 +22,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.gradle.GradleProjectSystemBundle
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -331,17 +328,6 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
     if (service is AndroidProjectSettingsService) {
       service.chooseJdkLocation(project.basePath)
     }
-    return CompletableFuture.completedFuture(null)
-  }
-}
-
-class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErrorContext) : DescribedBuildIssueQuickFix {
-  override val id: String = "open.plugin.studio.bot"
-  override val description: String = GradleProjectSystemBundle.message("studiobot.ask.text")
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val studioBotQuickFixProvider = StudioBotQuickFixProvider.getInstance()
-    studioBotQuickFixProvider.askGemini(gradleErrorContext, project)
     return CompletableFuture.completedFuture(null)
   }
 }

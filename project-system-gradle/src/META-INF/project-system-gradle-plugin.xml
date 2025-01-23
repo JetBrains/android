@@ -425,7 +425,7 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.androidModuleDataService"
                     interface="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceExtension"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.gradle.studioBotQuickFixProvider"
-                    interface="com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.gradle.errorQuickFixProvider"
+                    interface="com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider"/>
   </extensionPoints>
 </idea-plugin>
