@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,6 +173,7 @@ object StudioIconsCompose {
   object DatabaseInspector {
     val AllowDatabasesToClose: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/allow-databases-to-close.svg", "/studio/icons/database-inspector/allow-databases-to-close.svg", StudioIconsCompose.javaClass) // 16x16
     val Column: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/column.svg", "/studio/icons/database-inspector/column.svg", StudioIconsCompose.javaClass) // 16x16
+    val DatabaseForcedConnection: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/database-forced-connection.svg", "/studio/icons/database-inspector/database-forced-connection.svg", StudioIconsCompose.javaClass) // 16x16
     val DatabaseOffline: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/database-offline.svg", "/studio/icons/database-inspector/database-offline.svg", StudioIconsCompose.javaClass) // 16x16
     val DatabaseUnavailable: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/database-unavailable.svg", "/studio/icons/database-inspector/database-unavailable.svg", StudioIconsCompose.javaClass) // 16x16
     val Database: IntelliJIconKey = IntelliJIconKey("/studio/icons/database-inspector/database.svg", "/studio/icons/database-inspector/database.svg", StudioIconsCompose.javaClass) // 16x16

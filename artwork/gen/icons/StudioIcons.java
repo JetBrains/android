@@ -179,6 +179,7 @@ public final class StudioIcons {
   public static final class DatabaseInspector {
     /** 16x16 */ public static final @NotNull Icon ALLOW_DATABASES_TO_CLOSE = load("studio/icons/database-inspector/allow-databases-to-close.svg", -261543866, 2);
     /** 16x16 */ public static final @NotNull Icon COLUMN = load("studio/icons/database-inspector/column.svg", 2074269613, 2);
+    /** 16x16 */ public static final @NotNull Icon DATABASE_FORCED_CONNECTION = load("studio/icons/database-inspector/database-forced-connection.svg", -921369008, 2);
     /** 16x16 */ public static final @NotNull Icon DATABASE_OFFLINE = load("studio/icons/database-inspector/database-offline.svg", 1911064160, 2);
     /** 16x16 */ public static final @NotNull Icon DATABASE_UNAVAILABLE = load("studio/icons/database-inspector/database-unavailable.svg", 66385942, 2);
     /** 16x16 */ public static final @NotNull Icon DATABASE = load("studio/icons/database-inspector/database.svg", 895400425, 2);
