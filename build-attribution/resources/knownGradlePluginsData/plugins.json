@@ -104,7 +104,7 @@
         "org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin"
       ],
       "pluginArtifact": "org.jfrog.buildinfo:build-info-extractor-gradle",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "5.2.5"
     },
     {
       "name": "com.github.ben-manes.versions",
@@ -208,7 +208,7 @@
         "com.diffplug.gradle.spotless.SpotlessPlugin"
       ],
       "pluginArtifact": "com.diffplug.spotless:spotless-plugin-gradle",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "7.0.2"
     },
     {
       "name": "org.sonarqube",
@@ -321,6 +321,38 @@
       ],
       "pluginArtifact": "com.autonomousapps:dependency-analysis-gradle-plugin",
       "configurationCachingCompatibleFrom": "1.28.0"
+    },
+    {
+      "name": "dev.icerock.mobile.multiplatform-resources",
+      "pluginClasses": [
+        "dev.icerock.gradle.MultiplatformResourcesPlugin"
+      ],
+      "pluginArtifact": "dev.icerock.mobile.multiplatform-resources:dev.icerock.mobile.multiplatform-resources.gradle.plugin",
+      "configurationCachingCompatibleFrom": "0.24.0"
+    },
+    {
+      "name": "net.researchgate.release",
+      "pluginClasses": [
+        "net.researchgate.release.ReleasePlugin"
+      ],
+      "pluginArtifact": "net.researchgate.release:net.researchgate.release.gradle.plugin",
+      "configurationCachingCompatibleFrom": "3.1.0"
+    },
+    {
+      "name": "org.jetbrains.dokka",
+      "pluginClasses": [
+        "org.jetbrains.dokka.gradle.DokkaPlugin"
+      ],
+      "pluginArtifact": "org.jetbrains.dokka:dokka-gradle-plugin",
+      "configurationCachingCompatibleFrom": "2.0.0"
+    },
+    {
+      "name": "org.cyclonedx.bom",
+      "pluginClasses": [
+        "org.cyclonedx.gradle.CycloneDxPlugin"
+      ],
+      "pluginArtifact": "org.cyclonedx.bom:org.cyclonedx.bom.gradle.plugin",
+      "configurationCachingCompatibleFrom": "2.0.0"
     }
   ],
   "pluginEntryTemplate": {
