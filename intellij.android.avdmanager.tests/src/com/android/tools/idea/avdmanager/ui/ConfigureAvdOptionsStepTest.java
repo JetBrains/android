@@ -383,7 +383,7 @@ public final class ConfigureAvdOptionsStepTest {
     optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
-    assertEquals("Android API 99 x86", optionsStep.getSystemImageDetailsText());
+    assertEquals("Android API 99.0 x86", optionsStep.getSystemImageDetailsText());
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
