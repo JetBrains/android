@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (C) 2025 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<WatchFace
+    clipShape="CIRCLE" height="450" width="450">
+  <Scene backgroundColor="#ff000000">
+    <ComplicationSlot
+        name="battery complication_0"
+        alpha="255"
+        displayName="battery complication"
+        height="24"
+        isCustomizable="FALSE"
+        pivotX="0.5"
+        pivotY="0.5"
+        slotId="0"
+        supportedTypes="MONOCHROMATIC_IMAGE"
+        width="24"
+        x="130"
+        y="285">
+      <DefaultProviderPolicy
+          defaultSystemProvider="WATCH_BATTERY"
+          defaultSystemProviderType="MONOCHROMATIC_IMAGE" />
+      <BoundingBox
+          height="24"
+          width="24"
+          x="0"
+          y="0" />
+      <Complication type="MONOCHROMATIC_IMAGE">
+        <PartImage
+            name="Icon_9968"
+            alpha="255"
+            height="24"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="24"
+            x="0"
+            y="3">
+          <Image resource="<caret>" />
+        </PartImage>
+      </Complication>
+    </ComplicationSlot>
+  </Scene>
+</WatchFace>
