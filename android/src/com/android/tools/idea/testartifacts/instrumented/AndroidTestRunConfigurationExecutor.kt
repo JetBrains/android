@@ -98,6 +98,13 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
+    // Make sure that devices are online.
+    devices.forEach {
+      require(it.isOnline) {
+        "Device (${it.name}) is offline."
+      }
+    }
+
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 
     waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
