@@ -20,8 +20,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -32,8 +34,12 @@ internal abstract class ActionWithSuspendedUpdate : AnAction() {
     val project = e.project ?: return
     val job =
       project.coroutineScope.launch(AndroidDispatchers.workerThread) {
-        withTimeout(500.milliseconds) {
-          suspendedUpdate(project, e).applyTo(this@ActionWithSuspendedUpdate, e.presentation)
+        val action = this@ActionWithSuspendedUpdate
+        try {
+          withTimeout(10.seconds) { suspendedUpdate(project, e).applyTo(action, e.presentation) }
+        } catch (e: TimeoutCancellationException) {
+          action.thisLogger().warn("Timeout while updating ${action::class.java.simpleName}")
+          throw e
         }
       }
     runBlocking { job.join() }

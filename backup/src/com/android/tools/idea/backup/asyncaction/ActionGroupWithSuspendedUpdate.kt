@@ -20,9 +20,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.CoroutineScope
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -33,15 +34,15 @@ internal abstract class ActionGroupWithSuspendedUpdate : ActionGroup() {
     val project = e.project ?: return
     val job =
       project.coroutineScope.launch(AndroidDispatchers.workerThread) {
-        withTimeout(500.milliseconds) {
-          suspendedUpdate(project, e).applyTo(this@ActionGroupWithSuspendedUpdate, e.presentation)
+        val action = this@ActionGroupWithSuspendedUpdate
+        try {
+          withTimeout(10.seconds) { suspendedUpdate(project, e).applyTo(action, e.presentation) }
+        } catch (e: TimeoutCancellationException) {
+          action.thisLogger().warn("Timeout while updating ${action::class.java.simpleName}")
+          throw e
         }
       }
     runBlocking { job.join() }
-  }
-
-  open fun AnActionEvent.getCoroutineScope(): CoroutineScope {
-    return project?.coroutineScope ?: throw IllegalStateException("No CoroutineScope provided")
   }
 
   abstract suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState
