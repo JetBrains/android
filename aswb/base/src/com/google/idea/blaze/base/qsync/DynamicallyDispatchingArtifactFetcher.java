@@ -22,10 +22,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -39,8 +41,8 @@ public class DynamicallyDispatchingArtifactFetcher implements ArtifactFetcher<Ou
 
   private final ImmutableList<ArtifactFetcher<?>> fetchers;
 
-  public DynamicallyDispatchingArtifactFetcher(ImmutableList<ArtifactFetcher<?>> fetchers) {
-    this.fetchers = fetchers;
+  public DynamicallyDispatchingArtifactFetcher(Project project) {
+    this.fetchers = ImmutableList.copyOf(ArtifactFetchers.EP_NAME.getExtensionList());
   }
 
   @Override

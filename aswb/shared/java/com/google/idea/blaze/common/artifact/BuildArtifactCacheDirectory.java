@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.common.artifact;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -36,14 +37,18 @@ import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher.ArtifactDestination;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
@@ -111,6 +116,15 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
    * a future callback to ensure that the lock is released when it is done, see {@link #startFetch}.
    */
   private final StampedLock lock = new StampedLock();
+
+  public BuildArtifactCacheDirectory(Project project) throws BuildException {
+    this(
+      Paths.get(checkNotNull(project.getBasePath())).resolve(".buildcache"),
+      project.getService(ArtifactFetcher.class),
+      MoreExecutors.listeningDecorator(
+        AppExecutorUtil.createBoundedApplicationPoolExecutor("BuildArtifactCache", 128)),
+      project.getService(CleanRequest.class));
+  }
 
   public BuildArtifactCacheDirectory(
       Path cacheDir,

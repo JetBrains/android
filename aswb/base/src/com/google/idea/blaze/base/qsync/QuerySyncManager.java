@@ -140,7 +140,7 @@ public class QuerySyncManager implements Disposable {
     this.loader = loader != null ? loader : createProjectLoader(project);
     this.syncStatus = new QuerySyncStatus(project);
     this.fileListener = QuerySyncAsyncFileListener.createAndListen(project, this);
-    this.cacheCleaner = new CacheCleaner(project, this);
+    this.cacheCleaner = new CacheCleaner(project);
   }
 
   /**
