@@ -259,6 +259,8 @@ studio_plugin(
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
             "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
+            "//tools/adt/idea/wear-dwf:intellij.android.wear-dwf",
+            "//tools/base/wear-wff-schema:studio.intellij.android.wear-wff-schema",
             "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",

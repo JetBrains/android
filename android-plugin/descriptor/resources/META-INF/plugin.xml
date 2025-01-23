@@ -97,6 +97,7 @@
   <xi:include href="/META-INF/device-manager-v2.xml"/>
   <xi:include href="/META-INF/wear-pairing.xml"/>
   <xi:include href="/META-INF/wear-whs.xml"/>
+  <xi:include href="/META-INF/wear-dwf.xml"/>
   <xi:include href="/META-INF/android-execution-common.xml"/>
   <xi:include href="/META-INF/android-deploy.xml"/>
   <xi:include href="/META-INF/google-login.xml"/>

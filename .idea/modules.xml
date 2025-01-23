@@ -455,6 +455,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
       <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.iml" filepath="$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.tests.iml" filepath="$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
     </modules>
