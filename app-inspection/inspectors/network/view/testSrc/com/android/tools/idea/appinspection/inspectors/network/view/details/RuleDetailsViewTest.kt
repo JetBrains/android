@@ -1240,7 +1240,7 @@ class RuleDetailsViewTest {
     textField.onFocusLost()
 
     assertThat(warningLabel.isVisible).isTrue()
-    assertThat(warningLabel.text).isEqualTo("Rule name cannot be blank")
+    assertThat(warningLabel.toolTipText).isEqualTo("Rule name cannot be blank")
     tracker.verifyLatestEvent {
       assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
     }
@@ -1259,7 +1259,7 @@ class RuleDetailsViewTest {
     textField.onFocusLost()
 
     assertThat(warningLabel.isVisible).isTrue()
-    assertThat(warningLabel.text).isEqualTo("Rule named 'New Rule' already exists")
+    assertThat(warningLabel.toolTipText).isEqualTo("Rule named 'New Rule' already exists")
     tracker.verifyLatestEvent {
       assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
     }

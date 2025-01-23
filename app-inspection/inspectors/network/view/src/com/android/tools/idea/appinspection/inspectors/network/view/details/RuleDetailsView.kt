@@ -98,7 +98,7 @@ class RuleDetailsView(
           val warningText = validateRuleName(text)
           if (warningText != null) {
             nameWarningLabel.isVisible = true
-            nameWarningLabel.text = warningText
+            nameWarningLabel.toolTipText = warningText
             return@createTextField
           }
         }
