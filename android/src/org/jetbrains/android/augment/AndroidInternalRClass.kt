@@ -27,12 +27,12 @@ class AndroidInternalRClass(
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
     ContainingFileProvider.Builder(AndroidInternalRClassFinder.INTERNAL_PACKAGE_QNAME, "R")
       .setContents(""),
+    AndroidLightClassModuleInfo.from(sdk),
   ) {
   private val innerClasses: Array<PsiClass>
 
   init {
     containingFile.viewProvider.virtualFile.putUserData(ANDROID_INTERNAL_R, sdk)
-    setModuleInfo(sdk)
     innerClasses = ResourceType.values().map(::MyInnerClass).toTypedArray()
   }
 

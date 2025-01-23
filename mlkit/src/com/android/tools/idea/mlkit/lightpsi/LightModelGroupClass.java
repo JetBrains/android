@@ -66,12 +66,12 @@ public class LightModelGroupClass extends AndroidLightClassBase {
                               @NotNull List<TensorInfo> tensorInfos,
                               @NotNull TensorGroupInfo tensorGroupInfo,
                               @NotNull LightModelClass containingClass) {
-    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+    super(containingClass,
+          ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
+          AndroidLightClassModuleInfo.from(module));
     this.myClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), myClassName);
     this.containingClass = containingClass;
-
-    setModuleInfo(module, false);
 
     // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(

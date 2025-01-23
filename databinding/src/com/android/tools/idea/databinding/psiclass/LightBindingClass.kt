@@ -80,6 +80,7 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
     psiManager,
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
     ContainingFileProvider.Builder(config.qualifiedName),
+    AndroidLightClassModuleInfo.from(config.facet.module),
   ) {
 
   private enum class NullabilityType {
@@ -118,10 +119,6 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
     lazy(LazyThreadSafetyMode.PUBLICATION) {
       arrayOf(PsiType.getTypeByName(config.superName, project, moduleScope))
     }
-
-  init {
-    setModuleInfo(config.facet.module, false)
-  }
 
   private fun computeMethods(): Array<PsiMethod> {
     val methods: MutableList<PsiMethod> = mutableListOf()

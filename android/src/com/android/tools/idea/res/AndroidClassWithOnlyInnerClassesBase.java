@@ -22,8 +22,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.util.CachedValue;
@@ -47,22 +45,25 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   protected AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
                                                  @Nullable String packageName,
                                                  @NotNull PsiManager psiManager,
-                                                 @NotNull Collection<String> modifiers) {
+                                                 @NotNull Collection<String> modifiers,
+                                                 @NotNull AndroidLightClassModuleInfo moduleInfo) {
     this(shortName,
          packageName,
          psiManager,
          modifiers,
          new ContainingFileProvider.Builder(
            packageNameForContainingFile(packageName, psiManager.getProject()),
-           shortName));
+           shortName),
+         moduleInfo);
   }
 
   private AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
                                                @Nullable String packageName,
                                                @NotNull PsiManager psiManager,
                                                @NotNull Collection<String> modifiers,
-                                               @NotNull ContainingFileProvider.Builder containingFileProvider) {
-    super(psiManager, modifiers, containingFileProvider);
+                                               @NotNull ContainingFileProvider.Builder containingFileProvider,
+                                               @NotNull AndroidLightClassModuleInfo moduleInfo) {
+    super(psiManager, modifiers, containingFileProvider, moduleInfo);
     Project project = getProject();
 
     myShortName = shortName;

@@ -66,10 +66,9 @@ class SmallAarRClass(
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace,
   aarAddress: String,
-) : AndroidRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName, AndroidLightClassModuleInfo.from(library)) {
 
   init {
-    setModuleInfo(library)
     val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, SmallAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
@@ -132,10 +131,9 @@ class TransitiveAarRClass(
   packageName: String,
   private val symbolFile: File,
   aarAddress: String,
-) : AndroidRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName, AndroidLightClassModuleInfo.from(library)) {
 
   init {
-    setModuleInfo(library)
     val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, TransitiveAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)

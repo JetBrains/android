@@ -51,11 +51,11 @@ class ManifestClass(val facet: AndroidFacet, psiManager: PsiManager) :
     facet.module.getModuleSystem().getPackageName(),
     psiManager,
     listOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
+    AndroidLightClassModuleInfo.from(facet.module),
   ) {
   private val qualifiedName = "$packageName.${SdkConstants.FN_MANIFEST_BASE}"
 
   init {
-    setModuleInfo(facet.module, false)
     val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(
       MODULE_POINTER_KEY,

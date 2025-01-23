@@ -29,7 +29,13 @@ import org.jetbrains.annotations.Nullable;
  * @see InnerRClassBase
  */
 public abstract class AndroidRClassBase extends AndroidClassWithOnlyInnerClassesBase {
-  public AndroidRClassBase(@NotNull PsiManager psiManager, @Nullable String packageName) {
-    super(SdkConstants.R_CLASS, packageName, psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
+  protected AndroidRClassBase(@NotNull PsiManager psiManager,
+                           @Nullable String packageName,
+                           @NotNull AndroidLightClassModuleInfo moduleInfo) {
+    super(SdkConstants.R_CLASS,
+          packageName,
+          psiManager,
+          ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
+          moduleInfo);
   }
 }

@@ -91,14 +91,13 @@ public class LightModelClass extends AndroidLightClassBase {
     super(
       PsiManager.getInstance(module.getProject()),
       ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
-      new ContainingFileProvider.Builder(classConfig.myPackageName, classConfig.myClassName));
+      new ContainingFileProvider.Builder(classConfig.myPackageName, classConfig.myClassName),
+      AndroidLightClassModuleInfo.from(module));
 
     myModelFile = modelFile;
     myClassConfig = classConfig;
     myAPIVersion = APIVersion.fromProject(module.getProject());
     myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(getModelInfo().getMinParserVersion());
-
-    setModuleInfo(module, false);
 
     myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {

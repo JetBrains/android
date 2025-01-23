@@ -80,13 +80,14 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   private final boolean myGenerateFallbackApiOnly;
 
   public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull LightModelClass containingClass) {
-    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+    super(containingClass,
+          ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
+          AndroidLightClassModuleInfo.from(module));
+
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;
     myAPIVersion = APIVersion.fromProject(module.getProject());
     myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(modelInfo.getMinParserVersion());
-
-    setModuleInfo(module, false);
 
     // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(

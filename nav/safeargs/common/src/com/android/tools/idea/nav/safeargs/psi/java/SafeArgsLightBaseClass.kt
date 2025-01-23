@@ -35,6 +35,7 @@ private constructor(
     PsiManager.getInstance(navInfo.facet.module.project),
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
     ContainingFileProvider.Builder(names.qualified),
+    AndroidLightClassModuleInfo.from(navInfo.facet.module),
   ) {
 
   protected constructor(
@@ -46,10 +47,6 @@ private constructor(
 
   private val qualifiedName = names.qualified
   private val name = names.simple
-
-  init {
-    super.setModuleInfo(navInfo.facet.module, false)
-  }
 
   override fun getName() = name
 

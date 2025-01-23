@@ -36,8 +36,9 @@ private typealias ResourceFilter = (ResourceItem) -> Boolean
  * Implementations need to implement [doGetFields], most likely by calling one of the
  * [buildResourceFields] methods.
  */
-abstract class InnerRClassBase(context: AndroidLightClassBase, val resourceType: ResourceType) :
-  AndroidLightInnerClassBase(context, resourceType.getName()) {
+abstract class InnerRClassBase
+protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType, moduleInfo: AndroidLightClassModuleInfo? = null) :
+  AndroidLightInnerClassBase(context, resourceType.getName(), moduleInfo) {
   private var fieldsCache: CachedValue<Array<PsiField>>? = null
   private val logger = thisLogger()
 

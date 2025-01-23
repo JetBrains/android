@@ -63,6 +63,7 @@ private constructor(
     psiManager,
     setOf(PsiModifier.PUBLIC),
     createContainingFileInfo(dataBindingMode),
+    AndroidLightClassModuleInfo.from(facet.module),
   ),
   ModificationTracker {
 
@@ -73,10 +74,6 @@ private constructor(
 
   private val methodCache: CachedValue<Array<PsiMethod>> =
     CachedValuesManager.getManager(facet.module.project).createCachedValue(::computeMethods)
-
-  init {
-    setModuleInfo(facet.module, false)
-  }
 
   override fun isInterface() = true
 

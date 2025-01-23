@@ -67,6 +67,7 @@ class LightBrClass(
     psiManager,
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
     ContainingFileProvider.Builder(qualifiedName),
+    AndroidLightClassModuleInfo.from(facet.module),
   ) {
 
   /** All fields in this BR class, including the top "_all" field */
@@ -112,8 +113,6 @@ class LightBrClass(
           psiManager.modificationTracker,
         )
       }
-
-    setModuleInfo(facet.module, false)
   }
 
   /**

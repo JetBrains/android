@@ -67,9 +67,9 @@ public class BlazeRClass extends ResourceRepositoryRClass {
           public AndroidLightField.FieldModifier getFieldModifier() {
             return AndroidLightField.FieldModifier.NON_FINAL;
           }
-        });
+        },
+        AndroidLightClassModuleInfo.from(androidFacet.getModule()));
     this.androidFacet = androidFacet;
-    setModuleInfo(getModule(), false);
     VirtualFile virtualFile = getContainingFile().getViewProvider().getVirtualFile();
     virtualFile.putUserData(
         MODULE_POINTER_KEY, ModulePointerManager.getInstance(getProject()).create(getModule()));
