@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class IdeInstallation<T extends IDE> {
+public abstract class IdeInstallation<T extends Ide> {
 
   private final String platformId;
 
@@ -78,7 +78,7 @@ public abstract class IdeInstallation<T extends IDE> {
   }
 
 
-  public static IdeInstallation<? extends IDE> create(TestFileSystem fileSystem) throws IOException {
+  public static IdeInstallation<? extends Ide> create(TestFileSystem fileSystem) throws IOException {
     String platform = System.getProperty("intellij.plugin.test.platform");
     if ("studio-sdk".equals(platform)) {
       return AndroidStudioInstallation.fromZip(fileSystem);

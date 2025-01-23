@@ -18,7 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.annotations.Nullable;
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
-import com.android.tools.asdriver.tests.base.IDE;
+import com.android.tools.asdriver.tests.base.Ide;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidStudio extends IDE  {
+public class AndroidStudio extends Ide {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;

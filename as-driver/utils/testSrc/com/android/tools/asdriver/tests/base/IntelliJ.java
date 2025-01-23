@@ -15,14 +15,7 @@
  */
 package com.android.tools.asdriver.tests.base;
 
-import com.android.tools.asdriver.tests.Display;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-
-public class IntelliJ extends IDE {
+public class IntelliJ extends Ide {
   private final IntelliJInstallation installation;
 
   public IntelliJ(IntelliJInstallation installation) {

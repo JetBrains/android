@@ -15,6 +15,6 @@
  */
 package com.android.tools.asdriver.tests.base;
 
-public abstract class IDE implements AutoCloseable{
+public abstract class Ide implements AutoCloseable{
 
 }
