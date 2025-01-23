@@ -46,7 +46,6 @@ class HeapDumpTest  : ProfilersTestBase() {
   @Test
   fun testRecordHeapDump() {
     sessionBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33_PlayStore, // Provides more stability than API 29
       testFunction = { studio, adb ->
         Thread.sleep(20000)
 

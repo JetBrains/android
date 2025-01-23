@@ -27,6 +27,7 @@ profilers_test_common_data = [
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
+    "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
 ]
 
 iml_test(
@@ -152,9 +153,7 @@ iml_test(
 iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -168,9 +167,7 @@ iml_test(
 iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -188,9 +185,7 @@ iml_test(
 iml_test(
     name = "CallstackSampleTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -204,9 +199,7 @@ iml_test(
 iml_test(
     name = "NativeAllocationsTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -220,9 +213,7 @@ iml_test(
 iml_test(
     name = "JavaKotlinMethodRecordingTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [],
     tags_mac = [],
@@ -236,9 +227,7 @@ iml_test(
 iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -252,9 +241,7 @@ iml_test(
 iml_test(
     name = "JavaKotlinAllocationsTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -272,9 +259,7 @@ iml_test(
 iml_test(
     name = "StartupSystemTraceTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -292,9 +277,7 @@ iml_test(
 iml_test(
     name = "StartupJavaKotlinMethodRecordingTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -312,9 +295,7 @@ iml_test(
 iml_test(
     name = "StartupNativeAllocationsTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -336,7 +317,6 @@ iml_test(
         ":helloworldapk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
@@ -358,7 +338,6 @@ iml_test(
         ":helloworldapk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
