@@ -66,7 +66,7 @@ class LightBrClass(
   AndroidLightClassBase(
     psiManager,
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
-    ContainingFileProvider.Builder("BR.java").setPackageName(qualifiedName.replace(".BR", "")),
+    ContainingFileProvider.Builder(qualifiedName),
   ) {
 
   /** All fields in this BR class, including the top "_all" field */

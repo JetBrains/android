@@ -177,7 +177,8 @@ private constructor(
     ): ContainingFileProvider.Builder {
       val normalizedPackageName = dataBindingMode.packageName.removeSuffix(".")
       return ContainingFileProvider.Builder(
-          "${SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT}.java"
+          normalizedPackageName,
+          SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT,
         )
         .setContents(
           // language=Java

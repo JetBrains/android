@@ -79,8 +79,7 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
   AndroidLightClassBase(
     psiManager,
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
-    ContainingFileProvider.Builder("${config.className}.java")
-      .setPackageName(StringUtil.getPackageName(config.qualifiedName)),
+    ContainingFileProvider.Builder(config.qualifiedName),
   ) {
 
   private enum class NullabilityType {

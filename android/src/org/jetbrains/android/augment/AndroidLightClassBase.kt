@@ -318,7 +318,16 @@ private constructor(
   protected sealed interface ContainingFileProvider {
     fun getContainingFile(project: Project): PsiFile
 
-    class Builder(private val fileName: String) {
+    class Builder(private val packageName: String, private val shortName: String) {
+
+      constructor(fullyQualifiedName: String) :
+        this(fullyQualifiedName.substringBeforeLast('.', ""), fullyQualifiedName.substringAfterLast('.', ""))
+
+      init {
+        require(packageName.isNotEmpty()) { "Package name \"$packageName\" must not be empty."}
+        require(shortName.isNotEmpty()) { "Short name \"$shortName\" must not be empty."}
+      }
+
       private var contents: String = "// This class is generated on-the-fly by the IDE."
 
       fun setContents(value: String): Builder {
@@ -326,21 +335,12 @@ private constructor(
         return this
       }
 
-      private var packageName: String? = null
-
-      fun setPackageName(value: String?): Builder {
-        packageName = value
-        return this
-      }
-
       fun build(project: Project): ContainingFileProvider {
-        require(fileName.endsWith(".java")) { "File name $fileName must end with '.java'." }
-
         val javaFile =
           PsiFileFactory.getInstance(project)
-            .createFileFromText(fileName, JavaFileType.INSTANCE, contents) as PsiJavaFile
+            .createFileFromText("$shortName.java", JavaFileType.INSTANCE, contents) as PsiJavaFile
 
-        packageName?.let { javaFile.packageName = it }
+        javaFile.packageName = packageName
 
         return ContainingFileProviderImpl(javaFile)
       }

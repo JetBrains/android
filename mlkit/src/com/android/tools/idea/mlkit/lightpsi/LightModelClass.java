@@ -91,8 +91,7 @@ public class LightModelClass extends AndroidLightClassBase {
     super(
       PsiManager.getInstance(module.getProject()),
       ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
-      new ContainingFileProvider.Builder(classConfig.myClassName + SdkConstants.DOT_JAVA)
-        .setPackageName(classConfig.myPackageName));
+      new ContainingFileProvider.Builder(classConfig.myPackageName, classConfig.myClassName));
 
     myModelFile = modelFile;
     myClassConfig = classConfig;

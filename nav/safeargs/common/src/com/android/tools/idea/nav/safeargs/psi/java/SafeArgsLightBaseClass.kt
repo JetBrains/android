@@ -34,8 +34,7 @@ private constructor(
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
-    ContainingFileProvider.Builder(names.simple + ".java")
-      .setPackageName(names.qualified.substringBeforeLast('.')),
+    ContainingFileProvider.Builder(names.qualified),
   ) {
 
   protected constructor(

@@ -52,8 +52,9 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
          packageName,
          psiManager,
          modifiers,
-         new ContainingFileProvider.Builder(shortName + ".java")
-           .setPackageName(packageNameForContainingFile(packageName, psiManager.getProject())));
+         new ContainingFileProvider.Builder(
+           packageNameForContainingFile(packageName, psiManager.getProject()),
+           shortName));
   }
 
   private AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
