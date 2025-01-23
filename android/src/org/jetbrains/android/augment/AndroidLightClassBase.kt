@@ -69,14 +69,14 @@ private constructor(
   modifiers: Iterable<String>,
   private val containingLightClass: AndroidLightClassBase?,
   private val backingFile: PsiFile,
-  moduleInfo: AndroidLightClassModuleInfo?,
+  private val moduleInfo: AndroidLightClassModuleInfo,
 ) : LightElement(psiManager, JavaLanguage.INSTANCE), PsiClass, SyntheticElement {
 
   protected constructor(
     psiManager: PsiManager,
     modifiers: Iterable<String>,
     containingFileProvider: ContainingFileProvider.Builder,
-    moduleInfo: AndroidLightClassModuleInfo? = null,
+    moduleInfo: AndroidLightClassModuleInfo,
   ) : this(
     psiManager,
     modifiers,
@@ -90,13 +90,12 @@ private constructor(
   protected constructor(
     containingLightClass: AndroidLightClassBase,
     modifiers: Iterable<String>,
-    moduleInfo: AndroidLightClassModuleInfo? = null,
   ) : this(
     containingLightClass.manager,
     modifiers,
     containingLightClass,
     containingLightClass.backingFile,
-    moduleInfo,
+    containingLightClass.moduleInfo,
   )
 
   private val psiModifierList: LightModifierList =
@@ -107,7 +106,7 @@ private constructor(
     }
 
   init {
-    moduleInfo?.setInfoOnUserData(this)
+    moduleInfo.setInfoOnUserData(this)
   }
 
   override fun checkAdd(element: PsiElement) {
@@ -319,16 +318,13 @@ private constructor(
         return this
       }
 
-      fun build(
-        project: Project,
-        moduleInfo: AndroidLightClassModuleInfo?,
-      ): ContainingFileProvider {
+      fun build(project: Project, moduleInfo: AndroidLightClassModuleInfo): ContainingFileProvider {
         val javaFile =
           PsiFileFactory.getInstance(project)
             .createFileFromText("$shortName.java", JavaFileType.INSTANCE, contents) as PsiJavaFile
 
         javaFile.packageName = packageName
-        moduleInfo?.setModuleInfoOnContainingFile(javaFile)
+        moduleInfo.setModuleInfoOnContainingFile(javaFile)
 
         return ContainingFileProviderImpl(javaFile)
       }

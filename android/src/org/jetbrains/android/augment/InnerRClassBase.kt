@@ -37,8 +37,8 @@ private typealias ResourceFilter = (ResourceItem) -> Boolean
  * [buildResourceFields] methods.
  */
 abstract class InnerRClassBase
-protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType, moduleInfo: AndroidLightClassModuleInfo? = null) :
-  AndroidLightInnerClassBase(context, resourceType.getName(), moduleInfo) {
+protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType) :
+  AndroidLightInnerClassBase(context, resourceType.getName()) {
   private var fieldsCache: CachedValue<Array<PsiField>>? = null
   private val logger = thisLogger()
 
@@ -50,7 +50,8 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
           logger.info("Recomputed ${fields.size} fields for $this")
 
           if (fields.isEmpty()) {
-            ResourceUpdateTracer.getInstance().dumpTrace("No fields found for ${this.qualifiedName}")
+            ResourceUpdateTracer.getInstance()
+              .dumpTrace("No fields found for ${this.qualifiedName}")
           }
 
           // When ResourceRepositoryManager's caches are dropped, new instances of repositories are

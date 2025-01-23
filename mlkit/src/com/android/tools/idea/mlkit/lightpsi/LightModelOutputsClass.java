@@ -80,9 +80,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   private final boolean myGenerateFallbackApiOnly;
 
   public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull LightModelClass containingClass) {
-    super(containingClass,
-          ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
-          AndroidLightClassModuleInfo.from(module));
+    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
 
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;

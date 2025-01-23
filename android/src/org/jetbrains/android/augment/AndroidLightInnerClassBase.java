@@ -5,7 +5,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base for all light inner classes implementations, e.g. {@code R.string} or {@code Manifest.permission}.
@@ -14,16 +13,10 @@ public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
   @NotNull private final AndroidLightClassBase myContainingClass;
   @NotNull protected final String myName;
 
-  protected AndroidLightInnerClassBase(@NotNull AndroidLightClassBase context,
-                                       @NotNull String name,
-                                       @Nullable AndroidLightClassModuleInfo moduleInfo) {
-    super(context, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL), moduleInfo);
+  protected AndroidLightInnerClassBase(@NotNull AndroidLightClassBase context, @NotNull String name) {
+    super(context, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myContainingClass = context;
     myName = name;
-  }
-
-  protected AndroidLightInnerClassBase(@NotNull AndroidLightClassBase context, @NotNull String name) {
-    this(context, name, null);
   }
 
   @Override
