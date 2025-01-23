@@ -118,10 +118,13 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     }
 
     studioEventsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "studio_events");
+    this.addVmOption(String.format("-Dstudio.event.dump.dir=%s%n", studioEventsDir));
+
     memoryReportFile = new LogFile(logsDir.resolve("memory_usage_report.log"));
     Files.createFile(memoryReportFile.getPath());
 
     telemetryJsonFile = logsDir.resolve("opentelemetry.json");
+    this.addVmOption(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
 
     setConsentGranted(true);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
@@ -190,8 +193,6 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
     vmOptions.append(
       String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
-    vmOptions.append(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
-    vmOptions.append(String.format("-Dstudio.event.dump.dir=%s%n", studioEventsDir));
   }
 
   public void enableBleak() throws IOException {
