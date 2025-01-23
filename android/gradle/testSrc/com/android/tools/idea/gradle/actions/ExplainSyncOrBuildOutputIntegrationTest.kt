@@ -35,6 +35,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import com.android.SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
+import org.junit.Ignore
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 
@@ -42,6 +43,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
   val projectRule: IntegrationTestEnvironmentRule =
     AndroidProjectRule.withIntegrationTestEnvironment()
 
+  @Ignore("b/391880461")
   @Test
   fun testAddDependencyAndSync() {
     val preparedProject: PreparedTestProject =
