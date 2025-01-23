@@ -44,8 +44,6 @@ class AndroidInternalRClass(
 
   override fun getName() = "R"
 
-  override fun getContainingClass() = null
-
   override fun getContainingFile() = file
 
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE

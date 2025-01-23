@@ -58,8 +58,15 @@ import org.jetbrains.kotlin.idea.base.projectStructure.customSdk
 import org.jetbrains.kotlin.idea.base.projectStructure.customSourceRootType
 
 abstract class AndroidLightClassBase
-protected constructor(psiManager: PsiManager, modifiers: Iterable<String>) :
+private constructor(psiManager: PsiManager, modifiers: Iterable<String>, private val containingLightClass: AndroidLightClassBase?) :
   LightElement(psiManager, JavaLanguage.INSTANCE), PsiClass, SyntheticElement {
+
+  protected constructor(psiManager: PsiManager, modifiers: Iterable<String>)
+    : this(psiManager, modifiers, null)
+
+  protected constructor(containingLightClass: AndroidLightClassBase, modifiers: Iterable<String>)
+    : this(containingLightClass.manager, modifiers, containingLightClass)
+
   private val psiModifierList: LightModifierList =
     LightModifierList(psiManager).apply {
       for (modifier in modifiers) {
@@ -253,7 +260,9 @@ protected constructor(psiManager: PsiManager, modifiers: Iterable<String>) :
 
   override fun getPresentation() = ItemPresentationProviders.getItemPresentation(this)
 
-  override fun getContainingFile() = containingClass?.containingFile
+  final override fun getContainingClass(): AndroidLightClassBase? = containingLightClass
+
+  override fun getContainingFile(): PsiFile? = containingLightClass?.containingFile
 
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 

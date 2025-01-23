@@ -1,7 +1,6 @@
 package org.jetbrains.android.augment;
 
 import com.google.common.collect.ImmutableSet;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.util.IncorrectOperationException;
@@ -15,7 +14,7 @@ public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
   @NotNull protected final String myName;
 
   protected AndroidLightInnerClassBase(@NotNull AndroidLightClassBase context, @NotNull String name) {
-    super(context.getManager(), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+    super(context, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myContainingClass = context;
     myName = name;
   }
@@ -48,12 +47,6 @@ public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiElement getNavigationElement() {
-    return myContainingClass;
-  }
-
-  @NotNull
-  @Override
-  public PsiClass getContainingClass() {
     return myContainingClass;
   }
 

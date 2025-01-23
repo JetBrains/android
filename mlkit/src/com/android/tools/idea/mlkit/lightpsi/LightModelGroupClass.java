@@ -27,9 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
@@ -68,7 +66,7 @@ public class LightModelGroupClass extends AndroidLightClassBase {
                               @NotNull List<TensorInfo> tensorInfos,
                               @NotNull TensorGroupInfo tensorGroupInfo,
                               @NotNull LightModelClass containingClass) {
-    super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.myClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), myClassName);
     this.containingClass = containingClass;
@@ -119,12 +117,6 @@ public class LightModelGroupClass extends AndroidLightClassBase {
       .setContainingClass(this)
       .setNavigationElement(this);
     return method;
-  }
-
-  @NotNull
-  @Override
-  public PsiClass getContainingClass() {
-    return containingClass;
   }
 
   @NotNull

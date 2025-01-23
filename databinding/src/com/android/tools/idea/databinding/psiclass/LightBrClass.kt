@@ -169,10 +169,6 @@ class LightBrClass(
     return DataBindingUtil.BR
   }
 
-  override fun getContainingClass(): PsiClass? {
-    return null
-  }
-
   override fun getFields(): Array<PsiField> {
     return fieldCache.value
   }

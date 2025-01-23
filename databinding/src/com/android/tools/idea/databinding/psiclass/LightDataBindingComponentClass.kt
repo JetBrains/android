@@ -164,8 +164,6 @@ class LightDataBindingComponentClass(psiManager: PsiManager, private val facet: 
 
   override fun getName() = SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT
 
-  override fun getContainingClass() = null
-
   override fun getFields(): Array<PsiField> = PsiField.EMPTY_ARRAY
 
   override fun getAllFields() = getFields()

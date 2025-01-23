@@ -101,12 +101,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @NotNull
   protected abstract ModificationTracker getInnerClassesDependencies();
 
-  @Nullable
-  @Override
-  public final PsiClass getContainingClass() {
-    return null;
-  }
-
   @NotNull
   @Override
   public PsiClass[] getInnerClasses() {

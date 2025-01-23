@@ -194,12 +194,6 @@ public class LightModelClass extends AndroidLightClassBase {
     return myClassConfig.myPackageName + "." + getName();
   }
 
-  @Nullable
-  @Override
-  public PsiClass getContainingClass() {
-    return null;
-  }
-
   @NotNull
   @Override
   public PsiFile getContainingFile() {

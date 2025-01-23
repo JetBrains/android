@@ -19,7 +19,6 @@ import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
@@ -69,8 +68,6 @@ abstract class SafeArgsLightBaseClass(
   override fun getQualifiedName() = qualifiedName
 
   override fun getContainingFile() = backingFile
-
-  override fun getContainingClass(): PsiClass? = null
 
   override fun isValid() = true
 

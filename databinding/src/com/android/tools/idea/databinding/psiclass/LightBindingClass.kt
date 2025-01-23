@@ -224,8 +224,6 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
 
   override fun getQualifiedName() = config.qualifiedName
 
-  override fun getContainingClass(): PsiClass? = null
-
   override fun getFields() = psiFields
 
   override fun getAllFields() = getFields()
