@@ -32,12 +32,9 @@ import com.android.tools.idea.common.surface.organization.createOrganizationHead
 import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
 import com.android.tools.idea.common.surface.organization.findGroups
 import com.android.tools.idea.common.surface.organization.paintLines
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
-import com.intellij.openapi.Disposable
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -46,6 +43,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.coroutines.CoroutineContext
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -58,6 +56,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -74,14 +73,14 @@ import org.jetbrains.annotations.TestOnly
  *   measuring the [SceneView]s
  */
 class SceneViewPanel(
+  private val scope: CoroutineScope,
+  private val uiThreadDispatcher: CoroutineContext,
   private val sceneViewProvider: () -> Collection<SceneView>,
   private val interactionLayersProvider: () -> Collection<Layer>,
   private val actionManagerProvider: () -> ActionManager<*>,
   private val shouldRenderErrorsPanel: () -> Boolean,
   private val layoutManager: PositionableContentLayoutManager,
-) : JPanel(layoutManager), Disposable.Default {
-
-  private val scope = AndroidCoroutineScope(this)
+) : JPanel(layoutManager) {
 
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
@@ -184,7 +183,7 @@ class SceneViewPanel(
             existingScenePanels.filter { panel -> !sceneViews.contains(panel.sceneView) }
           panelsToRemove.forEach { panel ->
             panel.scope.cancel()
-            withContext(uiThread) { remove(panel) }
+            withContext(uiThreadDispatcher) { remove(panel) }
           }
 
           // Remove old headers
@@ -193,14 +192,14 @@ class SceneViewPanel(
             existingHeaders.filter {
               !activeGroups.value.contains(it.positionableAdapter.organizationGroup)
             }
-          headerToRemove.forEach { header -> withContext(uiThread) { remove(header) } }
+          headerToRemove.forEach { header -> withContext(uiThreadDispatcher) { remove(header) } }
 
           // Create or reuse scene panels.
           val orderedComponents: MutableList<Component> =
             sceneViews
               .mapIndexed { index, sceneView ->
                 existingScenePanels.firstOrNull { it.sceneView == sceneView }
-                  ?: withContext(uiThread) {
+                  ?: withContext(uiThreadDispatcher) {
                     createScenePanel(sceneView, index, scope.createChildScope())
                   }
               }
@@ -211,7 +210,7 @@ class SceneViewPanel(
             .map { group ->
               components.filterIsInstance<SceneViewHeader>().firstOrNull {
                 it.positionableAdapter.organizationGroup == group
-              } ?: withContext(uiThread) { createHeader(group) }
+              } ?: withContext(uiThreadDispatcher) { createHeader(group) }
             }
             .forEach { header ->
               orderedComponents
@@ -224,7 +223,7 @@ class SceneViewPanel(
             }
 
           // Set correct order to components.
-          withContext(uiThread) {
+          withContext(uiThreadDispatcher) {
             removeAll()
             orderedComponents.forEach { this@SceneViewPanel.add(it) }
           }
@@ -233,7 +232,7 @@ class SceneViewPanel(
             componentsUpdated.emit(Unit)
           }
 
-          withContext(uiThread) { invalidate() }
+          withContext(uiThreadDispatcher) { invalidate() }
         }
     }
   }
@@ -304,18 +303,20 @@ class SceneViewPanel(
     useTestNonComposeHeaders = true
   }
 
-  override fun doLayout() {
+  fun updateComponents() {
     sceneViewProvider().let {
       sceneViews.value = it
       organizationGroups.value =
         it.map { sceneView -> sceneView.sceneManager.model.organizationGroup }
     }
-    super.doLayout()
+    if (!scope.isActive) {
+      removeAll()
+    }
   }
 
-  override fun dispose() {
-    super.dispose()
-    removeAll()
+  override fun doLayout() {
+    updateComponents()
+    super.doLayout()
   }
 
   override fun paintComponent(graphics: Graphics) {
