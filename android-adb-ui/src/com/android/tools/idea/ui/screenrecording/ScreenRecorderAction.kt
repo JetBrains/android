@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -136,6 +137,7 @@ class ScreenRecorderAction : DumbAwareAction(
         }
         withContext(uiThread) {
           recordingInProgress.remove(serialNumber)
+          ActivityTracker.getInstance().inc()
         }
       }
     }
