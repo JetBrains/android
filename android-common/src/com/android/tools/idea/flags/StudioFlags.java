@@ -1678,6 +1678,12 @@ public final class StudioFlags {
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
     enabledUpTo(DEV)
   );
+
+  public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
+    WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
+    "If enabled, the editor will support Watch Face Format in XML files",
+    enabledUpTo(DEV)
+  );
   // endregion
 
   // region App Inspection
