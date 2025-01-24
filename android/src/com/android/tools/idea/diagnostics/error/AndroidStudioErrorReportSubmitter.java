@@ -131,9 +131,8 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     };
 
     Task.Backgroundable feedbackTask;
-    Object data = event.getData();
-    if (data instanceof ErrorReportCustomizer) {
-      feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
+    if (event.getData() instanceof ErrorReportCustomizer erc) {
+      feedbackTask = erc.makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
       Map<String, String> errorDataMap = getPlatformErrorData(event, bean);
       feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), errorDataMap, successCallback, errorCallback);
@@ -314,14 +313,12 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
   @Nullable
   private static KotlinCompilerCrash getKotlinCompilerCrashOrNull(@NotNull IdeaLoggingEvent loggingEvent) {
     KotlinCompilerCrash kotlinCompilerCrash = null;
-    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)loggingEvent.getThrowable();
+    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash kcc) {
+      kotlinCompilerCrash = kcc;
     }
-    else if (loggingEvent.getData() instanceof LogMessage &&
-             ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    else if (loggingEvent.getData() instanceof LogMessage lm && lm.getThrowable() instanceof KotlinCompilerCrash kcc) {
+      kotlinCompilerCrash = kcc;
     }
     return kotlinCompilerCrash;
   }
-
 }
