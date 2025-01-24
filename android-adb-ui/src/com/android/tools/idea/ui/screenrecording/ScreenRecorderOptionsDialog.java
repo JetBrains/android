@@ -20,7 +20,6 @@ import static com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.MAX
 
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -48,8 +47,8 @@ class ScreenRecorderOptionsDialog extends DialogWrapper {
   private final DefaultComboBoxModel<Integer> myComboBoxModel = new DefaultComboBoxModel<>(new Integer[]{100, 75, 50, 37, 25});
 
   private JPanel myPanel;
-  @VisibleForTesting JTextField myBitRateTextField;
-  @VisibleForTesting JCheckBox myShowTouchCheckBox;
+  private JTextField myBitRateTextField;
+  private JCheckBox myShowTouchCheckBox;
   private JCheckBox myEmulatorRecordingCheckBox;
   private JComboBox<Integer> myResolutionPercentComboBox;
   private JBLabel myRecordingLengthLabel;
