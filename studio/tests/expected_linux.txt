@@ -2044,6 +2044,7 @@ android-studio/plugins/android/lib/android-kotlin.jar
 android-studio/plugins/android/lib/android-profilers.jar
 android-studio/plugins/android/lib/android-project-system-gradle-models.jar
 android-studio/plugins/android/lib/android-rt.jar
+android-studio/plugins/android/lib/android-screenshot-testing.jar
 android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/android.so.jar
 android-studio/plugins/android/lib/animation-core-desktop-1.7.3.jar

@@ -151,6 +151,9 @@ studio_plugin(
             "//tools/adt/idea/profilers:intellij.android.profilers",
             "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
         ],
+        "android-screenshot-testing.jar": [
+            "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
+        ],
         "android-rt.jar": [
             "//tools/adt/idea/rt:intellij.android.rt",
         ],

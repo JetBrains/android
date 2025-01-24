@@ -2065,6 +2065,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-project-system-gradle-models.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-screenshot-testing.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.so.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-core-desktop-1.7.3.jar

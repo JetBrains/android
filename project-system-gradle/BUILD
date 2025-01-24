@@ -42,6 +42,7 @@ iml_module(
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
+        "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
     ],
     resources = ["resources"],
     visibility = ["//visibility:public"],
