@@ -106,7 +106,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
       return true;
     }
 
-    bean.setAttachments(event.getIncludedAttachments());
+    bean.setAttachments(event.getAttachments());
 
     // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
     // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
