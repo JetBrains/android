@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,8 @@ interface AppInsightsConfigurationManager {
   val configuration: StateFlow<AppInsightsModel>
 
   val offlineStatusManager: OfflineStatusManager
+
+  val deprecationData: DevServicesDeprecationData
 
   fun refreshConfiguration() = Unit
 }

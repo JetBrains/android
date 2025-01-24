@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.inspection
 
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -50,6 +52,8 @@ open class TestTabProvider(override val displayName: String) : AppInsightsTabPro
         get() = modelFlow
 
       override val offlineStatusManager = OfflineStatusManagerImpl()
+      override val deprecationData =
+        DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.UNSUPPORTED)
     }
 
   override fun populateTab(

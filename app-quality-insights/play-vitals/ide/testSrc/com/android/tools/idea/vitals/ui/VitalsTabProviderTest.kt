@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
+import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -55,15 +58,20 @@ class VitalsTabProviderTest {
   private lateinit var service: VitalsConfigurationService
   private lateinit var tabPanel: AppInsightsTabPanel
   private lateinit var tabProvider: VitalsTabProvider
+  private lateinit var deprecation: DevServicesDeprecationData
 
   @Before
   fun setUp() {
     modelStateFlow = MutableStateFlow(AppInsightsModel.Uninitialized)
+    deprecation =
+      DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
     manager =
       object : AppInsightsConfigurationManager {
         override val project = projectRule.project
         override val configuration = modelStateFlow
         override val offlineStatusManager = OfflineStatusManagerImpl()
+        override val deprecationData: DevServicesDeprecationData
+          get() = deprecation
 
         override fun refreshConfiguration() {}
       }
@@ -150,5 +158,21 @@ class VitalsTabProviderTest {
 
     collection.join()
     assertThat(controller.refreshCount).isEqualTo(2)
+  }
+
+  @Test
+  fun `show service deprecated panel when service is deprecated`() = runTest {
+    deprecation =
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.UNSUPPORTED,
+      )
+    val flow = populateTabAndGetComponentsFlow()
+    flow.take(1).collect { component ->
+      assertThat(component).isInstanceOf(ServiceDeprecatedPanel::class.java)
+    }
   }
 }

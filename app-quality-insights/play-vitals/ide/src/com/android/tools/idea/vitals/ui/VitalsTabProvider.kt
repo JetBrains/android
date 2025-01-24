@@ -17,12 +17,14 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
+import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.GoogleLoginService
@@ -32,6 +34,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
 import icons.StudioIllustrations
@@ -53,6 +56,13 @@ class VitalsTabProvider : AppInsightsTabProvider {
     tabPanel: AppInsightsTabPanel,
     activeTabFlow: Flow<Boolean>,
   ) {
+    val deprecationData = getConfigurationManager(project).deprecationData
+    if (deprecationData.status == DevServicesDeprecationStatus.UNSUPPORTED) {
+      tabPanel.setComponent(
+        ServiceDeprecatedPanel(deprecationData) { UpdateChecker.updateAndShowResult(project) }
+      )
+      return
+    }
     tabPanel.setComponent(placeholderContent())
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
       val configManager = project.service<VitalsConfigurationService>().manager
