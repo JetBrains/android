@@ -36,6 +36,7 @@ internal class DialogFactoryImpl : DialogFactory {
       val button =
         MessageDialogBuilder.Message(title, message)
           .buttons(*(buttonTexts + CommonBundle.getOkButtonText()).toTypedArray())
+          .defaultButton("OK")
           .asWarning()
           .show(project)
       if (button != null) {
