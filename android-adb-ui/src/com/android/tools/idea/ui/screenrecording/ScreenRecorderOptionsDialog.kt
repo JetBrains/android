@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,153 +13,95 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.screenrecording;
+package com.android.tools.idea.ui.screenrecording
 
-import static com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.MAX_RECORDING_DURATION_MINUTES;
-import static com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.MAX_RECORDING_DURATION_MINUTES_LEGACY;
-
-import com.android.tools.idea.help.AndroidWebHelpProvider;
-import com.android.tools.idea.ui.AndroidAdbUiBundle;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.components.JBLabel;
-import javax.swing.Action;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.help.AndroidWebHelpProvider.Companion.HELP_PREFIX
+import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES_LEGACY
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
+import javax.swing.Action
+import javax.swing.JComponent
+import javax.swing.JEditorPane
 
 /**
  * A dialog for setting the options for a screen recording.
- * Copied from com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog
  * TODO(b/235094713): Add tests
  */
-class ScreenRecorderOptionsDialog extends DialogWrapper {
-  @NonNls private static final String SCREENRECORDER_DIMENSIONS_KEY = "ScreenshotRecorder.Options.Dimensions";
-  private final DefaultComboBoxModel<Integer> myComboBoxModel = new DefaultComboBoxModel<>(new Integer[]{100, 75, 50, 37, 25});
+internal class ScreenRecorderOptionsDialog(
+  project: Project,
+  private val isEmulator: Boolean,
+  private val apiLevel: Int,
+) : DialogWrapper(project, true) {
 
-  private JPanel myPanel;
-  private JTextField myBitRateTextField;
-  private JCheckBox myShowTouchCheckBox;
-  private JCheckBox myEmulatorRecordingCheckBox;
-  private JComboBox<Integer> myResolutionPercentComboBox;
-  private JBLabel myRecordingLengthLabel;
+  private val options = ScreenRecorderPersistentOptions.getInstance()
+  private lateinit var recordingLengthField: JEditorPane
 
-  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator, int apiLevel) {
-    super(project, true);
-
-    ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
-
-    myResolutionPercentComboBox.setModel(myComboBoxModel);
-    myComboBoxModel.setSelectedItem(options.getResolutionPercent());
-
-    if (options.getBitRateMbps() > 0) {
-      myBitRateTextField.setText(Integer.toString(options.getBitRateMbps()));
-    }
-
-    myShowTouchCheckBox.setSelected(options.getShowTaps());
-    myEmulatorRecordingCheckBox.setSelected(options.getUseEmulatorRecording());
-    myEmulatorRecordingCheckBox.setVisible(isEmulator);
-    myEmulatorRecordingCheckBox.addItemListener(event -> updateMaxRecordingLengthLabel(isEmulator, apiLevel));
-
-    updateMaxRecordingLengthLabel(isEmulator, apiLevel);
-
-    setTitle("Screen Recorder Options");
-    init();
+  init {
+    title = "Screen Recorder Options"
+    init()
   }
 
-  private void updateMaxRecordingLengthLabel(boolean isEmulator, int apiLevel) {
-    int maxRecordingDurationMin = isEmulator && myEmulatorRecordingCheckBox.isSelected() || apiLevel >= 34 ?
-                                  MAX_RECORDING_DURATION_MINUTES : MAX_RECORDING_DURATION_MINUTES_LEGACY;
-    myRecordingLengthLabel.setText(AndroidAdbUiBundle.message("screenrecord.options.info", maxRecordingDurationMin));
-  }
+  override fun createCenterPanel(): JComponent {
+    return panel {
+      row {
+        text(getMaxRecordingLengthText(isEmulator && options.useEmulatorRecording))
+          .applyToComponent { recordingLengthField = this }
+      }
+      row(message("screenrecord.options.bit.rate")) {
+        intTextField(1..32)
+          .widthGroup("text_boxes")
+          .align(AlignX.LEFT)
+          .bindIntText(options::bitRateMbps)
+      }
+      row(message("screenrecord.options.resolution")) {
+        comboBox(listOf(100, 75, 50, 37, 25))
+          .widthGroup("text_boxes")
+          .align(AlignX.LEFT)
+          .bindItem(options::resolutionPercent) { options.resolutionPercent = it ?: 100 }
+      }
+      row {
+        checkBox(message("screenrecord.options.show.taps"))
+          .bindSelected(options::showTaps)
+      }.contextHelp(message("screenrecord.options.show.taps.tooltip"))
 
-  @Nullable
-  @Override
-  protected JComponent createCenterPanel() {
-    return myPanel;
-  }
-
-  @Nullable
-  @Override
-  protected String getDimensionServiceKey() {
-    return SCREENRECORDER_DIMENSIONS_KEY;
-  }
-
-  @Nullable
-  @Override
-  protected String getHelpId() {
-    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/am-video.html";
-  }
-
-  @Override
-  protected void createDefaultActions() {
-    super.createDefaultActions();
-    getOKAction().putValue(Action.NAME, AndroidAdbUiBundle.message("screenrecord.options.ok.button.text"));
-  }
-
-  @Nullable
-  @Override
-  protected ValidationInfo doValidate() {
-    ValidationInfo info = validateInteger(myBitRateTextField, AndroidAdbUiBundle.message("screenrecord.options.bit.rate.invalid"));
-    if (info != null) {
-      return info;
-    }
-
-    return super.doValidate();
-  }
-
-  @Nullable
-  private static ValidationInfo validateInteger(JTextField textField, String errorMessage) {
-    String s = getText(textField);
-    if (s.isEmpty()) {
-      return null;
-    }
-
-    try {
-      Integer.parseInt(s);
-    }
-    catch (NumberFormatException e) {
-      return new ValidationInfo(errorMessage, textField);
-    }
-
-    return null;
-  }
-
-  @Override
-  protected void doOKAction() {
-    ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
-    options.setBitRateMbps(getIntegerValue(myBitRateTextField));
-    options.setResolutionPercent((Integer)myComboBoxModel.getSelectedItem());
-    options.setShowTaps(myShowTouchCheckBox.isSelected());
-    options.setUseEmulatorRecording(myEmulatorRecordingCheckBox.isSelected());
-    super.doOKAction();
-  }
-
-  private static int getIntegerValue(JTextField textField) {
-    String s = getText(textField);
-    return s.isEmpty() ? 0 : Integer.parseInt(s);
-  }
-
-  private static String getText(JTextField textField) {
-    Document doc = textField.getDocument();
-    try {
-      return doc.getText(0, doc.getLength()).trim();
-    }
-    catch (BadLocationException e) { // can't happen
-      return "";
+      if (isEmulator) {
+        row {
+          checkBox(message("screenrecord.options.use.emulator.recording"))
+            .bindSelected(options::useEmulatorRecording)
+            .onChanged { recordingLengthField.text = getMaxRecordingLengthText(it.isSelected) }
+        }.contextHelp(message("screenrecord.options.use.emulator.recording.tooltip"))
+      }
     }
   }
 
-  public boolean getUseEmulatorRecording() {
-    return ScreenRecorderPersistentOptions.getInstance().getUseEmulatorRecording();
+  override fun getDimensionServiceKey(): String {
+    return SCREEN_RECORDER_DIMENSIONS_KEY
+  }
+
+  override fun getHelpId(): String {
+    return "${HELP_PREFIX}r/studio-ui/am-video.html"
+  }
+
+  override fun createDefaultActions() {
+    super.createDefaultActions()
+    okAction.putValue(Action.NAME, message("screenrecord.options.ok.button.text"))
+  }
+
+  private fun getMaxRecordingLengthText(forEmulator: Boolean): @Nls String {
+    val maxLength = if (forEmulator || apiLevel >= 34) MAX_RECORDING_DURATION_MINUTES else MAX_RECORDING_DURATION_MINUTES_LEGACY
+    return message("screenrecord.options.info", maxLength)
+  }
+
+  companion object {
+    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenshotRecorder.Options.Dimensions"
   }
 }
