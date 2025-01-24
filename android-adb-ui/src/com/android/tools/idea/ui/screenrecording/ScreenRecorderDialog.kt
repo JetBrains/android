@@ -106,6 +106,7 @@ internal class ScreenRecorderDialog(
 
   private fun stopRecordingTimer() {
     alarm.cancelAllRequests()
+    onStop.run()
     recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
     stopButton.isEnabled = false
   }
@@ -149,7 +150,6 @@ internal class ScreenRecorderDialog(
     stopButton = JButton(AndroidAdbUiBundle.message("screenrecord.dialog.stop.recording"))
     stopButton.addActionListener {
       stopRecordingTimer()
-      onStop.run()
     }
     centerPanel.addToRight(stopButton)
     dialogPanel.add(centerPanel, BorderLayout.CENTER)
