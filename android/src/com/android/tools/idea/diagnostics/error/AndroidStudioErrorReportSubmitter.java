@@ -27,13 +27,10 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
-import com.intellij.diagnostic.IdeaReportingEvent;
 import com.intellij.diagnostic.KotlinCompilerCrash;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
@@ -92,10 +89,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    IdeaPluginDescriptor plugin =
-      event instanceof IdeaReportingEvent re ? re.getPlugin() :
-      event.getThrowable() != null ? PluginManagerCore.getPlugin(PluginUtil.getInstance().findPluginId(event.getThrowable())) :
-      null;
+    IdeaPluginDescriptor plugin = event.getPlugin();
     if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
       bean.setPluginName(plugin.getName());
       bean.setPluginVersion(plugin.getVersion());
