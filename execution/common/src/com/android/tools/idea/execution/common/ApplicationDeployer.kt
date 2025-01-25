@@ -26,13 +26,13 @@ import com.intellij.openapi.progress.ProgressIndicator
  */
 interface ApplicationDeployer {
   @Throws(DeployerException::class)
-  fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result
+  fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
 
   @Throws(DeployerException::class)
-  fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result
+  fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
 
   @Throws(DeployerException::class)
-  fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result
+  fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
 }
 
 data class DeployOptions(
@@ -40,5 +40,5 @@ data class DeployOptions(
   var pmInstallFlags: String,
   val installOnAllUsers: Boolean,
   val alwaysInstallWithPm: Boolean,
-  val allowAssumeVerified: Boolean
+  val allowAssumeVerified: Boolean,
 )

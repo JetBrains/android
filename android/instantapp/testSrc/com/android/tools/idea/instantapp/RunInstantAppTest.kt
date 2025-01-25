@@ -225,7 +225,7 @@ class RunInstantAppTest {
     configuration.executeMakeBeforeRunStepInTest(device)
     configuration.MODE = AndroidRunConfiguration.DO_NOTHING
 
-    whenever(applicationDeployer.fullDeploy(eq(device), anyOrNull(), anyOrNull(), anyOrNull()))
+    whenever(applicationDeployer.fullDeploy(eq(device), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
       .thenReturn(
         Deployer.Result(
           false,

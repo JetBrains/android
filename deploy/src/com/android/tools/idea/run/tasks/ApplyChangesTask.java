@@ -36,8 +36,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
                           @NotNull Collection<ApkInfo> packages,
                           boolean rerunOnSwapFailure,
                           boolean alwaysInstallWithPm,
-                          boolean allowAssumeVerified) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified);
+                          boolean allowAssumeVerified,
+                          boolean hasMakeBeforeRun) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
   }
 
   @NotNull

@@ -46,6 +46,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
+import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.NopProcessHandler
@@ -168,7 +169,9 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     } else {
       "-t"
     }
-    return DeployTask(project, packages, pmInstallOptions, false, false, false)
+    val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+
+    return DeployTask(project, packages, pmInstallOptions, false, false, false, containsMakeBeforeRun)
   }
 
 

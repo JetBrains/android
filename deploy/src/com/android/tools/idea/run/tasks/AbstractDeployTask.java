@@ -83,6 +83,7 @@ public abstract class AbstractDeployTask {
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
   protected final boolean myAllowAssumeVerified;
+  protected final boolean myHasMakeBeforeRun;
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
@@ -91,12 +92,14 @@ public abstract class AbstractDeployTask {
                             @NotNull Collection<ApkInfo> packages,
                             boolean rerunOnSwapFailure,
                             boolean alwaysInstallWithPm,
-                            boolean allowAssumeVerified) {
+                            boolean allowAssumeVerified,
+                            boolean hasMakeBeforeRun) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
     myAllowAssumeVerified = allowAssumeVerified;
+    myHasMakeBeforeRun = hasMakeBeforeRun;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -168,12 +171,13 @@ public abstract class AbstractDeployTask {
 
     stopwatch.stop();
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+    String informMake = myHasMakeBeforeRun ? "" : " without make-before-run";
     if (idsSkippedInstall.isEmpty()) {
-      String content = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
+      String content = String.format("%s successfully finished in %s%s.", getDescription(), StringUtil.formatDuration(duration), informMake);
       NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
     }
     else {
-      String title = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
+      String title = String.format("%s successfully finished in %s%s.", getDescription(), StringUtil.formatDuration(duration), informMake);
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
       NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION).notify(myProject);
     }
@@ -181,7 +185,7 @@ public abstract class AbstractDeployTask {
     return results;
   }
 
-    protected abstract String getDescription();
+  protected abstract String getDescription();
 
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;

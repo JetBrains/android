@@ -54,8 +54,9 @@ public class DeployTask extends AbstractDeployTask {
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm,
-                    boolean allowAssumeVerified) {
-    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified);
+                    boolean allowAssumeVerified,
+                    boolean hasMakeBeforeRun) {
+    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");
@@ -167,7 +168,6 @@ public class DeployTask extends AbstractDeployTask {
   public String getDescription() {
     return "Install";
   }
-
 
   @NotNull
   @Override

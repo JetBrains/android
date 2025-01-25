@@ -133,8 +133,9 @@ class AndroidRunConfigurationExecutor(
           //Deploy
           if (configuration.DEPLOY) {
             val apks = apkInfosSafe(device)
+            val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
             val deployResults =
-              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
+              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
@@ -254,8 +255,9 @@ class AndroidRunConfigurationExecutor(
         val restoreEnabled = configuration.isRestoreEnabled()
         val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults =
-          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
+          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
 
         notifyLiveEditService(device, apks, applicationContext)
 
@@ -339,9 +341,10 @@ class AndroidRunConfigurationExecutor(
 
         //Deploy
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults = deployAndHandleError(
           env,
-          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
           isApplyChangesFallbackToRun()
         )
 
@@ -404,9 +407,10 @@ class AndroidRunConfigurationExecutor(
       async {
         LOG.info("Launching on device ${device.name}")
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults = deployAndHandleError(
           env,
-          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
           isApplyCodeChangesFallbackToRun()
         )
 

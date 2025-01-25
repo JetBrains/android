@@ -41,7 +41,7 @@ import com.intellij.util.messages.Topic
 class ApplicationDeployerImpl(private val project: Project, private val stats: RunStats) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
+  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Full deploy on $device")
     project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
 
@@ -52,7 +52,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       deployOptions.pmInstallFlags,
       deployOptions.installOnAllUsers,
       deployOptions.alwaysInstallWithPm,
-      deployOptions.allowAssumeVerified)
+      deployOptions.allowAssumeVerified,
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -60,6 +61,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   override fun applyChangesDeploy(device: IDevice,
                                   app: ApkInfo,
                                   deployOptions: DeployOptions,
+                                  hasMakeBeforeRun: Boolean,
                                   indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Changes on $device")
     project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
@@ -69,7 +71,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      deployOptions.allowAssumeVerified)
+      deployOptions.allowAssumeVerified,
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -77,6 +80,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   override fun applyCodeChangesDeploy(device: IDevice,
                                       app: ApkInfo,
                                       deployOptions: DeployOptions,
+                                      hasMakeBeforeRun: Boolean,
                                       indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Code Changes on $device")
     project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
@@ -86,7 +90,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      deployOptions.allowAssumeVerified)
+      deployOptions.allowAssumeVerified,
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
