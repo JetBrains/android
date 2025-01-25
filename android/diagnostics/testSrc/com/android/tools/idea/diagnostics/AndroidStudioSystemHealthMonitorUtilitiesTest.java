@@ -18,7 +18,7 @@ package com.android.tools.idea.diagnostics;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
-import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.DefaultIdeaErrorLogger;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -52,10 +52,10 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends LightPlatform
     assertThat(ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class)).isNotNull();
     // Platform exceptions should be handled by our error submitter.
     var exception = new RuntimeException();
-    assertThat(IdeErrorsDialog.getSubmitter(exception, /*plugin*/ null)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+    assertThat(DefaultIdeaErrorLogger.findSubmitter(exception, /*plugin*/ null)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
     // Ditto for plugin exceptions (at least for our own plugins).
     var androidPlugin = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
-    assertThat(IdeErrorsDialog.getSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+    assertThat(DefaultIdeaErrorLogger.findSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
   }
 }
 
