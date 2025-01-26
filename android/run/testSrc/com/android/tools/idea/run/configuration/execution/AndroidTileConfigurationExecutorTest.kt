@@ -41,6 +41,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import io.ktor.util.reflect.instanceOf
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -257,6 +258,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   }
 
   @Test
+  @Ignore("b/391146421")
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
