@@ -156,7 +156,7 @@ class ScreenshotViewer(
   /**
    * The user specified destination where the screenshot was saved, or null of the screenshot was not saved.
    */
-  var screenshotFile: Path? = null
+  private var screenshotFile: Path? = null
     private set
 
   private val defaultFileName: String
