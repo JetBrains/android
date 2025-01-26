@@ -79,10 +79,10 @@ class ScreenRecorderAction : DumbAwareAction(
   override fun actionPerformed(event: AnActionEvent) {
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
-    val serialNumber = params.serialNumber
-    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), params.featureLevel)
+    val isEmulator = params.serialNumber.isEmulator()
+    val dialog = ScreenRecorderOptionsDialog(project, isEmulator, params.featureLevel)
     if (dialog.showAndGet()) {
-      startRecordingAsync(params, dialog.useEmulatorRecording, project)
+      startRecordingAsync(params, isEmulator && ScreenRecorderPersistentOptions.getInstance().useEmulatorRecording, project)
     }
   }
 
