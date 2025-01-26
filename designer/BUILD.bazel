@@ -88,12 +88,10 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/ml-api",
     "@lib//:kotlinx-collections-immutable",
-    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = [":designer_resources"]
 )
 
 jvm_library(
@@ -197,13 +195,11 @@ jvm_library(
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
     "@lib//:kotlinx-collections-immutable",
-    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "@lib//:mockito-kotlin",
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = [":designer_resources"]
 )
 
 jvm_test(
@@ -335,13 +331,11 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
-    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "@lib//:mockito-kotlin",
     "@lib//:jsoup",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:jewel-ide-laf-bridge",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_test(

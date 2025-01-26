@@ -40,13 +40,11 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:guava",
-    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "//android/render-resources",
     "@lib//:protobuf",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = [":avd_resources"]
 )
 
 jvm_library(
@@ -88,14 +86,12 @@ jvm_library(
     "@lib//:junit4",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "@lib//:jetbrains-kotlin-compose-compiler-plugin-provided",
     "//android/render-resources",
     "//android/intellij.android.device.tests:device-tests_test_lib",
     "@lib//:protobuf",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = [":avd_resources"]
 )
 
 jvm_test(
