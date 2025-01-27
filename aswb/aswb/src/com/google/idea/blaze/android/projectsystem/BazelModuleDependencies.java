@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -77,7 +78,10 @@ public class BazelModuleDependencies implements ModuleDependencies {
   @Override
   public ViewClass findViewClass(@NotNull String fqcn) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    return new PsiClassViewClass(
-        facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false)));
+    PsiClass psiClass = facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false));
+    if (psiClass == null) {
+      return null;
+    }
+    return new PsiClassViewClass(psiClass);
   }
 }
