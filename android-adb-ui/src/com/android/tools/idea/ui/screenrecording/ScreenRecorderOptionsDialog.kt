@@ -37,12 +37,12 @@ import javax.swing.JEditorPane
  * TODO(b/235094713): Add tests
  */
 internal class ScreenRecorderOptionsDialog(
+  private val options: ScreenRecorderPersistentOptions,
   project: Project,
   private val isEmulator: Boolean,
   private val apiLevel: Int,
 ) : DialogWrapper(project, true) {
 
-  private val options = ScreenRecorderPersistentOptions.getInstance()
   private lateinit var recordingLengthField: JEditorPane
 
   init {

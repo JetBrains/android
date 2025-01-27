@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.XmlSerializerUtil
 import java.awt.Dimension
 import kotlin.math.roundToInt
@@ -39,8 +39,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
 
   companion object {
     @JvmStatic
-    fun getInstance(): ScreenRecorderPersistentOptions =
-      ApplicationManager.getApplication().getService(ScreenRecorderPersistentOptions::class.java)
+    fun getInstance(): ScreenRecorderPersistentOptions = service<ScreenRecorderPersistentOptions>()
   }
 
   override fun getState(): ScreenRecorderPersistentOptions = this
