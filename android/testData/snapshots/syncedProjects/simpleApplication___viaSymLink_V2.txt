@@ -16,7 +16,7 @@ PROJECT                       : project_sm_src
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>_sm_src
             EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

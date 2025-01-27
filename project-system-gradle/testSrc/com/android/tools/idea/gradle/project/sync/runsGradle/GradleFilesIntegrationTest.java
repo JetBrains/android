@@ -130,7 +130,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   private void setupGradleSnapshotToWrapper() throws IOException {
     Path distribution = TestUtils.resolveWorkspacePath("tools/external/gradle");
-    Path gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip");
+    Path gradle = distribution.resolve("gradle-8.14-20250304001707+0000-bin.zip");
     GradleWrapper wrapper = GradleWrapper.find(myFixture.getProject());
     wrapper.updateDistributionUrl(gradle.toFile());
   }

@@ -19,7 +19,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

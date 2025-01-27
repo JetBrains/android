@@ -16,7 +16,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -758,15 +758,15 @@ PROJECT                       : project
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.17.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.0.21.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.0.21.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.0.21.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.0.21.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         ORDER_ENTRY                   : project.buildSrc.lib1.main
         ORDER_ENTRY                   : project.buildSrc.lib2.main
@@ -878,15 +878,15 @@ PROJECT                       : project
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.17.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.0.21.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.0.21.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.0.21.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.0.21.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         ORDER_ENTRY                   : project.buildSrc.lib1.main
         ORDER_ENTRY                   : project.buildSrc.lib2.main

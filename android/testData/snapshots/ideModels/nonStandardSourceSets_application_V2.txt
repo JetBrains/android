@@ -13,7 +13,7 @@ MODULE                        : application
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>/application
         EXCLUDE_FOLDER                : file://<ROOT>/application/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/application/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/application/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -649,7 +649,7 @@ MODULE                        : application
         qName                         : application
         version                       : unspecified
         projectDir                    : <ROOT>/application
-        buildDir                      : <ROOT>/application/build [-]
+        buildDir                      : <ROOT>/application/build
         buildFile                     : <ROOT>/application/build.gradle
         externalSystemId              : GRADLE
         childProjects

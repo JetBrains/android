@@ -69,8 +69,8 @@ Execution failed for task ':app:mergeDebugResources'.
 > Run with --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
-BUILD FAILED in
       """.trimIndent())
+        assertThat(event.description).contains("BUILD FAILED in ")
       }
 
       // Failure should be filtered from BOW finish event, it contains useless information for this error.

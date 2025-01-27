@@ -13,7 +13,7 @@ MODULE                        : My_First_App
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>/firstapp
         EXCLUDE_FOLDER                : file://<ROOT>/firstapp/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -563,7 +563,7 @@ MODULE                        : My_First_App
         qName                         : My First App
         version                       : unspecified
         projectDir                    : <ROOT>/firstapp
-        buildDir                      : <ROOT>/firstapp/build [-]
+        buildDir                      : <ROOT>/firstapp/build
         buildFile                     : <ROOT>/firstapp/build.gradle
         externalSystemId              : GRADLE
         childProjects

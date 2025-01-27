@@ -13,7 +13,7 @@ MODULE                        : kotlinMultiPlatform
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -585,7 +585,7 @@ MODULE                        : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects

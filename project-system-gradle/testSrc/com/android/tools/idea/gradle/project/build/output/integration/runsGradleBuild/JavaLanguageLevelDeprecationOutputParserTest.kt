@@ -58,7 +58,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
 
     assertThat(buildEvents.printEvents()).isEqualTo("""
 root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Java compiler has removed support for compiling with source/target compatibility version 6.'
-root > ERROR:'Target option 6 is no longer supported. Use 7 or later.'
+root > ERROR:'Source option 6 is no longer supported. Use 7 or later.'
 root > 'failed'
 """.trimIndent())
 
@@ -220,7 +220,7 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 
     assertThat(buildEvents.printEvents()).isEqualTo("""
 root > [Task :lib:compileJava] > ERROR:'Java compiler has removed support for compiling with source/target compatibility version 7.'
-root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Target option 7 is no longer supported. Use 8 or later.'
+root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Source option 7 is no longer supported. Use 8 or later.'
 root > 'failed'
 """.trimIndent())
     sequenceOf(

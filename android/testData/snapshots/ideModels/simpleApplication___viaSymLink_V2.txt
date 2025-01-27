@@ -13,7 +13,7 @@ MODULE                        : project_sm_src
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>_sm_src
         EXCLUDE_FOLDER                : file://<ROOT>_sm_src/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -26,7 +26,7 @@ MODULE                        : project_sm_src
         qName                         : project_sm_src
         version                       : unspecified
         projectDir                    : <ROOT>_sm_src
-        buildDir                      : <ROOT>_sm_src/build [-]
+        buildDir                      : <ROOT>_sm_src/build
         buildFile                     : <ROOT>_sm_src/build.gradle
         externalSystemId              : GRADLE
         childProjects

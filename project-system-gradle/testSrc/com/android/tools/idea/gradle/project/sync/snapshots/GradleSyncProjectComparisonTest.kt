@@ -199,7 +199,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
 
   @Test
-  fun testLightSyncActual() {
+  fun testLightSyncActualNoBuild() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val dump = projectRule.project.saveAndDump()
     assertIsEqualToSnapshot(dump)

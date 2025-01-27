@@ -14,7 +14,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_1/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_1/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_1/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -501,7 +501,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_2/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_2/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

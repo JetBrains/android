@@ -64,7 +64,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
             exception: org.gradle.internal.exceptions.LocationAwareException
               at: [0]org.gradle.kotlin.dsl.execution.Interpreter${'$'}ProgramHost${'$'}compileSecondStageOf${'$'}cacheDir${'$'}1#invoke
             exception: org.gradle.kotlin.dsl.support.ScriptCompilationException
-              at: [0]org.gradle.kotlin.dsl.support.KotlinCompilerKt#compileKotlinScriptModuleTo
+              at: [0]org.gradle.kotlin.dsl.support.KotlinCompilerKt#reportToMessageCollectorAndThrowOnErrors
           }
         }
       """.trimIndent())

@@ -489,7 +489,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/external/gradle:gradle-8.12-20241105002153+0000",
+        "//tools/external/gradle:gradle-8.14-20250304001707+0000",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testSrc/resources"],

@@ -6,7 +6,7 @@ MODULE                        : gradle_project
         qName                         : gradle_project
         version                       : unspecified
         projectDir                    : <ROOT>/gradle_project
-        buildDir                      : <ROOT>/gradle_project/build [-]
+        buildDir                      : <ROOT>/gradle_project/build
         buildFile                     : <ROOT>/gradle_project/build.gradle
         externalSystemId              : GRADLE
         childProjects

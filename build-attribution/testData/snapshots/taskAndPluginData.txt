@@ -383,6 +383,9 @@ Plugin                        : org.gradle.api.plugins.JvmToolchainsPlugin
 Plugin                        : org.gradle.api.plugins.ReportingBasePlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : org.gradle.api.plugins.ReportingBasePlugin
+Plugin                        : org.gradle.api.plugins.SoftwareReportingTasksPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.software-reporting-tasks
 Plugin                        : org.gradle.buildinit.plugins.BuildInitPlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : org.gradle.build-init

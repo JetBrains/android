@@ -82,7 +82,7 @@ iml_module(
         "//tools/base/build-system:declarative_android_gradle_plugin.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/external/gradle:gradle-8.12-20241105002153+0000",
+        "//tools/external/gradle:gradle-8.14-20250304001707+0000",
     ],
     test_srcs = ["testSrc"],
     test_tags = [],
