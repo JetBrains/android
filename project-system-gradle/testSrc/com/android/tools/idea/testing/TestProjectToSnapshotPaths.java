@@ -16,6 +16,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String CUSTOM_SOURCE_TYPE = "projects/customSourceType";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String GRADLE_DECLARATIVE = "projects/gradleDeclarative";
+  public static final String DECLARATIVE_ANDROID = "projects/declarativeAndroid";
   public static final String INCLUDE_FROM_LIB = "projects/includeFromLib";
   public static final String JPS_WITH_QUALIFIED_NAMES = "projects/jpsWithQualifiedNames";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
