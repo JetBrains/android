@@ -53,7 +53,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
     }
   }
 
-  public override fun findUsages(): Array<UsageInfo> {
+  override fun findUsages(): Array<UsageInfo> {
     val baseDir = myProject.baseDir ?: return emptyArray()
     val gradlePropertiesVirtualFile = baseDir.findChild("gradle.properties")
     if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {

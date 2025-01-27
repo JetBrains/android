@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class AddRepoProcessor extends BaseRefactoringProcessor {
@@ -90,7 +89,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageInfo[] findUsages() {
+  public UsageInfo[] findUsages() {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
     List<UsageInfo> usages = new ArrayList<>();
 

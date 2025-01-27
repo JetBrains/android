@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
@@ -113,13 +114,13 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   @NotNull
   @Override
-  protected UsageInfo[] findUsages() {
+  public UsageInfo[] findUsages() {
     final List<UsageInfo> usages = findAllStyleApplications();
     return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   @Override
-  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
+  public boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     super.preprocessUsages(refUsages);
 
     if (refUsages.get().length == 0) {

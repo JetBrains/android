@@ -108,7 +108,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
     UnusedResourcesUsageViewDescriptor(elements)
 
-  public override fun findUsages(): Array<UsageInfo> {
+  override fun findUsages(): Array<UsageInfo> {
     elements = computeUnusedDeclarationElements()
     val result = elements.map { UsageInfo(it) }.toTypedArray()
     return UsageViewUtil.removeDuplicatedUsages(result)

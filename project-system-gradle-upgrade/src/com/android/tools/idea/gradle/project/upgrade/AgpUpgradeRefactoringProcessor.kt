@@ -855,7 +855,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   internal val cachedUsages
     get() = _cachedUsages
 
-  public final override fun findUsages(): Array<out UsageInfo> {
+  final override fun findUsages(): Array<out UsageInfo> {
     if (!hasParentProcessor) {
       projectBuildModel.reparse()
     }
