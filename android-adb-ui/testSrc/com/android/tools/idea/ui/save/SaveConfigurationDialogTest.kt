@@ -19,6 +19,7 @@ import com.android.SdkConstants.EXT_PNG
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.idea.ui.extractTextFromHtml
 import com.android.tools.idea.ui.save.SaveConfiguration.Companion.DEFAULT_SAVE_LOCATION
 import com.android.tools.idea.ui.save.SaveConfiguration.Companion.PROJECT_DIR_MACRO
 import com.google.common.truth.Truth.assertThat
@@ -66,10 +67,10 @@ class SaveConfigurationDialogTest {
       val previewField = ui.getComponent<JEditorPane>()
       assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
       assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%M%S")
-      assertThat(extractText(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_100114.png".toPlatformPath())
+      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_100114.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
       filenameTemplateField.text = "screenshots/%4d"
-      assertThat(extractText(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
+      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
       dlg.clickDefaultButton()
     }
     assertThat(dialogWrapper.isDisposed).isTrue()
@@ -102,15 +103,11 @@ class SaveConfigurationDialogTest {
     assertThat(dialogWrapper.isOK).isFalse()
   }
 
-  /** Extracts plain text from HTML. */
-  fun extractText(html: String): String =
-      html.replace(Regex("<[^>]+>"), "").trim().replace("&nbsp;", " ").replace(Regex("\\s+"), " ")
-
   private fun JEditorPane.clickOnHyperlink(hyperlink: String) {
     assertThat(text.contains("<a href=\"$hyperlink\">")).isTrue()
     fireHyperlinkUpdate(HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, hyperlink))
   }
 
   private fun String.toPlatformPath(): String =
-      this.replace('/', File.separatorChar)
+      replace('/', File.separatorChar)
 }

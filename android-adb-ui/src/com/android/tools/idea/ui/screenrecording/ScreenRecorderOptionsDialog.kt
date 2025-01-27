@@ -32,10 +32,7 @@ import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 
-/**
- * A dialog for setting the options for a screen recording.
- * TODO(b/235094713): Add tests
- */
+/** A dialog for setting the options for a screen recording. */
 internal class ScreenRecorderOptionsDialog(
   private val options: ScreenRecorderPersistentOptions,
   project: Project,
