@@ -18,6 +18,7 @@ package com.android.tools.idea.actions
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
@@ -97,7 +98,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
         it.putIfAbsent("libs", "gradle/libs.versions.toml")
       }
 
-      val baseName = createdElement.name.removeSuffix(".versions.toml")
+      val baseName = createdElement.name.removeSuffix(EXT_VERSIONS_TOML)
       var candidateName = baseName
       if (current[baseName] == "gradle/${createdElement.name}") {
         // do nothing: already set up.  (Common case is adding libs.versions.toml to a project previously not using Version Catalogs)

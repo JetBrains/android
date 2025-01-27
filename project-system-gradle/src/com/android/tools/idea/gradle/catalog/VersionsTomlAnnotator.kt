@@ -33,6 +33,7 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
+import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
 
 class VersionsTomlAnnotator : Annotator {
   companion object {
@@ -44,7 +45,7 @@ class VersionsTomlAnnotator : Annotator {
   private val reservedNames = listOf("extensions", "convention")
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!element.containingFile.name.endsWith("versions.toml"))
+    if (!element.containingFile.name.endsWith(EXT_VERSIONS_TOML))
       return
 
     if(element.isFirstElement()){
