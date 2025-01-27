@@ -117,6 +117,7 @@ studio_plugin(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/android-common:libandroid-core-proto",
     ],
     license_files = [
         "//prebuilts/r8:license",

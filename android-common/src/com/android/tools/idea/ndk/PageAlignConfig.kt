@@ -17,6 +17,7 @@ package com.android.tools.idea.ndk
 
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.PageAlign16kb
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.text.StringUtil
 import java.io.File
 
@@ -38,7 +39,7 @@ object PageAlignConfig {
    * Whether the server config proto has been read yet.
    * You can manually set this to true to debug the feature. You'll get a test failure if you try to check it in that way.
    */
-  @com.google.common.annotations.VisibleForTesting
+  @VisibleForTesting
   const val CONFIG_INITIALIZED_DEFAULT = false
 
   private var configInitialized = CONFIG_INITIALIZED_DEFAULT
