@@ -63,6 +63,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -70,9 +71,7 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
@@ -242,15 +241,14 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     long startMs = System.currentTimeMillis();
-    boolean success = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable);
+    ReadAction.computeCancellable(() -> {
+      runnable.run();
+      return true;
+    });
 
     long elapsedMs = System.currentTimeMillis() - startMs;
     if (elapsedMs >= 20000) {
       LOG.warn("Android Lint took a long time to run a read action (" + elapsedMs + " ms)");
-    }
-
-    if (!success) {
-      throw new ProcessCanceledException();
     }
   }
 
