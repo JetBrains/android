@@ -26,8 +26,9 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.js.inline.util.toIdentitySet
 import java.awt.Image
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.concurrent.CompletableFuture
 import javax.swing.JTextField
 
@@ -57,6 +58,15 @@ class ResourceImportDialogViewModel(
     .take(MAX_IMPORT_FILES)
     .groupIntoDesignAssetSet()
     .toIdentitySet()
+
+  private fun <T> Collection<T>.toIdentitySet(): MutableSet<T> {
+    val result = Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
+    for (element in this) {
+      result.add(element)
+    }
+
+    return result
+  }
 
   val assetSets get() = assetSetsToImport
 
