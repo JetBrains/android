@@ -223,11 +223,27 @@ def create_cc_toolchain_info(
         test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
 
-def merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info, experiment_multi_info_file):
+def merge_dependencies_info(
+        target,
+        ctx,  # @unused
+        java_dep_info,
+        cc_dep_info,
+        cc_toolchain_dep_info,
+        experiment_multi_info_file):
     """Merge multiple DependenciesInfo providers into one.
 
     Depsets and dicts are merged. For members such as `cc_compilation_info`, we require that at most one of the
     DependenciesInfo's defines this which should always be the case.
+
+    Args:
+      target: the target.
+      ctx: the context which is ignored in this function.
+      java_dep_info: java dep info.
+      cc_dep_info: cc dep info.
+      cc_toolchain_dep_info: cc toolchain dep info.
+      experiment_multi_info_file: experiment multi info file flag.
+    Returns:
+      Merged dependencies info.
     """
 
     if not java_dep_info and not cc_dep_info and not cc_toolchain_dep_info:
@@ -260,7 +276,15 @@ def merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchai
     return merged
 
 def one_of(a, b):
-    """Returns whichever of a or b is not None, None if both are, or fails if neither are."""
+    """
+    Returns whichever of a or b is not None, None if both are, or fails if neither are.
+
+    Args:
+      a: maybe None argument.
+      b: maybe None argument.
+    Returns:
+      Whichever of a or b is not None, None if both are, or fails if neither are.
+    """
     if a == None:
         return b
     if b == None:
@@ -467,7 +491,9 @@ def _get_followed_java_proto_dependencies(rule):
         deps.extend(_get_dependency_attribute(rule, "_toolchain"))
     return deps
 
-def _get_followed_java_dependency_infos(label, rule):
+def _get_followed_java_dependency_infos(
+        label,  # @unused
+        rule):
     deps = []
     for attr in FOLLOW_JAVA_ATTRIBUTES:
         deps.extend(_get_dependency_attribute(rule, attr))
@@ -811,6 +837,7 @@ def _collect_java_dependencies_core_impl(
         if "ij-ignore-source-transform" in ctx.rule.attr.tags:
             expand_sources = True
 
+    java_info_file = []
     if params.experiment_multi_info_file:
         java_info_file = _write_java_target_info(target.label, target_to_artifacts, ctx)
 
@@ -826,6 +853,7 @@ def _collect_java_dependencies_core_impl(
 
 def _collect_cc_dependencies_core_impl(target, ctx, test_mode, experiment_multi_info_file):
     cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule, test_mode)
+    cc_info_files = []
     if experiment_multi_info_file:
         cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + [cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else []
 
