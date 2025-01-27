@@ -67,8 +67,7 @@ import javax.swing.tree.TreePath
 
 private val LIVE_DB_ICON = StudioIcons.DatabaseInspector.DATABASE
 private val LIVE_DB_CLOSED_ICON = StudioIcons.DatabaseInspector.DATABASE_UNAVAILABLE
-// TODO(b/332320281): Replace with a proper icon
-private val LIVE_DB_FORCED_ICON = StudioIcons.DeviceExplorer.DATABASE_FOLDER
+private val LIVE_DB_FORCED_ICON = StudioIcons.DatabaseInspector.DATABASE_FORCED_CONNECTION
 private val FILE_DB_ICON = StudioIcons.DatabaseInspector.DATABASE_OFFLINE
 
 class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
