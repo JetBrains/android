@@ -440,12 +440,7 @@ abstract class DesignSurface<T : SceneManager>(
                 width > 0 &&
                 height > 0
             ) {
-              val hasModelAttached =
-                checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
-              if (!hasModelAttached) {
-                // No model is attached, ignore the setup of initial zoom level.
-                return
-              }
+              checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
             }
             // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
             sceneManagers.forEach { manager: T -> manager.scene.needsRebuildList() }
