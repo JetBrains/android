@@ -51,6 +51,7 @@ import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.base.util.VersionChecker;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
@@ -189,6 +190,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     try (
       final var ignoredLock = ApplicationManager.getApplication().getService(BuildDependenciesLockService.class)
         .lockWorkspace(workspaceRoot.path().toString())) {
+      if (VersionChecker.versionMismatch()) {
+        throw new BuildException(
+          "The IDE has been upgraded in the background. Bazel build aspect files maybe incompatible. Please restart the IDE.");
+      }
       final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, languages);
       prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 

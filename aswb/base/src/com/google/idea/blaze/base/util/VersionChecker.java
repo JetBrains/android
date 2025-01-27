@@ -41,6 +41,10 @@ public class VersionChecker {
       BuildNumber.fromString(readBuildNumberFromProductInfo());
     BuildNumber buildNumberFromApplicationInfo = ApplicationInfo.getInstance().getBuild();
 
+    if (buildNumberFromProductInfo == null) {
+      // It is `null` at least in non-integration tests.
+      return false;
+    }
     return !buildNumberFromProductInfo.equals(buildNumberFromApplicationInfo);
   }
 
