@@ -29,6 +29,7 @@ import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.ScreenshotConfiguration
 import com.google.common.truth.Truth.assertThat
@@ -55,7 +56,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
@@ -86,17 +86,16 @@ import kotlin.time.Duration.Companion.seconds
 class ScreenshotViewerTest {
   private val projectRule = ProjectRule()
   private val usageTrackerRule = UsageTrackerRule()
-  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), disposableRule, usageTrackerRule)
+  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), usageTrackerRule)
 
   private val testFrame = DeviceFramingOption("Test Frame", SKIN_FOLDER.resolve("pixel_4_xl"))
 
   private val fileNamePrompts = mutableListOf<String>()
   private val openedFiles = mutableListOf<String>()
   private val testRootDisposable
-    get() = disposableRule.disposable
+    get() = projectRule.disposable
 
   @Before
   fun setUp() {
