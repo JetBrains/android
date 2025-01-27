@@ -233,7 +233,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     // See https://plugins.jetbrains.com/docs/intellij/threading-model.html#avoiding-ui-freezes
 
     Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode()) {
+    if (application.isUnitTestMode() && !Boolean.getBoolean("android.lint.use.cancelable.read.actions.in.tests")) {
       // Do not yield to pending write actions during unit tests;
       // otherwise the tests will fail before Lint is rescheduled.
       application.runReadAction(runnable);
