@@ -21,10 +21,7 @@ import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
@@ -41,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -182,22 +178,11 @@ public class StudioAssetFileOpener implements AssetFileOpener {
 
     VirtualFileManager manager = VirtualFileManager.getInstance();
 
-    // TODO(b/178424022) Library dependencies from project system should be sufficient for asset folder dependencies.
-    //  This should be removed once the bug is resolved.
-    Stream<VirtualFile> dirsFromAars = findAarLibraries(facet).stream()
+    Stream<VirtualFile> libraryDepAarDirs = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
       .map(aarMapper)
       .filter(Objects::nonNull)
       .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
       .filter(Objects::nonNull);
-
-    Stream<VirtualFile> libraryDepAars = Stream.empty();
-    if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
-      libraryDepAars = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
-        .map(ExternalAndroidLibrary::getLocation)
-        .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
-        .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
-        .filter(Objects::nonNull);
-    }
 
     Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResDirOrJar(facet))
       .filter(Objects::nonNull)
@@ -210,7 +195,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
       .map(dir -> manager.findFileByUrl("file://" + dir.toAbsolutePath()))
       .filter(Objects::nonNull);
 
-    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs, libraryDepAars)
+    return Stream.of(dirsFromSources, frameworkDirs, sampleDataDirs, libraryDepAarDirs)
       .flatMap(stream -> stream);
   }
 
@@ -226,24 +211,5 @@ public class StudioAssetFileOpener implements AssetFileOpener {
       myFrameworkResDirOrJar = compatibilityTarget.getPath(IAndroidTarget.RESOURCES);
     }
     return myFrameworkResDirOrJar;
-  }
-
-  @NotNull
-  public static Collection<ExternalAndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<ExternalAndroidLibrary> libraries = new ArrayList<>();
-    if (AndroidModel.isRequired(facet)) {
-      AndroidModuleSystem androidModuleSystem = getModuleSystem(facet);
-      List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), true);
-      addLibraries(libraries, androidModuleSystem);
-      for (AndroidFacet dependentFacet : dependentFacets) {
-        AndroidModuleSystem dependentModuleSystem = getModuleSystem(dependentFacet);
-        addLibraries(libraries, dependentModuleSystem);
-      }
-    }
-    return libraries;
-  }
-
-  private static void addLibraries(@NotNull List<ExternalAndroidLibrary> list, @NotNull AndroidModuleSystem androidModuleSystem) {
-    list.addAll(androidModuleSystem.getAndroidLibraryDependencies(DependencyScopeType.MAIN));
   }
 }
