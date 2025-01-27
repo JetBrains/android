@@ -31,6 +31,7 @@ import com.android.tools.idea.lint.model.LintModelFactory.Companion.getModuleTyp
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.lint.client.api.LintClient
@@ -133,6 +134,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       file: VirtualFile?,
       module: Module,
     ): Pair<Project, Project> {
+
       // TODO: Can make this method even more lightweight: we don't need to
       //    initialize anything in the project (source paths etc) other than the
       //    metadata necessary for this file's type
@@ -154,8 +156,17 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
           if (androidModule != null) {
             main = createModuleProject(client, androidModule, true)
             if (main != null) {
-              projectMap.put(main, androidModule)
-              main.setDirectLibraries(listOf<Project>(project))
+              val path = module.getGradleProjectPath()?.path
+              if (path == ":") {
+                // Don't make main depend on root since parent hierarchy
+                // goes in the opposite direction
+                main.setDirectLibraries(emptyList())
+                client.setModuleMap(mapOf(main to module))
+                return Pair.create<Project, Project>(main, null)
+              } else {
+                projectMap.put(main, androidModule)
+                main.setDirectLibraries(listOf<Project>(project))
+              }
             }
           }
         }
@@ -181,52 +192,54 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
               val project = module.project
               ModuleManager.getInstance(project).moduleGraph()
             }
-          )
+          ) ?: return null
 
-      if (graph == null) {
+      var androidModule: Module? = null
+      val seen = Sets.newHashSet<Module>()
+
+      /**
+       * As a side effect also stores the first Android module it comes across in `androidModule`
+       * (if it's not an app module)
+       */
+      fun findAppModule(module: Module): Module? {
+        if (!seen.add(module)) {
+          return null
+        }
+        val facet = AndroidFacet.getInstance(module)
+        if (facet != null) {
+          if (facet.configuration.isAppProject()) {
+            return facet.module.getMainModule()
+          } else if (androidModule == null) {
+            androidModule = facet.module.getMainModule()
+          }
+        }
+
+        val iterator = graph.getOut(module)
+        while (iterator.hasNext()) {
+          val dep = iterator.next().getMainModule()
+          val appModule = findAppModule(dep)
+          if (appModule != null) {
+            return appModule
+          }
+        }
+
         return null
       }
 
-      val facets = Sets.newHashSet<AndroidFacet>()
-      val seen = Sets.newHashSet<Module>()
-      seen.add(module)
-      addAndroidModules(facets, seen, graph, module)
-
-      // Prefer Android app modules
-      for (facet in facets) {
-        if (facet.configuration.isAppProject()) {
-          return facet.module.getMainModule()
+      return findAppModule(module)
+        ?: androidModule
+        // It might be a root project (e.g. when editing gradle/libs.versions.toml)
+        // which doesn't have any reverse dependencies on it; if so, find first module
+        ?: run {
+          // Is this the mostly-empty root module with build scripts? (This is usually
+          // the case when editing gradle/libs.versions.toml etc.)
+          val path = module.getGradleProjectPath()?.path
+          if (path == "" || path == ":") {
+            graph.nodes.firstOrNull { AndroidFacet.getInstance(it) != null }?.getMainModule()
+          } else {
+            null
+          }
         }
-      }
-
-      // Resort to library modules if no app module depends directly on it
-      if (!facets.isEmpty()) {
-        val facet = facets.iterator().next()
-        return facet.module.getMainModule()
-      }
-
-      return null
-    }
-
-    private fun addAndroidModules(
-      androidFacets: MutableSet<AndroidFacet>,
-      seen: MutableSet<Module>,
-      graph: Graph<Module>,
-      module: Module?,
-    ) {
-      val iterator = graph.getOut(module)
-      while (iterator.hasNext()) {
-        val dep = iterator.next().getMainModule()
-        val facet = AndroidFacet.getInstance(dep)
-        if (facet != null) {
-          androidFacets.add(facet)
-        }
-
-        if (!seen.contains(dep)) {
-          seen.add(dep)
-          addAndroidModules(androidFacets, seen, graph, dep)
-        }
-      }
     }
 
     /**

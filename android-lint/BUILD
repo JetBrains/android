@@ -131,6 +131,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.1.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
+        "@maven//:androidx.datastore.datastore-core-android_1.1.0-alpha04",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:androidx.test.rules_1.4.0-alpha06",
@@ -155,6 +156,7 @@ maven_repository(
         "@maven//:org.checkerframework.checker-compat-qual_2.5.5",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.junit.junit-bom_5.9.3",
     ],
 )

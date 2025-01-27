@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
+import com.android.tools.idea.lint.inspections.AndroidLintAligned16KBInspection
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateActivityInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
@@ -225,6 +226,23 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
       """
         No warnings.
+      """
+        .trimIndent(),
+    )
+  }
+
+  fun testTomlWarningFor16KbAlignment() {
+    loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
+    val appBuildFile = myFixture.loadFile("gradle/libs.versions.toml")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintAligned16KBInspection(),
+      "module = \"androidx.datastore:|datastore-core-android\", version.ref = \"datastoreCoreAndroid\" }\n",
+      """
+      Warning: The native library `arm64-v8a/libdatastore_shared_counter.so` (from `androidx.datastore:datastore-core-android:1.1.0-alpha04`) is not 16 KB aligned
+      androidx-datastore-core-android = { module = "androidx.datastore:datastore-core-android", version.ref = "datastoreCoreAndroid" }
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          Fix: Suppress Aligned16KB
       """
         .trimIndent(),
     )
