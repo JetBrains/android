@@ -171,14 +171,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
 
   /**
-   * Updates any coordinates to the versions specified in the [toVersions] list.
-   * For example, if you pass it [com.android.support.constraint:constraint-layout:1.0.0-alpha2],
-   * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
-   */
-  @Throws(DependencyManagementException::class)
-  fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) : Unit = throw UnsupportedOperationException()
-
-  /**
    * Returns the resolved libraries that this module depends on.
    * <p>
    * **Note**: This function will not acquire read/write locks during its operation.

@@ -58,8 +58,6 @@ import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
-import com.android.tools.idea.projectsystem.isAndroidTestFile
-import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
@@ -337,11 +335,6 @@ class GradleModuleSystem(
         manager.addDependencies(module, dependencies)
       }
     }
-  }
-
-  override fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    manager.updateLibrariesToVersion(module, toVersions.map { it.toDependency() })
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
