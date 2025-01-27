@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.sdklib.computeFullReleaseName
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getFullReleaseName
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -376,12 +377,9 @@ class VitalsIssueDetailsPanel(
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
       try {
-        computeFullReleaseName(
-          issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
-          null,
-          includeApiLevel = true,
-        )
-      } catch (e: NumberFormatException) {
+        AndroidVersion.fromString(issue.sampleEvent.eventData.operatingSystemInfo.displayVersion)
+          .getFullReleaseName(includeApiLevel = true)
+      } catch (_: IllegalArgumentException) {
         Logger.getInstance(this::class.java)
           .warn(
             "Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}"
