@@ -103,6 +103,7 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
     isResizable = false
+    pack()
   }
 
   override fun createCenterPanel(): JComponent {
