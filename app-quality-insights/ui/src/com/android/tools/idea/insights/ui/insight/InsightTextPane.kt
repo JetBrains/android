@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.actions.CopyAction
 import com.intellij.markdown.utils.doc.DocMarkdownToHtmlConverter
@@ -30,6 +31,7 @@ import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import javax.swing.JTextPane
+import javax.swing.event.HyperlinkEvent.EventType
 import javax.swing.text.DefaultCaret
 
 private const val EMPTY_PARAGRAPH = "<p></p>"
@@ -60,6 +62,12 @@ class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider 
       }
 
     font = StartupUiUtil.labelFont
+
+    addHyperlinkListener {
+      if (it.eventType == EventType.ACTIVATED) {
+        BrowserUtil.browse(it.url)
+      }
+    }
 
     val actionManager = ActionManager.getInstance()
     val group =
