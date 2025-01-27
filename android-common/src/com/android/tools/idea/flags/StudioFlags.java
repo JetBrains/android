@@ -2061,6 +2061,12 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
+                    "Show transform results that have citations.",
+                    "When enabled, will show transform results with citations instead of blocking them.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_EXPERIMENTAL_SLASH_COMMANDS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.experimental.slash.commands.enabled",
                     "Enable experimental slash comments.",
