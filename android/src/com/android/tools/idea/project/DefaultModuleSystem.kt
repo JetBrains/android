@@ -26,7 +26,6 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.ENABLE_APK_PROJECT_SYSTEM
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
@@ -98,10 +97,6 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
     return CapabilityNotSupported()
-  }
-
-  override fun registerDependency(coordinate: GradleCoordinate) {
-    registerDependency(coordinate, DependencyType.IMPLEMENTATION)
   }
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {

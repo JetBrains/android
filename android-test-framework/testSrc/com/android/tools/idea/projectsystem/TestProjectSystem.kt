@@ -187,10 +187,6 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override fun getDirectResourceModuleDependents() = emptyList<Module>()
 
-      override fun registerDependency(coordinate: GradleCoordinate) {
-        registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-      }
-
       override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
         coordinateToFakeRegisterDependencyError[coordinate]?.let {
           throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)

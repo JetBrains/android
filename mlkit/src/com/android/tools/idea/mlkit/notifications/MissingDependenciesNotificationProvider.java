@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -70,7 +71,7 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
         AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
         if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
           for (GradleCoordinate dep : depsToAdd) {
-            moduleSystem.registerDependency(dep);
+            moduleSystem.registerDependency(dep, DependencyType.IMPLEMENTATION);
           }
           ProjectSystemUtil.getSyncManager(module.getProject()).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         }

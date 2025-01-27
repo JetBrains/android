@@ -307,10 +307,6 @@ class GradleModuleSystem(
     return CapabilitySupported()
   }
 
-  override fun registerDependency(coordinate: GradleCoordinate) {
-    registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-  }
-
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
     val dependencies = Collections.singletonList(coordinate.toDependency())

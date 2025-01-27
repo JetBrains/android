@@ -17,6 +17,7 @@ package org.jetbrains.android.actions
 
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -72,7 +73,7 @@ class CreateTypedResourceFileActionTest {
 
     module
       .getModuleSystem()
-      .registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE.getCoordinate("+"))
+      .registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE.getCoordinate("+"), DependencyType.IMPLEMENTATION)
 
     // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
     assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))

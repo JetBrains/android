@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -76,8 +77,8 @@ class GradleModuleSystemIntegrationTest {
       val anotherDummyCoordinate = GradleCoordinate("hello", "world", "1.2.3")
       val anotherDummyDependency = Dependency.parse(anotherDummyCoordinate.toString())
 
-      moduleSystem.registerDependency(dummyCoordinate)
-      moduleSystem.registerDependency(anotherDummyCoordinate)
+      moduleSystem.registerDependency(dummyCoordinate, DependencyType.IMPLEMENTATION)
+      moduleSystem.registerDependency(anotherDummyCoordinate, DependencyType.IMPLEMENTATION)
 
       assertThat(
         dependencyManager.findMissingDependencies(project.findAppModule(), listOf(dummyDependency, anotherDummyDependency))

@@ -176,11 +176,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public void registerDependency(GradleCoordinate coordinate) {
-    registerDependency(coordinate, DependencyType.IMPLEMENTATION);
-  }
-
-  @Override
   public void registerDependency(GradleCoordinate coordinate, DependencyType type) {
     if (type != DependencyType.IMPLEMENTATION) {
       throw new UnsupportedOperationException("Unsupported dependency type in Blaze: " + type);

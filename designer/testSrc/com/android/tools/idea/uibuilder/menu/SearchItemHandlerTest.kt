@@ -21,6 +21,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -124,7 +125,10 @@ class SearchItemHandlerTest(
     if (dependencies.isNotEmpty()) {
       val moduleSystem = projectSystem.getModuleSystem(rule.module)
       for (dependency in dependencies) {
-        moduleSystem.registerDependency(dependency.getCoordinate("+"))
+        moduleSystem.registerDependency(
+          dependency.getCoordinate("+"),
+          DependencyType.IMPLEMENTATION,
+        )
       }
       runInEdtAndWait {
         ProjectSystemService.getInstance(rule.project).replaceProjectSystemForTests(projectSystem)

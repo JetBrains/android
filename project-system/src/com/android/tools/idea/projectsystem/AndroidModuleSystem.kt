@@ -154,18 +154,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
 
   /**
-   * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
-   * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
-   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
-   * <p>
+   * Register a requested dependency of the given type with the build system.  Note that the requested dependency
+   * won't be available (a.k.a. resolved) until the next sync. To ensure the dependency is resolved and available
+   * for use, sync the project after calling this function.  This method throws [DependencyManagementException] for
+   * any errors that occur when adding the dependency.
+   *
    * **Note**: This function will perform a write action.
-   */
-  @Throws(DependencyManagementException::class)
-  fun registerDependency(coordinate: GradleCoordinate)
-
-  /**
-   * Like [registerDependency] where you can specify the type of dependency to add.
-   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
    */
   @Throws(DependencyManagementException::class)
   fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
