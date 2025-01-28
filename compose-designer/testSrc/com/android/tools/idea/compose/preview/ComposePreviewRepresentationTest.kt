@@ -19,12 +19,8 @@ import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
@@ -60,7 +56,6 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
@@ -70,7 +65,6 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -106,9 +100,11 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -121,9 +117,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
@@ -548,17 +541,15 @@ class ComposePreviewRepresentationTest {
             .trimIndent(),
         )
       }
-      val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
-      whenever(surfaceMock.analyticsManager).thenReturn(mock<NlAnalyticsManager>())
-      whenever(surfaceMock.sceneManagers).thenReturn(ImmutableList.of())
-      whenever(surfaceMock.pannable).thenReturn(TestPannable())
-      val composeView = TestComposePreviewView(surfaceMock)
+      val mainSurface: NlDesignSurface =
+        NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build()
+      val composeView = TestComposePreviewView(mainSurface)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
           composeView
         }
       Disposer.register(fixture.testRootDisposable, previewRepresentation)
-      Disposer.register(fixture.testRootDisposable, surfaceMock)
+      Disposer.register(fixture.testRootDisposable, mainSurface)
 
       // Compile the project so that 'buildSucceeded' is called during build listener setup
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
@@ -940,21 +931,20 @@ class ComposePreviewRepresentationTest {
     mainSurface: NlDesignSurface =
       NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build(),
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
-  ) {
+  ) = runTest {
     val context =
       ComposePreviewRepresentationTestContext(
+        scope = backgroundScope,
         previewPsiFile,
         mainSurface,
         fixture,
         logger,
         projectRule.buildSystemServices,
       )
-    runBlocking(workerThread) {
-      try {
-        context.block()
-      } finally {
-        context.cleanup()
-      }
+    try {
+      context.block()
+    } finally {
+      context.cleanup()
     }
   }
 
@@ -988,6 +978,7 @@ class ComposePreviewRepresentationTest {
    * test class.
    */
   private class ComposePreviewRepresentationTestContext(
+    val scope: CoroutineScope,
     private val previewPsiFile: PsiFile,
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
@@ -1004,15 +995,13 @@ class ComposePreviewRepresentationTest {
     private lateinit var newModelAddedLatch: CountDownLatch
 
     init {
-      mainSurface.addListener(
-        object : DesignSurfaceListener {
-          override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
-            val id = UUID.randomUUID().toString().substring(0, 5)
-            logger.info("modelChanged ($id)")
-            repeat(models.size) { newModelAddedLatch.countDown() }
-          }
+      scope.launch {
+        mainSurface.modelChanged.collect { models ->
+          val id = UUID.randomUUID().toString().substring(0, 5)
+          logger.info("modelChanged ($id)")
+          repeat(models.size) { newModelAddedLatch.countDown() }
         }
-      )
+      }
     }
 
     suspend fun createPreviewAndCompile(

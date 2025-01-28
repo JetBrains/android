@@ -177,6 +177,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 

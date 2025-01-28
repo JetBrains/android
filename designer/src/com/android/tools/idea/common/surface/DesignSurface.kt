@@ -558,7 +558,7 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private val _modelChanged = MutableSharedFlow<Unit>()
+  private val _modelChanged = MutableSharedFlow<List<NlModel?>>()
 
   /** The [DesignSurface]'s [models] has changed. */
   val modelChanged = _modelChanged.asSharedFlow()
@@ -568,7 +568,7 @@ abstract class DesignSurface<T : SceneManager>(
     for (listener in listeners) {
       runInEdt { listener.modelsChanged(this, models) }
     }
-    scope.launch { _modelChanged.emit(Unit) }
+    scope.launch { _modelChanged.emit(models) }
   }
 
   private fun notifySelectionChanged(newSelection: List<NlComponent>) {
