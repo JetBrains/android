@@ -49,7 +49,8 @@ def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
   # so here we just assert that the existing value is what we expect.
   platform_is_eap = re.search(version_prop % "eap", content).group(2)
   if eap != platform_is_eap:
-    sys.exit(f"IntelliJ prebuilts must be updated to set EAP={eap}; see b/338090219 for details")
+    sys.exit(f"ERROR: IntelliJ Platform was built with EAP={platform_is_eap}, but the Bazel build "
+             f"expects EAP={eap} based on the Studio release version (see b/338090219 for details)")
 
   return content
 
