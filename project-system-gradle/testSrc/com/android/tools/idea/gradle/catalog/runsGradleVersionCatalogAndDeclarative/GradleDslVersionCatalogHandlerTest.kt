@@ -54,7 +54,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     assertThat(catalogMap).hasSize(2)
     assertThat(catalogMap.values.map { it.exists() }.all { it }).isTrue()
-    assertThat(catalogMap.values.map { it.name }).isEqualTo(listOf("libs.versions.toml", "libsTest.versions.toml"))
+    assertThat(catalogMap.values.map { it.name }.toSet()).isEqualTo(setOf("libs.versions.toml", "libsTest.versions.toml"))
 
     assertThat(catalogMap.keys).isEqualTo(setOf("libs", "libsTest"))
   }
@@ -82,7 +82,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     assertThat(catalogMap).hasSize(2)
     assertThat(catalogMap.values.map { it.exists() }.all { it }).isTrue()
-    assertThat(catalogMap.values.map { it.name }).isEqualTo(listOf("libs.toml", "libsTest.toml"))
+    assertThat(catalogMap.values.map { it.name }.toSet()).isEqualTo(setOf("libs.toml", "libsTest.toml"))
 
     assertThat(catalogMap.keys).isEqualTo(setOf("libs", "libsTest"))
   }

@@ -107,6 +107,13 @@ public final class GradleModelSource extends GradleModelProvider {
     return parseSettingsFile(createContext(hostProject), settingsFile, hostProject, "settings");
   }
 
+  @Override
+  public @Nullable GradleSettingsModel getSettingsModel(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    BuildModelContext context = createContext(hostProject);
+    VirtualFile file = context.getGradleSettingsFile(new File(compositeRoot));
+    return file != null ? parseSettingsFile(context, file, hostProject, "settings") : null;
+  }
+
   @NotNull
   @Override
   public GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject) {
@@ -116,6 +123,17 @@ public final class GradleModelSource extends GradleModelProvider {
     }
     else {
       return new SimplifiedVersionCatalogViewImpl(hostProject);
+    }
+  }
+
+  @Override
+  public @Nullable GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    GradleSettingsModel settings = getSettingsModel(hostProject, compositeRoot);
+    if (settings != null) {
+      return new GradleVersionCatalogViewImpl(settings);
+    }
+    else {
+      return new SimplifiedVersionCatalogViewImpl(compositeRoot);
     }
   }
 

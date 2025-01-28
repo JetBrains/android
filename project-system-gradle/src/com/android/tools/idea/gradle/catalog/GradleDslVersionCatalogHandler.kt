@@ -3,6 +3,7 @@ package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
+import com.android.tools.idea.projectsystem.gradle.GradleModelSource
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.project.Project
@@ -30,8 +31,9 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
   }
 
   override fun getVersionCatalogFiles(module: Module): Map<String, VirtualFile> {
-    val buildModel = getBuildModel(module) ?: return emptyMap()
-    return buildModel.context.versionCatalogFiles.associate { it.catalogName to it.file }
+    val buildPath = ExternalSystemModulePropertyManager.getInstance(module)
+                      .getRootProjectPath() ?: return emptyMap()
+    return GradleModelSource.getInstance().getVersionCatalogView(module.project, buildPath)?.catalogToFileMap ?: emptyMap()
   }
 
   override fun getAccessorClass(context: PsiElement, catalogName: String): PsiClass? {
@@ -45,7 +47,7 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
 
   fun getDefaultCatalogName(project: Project): String {
     return runReadAction {
-      val settingsModel = ProjectBuildModel.get(project).projectSettingsModel
+      val settingsModel = GradleModelSource.getInstance().getSettingsModel(project)
       settingsModel?.dependencyResolutionManagement()?.catalogDefaultName() ?: DEFAULT_CATALOG_NAME
     }
   }
