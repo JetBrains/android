@@ -30,7 +30,6 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -157,7 +156,6 @@ class ScreenshotViewer(
    * The user specified destination where the screenshot was saved, or null of the screenshot was not saved.
    */
   private var screenshotFile: Path? = null
-    private set
 
   private val defaultFileName: String
     get() {
@@ -220,7 +218,7 @@ class ScreenshotViewer(
         button(message("screenshot.dialog.recapture.button.text")) { doRefreshScreenshot() }
           .applyToComponent {
             icon = AllIcons.Actions.Refresh
-            runOnDisposalOfAnyOf(screenshotSupplier, disposable, runnable = Runnable { setEnabled(false) })
+            runOnDisposalOfAnyOf(screenshotSupplier, disposable, runnable = { setEnabled(false) })
           }
 
         if (allowRotation) {
@@ -237,7 +235,8 @@ class ScreenshotViewer(
       }.resizableRow()
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
-          button(message("screenshot.dialog.configure.save.button.text")) { configureSave() }.align(AlignX.RIGHT)
+          button(message("screenshot.dialog.configure.save.button.text")) { configureSave() }
+            .align(AlignX.RIGHT)
         }
       }
     }
@@ -327,10 +326,7 @@ class ScreenshotViewer(
     val descriptor = FileSaverDescriptor(message("screenshot.dialog.title"), "", EXT_PNG)
     val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
     val baseDir = loadScreenshotPath()
-    val fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(defaultFileName))
-    if (fileWrapper == null) {
-      return false
-    }
+    val fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(defaultFileName)) ?: return false
 
     val file = fileWrapper.file.toPath()
     try {
@@ -373,14 +369,14 @@ class ScreenshotViewer(
   override fun dispose() {
     editorProvider.disposeEditor(imageFileEditor)
     try {
-      ApplicationManager.getApplication().runWriteAction(Runnable {
+      ApplicationManager.getApplication().runWriteAction {
         try {
           backingFile.delete(this)
         }
         catch (e: IOException) {
           thisLogger().error(e)
         }
-      })
+      }
     }
     finally {
       super.dispose()
@@ -389,7 +385,7 @@ class ScreenshotViewer(
 
   private fun getImageFileEditorProvider(): FileEditorProvider {
     val providers = FileEditorProviderManager.getInstance().getProviderList(project, backingFile)
-    assert(!providers.isEmpty())
+    assert(providers.isNotEmpty())
 
     // Note: In case there are multiple providers for image files, we'd prefer to get the bundled
     // image editor, but we don't have access to any of its implementation details, so we rely
@@ -404,11 +400,10 @@ class ScreenshotViewer(
   }
 
   private fun doRefreshScreenshot() {
-    requireNotNull(screenshotSupplier)
     object : ScreenshotTask(project, screenshotSupplier) {
 
       override fun run(indicator: ProgressIndicator) {
-        Disposer.register(disposable, Disposable { indicator.cancel() })
+        Disposer.register(disposable) { indicator.cancel() }
         super.run(indicator)
       }
 
@@ -462,7 +457,7 @@ class ScreenshotViewer(
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
     // such as: Right click image -> Open in external editor
-    ApplicationManager.getApplication().runWriteAction(Runnable {
+    ApplicationManager.getApplication().runWriteAction {
       try {
         backingFile.getOutputStream(this).use { stream ->
           writePng(processedImage, stream)
@@ -471,7 +466,7 @@ class ScreenshotViewer(
       catch (e: IOException) {
         thisLogger().error("Unexpected error while writing to ${backingFile.toNioPath()}", e)
       }
-    })
+    }
     sourceImageRef.set(rotatedImage)
     displayedImageRef.set(TimestampedImage(processedImage))
     updateEditorImage()
@@ -522,7 +517,7 @@ class ScreenshotViewer(
 
   private class BufferedImageTransferable(private val image: BufferedImage) : Transferable {
     override fun getTransferDataFlavors(): Array<DataFlavor> {
-      return arrayOf<DataFlavor>(DataFlavor.imageFlavor)
+      return arrayOf(DataFlavor.imageFlavor)
     }
 
     override fun isDataFlavorSupported(dataFlavor: DataFlavor): Boolean {
