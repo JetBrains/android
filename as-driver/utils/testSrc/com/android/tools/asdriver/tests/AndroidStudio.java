@@ -567,7 +567,13 @@ public class AndroidStudio extends Ide {
       builder.append(" ").append(variant);
     }
     executeCommand(builder.toString(), null);
-    executeCommand("%pressKey ESCAPE", null);
+    pressKey(Keys.ESCAPE, null);
+  }
+
+  public enum Keys { ENTER, ESCAPE, BACKSPACE }
+
+  public void pressKey(Keys key, @Nullable String project) {
+    executeCommand("%pressKey " + key.name(), project);
   }
 
   /**
