@@ -177,7 +177,7 @@ class VitalsIssueDetailsPanel(
   private val header = DetailsPanelHeader()
 
   // Affected versions
-  private val affectedVersionsLabel = JLabel()
+  private val affectedVersionsLabel = JLabel().apply { border = JBUI.Borders.empty(6, 0, 2, 0) }
 
   // Event id, console link
   private val eventIdLabel =
