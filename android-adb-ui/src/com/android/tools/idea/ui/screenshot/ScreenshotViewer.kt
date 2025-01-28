@@ -237,7 +237,7 @@ class ScreenshotViewer(
       }.resizableRow()
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
-          button(message("screenshot.dialog.configure.save.button.text")) { configureScreenshot() }.align(AlignX.RIGHT)
+          button(message("screenshot.dialog.configure.save.button.text")) { configureSave() }.align(AlignX.RIGHT)
         }
       }
     }
@@ -444,7 +444,7 @@ class ScreenshotViewer(
     logScreenshotUsage()
   }
 
-  private fun configureScreenshot() {
+  private fun configureSave() {
     val saveLocation = config.saveLocation
     val filenameTemplate = config.filenameTemplate
     val screenshotCount = config.screenshotCount
