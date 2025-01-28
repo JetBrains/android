@@ -65,6 +65,8 @@ public class GradleSettingsFile extends GradleScriptFile {
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_DECLARATIVE_MAP = Stream.of(new Object[][]{
+    {"dependencyResolutionManagement", DependencyResolutionManagementDslElement.DEPENDENCY_RESOLUTION_MANAGEMENT},
+    {"pluginManagement", PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT},
     {"defaults", DEFAULTS_DSL_ELEMENT},
     {"plugins", PluginsDslElement.PLUGINS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
