@@ -118,9 +118,7 @@ private fun generateExistingPath(start: DeclarativeIdentifier): List<String> {
     if (element != null) {
       action(element)
       val block = element.parent.parentOfTypes(DeclarativeBlock::class)
-      block?.identifier?.let {
-        navigateToRoot(it, action)
-      }
+      navigateToRoot(block?.identifier, action)
     }
   }
 

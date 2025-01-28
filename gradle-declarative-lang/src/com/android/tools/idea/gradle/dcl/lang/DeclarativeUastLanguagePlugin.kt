@@ -187,8 +187,8 @@ class SimpleDeclarativeUFactoryReceiver(
 class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
   override val classReference: UReferenceExpression? = null
   override val kind: UastCallKind = UastCallKind.METHOD_CALL
-  override val methodIdentifier: UIdentifier? = sourcePsi.identifier?.let { UIdentifier(it, this) }
-  override val methodName: String? = sourcePsi.identifier?.name
+  override val methodIdentifier: UIdentifier = UIdentifier(sourcePsi.identifier, this)
+  override val methodName: String? = sourcePsi.identifier.name
   override val receiver: UExpression? = null
   override val receiverType: PsiType? = null
   override val returnType: PsiType? = null
@@ -206,7 +206,7 @@ class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider
 
   override fun resolve(): PsiMethod? = null
   override fun asRenderString(): String {
-    val name = methodName ?: methodIdentifier?.name ?: "<noref>"
+    val name = methodName ?: methodIdentifier.name ?: "<noref>"
     val argumentString = valueArguments.dropLast(1).takeIf { it.isNotEmpty() }
                            ?.joinToString(prefix = "(", postfix = ")") ?: ""
     val lambdaString = valueArguments.last().asRenderString()

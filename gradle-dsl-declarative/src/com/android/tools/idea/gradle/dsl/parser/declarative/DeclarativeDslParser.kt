@@ -87,7 +87,7 @@ class DeclarativeDslParser(
     fun getVisitor(context: GradlePropertiesDslElement, nameElement: GradleNameElement): DeclarativeRecursiveVisitor =
       object : DeclarativeRecursiveVisitor() {
         override fun visitBlock(psi: DeclarativeBlock) {
-          val name = psi.identifier?.name ?: return
+          val name = psi.identifier.name ?: return
           val description = context.getChildPropertiesElementDescription(this@DeclarativeDslParser, name) ?: return
           val block: GradlePropertiesDslElement? =
             if (GradleDslNamedDomainElement::class.java.isAssignableFrom(description.clazz) &&
@@ -98,7 +98,7 @@ class DeclarativeDslParser(
               element
             }
             else {
-              val identifier = psi.identifier ?: return
+              val identifier = psi.identifier
               getOrCreateElement(description, context, identifier, psi)
             }
           if (block != null) {
