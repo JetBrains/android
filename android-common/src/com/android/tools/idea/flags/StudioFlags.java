@@ -2105,6 +2105,12 @@ public final class StudioFlags {
                     "Attach the currently open files' paths and contents with chat queries.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
+                    "Allow build files in 'Ask Gemini' context",
+                    "Flag to guard whether to include build configuration files in context of Ask Gemini queries",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_ENABLED =
     new BooleanFlag(STUDIOBOT, "prompt.library",
                     "Enable Prompt Library",
@@ -2153,7 +2159,6 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "ai.fix.error.editor.action",
                     "Use AI to fix simple compiler errors",
                     "Editor action to provide quick fixes for errors", enabledUpTo(CANARY));
-
 
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
