@@ -598,6 +598,10 @@ public class AndroidStudio extends Ide {
     executeCommand("%closeAllTabs", null);
   }
 
+  public void altEnter(@NotNull final String intention, boolean invoke) {
+    executeCommand(String.format("%%altEnter %s|%b", intention, invoke), null);
+  }
+
   /**
    * Executes an editor action with the specified actionId.
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.ExecuteEditorActionCommand
