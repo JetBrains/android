@@ -1455,7 +1455,7 @@ private fun setupTestProjectFromAndroidModelCore(
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
-      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null),
+      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null, emptyList()),
       null
     )
   )
