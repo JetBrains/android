@@ -173,7 +173,7 @@ private fun Tabs(
  */
 private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
   val (previewVersions, stableVersions) =
-    mapTo(TreeSet()) { AndroidVersion(it.apiLevel, it.codename) }.partition { it.isPreview }
+    mapTo(TreeSet()) { it.withBaseExtensionLevel() }.partition { it.isPreview }
   val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
   return (previewVersions.filter { it > latestStableVersion } + stableVersions)
     .sortedDescending()

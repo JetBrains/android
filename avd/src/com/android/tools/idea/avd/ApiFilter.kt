@@ -121,13 +121,16 @@ fun ApiLevel(apiLevel: AndroidVersionSelection) {
 }
 
 data class AndroidVersionSelection(private val androidVersion: AndroidVersion?) {
+  init {
+    require(androidVersion == null || androidVersion.isBaseExtension)
+  }
+
   val nameDetails: NameDetails
     get() =
       androidVersion?.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
         ?: NameDetails("Show All", null)
 
-  /** Don't worry about extension levels. */
+  /** Checks if the given version matches this selection; extension levels are not considered. */
   fun matches(version: AndroidVersion) =
-    androidVersion == null ||
-      androidVersion.apiLevel == version.apiLevel && androidVersion.codename == version.codename
+    androidVersion == null || androidVersion == version.withBaseExtensionLevel()
 }
