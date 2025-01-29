@@ -74,6 +74,7 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
+import com.android.tools.idea.ndk.PageAlignConfig;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -288,14 +289,31 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new PercentRenderer(percentProvider)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Alignment")
+                   .setRenderer(new PercentRenderer(percentProvider)));
+      if (PageAlignConfig.INSTANCE.isPageAlignMessageEnabled()) {
+        builder
+          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Zip Alignment")
                    .setPreferredWidth(50)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new AlignmentRenderer()))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setRenderer(new ZipAlignmentRenderer()))
+          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                       .setName("Native Alignment")
+                       .setPreferredWidth(50)
+                       .setHeaderAlignment(SwingConstants.LEADING)
+                       .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                       .setRenderer(new ElfMinimumLoadAlignmentRenderer()));
+      } else {
+        builder
+          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                       .setName("Alignment")
+                       .setPreferredWidth(50)
+                       .setHeaderAlignment(SwingConstants.LEADING)
+                       .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                       .setRenderer(new ZipAlignmentRenderer()));
+      }
+     builder.addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Compression")
                    .setPreferredWidth(50)
                    .setHeaderAlignment(SwingConstants.LEADING)
@@ -530,8 +548,11 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  private static class AlignmentRenderer extends ColoredTreeCellRenderer {
-    public AlignmentRenderer() {
+  /**
+   * Render information about whether the .so file is aligned at a boundary (4 KB, 16 KB, etc) within the APK.
+   */
+  private static class ZipAlignmentRenderer extends ColoredTreeCellRenderer {
+    ZipAlignmentRenderer() {
       setTextAlign(SwingConstants.RIGHT);
     }
 
@@ -549,6 +570,34 @@ public class ApkViewPanel implements TreeSelectionListener {
 
       ArchiveEntry data = ((ArchiveTreeNode)value).getData();
       append(data.getFileAlignment().text);
+    }
+  }
+
+  /**
+   * Render information about what the minimum .so ELF LOAD alignment is.
+   */
+  private static class ElfMinimumLoadAlignmentRenderer extends ColoredTreeCellRenderer {
+    ElfMinimumLoadAlignmentRenderer() {
+      setTextAlign(SwingConstants.RIGHT);
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (!(value instanceof ArchiveTreeNode)) {
+        return;
+      }
+
+      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      long loadAlignment = data.getElfMinimumLoadSectionAlignment();
+      if (loadAlignment != -1L) {
+        append(loadAlignment / 1024 + " KB");
+      }
     }
   }
 
