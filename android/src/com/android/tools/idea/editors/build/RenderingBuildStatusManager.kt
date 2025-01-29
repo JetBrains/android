@@ -142,10 +142,9 @@ interface RenderingBuildStatusManager {
       psiFile: PsiFile,
       dispatcher: CoroutineDispatcher = workerThread,
       scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, dispatcher),
-      hasExistingClassFileFun: suspend (PsiFile?) -> Boolean = { hasExistingClassFile(it) },
       onReady: (RenderingBuildStatus) -> Unit = {},
     ): RenderingBuildStatusManager =
-      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher, hasExistingClassFileFun)
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
   }
 }
 
@@ -161,7 +160,6 @@ private class RenderingBuildStatusManagerImpl(
   scope: CoroutineScope,
   private val onReady: (RenderingBuildStatus) -> Unit,
   private val dispatcher: CoroutineDispatcher,
-  private val hasExistingClassFile: suspend (PsiFile?) -> Boolean,
   ) : RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
