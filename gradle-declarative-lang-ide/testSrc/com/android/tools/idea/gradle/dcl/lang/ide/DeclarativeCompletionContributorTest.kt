@@ -386,6 +386,19 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testBooleanProperty() {
+    doTest("""
+      androidApp {
+        buildFeatures {
+          dataBinding = $caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("true", "false")
+    }
+  }
+
+  @Test
   fun testSuggestionsUriFunction() {
     doTest("""
     dependencyResolutionManagement {

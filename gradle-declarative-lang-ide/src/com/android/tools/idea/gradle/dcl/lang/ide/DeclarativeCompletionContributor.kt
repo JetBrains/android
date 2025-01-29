@@ -230,7 +230,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
         val identifier = parameters.position.findParentOfType<DeclarativeAssignment>()?.identifier ?: return
-        var suggestions = getEnumList(identifier, schema)
+        var suggestions = getMaybeEnumList(identifier, schema) + getMaybeBooleanList(identifier, schema)
         if (suggestions.isEmpty()) {
           suggestions = getRootFunctions(identifier, schema).map { Suggestion(it.name, FACTORY) }
         }
@@ -401,11 +401,20 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun EntryWithContext.toSuggestionPair(rootFunction: List<PlainFunction>) =
     this.entry to Suggestion(entry.simpleName, getType(this, rootFunction))
 
-  private fun getEnumList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
+  private fun getMaybeEnumList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
     val suggestions = getSuggestionEntries(identifier, schemas)
     val rootFunctions = getRootPlainFunctions(identifier, schemas)
     val enum = suggestions.find { it.entry.simpleName == identifier.name && getType(it, rootFunctions) == ENUM }
     return getEnumConstants(enum).map { Suggestion(it, ElementType.ENUM_CONSTANT) }
+  }
+
+  private fun getMaybeBooleanList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
+    val suggestions = getSuggestionEntries(identifier, schemas)
+    val rootFunctions = getRootPlainFunctions(identifier, schemas)
+    return if (suggestions.any { it.entry.simpleName == identifier.name && getType(it, rootFunctions) == BOOLEAN })
+      listOf(Suggestion("true", BOOLEAN), Suggestion("false", BOOLEAN))
+    else
+      listOf()
   }
 
   private fun getSuggestionEntries(parent: PsiElement,
