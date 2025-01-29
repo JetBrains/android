@@ -141,7 +141,7 @@ class DeviceMenuAction(
     val configuration = e.getData(CONFIGURATIONS)?.firstOrNull()
     val visible = configuration != null
     if (visible) {
-      val device = configuration!!.cachedDevice
+      val device = configuration.cachedDevice
       val label = getDeviceLabel(device, true)
       presentation.setText(label, false)
     }
