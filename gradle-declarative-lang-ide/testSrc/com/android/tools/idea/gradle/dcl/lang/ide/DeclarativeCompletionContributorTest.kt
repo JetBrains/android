@@ -22,7 +22,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase
 import org.junit.After
@@ -219,13 +221,27 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
 
   @Test
   fun testCompletionBlock() {
+    // inserting caret with indent position (default 4 whitespaces)
     doCompletionTest(
       "androidApp$caret",
       """
         androidApp {
-          $caret
+            $caret
         }
         """.trimIndent())
+  }
+
+  @Test
+  fun testCompletionBlockWithUpdatedIndent() {
+    doCompletionTest(
+      "androidApp$caret",
+      """
+        androidApp {
+              $caret
+        }
+        """.trimIndent()) { psiFile ->
+      CodeStyle.getIndentOptions(psiFile).INDENT_SIZE = 6
+    }
   }
 
   @Test
@@ -238,7 +254,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """
         androidLibrary {
           dependenciesDcl {
-            $caret
+              $caret
           }
         }""".trimIndent())
   }
@@ -479,11 +495,12 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     Truth.assertThat(fixture.lookup).isNull()
   }
 
-  private fun doCompletionTest(declarativeFile: String, fileAfter: String) =
-    doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter)
+  private fun doCompletionTest(declarativeFile: String, fileAfter: String, update:(PsiFile) -> Unit = {}) =
+    doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter, update )
 
-  private fun doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String) {
+  private fun doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update:(PsiFile) -> Unit = {}) {
     val buildFile = fixture.addFileToProject(fileName, declarativeFile)
+    update(buildFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
 

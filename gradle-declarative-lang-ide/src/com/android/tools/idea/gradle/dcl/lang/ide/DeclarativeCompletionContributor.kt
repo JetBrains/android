@@ -56,6 +56,7 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PatternCondition
@@ -307,8 +308,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val lineStartOffset = text.substring(0, context.tailOffset).indexOfLast { it == '\n' } + 1
         val whiteSpace = " ".repeat(context.startOffset - lineStartOffset)
 
-        document.insertString(context.tailOffset, " {\n$whiteSpace  \n$whiteSpace}")
-        editor.caretModel.moveToOffset(context.tailOffset - whiteSpace.length - 2)
+        document.insertString(context.tailOffset, " {\n$whiteSpace\n$whiteSpace}")
+        val newOffset = context.tailOffset - whiteSpace.length - 2 // -2 is to skip both chars "\n}"
+        editor.caretModel.moveToOffset(newOffset)
+        CodeStyleManager.getInstance(context.project).adjustLineIndent(document, newOffset)
       }
 
       FACTORY -> {
