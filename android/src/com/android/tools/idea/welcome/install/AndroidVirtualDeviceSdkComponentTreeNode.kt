@@ -173,12 +173,6 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     get() =
       if (androidVersion == null) emptyList() else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
 
-  override val optionalSdkPackages: Collection<String>
-    get() =
-      if (androidVersion == null) emptyList()
-      else
-        listOf(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG))
-
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
       installContext.progressIndicator.isIndeterminate = true
