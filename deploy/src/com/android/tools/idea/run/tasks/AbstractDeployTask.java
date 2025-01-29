@@ -179,11 +179,11 @@ public abstract class AbstractDeployTask {
     Notification notification = null;
     if (idsSkippedInstall.isEmpty()) {
       String content = String.format("%s successfully finished in %s%s", getDescription(), StringUtil.formatDuration(duration), informMake);
-      notification = NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION);
+      notification = NOTIFICATION_GROUP.createNotification(content, myHasMakeBeforeRun ? NotificationType.INFORMATION : NotificationType.WARNING);
     } else {
       String title = String.format("%s successfully finished in %s%s", getDescription(), StringUtil.formatDuration(duration), informMake);
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
-      notification = NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION);
+      notification = NOTIFICATION_GROUP.createNotification(title, content, myHasMakeBeforeRun ? NotificationType.INFORMATION : NotificationType.WARNING);
     }
 
     if (!myHasMakeBeforeRun) {
