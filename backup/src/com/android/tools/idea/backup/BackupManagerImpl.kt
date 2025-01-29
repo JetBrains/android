@@ -26,6 +26,8 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
+import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
+import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
@@ -154,7 +156,7 @@ internal constructor(
   override suspend fun getMetadata(backupFile: Path): BackupMetadata? {
     try {
       return BackupService.validateBackupFile(backupFile)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       logger.warn("File ${backupFile.pathString} is not a valid backup file")
       return null
     }
@@ -229,11 +231,13 @@ internal constructor(
     }
     val content = throwable.message ?: message("notification.unknown.error")
     val buttons = buildList {
-      add(
-        DialogButton(message("notification.error.button")) {
-          ErrorDetailDialog(title, content, throwable.stackTraceToString()).show()
-        }
-      )
+      if (throwable.hasFullErrorDetail()) {
+        add(
+          DialogButton(message("notification.error.button")) {
+            ErrorDetailDialog(title, content, throwable.stackTraceToString()).show()
+          }
+        )
+      }
       if (
         (throwable as? BackupException)?.errorCode == GMSCORE_IS_TOO_OLD &&
           backupService.isPlayStoreInstalled(serialNumber)
@@ -248,6 +252,15 @@ internal constructor(
     AnAction("Add to Run Configuration") {
     override fun actionPerformed(e: AnActionEvent) {
       PostBackupDialog(project, backupPath).show()
+    }
+  }
+
+  private fun Throwable.hasFullErrorDetail(): Boolean {
+    val code = (this as? BackupException)?.errorCode ?: return true
+    return when (code) {
+      BACKUP_NOT_SUPPORTED -> false
+      BACKUP_NOT_ACTIVATED -> false
+      else -> true
     }
   }
 
