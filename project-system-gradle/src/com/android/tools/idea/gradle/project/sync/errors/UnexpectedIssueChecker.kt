@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.android.tools.idea.actions.SubmitBugReportAction
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -67,7 +67,7 @@ class FileBugQuickFix: BuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
-      SendFeedbackAction.submit(project)
+      SubmitBugReportAction.submit(project)
       future.complete(null)
     }
     return future

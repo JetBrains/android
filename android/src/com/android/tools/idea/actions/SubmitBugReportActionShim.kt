@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
 
 /** Compatibility bridge between android.SendFeedbackAction (written in Java) and intellij.SendFeedbackAction (uses Kotlin coroutines). */
 @Deprecated("Use com.intellij.ide.actions.SendFeedbackAction instead (requires Kotlin coroutines)")
-object SendFeedbackActionJavaShim {
+object SubmitBugReportActionShim {
   fun getDescription(project: Project?): String {
     return runBlocking {
       com.intellij.ide.actions.SendFeedbackAction.getDescription(project)

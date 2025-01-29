@@ -24,9 +24,9 @@ import com.intellij.openapi.util.Disposer
 import org.junit.Test
 
 /**
- * Tests for [SendFeedbackAction]
+ * Tests for [SubmitBugReportAction]
  */
-class SendFeedbackActionTest: AndroidGradleTestCase() {
+class SubmitBugReportActionTest: AndroidGradleTestCase() {
 
   /**
    * Verify that Gradle JDK information is used.
@@ -34,7 +34,7 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
   @Test
   fun testDescriptionContainsGradleJdk() {
     loadSimpleApplication()
-    val description = SendFeedbackAction.getDescription(project)
+    val description = SubmitBugReportAction.getDescription(project)
     val jdk = createNewGradleJvmProjectJdk(project, testRootDisposable)
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: ${jdk.versionString}")
@@ -49,7 +49,7 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
    */
   @Test
   fun testDescriptionContainsDefaultGradleJdk() {
-    val description = SendFeedbackAction.getDescription(null)
+    val description = SubmitBugReportAction.getDescription(null)
     val jdk = IdeSdks.getInstance().jdk
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: (default) ${jdk!!.versionString}")

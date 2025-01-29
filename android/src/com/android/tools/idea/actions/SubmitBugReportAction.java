@@ -41,8 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * IntelliJ / Java / OS information, it enriches the bug template with Android-specific version context we'd like to
  * see pre-populated in our bug reports.
  */
-public class SendFeedbackAction extends AnAction implements DumbAware {
-  private static final Logger LOG = Logger.getInstance(SendFeedbackAction.class);
+public class SubmitBugReportAction extends AnAction implements DumbAware {
+  private static final Logger LOG = Logger.getInstance(SubmitBugReportAction.class);
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
@@ -59,7 +59,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
-        String feedbackUrlTemplate = getFeedbackUrlTemplate();
+        String feedbackUrlTemplate = getBugReportTemplate();
         String version = ApplicationInfo.getInstance().getStrictVersion();
         String description = getDescription(project) + extraDescriptionDetails;
         String feedbackUrl = feedbackUrlTemplate
@@ -78,7 +78,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     return safeCall(() -> {
       var sb = new StringBuilder();
       sb.append(String.format("AS: %1$s\n", ApplicationInfo.getInstance().getFullVersion()));
-      sb.append(StringUtil.trimLeading(SendFeedbackActionJavaShim.INSTANCE.getDescription(project)));
+      sb.append(StringUtil.trimLeading(SubmitBugReportActionShim.INSTANCE.getDescription(project)));
       return sb.toString();
     });
   }
@@ -106,7 +106,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     return ActionUpdateThread.BGT;
   }
 
-  private static String getFeedbackUrlTemplate() {
+  private static String getBugReportTemplate() {
     String instructions = """
       ####################################################
 

@@ -338,9 +338,12 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
       .replace("\n","")
       .replace("<br>","\n")
       .trim()
+
+    // Since the unicode character \u2026 for ellipsis, gets converted to HTML via Swing it turns into
+    // its decimal form &#8230;. See https://en.wikipedia.org/wiki/Ellipsis#HTML for more details
     Truth.assertThat(text).isEqualTo("""
       There was an internal failure in Build Analyzer while running analysis of this build.
-      Please help us fix it by reporting the problem using Help &gt; Submit Feedback action.
+      Please help us fix it by reporting the problem using Help &gt; Submit a Bug Report&#8230;
     """.trimIndent())
   }
 

@@ -21,8 +21,8 @@ import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.internal.project.ProjectProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.actions.SendFeedbackAction
-import com.android.tools.idea.actions.SendFeedbackAction.safeCall
+import com.android.tools.idea.actions.SubmitBugReportAction
+import com.android.tools.idea.actions.SubmitBugReportAction.safeCall
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet.Companion.getInstance
@@ -61,7 +61,7 @@ private val LOG = Logger.getInstance(GradleAndNdkFeedbackDescriptionProvider::cl
 class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
 
   override suspend fun getDescription(project: Project?): String? {
-    val progress: ProgressIndicator = StudioLoggerProgressIndicator(SendFeedbackAction::class.java)
+    val progress: ProgressIndicator = StudioLoggerProgressIndicator(SubmitBugReportAction::class.java)
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
     @Slow

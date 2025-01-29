@@ -21,7 +21,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueReportGenerator
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.android.tools.idea.actions.SubmitBugReportAction
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicator
@@ -40,7 +40,7 @@ class TaskIssueReporterImpl(
 
   private val generator = TaskIssueReportGenerator(
     reportData,
-    { SendFeedbackAction.getDescription(project) },
+    { SubmitBugReportAction.getDescription(project) },
     { ProjectStructure.getInstance(project).androidPluginVersions.allVersions }
   )
 

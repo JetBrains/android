@@ -165,16 +165,10 @@
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
-    <!--
-    For historical reasons, our "ReportProblem" action has text "Submit Feedback" instead of "Submit a Bug Report" as in IntelliJ.
-    This could be changed, but then we need to update DAC too: https://developer.android.com/studio/report-bugs.
-    -->
     <action
         id="ReportProblem"
-        class="com.android.tools.idea.actions.SendFeedbackAction"
-        overrides="true"
-        text="Submit _Feedback"
-        description="Submit feedback to the Android Studio team"/>
+        class="com.android.tools.idea.actions.SubmitBugReportAction"
+        overrides="true"/>
     <action
         id="CollectZippedLogs"
         class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
