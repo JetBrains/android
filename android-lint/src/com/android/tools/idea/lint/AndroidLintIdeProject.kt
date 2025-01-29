@@ -34,6 +34,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.res.AndroidDependenciesCache
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.ApiConstraint.Companion.get
@@ -354,7 +355,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       module: Module,
       shallowModel: Boolean,
     ): Project? {
-      val facet = AndroidFacet.getInstance(module)
+      val androidModule = module.findAndroidModule()
+      val facet = AndroidFacet.getInstance(androidModule ?: module)
       val dir: File? = getLintProjectDirectory(module, facet)
       if (dir == null) return null
       val project: Project?
