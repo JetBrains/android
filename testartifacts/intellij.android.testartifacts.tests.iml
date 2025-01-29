@@ -47,5 +47,6 @@
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.platform.coverage" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testartifacts" scope="TEST" />
   </component>
 </module>

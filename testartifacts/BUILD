@@ -14,6 +14,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
     ],
 )
 
@@ -86,6 +87,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "@intellij//:intellij.platform.coverage[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/testartifacts:intellij.android.testartifacts[module, test]",
     ],
 )
 
