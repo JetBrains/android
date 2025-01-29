@@ -199,12 +199,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getDirectResourceModuleDependents(): List<Module>
 
   /**
-   * Determines whether or not the underlying build system is capable of generating a PNG
-   * from vector graphics.
-   */
-  fun canGeneratePngFromVectorGraphics(): CapabilityStatus
-
-  /**
    * Returns the overrides that the underlying build system applies when computing the module's
    * merged manifest.
    *

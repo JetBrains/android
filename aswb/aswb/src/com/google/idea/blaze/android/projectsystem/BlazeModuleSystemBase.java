@@ -161,11 +161,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public CapabilityStatus canGeneratePngFromVectorGraphics() {
-    return new CapabilitySupported();
-  }
-
-  @Override
   public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
     return BlazeAndroidModuleTemplate.getTemplates(module, targetDirectory);
   }

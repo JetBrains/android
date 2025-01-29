@@ -233,10 +233,6 @@ class TestProjectSystem @JvmOverloads constructor(
           }
         )
 
-      override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-
       override fun getOrCreateSampleDataDirectory(): PathString? = null
 
       override fun getSampleDataDirectory(): PathString? = null

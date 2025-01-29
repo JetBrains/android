@@ -51,9 +51,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) =
     throw UnsupportedOperationException("Cannot register dependencies in ApkModuleSystem")
 
-  override fun canGeneratePngFromVectorGraphics(): CapabilityStatus =
-    delegate.canGeneratePngFromVectorGraphics()
-
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope =
     delegate.getResolveScope(scopeType)
 
