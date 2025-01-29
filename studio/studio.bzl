@@ -1500,12 +1500,11 @@ def intellij_platform(
         visibility = ["@intellij//:__subpackages__"],
     )
 
-    # TODO: merge this into the intellij_platform rule.
     dir_archive(
         name = name + "-full-linux",
-        dir = "prebuilts/studio/intellij-sdk/" + src + "/linux/android-studio",
+        dir = "prebuilts/studio/intellij-sdk/" + src + "/linux",
         files = native.glob([src + "/linux/android-studio/**"]),
-        visibility = ["@intellij//:__subpackages__"],
+        visibility = ["//tools/vendor/google/aswb/third_party/java/jetbrains/protobuf:__pkg__"],
     )
 
     studio_data(
