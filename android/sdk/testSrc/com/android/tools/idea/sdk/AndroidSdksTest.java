@@ -50,7 +50,6 @@ import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.codegen.And;
 import org.mockito.Mock;
 
 /**
@@ -72,7 +71,7 @@ public class AndroidSdksTest extends HeavyPlatformTestCase {
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 
-    myAndroidSdks = new AndroidSdks(myIdeInfo);
+    myAndroidSdks = new AndroidSdksImpl(myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 

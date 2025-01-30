@@ -93,7 +93,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myAndroidSdks = new AndroidSdks(myIdeInfo);
+    myAndroidSdks = new AndroidSdksImpl(myIdeInfo);
     myIdeSdks = new IdeSdks(myAndroidSdks, jdks, myEmbeddedDistributionPaths, myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
     Sdks.allowAccessToSdk(getTestRootDisposable());

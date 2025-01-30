@@ -224,7 +224,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.instantapp.InstantAppSdks" />
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
-    <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
+    <applicationService serviceInterface="com.android.tools.idea.sdk.AndroidSdks" serviceImplementation="com.android.tools.idea.sdk.AndroidSdksImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
