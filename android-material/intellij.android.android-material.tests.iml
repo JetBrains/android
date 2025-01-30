@@ -24,5 +24,6 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
   </component>
 </module>

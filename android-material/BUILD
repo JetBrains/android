@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )
