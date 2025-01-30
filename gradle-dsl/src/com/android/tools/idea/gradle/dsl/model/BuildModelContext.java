@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
 import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
@@ -61,7 +59,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -316,15 +313,6 @@ public final class BuildModelContext {
       .ifPresent(myVersionCatalogFiles::add);
   }
 
-  private Optional<GradleVersionCatalogFile> checkVersionCatalog(String filePath, String name) {
-    @SystemIndependent String fromPath = toSystemIndependentName(filePath);
-    // based on getBaseDir - same as GradleModelSource
-    @SystemIndependent String rootPath = getBaseDirPath(getProject()).getPath();
-    @SystemIndependent String path = String.join("/", rootPath, fromPath);
-    VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
-    return checkVersionCatalog(versionCatalogFile, name);
-  }
-
   private Optional<GradleVersionCatalogFile> checkVersionCatalog(VirtualFile versionCatalogFile, String name) {
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
@@ -419,11 +407,9 @@ public final class BuildModelContext {
     }
 
     GradleBuildModel parentModuleModel = gradleSettingsModel.getParentModuleModel(modulePath);
-    if (!(parentModuleModel instanceof GradleBuildModelImpl)) {
+    if (!(parentModuleModel instanceof GradleBuildModelImpl parentModuleModelImpl)) {
       return;
     }
-
-    GradleBuildModelImpl parentModuleModelImpl = (GradleBuildModelImpl)parentModuleModel;
 
     GradleBuildFile parentModuleDslFile = parentModuleModelImpl.myGradleBuildFile;
     buildDslFile.setParentModuleBuildFile(parentModuleDslFile);
@@ -436,8 +422,7 @@ public final class BuildModelContext {
     buildDslFile.addAppliedProperty(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
       GradleDslElement element = entry.getValue();
-      if (element instanceof ApplyDslElement) {
-        ApplyDslElement subProjectsApply = (ApplyDslElement)element;
+      if (element instanceof ApplyDslElement subProjectsApply) {
         ApplyDslElement myApply = new ApplyDslElement(buildDslFile, buildDslFile);
         buildDslFile.setParsedElement(myApply);
         for (GradleDslElement appliedElement : subProjectsApply.getAllElements()) {
@@ -468,7 +453,7 @@ public final class BuildModelContext {
       // repositories by identity, even though they have block-nature.  For now, this will do: we implement the
       // DescribedGradlePropertiesDslElement interface incrementally on elements where there is an observable problem if it is not
       // implemented.
-      PropertiesElementDescription description = ((DescribedGradlePropertiesDslElement<?>)element).getDescription();
+      PropertiesElementDescription<?> description = ((DescribedGradlePropertiesDslElement<?>)element).getDescription();
       GradlePropertiesDslElement myProperties = description.constructor.construct(parent, GradleNameElement.copy(element.getNameElement()));
       result = myProperties;
       seen.put(element, result);
