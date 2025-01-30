@@ -704,7 +704,7 @@ class ComposePreviewRepresentation(
         NavigatingInteractionHandler(
           composeWorkBench.mainSurface,
           navigationHandler,
-          isSelectionEnabled = { StudioFlags.COMPOSE_PREVIEW_SELECTION.get() },
+          isSelectionEnabled = true,
         ),
       )
       .also { delegateInteractionHandler.delegate = it }

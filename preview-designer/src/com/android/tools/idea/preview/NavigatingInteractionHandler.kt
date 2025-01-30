@@ -44,13 +44,13 @@ import org.intellij.lang.annotations.JdkConstants
 
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
- * capabilities. When [isSelectionEnabled] returns true, Preview selection capabilities are also
- * added, affecting the navigation logic.
+ * capabilities. When [isSelectionEnabled] is true, Preview selection capabilities are also added,
+ * affecting the navigation logic.
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
   private val navigationHandler: NavigationHandler,
-  private val isSelectionEnabled: () -> Boolean = { false },
+  private val isSelectionEnabled: Boolean = false,
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
@@ -59,7 +59,7 @@ class NavigatingInteractionHandler(
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
     // then no navigation will happen. Only selection may be affected (see
     // mouseReleaseWhenNoInteraction)
-    val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
+    val isToggle = isSelectionEnabled && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Highlight the clicked widget but keep focus in DesignSurface.
       clickPreview(mouseEvent, false, modifiersEx)
@@ -99,9 +99,9 @@ class NavigatingInteractionHandler(
 
   override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
-    // then
-    // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
-    val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
+    // then no navigation will happen. Only selection may be affected (see
+    // mouseReleaseWhenNoInteraction)
+    val isToggle = isSelectionEnabled && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Navigate the caret to the clicked widget and focus on text editor.
       clickPreview(mouseEvent, true, modifiersEx)
@@ -110,14 +110,13 @@ class NavigatingInteractionHandler(
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     // The logic here is very similar to the one in InteractionHandlerBase, but some small
-    // adjustments are
-    // needed for the Preview selection logic to work properly.
+    // adjustments are needed for the Preview selection logic to work properly.
     val x = mouseEvent.x
     val y = mouseEvent.y
     val sceneView = surface.getSceneViewAt(x, y)
     if (sceneView != null) {
       val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
-      if (isSelectionEnabled() && component != null) {
+      if (isSelectionEnabled && component != null) {
         val wasSelected = sceneView.selectionModel.isSelected(component)
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
         // If the selection state changed, then force a hover state update
@@ -145,7 +144,7 @@ class NavigatingInteractionHandler(
     @SwingCoordinate y: Int,
     @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
-    if (isSelectionEnabled()) {
+    if (isSelectionEnabled) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
         val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
@@ -174,7 +173,7 @@ class NavigatingInteractionHandler(
     val interaction = super.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
     // SceneInteractions must be ignored as they impact the selection model following
     // a different logic that the one used by this interaction handler.
-    if (isSelectionEnabled() && interaction is SceneInteraction) {
+    if (isSelectionEnabled && interaction is SceneInteraction) {
       interaction.cancel(
         InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx))
       )
