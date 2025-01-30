@@ -21,7 +21,10 @@ import com.intellij.openapi.project.guessProjectDir
 import java.nio.file.Path
 import kotlin.io.path.relativeToOrSelf
 
-internal fun Path.relativeToProject(project: Project) = relativeToOrSelf(Path.of(project.basePath!!))
+internal fun Path.relativeToProject(project: Project): Path {
+  val relative = relativeToOrSelf(Path.of(project.basePath!!))
+  return if (relative.startsWith("..")) this else relative
+}
 
 internal fun Path.absoluteInProject(project: Project): Path {
   val projectDir = project.guessProjectDir()!!.toNioPath()

@@ -26,7 +26,6 @@ import java.nio.file.Path
 import javax.swing.text.JTextComponent
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.pathString
-import kotlin.io.path.relativeToOrSelf
 
 /**
  * A TextField for selecting a backup file
@@ -90,9 +89,7 @@ class BackupFileTextField private constructor(project: Project) :
             ?.file
             ?.toPath()
         if (path != null) {
-          textField.setTextAndAddToHistory(
-            path.relativeToOrSelf(Path.of(project.basePath!!)).pathString
-          )
+          textField.setTextAndAddToHistory(path.relativeToProject(project).pathString)
           onFileChosen(path)
         }
       }
@@ -110,9 +107,7 @@ class BackupFileTextField private constructor(project: Project) :
             .firstOrNull()
             ?.toNioPath()
         if (path != null) {
-          textField.setTextAndAddToHistory(
-            path.relativeToOrSelf(Path.of(project.basePath!!)).pathString
-          )
+          textField.setTextAndAddToHistory(path.relativeToProject(project).pathString)
         }
       }
       return textField
