@@ -88,7 +88,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",

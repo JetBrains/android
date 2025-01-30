@@ -39,7 +39,6 @@ import com.android.tools.idea.testartifacts.instrumented.retention.findFailureRe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
-import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto.IceboxOutput
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent
@@ -148,7 +147,6 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var classPackageName = ""
-  private var retentionInfo: IceboxOutput? = null
   // TODO(b/179519137): fix the paddings.
   @VisibleForTesting
   val myRetentionDebugLoading = JLabel("Validating snapshot", AnimatedIcon.Default(), SwingConstants.LEFT)
@@ -254,7 +252,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   // Get the name of the APP being tested.
   @VisibleForTesting
-  val appName: String get() = retentionInfo?.appPackage ?: classPackageName
+  val appName: String get() = classPackageName
 
   fun setPackageName(packageName: String) {
     this.classPackageName = packageName
@@ -284,11 +282,6 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   @AnyThread
   fun setRetentionInfoFile(retentionInfoFile: File?) {
-    if (retentionInfoFile == null) {
-      retentionInfo = null
-    } else {
-      retentionInfo = IceboxOutput.parseFrom(retentionInfoFile.inputStream())
-    }
   }
 
   /**

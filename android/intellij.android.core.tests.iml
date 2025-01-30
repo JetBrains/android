@@ -105,15 +105,6 @@
     <orderEntry type="library" name="studio-plugin-JUnit" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.platform.images" level="project" />
-    <orderEntry type="module-library">
-      <library name="libstudio.android-test-plugin-host-retention-proto">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />

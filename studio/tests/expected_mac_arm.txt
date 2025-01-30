@@ -2155,7 +2155,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libplay_vitals_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libtitan_java_proto.jar

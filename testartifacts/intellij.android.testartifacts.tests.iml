@@ -41,15 +41,6 @@
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="android-test-plugin-host-device-info-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common.tests" scope="TEST" />

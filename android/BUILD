@@ -109,7 +109,6 @@ iml_module(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:intellij.webp",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
@@ -257,7 +256,6 @@ iml_module(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.properties",
         "@intellij//:com.intellij.platform.images",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
@@ -401,7 +399,6 @@ filegroup(
         "//tools/adt/idea/android/gradle:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto-test",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
@@ -422,7 +419,6 @@ filegroup(
         "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/server-flags:libserver-flag-test-proto",
-        "//tools/adt/idea/testartifacts:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
@@ -594,13 +590,6 @@ jvm_import(
 jvm_import(
     name = "libandroid-core-proto-test",
     jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libstudio.android-test-plugin-host-retention-proto",
-    jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
     visibility = ["//visibility:public"],
 )
 
