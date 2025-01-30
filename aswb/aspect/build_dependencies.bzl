@@ -855,7 +855,7 @@ def _collect_cc_dependencies_core_impl(target, ctx, test_mode, experiment_multi_
     cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule, test_mode)
     cc_info_files = []
     if experiment_multi_info_file:
-        cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + [cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else []
+        cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
     return create_cc_dependencies_info(
         cc_info_files = depset(cc_info_files) if experiment_multi_info_file else None,
