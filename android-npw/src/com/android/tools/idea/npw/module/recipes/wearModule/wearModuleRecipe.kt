@@ -38,7 +38,7 @@ fun RecipeExecutor.generateWearModule(
       usesFeatureBlock = usesFeatureBlock,
       hasRoundIcon = false,
     ),
-    iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
+    iconsGenerationStyle = IconsGenerationStyle.ALL,
     themesXml = null,
     colorsXml = null,
     noKtx = true,
