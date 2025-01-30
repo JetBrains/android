@@ -23,7 +23,6 @@ import com.google.common.io.Files;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
 import com.intellij.openapi.application.PathManager;
@@ -66,12 +65,13 @@ public class RenderSecurityManagerTest {
 
   @Before
   public void setUp() {
-    new MockApplication(disposable);
-    Extensions.getRootArea()
-      .registerExtensionPoint(
-        RenderPropertiesAccessUtil.EP_NAME.getName(),
-        RenderSecurityManagerOverrides.class.getName(),
-        ExtensionPoint.Kind.INTERFACE);
+    var app = new MockApplication(disposable);
+    app.getExtensionArea().registerExtensionPoint(
+      RenderPropertiesAccessUtil.EP_NAME.getName(),
+      RenderSecurityManagerOverrides.class.getName(),
+      ExtensionPoint.Kind.INTERFACE,
+      false
+    );
   }
 
   @After
