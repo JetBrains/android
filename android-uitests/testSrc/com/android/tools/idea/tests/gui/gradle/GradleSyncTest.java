@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -82,6 +81,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
@@ -370,7 +370,7 @@ public class GradleSyncTest {
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 
-    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
+    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
 
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);

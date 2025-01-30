@@ -77,7 +77,7 @@ public class AndroidSdkAdditionalData implements SdkAdditionalData {
     if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return null;
     }
-    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
+    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
     if (sdkData != null) {
       SdkAdditionalData data = sdk.getSdkAdditionalData();
       if (data instanceof AndroidSdkAdditionalData) {

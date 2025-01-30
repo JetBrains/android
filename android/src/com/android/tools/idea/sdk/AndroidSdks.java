@@ -65,11 +65,4 @@ public interface AndroidSdks {
   @VisibleForTesting void replaceLibraries(@NotNull Sdk sdk, @NotNull VirtualFile[] libraries);
   boolean isInAndroidSdk(@NonNull PsiElement element);
   boolean isInAndroidSdk(@NonNull Project project, @NonNull VirtualFile file);
-  static @Nullable AndroidSdkData getSdkData(@NotNull Sdk sdk) {
-    String sdkHomePath = sdk.getHomePath();
-    if (sdkHomePath != null) {
-      return AndroidSdkData.getSdkData(sdk.getHomePath());
-    }
-    return null;
-  }
 }
