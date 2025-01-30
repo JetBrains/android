@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.apk.viewer
 
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.apk.analyzer.AndroidApplicationInfo
 import com.android.tools.apk.analyzer.ArchiveEntry
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /**
  * Extracts an [AndroidApplicationInfo] from an archive entry using AAPT
  */
-class AndroidApplicationInfoProviderImpl(private val project: Project) : AndroidApplicationInfoProvider {
+class AndroidApplicationInfoProviderImpl() : AndroidApplicationInfoProvider {
   override fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry): ListenableFuture<AndroidApplicationInfo> {
-    val pathToAapt: Path = project.getProjectSystem().getPathToAapt()
+    val handler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+    val pathToAapt: Path = AaptInvoker.getPathToAapt(handler, LogWrapper(AndroidApplicationInfoProvider::class.java))
     return apkParser.getApplicationInfo(pathToAapt, entry)
   }
 }
