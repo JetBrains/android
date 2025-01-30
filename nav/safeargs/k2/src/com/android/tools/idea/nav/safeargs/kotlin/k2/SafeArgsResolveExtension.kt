@@ -41,8 +41,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 @OptIn(KaExperimentalApi::class)
-class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension() {
-
+internal class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension() {
   private data class Status(
     val args: List<ArgsClassResolveExtensionFile>,
     val directions: List<DirectionsClassResolveExtensionFile>,
