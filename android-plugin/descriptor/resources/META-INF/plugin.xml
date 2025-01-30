@@ -99,4 +99,5 @@
   <xi:include href="/META-INF/server-flags.xml"/>
   <xi:include href="/META-INF/studio-labs.xml" />
   <xi:include href="/META-INF/settings-sync.xml" />
+  <xi:include href="/META-INF/screenshot-testing.xml" />
 </idea-plugin>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  */
 package com.android.screenshottest
 
-import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.util.MultiParentDisposable
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.testFramework.LightVirtualFile
 
-@OptIn(ExperimentalJewelApi::class)
-class ScreenshotTestDetailsView(project: Project, parentDisposable: MultiParentDisposable) {
-
-  val rawTestLogConsoleView: ConsoleViewImpl = ConsoleViewImpl(project, /*viewer=*/true).apply {
-    Disposer.register(parentDisposable, this)
-  }
+/**
+ * Custom implementation of in memory virtual file to customize editor tab.
+ */
+class ScreenshotTestResultVirtualFile(fileName: String) : LightVirtualFile(fileName) {
+  override fun getFileType(): FileType = ScreenshotTestResultFileType.INSTANCE
 }
-

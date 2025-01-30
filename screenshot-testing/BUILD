@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.screenshot-test",
     srcs = ["src"],
     iml_files = ["intellij.android.screenshot-test.iml"],
+    kotlin_use_compose = True,
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -17,5 +18,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )

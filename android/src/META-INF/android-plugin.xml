@@ -727,6 +727,8 @@
                     interface="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken"
                     interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.screenshottest.screenshotTestResultListenerToken"
+                    interface="com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestResultListenerToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.res.resourceClassToken"
                     interface="com.android.tools.idea.res.ResourceClassToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.manifest.manifestClassToken"
