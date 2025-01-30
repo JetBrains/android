@@ -368,6 +368,12 @@ public final class AdbService implements Disposable {
       }
     }
 
+    switch (AdbOptionsService.getInstance().getAdbServerBurstMode()) {
+      case ENABLED ->  options.withEnv("ADB_DELAYED_ACK", "1");
+      case DISABLED ->  options.withEnv("ADB_DELAYED_ACK", "0");
+      case DEFAULT -> {}
+    }
+
     getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
       // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
