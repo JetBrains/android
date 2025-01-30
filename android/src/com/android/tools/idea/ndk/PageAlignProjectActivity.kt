@@ -24,7 +24,6 @@ import com.intellij.openapi.startup.ProjectActivity
  */
 class PageAlignProjectActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
-    if (!PageAlignConfig.isPageAlignMessageEnabled()) return
     project.messageBus
       .connect(PageAlignDisposable.getProjectInstance(project))
       .subscribe(ApplicationDeployListener.TOPIC, PageAlignDeployListener(project))

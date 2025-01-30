@@ -30,25 +30,14 @@ object PageAlignConfig {
   private const val SO_UNALIGNED_IN_APK = "The following native libraries are not aligned at 16 KB boundary inside [APK]:"
   private const val SO_UNALIGNED_LOAD_SEGMENTS = "The following native libraries have segments that are not aligned at 16 KB boundary inside [APK]:"
   private const val MESSAGE_POSTSCRIPT = "Beginning [DATE] the Google Play Store requires that all apps must be 16 KB compatible. For more information, visit [URL]."
-  private var config : PageAlign16kb? = PageAlign16kb.newBuilder()
-    .setMessageUrl("URL PLACEHOLDER")
-    .setPlayStoreDeadlineDate("DEADLINE PLACEHOLDER")
-    .build()
 
-  /**
-   * Whether the server config proto has been read yet.
-   * You can manually set this to true to debug the feature. You'll get a test failure if you try to check it in that way.
-   */
   @VisibleForTesting
-  const val CONFIG_INITIALIZED_DEFAULT = false
-
-  private var configInitialized = CONFIG_INITIALIZED_DEFAULT
-
+  val PROTO_TEMPLATE = PageAlign16kb.newBuilder().build()!!
 
   /**
    * Return true if the 16 KB page alignment feature is enabled by server flag.
    */
-  fun isPageAlignMessageEnabled() = getServerFlagOrNull() != null
+  fun isPageAlignMessageEnabled() = readServerFlag() != null
 
   /**
    * Create the text body of a message to alert the user that their APK has some SO files that aren't aligned at a 16 KB boundary within
@@ -64,21 +53,15 @@ object PageAlignConfig {
   /**
    * Helper to read the server flag. Will return null if 16 KB alignment feature is not enabled on this build.
    */
-  private fun getServerFlagOrNull() : PageAlign16kb? {
-    if (configInitialized) return config
-    configInitialized = true
-    val defaultConfig = PageAlign16kb.getDefaultInstance()
-    val service = ServerFlagService.instance
-    config = service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", defaultConfig)
-    return config
-  }
+  private fun readServerFlag() =
+    ServerFlagService.instance.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PROTO_TEMPLATE)
 
   /**
    * Create a warning message given a list of SO files that have alignment problems.
    */
-  private fun createMessage(apkFile: File, soFiles: List<String>, prefix : String): String {
+  fun createMessage(apkFile: File, soFiles: List<String>, prefix: String): String {
     if (soFiles.isEmpty()) error("Don't call create*Message() functions with empty SO-file list")
-    val flag = getServerFlagOrNull() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
+    val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
     val date = flag.playStoreDeadlineDate
     val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
     val shortApk = StringUtil.shortenPathWithEllipsis(apkFile.path, 80)

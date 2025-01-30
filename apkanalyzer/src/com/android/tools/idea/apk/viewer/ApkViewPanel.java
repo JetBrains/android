@@ -75,6 +75,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 import com.android.tools.idea.ndk.PageAlignConfig;
+import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED;
+import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -175,6 +177,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
     ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
+    ListenableFuture<ApkParser.Align16kbCompliance> align16kbCompliance = apkParser.getAlign16kbCompliance();
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
@@ -207,14 +210,19 @@ public class ApkViewPanel implements TreeSelectionListener {
     Futures.FutureCombiner<Object> combiner = Futures.whenAllComplete(uncompressedApkSize, compressedFullApkSize, applicationInfo);
     combiner.call(() -> {
       String applicationId = applicationInfo.get().packageId;
+      ApkAnalyzerStats.Builder stats = ApkAnalyzerStats.newBuilder()
+          .setCompressedSize(compressedFullApkSize.get())
+          .setUncompressedSize(uncompressedApkSize.get());
+      if (align16kbCompliance.get() != ApkParser.Align16kbCompliance.NO_ELF_FILES) {
+        stats.setAlign16Type(align16kbCompliance.get() == ApkParser.Align16kbCompliance.COMPLIANT
+                             ? ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
+                             : ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED);
+      }
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                          .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
                          .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
                          .setRawProjectId(applicationId)
-                         .setApkAnalyzerStats(
-                           ApkAnalyzerStats.newBuilder().setCompressedSize(compressedFullApkSize.get())
-                             .setUncompressedSize(uncompressedApkSize.get())
-                             .build()));
+                         .setApkAnalyzerStats(stats));
       return null;
       }, MoreExecutors.directExecutor())
       .addListener(() -> {

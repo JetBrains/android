@@ -15,13 +15,50 @@
  */
 package com.android.tools.idea.ndk
 
-import org.junit.Assert.assertFalse
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.PageAlign16kb
+import com.android.tools.idea.testing.registerServiceInstance
 import org.junit.Test
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import org.junit.Rule
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
+import java.io.File
 
 class PageAlignConfigTest {
+  @get:Rule val appRule = ApplicationRule()
+  @get:Rule val disposableRule = DisposableRule()
+
+
   @Test
-  fun checkConfigBeginsUninitialized() {
-    @Suppress("KotlinConstantConditions")
-    assertFalse(PageAlignConfig.CONFIG_INITIALIZED_DEFAULT)
+  fun `check server flag off by default`() {
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(null)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
+
+    assertThat(PageAlignConfig.isPageAlignMessageEnabled()).isFalse()
+  }
+
+  @Test
+  fun `check server flag enabled`() {
+    val config = PageAlign16kb.newBuilder()
+      .setMessageUrl("test.url")
+      .setPlayStoreDeadlineDate("test.deadline")
+      .build()
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(config)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
+
+    assertThat(PageAlignConfig.isPageAlignMessageEnabled()).isTrue()
+    val message = PageAlignConfig.createSoNotAlignedInZipMessage(
+      File("example.apk"),
+      listOf("example.so"))
+    assertThat(message).contains("test.url")
+    assertThat(message).contains("test.deadline")
   }
 }
