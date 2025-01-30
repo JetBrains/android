@@ -41,7 +41,7 @@ class AtfAnalyzerComposeTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(projectPath = SIMPLE_COMPOSE_PROJECT_PATH)
 
   @Test
-  fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOn() {
+  fun testColorContrastIssueOnNotVisiblePreview() {
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
