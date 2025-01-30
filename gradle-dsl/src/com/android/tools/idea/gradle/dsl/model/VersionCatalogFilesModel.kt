@@ -53,5 +53,5 @@ fun getGradleVersionCatalogFiles(module: Module): Map<String, String> {
   return result
 }
 
-private val EP_NAME: ExtensionPointName<VersionCatalogFilesModel> =
+val EP_NAME: ExtensionPointName<VersionCatalogFilesModel> =
   ExtensionPointName.create("com.android.tools.idea.versionCatalogFilesGradleModel")

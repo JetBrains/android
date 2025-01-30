@@ -15,17 +15,24 @@
  */
 package com.android.tools.idea.gradle.navigation.runsGradleVersionCatalogAndDeclarative
 
+import com.android.tools.idea.gradle.dsl.model.EP_NAME
+import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.registerExtension
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFileBase
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,6 +46,21 @@ class VersionCatalogFindGroovyUsageTest {
 
   private val myFixture by lazy { projectRule.fixture }
   private val myProject by lazy { projectRule.project }
+
+  private val service = object: VersionCatalogFilesModel {
+    val map = mapOf("libs" to "gradle/libs.versions.toml")
+    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
+      map.mapValues { project.basePath + "/" + it.value }
+    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
+      map.mapValues { module.project.basePath + "/" + it.value }
+  }
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerExtension(
+      EP_NAME, service, projectRule.fixture.testRootDisposable
+    )
+  }
 
   @Test
   fun testHasUsages() {

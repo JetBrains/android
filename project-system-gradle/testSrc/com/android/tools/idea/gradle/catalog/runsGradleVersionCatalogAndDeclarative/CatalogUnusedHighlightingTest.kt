@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.gradle.catalog.runsGradleVersionCatalogAndDeclarative
 
+import com.android.tools.idea.gradle.dsl.model.EP_NAME
+import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.writeText
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.editor.commitToPsi
 import com.intellij.testFramework.utils.editor.reloadFromDisk
 import com.intellij.testFramework.utils.vfs.createFile
 import org.jetbrains.plugins.gradle.codeInspection.toml.UnusedVersionCatalogEntryInspection
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -41,6 +49,21 @@ class CatalogUnusedHighlightingTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  private val service = object: VersionCatalogFilesModel{
+    val map = mapOf("libs" to "gradle/libs.versions.toml")
+    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
+      map.mapValues { project.basePath + "/" + it.value }
+    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
+      map.mapValues { project.basePath + "/" + it.value }
+  }
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerExtension(
+       EP_NAME, service, projectRule.fixture.testRootDisposable
+    )
+  }
 
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -115,7 +138,7 @@ class CatalogUnusedHighlightingTest {
     """.trimIndent())
   }
 
-  private fun runTest(buildGradleText:String, catalogContent:String) {
+  private fun runTest(buildGradleText: String, catalogContent: String) {
     fixture.enableInspections(UnusedVersionCatalogEntryInspection::class.java)
     val rootFolder = File(project.basePath!!)
     File(rootFolder, "settings.gradle").writeText("rootProject.name = \"Test\"")
