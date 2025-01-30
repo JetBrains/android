@@ -19,20 +19,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.FutureUtil;
-import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
+import com.google.idea.blaze.base.command.BlazeFlags;
+import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
+import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
+import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.TimingScope;
-import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.intellij.openapi.project.Project;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -44,11 +45,13 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
   protected final Project project;
   protected final BlazeContext blazeContext;
   private final String binaryPath;
+  private final BuildSystem buildSystem;
   private BlazeInfo blazeInfo;
 
-  public AbstractBuildInvoker1(Project project, BlazeContext blazeContext, String binaryPath) {
+  public AbstractBuildInvoker1(Project project, BlazeContext blazeContext, BuildSystem buildSystem, String binaryPath) {
     this.project = project;
     this.blazeContext = blazeContext;
+    this.buildSystem = buildSystem;
     this.binaryPath = binaryPath;
   }
 
@@ -67,25 +70,35 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
   }
 
   private BlazeInfo getBlazeInfoResult() throws SyncFailedException {
-    ListenableFuture<BlazeInfo> blazeInfoFuture;
-    FutureUtil.FutureResult<BlazeInfo> result;
-    blazeInfoFuture = Futures.transform(BlazeExecutor.getInstance().submit(() -> {
-                                          try (InputStream stream = invokeInfo(BlazeCommand.builder(this, BlazeCommandName.INFO))) {
-                                            return stream.readAllBytes();
-                                          }
-                                        }), bytes -> BlazeInfo.create(BuildSystemName.Blaze, parseBlazeInfoResult(new String(bytes, StandardCharsets.UTF_8).trim())),
-                                        BlazeExecutor.getInstance().getExecutor());
-
-    result =
-      FutureUtil.waitForFuture(blazeContext, blazeInfoFuture).timed(BuildSystemName.Blaze + "Info", TimingScope.EventType.BlazeInvocation)
-        .withProgressMessage(String.format("Running %s info...", BuildSystemName.Blaze))
-        .onError(String.format("Could not run %s info", BuildSystemName.Blaze)).run();
-
+    ListenableFuture<BlazeInfo> future = runBlazeInfo();
+    FutureUtil.FutureResult<BlazeInfo> result =
+      FutureUtil.waitForFuture(blazeContext, future)
+        .timed(buildSystem.getName() + "Info", TimingScope.EventType.BlazeInvocation)
+        .withProgressMessage(String.format("Running %s info...", buildSystem.getName()))
+        .onError(String.format("Could not run %s info", buildSystem.getName()))
+        .run();
     if (result.success()) {
       return result.result();
     }
-    //TODO (b/374906681) Replace with BuildException once legacy sync is deprecated
-    throw new SyncFailedException(String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
+    throw new SyncFailedException(
+      String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
+  }
+
+  private ListenableFuture<BlazeInfo> runBlazeInfo() {
+    ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    if (viewSet == null) {
+      // defer the failure until later when it can be handled more easily:
+      return Futures.immediateFailedFuture(new IllegalStateException("Empty project view set"));
+    }
+    List<String> syncFlags =
+      BlazeFlags.blazeFlags(
+        project,
+        viewSet,
+        BlazeCommandName.INFO,
+        blazeContext,
+        BlazeInvocationContext.SYNC_CONTEXT);
+    return BlazeInfoRunner.getInstance()
+      .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
   }
 
   @Override
@@ -105,7 +118,7 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
 
   @Override
   public BuildSystem getBuildSystem() {
-    throw new UnsupportedOperationException("This method should not be called, this invoker does not support this method.");
+    return this.buildSystem;
   }
 
   @Override

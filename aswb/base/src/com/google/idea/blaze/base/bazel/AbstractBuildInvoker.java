@@ -133,13 +133,6 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   }
 
   @Override
-  public List<String> getBuildFlags() {
-    throw new UnsupportedOperationException(
-      String.format(
-        "The %s does not support getBuildFlags method", this.getClass().getSimpleName()));
-  }
-
-  @Override
   @Nullable
   public synchronized BlazeInfo getBlazeInfo() throws SyncFailedException {
     if (blazeInfo == null) {

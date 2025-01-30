@@ -37,9 +37,7 @@ import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -83,14 +81,6 @@ public interface BuildSystem {
     }
 
     /**
-     * Returns the BEP output file if accessible.
-     */
-    default File bepOutputFile() {
-      throw new UnsupportedOperationException(
-        String.format("The %s does not support accessing the bep output file", this.getClass().getSimpleName()));
-    }
-
-    /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
     BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
@@ -110,11 +100,6 @@ public interface BuildSystem {
      */
     @MustBeClosed
     InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
-
-    /**
-     * @return a list of build flags
-     */
-    List<String> getBuildFlags();
 
     /**
      * Returns the type of this build interface. Used for logging purposes.
