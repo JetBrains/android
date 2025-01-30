@@ -36,9 +36,9 @@ import java.io.File
 class BuildIssueEventWrappersTest {
   private val buildIssueFix = object : DescribedBuildIssueQuickFix {
     override val description: String
-      get() = "Ask Gemini"
+      get() = "Additional quickfix link"
     override val id: String
-      get() = "open.plugin.studio.bot"
+      get() = "com.plugin.gradle.quickfix"
 
   }
   private val additionalDescription = BuildIssueDescriptionComposer().apply {
@@ -62,10 +62,10 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.issue.quickFixes.first()).isSameAs(buildIssueFix)
     assertThat(wrappedEvent.result.filePosition).isEqualTo(originalEvent.result.filePosition)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -84,8 +84,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -117,13 +117,13 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
                                                       + "\nAdditional line"
                                                       + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                      + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+                                                      + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
     assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
                                                    + "\nAdditional line"
                                                    + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                   + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+                                                   + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -154,11 +154,11 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
                                                       + "\nAdditional line"
                                                       + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                      + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+                                                      + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
     assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
                                                    + "\nAdditional line"
                                                    + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                   + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+                                                   + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -180,8 +180,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.result.details).isEqualTo("\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo("\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo("\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo("\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -200,8 +200,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo("\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo("\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo("\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo("\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -222,8 +222,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -246,8 +246,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -272,8 +272,8 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
@@ -298,6 +298,6 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.issue.quickFixes[1]).isEqualTo(buildIssueFix)
     assertThat(wrappedEvent.issue.title).isEqualTo(originalEvent.issue.title)
     assertThat(wrappedEvent.issue.description).isEqualTo(
-      originalEvent.issue.description + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+      originalEvent.issue.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 }

@@ -18,9 +18,10 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -74,7 +75,7 @@ class BuildOutputParsersIntegrationTest {
 
   companion object {
     @JvmStatic
-    @Parameters(name = "isGeminiAvailable={0}")
+    @Parameters(name = "additionalQuickfixProviderAvailable={0}")
     fun parameters() = listOf(
       arrayOf(true),
       arrayOf(false),
@@ -83,7 +84,7 @@ class BuildOutputParsersIntegrationTest {
 
   @Parameter
   @JvmField
-  var isGeminiAvailable: Boolean? = null
+  var additionalQuickfixProviderAvailable: Boolean? = null
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
@@ -115,19 +116,19 @@ class BuildOutputParsersIntegrationTest {
     buildViewTestFixture.setUp()
 
     val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
-      override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
-      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
-        val messageEvent = buildEvent as? MessageEvent
-        if(messageEvent?.kind != MessageEvent.Kind.ERROR) {
-          return null
-        }
+      override fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        if (additionalQuickfixProviderAvailable != true) return null
+        if (buildEvent !is MessageEvent) return null
         return object: DescribedBuildIssueQuickFix {
           override val description: String
-            get() = "Ask Gemini"
+            get() = "Additional quickfix link"
           override val id: String
             get() = "com.plugin.gradle.quickfix"
         }
+      }
+
+      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncIssueNotificationHyperlink? {
+        error("Should not be called in this test")
       }
     }
     ApplicationManager.getApplication()
@@ -293,8 +294,8 @@ class BuildOutputParsersIntegrationTest {
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$absolutePath" to absolutePath))
     //TODO (b/372180686): extra `Android resource linking failed` message is currently generated
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (isGeminiAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-studiobot.txt", listOf("\$basePath" to basePath))
+    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
+      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
     }
     else {
       testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
@@ -327,8 +328,8 @@ class BuildOutputParsersIntegrationTest {
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("xmlParsingError")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$path" to path))
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (isGeminiAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-studiobot.txt", listOf("\$basePath" to basePath))
+    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
+      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
     }
     else {
       testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
@@ -356,8 +357,12 @@ class BuildOutputParsersIntegrationTest {
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("xmlParsingErrorsDuringSync")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt")
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    // This contains only warnings thus does not depend on studio bot state currently
-    val expectedConsoleContent = testDir.readTestFile("expectedConsoleContent.txt")
+    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
+      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
+    }
+    else {
+      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
+    }
 
     replayGradleOutput(
       myTaskId = myTaskId,

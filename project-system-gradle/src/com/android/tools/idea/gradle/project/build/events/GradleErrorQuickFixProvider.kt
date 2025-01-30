@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.build.events
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
+import com.android.tools.idea.project.messages.SyncMessage
 import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -25,8 +28,6 @@ import com.intellij.openapi.project.Project
  * Quick fix provider to provide quick fixes for Gradle build/sync errors.
  */
 interface GradleErrorQuickFixProvider {
-  fun isAvailable(): Boolean = false
-  fun runQuickFix(context: GradleErrorContext, project: Project)
 
   /**
    * Creates a [DescribedBuildIssueQuickFix] that is provided for build outputs.
@@ -34,18 +35,14 @@ interface GradleErrorQuickFixProvider {
    * This function analyzes a [BuildEvent] and a corresponding [ExternalSystemTaskId] to determine
    * if a quick fix can be offered to the user for a build issue.
    */
-  fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix?
+  fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix?
+  fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncMessageHyperlink?
 
   companion object {
     val EP_NAME = ExtensionPointName.create<GradleErrorQuickFixProvider>("com.android.tools.idea.gradle.errorQuickFixProvider")
 
-    private val gradleErrorQuickFixProviderUnavailable = object : GradleErrorQuickFixProvider {
-      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
-      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? = null
-    }
-
-    fun getInstance(): GradleErrorQuickFixProvider {
-      return EP_NAME.extensionList.firstOrNull() ?: gradleErrorQuickFixProviderUnavailable
+    fun getProviders(): List<GradleErrorQuickFixProvider> {
+      return EP_NAME.extensionList
     }
   }
 }

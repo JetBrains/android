@@ -39,20 +39,15 @@ import java.util.function.Consumer
  */
 class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: ExternalSystemTaskId) : BuildOutputParser {
 
-  private val explainerAvailable
-    get() = GradleErrorQuickFixProvider.getInstance().isAvailable()
-
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
-    if(!explainerAvailable) {
-      return parser.parse(line, reader, messageConsumer)
-    }
     return parser.parse(line, reader) {
-      val quickFix = GradleErrorQuickFixProvider.getInstance().createBuildIssueQuickFixFor(it, taskId)
-      val event = if(quickFix != null) {
-        it.toBuildIssueEventWithQuickFix(quickFix)
-        } else {
-          it
-        }
+      val providers = GradleErrorQuickFixProvider.getProviders()
+      val additionalQuickfixes = providers.mapNotNull { provider -> provider.createBuildIssueAdditionalQuickFix(it, taskId) }
+      val event = if (additionalQuickfixes.isNotEmpty()) {
+        it.toBuildIssueEventWithQuickFix(additionalQuickfixes)
+      } else {
+        it
+      }
       messageConsumer?.accept(event)
     }
   }
@@ -61,10 +56,10 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
 /**
  * Extends the BuildEvent to BuildIssueEvent, so that quick fix link can be added.
  */
-private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildEvent {
+private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFixes: List<DescribedBuildIssueQuickFix>): BuildEvent {
   if (this !is MessageEvent) return this
   val additionalDescription = BuildIssueDescriptionComposer().apply {
-    addQuickFix(quickFix)
+    quickFixes.forEach { addQuickFix(it) }
   }
   return toBuildIssueEventWithAdditionalDescription(additionalDescription)
 }

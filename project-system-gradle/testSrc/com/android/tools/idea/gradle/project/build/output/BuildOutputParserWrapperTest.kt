@@ -65,12 +65,10 @@ class BuildOutputParserWrapperTest {
 
   @Test
   fun `test when GradleErrorQuickFixProvider is not available, quick fix is not added to the build event`() {
-    whenever(mockGradleErrorQuickFixProvider.isAvailable()).thenReturn(false)
-
     messageEvent = createMessageEvent(ERROR)
     myParserWrapper.parse(null, null) { event ->
       // MessageEvent is not converted into a BuildIssueEvent which holds the quickfix.
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
+      assertThat(event).isSameAs(messageEvent)
     }
   }
 
@@ -78,8 +76,7 @@ class BuildOutputParserWrapperTest {
   fun `test when GradleErrorQuickFixProvider is available, a quick fix is added to the build event`() {
     messageEvent = createMessageEvent(ERROR)
 
-    whenever(mockGradleErrorQuickFixProvider.isAvailable()).thenReturn(true)
-    whenever(mockGradleErrorQuickFixProvider.createBuildIssueQuickFixFor(messageEvent, ID)).thenReturn(
+    whenever(mockGradleErrorQuickFixProvider.createBuildIssueAdditionalQuickFix(messageEvent, ID)).thenReturn(
       object: DescribedBuildIssueQuickFix{
         override val description: String
           get() = "Quick fix description"
@@ -91,6 +88,11 @@ class BuildOutputParserWrapperTest {
     myParserWrapper.parse(null, null) { event ->
       // MessageEvent is converted into a BuildIssueEvent which holds the quickfix.
       assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
+      assertThat(event.description).isEqualTo("""
+        ${messageEvent.description}
+        <a href="com.some.plugin.quickfix">Quick fix description</a>""".trimIndent())
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes).hasSize(1)
     }
   }
 

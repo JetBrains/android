@@ -71,6 +71,7 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
                                             @Nullable ExecutionEnvironment env) {
     // adds a Gemini popup menu item to the sync tree view
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
+    //TODO this needs to be removed or moved to ai module
     GeminiPluginApi geminiPluginApi = GeminiPluginApi.Companion.getInstance();
     if (!geminiPluginApi.isAvailable()) {
       return contextActions;

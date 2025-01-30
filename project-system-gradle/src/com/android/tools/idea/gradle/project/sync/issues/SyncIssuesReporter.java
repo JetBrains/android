@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.tools.idea.gradle.project.build.events.GradleErrorContext.Source.SYNC;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
-import com.android.tools.idea.gradle.GradleProjectSystemBundle;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.build.events.GradleErrorContext;
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -47,9 +43,6 @@ import org.jetbrains.annotations.SystemIndependent;
 public class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
-
-  public static String consoleLinkUnderlinedText = ">> " + GradleProjectSystemBundle.message("studiobot.ask.text");
-  public static String consoleLinkWithSeparatorText = consoleLinkUnderlinedText + " ";
 
   @NotNull
   public static SyncIssuesReporter getInstance() {
@@ -137,11 +130,7 @@ public class SyncIssuesReporter {
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
 
-    GradleErrorQuickFixProvider provider = GradleErrorQuickFixProvider.Companion.getInstance();
-    if (provider.isAvailable()) {
-      // this only covers sync warning, but sync errors are handled by AndroidGradleExecutionConsoleManager
-      addIssueExplanationLinks(syncMessages);
-    }
+    addAdditionalIssueLinks(syncMessages);
 
     for (SyncMessage syncMessage : syncMessages) {
       gradleSyncMessages.report(syncMessage);
@@ -158,27 +147,16 @@ public class SyncIssuesReporter {
     }
   }
 
-  private static void addIssueExplanationLinks(@NotNull List<SyncMessage> syncMessages) {
+  private static void addAdditionalIssueLinks(@NotNull List<SyncMessage> syncMessages) {
+    List<GradleErrorQuickFixProvider> providers = GradleErrorQuickFixProvider.Companion.getProviders();
     for (SyncMessage syncMessage : syncMessages) {
-      final var message = syncMessage.getText();
-      syncMessage.add(new SyncIssueNotificationHyperlink("explain.issue", consoleLinkUnderlinedText,
-                                                         AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX) {
-        @Override
-        protected void execute(@NotNull Project project) {
-          GradleErrorQuickFixProvider provider = GradleErrorQuickFixProvider.Companion.getInstance();
-          provider.runQuickFix(new GradleErrorContext(
-                               /* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC, /* sourceFiles = */ getErrorSourceFiles(syncMessage)),
-                               project);
+      for (GradleErrorQuickFixProvider provider : providers) {
+        SyncMessageHyperlink link = provider.createSyncMessageAdditionalLink(syncMessage);
+        if (link != null) {
+          syncMessage.add(link);
         }
-      });
+      }
     }
-  }
-
-  private static List<VirtualFile> getErrorSourceFiles(SyncMessage syncMessage) {
-    if (syncMessage.getPosition() == null) {
-      return ImmutableList.of();
-    }
-    return ImmutableList.of(syncMessage.getPosition().file);
   }
 
   @VisibleForTesting

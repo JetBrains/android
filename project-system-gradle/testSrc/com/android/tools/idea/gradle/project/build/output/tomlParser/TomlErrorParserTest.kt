@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
@@ -101,8 +102,8 @@ class TomlErrorParserTest {
   }
 
   @Test
-  fun testWrapper_parsesTomlErrorWithFile() {
-    registerStudioBotQuickFixProvider()
+  fun testTomlErrorWithFileParsedByWrapperWithAdditionalQickfix() {
+    registerAdditionalQuickFixProvider()
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
@@ -118,7 +119,7 @@ class TomlErrorParserTest {
       Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -394,18 +395,19 @@ class TomlErrorParserTest {
     return gradleDir to file
   }
 
-  private fun registerStudioBotQuickFixProvider() {
+  private fun registerAdditionalQuickFixProvider() {
     val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
-      override fun isAvailable(): Boolean = true
-      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
-      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
-        return object : DescribedBuildIssueQuickFix {
+      override fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        return object: DescribedBuildIssueQuickFix {
           override val description: String
-            get() = "Ask Gemini"
+            get() = "Additional quickfix link"
           override val id: String
-            get() = "open.plugin.studio.bot"
-
+            get() = "com.plugin.gradle.quickfix"
         }
+      }
+
+      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncIssueNotificationHyperlink? {
+        error("Should not be called in this test")
       }
     }
     ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)

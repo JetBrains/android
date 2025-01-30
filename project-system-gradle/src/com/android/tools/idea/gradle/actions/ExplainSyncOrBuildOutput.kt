@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.actions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource
+import com.android.tools.idea.gemini.StudioBotExternalFlags
 import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.gradle.GradleProjectSystemBundle
+import com.android.tools.idea.gradle.GradleProjectSystemBundle.message
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
-import com.android.tools.idea.gemini.StudioBotExternalFlags
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.events.EventResult
@@ -49,10 +49,8 @@ import org.jetbrains.kotlin.idea.util.projectStructure.module
 import java.util.function.Predicate
 import javax.swing.tree.TreePath
 
-// These are used to trim an extra error description and links from the user message.
-private val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">${consoleLinkUnderlinedText}</a>"
-private val ASK_STUDIO_BOT_UNTIL_EOL = Regex("${consoleLinkUnderlinedText}[^\n]*")
 
+//TODO this needs to be removed or moved to ai module
 class ExplainSyncOrBuildOutput : DumbAwareAction(
   GradleProjectSystemBundle.message("studiobot.ask.text"), GradleProjectSystemBundle.message("studiobot.ask.description"),
   StudioIcons.StudioBot.ASK
@@ -175,6 +173,13 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
   }
 
   companion object {
+    // TODO this should be moved to AI plugin, together with message.
+    val CONSOLE_LINK_UNDERLINED_TEXT = ">> " + message("studiobot.ask.text")
+
+    // These are used to trim an extra error description and links from the user message.
+    private val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">${CONSOLE_LINK_UNDERLINED_TEXT}</a>"
+    private val ASK_STUDIO_BOT_UNTIL_EOL = Regex("${CONSOLE_LINK_UNDERLINED_TEXT}[^\n]*")
+
     /**
      * Returns a string representing the file the given navigatable points to with the line number indicated if applicable,
      * and a reference to that file.

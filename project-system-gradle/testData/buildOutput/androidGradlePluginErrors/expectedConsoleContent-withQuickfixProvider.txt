@@ -1,25 +1,25 @@
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
 $basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
-Ask Gemini
+Additional quickfix link
 
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
 $basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
-Ask Gemini
+Additional quickfix link
 
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
 $basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
-Ask Gemini
+Additional quickfix link
 
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
 $basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
-Ask Gemini
+Additional quickfix link
 
 ---
 Path: > failed > :app:processDebugResources > Android resource linking failed
@@ -31,6 +31,6 @@ Execution failed for task ':app:processDebugResources'.
 
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
-Ask Gemini
+Additional quickfix link
 
 ---

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.build.events.GradleErrorContext
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.build.BuildProgressListener
@@ -32,7 +33,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerExtension
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
@@ -49,7 +49,7 @@ import org.junit.runners.Parameterized.Parameters
 abstract class BuildOutputParserTest {
   companion object {
     @JvmStatic
-    @Parameters(name="isGeminiAvailable={0}")
+    @Parameters(name="additionalQuickfixProviderAvailable={0}")
     fun parameters() = listOf(
       arrayOf(true),
       arrayOf(false),
@@ -58,7 +58,7 @@ abstract class BuildOutputParserTest {
 
   @Parameter
   @JvmField
-  var isGeminiAvailable: Boolean? = null
+  var additionalQuickfixProviderAvailable: Boolean? = null
 
   @get:Rule
   val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
@@ -76,19 +76,22 @@ abstract class BuildOutputParserTest {
     }
 
     val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
-      override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun runQuickFix(context: GradleErrorContext, project: Project) {}
-      override fun createBuildIssueQuickFixFor(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+      override fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        if (additionalQuickfixProviderAvailable != true) return null
         val messageEvent = buildEvent as? MessageEvent
         if(messageEvent?.kind != MessageEvent.Kind.ERROR) {
           return null
         }
         return object: DescribedBuildIssueQuickFix {
           override val description: String
-            get() = "Ask Gemini"
+            get() = "Additional quickfix link"
           override val id: String
-            get() = "open.plugin.studio.bot"
+            get() = "com.plugin.gradle.quickfix"
         }
+      }
+
+      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncIssueNotificationHyperlink? {
+        error("Should not be called in this test")
       }
     }
     ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
@@ -135,7 +138,7 @@ abstract class BuildOutputParserTest {
       buildString {
         appendLine("message: \"${it.message}\"")
         appendLine("FileMessageEvent: " + it.isFileMessageEvent)
-        appendLine("BuildIssueEvent: " + (it.isBuildIssueEvent || expectBotLink(it)))
+        appendLine("BuildIssueEvent: " + (it.isBuildIssueEvent || expectAdditionalQuickfixLink(it)))
         appendLine("DuplicateMessageAware: " + it.isDuplicateMessageAware)
         appendLine("group: " + it.group)
         appendLine("kind: " + it.kind)
@@ -145,8 +148,8 @@ abstract class BuildOutputParserTest {
         }
         appendLine("description:")
         appendLine(it.description)
-        if (expectBotLink(it)) {
-          appendLine("<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+        if (expectAdditionalQuickfixLink(it)) {
+          appendLine("<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
         }
         append("---")
       }
@@ -154,7 +157,7 @@ abstract class BuildOutputParserTest {
     parseOutput(parentEventId, gradleOutput, expectedEventsDump)
   }
 
-  private fun expectBotLink(event: ExpectedEvent): Boolean = isGeminiAvailable == true && event.kind == MessageEvent.Kind.ERROR
+  private fun expectAdditionalQuickfixLink(event: ExpectedEvent): Boolean = additionalQuickfixProviderAvailable == true && event.kind == MessageEvent.Kind.ERROR
 
   data class ExpectedEvent(
     val message: String,
