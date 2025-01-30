@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertNotNull as kotlinAssertNotNull
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 
@@ -263,5 +264,119 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
       }
     }
+  }
+
+  fun testSuggestedImport_kotlinFile() {
+    ApplicationManager.getApplication()
+      .replaceService(
+        MavenClassRegistryManager::class.java,
+        fakeMavenClassRegistryManager,
+        myFixture.testRootDisposable,
+      )
+
+    loadProject(TestProjectPaths.ANDROIDX_SIMPLE)
+    assertBuildGradle(project) {
+      !it.contains("androidx.palette:palette:") && !it.contains("androidx.palette:palette-ktx:")
+    }
+
+    val paletteType = "Palette".highlightedAs(ERROR)
+    myFixture.loadNewFile(
+      "app/src/main/java/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      fun foo(palette: $paletteType) {}
+      """
+        .trimIndent(),
+    )
+
+    myFixture.checkHighlighting(true, false, false)
+    myFixture.moveCaret("Pale|tte")
+    val action =
+      myFixture.getIntentionAction("Add dependency on androidx.palette:palette-ktx and import")
+    kotlinAssertNotNull(action)
+
+    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
+    // Wait for the sync.
+    // This is redundant but we can't get a handle on the internal sync state of the first action.
+    requestSyncAndWait()
+
+    assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette-ktx:1.0.0") }
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.palette.graphics.Palette
+
+      fun foo(palette: Palette) {}
+      """
+        .trimIndent()
+    )
+  }
+
+  fun testSuggestedImport_javaFile() {
+    ApplicationManager.getApplication()
+      .replaceService(
+        MavenClassRegistryManager::class.java,
+        fakeMavenClassRegistryManager,
+        myFixture.testRootDisposable,
+      )
+
+    loadProject(TestProjectPaths.ANDROIDX_SIMPLE)
+    assertBuildGradle(project) {
+      !it.contains("androidx.palette:palette:") && !it.contains("androidx.palette:palette-ktx:")
+    }
+
+    val paletteType = "Palette".highlightedAs(ERROR)
+    myFixture.loadNewFile(
+      "app/src/main/java/Test.java",
+      // language=java
+      """
+      package com.example;
+
+      class Test {
+        public static void foo($paletteType palette) {}
+      }
+      """
+        .trimIndent(),
+    )
+
+    myFixture.checkHighlighting(true, false, false)
+    myFixture.moveCaret("Pale|tte")
+    val action =
+      myFixture.getIntentionAction("Add dependency on androidx.palette:palette and import")
+    kotlinAssertNotNull(action)
+
+    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
+    // Wait for the sync.
+    // This is redundant but we can't get a handle on the internal sync state of the first action.
+    requestSyncAndWait()
+
+    assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette:1.0.0") }
+
+    myFixture.checkResult(
+      // language=java
+      """
+      package com.example;
+
+      import androidx.palette.graphics.Palette;
+
+      class Test {
+        public static void foo(Palette palette) {}
+      }
+      """
+        .trimIndent()
+    )
   }
 }

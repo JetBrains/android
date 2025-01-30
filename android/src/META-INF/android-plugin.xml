@@ -654,6 +654,7 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <classImportFilter implementation="com.android.tools.idea.res.NestedResourceClassImportFilter"/>
     <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
+    <codeinsight.quickfix.registrar implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinQuickFixRegistrar"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
   </extensions>
 
