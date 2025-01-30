@@ -53,7 +53,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 
 /**
@@ -305,10 +304,6 @@ class TestProjectSystem @JvmOverloads constructor(
   private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
 
   override fun getDefaultApkFile(): VirtualFile? {
-    error("not supported for the test implementation")
-  }
-
-  override fun getPathToAapt(): Path {
     error("not supported for the test implementation")
   }
 

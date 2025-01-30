@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.apk
 
-import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
@@ -42,7 +40,6 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.FileSystemApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -59,7 +56,6 @@ import com.intellij.ui.AppUIUtil
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import java.nio.file.Path
 
 class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val delegate = DefaultProjectSystem(project)
@@ -94,9 +90,6 @@ class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   override fun getDefaultApkFile(): VirtualFile? =
     ProjectFacetManager.getInstance(project).getFacets(ApkFacet.getFacetTypeId())
       .firstNotNullOfOrNull { facet -> facet?.configuration?.APK_PATH?.let { File(it).toVirtualFile() } }
-
-  override fun getPathToAapt(): Path =
-    AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(ApkProjectSystem::class.java))
 
   override fun allowsFileCreation(): Boolean = false
 

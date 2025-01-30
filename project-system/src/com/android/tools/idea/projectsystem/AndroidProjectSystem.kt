@@ -36,7 +36,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
-import java.nio.file.Path
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
@@ -64,11 +63,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
    */
   fun getDefaultApkFile(): VirtualFile?
-
-  /**
-   * Returns the absolute filesystem path to the aapt executable being used for the given project.
-   */
-  fun getPathToAapt(): Path
 
   /**
    * Returns true if the project allows adding new modules.

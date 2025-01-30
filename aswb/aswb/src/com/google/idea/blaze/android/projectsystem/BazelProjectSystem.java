@@ -102,13 +102,6 @@ public class BazelProjectSystem implements AndroidProjectSystem {
   }
 
   @Override
-  public Path getPathToAapt() {
-    return AaptInvoker.getPathToAapt(
-        AndroidSdks.getInstance().tryToChooseSdkHandler(),
-        new LogWrapper(BazelProjectSystem.class));
-  }
-
-  @Override
   public ProjectSystemBuildManager getBuildManager() {
     return buildManager;
   }
