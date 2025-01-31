@@ -55,7 +55,7 @@ def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
   return content
 
 
-def _stamp_product_info(info_file, build_txt, content):
+def _stamp_product_info(info_file, build_txt, added_plugins, content):
   build_info = _read_status_file(info_file)
   build_number = utils.read_file(build_txt)
   bid = _get_build_id(build_info)
@@ -63,7 +63,22 @@ def _stamp_product_info(info_file, build_txt, content):
   json_data = json.loads(content)
   json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", bid)
   json_data["version"] = build_number
-  return json.dumps(json_data, sort_keys=True, indent=2)
+
+  # Add metadata for non-platform plugins built by Bazel.
+  for plugin_id, *plugin_files in added_plugins:
+    classpath_jars = [f for f in plugin_files if re.fullmatch(r"plugins/[^/]*/lib/[^/]*\.jar", f)]
+    if len(classpath_jars) == 0:
+      sys.exit(f"ERROR: plugin '{plugin_id}' has no classpath jars?")
+    json_data["bundledPlugins"].append(plugin_id)
+    json_data["layout"].append(
+      {
+        "name": plugin_id,
+        "kind": "plugin",
+        "classPath": sorted(classpath_jars),
+      }
+    )
+
+  return json.dumps(json_data, indent=2)
 
 
 def _overwrite_plugin_version(build_txt, content):
@@ -128,7 +143,7 @@ def _write_file(src, dst, data, entry = None):
     utils.write_file(dst, data)
 
 def main(argv):
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(fromfile_prefix_chars="@")
   parser.add_argument(
       "--stamp",
       nargs=2,
@@ -158,6 +173,13 @@ def main(argv):
       "--stamp_product_info",
       action="store_true",
       help="Replaces json")
+  parser.add_argument(
+      "--added_plugin",
+      dest="added_plugins",
+      nargs="+",
+      action="append",
+      default=[],
+      help="Plugin ID + plugin files, to be listed in product-info.json")
   parser.add_argument(
       "--overwrite_plugin_version",
       action="store_true",
@@ -228,7 +250,7 @@ def main(argv):
       content = _overwrite_since_until_builds(args.build_txt, content)
 
     if args.stamp_product_info:
-      content = _stamp_product_info(args.info_file, args.build_txt, content)
+      content = _stamp_product_info(args.info_file, args.build_txt, args.added_plugins, content)
 
   _write_file(args.stamp[0], args.stamp[1], content, args.entry)
 

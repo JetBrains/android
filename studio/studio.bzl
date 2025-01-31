@@ -641,7 +641,7 @@ def _produce_update_message_html(ctx):
         },
     )
 
-def _stamp_platform(ctx, platform, platform_files):
+def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args = ["--stamp_platform"]
 
     ret = {}
@@ -721,6 +721,10 @@ def _stamp_platform(ctx, platform, platform_files):
     args.add("--build_txt", stamped_build_txt)
     args.add("--stamp_product_info")
     args.add("--replace_selector", system_selector)
+    for p in added_plugins:
+        args.add_all("--added_plugin", [p[PluginInfo].plugin_id] + platform.get(p[PluginInfo].plugin_files).keys())
+    args.use_param_file("@%s")
+    args.set_param_file_format("multiline")
     _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
 
     return ret
@@ -769,7 +773,7 @@ def _get_external_attributes(all_files):
             attrs[zip_path] = "775"
     return attrs
 
-def _android_studio_os(ctx, platform, out):
+def _android_studio_os(ctx, platform, added_plugins, out):
     files = []
     all_files = {}
 
@@ -786,7 +790,7 @@ def _android_studio_os(ctx, platform, out):
         all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
     # Stamp the platform and its plugins
-    platform_files = _stamp_platform(ctx, platform, platform_files)
+    platform_files = _stamp_platform(ctx, platform, platform_files, added_plugins)
     all_files.update({platform_prefix + k: v for k, v in platform_files.items()})
 
     # for plugin in platform_plugins:
@@ -940,7 +944,7 @@ def _android_studio_impl(ctx):
     }
     all_files = {}
     for (platform, output) in outputs.items():
-        all_files[platform] = _android_studio_os(ctx, platform, output)
+        all_files[platform] = _android_studio_os(ctx, platform, ctx.attr.plugins, output)
 
     _produce_update_message_html(ctx)
 
