@@ -19,6 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.intellij.openapi.projectRoots.JavaSdk
 import kotlin.io.path.absolutePathString
+import org.jetbrains.jps.model.java.JdkVersionDetector
 
 object JdkConstants {
   val JDK_17 by lazy { JavaSdk.getInstance().suggestSdkName(null, JDK_17_PATH) }
@@ -32,4 +33,6 @@ object JdkConstants {
   val JDK_11_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() }
   val JDK_1_8_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() }
   val JDK_EMBEDDED_PATH by lazy { IdeSdks.getInstance().embeddedJdkPath.absolutePathString() }
+
+  val JDK_EMBEDDED_VERSION by lazy { JdkVersionDetector.getInstance().detectJdkVersionInfo(JDK_EMBEDDED_PATH)!!.version.feature }
 }
