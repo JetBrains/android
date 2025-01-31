@@ -259,7 +259,11 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     if (databasesHostBelongsTo.isEmpty()) {
       return allTables
     }
-    return allTables.filter { table -> databasesHostBelongsTo.any { it.entities.contains(table.psiClass) } }
+    return allTables.filter { table ->
+      databasesHostBelongsTo.any {
+        it.entities.contains(table.psiClass) || it.views.contains(table.psiClass)
+      }
+    }
   }
 
   /**
