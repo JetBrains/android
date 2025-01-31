@@ -1555,7 +1555,7 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(
-    COMPOSE, "compose.preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
+    COMPOSE, "preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
     "Invalidates the preview is there is a resource change",
     true);
 
