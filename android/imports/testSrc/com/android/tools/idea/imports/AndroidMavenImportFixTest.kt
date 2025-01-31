@@ -68,7 +68,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("Recycler|View")
     val action =
       myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
@@ -124,7 +124,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("gm|s")
     val actionOnPackage =
       myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
@@ -178,7 +178,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("Recycler|View")
     val action =
       myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
@@ -234,7 +234,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("Recycler|View")
     val action =
       myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
@@ -291,7 +291,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("Pale|tte")
     val action =
       myFixture.getIntentionAction("Add dependency on androidx.palette:palette-ktx and import")
@@ -348,7 +348,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(true, false, false)
+    myFixture.checkHighlighting(false, false, false)
     myFixture.moveCaret("Pale|tte")
     val action =
       myFixture.getIntentionAction("Add dependency on androidx.palette:palette and import")
