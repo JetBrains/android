@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.testutils.AssumeUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -70,5 +71,27 @@ class PathUtilTest {
     val path = temporaryFolder.newFolder("home/user/tmp/foo").resolve("bar").toPath()
 
     assertThat(path.absoluteInProject(projectRule.project)).isEqualTo(path)
+  }
+
+  @Test
+  fun isValid() {
+    val path = Path.of("foo", "bar")
+
+    assertThat(path.isValid()).isTrue()
+  }
+
+  @Test
+  fun isValid_blank() {
+    val path = Path.of("foo", "  ", "bar")
+
+    assertThat(path.isValid()).isFalse()
+  }
+
+  @Test
+  fun isValid_backslash() {
+    AssumeUtil.assumeNotWindows()
+    val path = Path.of("foo", "\\", "bar")
+
+    assertThat(path.isValid()).isFalse()
   }
 }

@@ -72,6 +72,16 @@ class BackupFileHistoryTest {
   }
 
   @Test
+  fun setHistory_removesDirectories() {
+    val backupFileHistory = BackupFileHistory(project)
+    val file = temporaryFolder.newFile("file.txt").path
+    val dir = temporaryFolder.newFolder("dir").path
+    backupFileHistory.setFileHistory(listOf(file, dir))
+
+    assertThat(backupFileHistory.getFileHistory()).containsExactly(file)
+  }
+
+  @Test
   fun setHistory_relativeToProject_removesNonExistingFiles() {
     val backupFileHistory = BackupFileHistory(project)
     val files =

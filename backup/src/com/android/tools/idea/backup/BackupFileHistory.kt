@@ -19,6 +19,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 
 private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
@@ -32,7 +33,7 @@ internal class BackupFileHistory(private val project: Project) {
       return emptyList()
     }
     val files = value.lines()
-    val filtered = files.filterExisting().distinct()
+    val filtered = files.filterValid().distinct()
     if (files.size != filtered.size) {
       setProperty(filtered)
     }
@@ -48,6 +49,8 @@ internal class BackupFileHistory(private val project: Project) {
       .setValue(FILE_HISTORY_PROPERTY, value.joinToString("\n") { it })
   }
 
-  private fun List<String>.filterExisting() =
-    map { Path.of(it).absoluteInProject(project) }.filter { it.exists() }.map { it.pathString }
+  private fun List<String>.filterValid() =
+    map { Path.of(it).absoluteInProject(project) }
+      .filter { it.exists() && !it.isDirectory() }
+      .map { it.pathString }
 }

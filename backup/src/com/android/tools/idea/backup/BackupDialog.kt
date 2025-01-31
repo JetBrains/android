@@ -37,6 +37,7 @@ import javax.swing.ListCellRenderer
 import javax.swing.event.DocumentEvent
 import kotlin.io.path.exists
 import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -64,9 +65,9 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
         textComponent.document.addDocumentListener(
           object : DocumentAdapter() {
             override fun textChanged(e: DocumentEvent) {
-              isOKActionEnabled = text.isNotBlank()
               try {
-                Path.of(text)
+                val path = Path.of(text)
+                isOKActionEnabled = path.isValid() && !path.isDirectory()
               } catch (_: InvalidPathException) {
                 isOKActionEnabled = false
               }
@@ -85,10 +86,7 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
   val backupPath: Path
     get() {
       val path = Path.of(fileTextField.text).absoluteInProject(project)
-      return when (path.extension) {
-        BackupFileType.defaultExtension -> path
-        else -> Path.of("${path.pathString}.${BackupFileType.defaultExtension}")
-      }
+      return path.withBackupExtension()
     }
 
   val type: BackupType
@@ -181,7 +179,6 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
   override fun doOKAction() {
     setLastUsedFile(backupPath.relativeToProject(project).pathString)
     setLastUsedType(typeComboBox.item)
-    fileTextField.addCurrentTextToHistory()
     if (backupPath.exists() && !fileSetByChooser) {
       @Suppress("DialogTitleCapitalization")
       val result =
@@ -194,6 +191,8 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
         return
       }
     }
+    fileTextField.text = Path.of(fileTextField.text).withBackupExtension().pathString
+    fileTextField.addCurrentTextToHistory()
     super.doOKAction()
   }
 
@@ -222,3 +221,9 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
   }
 }
+
+private fun Path.withBackupExtension() =
+  when (extension) {
+    BackupFileType.defaultExtension -> this
+    else -> Path.of("${pathString}.${BackupFileType.defaultExtension}")
+  }

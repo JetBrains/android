@@ -18,6 +18,7 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
+import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.testutils.AssumeUtil.assumeWindows
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -36,6 +37,7 @@ import com.intellij.ui.TextAccessor
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
@@ -44,9 +46,17 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class BackupDialogTest {
   private val projectRule = ProjectRule()
+  private val temporaryFolder = TemporaryFolder()
 
   @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), HeadlessDialogRule(), EdtRule())
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      temporaryFolder,
+      HeadlessDialogRule(),
+      EdtRule(),
+    )
 
   private val project
     get() = projectRule.project
@@ -158,10 +168,28 @@ class BackupDialogTest {
   }
 
   @Test
-  fun showDialog_illegalPath_okDisabled() {
+  fun showDialog_illegalPathColon_okDisabled() {
     assumeWindows()
     createDialog {
       it.findComponent<TextAccessor>("fileTextField").text = "foo:bar"
+      assertThat(it.isOKActionEnabled).isFalse()
+    }
+  }
+
+  @Test
+  fun showDialog_illegalPathBackslash_okDisabled() {
+    assumeNotWindows()
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = "foo\\bar"
+      assertThat(it.isOKActionEnabled).isFalse()
+    }
+  }
+
+  @Test
+  fun showDialog_illegalPathDirectory_okDisabled() {
+    val dir = temporaryFolder.newFolder("tmp").path
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = dir
       assertThat(it.isOKActionEnabled).isFalse()
     }
   }

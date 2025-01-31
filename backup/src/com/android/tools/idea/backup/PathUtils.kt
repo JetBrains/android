@@ -18,7 +18,10 @@ package com.android.tools.idea.backup
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import java.nio.file.Path
+import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
 
 internal fun Path.relativeToProject(project: Project): Path {
@@ -32,4 +35,10 @@ internal fun Path.absoluteInProject(project: Project): Path {
     isAbsolute -> this
     else -> projectDir.resolve(this)
   }
+}
+
+internal fun Path.isValid(): Boolean {
+  val fileSystem = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL)
+  val names = (0 until nameCount).map { getName(it).pathString }
+  return names.all { fileSystem.isValidName(it) && it.isNotBlank() }
 }
