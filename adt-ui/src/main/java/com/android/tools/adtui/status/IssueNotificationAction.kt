@@ -30,22 +30,19 @@ import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
-import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Insets
-import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val ACTION_BACKGROUND_ALPHA = 0x1A
 private const val ACTION_BORDER_ALPHA = 0xBF
@@ -101,12 +98,10 @@ interface IdeStatus {
  * Action that reports the current [IdeStatus].
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
- * @param popupAlarm used to show and hide the popup as a hint.
  */
 open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> IdeStatus?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
-  private val popupAlarm: Alarm = Alarm()
 ) : IconWithTextAction(), Disposable {
 
   /**
@@ -129,30 +124,6 @@ open class IssueNotificationAction(
       ActionUiKind.TOOLBAR,
       me
     )
-  }
-
-  /**
-   * [MouseAdapter] that schedules the popup.
-   */
-  val mouseListener = object : MouseAdapter() {
-    override fun mouseEntered(me: MouseEvent) {
-      popupAlarm.cancelAllRequests()
-      popupAlarm.addRequest(
-        {
-          popup.takeUnless {
-            it?.isVisible() == true // Do not show if already showing, take unless returns null if the popup is visible
-          }.let {
-            val anActionEvent = actionEventCreator(me, this@IssueNotificationAction)
-            showPopup(anActionEvent)
-          }
-        },
-        Registry.intValue("ide.tooltip.initialReshowDelay") // Delay time before showing the popup
-      )
-    }
-
-    override fun mouseExited(me: MouseEvent) {
-      popupAlarm.cancelAllRequests()
-    }
   }
 
   /**
@@ -206,11 +177,8 @@ open class IssueNotificationAction(
    * Shows the actions popup.
    */
   private fun showPopup(e: AnActionEvent) {
-    popupAlarm.cancelAllRequests()
     val project = e.project ?: return
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
-      // Whenever the mouse is inside the popup we cancel the existing alarms via callback
-      newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
       newPopup.showPopup(getDisposableParentForPopup(e) ?: this, e.inputEvent!!.component as JComponent)
     }
   }
@@ -223,6 +191,5 @@ open class IssueNotificationAction(
 
   override fun dispose() {
     popup = null
-    popupAlarm.cancelAllRequests()
   }
 }
