@@ -120,7 +120,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   }
 
   @Override
-  public boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
+  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     super.preprocessUsages(refUsages);
 
     if (refUsages.get().length == 0) {

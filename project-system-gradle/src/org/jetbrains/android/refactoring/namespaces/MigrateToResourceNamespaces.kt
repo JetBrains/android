@@ -420,7 +420,7 @@ class MigrateToResourceNamespacesProcessor(
     )
   }
 
-  override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
+  protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     // TODO(b/78765120): Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in [findUsages].
     return if (refUsages.get().isNotEmpty()) {
       true

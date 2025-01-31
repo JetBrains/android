@@ -108,7 +108,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  public boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
+  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     final UsageInfo[] usages = refUsages.get();
     final MultiMap<PsiElement, String> conflicts = detectConflicts(usages);
 
