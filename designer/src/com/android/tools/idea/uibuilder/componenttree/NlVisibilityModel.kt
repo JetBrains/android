@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.structure
+package com.android.tools.idea.uibuilder.componenttree
 
 import com.android.SdkConstants
 import com.android.SdkConstants.TOOLS_URI
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
+import com.android.tools.idea.uibuilder.componenttree.NlVisibilityModel.Visibility
+import com.android.tools.idea.uibuilder.componenttree.NlVisibilityModel.Visibility.Companion.convert
 
 /** Helper model for component visibility. */
 class NlVisibilityModel(val component: NlComponent) {
@@ -90,26 +89,6 @@ class NlVisibilityModel(val component: NlComponent) {
    */
   fun isToolsAttrAvailable(): Boolean {
     return toolsVisibility != Visibility.NONE
-  }
-
-  /** Update the visibility attribute in the component. */
-  fun writeToComponent(visibility: Visibility, uri: String) {
-    val transaction = component.startAttributeTransaction()
-    when (visibility) {
-      Visibility.NONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, null)
-      Visibility.VISIBLE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "visible")
-      Visibility.INVISIBLE ->
-        transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "invisible")
-      Visibility.GONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "gone")
-    }
-
-    if (TOOLS_URI == uri) {
-      myToolsVisibility = visibility
-    } else if (SdkConstants.ANDROID_URI == uri) {
-      myAndroidVisibility = visibility
-    }
-
-    NlWriteCommandActionUtil.run(component, "Update visibility", Runnable { transaction.commit() })
   }
 
   /** Returns true if the component contains [visibility] && [uri] pair. False otherwise. */

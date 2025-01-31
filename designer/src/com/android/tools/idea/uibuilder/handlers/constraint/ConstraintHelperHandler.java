@@ -32,34 +32,25 @@ import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentReference;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
-import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
-import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
-import com.android.tools.idea.uibuilder.structure.NlDropListener;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Handler for ConstraintHelper objects
  */
-public class ConstraintHelperHandler extends ViewGroupHandler implements DelegatedTreeEventHandler {
+public class ConstraintHelperHandler extends ViewGroupHandler {
 
   public static final boolean USE_HELPER_TAGS = false;
 
@@ -109,7 +100,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         model.notifyModified(ChangeType.DROP);
       }
       catch (Exception exception) {
-        Logger.getInstance(NlDropListener.class).warn(exception);
+        Logger.getInstance(ConstraintHelperHandler.class).warn(exception);
         event.reject();
       }
     }
@@ -248,7 +239,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           String[] list = ids.split(",");
-          return StudioFlags.NELE_NEW_COMPONENT_TREE.get() ? new NlComponentReference(component, list[i]) : list[i];
+          return new NlComponentReference(component, list[i]);
         }
       }
       return component.getChild(i);
@@ -263,9 +254,6 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           List<String> list = Arrays.asList(ids.split(","));
-          if (!StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
-            return list;
-          }
           return list.stream().map(id -> new NlComponentReference(component, id)).collect(Collectors.toList());
         }
       }
@@ -302,83 +290,5 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
                                @Nullable String idList) {
     transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
     NlWriteCommandActionUtil.run(component, "", transaction::commit);
-  }
-
-  @Override
-  public boolean handleTreeEvent(@NotNull DelegatedTreeEvent event, @NotNull NlComponent constraintHelper) {
-    if (event.getType() == DelegatedTreeEvent.Type.DELETE) {
-      handleDeletion(event, constraintHelper);
-    }
-    else if (event.getType() == DelegatedTreeEvent.Type.DROP) {
-      handleHelperIdDrop(event, constraintHelper);
-    }
-    return true;
-  }
-
-  private void handleDeletion(@NotNull DelegatedTreeEvent event, @NotNull NlComponent constraintHelper) {
-    for (Object last : event.getSelected()) {
-      if (last instanceof String) {
-        deleteReferences(constraintHelper, ImmutableList.of((String)last));
-      }
-    }
-  }
-
-  private static void handleHelperIdDrop(@NotNull DelegatedTreeEvent event, @NotNull NlComponent component) {
-    List<Object> selected = event.getSelected();
-    List<String> ids = selected.stream()
-      .filter(o -> o instanceof String)
-      .map(o -> ((String)o))
-      .collect(Collectors.toList());
-
-    Object sibling = event.getNextSibling();
-    String nextSibling = sibling instanceof String ? ((String)sibling) : null;
-    addReferencesIds(component, ids, nextSibling);
-  }
-
-  @SuppressWarnings("ForLoopReplaceableByForEach")
-  @Override
-  public Transferable getTransferable(TreePath[] paths) {
-    List<String> barriersList = new ArrayList<>();
-    for (int i = 0; i < paths.length; i++) {
-      Object component = paths[i].getLastPathComponent();
-      if (component instanceof String) {
-        barriersList.add((String)component);
-      }
-    }
-    if (barriersList.isEmpty()) {
-      return null;
-    }
-
-    return new BarrierTransferable(barriersList);
-  }
-
-  /**
-   * {@link Transferable} for barrier references
-   */
-  private static class BarrierTransferable implements Transferable {
-    public static final DataFlavor BARRIER_FLAVOR = new DataFlavor(BarrierTransferable.class, "Barrier Item");
-    private final List<String> myBarrierReferences;
-
-    public BarrierTransferable(List<String> barrierReferences) {
-      myBarrierReferences = barrierReferences;
-    }
-
-    @Override
-    public DataFlavor[] getTransferDataFlavors() {
-      return new DataFlavor[]{BARRIER_FLAVOR};
-    }
-
-    @Override
-    public boolean isDataFlavorSupported(DataFlavor flavor) {
-      return BARRIER_FLAVOR.equals(flavor);
-    }
-
-    @Override
-    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-      if (BARRIER_FLAVOR.equals(flavor)) {
-        return myBarrierReferences;
-      }
-      throw new UnsupportedFlavorException(flavor);
-    }
   }
 }

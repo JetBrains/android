@@ -40,16 +40,13 @@ import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.componenttree.NlVisibilityModel.Visibility
 import com.android.tools.idea.uibuilder.model.ensureLiveId
 import com.android.tools.idea.uibuilder.model.getViewGroupHandler
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.isGroup
 import com.android.tools.idea.uibuilder.model.w
-import com.android.tools.idea.uibuilder.structure.BackNavigationComponent
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.android.tools.idea.uibuilder.structure.findComponent
-import com.android.tools.idea.uibuilder.structure.getVisibilityFromParents
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.collect.ImmutableList
@@ -78,8 +75,6 @@ import com.intellij.util.ui.tree.TreeUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Rectangle
@@ -89,6 +84,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.tree.TreeCellRenderer
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.facet.AndroidFacet
 
 /** The delay used to minimize updates */
 private const val UPDATE_DELAY_MILLISECONDS = 250

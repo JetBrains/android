@@ -348,11 +348,6 @@ public final class StudioFlags {
     "If enabled, the surface displays background class preloading progress",
     false);
 
-  public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = new BooleanFlag(
-    NELE, "use.component.tree.builder", "Use the Component Tree builder",
-    "If enabled, use the Component Tree builder for the Nele component tree",
-    true);
-
   public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
     NELE, "xml.to.compose", "Enable XML to Compose conversion",
     "Enable an action that converts XML layouts to Compose using the Gemini backend",

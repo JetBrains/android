@@ -42,10 +42,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.Nav
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
-import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
+import com.android.tools.idea.uibuilder.componenttree.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
-import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;

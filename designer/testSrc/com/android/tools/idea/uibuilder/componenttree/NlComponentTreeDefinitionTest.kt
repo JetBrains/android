@@ -22,7 +22,6 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.MAP_VIEW
 import com.android.SdkConstants.TOOLS_URI
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
@@ -55,7 +54,6 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -110,7 +108,6 @@ private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttr
 private const val DIFF_THRESHOLD = 0.01
 
 class NlComponentTreeDefinitionTest {
-  private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
   private val projectRule = AndroidProjectRule.withSdk()
   private val popupRule = JBPopupRule()
   private val fileOpenRule = FileOpenCaptureRule(projectRule)
@@ -120,7 +117,6 @@ class NlComponentTreeDefinitionTest {
   val ruleChain =
     RuleChain.outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
       .around(projectRule)
-      .around(treeRule)
       .around(popupRule)
       .around(fileOpenRule)
       .around(EdtRule())!!
