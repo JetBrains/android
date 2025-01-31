@@ -43,14 +43,14 @@ class AndroidWatchFaceConfigurationExecutor(
   deviceFutures: DeviceFutures,
   appRunSettings: AppRunSettings,
   apkProvider: ApkProvider,
-  applicaitonContext: ApplicationProjectContext,
+  applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
 ) : AndroidWearConfigurationExecutor(
   environment,
   deviceFutures,
   appRunSettings,
   apkProvider,
-  applicaitonContext,
+  applicationContext,
   deployer
 ) {
   private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
