@@ -2693,6 +2693,7 @@ MODULE                        : kotlinMultiPlatform.app
                     - resourceDirs                : <ROOT>/app/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/app/src/jvmMain/kotlin [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/app/build/libs/app-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3586,6 +3587,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - resourceDirs                : <ROOT>/module2/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmMain/kotlin [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy

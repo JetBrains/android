@@ -2380,6 +2380,7 @@ Required by:
                         - resourceDirs                : <ROOT>/jsModule/src/main/resources [-]
                         - sourceDirs                  : <ROOT>/jsModule/src/main/kotlin [-]
                         platform                      : JS
+                    archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
                     compilerArguments             : K2JVMCompilerArguments
                         assertionsMode                : legacy
                         backendThreads                : 1

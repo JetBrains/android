@@ -3330,6 +3330,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmMain/kotlin
                     platform                      : JVM
+                archiveFile                   : <ROOT>/common/build/libs/common-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -5484,6 +5485,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
