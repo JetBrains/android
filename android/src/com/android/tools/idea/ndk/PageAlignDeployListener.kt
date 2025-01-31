@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ndk
 
+import com.android.ddmlib.IDevice
 import com.android.ide.common.pagealign.findElfFile16kAlignmentProblems
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.ndk.PageAlignConfig.createSoNotAlignedInZipMessage
@@ -38,7 +39,7 @@ import javax.swing.event.HyperlinkEvent
  * If there are, then alert the user.
  */
 class PageAlignDeployListener(private val project : Project) : ApplicationDeployListener {
-  override fun beforeDeploy(apkInfo: ApkInfo) {
+  override fun beforeDeploy(device : IDevice, apkInfo: ApkInfo) {
     project.coroutineScope.launch {
       withBackgroundProgress(project, "Checking 16 KB alignment") {
         notify16kbAlignmentViolations(apkInfo)

@@ -43,7 +43,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Full deploy on $device")
-    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
 
     // Add packages to the deployment,
     val deployTask = DeployTask(
@@ -64,7 +64,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
                                   hasMakeBeforeRun: Boolean,
                                   indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Changes on $device")
-    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
 
     val deployTask = ApplyChangesTask(
       project,
@@ -83,7 +83,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
                                       hasMakeBeforeRun: Boolean,
                                       indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Code Changes on $device")
-    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(app)
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
 
     val deployTask = ApplyCodeChangesTask(
       project,
@@ -149,7 +149,7 @@ class AdbCommandCaptureLoggerWithConsole(logger: Logger, val console: ConsoleVie
 }
 
 interface ApplicationDeployListener {
-  fun beforeDeploy(apkInfo : ApkInfo)
+  fun beforeDeploy(device : IDevice, apkInfo : ApkInfo)
   companion object {
     @JvmField
     val TOPIC = Topic("Notification on application deployment", ApplicationDeployListener::class.java)
