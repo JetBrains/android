@@ -82,6 +82,7 @@ class JdkIntegrationTest(
       userHomeGradlePropertiesJdkPath?.let {
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
       }
+      StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.override(studioFlags.restoreInvalidGradleJdkConfiguration)
       StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.override(studioFlags.migrateToGradleLocalJavaHome)
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
@@ -101,7 +102,8 @@ class JdkIntegrationTest(
   )
 
   data class StudioFeatureFlags(
-    val migrateToGradleLocalJavaHome: Boolean = false
+    val migrateToGradleLocalJavaHome: Boolean = false,
+    val restoreInvalidGradleJdkConfiguration: Boolean = false
   )
 
   class ProjectRunnable(

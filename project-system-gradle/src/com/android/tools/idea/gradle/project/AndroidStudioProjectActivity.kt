@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
@@ -22,14 +23,13 @@ import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
@@ -47,10 +47,9 @@ class AndroidStudioProjectActivity : ProjectActivity {
     // Custom notifications for Android Studio, un-wanted or un-needed when running as the Android IntelliJ plugin
     notifyOnLegacyAndroidProject(project)
     notifyOnInvalidGradleJDKEnv(project)
-    // Many JDK tests rely on this not running in order to test invalid JDK messages.
-    // This is not an ideal solution but allows it to work for now.
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      checkForInvalidGradleJdksAndAttemptToRecover(project)
+
+    if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get()) {
+      checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project)
     }
   }
 }
@@ -80,17 +79,18 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
   }
 }
 
-private suspend fun checkForInvalidGradleJdksAndAttemptToRecover(project: Project) {
+private suspend fun checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project: Project) {
   GradleSettings.getInstance(project).linkedProjectsSettings
+    // Discard projects with defined Daemon JVM criteria since Gradle is responsible to locate matching toolchain
+    .filter { !GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(it) }
     .mapNotNull { it.externalProjectPath }
-    .plus(project.basePath)
-    .filterNotNull()
     .toSet()
     .forEach {
-      val gradleJdkException = GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)
-      withContext(Dispatchers.EDT) {
-        runWriteAction {
-          gradleJdkException?.recover()
+      GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)?.let { gradleJdkException ->
+        withContext(Dispatchers.EDT) {
+          runWriteAction {
+            gradleJdkException.recover()
+          }
         }
       }
     }
