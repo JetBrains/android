@@ -130,6 +130,10 @@ SPEC = struct(
         ],
     },
     mac_bundle_name = "Android Studio.app",
+    add_exports = [
+    ],
+    add_opens = [
+    ],
 )
 """,
       "tools/adt/idea/.idea/libraries/studio_sdk.xml" : """<component name="libraryTable">

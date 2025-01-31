@@ -36,6 +36,8 @@ class IntelliJ:
   platform: str = ""
   platform_jars: Set[str] = field(default_factory=lambda: set())
   plugin_jars: Dict[str, Set[str]] = field(default_factory=lambda: dict())
+  jvm_add_exports: List[str] = field(default_factory=lambda: list())
+  jvm_add_opens: List[str] = field(default_factory=lambda: list())
 
   def version(self):
     return self.major, self.minor
@@ -48,7 +50,9 @@ class IntelliJ:
     major, minor = read_version(path/_idea_home[platform]/"lib", prefix)
     jars = read_platform_jars(path/_idea_home[platform], product_info)
     plugin_jars = _read_plugin_jars(path/_idea_home[platform])
-    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars)
+    add_exports = _read_jvm_args("--add-exports=","=ALL-UNNAMED", product_info)
+    add_opens = _read_jvm_args("--add-opens=","=ALL-UNNAMED", product_info)
+    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars, jvm_add_exports=add_exports, jvm_add_opens=add_opens)
 
 
 def read_product_info(path):
@@ -263,3 +267,24 @@ def load_plugin_xml(files: List[Path], xml_name = "META-INF/plugin.xml"):
     jar.close()
 
   return element
+
+
+def _read_jvm_args(prefix, suffix, product_info):
+    """Extracts and sorts JVM arguments that start with a prefix and end with a suffix.
+
+    Args:
+        prefix: The prefix string.
+        suffix: The suffix string.
+        product_info: A dictionary containing product information, including JVM arguments.
+
+    Returns:
+        A sorted list of strings containing the arguments without the prefix and suffix,
+        or an empty list if no matching arguments are found.
+    """
+    jvm_args = product_info["launch"][0]["additionalJvmArguments"]
+    result = []
+    for arg in jvm_args:
+        if arg.startswith(prefix) and arg.endswith(suffix):
+            result.append(arg[len(prefix):-len(suffix)])
+    result.sort()
+    return result

@@ -1398,6 +1398,8 @@ def intellij_platform(
             "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
+        add_exports = spec.add_exports,
+        add_opens = spec.add_opens,
     )
 
     _intellij_platform(
@@ -1438,6 +1440,7 @@ def intellij_platform(
         "windows": src + "/windows/android-studio",
     }
 
+    # buildifier: disable=native-py
     native.py_test(
         name = name + "_spec_test",
         srcs = ["//tools/adt/idea/studio:intellij_test.py"],
