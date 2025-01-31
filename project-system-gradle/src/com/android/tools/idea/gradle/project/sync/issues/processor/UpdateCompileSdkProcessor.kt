@@ -45,7 +45,7 @@ class UpdateCompileSdkProcessor(
     }
 
   @VisibleForTesting
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     val usages: MutableList<UsageInfo> = ArrayList()

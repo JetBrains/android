@@ -167,7 +167,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
 
   override fun getCommandName(): String = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.title")
 
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator?.isIndeterminate = true
     progressIndicator?.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.findusages")

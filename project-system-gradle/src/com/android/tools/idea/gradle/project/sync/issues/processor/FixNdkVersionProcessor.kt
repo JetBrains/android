@@ -70,7 +70,7 @@ class FixNdkVersionProcessor(
    * Usages are only returned when there is a valid externalNativeBuild block in the
    * build.gradle file.
    */
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     val usages = ArrayList<UsageInfo>()

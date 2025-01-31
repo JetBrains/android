@@ -51,7 +51,7 @@ class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Mod
     }
   }
 
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
 
     // Check project's build.gradle

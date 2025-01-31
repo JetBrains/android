@@ -49,7 +49,7 @@ class AddComposeCompilerGradlePluginProcessor(
     }
   }
 
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     val projectBuildModel = ProjectBuildModel.get(myProject)
     for (module in affectedModules) {
