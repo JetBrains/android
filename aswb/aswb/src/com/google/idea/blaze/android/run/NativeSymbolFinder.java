@@ -16,9 +16,10 @@
 package com.google.idea.blaze.android.run;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.io.File;
 
@@ -28,9 +29,9 @@ public interface NativeSymbolFinder {
       ExtensionPointName.create("com.google.idea.blaze.NativeSymbolFinder");
 
   /** Returns additional build flags required to output native symbols. */
-  public String getAdditionalBuildFlags();
+  String getAdditionalBuildFlags();
 
   /** Returns native symbol files present in build output. */
-  public ImmutableList<File> getNativeSymbolsForBuild(
-      BlazeContext context, Label label, BuildResultHelper buildResultHelper);
+  ImmutableList<File> getNativeSymbolsForBuild(
+    BlazeContext context, Label label, BlazeBuildOutputs outputs);
 }

@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WildcardTargetPattern;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
@@ -226,9 +225,7 @@ public class WildcardTargetExpander {
             : t -> handledRulesPredicate.test(t.ruleType) || explicitTargets.contains(t.label);
 
     BlazeQueryLabelKindParser outputProcessor = new BlazeQueryLabelKindParser(filter);
-    try (BuildResultHelper buildResultHelper = buildBinary.createBuildResultHelper();
-        InputStream queryResultStream =
-            buildBinary.getCommandRunner().runQuery(project, builder, buildResultHelper, context)) {
+    try (InputStream queryResultStream = buildBinary.invokeQuery(builder, context)) {
       verify(queryResultStream != null);
       new BufferedReader(new InputStreamReader(queryResultStream, UTF_8))
           .lines()

@@ -112,21 +112,21 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   }
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
     throws BuildException {
     throw new UnsupportedOperationException(
       String.format("The %s does not support invoke method", this.getClass().getSimpleName()));
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     throw new UnsupportedOperationException(
       String.format(
         "The %s does not support invokeQuery method", this.getClass().getSimpleName()));
   }
 
   @Override
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     throw new UnsupportedOperationException(
       String.format(
         "The %s does not support invokeInfo method", this.getClass().getSimpleName()));

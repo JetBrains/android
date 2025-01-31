@@ -23,16 +23,17 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
-import java.io.IOException;
 import java.util.List;
 
 /** An object that knows how to build dependencies for given targets */
@@ -48,28 +49,27 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
 
   @Override
   public AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
-      throws IOException, BuildException {
+      throws BuildException {
     BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
-      ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-      List<String> additionalBlazeFlags =
-          BlazeFlags.blazeFlags(
-              project,
-              projectViewSet,
-              BlazeCommandName.BUILD,
-              context,
-              BlazeInvocationContext.OTHER_CONTEXT);
+    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    List<String> additionalBlazeFlags =
+        BlazeFlags.blazeFlags(
+            project,
+            projectViewSet,
+            BlazeCommandName.BUILD,
+            context,
+            BlazeInvocationContext.OTHER_CONTEXT);
 
-      BlazeCommand.Builder builder =
-          BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-              .addBlazeFlags(buildTarget.toString())
-              .addBlazeFlags(buildResultHelper.getBuildFlags())
-              .addBlazeFlags(additionalBlazeFlags);
+    BlazeCommand.Builder builder =
+        BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
+            .addBlazeFlags(buildTarget.toString())
+            .addBlazeFlags(additionalBlazeFlags);
 
+    try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
       BlazeBuildOutputs outputs =
-          invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
+          BlazeBuildOutputs.fromParsedBepOutput(
+              BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
       BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
-
       return createAppInspectorInfo(outputs);
     }
   }

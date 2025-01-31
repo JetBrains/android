@@ -20,32 +20,26 @@ import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.executor.BlazeExecutor;
-import com.google.idea.blaze.base.async.process.ExternalTask;
-import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
+import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.filecache.FileCaches;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
@@ -54,7 +48,6 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -179,51 +172,20 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                       }
 
                       ConsoleView console = launchContext.getConsoleView();
-                      LineProcessingOutputStream.LineProcessor stdoutLineProcessor =
-                          line -> {
-                            ExecutionUtils.println(console, line);
-                            return true;
-                          };
-                      LineProcessingOutputStream.LineProcessor stderrLineProcessor =
-                          line -> {
-                            ExecutionUtils.println(console, line);
-                            return true;
-                          };
-
                       ExecutionUtils.println(
                           console,
                           String.format("Starting %s test...\n", Blaze.buildSystemName(project)));
 
-                      int retVal;
-                      try (BuildResultHelper buildResultHelper = new BuildResultHelperBep()) {
-                        commandBuilder.addBlazeFlags(buildResultHelper.getBuildFlags());
-                        BlazeCommand command = commandBuilder.build();
-                        ExecutionUtils.println(console, command + "\n");
-
-                        retVal =
-                            ExternalTask.builder(WorkspaceRoot.fromProject(project))
-                                .addBlazeCommand(command)
-                                .context(context)
-                                .stdout(LineProcessingOutputStream.of(stdoutLineProcessor))
-                                .stderr(LineProcessingOutputStream.of(stderrLineProcessor))
-                                .build()
-                                .run();
-
-                        if (retVal != 0) {
-                          context.setHasError();
-                        } else {
-                          try (final var bepStream =
-                              buildResultHelper.getBepStream(Optional.empty())) {
-                            testResultsHolder.setTestResults(
-                                BuildResultParser.getTestResults(bepStream));
-                          }
-                        }
-                        ListenableFuture<Void> unusedFuture =
-                            FileCaches.refresh(
-                                project,
-                                context,
-                                BlazeBuildOutputs.noOutputs(BuildResult.fromExitCode(retVal)));
-                      } catch (GetArtifactsException e) {
+                      BuildSystem.BuildInvoker invoker =
+                          Blaze.getBuildSystemProvider(project)
+                              .getBuildSystem()
+                              .getBuildInvoker(project, context);
+                      try (BuildEventStreamProvider streamProvider =
+                          invoker.invoke(commandBuilder, context)) {
+                        ExecutionUtils.println(console, commandBuilder.build() + "\n");
+                        testResultsHolder.setTestResults(
+                            BuildResultParser.getTestResults(streamProvider));
+                      } catch (BuildException e) {
                         LOG.error(e.getMessage());
                       }
                       return !context.hasErrors();

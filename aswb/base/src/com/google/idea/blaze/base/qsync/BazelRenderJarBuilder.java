@@ -34,7 +34,8 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -42,6 +43,7 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
@@ -74,30 +76,30 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
   public RenderJarInfo buildRenderJar(BlazeContext context, Set<Label> buildTargets)
       throws IOException, BuildException {
     BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
-      ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-      List<String> additionalBlazeFlags =
-          BlazeFlags.blazeFlags(
-              project,
-              projectViewSet,
-              BlazeCommandName.BUILD,
-              context,
-              BlazeInvocationContext.OTHER_CONTEXT);
+    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    List<String> additionalBlazeFlags =
+        BlazeFlags.blazeFlags(
+            project,
+            projectViewSet,
+            BlazeCommandName.BUILD,
+            context,
+            BlazeInvocationContext.OTHER_CONTEXT);
 
-      String aspectLocation = prepareAspect(context);
-      BlazeCommand.Builder builder =
-          BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-              .addBlazeFlags(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
-              .addBlazeFlags(buildResultHelper.getBuildFlags())
-              .addBlazeFlags(additionalBlazeFlags)
-              .addBlazeFlags(
-                  String.format(
-                      "--aspects=%1$s%%collect_compose_dependencies,%1$s%%package_compose_dependencies",
-                      aspectLocation))
-              .addBlazeFlags("--output_groups=render_jars");
+    String aspectLocation = prepareAspect(context);
+    BlazeCommand.Builder builder =
+        BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
+            .addBlazeFlags(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
+            .addBlazeFlags(additionalBlazeFlags)
+            .addBlazeFlags(
+                String.format(
+                    "--aspects=%1$s%%collect_compose_dependencies,%1$s%%package_compose_dependencies",
+                    aspectLocation))
+            .addBlazeFlags("--output_groups=render_jars");
 
+    try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
       BlazeBuildOutputs outputs =
-          invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
+          BlazeBuildOutputs.fromParsedBepOutput(
+              BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
       BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
       // Building render jar also involves building the dependencies of the file,
       // (as discussed in b/309154453#comment5). So we also invoke the full QuerySync to build the

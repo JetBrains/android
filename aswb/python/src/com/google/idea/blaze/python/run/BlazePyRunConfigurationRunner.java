@@ -20,15 +20,16 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.ideinfo.PyIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
@@ -82,7 +83,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -176,8 +176,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
 
         @Override
         protected ConsoleView createAndAttachConsole(
-            Project project, ProcessHandler processHandler, Executor executor)
-            throws ExecutionException {
+            Project project, ProcessHandler processHandler, Executor executor) {
           ConsoleView consoleView = createConsoleBuilder(project, getSdk()).getConsole();
           consoleView.addMessageFilter(createUrlFilter(processHandler));
 
@@ -312,49 +311,33 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
     }
 
     SaveUtil.saveAllFiles();
-    // Explicitly depend on local build helper because the debuggable binary is expected to be
-    // present locally
-    try (BuildResultHelper buildResultHelper =
-        BuildResultHelperProvider.createForLocalBuild(project)) {
+    ListenableFuture<BuildEventStreamProvider> streamProviderFuture =
+        BlazeBeforeRunCommandHelper.runBlazeCommand(
+            BlazeCommandName.BUILD,
+            configuration,
+            BlazePyDebugHelper.getAllBlazeDebugFlags(configuration.getProject(), target),
+            ImmutableList.of(),
+            BlazeInvocationContext.runConfigContext(
+                ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
+            "Building debug binary");
 
-      ListenableFuture<BuildResult> buildOperation =
-          BlazeBeforeRunCommandHelper.runBlazeCommand(
-              BlazeCommandName.BUILD,
-              configuration,
-              buildResultHelper,
-              BlazePyDebugHelper.getAllBlazeDebugFlags(configuration.getProject(), target),
-              ImmutableList.of(),
-              BlazeInvocationContext.runConfigContext(
-                  ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
-              "Building debug binary");
-
-      try {
-        BuildResult result = buildOperation.get();
-        if (result.status != BuildResult.Status.SUCCESS) {
-          throw new ExecutionException("Blaze failure building debug binary");
-        }
-      } catch (InterruptedException | CancellationException e) {
-        buildOperation.cancel(true);
-        throw new RunCanceledByUserException();
-      } catch (java.util.concurrent.ExecutionException e) {
-        throw new ExecutionException(e);
+    try {
+      BuildEventStreamProvider streamProvider =
+          Uninterruptibles.getUninterruptibly(streamProviderFuture);
+      ParsedBepOutput parsedBepOutput =
+          BuildResultParser.getBuildOutput(streamProvider, Interners.STRING);
+      BuildResult result = BuildResult.fromExitCode(parsedBepOutput.buildResult());
+      if (result.status != BuildResult.Status.SUCCESS) {
+        throw new ExecutionException("Blaze failure building debug binary");
       }
-      List<File> candidateFiles;
-      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-        candidateFiles =
-            LocalFileArtifact.getLocalFiles(
-                    BlazeBuildOutputs.fromParsedBepOutput(
-                            BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
-                        .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString())
-                        .asList())
-                .stream()
-                .filter(File::canExecute)
-                .collect(Collectors.toList());
-      } catch (GetArtifactsException e) {
-        throw new ExecutionException(
-            String.format(
-                "Failed to get output artifacts when building %s: %s", target, e.getMessage()));
-      }
+      List<File> candidateFiles =
+          LocalFileArtifact.getLocalFiles(
+                  BlazeBuildOutputs.fromParsedBepOutput(parsedBepOutput)
+                      .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString())
+                      .asList())
+              .stream()
+              .filter(File::canExecute)
+              .collect(Collectors.toList());
       if (candidateFiles.isEmpty()) {
         throw new ExecutionException(
             String.format("No output artifacts found when building %s", target));
@@ -369,6 +352,13 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
       }
       LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(file));
       return new PyExecutionInfo(file, args);
+    } catch (CancellationException e) {
+      streamProviderFuture.cancel(true);
+      throw new RunCanceledByUserException();
+    } catch (java.util.concurrent.ExecutionException | GetArtifactsException e) {
+      throw new ExecutionException(
+          String.format(
+              "Failed to get output artifacts when building %s: %s", target, e.getMessage()), e);
     }
   }
 

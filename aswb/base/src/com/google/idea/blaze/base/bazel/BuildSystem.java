@@ -83,7 +83,7 @@ public interface BuildSystem {
     /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
-    BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze query command.
@@ -91,7 +91,7 @@ public interface BuildSystem {
      * @return {@link InputStream} from the stdout of the blaze invocation and null if the query fails
      */
     @MustBeClosed
-    InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze info command.
@@ -99,7 +99,7 @@ public interface BuildSystem {
      * @return {@link InputStream} from the stdout of the blaze invocation and null if blaze info fails
      */
     @MustBeClosed
-    InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Returns the type of this build interface. Used for logging purposes.

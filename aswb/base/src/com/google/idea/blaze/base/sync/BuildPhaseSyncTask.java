@@ -236,7 +236,8 @@ public final class BuildPhaseSyncTask {
             ? buildSystem.getParallelBuildInvoker(project, context).orElse(defaultInvoker)
             : defaultInvoker;
     final BlazercMigrator blazercMigrator = new BlazercMigrator(project);
-    if (!syncBuildInvoker.supportsHomeBlazerc() && blazercMigrator.needMigration()) {
+    if (!syncBuildInvoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_CLI)
+        && blazercMigrator.needMigration()) {
       context.output(
           SummaryOutput.output(Prefix.INFO, "No .blazerc found at workspace root!").log().dedupe());
       ApplicationManager.getApplication()
@@ -248,7 +249,10 @@ public final class BuildPhaseSyncTask {
         .setSyncSharded(shardedTargets.shardCount() > 1)
         .setShardCount(shardedTargets.shardCount())
         .setShardStats(shardedTargets.shardStats())
-        .setParallelBuilds(syncBuildInvoker.supportsParallelism());
+        .setParallelBuilds(
+            syncBuildInvoker
+                .getCapabilities()
+                .contains(BuildInvoker.Capability.SUPPORTS_PARALLELISM));
 
     BlazeBuildOutputs.Legacy blazeBuildResult =
         getBlazeBuildResult(context, viewSet, shardedTargets, syncBuildInvoker, parallel);

@@ -102,7 +102,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
       throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
@@ -113,6 +113,10 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
     BuildResult buildResult =
         issueBuild(
             blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext, outputFile);
+    if (!buildResult.equals(BuildResult.SUCCESS)) {
+      blazeContext.setHasError();
+      IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(blazeContext);
+    }
     if (blazeCommandBuilder.build().getName().equals(BlazeCommandName.BUILD)) {
       BuildDepsStatsScope.fromContext(blazeContext)
           .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
@@ -121,7 +125,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
@@ -174,7 +178,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
 
   @Override
   @Nullable
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {

@@ -20,8 +20,6 @@ import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStats;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -79,11 +77,9 @@ public class BazelQueryRunner implements QueryRunner {
         SyncQueryStatsScope.fromContext(context);
     syncQueryStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
 
-    BlazeCommandRunner commandRunner = invoker.getCommandRunner();
     logger.info(
         String.format(
-            "Running `%.250s` using invoker %s, runner %s",
-            query, invoker.getClass().getSimpleName(), commandRunner.getClass().getSimpleName()));
+            "Running `%.250s` using invoker %s", query, invoker.getClass().getSimpleName()));
 
     BlazeCommand.Builder commandBuilder = BlazeCommand.builder(invoker, BlazeCommandName.QUERY);
     commandBuilder.addBlazeFlags(query.getQueryFlags());
@@ -93,7 +89,9 @@ public class BazelQueryRunner implements QueryRunner {
       context.output(PrintOutput.output("Project is empty, not running a query"));
       return QuerySummary.EMPTY;
     }
-    if (commandRunner.getMaxCommandLineLength().map(max -> queryExp.length() > max).orElse(false)) {
+    // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker
+    // instead of hardcoding.
+    if (queryExp.length() > 130000) {
       // Query is too long, write it to a file.
       Path tmpFile =
           Files.createTempFile(
@@ -109,10 +107,8 @@ public class BazelQueryRunner implements QueryRunner {
 
     syncQueryStatsBuilder.ifPresent(
         stats -> stats.setQueryFlags(commandBuilder.build().toArgumentList()));
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper();
-        InputStream in =
-            commandRunner.runQuery(project, commandBuilder, buildResultHelper, context)) {
-      QuerySummary querySummary = readFrom(query.queryStrategy(), in, context);
+    try (InputStream queryStream = invoker.invokeQuery(commandBuilder, context)) {
+      QuerySummary querySummary = readFrom(query.queryStrategy(), queryStream, context);
       int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();
       context.output(
           PrintOutput.output("Total query time ms: " + timer.elapsed(TimeUnit.MILLISECONDS)));

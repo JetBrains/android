@@ -17,7 +17,9 @@ package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -47,6 +49,12 @@ public final class BuildEventProtocolUtils {
     String suffix = UUID.randomUUID().toString();
     String fileName = "intellij-bep-" + suffix;
     File tempFile = new File(tempDir, fileName);
+    try {
+      var unused = tempFile.createNewFile();
+    } catch (IOException e) {
+      Logger.getInstance(BuildEventProtocolUtils.class)
+          .warn(String.format("could not create a temporary file %s", tempFile.getPath()), e);
+    }
     // Callers should delete this file immediately after use. Add a shutdown hook as well, in case
     // the application exits before then.
     tempFile.deleteOnExit();

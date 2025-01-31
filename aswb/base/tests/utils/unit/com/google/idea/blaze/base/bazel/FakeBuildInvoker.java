@@ -25,8 +25,10 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.exception.BuildException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -53,17 +55,17 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public abstract String getBinaryPath();
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) {
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return fakeBuildEventStreamProvider();
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
     return InputStream.nullInputStream();
   }
 
   @Override
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return InputStream.nullInputStream();
   }
 
@@ -85,7 +87,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return getBuildResultHelperSupplier().get();
   }
 
-  abstract Supplier<BuildResultHelper> getBuildResultHelperSupplier();
+  protected abstract Supplier<BuildResultHelper> getBuildResultHelperSupplier();
 
   @Override
   public abstract FakeBlazeCommandRunner getCommandRunner();

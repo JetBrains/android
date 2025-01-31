@@ -22,11 +22,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.run.BlazeBeforeRunCommandHelper;
@@ -44,7 +43,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.io.File;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
@@ -103,55 +101,53 @@ public class ClassFileManifestBuilder {
     }
 
     SaveUtil.saveAllFiles();
-    // Explicitly create a local build helper because the logic below assumes the JARs to be present
-    // locally
-    try (BuildResultHelper buildResultHelper =
-        BuildResultHelperProvider.createForLocalBuild(project)) {
 
-      ListenableFuture<BuildResult> buildOperation =
-          BlazeBeforeRunCommandHelper.runBlazeCommand(
-              BlazeCommandName.BUILD,
-              configuration,
-              buildResultHelper,
-              aspectStrategy.getBuildFlags(versionData),
-              ImmutableList.of(),
-              BlazeInvocationContext.runConfigContext(
-                  ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
-              "Building debug binary");
+    ListenableFuture<BuildEventStreamProvider> streamProviderFuture =
+        BlazeBeforeRunCommandHelper.runBlazeCommand(
+            BlazeCommandName.BUILD,
+            configuration,
+            aspectStrategy.getBuildFlags(versionData),
+            ImmutableList.of(),
+            BlazeInvocationContext.runConfigContext(
+                ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
+            "Building debug binary");
 
-      if (progress != null) {
-        progress.setCancelWorker(() -> buildOperation.cancel(true));
+    if (progress != null) {
+      progress.setCancelWorker(() -> streamProviderFuture.cancel(true));
+    }
+    try {
+      BuildResult result =
+          BuildResult.fromExitCode(
+              BuildResultParser.getBuildOutput(streamProviderFuture.get(), Interners.STRING)
+                  .buildResult());
+      if (result.status != BuildResult.Status.SUCCESS) {
+        throw new ExecutionException("Blaze failure building debug binary");
       }
-      try {
-        BuildResult result = buildOperation.get();
-        if (result.status != BuildResult.Status.SUCCESS) {
-          throw new ExecutionException("Blaze failure building debug binary");
-        }
-      } catch (InterruptedException | CancellationException e) {
-        buildOperation.cancel(true);
-        throw new RunCanceledByUserException();
-      } catch (java.util.concurrent.ExecutionException e) {
-        throw new ExecutionException(e);
-      }
-      ImmutableList<File> jars;
-      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-        jars =
-            LocalFileArtifact.getLocalFiles(
-                    BlazeBuildOutputs.fromParsedBepOutput(
-                            BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
-                        .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP))
-                .stream()
-                .filter(f -> f.getName().endsWith(".jar"))
-                .collect(toImmutableList());
-      } catch (GetArtifactsException e) {
-        throw new ExecutionException("Failed to get debug binary: " + e.getMessage());
-      }
+
+      ImmutableList<File> jars =
+          LocalFileArtifact.getLocalFiles(
+                  BlazeBuildOutputs.fromParsedBepOutput(
+                          BuildResultParser.getBuildOutput(
+                              streamProviderFuture.get(), Interners.STRING))
+                      .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP))
+              .stream()
+              .filter(f -> f.getName().endsWith(".jar"))
+              .collect(toImmutableList());
+
       ClassFileManifest oldManifest = getManifest(env);
       ClassFileManifest newManifest = ClassFileManifest.build(jars, oldManifest);
       env.getCopyableUserData(MANIFEST_KEY).set(newManifest);
+
       return oldManifest != null
           ? ClassFileManifest.modifiedClasses(oldManifest, newManifest)
           : null;
+    } catch (InterruptedException | CancellationException e) {
+      streamProviderFuture.cancel(true);
+      throw new RunCanceledByUserException();
+    } catch (java.util.concurrent.ExecutionException e) {
+      throw new ExecutionException(e);
+    } catch (GetArtifactsException e) {
+      throw new ExecutionException("Unable to parse build output from build event stream", e);
     }
   }
 }

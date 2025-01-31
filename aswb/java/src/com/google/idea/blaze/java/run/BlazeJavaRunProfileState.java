@@ -15,10 +15,16 @@
  */
 package com.google.idea.blaze.java.run;
 
+import static com.google.common.base.Verify.verify;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
@@ -26,7 +32,8 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.issueparser.ToolWindowTaskIssueOutputFilter;
 import com.google.idea.blaze.base.model.primitives.Kind;
@@ -43,7 +50,9 @@ import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
-import com.google.idea.blaze.base.run.testlogs.LocalBuildEventProtocolTestFinderStrategy;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.IdeaLogScope;
 import com.google.idea.blaze.base.scope.scopes.ProblemsViewScope;
@@ -57,19 +66,24 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.filters.TextConsoleBuilderImpl;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A Blaze run configuration set up with an executor, program runner, and other settings, ready to
@@ -96,23 +110,20 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   @Override
   protected ProcessHandler startProcess() throws ExecutionException {
     Project project = getConfiguration().getProject();
-
+    BlazeContext context = BlazeContext.create();
     BuildInvoker invoker =
         Blaze.getBuildSystemProvider(project)
             .getBuildSystem()
             .getBuildInvoker(
-                project,
-                BlazeContext.create(),
-                getExecutorType(),
-                getConfiguration().getTargetKind());
-    BlazeTestUiSession testUiSession = null;
+                project, context, getExecutorType(), getConfiguration().getTargetKind());
     boolean debuggingLocalTest =
         TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
             && getExecutorType().isDebugType();
-    if (debuggingLocalTest && !invoker.getCommandRunner().canUseCli()) {
+    if (debuggingLocalTest
+        && !invoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_CLI)) {
       return startProcessRunfilesCase(project);
     }
-    return startProcessBazelCliCase(invoker, project, testUiSession);
+    return startProcessBazelCliCase(invoker, project, context);
   }
 
   private ProcessHandler startProcessRunfilesCase(Project project) throws ExecutionException {
@@ -147,21 +158,19 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   }
 
   private ProcessHandler startProcessBazelCliCase(
-      BuildInvoker invoker, Project project, BlazeTestUiSession testUiSession)
-      throws ExecutionException {
+      BuildInvoker invoker, Project project, BlazeContext context) throws ExecutionException {
     BlazeCommand.Builder blazeCommand;
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
-      if (useTestUi()
-          && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargets())) {
-        testUiSession =
-            BlazeTestUiSession.create(
-                ImmutableList.<String>builder()
-                    .add("--runs_per_test=1")
-                    .add("--flaky_test_attempts=1")
-                    .addAll(buildResultHelper.getBuildFlags())
-                    .build(),
-                new LocalBuildEventProtocolTestFinderStrategy(buildResultHelper));
-      }
+    BlazeTestUiSession testUiSession = null;
+    BlazeTestResultFinderStrategy testResultFinderStrategy = new BlazeTestResultHolder();
+    if (useTestUi()
+        && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargets())) {
+      testUiSession =
+          BlazeTestUiSession.create(
+              ImmutableList.<String>builder()
+                  .add("--runs_per_test=1")
+                  .add("--flaky_test_attempts=1")
+                  .build(),
+              testResultFinderStrategy);
     }
     if (testUiSession != null) {
       blazeCommand =
@@ -206,7 +215,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     } else {
       command = blazeCommand.build().toList();
     }
-    return getScopedProcessHandler(project, command, WorkspaceRoot.fromProject(project));
+    return getCommandRunnerProcessHandler(invoker, blazeCommand, testResultFinderStrategy, context);
   }
 
   @Override
@@ -311,6 +320,86 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
             return ImmutableList.of(new LineProcessingProcessAdapter(outputStream));
           }
         });
+  }
+
+  private ProcessHandler getGenericProcessHandler() {
+    return new ProcessHandler() {
+      @Override
+      protected void destroyProcessImpl() {}
+
+      @Override
+      protected void detachProcessImpl() {
+        ApplicationManager.getApplication().executeOnPooledThread(this::notifyProcessDetached);
+      }
+
+      @Override
+      public boolean detachIsDefault() {
+        return false;
+      }
+
+      @Nullable
+      @Override
+      public OutputStream getProcessInput() {
+        return null;
+      }
+    };
+  }
+
+  //TODO(akhildixit) - the following handler is the same as the one in BlazeCommandGenericRunConfigurationRunner.java.
+  // Extract it into a separate class to avoid code duplication.
+  private ProcessHandler getCommandRunnerProcessHandler(
+      BuildInvoker invoker,
+      BlazeCommand.Builder blazeCommandBuilder,
+      BlazeTestResultFinderStrategy testResultFinderStrategy,
+      BlazeContext context) {
+    ProcessHandler processHandler = getGenericProcessHandler();
+    ListenableFuture<BlazeTestResults> blazeTestResultsFuture =
+        BlazeExecutor.getInstance()
+            .submit(
+                () -> {
+                  try (BuildEventStreamProvider streamProvider =
+                      invoker.invoke(blazeCommandBuilder, context)) {
+                    return BuildResultParser.getTestResults(streamProvider);
+                  }
+                });
+    Futures.addCallback(
+        blazeTestResultsFuture,
+        new FutureCallback<BlazeTestResults>() {
+          @Override
+          public void onSuccess(BlazeTestResults blazeTestResults) {
+            // The command-runners allow using a remote BES for parsing the test results, so we
+            // use a BlazeTestResultHolder to store the test results for the IDE to find/read
+            // later. The LocalTestResultFinderStrategy won't work here since it writes/reads the
+            // test results to a local file.
+            verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
+            ((BlazeTestResultHolder) testResultFinderStrategy).setTestResults(blazeTestResults);
+            processHandler.detachProcess();
+          }
+
+          @Override
+          public void onFailure(Throwable throwable) {
+            context.handleException(throwable.getMessage(), throwable);
+            verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
+            ((BlazeTestResultHolder) testResultFinderStrategy)
+                .setTestResults(BlazeTestResults.NO_RESULTS);
+            processHandler.detachProcess();
+          }
+        },
+        BlazeExecutor.getInstance().getExecutor());
+
+    processHandler.addProcessListener(
+        new ProcessAdapter() {
+          @Override
+          public void processWillTerminate(@NotNull ProcessEvent event, boolean willBeDestroyed) {
+            if (willBeDestroyed) {
+              context.setCancelled();
+              verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
+              ((BlazeTestResultHolder) testResultFinderStrategy)
+                  .setTestResults(BlazeTestResults.NO_RESULTS);
+            }
+          }
+        });
+    return processHandler;
   }
 
   private File getDownloadDir() {

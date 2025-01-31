@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.query.BlazeQueryLabelKindParser;
@@ -92,9 +91,7 @@ public class BlazeQueryDirectoryToTargetProvider implements DirectoryToTargetPro
             .addBlazeFlags(query);
     BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
     BlazeQueryLabelKindParser outputProcessor = new BlazeQueryLabelKindParser(t -> true);
-    try (BuildResultHelper helper = invoker.createBuildResultHelper();
-        InputStream queryResultStream =
-            invoker.getCommandRunner().runQuery(project, command, helper, context)) {
+    try (InputStream queryResultStream = invoker.invokeQuery(command, context)) {
       new BufferedReader(new InputStreamReader(queryResultStream, UTF_8))
           .lines()
           .forEach(outputProcessor::processLine);
