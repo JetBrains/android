@@ -172,6 +172,9 @@ internal constructor(
     return backupService.isInstalled(serialNumber, applicationId)
   }
 
+  override fun isAppSupported(applicationId: String) =
+    project.getService(ProjectAppsProvider::class.java).getApplicationIds().contains(applicationId)
+
   @UiThread
   @VisibleForTesting
   internal fun doBackup(

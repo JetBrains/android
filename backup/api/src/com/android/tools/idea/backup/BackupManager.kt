@@ -106,6 +106,9 @@ interface BackupManager {
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 
+  // Returns true if the applicationId is supported
+  fun isAppSupported(applicationId: String): Boolean
+
   companion object {
     const val NOTIFICATION_GROUP = "Backup"
 

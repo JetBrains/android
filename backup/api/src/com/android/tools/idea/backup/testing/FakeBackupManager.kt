@@ -65,6 +65,8 @@ class FakeBackupManager : BackupManager {
 
   override suspend fun isInstalled(serialNumber: String, applicationId: String) = true
 
+  override fun isAppSupported(applicationId: String) = true
+
   override fun getRestoreRunConfigSection(project: Project): RunConfigSection {
     return object : RunConfigSection {
       override fun getComponent(parentDisposable: Disposable) = JPanel()
