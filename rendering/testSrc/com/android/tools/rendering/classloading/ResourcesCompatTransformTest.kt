@@ -32,7 +32,7 @@ class ResourcesCompatTransformTest {
   @Test
   fun testTransform() {
     val value = TypedValue()
-    value.string = "project-path/res/font/font.ttf"
+    value.string = "project-path/resources/font/font.ttf"
 
     assertThrows(RuntimeException::class.java) {
       ResourcesCompat.loadFont(null, null, value, 0, 0, null, null, false, false)
