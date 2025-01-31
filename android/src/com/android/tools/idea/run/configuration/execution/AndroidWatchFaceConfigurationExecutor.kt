@@ -71,7 +71,7 @@ class AndroidWatchFaceConfigurationExecutor(
     indicator.checkCanceled()
     indicator.text = "Launching the watch face"
 
-    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
+    val outputReceiver = RecordOutputReceiver { indicator.isCanceled == true }
     try {
       getActivator(app).activate(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver, device)
     }
