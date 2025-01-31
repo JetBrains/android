@@ -105,6 +105,7 @@ object StudioIconsCompose {
     val ImportData: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/import-data.svg", "/studio/icons/common/import-data.svg", StudioIconsCompose.javaClass) // 16x16
     val InfoInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info-inline.svg", "/studio/icons/common/info-inline.svg", StudioIconsCompose.javaClass) // 16x16
     val Info: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info.svg", "/studio/icons/common/info.svg", StudioIconsCompose.javaClass) // 16x16
+    val Layout: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/layout.svg", "/studio/icons/common/layout.svg", StudioIconsCompose.javaClass) // 16x16
     val Like: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/like.svg", "/studio/icons/common/like.svg", StudioIconsCompose.javaClass) // 16x16
     val Link: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/link.svg", "/studio/icons/common/link.svg", StudioIconsCompose.javaClass) // 16x16
     val ListView: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/list-view.svg", "/studio/icons/common/list-view.svg", StudioIconsCompose.javaClass) // 16x16
@@ -573,6 +574,7 @@ object StudioIconsCompose {
       val CycleChainSpreadInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg", "/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg", StudioIconsCompose.javaClass) // 16x16
       val CycleChainSpread: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/cycle-chain-spread.svg", "/studio/icons/layout-editor/toolbar/cycle-chain-spread.svg", StudioIconsCompose.javaClass) // 16x16
       val DeviceAutomotive: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/device-automotive.svg", "/studio/icons/layout-editor/toolbar/device-automotive.svg", StudioIconsCompose.javaClass) // 16x16
+      val DeviceDesktop: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/device-desktop.svg", "/studio/icons/layout-editor/toolbar/device-desktop.svg", StudioIconsCompose.javaClass) // 16x16
       val DevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/device-phone.svg", "/studio/icons/layout-editor/toolbar/device-phone.svg", StudioIconsCompose.javaClass) // 16x16
       val DeviceScreen: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/device-screen.svg", "/studio/icons/layout-editor/toolbar/device-screen.svg", StudioIconsCompose.javaClass) // 16x16
       val DeviceTablet: IntelliJIconKey = IntelliJIconKey("/studio/icons/layout-editor/toolbar/device-tablet.svg", "/studio/icons/layout-editor/toolbar/device-tablet.svg", StudioIconsCompose.javaClass) // 16x16

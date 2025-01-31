@@ -111,6 +111,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", -1994930028, 2);
     /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", 1695835300, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("studio/icons/common/info.svg", -1846060654, 2);
+    /** 16x16 */ public static final @NotNull Icon LAYOUT = load("studio/icons/common/layout.svg", -1646443317, 2);
     /** 16x16 */ public static final @NotNull Icon LIKE = load("studio/icons/common/like.svg", 636431268, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("studio/icons/common/link.svg", -187835040, 2);
     /** 16x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", -835465736, 2);
@@ -579,6 +580,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon CYCLE_CHAIN_SPREAD_INLINE = load("studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg", 418235093, 0);
       /** 16x16 */ public static final @NotNull Icon CYCLE_CHAIN_SPREAD = load("studio/icons/layout-editor/toolbar/cycle-chain-spread.svg", -38971679, 0);
       /** 16x16 */ public static final @NotNull Icon DEVICE_AUTOMOTIVE = load("studio/icons/layout-editor/toolbar/device-automotive.svg", -394712981, 2);
+      /** 16x16 */ public static final @NotNull Icon DEVICE_DESKTOP = load("studio/icons/layout-editor/toolbar/device-desktop.svg", 793285672, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_PHONE = load("studio/icons/layout-editor/toolbar/device-phone.svg", -584228043, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_SCREEN = load("studio/icons/layout-editor/toolbar/device-screen.svg", 2119873474, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_TABLET = load("studio/icons/layout-editor/toolbar/device-tablet.svg", 75018028, 2);
