@@ -305,6 +305,12 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.XmlErrorIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownMultiplatformTestSourceSetChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleInvalidDaemonJvmCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainDownloadedMismatchCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainDownloadingErrorIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainInstalledNotFoundMatchingCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleUndefinedDaemonJvmCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleUndefinedToolchainRepositoriesIssueReporter" order="first"/>
     <gradleJvmResolver implementation="com.android.tools.idea.gradle.resolvers.GradleJvmEnvironmentStudioJdkResolver" order="first" />
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
