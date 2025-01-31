@@ -218,8 +218,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
             .setLanguageClasses(
                 LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
             .setTestSources(testSourceGlobs)
-            .setSystemExcludes(importRoots.systemExcludes())
-            .build();
+            .setSystemExcludes(ImmutableSet.<Path>builder()
+                                 .addAll(importRoots.systemExcludes())
+                                 .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
+                                 .build())
+          .build();
 
     Path snapshotFilePath = getSnapshotFilePath(importSettings);
 

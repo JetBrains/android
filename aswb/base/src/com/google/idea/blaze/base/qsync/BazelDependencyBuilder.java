@@ -117,6 +117,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
   public static final StringExperiment aspectLocation =
     new StringExperiment("qsync.build.aspect.location");
+  public static final String INVOCATION_FILES_DIR = ".aswb";
 
   public record BuildDependencyParameters(
     ImmutableList<String> include,
@@ -300,23 +301,23 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public InvocationFiles getInvocationFiles(Set<Label> buildTargets, BuildDependencyParameters parameters) {
     String aspectFileName = String.format("qs-%s.bzl", getProjectHash());
     ImmutableMap.Builder<Path, ByteSource> files = ImmutableMap.builder();
-    files.put(Path.of(".aswb/BUILD"), ByteSource.empty());
-    files.put(Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")));
-    files.put(Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
-    files.put(Path.of(".aswb/" + aspectFileName), getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
+    files.put(Path.of(INVOCATION_FILES_DIR + "/BUILD"), ByteSource.empty());
+    files.put(Path.of(INVOCATION_FILES_DIR + "/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")));
+    files.put(Path.of(INVOCATION_FILES_DIR + "/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
+    files.put(Path.of(INVOCATION_FILES_DIR + "/" + aspectFileName), getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
     Optional<String> targetPatternFileWorkspaceRelativeFile;
     if (buildUseTargetPatternFile.getValue()) {
       String patternsFileName = String.format("targets-%s.txt", getProjectHash());
-      files.put(Path.of(".aswb/" + patternsFileName),
+      files.put(Path.of(INVOCATION_FILES_DIR + "/" + patternsFileName),
                 getByteSourceFromString(buildTargets.stream().map(Label::toString).collect(Collectors.joining("\n"))));
-      targetPatternFileWorkspaceRelativeFile = Optional.of(".aswb/" + patternsFileName);
+      targetPatternFileWorkspaceRelativeFile = Optional.of(INVOCATION_FILES_DIR + "/" + patternsFileName);
     }
     else {
       targetPatternFileWorkspaceRelativeFile = Optional.empty();
     }
     return new InvocationFiles(
       files.build(),
-      Label.of(String.format("//.aswb:" + aspectFileName)).toString(),
+      Label.of(String.format("//" + INVOCATION_FILES_DIR + ":" + aspectFileName)).toString(),
       targetPatternFileWorkspaceRelativeFile
     );
   }
