@@ -179,6 +179,10 @@
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="kotlin" implementationClass="org.jetbrains.kotlin.android.spellchecker.AndroidGradleKtsSpellcheckingStrategy" order="first"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestMethodGradleConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestClassGradleConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInPackageGradleConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInDirectoryGradleConfigurationProducer"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
     <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
