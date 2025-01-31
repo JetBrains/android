@@ -229,8 +229,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
 
   @Override
   public int getComponentTreeChildCount(@NotNull Object element) {
-    if (element instanceof NlComponent) {
-      NlComponent component = (NlComponent)element;
+    if (element instanceof NlComponent component) {
       if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
@@ -244,8 +243,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
 
   @Override
   public Object getComponentTreeChild(@NotNull Object element, int i) {
-    if (element instanceof NlComponent) {
-      NlComponent component = (NlComponent)element;
+    if (element instanceof NlComponent component) {
       if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
@@ -260,8 +258,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
 
   @Override
   public List<?> getComponentTreeChildren(@NotNull Object element) {
-    if (element instanceof NlComponent) {
-      NlComponent component = (NlComponent)element;
+    if (element instanceof NlComponent component) {
       if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
