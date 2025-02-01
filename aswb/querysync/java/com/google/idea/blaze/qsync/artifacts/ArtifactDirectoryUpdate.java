@@ -64,7 +64,7 @@ public class ArtifactDirectoryUpdate {
   private final ArtifactDirectoryContents contents;
   private final Set<Path> updatedPaths;
   private final FileTransform stripGeneratedSourcesTransform;
-  private final Supplier<Boolean> buildGeneratedSrcJars;
+  private final boolean buildGeneratedSrcJars;
 
   public ArtifactDirectoryUpdate(
       BuildArtifactCache artifactCache,
@@ -72,7 +72,7 @@ public class ArtifactDirectoryUpdate {
       Path root,
       ArtifactDirectoryContents contents,
       FileTransform stripGeneratedSourcesTransform,
-      Supplier<Boolean> buildGeneratedSrcJars) {
+      boolean buildGeneratedSrcJars) {
     this.artifactCache = artifactCache;
     this.workspaceRoot = workspaceRoot;
     this.root = root;
@@ -80,22 +80,6 @@ public class ArtifactDirectoryUpdate {
     updatedPaths = Sets.newHashSet();
     this.stripGeneratedSourcesTransform = stripGeneratedSourcesTransform;
     this.buildGeneratedSrcJars = buildGeneratedSrcJars;
-  }
-
-  public ArtifactDirectoryUpdate(
-      BuildArtifactCache artifactCache,
-      Path workspaceRoot,
-      Path root,
-      ArtifactDirectoryContents contents,
-      FileTransform stripGeneratedSourcesTransform,
-      Boolean buildGeneratedSrcJarsVal) {
-    this(
-        artifactCache,
-        workspaceRoot,
-        root,
-        contents,
-        stripGeneratedSourcesTransform,
-        () -> buildGeneratedSrcJarsVal);
   }
 
   public static Path getContentsFile(Path artifactDir) {
@@ -227,7 +211,7 @@ public class ArtifactDirectoryUpdate {
           updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src.get(), dest));
           break;
         case STRIP_SUPPORTED_GENERATED_SOURCES:
-          if (buildGeneratedSrcJars.get()) {
+          if (buildGeneratedSrcJars) {
             updatedPaths.addAll(stripGeneratedSourcesTransform.copyWithTransform(src.get(), dest));
           } else {
             updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src.get(), dest));
