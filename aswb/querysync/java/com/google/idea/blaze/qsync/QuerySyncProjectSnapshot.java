@@ -128,7 +128,7 @@ public abstract class QuerySyncProjectSnapshot {
 
   @Memoized
   public ArtifactIndex getArtifactIndex() {
-    return ArtifactIndex.create(artifactState(), project().getArtifactDirectories());
+    return ArtifactIndex.create(artifactState());
   }
 
   /**

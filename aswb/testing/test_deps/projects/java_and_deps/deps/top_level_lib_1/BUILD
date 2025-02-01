@@ -8,3 +8,9 @@ java_library(
         "//java_and_deps/deps/transitive_dep_lib",
     ],
 )
+
+java_library(
+    name = "reexported_top_level_lib_1",
+    visibility = ["//visibility:public"],
+    exports = [":top_level_lib_1"],
+)

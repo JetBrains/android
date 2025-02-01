@@ -6,7 +6,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         ":lib",
-        "//java_and_deps/deps/top_level_lib_1",
+        "//java_and_deps/deps/top_level_lib_1:reexported_top_level_lib_1",
         "//java_and_deps/project/java/com/example/sample/nested",
     ],
 )

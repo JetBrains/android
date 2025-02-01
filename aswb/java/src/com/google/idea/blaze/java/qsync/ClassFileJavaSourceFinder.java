@@ -162,9 +162,10 @@ public class ClassFileJavaSourceFinder {
 
     return snapshot
         .getArtifactIndex()
-        .getInfoForArtifact(jarPath)
-        .map(JavaArtifactInfo::sources)
-        .orElse(ImmutableSet.of());
+        .getInfoForJarArtifact(jarPath)
+        .stream()
+        .flatMap(it -> it.sources().stream())
+        .collect(toImmutableSet());
   }
 
   // private ImmutableSet<PsiFile> filterByExpectedQualified
