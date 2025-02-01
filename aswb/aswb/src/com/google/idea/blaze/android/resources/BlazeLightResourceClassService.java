@@ -19,13 +19,11 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.res.AndroidLightPackage;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -43,10 +41,6 @@ import org.jetbrains.annotations.Nullable;
 /** Implementation of {@link LightResourceClassService} set up at Blaze sync time. */
 public class BlazeLightResourceClassService extends BlazeLightResourceClassServiceBase
     implements LightResourceClassService {
-
-  @VisibleForTesting
-  public static final FeatureRolloutExperiment workspaceResourcesFeature =
-      new FeatureRolloutExperiment("aswb.workspace.light.class.enabled");
 
   // It should be harmless to create stub resource PsiPackages which shadow any "real" PsiPackages.
   // Based on the ordering of PsiElementFinder it would prefer the real package
@@ -100,9 +94,6 @@ public class BlazeLightResourceClassService extends BlazeLightResourceClassServi
     }
 
     public void addWorkspacePackages(Set<String> resourceJavaPackages) {
-      if (!workspaceResourcesFeature.isEnabled()) {
-        return;
-      }
       this.workspaceResourcePackages = resourceJavaPackages;
       this.workspaceRClassNames =
           resourceJavaPackages.stream()
@@ -168,7 +159,7 @@ public class BlazeLightResourceClassService extends BlazeLightResourceClassServi
 
   @Nullable
   private BlazeRClass getRClassForWorkspace(String qualifiedName, GlobalSearchScope scope) {
-    if (!workspaceResourcesFeature.isEnabled() || !workspaceRClassNames.contains(qualifiedName)) {
+    if (!workspaceRClassNames.contains(qualifiedName)) {
       return null;
     }
 
