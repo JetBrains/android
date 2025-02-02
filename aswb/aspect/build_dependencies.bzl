@@ -530,6 +530,7 @@ def _collect_own_java_artifacts(
     resource_package = ""
 
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
+    android = _get_android_provider(target)
 
     if must_build_main_artifacts:
         # For rules that we do not follow dependencies of (either because they don't
@@ -559,7 +560,6 @@ def _collect_own_java_artifacts(
                 own_ide_aar_files.append(ide_aar)
 
     else:
-        android = _get_android_provider(target)
         if android != None:
             resource_package = android.java_package
 
@@ -626,13 +626,25 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
+    if not (java_info or android or own_gensrc_files or own_src_files or own_srcjar_files):
+        return None
+    if own_jar_files or len(own_jar_depsets) > 1:
+        own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
+        # here two cases left: own_jar_files is None/[] and own_jar_depsets is None/[] or a singleton.
+
+    elif not own_jar_depsets:
+        own_jar_depset = depset()
+    elif len(own_jar_depsets) == 1:
+        own_jar_depset = own_jar_depsets[0]
+    else:
+        # See the comment above.
+        fail("Unexpected: " + str(own_jar_files) + " " + str(own_jar_depsets))
     return struct(
-        jars = own_jar_files,
-        jar_depsets = own_jar_depsets,
-        ide_aars = own_ide_aar_files,
-        gensrcs = own_gensrc_files,
-        srcs = own_src_files,
-        srcjars = own_srcjar_files,
+        jar_depset = own_jar_depset,
+        ide_aar_depset = depset(own_ide_aar_files),
+        gensrc_depset = depset(own_gensrc_files),
+        src_depset = depset(own_src_files),
+        srcjar_depset = depset(own_srcjar_files),
         android_resources_package = resource_package,
     )
 
@@ -657,6 +669,10 @@ def _can_follow_dependencies(ctx):
     # produced for proto deps of the underlying proto_library are not
     return not ctx.rule.kind in PROTO_RULE_KINDS
 
+# Collects artifacts exposed by this java-like (i.e. java, android or proto-for-java) target and its dependencies if it is such a target.
+# For non-Java targets only generated sources are collected without recursing to its dependencies. Therefore, for example, if there are
+# generated proto files they won't be collected and this use case will need to be supported explicitly. Not following non-Java dependencies
+# while collecting Java info files substantially reduces the number of generated and fetched info files.
 def _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
@@ -678,34 +694,25 @@ def _collect_own_and_dependency_java_artifacts(
         target_is_within_project_scope,
     )
 
-    has_own_artifacts = (
-        len(own_files.jars) +
-        len(own_files.jar_depsets) +
-        len(own_files.ide_aars) +
-        len(own_files.gensrcs) +
-        len(own_files.srcs) +
-        len(own_files.srcjars) +
-        (1 if own_files.android_resources_package else 0)
-    ) > 0
+    if not own_files:
+        return None
 
     target_to_artifacts = {}
-    if has_own_artifacts:
-        # Pass the following lists through depset() to to remove any duplicates.
-        jars = depset(own_files.jars, transitive = own_files.jar_depsets).to_list()
-        ide_aars = depset(own_files.ide_aars).to_list()
-        gen_srcs = depset(own_files.gensrcs).to_list()
-        target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
-            jars = jars,
-            ide_aars = ide_aars,
-            gen_srcs = gen_srcs,
-            srcs = own_files.srcs,
-            srcjars = own_files.srcjars,
-            android_resources_package = own_files.android_resources_package,
-        )
-    elif target_is_within_project_scope:
-        target_to_artifacts[str(target.label)] = _target_to_artifact_entry()
 
-    own_and_transitive_jar_depsets = list(own_files.jar_depsets)  # Copy to prevent changes to own_jar_depsets.
+    # Flattening is fine here as these are files from a single target (maybe some are re-exported from a few of its depende3ncies).
+    jars = own_files.jar_depset.to_list()
+    ide_aars = own_files.ide_aar_depset.to_list()
+    gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
+    target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
+        jars = jars,
+        ide_aars = ide_aars,
+        gen_srcs = gen_srcs,
+        srcs = own_files.src_depset.to_list(),
+        srcjars = own_files.srcjar_depset.to_list(),
+        android_resources_package = own_files.android_resources_package,
+    )
+
+    own_and_transitive_jar_depsets = [own_files.jar_depset]  # Copy to prevent changes to own_files.jar_depset.
     own_and_transitive_ide_aar_depsets = []
     own_and_transitive_gensrc_depsets = []
 
@@ -717,11 +724,11 @@ def _collect_own_and_dependency_java_artifacts(
         own_and_transitive_ide_aar_depsets.append(info.aars)
         own_and_transitive_gensrc_depsets.append(info.gensrcs)
 
-    return (
-        target_to_artifacts,
-        depset(own_files.jars, transitive = own_and_transitive_jar_depsets),
-        depset(own_files.ide_aars, transitive = own_and_transitive_ide_aar_depsets),
-        depset(own_files.gensrcs, transitive = own_and_transitive_gensrc_depsets),
+    return struct(
+        target_to_artifacts = target_to_artifacts,
+        compile_jars = depset(transitive = own_and_transitive_jar_depsets),
+        aars = depset(ide_aars, transitive = own_and_transitive_ide_aar_depsets),
+        gensrcs = depset(gen_srcs, transitive = own_and_transitive_gensrc_depsets),
     )
 
 def _get_cc_toolchain_dependency_info(rule):
@@ -803,7 +810,7 @@ def _collect_java_dependencies_core_impl(
     target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude) and not test_mode
     dependency_infos = _get_followed_java_dependency_infos(target.label, ctx.rule)
 
-    target_to_artifacts, compile_jars, aars, gensrcs = _collect_own_and_dependency_java_artifacts(
+    own_and_dependencies = _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
         dependency_infos,
@@ -813,6 +820,14 @@ def _collect_java_dependencies_core_impl(
         target_is_within_project_scope,
         params.experiment_multi_info_file,
     )
+
+    if own_and_dependencies == None:
+        return None
+
+    target_to_artifacts = own_and_dependencies.target_to_artifacts
+    compile_jars = own_and_dependencies.compile_jars
+    aars = own_and_dependencies.aars
+    gensrcs = own_and_dependencies.gensrcs
 
     test_mode_own_files = None
     if test_mode:
@@ -826,11 +841,12 @@ def _collect_java_dependencies_core_impl(
             params.use_generated_srcjars,
             target_is_within_project_scope = True,
         )
-        test_mode_own_files = struct(
-            test_mode_within_scope_own_jar_files = depset(within_scope_own_files.jars, transitive = within_scope_own_files.jar_depsets).to_list(),
-            test_mode_within_scope_own_ide_aar_files = within_scope_own_files.ide_aars,
-            test_mode_within_scope_own_gensrc_files = within_scope_own_files.gensrcs,
-        )
+        if within_scope_own_files:
+            test_mode_own_files = struct(
+                test_mode_within_scope_own_jar_files = within_scope_own_files.jar_depset.to_list(),
+                test_mode_within_scope_own_ide_aar_files = within_scope_own_files.ide_aar_depset.to_list(),
+                test_mode_within_scope_own_gensrc_files = within_scope_own_files.gensrc_depset.to_list(),
+            )
 
     expand_sources = False
     if hasattr(ctx.rule.attr, "tags"):
