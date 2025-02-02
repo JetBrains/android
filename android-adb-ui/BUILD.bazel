@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "adb-ui_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "adb-ui",
   module_name = "intellij.android.adb.ui",
@@ -42,7 +48,10 @@ jvm_library(
     "//android/render-resources",
     "//plugins/webp",
   ],
-  runtime_deps = [":adb-ui_resources"]
+  runtime_deps = [
+    ":adb-ui_resources",
+    ":adb-ui_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.adb.ui` end
 

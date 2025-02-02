@@ -14,6 +14,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "templates_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "templates",
   module_name = "intellij.android.templates",
@@ -64,7 +70,10 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
-  runtime_deps = [":templates_resources"]
+  runtime_deps = [
+    ":templates_resources",
+    ":templates_resources_1",
+  ]
 )
 
 jvm_library(
@@ -141,7 +150,10 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
-  runtime_deps = [":templates_resources"]
+  runtime_deps = [
+    ":templates_resources",
+    ":templates_resources_1",
+  ]
 )
 
 jvm_test(

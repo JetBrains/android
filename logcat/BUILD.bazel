@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "logcat_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "logcat",
   module_name = "intellij.android.logcat",
@@ -60,7 +66,10 @@ jvm_library(
     "//xml/xml-frontback:frontback",
     "//android/ml-api",
   ],
-  runtime_deps = [":logcat_resources"]
+  runtime_deps = [
+    ":logcat_resources",
+    ":logcat_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.logcat` end
 

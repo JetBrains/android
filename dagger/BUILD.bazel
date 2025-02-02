@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "dagger_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "dagger",
   module_name = "intellij.android.dagger",
@@ -53,7 +59,10 @@ jvm_library(
     "//plugins/kotlin/base/scripting:kotlin-base-scripting",
     "//plugins/kotlin/base/util:kotlin-base-util",
   ],
-  runtime_deps = [":dagger_resources"]
+  runtime_deps = [
+    ":dagger_resources",
+    ":dagger_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.dagger` end
 

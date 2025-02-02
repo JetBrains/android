@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "profilersAndroid_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "profilersAndroid",
   module_name = "intellij.android.profilersAndroid",
@@ -65,7 +71,10 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/lang-impl",
   ],
-  runtime_deps = [":profilersAndroid_resources"]
+  runtime_deps = [
+    ":profilersAndroid_resources",
+    ":profilersAndroid_resources_1",
+  ]
 )
 
 jvm_library(
@@ -153,7 +162,10 @@ jvm_library(
     "//platform/lang-impl",
     "@lib//:kotlinx-coroutines-test",
   ],
-  runtime_deps = [":profilersAndroid_resources"]
+  runtime_deps = [
+    ":profilersAndroid_resources",
+    ":profilersAndroid_resources_1",
+  ]
 )
 
 jvm_test(

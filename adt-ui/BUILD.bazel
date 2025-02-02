@@ -20,6 +20,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "adt-ui_resources_1",
+  files = glob(["src/main/java/META-INF/**/*"]),
+  strip_prefix = "src/main/java"
+)
+
 jvm_library(
   name = "adt-ui",
   module_name = "intellij.android.adt.ui",
@@ -60,7 +66,10 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "//platform/platform-impl/ui:ide-ui",
   ],
-  runtime_deps = [":adt-ui_resources"]
+  runtime_deps = [
+    ":adt-ui_resources",
+    ":adt-ui_resources_1",
+  ]
 )
 
 jvm_library(
@@ -129,7 +138,10 @@ jvm_library(
     "//platform/testFramework/junit5:junit5_test_lib",
     "//platform/platform-impl/ui:ide-ui",
   ],
-  runtime_deps = [":adt-ui_resources"]
+  runtime_deps = [
+    ":adt-ui_resources",
+    ":adt-ui_resources_1",
+  ]
 )
 
 jvm_test(

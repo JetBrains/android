@@ -14,6 +14,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "lint_resources_1",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
 jvm_library(
   name = "lint",
   module_name = "intellij.android.lint",
@@ -85,7 +91,10 @@ jvm_library(
     "//plugins/kotlin/code-insight/utils:kotlin-code-insight-utils",
     "//jvm/jvm-analysis-impl:analysis-impl",
   ],
-  runtime_deps = [":lint_resources"]
+  runtime_deps = [
+    ":lint_resources",
+    ":lint_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.lint` end
 
