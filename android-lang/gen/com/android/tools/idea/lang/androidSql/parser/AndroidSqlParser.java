@@ -83,7 +83,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ALTER TABLE single_table_statement_table ( rename_table_statement | rename_column_statement | add_column_statement )
+  // ALTER TABLE single_table_statement_table ( rename_table_statement | rename_column_statement | add_column_statement | drop_column_statement)
   public static boolean alter_table_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "alter_table_statement")) return false;
     if (!nextTokenIs(builder, ALTER)) return false;
@@ -96,13 +96,14 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // rename_table_statement | rename_column_statement | add_column_statement
+  // rename_table_statement | rename_column_statement | add_column_statement | drop_column_statement
   private static boolean alter_table_statement_3(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "alter_table_statement_3")) return false;
     boolean result;
     result = rename_table_statement(builder, level + 1);
     if (!result) result = rename_column_statement(builder, level + 1);
     if (!result) result = add_column_statement(builder, level + 1);
+    if (!result) result = drop_column_statement(builder, level + 1);
     return result;
   }
 
@@ -1432,6 +1433,27 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean detach_statement_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "detach_statement_1")) return false;
     consumeToken(builder, DATABASE);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // DROP COLUMN? column_name
+  static boolean drop_column_statement(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "drop_column_statement")) return false;
+    if (!nextTokenIs(builder, DROP)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, DROP);
+    result = result && drop_column_statement_1(builder, level + 1);
+    result = result && column_name(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // COLUMN?
+  private static boolean drop_column_statement_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "drop_column_statement_1")) return false;
+    consumeToken(builder, COLUMN);
     return true;
   }
 

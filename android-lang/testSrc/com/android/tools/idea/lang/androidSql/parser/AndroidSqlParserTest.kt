@@ -1038,6 +1038,24 @@ class MiscParserTest : AndroidSqlParserTest() {
     )
   }
 
+  fun testDropColumn() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlAlterTableStatementImpl(ALTER_TABLE_STATEMENT)
+          PsiElement(ALTER)('ALTER')
+          PsiElement(TABLE)('TABLE')
+          AndroidSqlSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+            AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+              PsiElement(IDENTIFIER)('employees')
+          PsiElement(DROP)('DROP')
+          AndroidSqlColumnNameImpl(COLUMN_NAME)
+            PsiElement(IDENTIFIER)('status')
+      """.trimIndent(),
+      toParseTreeText("ALTER TABLE employees DROP status")
+    )
+  }
+
   // Regression test for b/243679694
   fun testRowValue() {
     check("SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)")
