@@ -173,7 +173,7 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
     override fun getProcessedElementsHeader() = "Migrate buildConfig setting to build Dsl"
   }
 
-  override fun findUsages(): Array<out UsageInfo> {
+  protected override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     val baseDir = myProject.baseDir ?: return usages.toTypedArray()
     if (!baseDir.exists()) return usages.toTypedArray()

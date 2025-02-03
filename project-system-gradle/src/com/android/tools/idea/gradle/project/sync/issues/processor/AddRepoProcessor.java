@@ -89,7 +89,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
     List<UsageInfo> usages = new ArrayList<>();
 

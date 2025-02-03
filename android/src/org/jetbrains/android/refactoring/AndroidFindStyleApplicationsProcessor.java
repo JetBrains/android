@@ -114,7 +114,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     final List<UsageInfo> usages = findAllStyleApplications();
     return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }

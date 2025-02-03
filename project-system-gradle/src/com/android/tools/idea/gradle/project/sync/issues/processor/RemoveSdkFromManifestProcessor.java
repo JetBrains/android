@@ -82,7 +82,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     List<UsageInfo> usages = new ArrayList<>();
     runOverSdkManifestElements((module, usesSdk) -> {
       XmlElement element = myProperty.getManifestFunction().apply(usesSdk).getXmlElement();

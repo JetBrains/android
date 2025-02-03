@@ -74,7 +74,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     if (myUsageElement != null) {
       return new UsageInfo[] {new UsageInfo(myUsageElement)};
     }

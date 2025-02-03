@@ -74,7 +74,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 

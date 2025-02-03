@@ -169,7 +169,7 @@ class MigrateToResourceNamespacesProcessor(
 
   private val elementFactory = XmlElementFactory.getInstance(myProject)
 
-  override fun findUsages(): Array<out UsageInfo> {
+  protected override fun findUsages(): Array<out UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
 
     progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.analyze.xml")

@@ -324,7 +324,7 @@ class AgpUpgradeRefactoringProcessor(
     }
   }
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     val usages = doFindUsages()
     trackProcessorUsage(FIND_USAGES, usages.size, projectBuildModel.context.allRequestedFiles.size)
     return usages

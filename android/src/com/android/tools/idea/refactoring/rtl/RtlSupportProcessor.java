@@ -159,7 +159,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  public UsageInfo[] findUsages() {
+  protected UsageInfo[] findUsages() {
     if (!myProperties.hasSomethingToDo()) {
       return UsageInfo.EMPTY_ARRAY;
     }

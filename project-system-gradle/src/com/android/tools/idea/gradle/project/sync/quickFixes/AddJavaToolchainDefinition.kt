@@ -20,9 +20,9 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaLanguageVersionPropertyModel
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
@@ -39,7 +39,7 @@ class AddJavaToolchainDefinition(
 ) : BaseRefactoringProcessor(project) {
   private val projectBuildModel = ProjectBuildModel.get(myProject)
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
 
     val usages = ArrayList<UsageInfo>()
     usages.addAll(modules.flatMap { projectBuildModel.getModuleBuildModel(it)?.findJavaToolchainVersionUsages() ?: emptyList() })
