@@ -41,7 +41,7 @@ jvm_test(
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/ide-core",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",

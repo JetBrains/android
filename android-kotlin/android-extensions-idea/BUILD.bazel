@@ -69,7 +69,7 @@ jvm_library(
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
     "//platform/core-impl",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/lang-api:lang",
     "//platform/lang-impl",

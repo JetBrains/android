@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//platform/code-style-api:codeStyle",
     "//platform/core-api:core",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/core-ui",
     "//platform/core-impl",
     "//platform/platform-impl:ide-impl",

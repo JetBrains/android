@@ -31,7 +31,7 @@ jvm_test(
     "//java/testFramework",
     "//platform/core-api:core",
     "//platform/core-ui",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",
     "//platform/external-system-impl:externalSystem-impl",

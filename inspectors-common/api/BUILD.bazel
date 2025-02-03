@@ -14,7 +14,7 @@ jvm_library(
     "//android/adt-ui-model",
     "//android/codenavigation",
     "//platform/core-api:core",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
   ]
 )
@@ -37,7 +37,7 @@ jvm_library(
     "//android/codenavigation",
     "//android/codenavigation:codenavigation_test_lib",
     "//platform/core-api:core",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/testFramework",

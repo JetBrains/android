@@ -57,7 +57,7 @@ jvm_library(
     "//plugins/coverage-common:coverage",
     "//plugins/coverage-common:coverage_test_lib",
     "//platform/xdebugger-api:debugger",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/extensions",

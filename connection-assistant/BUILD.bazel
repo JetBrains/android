@@ -31,7 +31,7 @@ jvm_library(
     "//android/android:core",
     "//platform/util/concurrency",
     "//platform/core-api:core",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/extensions",
     "//platform/ide-core",
     "//platform/util",

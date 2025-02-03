@@ -26,7 +26,7 @@ jvm_library(
     "//android/wizard",
     "//android/wizard-model",
     "//platform/core-api:core",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/projectModel-api:projectModel",

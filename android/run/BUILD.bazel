@@ -64,7 +64,7 @@ jvm_test(
     "//platform/core-impl",
     "//platform/core-ui",
     "//platform/xdebugger-api:debugger",
-    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/extensions",
