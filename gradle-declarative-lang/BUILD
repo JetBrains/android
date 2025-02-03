@@ -14,7 +14,6 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
     ],
 )

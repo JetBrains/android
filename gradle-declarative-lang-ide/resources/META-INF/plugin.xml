@@ -63,6 +63,9 @@
                      enabledByDefault="true" level="WARNING"
                      implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeUnresolvedReferenceInspection"/>
 
+    <applicationService
+        serviceInterface="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIconProviderService"
+        serviceImplementation="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeIconProviderService"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"

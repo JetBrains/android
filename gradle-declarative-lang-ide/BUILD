@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync[module]",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
     ],
 )
 

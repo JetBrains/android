@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
-import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.openapi.application.ApplicationManager
 import javax.swing.Icon
 
-class DeclarativeFileType private constructor() : LanguageFileType(DeclarativeLanguage.INSTANCE) {
-  override fun getName(): String = "Gradle Declarative Configuration Language"
-  override fun getDescription(): String = "Gradle Declarative Build DSL"
-  override fun getDefaultExtension(): String = "dcl"
-  override fun getIcon(): Icon? = DeclarativeIconProviderService.instance.fileIcon
+abstract class DeclarativeIconProviderService {
+  abstract val fileIcon: Icon?
+
+  class StandaloneDeclarativeFileIconProviderService : DeclarativeIconProviderService() {
+    override val fileIcon: Icon? = null
+  }
 
   companion object {
-    @JvmStatic
-    val INSTANCE = DeclarativeFileType()
+    val instance: DeclarativeIconProviderService
+      get() {
+        val service: DeclarativeIconProviderService? = ApplicationManager.getApplication().getService(
+          DeclarativeIconProviderService::class.java)
+        return service ?: StandaloneDeclarativeFileIconProviderService()
+      }
   }
 }
