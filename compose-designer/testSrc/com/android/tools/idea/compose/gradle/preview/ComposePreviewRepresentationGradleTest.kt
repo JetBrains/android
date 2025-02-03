@@ -610,6 +610,61 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
+  fun `test zoom-to-fit when switch Focus tabs`() = runBlocking {
+    val defaultModeScale = 1.5
+    previewView.mainSurface.zoomController.setScale(defaultModeScale)
+
+    val previewElements =
+      previewView.mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val firstPreviewElement = previewElements.single { "DefaultPreview" in it.methodFqn }
+    val secondSelectedPreviewElement =
+      previewElements.single { "MyPreviewWithInline" in it.methodFqn }
+
+    // Ensures that the current mode is Default and the zoom is not a zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Start Focus mode with the first tab.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Focus(firstPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.Focus
+    }
+    previewView.mainSurface.notifyComponentResizedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Focus mode first tab should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Change the scale of the first tab.
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+
+    // Because of the zoom change now we would be able to zoom-to-fit again.
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Switch to second tab of Focus mode.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Focus(secondSelectedPreviewElement))
+    }
+
+    previewView.mainSurface.notifyComponentResizedForTest()
+    previewView.mainSurface.notifyLayoutCreatedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Focus mode second tab should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+  }
+
+  @Test
   fun `test zoom-to-fit when enable Animation inspection mode`() = runBlocking {
     val defaultModeScale = 1.5
     previewView.mainSurface.zoomController.setScale(defaultModeScale)

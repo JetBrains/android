@@ -234,6 +234,17 @@ sealed class PreviewMode {
 
       return Focus(newSelected)
     }
+
+    /**
+     * Checks if the [otherMode] is [PreviewMode.Focus] and if their [PreviewMode.Focus.selected]
+     * tabs are different.
+     *
+     * @param otherMode the [PreviewMode] that we want to compare with this [PreviewMode.Focus].
+     * @return true if the [otherMode] is [PreviewMode.Focus] and if their
+     *   [PreviewMode.Focus.selected] tabs are different, return false otherwise.
+     */
+    fun isFocusModeWithDifferentTabs(otherMode: PreviewMode): Boolean =
+      otherMode is Focus && this.selected != otherMode.selected
   }
 
   class Interactive(selected: PreviewElement<*>) : SingleItemMode<PreviewElement<*>>(selected) {

@@ -796,6 +796,15 @@ class ComposePreviewRepresentation(
           onEnter(it)
         } else {
           updateLayoutManager(it)
+          if ((lastMode as? PreviewMode.Focus)?.isFocusModeWithDifferentTabs(it) == true) {
+            // If both the previous and the current previewModes are of type Focus, but they
+            // are showing two different previewElements (two different tabs), then we should
+            // apply zoom-to-fit.
+            // We don't need to wait for surface to resize because Focus mode has already run
+            // onEnter() and the surface is already with the correct updated sizes.
+            isPreviewModeChanging.set(true)
+            surface.resetZoomToFitNotifier(false)
+          }
         }
         lastMode = it
       }
