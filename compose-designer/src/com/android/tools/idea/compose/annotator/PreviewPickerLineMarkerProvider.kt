@@ -30,6 +30,8 @@ import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.NavigateAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.editor.markup.MarkupEditorFilter
+import com.intellij.openapi.editor.markup.MarkupEditorFilterFactory
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -108,27 +110,33 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   ): LineMarkerInfo<PsiElement> {
     // Make sure there's a configuration available
     ConfigurationManager.getOrCreateInstance(module)
-    return LineMarkerInfo<PsiElement>(
-      element,
-      textRange,
-      icon,
-      { message("picker.preview.annotator.tooltip") },
-      { mouseEvent, _ ->
-        val model =
-          PreviewPickerPropertiesModel.fromPreviewElement(
-            project,
-            module,
-            previewElementDefinitionPsi,
-            PreviewPickerTracker(),
+    return object :
+      LineMarkerInfo<PsiElement>(
+        element,
+        textRange,
+        icon,
+        { message("picker.preview.annotator.tooltip") },
+        { mouseEvent, _ ->
+          val model =
+            PreviewPickerPropertiesModel.fromPreviewElement(
+              project,
+              module,
+              previewElementDefinitionPsi,
+              PreviewPickerTracker(),
+            )
+          PsiPickerManager.show(
+            location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
+            displayTitle = message("picker.preview.title"),
+            model = model,
           )
-        PsiPickerManager.show(
-          location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
-          displayTitle = message("picker.preview.title"),
-          model = model,
-        )
-      },
-      GutterIconRenderer.Alignment.LEFT,
-      { message("picker.preview.annotator.tooltip") },
-    )
+        },
+        GutterIconRenderer.Alignment.LEFT,
+        { message("picker.preview.annotator.tooltip") },
+      ) {
+      override fun getEditorFilter(): MarkupEditorFilter {
+        // Don't display the gutter icon in Diff Viewer
+        return MarkupEditorFilterFactory.createIsNotDiffFilter()
+      }
+    }
   }
 }
