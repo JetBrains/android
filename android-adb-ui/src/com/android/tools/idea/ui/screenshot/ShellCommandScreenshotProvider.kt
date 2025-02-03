@@ -21,18 +21,14 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
-import com.android.adblib.shellCommand
-import com.android.adblib.utils.ByteArrayShellCollector
+import com.android.adblib.tools.screenCapAsBufferedImage
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
 
 private val commandTimeout = INFINITE_DURATION
 
@@ -60,17 +56,11 @@ class ShellCommandScreenshotProvider(
     }
 
     val screenshotJob = coroutineScope.async {
-      val command = buildString {
-        append("screencap -p")
-        if (screenshotOptions.displayId != PRIMARY_DISPLAY_ID) {
-          val physicalDisplayId = getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), screenshotOptions.displayId)
-          append(" -d $physicalDisplayId")
-        }
+      val physicalDisplayId = when (screenshotOptions.displayId) {
+        PRIMARY_DISPLAY_ID -> null
+        else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), screenshotOptions.displayId)
       }
-      adbLibService.session.deviceServices.shellCommand(deviceSelector, command)
-        .withCollector(ByteArrayShellCollector())
-        .withCommandTimeout(commandTimeout)
-        .executeAsSingleOutput { it }
+      adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
     }
 
     return runBlocking {
@@ -78,12 +68,8 @@ class ShellCommandScreenshotProvider(
       ProgressManagerAdapter.checkCanceled()
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       ProgressManagerAdapter.checkCanceled()
-      val screenshotBytes = screenshotJob.await()
+      val image = screenshotJob.await()
       ProgressManagerAdapter.checkCanceled()
-
-      @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
-      val image = ImageIO.read(ByteArrayInputStream(screenshotBytes.stdout))
-                  ?: throw RuntimeException(AndroidAdbUiBundle.message("screenshot.error.decode"))
       screenshotOptions.createScreenshotImage(image, displayInfo)
     }
   }
