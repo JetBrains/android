@@ -68,18 +68,14 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "android-studio");
     TestLogger.log("workDir: %s", workDir);
     String platform = "linux";
-    String studioDir = "android-studio";
     if (SystemInfo.isMac) {
       if (SystemInfo.OS_ARCH.equals("aarch64")) {
         platform = "mac_arm";
       } else {
         platform = "mac";
       }
-      boolean isPreview = isMacPreview(workDir);
-      studioDir  = isPreview ? "Android Studio Preview.app/Contents" : "Android Studio.app/Contents";
     } else if (SystemInfo.isWindows) {
       platform = "win";
-      studioDir = "android-studio";
     }
 
     String zipPath;
@@ -99,6 +95,7 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     Path studioZip = TestUtils.getBinPath(zipPath);
     unzip(studioZip, workDir);
 
+    String studioDir = getStudioDirectory(workDir);
     return new AndroidStudioInstallation(options.testFileSystem, workDir, workDir.resolve(studioDir), options.androidStudioFlavor, options.disableFirstRun);
   }
 
@@ -589,6 +586,17 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
       testFileSystem = system;
       androidStudioFlavor = flavor;
     }
+  }
+
+  private static String getStudioDirectory(Path workDir) {
+    if (SystemInfo.isMac) {
+      if (isMacPreview(workDir)) {
+        return "Android Studio Preview.app/Contents";
+      } else {
+        return "Android Studio.app/Contents";
+      }
+    }
+    return "android-studio";
   }
 
   private static boolean isMacPreview(Path workDir) {
