@@ -80,7 +80,7 @@
     <orderEntry type="module" module-name="intellij.properties.psi" />
     <orderEntry type="module" module-name="intellij.toml.core" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
-    <orderEntry type="module" module-name="intellij.xml.frontback" />
+    <orderEntry type="module" module-name="intellij.xml.parser" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />

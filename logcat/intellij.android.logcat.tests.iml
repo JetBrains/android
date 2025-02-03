@@ -58,7 +58,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.frontback" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />
