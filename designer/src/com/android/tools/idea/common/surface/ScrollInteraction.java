@@ -143,7 +143,7 @@ public class ScrollInteraction implements Interaction {
 
     if (scrolled != 0) {
       myScrolledAmount += scrollAmount;
-      mySceneView.getSceneManager().requestRender();
+      ScrollInteractionUtilKt.requestRenderAndUpdate(mySceneView.getSceneManager());
     }
   }
 
