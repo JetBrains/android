@@ -34,6 +34,7 @@ import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.backup.testing.clickOk
 import com.android.tools.idea.backup.testing.findComponent
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
 import com.google.common.truth.Truth.assertThat
@@ -41,6 +42,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP
 import com.google.wireless.android.sdk.stats.BackupUsageEvent
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
+import com.intellij.execution.ExecutionManager
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.ui.ComboBox
@@ -66,6 +69,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 private const val DUMPSYS_GMSCORE_CMD = "dumpsys package com.google.android.gms"
 
@@ -149,6 +153,36 @@ internal class BackupManagerImplTest {
     assertThat(fakeDialogFactory.dialogs).isEmpty()
     verify(mockVirtualFileManager).refreshAndFindFileByNioPath(backupFile)
     backupFile.deleteExisting()
+  }
+
+  @Test
+  fun backup_detachesFromDebuggedApp(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    backupFile.toFile().deleteOnExit()
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
+    val backupManagerImpl =
+      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+    val mockProcessHandler =
+      mock<ProcessHandler>().apply {
+        val sessionInfo = AndroidSessionInfo.create(this, emptyList(), "com.app")
+        whenever(getUserData(AndroidSessionInfo.KEY)).thenReturn(sessionInfo)
+      }
+    val mockExecutionManager =
+      mock<ExecutionManager>().apply {
+        whenever(getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
+      }
+    project.replaceService(
+      ExecutionManager::class.java,
+      mockExecutionManager,
+      disposableRule.disposable,
+    )
+
+    backupManagerImpl.doBackup("serial", "com.app", CLOUD, backupFile, RUN_CONFIG, false)
+
+    verify(mockProcessHandler).detachProcess()
   }
 
   @Test
