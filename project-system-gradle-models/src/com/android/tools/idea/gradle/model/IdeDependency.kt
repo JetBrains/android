@@ -50,14 +50,6 @@ enum class ResolverType {
 data class LibraryReference(val libraryIndex: Int, val resolverType: ResolverType = ResolverType.GLOBAL) : Serializable
 
 interface IdeLibraryModelResolver {
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency>
   fun resolve(unresolved: IdeDependencyCore) : Sequence<IdeLibrary>
 }
 
