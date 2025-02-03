@@ -213,6 +213,7 @@ import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
+import org.jetbrains.kotlin.idea.gradleJava.scripting.GradleKotlinScriptIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2233,7 +2234,7 @@ private fun <T> openPreparedProject(
           // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
           // run faster.
           val ep = WorkspaceFileIndexImpl.EP_NAME
-          val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+          val filteredExtensions = ep.extensionList.filterNot { it is KotlinScriptWorkspaceFileIndexContributor || it is GradleKotlinScriptIndexContributor }
           ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
         }
 
