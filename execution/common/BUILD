@@ -41,6 +41,9 @@ iml_module(
             "test_filter": "com.android.tools.idea.execution.common.applychanges",
             "tags": ["noci:studio-win"],
         },
+        "AndroidJavaDebuggerTest": {
+            "test_filter": "AndroidJavaDebuggerTest",
+        },
     },
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",
     # keep sorted

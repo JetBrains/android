@@ -38,6 +38,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -59,6 +61,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [AndroidJavaDebugger] code.
@@ -232,6 +236,58 @@ class AndroidJavaDebuggerTest {
     if (!countDownLatch.await(20, TimeUnit.SECONDS)) {
       fail("Process wasn't killed")
     }
+  }
+
+  @Test
+  fun testDoesDestroyOnDestroy() = runTest {
+    val isDestroyed = AtomicBoolean(false)
+    val session = DebugSessionStarter.attachDebuggerToStartedProcess(
+      device,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      executionEnvironment,
+      javaDebugger,
+      javaDebugger.createState(),
+      destroyRunningProcess = { isDestroyed.set(true) },
+      indicator = EmptyProgressIndicator())
+    @Suppress("UnstableApiUsage")
+    val processHandler = session.debugProcess.processHandler
+    val latch = CountDownLatch(1)
+    processHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        latch.countDown()
+      }
+    })
+
+    processHandler.destroyProcess()
+
+    latch.await(5, TimeUnit.SECONDS)
+    assertThat(isDestroyed.get()).isTrue()
+  }
+
+  @Test
+  fun testDoesNotDestroyOnDetach() = runTest {
+    val isDestroyed = AtomicBoolean(false)
+    val session = DebugSessionStarter.attachDebuggerToStartedProcess(
+      device,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      executionEnvironment,
+      javaDebugger,
+      javaDebugger.createState(),
+      destroyRunningProcess = { isDestroyed.set(true) },
+      indicator = EmptyProgressIndicator())
+    @Suppress("UnstableApiUsage")
+    val processHandler = session.debugProcess.processHandler
+    val latch = CountDownLatch(1)
+    processHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        latch.countDown()
+      }
+    })
+
+    processHandler.detachProcess()
+
+    latch.await(5, TimeUnit.SECONDS)
+    assertThat(isDestroyed.get()).isFalse()
   }
 
   @Test
