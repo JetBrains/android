@@ -849,6 +849,7 @@ MODULE                        : Kotlin_Multiplatform
                         androidUnitTestResolvableDependenciesMetadata     : <empty>
                         androidUnitTestRuntimeClasspath         : <empty>
                         androidUnitTestRuntimeOnly    : <empty>
+                        annotationProcessorClasspath  : <empty>
                         - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
