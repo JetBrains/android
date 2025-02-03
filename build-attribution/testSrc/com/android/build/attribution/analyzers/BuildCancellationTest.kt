@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.KeepTasksAsynchronousRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
-import com.android.tools.idea.testing.gradleModule
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth

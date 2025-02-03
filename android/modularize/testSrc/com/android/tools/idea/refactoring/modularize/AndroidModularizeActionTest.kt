@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Rule
 import org.junit.Test

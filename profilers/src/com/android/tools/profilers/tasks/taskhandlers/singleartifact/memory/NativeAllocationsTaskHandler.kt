@@ -21,12 +21,9 @@ import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils.findTaskArtifact
-import com.intellij.util.asSafely
 
 /**
  * This class defines the task handler to perform a native allocations task.

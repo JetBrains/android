@@ -37,7 +37,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.messages.MessageBus;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

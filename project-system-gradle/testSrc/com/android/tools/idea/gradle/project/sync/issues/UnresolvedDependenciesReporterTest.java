@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -32,7 +31,6 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Test;
 import org.mockito.Mock;
 
 /**

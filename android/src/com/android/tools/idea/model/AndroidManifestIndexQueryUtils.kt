@@ -35,7 +35,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.containers.isEmpty
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 import java.util.stream.Stream

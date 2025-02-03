@@ -36,7 +36,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
-import com.intellij.ui.icons.CachedImageIcon
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension

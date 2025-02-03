@@ -15,28 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.sdklib.devices.Storage
-import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.observable.BindingsManager
-import com.android.tools.idea.observable.ListenerManager
-import com.android.tools.idea.observable.core.IntProperty
-import com.android.tools.idea.observable.ui.SliderValueProperty
-import com.android.tools.idea.observable.ui.SpinnerValueProperty
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.ui.JBIntSpinner
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.util.ui.StartupUiUtil
-import java.awt.Dimension
-import java.awt.Font
-import java.util.Hashtable
-import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JSlider
-import kotlin.math.abs
 
 /**
  * Wizard page for setting up AEHD settings

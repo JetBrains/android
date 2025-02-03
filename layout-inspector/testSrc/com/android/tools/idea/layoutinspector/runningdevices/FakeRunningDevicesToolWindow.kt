@@ -55,7 +55,6 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.EventDispatcher
 import com.intellij.util.containers.ContainerUtil
 import icons.StudioIcons
-import java.awt.Component
 import java.awt.Container
 import java.beans.PropertyChangeListener
 import javax.swing.Icon

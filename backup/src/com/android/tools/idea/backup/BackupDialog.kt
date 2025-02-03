@@ -17,7 +17,6 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
-import com.android.tools.idea.backup.BackupDialog.FileFinder
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserFactory

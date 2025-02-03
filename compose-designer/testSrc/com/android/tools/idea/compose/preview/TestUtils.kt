@@ -40,7 +40,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import kotlin.coroutines.resume
 
 /**
  * Relative paths to some useful files in the SimpleComposeApplication (

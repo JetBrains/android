@@ -32,7 +32,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.util.io.delete
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch

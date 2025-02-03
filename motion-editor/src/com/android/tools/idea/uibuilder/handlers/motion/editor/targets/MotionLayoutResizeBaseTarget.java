@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 
 import com.android.sdklib.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;

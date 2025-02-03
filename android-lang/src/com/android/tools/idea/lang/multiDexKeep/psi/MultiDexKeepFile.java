@@ -20,9 +20,7 @@ import com.android.tools.idea.lang.multiDexKeep.MultiDexKeepLanguage;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MultiDexKeepFile extends PsiFileBase {
   public MultiDexKeepFile(@NotNull FileViewProvider viewProvider) {

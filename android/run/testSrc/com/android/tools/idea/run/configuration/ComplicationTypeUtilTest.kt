@@ -24,12 +24,10 @@ import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.onEdt
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import junit.framework.TestCase
 import org.junit.Assert.assertNull
@@ -38,7 +36,6 @@ import org.junit.Test
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
-import com.intellij.util.ui.UIUtil
 
 class ComplicationTypeUtilsTest {
   @get:Rule

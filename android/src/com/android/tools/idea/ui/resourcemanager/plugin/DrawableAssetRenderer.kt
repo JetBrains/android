@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.SdkConstants
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.DrawableRenderer
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger

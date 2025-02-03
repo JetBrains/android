@@ -22,7 +22,6 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.welcome.install.Aehd;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;

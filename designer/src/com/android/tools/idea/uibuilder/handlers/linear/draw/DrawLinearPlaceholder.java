@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;

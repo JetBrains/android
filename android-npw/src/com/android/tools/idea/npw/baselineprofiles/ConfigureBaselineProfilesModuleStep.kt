@@ -47,7 +47,6 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.jetbrains.rd.util.firstOrNull
 import javax.swing.JComboBox
 import javax.swing.JPanel

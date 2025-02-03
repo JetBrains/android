@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build;
 
 import com.android.annotations.concurrency.UiThread;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface GradleBuildListener {
   @UiThread

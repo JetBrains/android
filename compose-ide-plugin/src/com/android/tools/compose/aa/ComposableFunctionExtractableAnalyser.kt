@@ -18,7 +18,6 @@ package com.android.tools.compose.aa
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.utils.TraceUtils.simpleId
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull

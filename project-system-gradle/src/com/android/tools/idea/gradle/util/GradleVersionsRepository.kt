@@ -26,7 +26,6 @@ import com.google.gson.JsonParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.HttpRequests
 import org.jetbrains.ide.PooledThreadExecutor
 import java.io.InputStream
 import java.nio.file.Path

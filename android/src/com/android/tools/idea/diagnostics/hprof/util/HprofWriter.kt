@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.hprof.util
 
-import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
-import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.ConstantPoolEntry
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
 import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry

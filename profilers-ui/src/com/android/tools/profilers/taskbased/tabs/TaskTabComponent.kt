@@ -21,8 +21,6 @@ import com.android.tools.adtui.compose.StudioTheme
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
-import java.awt.BorderLayout
-import javax.swing.JPanel
 
 @OptIn(ExperimentalJewelApi::class)
 abstract class TaskTabComponent(tabContent: @Composable () -> Unit): BorderLayoutPanel() {

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.material.icons.metadata
 
-import java.util.TreeSet
-
 /**
  * A builder class for [MaterialIconsMetadata] that incrementally takes [MaterialMetadataIcon].
  */

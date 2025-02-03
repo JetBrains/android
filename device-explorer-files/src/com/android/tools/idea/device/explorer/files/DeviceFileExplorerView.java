@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 

@@ -20,8 +20,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 
 
 class ApplicationDeployerImplTest {

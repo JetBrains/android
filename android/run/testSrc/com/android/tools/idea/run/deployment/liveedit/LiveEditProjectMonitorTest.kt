@@ -36,8 +36,6 @@ import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent

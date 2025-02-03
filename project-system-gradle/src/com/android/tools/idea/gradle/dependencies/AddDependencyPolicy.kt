@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 
 enum class AddDependencyPolicy {
   VERSION_CATALOG, BUILD_FILE;

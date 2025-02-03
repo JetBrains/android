@@ -18,7 +18,6 @@ package com.android.tools.profilers.integration.taskbased
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 class SystemTraceTaskTest : ProfilersTestBase() {
 

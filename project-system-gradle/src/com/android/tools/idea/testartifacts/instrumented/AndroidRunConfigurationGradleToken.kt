@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_TEST
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getAndroidTestModule

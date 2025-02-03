@@ -30,7 +30,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.DefaultExecutionTargetProvider
 import com.intellij.execution.ExecutionManager
-import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.ExecutionTargetProvider
 import com.intellij.execution.RunManager
@@ -49,7 +48,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.asSafely
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.Icon
 
 class CodeSwapActionTest {
 

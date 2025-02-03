@@ -57,7 +57,6 @@ import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.preview.config.toDeviceConfig
 import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.kotlin.name.Name

@@ -33,7 +33,6 @@ import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.project.Project
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
@@ -46,7 +45,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
 import kotlinx.coroutines.withTimeoutOrNull
-import javax.swing.Icon
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other

@@ -65,7 +65,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;

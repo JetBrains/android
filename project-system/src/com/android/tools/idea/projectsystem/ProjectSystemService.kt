@@ -17,12 +17,10 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.atomic.AtomicReference
 
 class ProjectSystemService(val project: Project) {
   private val cachedProjectSystemDelegate = lazy(LazyThreadSafetyMode.PUBLICATION) { detectProjectSystem(project) }

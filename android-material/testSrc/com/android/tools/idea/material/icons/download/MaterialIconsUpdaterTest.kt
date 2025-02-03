@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader

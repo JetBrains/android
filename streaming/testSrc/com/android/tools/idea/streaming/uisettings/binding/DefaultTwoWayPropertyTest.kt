@@ -16,8 +16,6 @@
 package com.android.tools.idea.streaming.uisettings.binding
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test

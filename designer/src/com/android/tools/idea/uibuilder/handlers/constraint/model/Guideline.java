@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-import java.util.ArrayList;
-
 /**
  * Guideline
  */

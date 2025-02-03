@@ -34,7 +34,6 @@ import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlin.math.min
 import org.jetbrains.annotations.ApiStatus
 
 /**

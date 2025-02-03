@@ -21,7 +21,6 @@ import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
 import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
 import static com.intellij.util.ui.UIUtil.drawHeader;
 import static com.intellij.util.ui.UIUtil.drawImage;
-import static com.intellij.util.ui.UIUtil.isUnderDarcula;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;

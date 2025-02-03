@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.transport.faketransport;
 
-import com.android.tools.idea.io.grpc.BindableService;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;

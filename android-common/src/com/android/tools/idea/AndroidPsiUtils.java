@@ -53,7 +53,6 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import kotlin.sequences.Sequence;

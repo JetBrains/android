@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_ACCELERATION_NOT_SUPPORTED;
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_NESTED_VIRTUAL_MACHINE;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_TURN_OFF_HYPER_V;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.DOWNLOAD_EMULATOR;

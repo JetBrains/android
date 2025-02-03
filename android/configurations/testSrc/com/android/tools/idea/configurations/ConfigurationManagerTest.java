@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.sdklib.devices.Device;

@@ -20,16 +20,11 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.Component;
-import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.api.RemotePackage;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
@@ -83,7 +78,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.StudioAndroidSdkData;

@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.backup
 
-import com.android.backup.BackupType
-import com.android.backup.BackupType.CLOUD
-import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.google.common.truth.Truth.assertThat
 
-import com.android.tools.idea.backup.BackupManager
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

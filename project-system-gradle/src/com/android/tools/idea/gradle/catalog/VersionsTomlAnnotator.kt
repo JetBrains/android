@@ -22,10 +22,8 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.findParentOfType
-import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.toml.lang.psi.TomlArray
-import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey

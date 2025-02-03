@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
-import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import java.util.function.BiConsumer

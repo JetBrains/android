@@ -26,7 +26,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.DirectoryStream;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.rendering.classloading
 
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes

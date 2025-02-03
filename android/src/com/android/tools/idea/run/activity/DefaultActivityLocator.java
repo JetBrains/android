@@ -32,7 +32,6 @@ import com.google.wireless.android.sdk.stats.DefaultActivityLocatorStats;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

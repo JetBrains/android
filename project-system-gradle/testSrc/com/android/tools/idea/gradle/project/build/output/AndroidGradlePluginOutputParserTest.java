@@ -22,24 +22,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix;
-import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix;
-import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix;
-import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix;
-import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix;
-import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetJavaLanguageLevelQuickFix;
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix;
 import com.intellij.build.events.BuildEvent;
-import com.intellij.build.events.BuildIssueEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
-import com.intellij.build.issue.BuildIssue;
-import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.build.output.BuildOutputInstantReader;
-import com.intellij.pom.java.LanguageLevel;
 import java.util.List;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
+
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;

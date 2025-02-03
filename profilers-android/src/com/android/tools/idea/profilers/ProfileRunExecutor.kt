@@ -23,7 +23,6 @@ import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
 
 class ProfileRunExecutor : DefaultRunExecutor() {

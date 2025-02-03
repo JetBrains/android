@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;

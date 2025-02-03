@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.junit.Test

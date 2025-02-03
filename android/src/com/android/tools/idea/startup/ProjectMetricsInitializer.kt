@@ -17,7 +17,6 @@ package com.android.tools.idea.startup
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.stats.ToolWindowTrackerService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.concurrency.JobScheduler
@@ -27,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectCloseListener
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.application
 import java.util.Collections
 import java.util.concurrent.Future

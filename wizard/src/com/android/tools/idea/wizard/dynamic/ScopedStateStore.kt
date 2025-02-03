@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard.dynamic
 
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key
 import com.google.common.base.Function
 import com.google.common.collect.Iterables
 import com.google.common.collect.Lists

@@ -19,7 +19,6 @@ import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.StatefulButtonNotifier
 import com.android.tools.idea.assistant.datamodel.ActionData
-import com.android.tools.idea.assistant.view.StatefulButton.ActionButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter

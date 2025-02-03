@@ -20,18 +20,13 @@ import com.android.adblib.ShellCollector
 import com.android.adblib.TextShellCollector
 import com.android.adblib.ddmlibcompatibility.debugging.executeShellCommand
 import com.android.adblib.selector
-import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.ddmlib.TimeoutException
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.adblib.ddmlibcompatibility.defaultDdmTimeoutMillis
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.runBlocking
-import java.io.IOException
 import java.time.Duration
 
 abstract class AdbShellCommandsUtil {

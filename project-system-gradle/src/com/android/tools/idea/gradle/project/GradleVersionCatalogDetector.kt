@@ -21,7 +21,6 @@ import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.annotations.concurrency.Slow
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE_DECLARATIVE
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED

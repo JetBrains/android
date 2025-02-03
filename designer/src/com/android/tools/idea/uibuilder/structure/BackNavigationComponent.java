@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;

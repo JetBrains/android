@@ -44,7 +44,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.kotlin.utils.addToStdlib.enumSetOf
 import org.junit.Test
 import java.util.EnumSet
 

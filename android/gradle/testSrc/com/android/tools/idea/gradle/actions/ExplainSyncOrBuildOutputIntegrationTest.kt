@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.SdkConstants
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
@@ -26,7 +25,6 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEv
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions

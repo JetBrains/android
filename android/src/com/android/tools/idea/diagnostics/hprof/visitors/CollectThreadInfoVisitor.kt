@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics.hprof.visitors
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
-import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 

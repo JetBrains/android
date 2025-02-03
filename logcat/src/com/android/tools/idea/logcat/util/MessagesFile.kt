@@ -28,7 +28,6 @@ import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.inputStream
 import kotlin.io.path.name
-import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
 private val eof = LogcatMessage(SYSTEM_HEADER, "EOF")

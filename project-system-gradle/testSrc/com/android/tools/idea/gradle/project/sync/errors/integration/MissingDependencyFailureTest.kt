@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
-import com.android.builder.model.v2.ide.SyncIssue
 import com.android.tools.idea.gradle.plugin.AgpVersions.latestKnown
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -32,14 +30,11 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.testFramework.common.waitUntil
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyIssue
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
 
 class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {

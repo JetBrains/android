@@ -9,7 +9,6 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

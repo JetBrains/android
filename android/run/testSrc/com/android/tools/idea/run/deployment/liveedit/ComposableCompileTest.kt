@@ -25,11 +25,9 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileI
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.idea.IJIgnore
 import com.intellij.openapi.application.ReadAction
 import junit.framework.Assert
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider

@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.times

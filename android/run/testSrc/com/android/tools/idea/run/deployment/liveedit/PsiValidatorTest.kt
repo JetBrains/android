@@ -22,7 +22,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
-import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule

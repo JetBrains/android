@@ -18,7 +18,6 @@ package com.android.tools.idea.bleak.expander
 import com.android.tools.idea.bleak.DoNotTrace
 import com.android.tools.idea.bleak.Edge
 import com.android.tools.idea.bleak.HeapGraph
-import com.android.tools.idea.bleak.expander.Expander.Label
 import java.lang.reflect.Field
 
 typealias Node = HeapGraph.Node

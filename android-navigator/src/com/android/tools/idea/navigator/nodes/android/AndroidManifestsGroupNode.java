@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.android.SdkConstants.FD_MAIN;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;

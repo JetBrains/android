@@ -79,7 +79,6 @@ import javax.imageio.ImageIO;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 public class RenderTaskTest extends AndroidTestCase {
   // Using native rendering should have less variation between machines than Java rendering

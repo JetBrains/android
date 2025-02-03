@@ -19,7 +19,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.startup.AndroidStudioAnalyticsImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 //import com.intellij.analytics.AndroidStudioAnalytics

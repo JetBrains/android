@@ -25,7 +25,6 @@ import com.android.tools.idea.run.ApkInfo
 import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
-import com.android.utils.NullLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile

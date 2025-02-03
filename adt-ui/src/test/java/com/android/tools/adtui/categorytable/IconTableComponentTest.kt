@@ -26,7 +26,6 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.assertThrows
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout

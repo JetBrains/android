@@ -52,7 +52,6 @@ import org.junit.runners.Parameterized
 import org.mockito.Mockito.spy
 import perfetto.protos.PerfettoConfig
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)

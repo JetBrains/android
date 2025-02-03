@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule

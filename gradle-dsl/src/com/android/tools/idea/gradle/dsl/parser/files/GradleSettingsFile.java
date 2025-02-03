@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElem
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Arrays;
+
 import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;

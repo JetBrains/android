@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeVisitor
 import com.intellij.lang.LanguageASTFactory
-import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.ParsingTestCase
 import kotlin.reflect.KClass

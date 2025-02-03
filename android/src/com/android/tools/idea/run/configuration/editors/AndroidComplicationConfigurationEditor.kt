@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.getComplicationTypesFromManifest

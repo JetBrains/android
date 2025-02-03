@@ -29,7 +29,6 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
-import static com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServicesKt.requestBuildArtifactsForRendering;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEBUG_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;

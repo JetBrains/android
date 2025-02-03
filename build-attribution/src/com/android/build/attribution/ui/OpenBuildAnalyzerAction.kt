@@ -21,7 +21,6 @@ import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.android.util.AndroidUtils
 
 class OpenBuildAnalyzerAction : AnAction() {
 

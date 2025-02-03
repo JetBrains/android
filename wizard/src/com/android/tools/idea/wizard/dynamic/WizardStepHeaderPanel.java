@@ -25,7 +25,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;

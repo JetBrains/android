@@ -43,7 +43,6 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.NioFiles;

@@ -25,12 +25,9 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Context
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
-import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.ProgressBuildEvent
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project

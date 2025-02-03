@@ -83,7 +83,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * [PropertyItem] for Nele layouts, menus, preferences.

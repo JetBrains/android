@@ -16,7 +16,6 @@
 package com.android.tools.idea.bleak
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import java.lang.reflect.Field
 
 /**

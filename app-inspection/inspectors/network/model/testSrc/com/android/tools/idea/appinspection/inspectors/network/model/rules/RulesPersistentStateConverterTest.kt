@@ -28,7 +28,6 @@ import kotlin.io.path.readText
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.io.path.readText
 
 class RulesPersistentStateConverterTest {
 

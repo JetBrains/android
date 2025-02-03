@@ -18,7 +18,6 @@ package com.android.tools.idea.wear.preview.animation.state
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.state.ColorAnimationState
 import com.android.tools.idea.preview.animation.state.FromToState
-import com.android.tools.idea.preview.animation.state.ToolbarLabel
 import com.android.tools.idea.wear.preview.animation.ColorUnit
 import com.android.tools.idea.wear.preview.animation.ProtoAnimation
 import com.android.tools.idea.wear.preview.animation.state.managers.actions.FloatInputComponentAction

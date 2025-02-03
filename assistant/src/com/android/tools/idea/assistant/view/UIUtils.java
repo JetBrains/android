@@ -23,7 +23,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;

@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin

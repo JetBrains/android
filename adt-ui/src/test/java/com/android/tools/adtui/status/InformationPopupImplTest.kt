@@ -45,8 +45,6 @@ import org.mockito.Mockito.verify
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue.invokeLater
-import java.awt.event.InputEvent
-import java.awt.event.MouseEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel

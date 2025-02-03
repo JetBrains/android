@@ -16,19 +16,15 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.*
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.GRADLE_PROPERTY
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR
 import com.intellij.psi.PsiElement
-import java.util.Arrays
 
 interface DeclarativeDslNameConverter : GradleDslNameConverter {
 

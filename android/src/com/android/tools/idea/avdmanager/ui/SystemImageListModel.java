@@ -63,7 +63,6 @@ import java.awt.event.MouseEvent;
 import java.awt.font.TextLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
 import javax.swing.BorderFactory;

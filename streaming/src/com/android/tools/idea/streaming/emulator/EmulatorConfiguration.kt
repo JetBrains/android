@@ -19,7 +19,6 @@ import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.sdklib.SystemImageTags
 import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG

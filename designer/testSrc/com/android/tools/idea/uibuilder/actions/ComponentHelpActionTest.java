@@ -30,8 +30,6 @@ import org.mockito.MockitoAnnotations;
 
 import static com.android.tools.idea.uibuilder.actions.ComponentHelpAction.ANDROIDX_CAST_ITEM;
 import static com.android.tools.idea.uibuilder.actions.ComponentHelpAction.ANDROID_CAST_ITEM;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {

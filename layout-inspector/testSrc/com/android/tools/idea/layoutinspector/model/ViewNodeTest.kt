@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.UsefulTestCase
 import org.junit.Rule

@@ -17,20 +17,15 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.isTomlError
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
-import com.intellij.build.BuildProgressListener
 import com.intellij.build.SyncViewManager
-import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.concurrency.ConcurrentCollectionFactory.createConcurrentMap
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
@@ -39,7 +34,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyIssue
 import org.jetbrains.plugins.gradle.util.GradleBundle
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)

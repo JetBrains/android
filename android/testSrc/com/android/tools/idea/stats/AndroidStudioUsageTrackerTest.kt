@@ -19,8 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.analytics.AnalyticsSettings.optedIn
-import com.android.tools.analytics.AnalyticsSettings.userId
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
 import com.android.tools.analytics.HostData.osBean
@@ -43,7 +41,6 @@ import com.google.wireless.android.sdk.stats.MachineDetails
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerExtension
-import junit.framework.TestCase
 import org.junit.Assert
 import java.awt.GraphicsDevice
 import java.io.File

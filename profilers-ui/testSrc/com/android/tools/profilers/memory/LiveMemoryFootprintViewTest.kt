@@ -42,8 +42,6 @@ import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.LiveMemoryFootprintModel
-import com.android.tools.profilers.memory.LiveMemoryFootprintView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBPanel

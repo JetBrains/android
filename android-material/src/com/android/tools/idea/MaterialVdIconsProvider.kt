@@ -43,7 +43,6 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.progress.getCancellable
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 

@@ -24,7 +24,6 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.TestApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

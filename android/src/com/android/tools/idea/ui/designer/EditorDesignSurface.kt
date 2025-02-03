@@ -20,7 +20,6 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
 import com.google.common.collect.ImmutableCollection
 import java.awt.LayoutManager
-import java.util.concurrent.CompletableFuture
 
 /**
  * A layout editor design surface.

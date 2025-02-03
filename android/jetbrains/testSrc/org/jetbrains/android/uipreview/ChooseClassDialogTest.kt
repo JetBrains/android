@@ -26,7 +26,6 @@ import java.awt.Component
 import javax.swing.DefaultListModel
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Ignore
 import org.junit.Rule
 
 class ChooseClassDialogTest : AndroidTestCase() {

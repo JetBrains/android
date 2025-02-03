@@ -40,10 +40,6 @@ import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.CpuUsageView
-import com.android.tools.profilers.cpu.LiveCpuUsageModel
-import com.android.tools.profilers.cpu.LiveCpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule

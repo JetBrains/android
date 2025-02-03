@@ -19,9 +19,7 @@ import static com.android.sdklib.internal.avd.ConfigKey.DISPLAY_NAME;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.android.repository.Revision;
-import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;

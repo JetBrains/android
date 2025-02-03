@@ -31,7 +31,6 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.VfsTestUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.annotations.NonNls
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 
 abstract class AbstractAndroidLintTest : AndroidTestCase() {
   init {

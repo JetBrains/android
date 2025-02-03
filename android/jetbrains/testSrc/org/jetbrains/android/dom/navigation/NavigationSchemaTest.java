@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.navigation;
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 import static com.android.SdkConstants.TAG_INCLUDE;
-import static com.google.common.truth.Truth.assertThat;
 
 import com.android.AndroidProjectTypes;
 import com.android.AndroidXConstants;

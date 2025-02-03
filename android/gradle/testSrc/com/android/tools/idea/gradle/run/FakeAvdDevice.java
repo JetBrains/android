@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.run;
 
 import static com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME;
 import static com.android.sdklib.internal.avd.UserSettingsKey.PREFERRED_ABI;
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
@@ -28,13 +27,12 @@ import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.project.Project;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;

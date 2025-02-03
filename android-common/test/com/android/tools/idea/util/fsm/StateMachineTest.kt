@@ -26,7 +26,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import org.apache.log4j.Level
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

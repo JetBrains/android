@@ -20,7 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.fail
 
 class FeatureTrackerTest {
   private data class LoggingFeatureTracker(val log: MutableList<Any>, val backend: FeatureTracker): FeatureTracker by backend {

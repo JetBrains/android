@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
-import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.AndroidGradleProjectRule

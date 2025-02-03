@@ -25,7 +25,6 @@ import com.android.tools.idea.lang.androidSql.resolution.JavaFieldSqlType
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
 import com.android.tools.idea.lang.androidSql.resolution.PsiElementPointer
 import com.android.tools.idea.lang.androidSql.resolution.SqlType
-import com.android.tools.idea.lang.androidSql.room.RoomTable.Type
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil

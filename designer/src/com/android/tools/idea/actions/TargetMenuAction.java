@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.module.AndroidModuleInfo;

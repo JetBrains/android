@@ -52,9 +52,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import java.lang.ref.WeakReference
-import java.util.WeakHashMap
-import javax.swing.event.TreeModelEvent
 
 internal const val DEFAULT_SHARED_ISSUE_PANEL_TAB_TITLE = "Designer"
 const val SHARED_ISSUE_PANEL_TAB_ID = "_Designer_Tab"

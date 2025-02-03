@@ -63,7 +63,6 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSe
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;

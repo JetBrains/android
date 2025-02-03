@@ -33,7 +33,6 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLive
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project

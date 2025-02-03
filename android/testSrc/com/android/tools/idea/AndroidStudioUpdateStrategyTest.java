@@ -26,7 +26,6 @@ import com.intellij.openapi.updateSettings.impl.UpdateData;
 import com.intellij.openapi.updateSettings.impl.UpdateStrategy;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.BuildNumber;
-import com.intellij.openapi.util.JDOMUtil;
 import org.intellij.lang.annotations.Language;
 import org.junit.Test;
 

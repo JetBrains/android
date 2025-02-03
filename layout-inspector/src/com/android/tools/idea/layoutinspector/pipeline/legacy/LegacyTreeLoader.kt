@@ -38,7 +38,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.project.modules
-import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit

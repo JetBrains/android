@@ -3,11 +3,9 @@
 package com.android.tools.idea.run.editor;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.backup.BackupManager;
-import com.android.tools.idea.flags.ChannelDefault;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;

@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.options.UnnamedConfigurable
 import com.intellij.openapi.project.Project
 
 interface ExperimentalSettingsContributor {

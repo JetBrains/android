@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile.
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.settings.RepositoriesModePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import org.jetbrains.annotations.NotNull;

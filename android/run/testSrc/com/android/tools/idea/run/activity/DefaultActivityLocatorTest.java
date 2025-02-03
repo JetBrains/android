@@ -20,7 +20,6 @@ import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActi
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_DEFAULT;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ENABLED;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_MANIFESTS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_TV;
 import static org.mockito.Mockito.mock;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

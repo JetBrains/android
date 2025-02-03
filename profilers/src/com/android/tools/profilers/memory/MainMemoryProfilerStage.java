@@ -47,11 +47,10 @@ import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskMetadataStatus;
 import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;

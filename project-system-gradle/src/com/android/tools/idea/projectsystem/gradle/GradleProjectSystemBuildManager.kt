@@ -12,9 +12,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import java.util.concurrent.atomic.AtomicInteger
 import com.intellij.util.concurrency.ThreadingAssertions
 

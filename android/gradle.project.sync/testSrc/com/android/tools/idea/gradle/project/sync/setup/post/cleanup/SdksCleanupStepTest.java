@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import static com.android.SdkConstants.FD_PKG_SOURCES;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.sdk.SdksCleanupUtil.updateSdkIfNeeded;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Sdks.findAndroidTarget;

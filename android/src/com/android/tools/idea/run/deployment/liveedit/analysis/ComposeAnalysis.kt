@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.SdkConstants
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
-import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type

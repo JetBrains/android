@@ -29,7 +29,6 @@ import kotlin.io.path.readBytes
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
-import kotlin.io.path.readBytes
 
 private val TIMEOUT = 5.seconds
 
