@@ -81,7 +81,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -447,7 +446,6 @@ class ComposePreviewViewImplTest {
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
   }
 
-  @Ignore("b/387245555")
   @Test
   fun `open and close bottom panel`() {
     val composePreviewManager = TestComposePreviewManager()
