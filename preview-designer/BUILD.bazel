@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "preview-designer_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "preview-designer",
   module_name = "intellij.android.preview-designer",
@@ -75,10 +69,7 @@ jvm_library(
     "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
     "@lib//:kotlinx-collections-immutable",
   ],
-  runtime_deps = [
-    ":preview-designer_resources",
-    ":preview-designer_resources_1",
-  ]
+  runtime_deps = [":preview-designer_resources"]
 )
 ### auto-generated section `build intellij.android.preview-designer` end
 

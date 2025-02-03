@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "android-nav-editor_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "android-nav-editor",
   module_name = "intellij.android.nav.editor",
@@ -66,10 +60,7 @@ jvm_library(
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
     "//plugins/kotlin/base/util:kotlin-base-util",
   ],
-  runtime_deps = [
-    ":android-nav-editor_resources",
-    ":android-nav-editor_resources_1",
-  ]
+  runtime_deps = [":android-nav-editor_resources"]
 )
 
 jvm_library(
@@ -146,10 +137,7 @@ jvm_library(
     "//xml/dom-impl",
     "//android/adt-testutils:adt-testutils_test_lib",
   ],
-  runtime_deps = [
-    ":android-nav-editor_resources",
-    ":android-nav-editor_resources_1",
-  ]
+  runtime_deps = [":android-nav-editor_resources"]
 )
 
 jvm_test(

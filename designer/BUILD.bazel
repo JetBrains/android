@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "designer_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "designer",
   module_name = "intellij.android.designer",
@@ -97,10 +91,7 @@ jvm_library(
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [
-    ":designer_resources",
-    ":designer_resources_1",
-  ]
+  runtime_deps = [":designer_resources"]
 )
 
 jvm_library(
@@ -208,10 +199,7 @@ jvm_library(
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [
-    ":designer_resources",
-    ":designer_resources_1",
-  ]
+  runtime_deps = [":designer_resources"]
 )
 
 jvm_test(

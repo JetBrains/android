@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "wear-whs_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "wear-whs",
   module_name = "intellij.android.wear-whs",
@@ -42,10 +36,7 @@ jvm_library(
     "//android/android:core",
     "@lib//:kotlin-reflect",
   ],
-  runtime_deps = [
-    ":wear-whs_resources",
-    ":wear-whs_resources_1",
-  ]
+  runtime_deps = [":wear-whs_resources"]
 )
 
 jvm_library(
@@ -94,10 +85,7 @@ jvm_library(
     "@lib//:mockito",
     "@lib//:mockito-kotlin",
   ],
-  runtime_deps = [
-    ":wear-whs_resources",
-    ":wear-whs_resources_1",
-  ]
+  runtime_deps = [":wear-whs_resources"]
 )
 
 jvm_test(

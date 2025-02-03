@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "glance-designer_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "glance-designer",
   module_name = "intellij.android.glance-designer",
@@ -54,10 +48,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
   ],
-  runtime_deps = [
-    ":glance-designer_resources",
-    ":glance-designer_resources_1",
-  ]
+  runtime_deps = [":glance-designer_resources"]
 )
 ### auto-generated section `build intellij.android.glance-designer` end
 

@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "layout-inspector_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "layout-inspector",
   module_name = "intellij.android.layout-inspector",
@@ -89,10 +83,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting:kotlin-base-scripting",
     "//plugins/kotlin/base/util:kotlin-base-util",
   ],
-  runtime_deps = [
-    ":layout-inspector_resources",
-    ":layout-inspector_resources_1",
-  ]
+  runtime_deps = [":layout-inspector_resources"]
 )
 
 jvm_library(
@@ -198,10 +189,7 @@ jvm_library(
     "//java/testFramework",
     "//android/project-system-gradle:projectSystem-gradle",
   ],
-  runtime_deps = [
-    ":layout-inspector_resources",
-    ":layout-inspector_resources_1",
-  ]
+  runtime_deps = [":layout-inspector_resources"]
 )
 
 jvm_test(

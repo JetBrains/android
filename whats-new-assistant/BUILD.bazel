@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "whats-new-assistant_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "whats-new-assistant",
   module_name = "intellij.android.whats-new-assistant",
@@ -43,10 +37,7 @@ jvm_library(
     "//platform/projectModel-api:projectModel",
     "//platform/util",
   ],
-  runtime_deps = [
-    ":whats-new-assistant_resources",
-    ":whats-new-assistant_resources_1",
-  ]
+  runtime_deps = [":whats-new-assistant_resources"]
 )
 ### auto-generated section `build intellij.android.whats-new-assistant` end
 

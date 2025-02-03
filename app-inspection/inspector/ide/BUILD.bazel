@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "android-app-inspection-inspector-ide_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "android-app-inspection-inspector-ide",
   module_name = "intellij.android.app-inspection.inspector.ide",
@@ -30,9 +24,6 @@ jvm_library(
     "//platform/extensions",
     "//platform/util",
   ],
-  runtime_deps = [
-    ":android-app-inspection-inspector-ide_resources",
-    ":android-app-inspection-inspector-ide_resources_1",
-  ]
+  runtime_deps = [":android-app-inspection-inspector-ide_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.ide` end

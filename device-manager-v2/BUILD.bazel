@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "device-manager-v2_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "device-manager-v2",
   module_name = "intellij.android.device-manager-v2",
@@ -51,10 +45,7 @@ jvm_library(
     "//android/avd",
     "//android/intellij.android.device:device",
   ],
-  runtime_deps = [
-    ":device-manager-v2_resources",
-    ":device-manager-v2_resources_1",
-  ]
+  runtime_deps = [":device-manager-v2_resources"]
 )
 
 jvm_library(
@@ -109,10 +100,7 @@ jvm_library(
     "//android/avd:avd_test_lib",
     "//android/intellij.android.device:device",
   ],
-  runtime_deps = [
-    ":device-manager-v2_resources",
-    ":device-manager-v2_resources_1",
-  ]
+  runtime_deps = [":device-manager-v2_resources"]
 )
 
 jvm_test(

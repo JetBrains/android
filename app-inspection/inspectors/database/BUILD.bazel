@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "android-app-inspection-inspectors-database_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "android-app-inspection-inspectors-database",
   module_name = "intellij.android.app-inspection.inspectors.database",
@@ -60,10 +54,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
   ],
-  runtime_deps = [
-    ":android-app-inspection-inspectors-database_resources",
-    ":android-app-inspection-inspectors-database_resources_1",
-  ]
+  runtime_deps = [":android-app-inspection-inspectors-database_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.database` end
 

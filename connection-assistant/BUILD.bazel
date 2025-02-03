@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "connection-assistant_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "connection-assistant",
   module_name = "intellij.android.connection-assistant",
@@ -37,10 +31,7 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
   ],
-  runtime_deps = [
-    ":connection-assistant_resources",
-    ":connection-assistant_resources_1",
-  ]
+  runtime_deps = [":connection-assistant_resources"]
 )
 ### auto-generated section `build intellij.android.connection-assistant` end
 
