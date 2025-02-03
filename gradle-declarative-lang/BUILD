@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -40,5 +41,22 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+    ],
+)
+
+kotlin_library(
+    name = "tools.dcl-lang",
+    srcs = glob([
+        "src/**/*.java",
+        "src/**/*.kt",
+        "gen/**/*.java",
+    ]),
+    module_name = "dcl-lang",
+    resources = glob(["resources/**"]),
+    visibility = ["//tools/base/lint/cli:__pkg__"],
+    deps = [
+        "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//prebuilts/tools/common/lint-psi/kotlin-compiler",
+        "//prebuilts/tools/common/lint-psi/uast",
     ],
 )
