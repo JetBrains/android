@@ -25,6 +25,7 @@ interface DesignSurfaceListener {
   fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {}
 
   /** The current models changed */
+  @Deprecated("Use DesignSurface.modelChanged instead.")
   @UiThread
   // TODO(b/352512443): some implementations of this interface still work under the assumption of
   //   having a single model and this needs to be addressed.
