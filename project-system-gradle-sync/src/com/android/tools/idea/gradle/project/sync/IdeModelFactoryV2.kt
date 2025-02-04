@@ -31,15 +31,7 @@ import java.io.File
 
 class IdeModelFactoryV2(
   private val modelVersions: ModelVersions,
-  multiVariantAdditionalArtifactSupport: Boolean,
 ) {
-
-  /**
-   * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha08.
-   * Any attempt to read these values from a version prior to this will result in an exception.
-   */
-  private val useAdditionalArtifactsFromLibraries =
-    modelVersions[ModelFeature.HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES] && multiVariantAdditionalArtifactSupport
 
   fun androidLibraryFrom(androidLibrary: Library, deduplicate: String.() -> String) : IdeAndroidLibraryImpl {
     fun File.deduplicateFile(): File = File(path.deduplicate())
@@ -56,9 +48,8 @@ class IdeModelFactoryV2(
       folder = androidLibraryData.resFolder.parentFile.deduplicateFile(),
       artifact = androidLibrary.artifact ?: File(""),
       lintJar = androidLibrary.lintJar?.path,
-      srcJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.srcJar?.path else null,
-      docJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.docJar?.path else null,
-      samplesJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.samplesJar?.path else null,
+      srcJars = getSrcJars(androidLibrary).map { it.path },
+      docJar = getDocJar(androidLibrary)?.path,
       manifest = androidLibraryData.manifest.path ?: "",
       compileJarFiles = androidLibraryData.compileJarFiles.map { it.path },
       runtimeJarFiles = androidLibraryData.runtimeJarFiles.map { it.path },
@@ -84,9 +75,8 @@ class IdeModelFactoryV2(
       component = javaLibrary.getComponent(),
       name = "",
       artifact = javaLibrary.artifact!!,
-      srcJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.srcJar else null,
-      docJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.docJar else null,
-      samplesJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.samplesJar else null,
+      srcJars = getSrcJars(javaLibrary),
+      docJar = getDocJar(javaLibrary),
     )
   }
 
@@ -143,6 +133,18 @@ class IdeModelFactoryV2(
   }
 
   // --------
+
+  private fun getSrcJars(library: Library): List<File> {
+    return if (modelVersions[ModelFeature.HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES]) {
+      library.srcJars
+    } else {
+      listOf()
+    }
+  }
+
+  private fun getDocJar(library: Library): File? {
+    return library.takeIf { modelVersions[ModelFeature.HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES] }?.docJar
+  }
 
   private fun Map<String, BuildId>.buildPathToBuildId(projectInfo: ProjectInfo): BuildId {
     val buildTreePath = projectInfo.buildTreePath

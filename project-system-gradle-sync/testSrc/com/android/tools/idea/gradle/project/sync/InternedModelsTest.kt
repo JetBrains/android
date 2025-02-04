@@ -201,9 +201,8 @@ class InternedModelsTest {
       component = Component.parse("com.example:lib:1.0"),
       name = "",
       artifact = File("$libRoot/artifactFile"),
-      srcJar = null,
+      srcJars = listOf(),
       docJar = null,
-      samplesJar = null
     )
 
     val ref = internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamed)) { unnamed }
@@ -221,9 +220,8 @@ class InternedModelsTest {
       component = Component.parse("com.example:lib:1.0"),
       name = "",
       artifact = File("$libRoot/artifactFile"),
-      srcJar = null,
+      srcJars = listOf(),
       docJar = null,
-      samplesJar = null
     )
 
     val unnamedCopy = unnamed.copy()
@@ -344,9 +342,8 @@ class InternedModelsTest {
     renderscriptFolder = "$libRoot/renderscriptFolder",
     proguardRules = "$libRoot/proguardRules",
     lintJar = "$libRoot/lint.jar",
-    srcJar = "$libRoot/srcJar.jar",
+    srcJars = listOf("$libRoot/srcJar.jar"),
     docJar = "$libRoot/docJar.jar",
-    samplesJar = "$libRoot/samplesJar.jar",
     externalAnnotations = "$libRoot/externalAnnotations",
     publicResources = "$libRoot/publicResources",
     artifact = File(artifact),
@@ -364,6 +361,7 @@ class InternedModelsTest {
     override val projectInfo: ProjectInfo get() = error("unused")
     override val lintJar: File get() = error("unused")
     override val srcJar: File get() = error("unused")
+    override val srcJars: List<File> get() = error("unused")
     override val docJar: File get() = error("unused")
     override val samplesJar get() = error("unused")
 

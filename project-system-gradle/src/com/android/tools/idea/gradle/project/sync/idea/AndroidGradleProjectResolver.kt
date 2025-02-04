@@ -539,7 +539,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val artifactLookup = Function { library: IdeArtifactLibrary ->
       // Attempt to find the source/doc/samples jars within the library if we haven't injected the additional artifacts model builder
       if (additionalArtifacts == null) {
-        return@Function AdditionalArtifactsPaths(listOfNotNull(library.srcJar, library.samplesJar), library.docJar)
+        return@Function AdditionalArtifactsPaths(library.srcJars, library.docJar)
       }
 
       // Otherwise fall back to using the model from the injected model builder.

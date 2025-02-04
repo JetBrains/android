@@ -35,9 +35,10 @@ internal fun getAdditionalClassifierArtifactsModel(
     inputModules.map { module ->
       ActionToRun(fun(controller: BuildController) {
         if (!module.modelVersions[ModelFeature.SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL]) return
-        // In later versions of AGP the information contained within the AdditionalClassifierArtifactsModel has been moved
-        // to the individual libraries.
-        if (module.modelVersions[ModelFeature.HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES] && useMultiVariantAdditionalArtifactSupport) return
+        // Studio starts to manage the MultiVariantArtifactSupport when we add source list for each library based on
+        // useMultiVariantAdditionalArtifactSupport. Before that, it is uncertain whether this additional artifact model fetching should
+        // be skipped because additional artifacts might be passed from the build side.
+        if (module.modelVersions[ModelFeature.HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES] && useMultiVariantAdditionalArtifactSupport) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
         val identifiers = module.getLibraryDependencies(libraryResolver).filter {

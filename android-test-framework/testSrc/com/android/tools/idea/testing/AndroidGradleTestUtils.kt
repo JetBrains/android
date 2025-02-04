@@ -347,9 +347,8 @@ data class JavaLibraryDependency(val library: IdeJavaLibraryImpl) {
         component = Component.parse(fakeCoordinates),
         name = "",
         artifact = jarFile,
-        srcJar = null,
+        srcJars = listOf(),
         docJar = null,
-        samplesJar = null,
       )
 
       return JavaLibraryDependency(libraryImpl)
@@ -2559,7 +2558,7 @@ private fun setupDataNodesForSelectedVariant(
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { lib ->
       AdditionalArtifactsPaths(
-        listOfNotNull(lib.srcJar, lib.samplesJar),
+        lib.srcJars,
         lib.docJar,
       )
     }, newVariant, IdentityHashMap())

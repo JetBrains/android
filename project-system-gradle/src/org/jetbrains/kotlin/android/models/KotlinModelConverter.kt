@@ -258,9 +258,8 @@ class KotlinModelConverter {
         folder = androidLibraryData.resFolder.convertAndDeduplicate().parentFile.deduplicateFile(),
         artifact = if (androidLibrary.hasArtifact()) androidLibrary.artifact.convertAndDeduplicate() else File(""),
         lintJar = if (androidLibrary.hasLintJar()) androidLibrary.lintJar.convertAndDeduplicate().path else null,
-        srcJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasSrcJar()) androidLibrary.srcJar.convertAndDeduplicate().path else null,
+        srcJars = if (useAdditionalArtifactsFromLibraries) androidLibrary.srcJarsList.map { it.convertAndDeduplicate().path } else listOf(),
         docJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasDocJar()) androidLibrary.docJar.convertAndDeduplicate().path else null,
-        samplesJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasSamplesJar()) androidLibrary.samplesJar.convertAndDeduplicate().path else null,
         manifest = androidLibraryData.manifest.convertAndDeduplicate().path ?: "",
         compileJarFiles = androidLibraryData.compileJarFilesList.map { it.convertAndDeduplicate().path },
         runtimeJarFiles = androidLibraryData.runtimeJarFilesList.map { it.convertAndDeduplicate().path },
@@ -315,9 +314,8 @@ class KotlinModelConverter {
                   }
                 },
                 artifact = dependency.classpath.first(),
-                srcJar = if (useAdditionalArtifactsFromLibraries) dependency.sourcesClasspath.firstOrNull() else null,
+                srcJars = if (useAdditionalArtifactsFromLibraries) dependency.sourcesClasspath.toList() else listOf(),
                 docJar = if (useAdditionalArtifactsFromLibraries) dependency.documentationClasspath.firstOrNull() else null,
-                samplesJar = null,
               )
             )
           }

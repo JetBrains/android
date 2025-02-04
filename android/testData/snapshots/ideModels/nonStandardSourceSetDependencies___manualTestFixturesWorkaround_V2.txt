@@ -636,30 +636,38 @@ LIBRARY_TABLE
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
         component                     : com.squareup:javawriter:2.1.1
+        - srcJars                     : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1-sources.jar
     - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
         artifactAddress               : javax.inject:javax.inject:1@jar
         component                     : javax.inject:javax.inject:1
+        - srcJars                     : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
         component                     : junit:junit:4.12
+        - srcJars                     : <M2>/junit/junit/4.12/junit-4.12-sources.jar
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
         component                     : net.sf.kxml:kxml2:2.3.0
+        docJar                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-javadoc.jar
+        - srcJars                     : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
         component                     : org.hamcrest:hamcrest-core:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
     - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
         component                     : org.hamcrest:hamcrest-integration:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3-sources.jar
     - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -668,6 +676,8 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app

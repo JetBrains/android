@@ -29,9 +29,8 @@ data class IdeJavaLibraryImpl(
   override val component: Component?,
   override val name: String,
   override val artifact: File,
-  override val srcJar: File?, // AGP 8.1.0-alpha08 or later only
-  override val docJar: File?, // AGP 8.1.0-alpha08 or later only
-  override val samplesJar: File? // AGP 8.1.0-alpha08 or later only
+  override val srcJars: List<File>,
+  override val docJar: File?,
 ) : IdeUnresolvedJavaLibrary, Serializable {
 
   // Used for serialization by the IDE.
@@ -40,9 +39,8 @@ data class IdeJavaLibraryImpl(
     component = null,
     name = "",
     artifact = File(""),
-    srcJar = null,
+    srcJars = listOf(),
     docJar = null,
-    samplesJar = null
   )
 
   override val lintJar: File?

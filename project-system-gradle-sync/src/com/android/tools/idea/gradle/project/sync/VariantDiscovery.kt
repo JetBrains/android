@@ -309,7 +309,7 @@ internal class VariantDiscovery(
           it.variantName = variant
           // The below is ignored for this model, but we need to set them regardless to avoid issues
           // Ideally we should have a separate set of parameters for each model, but that's currently not the case
-          it.buildAllRuntimeClasspaths()
+          it.buildAllRuntimeClasspaths(addAdditionalArtifactsInModel = true)
       }
 
       projectGraph!!.resolvedVariants.mapNotNull { (projectPath, variantName) ->

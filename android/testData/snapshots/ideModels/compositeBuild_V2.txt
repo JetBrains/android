@@ -537,6 +537,8 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
