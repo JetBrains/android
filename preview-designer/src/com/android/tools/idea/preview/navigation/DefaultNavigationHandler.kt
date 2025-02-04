@@ -81,7 +81,6 @@ open class DefaultNavigationHandler(
     navigatable: Navigatable,
     requestFocus: Boolean,
   ): Boolean {
-    val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
     withContext(uiThread) { navigatable.navigate(requestFocus) }
     return true
   }
