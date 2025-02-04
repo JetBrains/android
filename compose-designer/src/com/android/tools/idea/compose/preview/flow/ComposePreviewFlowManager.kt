@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 /**
@@ -136,8 +137,8 @@ internal class ComposePreviewFlowManager(
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
-      launch(workerThread) {
-        refreshNotificationsAndVisibilityFlow.conflate().collect {
+      launch {
+        refreshNotificationsAndVisibilityFlow.conflate().flowOn(workerThread).collect {
           refreshNotificationsAndVisibilityFlow
             .resetReplayCache() // Do not keep re-playing after we have received the element.
           log.debug("refreshNotificationsAndVisibilityFlow, request=$it")

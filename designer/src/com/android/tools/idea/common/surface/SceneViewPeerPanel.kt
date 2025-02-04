@@ -43,6 +43,7 @@ import kotlin.math.round
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
 @SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
@@ -68,8 +69,10 @@ class SceneViewPeerPanel(
 ) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
-    scope.launch(uiThread) {
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { invalidate() }
+    scope.launch {
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect {
+        withContext(uiThread) { invalidate() }
+      }
     }
   }
 

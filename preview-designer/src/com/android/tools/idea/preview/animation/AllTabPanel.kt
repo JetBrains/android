@@ -43,6 +43,7 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Component and its layout for `All animations` tab. */
 class AllTabPanel
@@ -137,7 +138,8 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     }
     updateDimension()
     if (card is AnimationCard) {
-      jobsByCard[card] = scope.launch(uiThread) { card.expanded.collect { updateCardSize(card) } }
+      jobsByCard[card] =
+        scope.launch { card.expanded.collect { withContext(uiThread) { updateCardSize(card) } } }
     }
   }
 

@@ -28,6 +28,7 @@ import java.awt.Dimension
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 
@@ -60,7 +61,7 @@ open class LabelPanel(
 
     updateUi()
 
-    scope.launch(uiThread) {
+    scope.launch {
       merge(
           displaySettings.modelDisplayName,
           displaySettings.parameterName,
@@ -68,6 +69,7 @@ open class LabelPanel(
           displaySettings.tooltip,
         )
         .conflate()
+        .flowOn(uiThread)
         .collect {
           updateUi()
           invalidate()

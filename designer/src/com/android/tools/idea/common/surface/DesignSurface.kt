@@ -244,10 +244,12 @@ abstract class DesignSurface<T : SceneManager>(
       .apply {
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
-        scope.launch(uiThread) {
+        scope.launch {
           componentsUpdated.collect {
             if (readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
-              checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+              withContext(uiThread) {
+                checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+              }
             }
           }
         }

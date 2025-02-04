@@ -42,6 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -306,9 +307,9 @@ class NlSurfaceBuilder(
     Disposer.register(surface, nlDesignSurfacePositionableContentLayoutManager)
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
-    AndroidCoroutineScope(surface).launch(uiThread) {
+    AndroidCoroutineScope(surface).launch {
       nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect {
-        surface.onLayoutUpdated(it)
+        withContext(uiThread) { surface.onLayoutUpdated(it) }
       }
     }
 

@@ -396,7 +396,7 @@ internal class ComposePreviewViewImpl(
     workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     workbench.isFocusCycleRoot = true
 
-    scope.launch(workerThread) {
+    scope.launch {
       updateVisibilityAndNotificationsRequestFlow.collect {
         handleUpdateVisibilityAndNotificationsRequest()
       }
