@@ -292,7 +292,7 @@ class DesignSurfaceTest : LayoutTestCase() {
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
 
-    // We try to notify that we are ready to restore the zoom with a bitwiseNumber of "1"
+    // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of "1"
     // (NOTIFY_ZOOM_TO_FIT_INT_MASK).
     surface.notifyZoomToFit()
     surface.notifyZoomToFit()
@@ -325,18 +325,20 @@ class DesignSurfaceTest : LayoutTestCase() {
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
 
-    // We try to notify that we are ready to restore the zoom with a bitwiseNumber of
+    // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of
     // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
+    // change its value if multiple resize callbacks happens.
     surface.notifyComponentResizedForTest()
     surface.notifyComponentResizedForTest()
     surface.notifyComponentResizedForTest()
 
-    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "1" (NOTIFY_ZOOM_TO_FIT_INT_MASK).
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyZoomToFit()
 
-    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyLayoutCreatedForTest()
@@ -360,12 +362,14 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     surface.notifyLayoutCreatedForTest()
 
-    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
     assertEquals(1.0, surface.zoomController.scale)
 
-    // We notify that we are ready to restore the zoom with a bitwiseNumber of
-    // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    // We notify that we are ready to apply zoom-to-fit with a bitwiseNumber of "2"
+    // (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
+    // change its value if multiple resize callbacks happens.
     surface.notifyComponentResizedForTest()
     surface.notifyComponentResizedForTest()
     surface.notifyComponentResizedForTest()
