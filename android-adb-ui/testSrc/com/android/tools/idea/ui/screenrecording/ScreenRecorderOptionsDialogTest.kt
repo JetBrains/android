@@ -19,6 +19,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.extractTextFromHtml
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -29,6 +32,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JEditorPane
 import javax.swing.JTextField
@@ -38,11 +42,14 @@ import javax.swing.JTextField
 class ScreenRecorderOptionsDialogTest {
 
   private val projectRule = ProjectRule()
+
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
 
   private val project: Project
     get() = projectRule.project
+  private val testRootDisposable
+    get() = projectRule.disposable
 
   @Test
   fun testVirtualDevice() {
@@ -98,6 +105,41 @@ class ScreenRecorderOptionsDialogTest {
       bitRateField.text = "2"
       resolutionPercentField.selectedItem = 25
       showTapsField.isSelected = true
+      dlg.clickDefaultButton()
+    }
+    assertThat(options.bitRateMbps).isEqualTo(2)
+    assertThat(options.resolutionPercent).isEqualTo(25)
+    assertThat(options.showTaps).isEqualTo(true)
+  }
+
+  @Test
+  fun testPhysicalDeviceWithStreamlinedSave() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
+    val options = ScreenRecorderPersistentOptions()
+    assertThat(options.bitRateMbps).isEqualTo(4)
+    assertThat(options.resolutionPercent).isEqualTo(100)
+    assertThat(options.showTaps).isEqualTo(false)
+    val dialog = ScreenRecorderOptionsDialog(options, project, false, 34)
+    createModalDialogAndInteractWithIt(dialog::show) { dlg ->
+      val ui = FakeUi(dlg.rootPane)
+      val recordingLengthField = ui.getComponent<JEditorPane>()
+      val bitRateField = ui.getComponent<JTextField>()
+      val resolutionPercentField = ui.getComponent<ComboBox<Int>>()
+      val showTapsField = ui.findAllComponents<JCheckBox>().single()
+      val configureSaveButton = ui.getComponent<JButton>()
+      assertThat(showTapsField.text).isEqualTo("Show taps")
+      assertThat(bitRateField.text).isEqualTo("4")
+      assertThat(resolutionPercentField.selectedItem).isEqualTo(100)
+      assertThat(showTapsField.isSelected).isEqualTo(false)
+      assertThat(extractTextFromHtml(recordingLengthField.text)).isEqualTo("The length of the recording can be up to 30 minutes.")
+      assertThat(configureSaveButton.text).isEqualTo("Configure Save")
+      bitRateField.text = "2"
+      resolutionPercentField.selectedItem = 25
+      showTapsField.isSelected = true
+      createModalDialogAndInteractWithIt({ ui.clickOn(configureSaveButton) }) { dlg2 ->
+        assertThat(dlg2.title).isEqualTo("Configure Save")
+        dlg2.clickDefaultButton()
+      }
       dlg.clickDefaultButton()
     }
     assertThat(options.bitRateMbps).isEqualTo(2)

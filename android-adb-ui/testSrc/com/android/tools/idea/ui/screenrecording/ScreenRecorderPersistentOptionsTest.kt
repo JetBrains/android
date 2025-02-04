@@ -27,13 +27,17 @@ import java.awt.Dimension
 internal class ScreenRecorderPersistentOptionsTest {
   @Test
   fun toScreenRecorderOptions_defaultValues() {
-    val options = ScreenRecorderPersistentOptions().toScreenRecorderOptions(size = null, timeLimitSec = 300)
+    val persistentOptions = ScreenRecorderPersistentOptions()
+    val options = persistentOptions.toScreenRecorderOptions(size = null, timeLimitSec = 300)
 
     assertThat(options.bitrateMbps).isEqualTo(4)
     assertThat(options.showTouches).isFalse()
     assertThat(options.height).isEqualTo(0)
     assertThat(options.width).isEqualTo(0)
     assertThat(options.timeLimitSec).isEqualTo(300)
+    assertThat(persistentOptions.saveLocation).isEqualTo("\$USER_HOME$/Desktop")
+    assertThat(persistentOptions.filenameTemplate).isEqualTo("Screen_recording_%Y%M%D_%H%m%S")
+    assertThat(persistentOptions.recordingCount).isEqualTo(0)
   }
 
   @Test
