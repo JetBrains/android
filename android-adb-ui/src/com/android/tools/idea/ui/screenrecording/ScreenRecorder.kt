@@ -38,7 +38,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -131,9 +130,7 @@ internal class ScreenRecorder(
       Paths.get(expandedFilename)
     }
     else {
-      withContext(uiThread) {
-        getTargetFile(recordingProvider.fileExtension)
-      }?.file?.toPath() ?: return
+      getTargetFile(recordingProvider.fileExtension) ?: return
     }
 
     try {
@@ -167,17 +164,17 @@ internal class ScreenRecorder(
     }
   }
 
-  private fun getTargetFile(extension: String): VirtualFileWrapper? {
+  private suspend fun getTargetFile(extension: String): Path? {
     val properties = PropertiesComponent.getInstance(project)
     val descriptor = FileSaverDescriptor(message("screenrecord.action.save.as"), "", extension)
-    val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
-    val lastPath = properties.getValue(SAVE_PATH_KEY)
-    val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
-    val saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension))
-    if (saveFileWrapper != null) {
-      properties.setValue(SAVE_PATH_KEY, saveFileWrapper.file.toPath().parent.toString())
+    return withContext(uiThread) {
+      val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+      val lastPath = properties.getValue(SAVE_PATH_KEY)
+      val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
+      saveFileDialog.save(baseDir, getDefaultFileName(extension))?.file?.toPath()?.also {
+        properties.setValue(SAVE_PATH_KEY, it.parent.toString())
+      }
     }
-    return saveFileWrapper
   }
 
   private fun getDefaultFileName(extension: String): String {
