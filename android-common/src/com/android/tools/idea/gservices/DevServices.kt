@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.gservices
 
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.components.service
-import java.time.Clock
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Calendar
 
 /**
  * Status of services that rely on backend APIs for the current build of the IDE. Our SLA is to
@@ -67,9 +64,7 @@ data class DevServicesDeprecationData(
 )
 
 /** Provides [DevServicesDeprecationStatus] based on server flags. */
-class ServerFlagBasedDevServicesDeprecationDataProvider(
-  private val clock: Clock = Clock.systemUTC()
-) : DevServicesDeprecationDataProvider {
+class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecationDataProvider {
   /**
    * Get the deprecation status of [serviceName] controlled by ServerFlags. Update the flags in
    * google3 to control the deprecation status.
@@ -85,26 +80,18 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(
         DevServicesDeprecationMetadata.getDefaultInstance(),
       ) ?: DevServicesDeprecationMetadata.getDefaultInstance()
 
-    // 2x the current proposed SLA of 1 year compat window
-    val twoYearsAgo = LocalDateTime.now(clock).minusYears(2)
-    val buildDate = ApplicationInfo.getInstance().buildDate.toLocalDateTime()
-    val buildWayTooOld = buildDate.isBefore(twoYearsAgo)
-
-    return when {
-      buildWayTooOld || proto.isDeprecated() ->
-        proto.toDeprecationData(DevServicesDeprecationStatus.UNSUPPORTED)
-      else -> proto.toDeprecationData(DevServicesDeprecationStatus.SUPPORTED)
-    }
+    return proto.toDeprecationData()
   }
 
-  private fun DevServicesDeprecationMetadata.toDeprecationData(
-    status: DevServicesDeprecationStatus
-  ) = DevServicesDeprecationData(header, description, moreInfoUrl, showUpdateAction, status)
+  private fun DevServicesDeprecationMetadata.toDeprecationData() =
+    DevServicesDeprecationData(
+      header,
+      description,
+      moreInfoUrl,
+      showUpdateAction,
+      if (isDeprecated()) UNSUPPORTED else SUPPORTED,
+    )
 
   private fun DevServicesDeprecationMetadata.isDeprecated() =
     hasHeader() || hasDescription() || hasMoreInfoUrl() || hasShowUpdateAction()
-}
-
-private fun Calendar.toLocalDateTime(): LocalDateTime {
-  return LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
 }
