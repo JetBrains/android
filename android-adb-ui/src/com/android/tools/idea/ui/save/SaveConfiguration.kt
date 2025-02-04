@@ -79,9 +79,9 @@ internal class SaveConfiguration(private val project: Project) {
   }
 
   companion object {
-    const val USER_HOME_MACRO: @NonNls String = "${'$'}USER_HOME$"
-    const val DEFAULT_SAVE_LOCATION = "${USER_HOME_MACRO}/Desktop"
-    const val PROJECT_DIR_MACRO: @NonNls String = "${'$'}PROJECT_DIR$"
+    const val USER_HOME_MACRO: @NonNls String = "\$USER_HOME$"
+    const val DEFAULT_SAVE_LOCATION = "$USER_HOME_MACRO/Desktop"
+    const val PROJECT_DIR_MACRO: @NonNls String = "\$PROJECT_DIR$"
 
     private fun String.startsWithFollowedBySeparator(prefix: String): Boolean {
       return startsWith(prefix) && (length == prefix.length || this[prefix.length] == '/')
