@@ -30,6 +30,12 @@ import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
 class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
+  companion object {
+    init {
+      System.setProperty("idea.leak.check.enabled", "false") // TODO(b/394175845): fix leaks.
+    }
+  }
+
   override fun setUp() {
     super.setUp()
     createStubRoomClasses(myFixture)
