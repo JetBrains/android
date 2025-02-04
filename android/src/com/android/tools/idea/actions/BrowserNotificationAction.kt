@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.serverflags
+package com.android.tools.idea.actions
 
-const val SATISFACTION_SURVEY = "analytics/surveys/satisfaction"
-const val FOLLOWUP_SURVEY = "analytics/surveys/followup"
-const val FEATURE_SURVEY_CONFIG = "analytics/surveys/featureSurveyConfig"
-const val FEATURE_SURVEY_ROOT = "analytics/surveys/feature/"
-const val BROWSER_SURVEY_ROOT = "analytics/surveys/browser/"
+import com.intellij.ide.BrowserUtil
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+
+
+class BrowserNotificationAction(val url: String) : NotificationAction("Launch browser and take survey") {
+  override fun actionPerformed(e: AnActionEvent, notification: Notification) {
+    BrowserUtil.browse(url)
+    notification.expire()
+  }
+}
