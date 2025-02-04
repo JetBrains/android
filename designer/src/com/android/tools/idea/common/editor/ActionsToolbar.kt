@@ -92,6 +92,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       }
     }
 
+    scope.launch {
+      surface.modelChanged.collect { models -> withContext(uiThread) { modelsChanged(models) } }
+    }
+
     surface.addListener(this)
     // TODO: Update to support multiple configurations
     configuration = surface.configurations.firstOrNull()
@@ -237,7 +241,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   @UiThread
-  override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+  private fun modelsChanged(models: List<NlModel?>) {
     // Here it is only necessary to keep the reference to one of the models in order to set the
     // ModelListener to one of them
     this.model = models.firstOrNull()
