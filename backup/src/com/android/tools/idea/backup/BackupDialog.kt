@@ -25,15 +25,16 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
+import java.awt.Dimension
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
-import javax.swing.GroupLayout.DEFAULT_SIZE
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.event.DocumentEvent
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -41,9 +42,12 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 import org.jetbrains.annotations.VisibleForTesting
 
-private const val APPLICATION_ID_FIELD_WIDTH = 300
-private const val TYPE_FIELD_WIDTH = 100
-private const val PATH_FIELD_WIDTH = 500
+private val APPLICATION_ID_FIELD_WIDTH
+  get() = JBUIScale.scale(300)
+private val TYPE_FIELD_WIDTH
+  get() = JBUIScale.scale(100)
+private val PATH_FIELD_WIDTH
+  get() = JBUIScale.scale(500)
 
 private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
 
@@ -54,10 +58,12 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
   private val applicationIdComboBox =
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
       name = "applicationIdComboBox"
+      maximumSize = Dimension(APPLICATION_ID_FIELD_WIDTH, maximumSize.height)
     }
   private val typeComboBox =
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
       name = "typeComboBox"
+      maximumSize = Dimension(TYPE_FIELD_WIDTH, maximumSize.height)
     }
   private val fileTextField =
     BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }
@@ -75,6 +81,7 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
           }
         )
         name = "fileTextField"
+        minimumSize = Dimension(PATH_FIELD_WIDTH, minimumSize.height)
       }
   private var fileSetByChooser = false
   private val properties
@@ -101,7 +108,6 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
     isResizable = false
-    pack()
   }
 
   override fun createCenterPanel(): JComponent {
@@ -115,62 +121,37 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     val fileLabel = JLabel("Backup file:")
 
     fileTextField.text = getLastUsedFile()
-
-    layout.setHorizontalGroup(
-      layout
-        .createSequentialGroup()
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(applicationIdLabel)
-            .addComponent(typeLabel)
-            .addComponent(fileLabel)
-        )
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(
-              applicationIdComboBox,
-              DEFAULT_SIZE,
-              DEFAULT_SIZE,
-              JBUIScale.scale(APPLICATION_ID_FIELD_WIDTH),
-            )
-            .addComponent(
-              typeComboBox,
-              DEFAULT_SIZE,
-              DEFAULT_SIZE,
-              JBUIScale.scale(TYPE_FIELD_WIDTH),
-            )
-            .addComponent(
-              fileTextField,
-              JBUIScale.scale(PATH_FIELD_WIDTH),
-              DEFAULT_SIZE,
-              DEFAULT_SIZE,
-            )
-        )
-    )
-    layout.setVerticalGroup(
-      layout
-        .createSequentialGroup()
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(applicationIdLabel)
-            .addComponent(applicationIdComboBox)
-        )
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(typeLabel)
-            .addComponent(typeComboBox)
-        )
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(fileLabel)
-            .addComponent(fileTextField)
-        )
-    )
+    with(layout) {
+      setHorizontalGroup(
+        createParallelGroup(GroupLayout.Alignment.LEADING)
+          .addGroup(
+            createSequentialGroup()
+              .addComponent(applicationIdLabel)
+              .addComponent(applicationIdComboBox)
+          )
+          .addGroup(createSequentialGroup().addComponent(typeLabel).addComponent(typeComboBox))
+          .addGroup(createSequentialGroup().addComponent(fileLabel).addComponent(fileTextField))
+      )
+      setVerticalGroup(
+        createSequentialGroup()
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(applicationIdLabel)
+              .addComponent(applicationIdComboBox)
+          )
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(typeLabel)
+              .addComponent(typeComboBox)
+          )
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(fileLabel)
+              .addComponent(fileTextField)
+          )
+      )
+      linkSize(HORIZONTAL, applicationIdLabel, typeLabel, fileLabel)
+    }
 
     panel.layout = layout
     return panel
