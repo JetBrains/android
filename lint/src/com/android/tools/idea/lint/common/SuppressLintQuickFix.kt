@@ -24,6 +24,7 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
@@ -68,7 +69,7 @@ import org.toml.lang.TomlLanguage
 
 @Suppress("UnstableApiUsage")
 class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) :
-  ModCommandQuickFix(), SuppressQuickFix {
+  ModCommandQuickFix(), SuppressQuickFix, PriorityAction {
   private val label = displayName(element, id)
 
   override fun isAvailable(project: Project, context: PsiElement): Boolean = true
@@ -256,6 +257,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
   }
+
+  override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
 
   companion object {
     private const val NO_INSPECTION_PREFIX = SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " "

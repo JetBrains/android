@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType
 import com.android.tools.lint.detector.api.Issue
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
@@ -37,7 +38,7 @@ class SuppressLintIntentionAction(
   private val id: String,
   element: PsiElement,
   private val issue: Issue? = null,
-) : ModCommandAction {
+) : ModCommandAction, PriorityAction {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)
@@ -72,4 +73,6 @@ class SuppressLintIntentionAction(
       Presentation.of(label).withIcon(AllIcons.Actions.Cancel)
     else null
   }
+
+  override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
 }
