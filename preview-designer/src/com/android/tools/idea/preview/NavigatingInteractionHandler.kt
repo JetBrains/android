@@ -355,7 +355,8 @@ class NavigatingInteractionHandler(
       if (!navigated) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
-        navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
+        withContext(uiThread) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
+
       }
     }
   }
