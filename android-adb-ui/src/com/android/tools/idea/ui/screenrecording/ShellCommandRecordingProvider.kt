@@ -73,10 +73,10 @@ internal class ShellCommandRecordingProvider(
         }
         result.complete(Unit)
       }
-      catch (e: RecordingStoppedException) {
+      catch (_: RecordingStoppedException) {
         result.complete(Unit)
       }
-      catch (e: EOFException) {
+      catch (_: EOFException) {
         result.completeExceptionally(createLostConnectionException())
       }
       catch (e: Throwable) {
