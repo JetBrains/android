@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRatio
@@ -44,11 +43,13 @@ private var deviceAndStateCached: Pair<Device, State>? = null
  * file may want to use a custom [Configuration]; a layout file may just use the [Configuration]
  * provided by [ConfigurationManager.getConfiguration].
  */
-fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Configuration {
+internal fun VirtualFile.getConfiguration(
+  configurationManager: ConfigurationManager
+): Configuration {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(configurationManager.project, this)
   return when (psiFile?.typeOf()) {
     is AdaptiveIconFileType,
-    is DrawableFileType -> configurationManager.getPreviewConfig()
+    is DrawableFileType -> configurationManager.getPreviewConfig(psiFile.virtualFile)
     else -> configurationManager.getConfiguration(this)
   }
 }
@@ -58,10 +59,13 @@ fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Co
  * dimension of device is [PREVIEW_CONFIG_X_DIMENSION] x [PREVIEW_CONFIG_Y_DIMENSION]. The density
  * is [PREVIEW_CONFIG_DENSITY] if it is compatible with the project api level, otherwise
  * [Density.DPI_560] is used.
+ *
+ * The given [file] is used as a template for the configuration and will be used to persist any
+ * changes via the [ConfigurationManager]. If the user changes the theme, this will be persisted by
+ * the [ConfigurationManager] and re-used on subsequent openings.
  */
-fun ConfigurationManager.getPreviewConfig(): Configuration {
-  val configurationManager = this
-  val config = Configuration.create(configurationManager, FolderConfiguration())
+internal fun ConfigurationManager.getPreviewConfig(file: VirtualFile): Configuration {
+  val config = getConfiguration(file)
 
   val cached = deviceAndStateCached
   if (cached != null) {
@@ -69,7 +73,7 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
     return config
   }
 
-  val targetApiLevel = configurationManager.target?.version?.apiLevel ?: 1
+  val targetApiLevel = target?.version?.apiLevel ?: 1
   val targetDensity =
     if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density(560)
 

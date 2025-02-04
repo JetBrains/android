@@ -143,7 +143,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
       componentRegistrar: Consumer<NlComponent>,
       file: VirtualFile,
     ): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig()
+      val config =
+        ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig(file)
       animatedSelectorModel =
         WriteCommandAction.runWriteCommandAction(
           project,
