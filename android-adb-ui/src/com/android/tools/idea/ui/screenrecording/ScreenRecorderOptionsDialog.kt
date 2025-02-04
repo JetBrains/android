@@ -83,7 +83,7 @@ internal class ScreenRecorderOptionsDialog(
 
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
-          button(message("screenrecord.options.configure.save.button.text")) { configureSave() }
+          button(message("configure.save.button.text")) { configureSave() }
         }
       }
     }

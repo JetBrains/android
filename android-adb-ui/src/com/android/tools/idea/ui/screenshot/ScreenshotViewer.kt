@@ -235,7 +235,7 @@ class ScreenshotViewer(
       }.resizableRow()
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
-          button(message("screenshot.dialog.configure.save.button.text")) { configureSave() }
+          button(message("configure.save.button.text")) { configureSave() }
             .align(AlignX.RIGHT)
         }
       }

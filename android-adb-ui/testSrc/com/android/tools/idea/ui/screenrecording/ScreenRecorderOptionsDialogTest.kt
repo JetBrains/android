@@ -132,12 +132,12 @@ class ScreenRecorderOptionsDialogTest {
       assertThat(resolutionPercentField.selectedItem).isEqualTo(100)
       assertThat(showTapsField.isSelected).isEqualTo(false)
       assertThat(extractTextFromHtml(recordingLengthField.text)).isEqualTo("The length of the recording can be up to 30 minutes.")
-      assertThat(configureSaveButton.text).isEqualTo("Configure Save")
+      assertThat(configureSaveButton.text).isEqualTo("Configure Saving")
       bitRateField.text = "2"
       resolutionPercentField.selectedItem = 25
       showTapsField.isSelected = true
       createModalDialogAndInteractWithIt({ ui.clickOn(configureSaveButton) }) { dlg2 ->
-        assertThat(dlg2.title).isEqualTo("Configure Save")
+        assertThat(dlg2.title).isEqualTo("Configure Saving")
         dlg2.clickDefaultButton()
       }
       dlg.clickDefaultButton()
