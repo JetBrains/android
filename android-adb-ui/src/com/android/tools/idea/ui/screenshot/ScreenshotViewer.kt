@@ -542,7 +542,7 @@ class ScreenshotViewer(
   internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
     var frameScreenshot: Boolean = false
     var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
-    var filenameTemplate: String = "Screenshot_%Y%M%D_%H%M%S"
+    var filenameTemplate: String = "Screenshot_%Y%M%D_%H%m%S"
     var screenshotCount: Int = 0
 
     override fun getState(): ScreenshotConfiguration {

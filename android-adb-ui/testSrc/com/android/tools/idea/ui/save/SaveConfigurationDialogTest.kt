@@ -57,7 +57,7 @@ class SaveConfigurationDialogTest {
   @Test
   fun testBasic() {
     // Create an instance of SaveConfigurationDialog (you might need to modify constructor arguments)
-    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%M%S", EXT_PNG, timestamp, 5)
+    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%m%S", EXT_PNG, timestamp, 5)
 
     val dialogWrapper = dialog.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
@@ -66,8 +66,8 @@ class SaveConfigurationDialogTest {
       val filenameTemplateField = ui.getComponent<JBTextField>()
       val previewField = ui.getComponent<JEditorPane>()
       assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
-      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%M%S")
-      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_100114.png".toPlatformPath())
+      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S")
+      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_102214.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
       filenameTemplateField.text = "screenshots/%4d"
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
@@ -82,7 +82,7 @@ class SaveConfigurationDialogTest {
   @Test
   fun testPatternInsertion() {
     // Create an instance of SaveConfigurationDialog (you might need to modify constructor arguments)
-    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%M%S", EXT_PNG, timestamp, 5)
+    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%m%S", EXT_PNG, timestamp, 5)
 
     val dialogWrapper = dialog.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
@@ -90,7 +90,7 @@ class SaveConfigurationDialogTest {
       val filenameTemplateField = ui.getComponent<JBTextField>()
       val patternInserter = ui.getComponent<JEditorPane> { it.text.contains("year (4 digits)") }
       patternInserter.clickOnHyperlink("%Nd")
-      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%M%S%3d")
+      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S%3d")
       filenameTemplateField.selectionStart = filenameTemplateField.text.indexOf("%Y")
       filenameTemplateField.selectionEnd = filenameTemplateField.text.indexOf("%3d")
       patternInserter.clickOnHyperlink("%p")
