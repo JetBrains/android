@@ -18,9 +18,9 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import icons.StudioIcons
 
 open class ViewControlAction(
   private val isEnabled: (e: AnActionEvent) -> Boolean,
@@ -30,7 +30,7 @@ open class ViewControlAction(
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
-    AllIcons.Debugger.RestoreLayout,
+    StudioIcons.Common.LAYOUT,
   ) {
 
   override fun update(e: AnActionEvent) {

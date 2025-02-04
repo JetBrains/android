@@ -44,10 +44,7 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
   ReferenceDevice("Reference Devices", StudioIcons.Wizards.Modules.PHONE_TABLET),
   Phone("Phone", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
   Tablet("Tablet", StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET),
-  Desktop(
-    "Desktop",
-    StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN,
-  ), // TODO(b/237375632): Update once there's a proper icon for desktop
+  Desktop("Desktop", StudioIcons.LayoutEditor.Toolbar.DEVICE_DESKTOP),
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),

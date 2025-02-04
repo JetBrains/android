@@ -25,7 +25,6 @@ import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -33,6 +32,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 
 /**
  * [DropDownAction] that allows switching the layout manager in the surface. Only add if there is
@@ -43,8 +43,8 @@ class SwitchSurfaceLayoutManagerAction(
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
-  private val enabledIcon = AllIcons.Debugger.RestoreLayout
-  private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
+  private val enabledIcon = StudioIcons.Common.LAYOUT
+  private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.LAYOUT)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) :
     ToggleAction(option.displayName) {
