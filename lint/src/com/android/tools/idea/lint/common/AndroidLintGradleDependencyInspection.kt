@@ -17,9 +17,36 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.GradleDetector
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.psi.PsiElement
 
 class AndroidLintGradleDependencyInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.gradle.dependency"),
     GradleDetector.DEPENDENCY,
-  )
+  ) {
+  override fun getIntentions(
+    startElement: PsiElement,
+    endElement: PsiElement,
+  ): Array<out IntentionAction>? {
+    val actions = DependencyUpdateProvider.EP_NAME.extensionList.map { it.getUpdateProvider() }
+    if (actions.isNotEmpty()) {
+      return actions.toTypedArray()
+    }
+
+    return super.getIntentions(startElement, endElement)
+  }
+}
+
+interface DependencyUpdateProvider {
+  fun getUpdateProvider(): IntentionAction
+
+  companion object {
+    @JvmStatic
+    val EP_NAME: ExtensionPointName<DependencyUpdateProvider> =
+      ExtensionPointName.create<DependencyUpdateProvider>(
+        "com.android.tools.idea.lint.common.updateDepsProvider"
+      )
+  }
+}

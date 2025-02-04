@@ -22,6 +22,8 @@
                     interface="com.android.tools.idea.lint.common.LintIdeSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lint.common.lintQuickFixProvider"
                     interface="com.android.tools.idea.lint.common.LintIdeQuickFixProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.lint.common.updateDepsProvider"
+                    interface="com.android.tools.idea.lint.common.DependencyUpdateProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
