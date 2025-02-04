@@ -2234,7 +2234,7 @@ private fun <T> openPreparedProject(
           // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
           // run faster.
           val ep = WorkspaceFileIndexImpl.EP_NAME
-          val filteredExtensions = ep.extensionList.filterNot { it is KotlinScriptWorkspaceFileIndexContributor || it is GradleKotlinScriptIndexContributor }
+          val filteredExtensions = ep.extensionList.filterNot { it is KotlinScriptWorkspaceFileIndexContributor }
           ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
         }
 
