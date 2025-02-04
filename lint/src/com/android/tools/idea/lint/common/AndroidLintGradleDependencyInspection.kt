@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2016 The Android Open Source Project
  *
@@ -14,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.common;
+package com.android.tools.idea.lint.common
 
-import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.idea.lint.common.LintBundle.Companion.message
+import com.android.tools.lint.checks.GradleDetector
 
-public class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
-  public AndroidLintGradleDependencyInspection() {
-    super(LintBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
-  }
-}
+class AndroidLintGradleDependencyInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.gradle.dependency"),
+    GradleDetector.DEPENDENCY,
+  )
