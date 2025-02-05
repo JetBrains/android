@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dependencies
 import com.android.ide.common.repository.pickPluginVariableName
 import com.android.ide.common.repository.pickPluginVersionVariableName
 import com.android.tools.idea.gradle.dependencies.CatalogDependenciesInserter.Companion.getCatalogModel
+import com.android.tools.idea.gradle.dependencies.PluginsInserter.TryAddResult
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -29,7 +30,7 @@ import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin
 import org.jetbrains.kotlin.utils.addIfNotNull
 
-class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : PluginsInserter(projectModel) {
+class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : CommonPluginsInserter(projectModel) {
 
   override fun addClasspathDependency(dependency: String,
                                       excludes: List<ArtifactDependencySpec>,
@@ -50,7 +51,7 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Plug
   override fun tryAddToBuildscriptDependencies(
     classpathDependency: String,
     classpathMatcher: DependencyMatcher
-  ): TryAddResult = TryAddResult.failed()
+  ): PluginsInserter.TryAddResult = TryAddResult.failed()
 
   // Avoid insertion to buildscript when using catalog
   override fun tryAddClasspathDependencyWithVersionVariable(

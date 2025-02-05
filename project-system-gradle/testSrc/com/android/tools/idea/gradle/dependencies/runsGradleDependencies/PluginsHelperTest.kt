@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
 import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.dependencies.CommonPluginsInserter
 import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.FalsePluginMatcher
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
@@ -24,7 +25,6 @@ import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dependencies.PluginsHelper
-import com.android.tools.idea.gradle.dependencies.PluginsInserter
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
@@ -934,7 +934,7 @@ class PluginsHelperTest : AndroidGradleTestCase() {
   }
 
   private fun doDeclarativeTest(projectPath: String,
-                                change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: PluginsInserter) -> Unit,
+                                change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: CommonPluginsInserter) -> Unit,
                                 assert: () -> Unit) {
     DeclarativeStudioSupport.override(true)
     DeclarativeIdeSupport.override(true)
@@ -948,21 +948,21 @@ class PluginsHelperTest : AndroidGradleTestCase() {
   }
 
   private fun doTest(projectPath: String,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: PluginsInserter) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: CommonPluginsInserter) -> Unit,
                      assert: () -> Unit) {
     doTest(projectPath, {}, change, assert)
   }
 
   private fun doTest(projectPath: String,
                      updateFiles: () -> Unit,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: PluginsInserter) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: CommonPluginsInserter) -> Unit,
                      assert: () -> Unit) {
     doTest(projectPath, updateFiles, change, assert, true)
   }
 
   private fun doTest(projectPath: String,
                      updateFiles: () -> Unit,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: PluginsInserter) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: CommonPluginsInserter) -> Unit,
                      assert: () -> Unit,
                      setupGradleSnapshot: Boolean) {
     prepareProjectForImport(projectPath)
@@ -976,7 +976,7 @@ class PluginsHelperTest : AndroidGradleTestCase() {
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()
     val helper = PluginsHelper.withModel(projectBuildModel)
-    change.invoke(projectBuildModel, moduleModel!!, helper)
+    change.invoke(projectBuildModel, moduleModel!!, (helper as CommonPluginsInserter))
     WriteCommandAction.runWriteCommandAction(project) {
       projectBuildModel.applyChanges()
       moduleModel.applyChanges()

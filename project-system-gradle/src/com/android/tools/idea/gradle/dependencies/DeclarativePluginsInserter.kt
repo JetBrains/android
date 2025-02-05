@@ -28,7 +28,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.utils.addIfNotNull
 
-class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : PluginsInserter(projectModel) {
+class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : CommonPluginsInserter(projectModel) {
   override fun applySettingsPlugin(pluginId: String,
                                    version: String): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()

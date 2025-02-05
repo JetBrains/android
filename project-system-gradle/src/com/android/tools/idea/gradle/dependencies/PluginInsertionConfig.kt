@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
-import com.android.tools.idea.gradle.dependencies.PluginsInserter.PluginClasspathInfo
+import com.android.tools.idea.gradle.dependencies.CommonPluginsInserter.PluginClasspathInfo
 import com.android.tools.idea.gradle.dependencies.PluginsInserter.TryAddResult
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 
@@ -33,7 +33,7 @@ data class PluginInsertionConfig(
 
   sealed class PluginInsertionStep {
     abstract fun getAddLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -42,7 +42,7 @@ data class PluginInsertionConfig(
     ): Lazy<TryAddResult>
 
     abstract fun getUpdateLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -52,7 +52,7 @@ data class PluginInsertionConfig(
 
   object BuildscriptClasspathInsertionStep : PluginInsertionStep() {
     override fun getAddLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -68,7 +68,7 @@ data class PluginInsertionConfig(
       }
 
     override fun getUpdateLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -86,7 +86,7 @@ data class PluginInsertionConfig(
 
   object BuildscriptClasspathWithVariableInsertionStep : PluginInsertionStep() {
     override fun getAddLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -107,7 +107,7 @@ data class PluginInsertionConfig(
       }
 
     override fun getUpdateLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -125,7 +125,7 @@ data class PluginInsertionConfig(
 
   object PluginManagementInsertionStep : PluginInsertionStep() {
     override fun getAddLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -138,7 +138,7 @@ data class PluginInsertionConfig(
       }
 
     override fun getUpdateLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -155,7 +155,7 @@ data class PluginInsertionConfig(
 
   object PluginBlockInsertionStep : PluginInsertionStep() {
     override fun getAddLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
@@ -168,7 +168,7 @@ data class PluginInsertionConfig(
       }
 
     override fun getUpdateLazyCall(
-      helper: PluginsInserter,
+      helper: CommonPluginsInserter,
       config: PluginInsertionConfig,
       pluginId: String,
       version: String,
