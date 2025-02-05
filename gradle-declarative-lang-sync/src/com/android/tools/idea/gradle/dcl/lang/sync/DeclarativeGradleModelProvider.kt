@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
+import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
@@ -43,14 +45,15 @@ class DeclarativeGradleModelProvider : ProjectImportModelProvider {
     consumer: ProjectImportModelProvider.GradleModelConsumer
   ) {
     try {
-      controller.getModel(DeclarativeSchemaModel::class.java)
+      controller.findModel(DeclarativeSchemaModel::class.java)
         ?.also { schemaModel ->
           consumer.consumeBuildModel(buildModel, schemaModel.convertProject(), ProjectSchemas::class.java)
           consumer.consumeBuildModel(buildModel, schemaModel.convertSettings(), SettingsSchemas::class.java)
         }
+      ?: LOG.debug(ExternalSystemException("Incompatible (too old?) version of Gradle: Cannot import DeclarativeSchemaModel"))
     }
-    catch (ex: Exception) {
-      LOG.warn(ExternalSystemException("Incompatible version of Gradle. Cannot import declarative schema.", ex))
+    catch (e: Exception) {
+      LOG.warn(ExternalSystemException("Caught exception from requesting DeclarativeSchemaModel", e))
     }
   }
 }
