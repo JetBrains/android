@@ -379,6 +379,34 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
   }
 
+  public void testTranslationTextField() {
+    // Initial state:
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+
+    // The translation field is enabled in all columns of the scrollable table:
+    myTable.getScrollableTable().changeSelection(0, 0, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 1, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 2, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 3, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 4, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+
+    // But disabled in all columns of the frozen table:
+    myTable.getFrozenTable().changeSelection(0, 0, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 1, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 2, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 3, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+
+  }
+
   @Nullable
   private AnAction getFocusedActionButton() {
     KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();

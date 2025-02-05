@@ -88,7 +88,7 @@ public class StringResourceViewPanel implements Disposable {
   TextFieldWithBrowseButton myDefaultValueTextField;
 
   private final @NotNull Component myTranslationLabel;
-  private TextFieldWithBrowseButton myTranslationTextField;
+  @VisibleForTesting TextFieldWithBrowseButton myTranslationTextField;
   private @Nullable Container myPanel;
   private final @NotNull JBLoadingPanel myLoadingPanel;
 
@@ -418,6 +418,7 @@ public class StringResourceViewPanel implements Disposable {
         translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
       }
       setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
+      myTranslationTextField.setEnabled(locale != null);
       myTranslationTextField.setButtonEnabled(locale != null);
     }
   }
