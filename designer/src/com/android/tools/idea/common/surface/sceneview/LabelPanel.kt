@@ -28,9 +28,9 @@ import java.awt.Dimension
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * This label displays the [SceneView] model label.
@@ -69,10 +69,11 @@ open class LabelPanel(
           displaySettings.tooltip,
         )
         .conflate()
-        .flowOn(uiThread)
         .collect {
-          updateUi()
-          invalidate()
+          withContext(uiThread) {
+            updateUi()
+            invalidate()
+          }
         }
     }
 
