@@ -30,12 +30,6 @@ import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
 class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
-  companion object {
-    init {
-      System.setProperty("idea.leak.check.enabled", "false") // TODO(b/394175845): fix leaks.
-    }
-  }
-
   override fun setUp() {
     super.setUp()
     createStubRoomClasses(myFixture)
@@ -63,15 +57,16 @@ class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   fun testColumnNameInsideAlterQuery() {
     val file = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
-    val schema = file.setTestSqlSchema {
+    val schema = AndroidSqlTestSchema(file).apply {
       table {
         name = "User"
         column { name = "name" }
       }
     }
-
-    val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
-    assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
+    file.withTestSqlSchema(schema) {
+      val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
+      assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
+    }
   }
 
   fun testCaseInsensitive_unquoted() {
