@@ -47,7 +47,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.io.File
 import java.util.Arrays
 import java.util.Locale
 import javax.swing.Box
@@ -70,8 +69,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myBenchmarkTab: TabInfo
   @VisibleForTesting val myBenchmarkView: ConsoleViewImpl
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
-  @VisibleForTesting val myRetentionView: RetentionView
-  @VisibleForTesting val myRetentionTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
   @VisibleForTesting var lastSelectedTab: TabInfo? = null
@@ -80,7 +77,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
   private var myLogcat = ""
   private var myErrorStackTrace = ""
-  private var myRetentionSnapshot: File? = null
   private var needsRefreshLogsView: Boolean = true
 
   init {
@@ -129,18 +125,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     deviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(deviceInfoTab)
 
-    // Android Test Retention tab.
-    myRetentionView = RetentionView()
-    logger.addImpressionWhenDisplayed(
-      myRetentionView.component,
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_RETENTION_VIEW)
-    myRetentionTab = TabInfo(myRetentionView.rootPanel)
-    myRetentionTab.setText("Retention")
-    myRetentionTab.setTooltipText("Show emulator snapshots of failed tests")
-    tabs.addTab(myRetentionTab)
-    myRetentionTab.isHidden = true
-
-
     rootPanel = JPanel(BorderLayout()).apply {
       add(JPanel().apply {
         layout = BoxLayout(this, BoxLayout.LINE_AXIS)
@@ -157,24 +141,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
   }
 
-  fun setPackageName(packageName: String) {
-    myRetentionView.setPackageName(packageName)
-  }
-
   fun setAndroidDevice(androidDevice: AndroidDevice) {
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
-    myRetentionView.setAndroidDevice(androidDevice)
   }
 
   fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
-  }
-
-  fun setAndroidTestCaseStartTime(time: Long?) {
-    myRetentionView.setStartTime(time)
   }
 
   fun setLogcat(logcat: String) {
@@ -205,20 +180,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     if (!benchmarkOutputIsEmpty) {
       this.lastSelectedTab = myBenchmarkTab
     }
-  }
-
-  fun setRetentionInfo(retentionInfo: File?) {
-    myRetentionView.setRetentionInfoFile(retentionInfo)
-  }
-
-  fun setRetentionSnapshot(rententionSnapshot: File?) {
-    myRetentionSnapshot = rententionSnapshot
-    refreshRetentionView()
-  }
-
-  private fun refreshRetentionView() {
-    myRetentionTab.isHidden = myRetentionSnapshot == null
-    myRetentionView.setSnapshotFile(myRetentionSnapshot)
   }
 
   private fun refreshTestResultLabel() {

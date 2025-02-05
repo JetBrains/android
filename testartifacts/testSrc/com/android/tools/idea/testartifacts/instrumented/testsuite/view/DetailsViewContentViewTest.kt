@@ -62,23 +62,6 @@ class DetailsViewContentViewTest {
   }
 
   @Test
-  fun testNoRetentionView() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
-    view.setAndroidDevice(device("device id", "device name"))
-    assertThat(view.myRetentionTab.isHidden).isTrue()
-  }
-
-  @Test
-  fun testWithRetentionView() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
-    view.setAndroidDevice(device("device id", "device name"))
-    view.setRetentionSnapshot(File("foo"))
-    assertThat(view.myRetentionTab.isHidden).isFalse()
-  }
-
-  @Test
   fun testResultLabelOnPassing() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
