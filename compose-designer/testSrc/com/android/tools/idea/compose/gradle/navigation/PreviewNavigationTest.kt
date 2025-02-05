@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -80,7 +81,7 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     y: Int,
     requestFocus: Boolean,
     shouldFindAllNavigatables: Boolean,
-  ): List<Navigatable> {
+  ): List<PreviewNavigatableWrapper> {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
     expectedInvocationsCountDownLatch.countDown()
     return listOf()

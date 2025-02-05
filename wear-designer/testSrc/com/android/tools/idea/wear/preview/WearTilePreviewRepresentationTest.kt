@@ -294,6 +294,7 @@ class WearTilePreviewRepresentationTest {
               false,
               false,
             )
+            .map { it.navigatable }
             .firstOrNull()
             ?.let {
               preview.navigationHandler.navigateTo(sceneViewWithNormalPreviewAnnotation, it, false)
@@ -328,6 +329,7 @@ class WearTilePreviewRepresentationTest {
               false,
               false,
             )
+            .map { it.navigatable }
             .firstOrNull()
             ?.let {
               preview.navigationHandler.navigateTo(sceneViewWithMultiPreviewAnnotation, it, false)

@@ -88,6 +88,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.android.tools.idea.uibuilder.surface.defaultSceneManagerProvider
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
@@ -226,7 +227,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         val navigatableElement =
           previewElement?.previewElementDefinition?.element?.navigationElement
             as? NavigatablePsiElement
-        listOf(navigatableElement)
+        if (navigatableElement == null ) emptyList<PreviewNavigatableWrapper>()
+        listOf(PreviewNavigatableWrapper("", navigatableElement!!))
       }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 

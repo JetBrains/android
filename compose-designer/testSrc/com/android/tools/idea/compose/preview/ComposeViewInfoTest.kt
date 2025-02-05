@@ -54,7 +54,12 @@ class ComposeViewInfoTest {
         PxBounds(0, 0, 1000, 300),
         children =
           listOf(
-            ComposeViewInfo(TestSourceLocation("fileA"), PxBounds(0, 0, 0, 0), children = listOf()),
+            ComposeViewInfo(
+              TestSourceLocation("fileA"),
+              PxBounds(0, 0, 0, 0),
+              children = listOf(),
+              name = "",
+            ),
             ComposeViewInfo(
               TestSourceLocation("fileB", lineNumber = 4),
               PxBounds(0, 0, 200, 200),
@@ -64,6 +69,7 @@ class ComposeViewInfoTest {
                     TestSourceLocation("fileA", lineNumber = 5),
                     PxBounds(0, 0, 200, 200),
                     children = listOf(),
+                    name = "",
                   ),
                   ComposeViewInfo(
                     TestSourceLocation("fileB", lineNumber = 7),
@@ -74,17 +80,22 @@ class ComposeViewInfoTest {
                           TestSourceLocation("fileA", lineNumber = 8),
                           PxBounds(0, 0, 200, 200),
                           children = listOf(),
+                          name = "",
                         )
                       ),
+                    name = "",
                   ),
                 ),
+              name = "",
             ),
             ComposeViewInfo(
               TestSourceLocation("fileC", lineNumber = 10),
               PxBounds(400, 200, 1000, 300),
               children = listOf(),
+              name = "",
             ),
           ),
+        name = "",
       )
 
     assertTrue(root.findLeafHitsInFile(2000, 2000, "fileA").isEmpty())
@@ -117,6 +128,7 @@ class ComposeViewInfoTest {
               TestSourceLocation("fileA"),
               PxBounds(0, 0, 10, 10),
               children = listOf(),
+              name = "",
             ),
             ComposeViewInfo(
               TestSourceLocation("fileB", lineNumber = 4),
@@ -127,10 +139,13 @@ class ComposeViewInfoTest {
                     TestSourceLocation("fileB", lineNumber = 7),
                     PxBounds(0, 0, 10, 20),
                     children = listOf(),
+                    name = "",
                   )
                 ),
+              name = "",
             ),
           ),
+        name = "",
       )
 
     assertTrue(root.findAllLeafHits(10000, 100000).isEmpty())
@@ -169,6 +184,7 @@ class ComposeViewInfoTest {
               TestSourceLocation("fileA", lineNumber = 1),
               PxBounds(0, 0, 0, 0),
               children = listOf(),
+              name = "",
             ),
             ComposeViewInfo(
               TestSourceLocation("fileB", lineNumber = 4),
@@ -179,6 +195,7 @@ class ComposeViewInfoTest {
                     TestSourceLocation("fileA", lineNumber = 5),
                     PxBounds(0, 0, 200, 200),
                     children = listOf(),
+                    name = "",
                   ),
                   ComposeViewInfo(
                     TestSourceLocation("fileB", lineNumber = 7),
@@ -189,17 +206,22 @@ class ComposeViewInfoTest {
                           TestSourceLocation("fileA", lineNumber = 8),
                           PxBounds(0, 0, 200, 200),
                           children = listOf(),
+                          name = "",
                         )
                       ),
+                    name = "",
                   ),
                 ),
+              name = "",
             ),
             ComposeViewInfo(
               TestSourceLocation("fileC", lineNumber = 10),
               PxBounds(400, 200, 1000, 300),
               children = listOf(),
+              name = "",
             ),
           ),
+        name = "",
       )
 
     val leafHits = root.findAllHitsInFile("fileA")

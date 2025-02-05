@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.runReadAction
@@ -131,7 +132,7 @@ private fun findNavigatableComponents(
   requestFocus: Boolean,
   fileName: String,
   shouldFindAllNavigatables: Boolean,
-): List<Navigatable?> {
+): List<PreviewNavigatableWrapper> {
   val x = Coordinates.getAndroidX(sceneView, hitX)
   val y = Coordinates.getAndroidY(sceneView, hitY)
   LOG.debug { "handleNavigate x=$x, y=$y" }
@@ -149,21 +150,30 @@ private fun findNavigatableComponents(
   }
 
   if (shouldFindAllNavigatables) {
-    val allNavigatables =
-      allViewInfos.first().findLeafHitsInFile(x, y, fileName).map {
-        it.sourceLocation.toNavigatable(module)
+    return allViewInfos
+      .first()
+      .findLeafHitsInFile(x, y, fileName)
+      .filter { it.sourceLocation.toNavigatable(module) != null }
+      .map {
+        var name = it.name
+        if (name.isNotBlank()) name += ", "
+
+        return@map PreviewNavigatableWrapper(
+          "${name} ${it.sourceLocation.fileName}: ${it.sourceLocation.lineNumber}",
+          it.sourceLocation.toNavigatable(module)!!,
+        )
       }
-    return allNavigatables
   }
 
-  var navigatable =
+  val navigatable =
     findNavigatableComponentHit(module, allViewInfos, x, y) {
       // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
       // any hit even if it's not in the current
       // file. If requestFocus is false, we only allow single clicks
       requestFocus || it.fileName == fileName
     }
-  return listOf(navigatable)
+  if (navigatable != null) return listOf(PreviewNavigatableWrapper("", navigatable))
+  return emptyList()
 }
 
 /** Handles navigation for compose preview when NlDesignSurface preview is clicked. */

@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.diagnostic.Logger
@@ -43,7 +44,7 @@ open class DefaultNavigationHandler(
       requestFocus: Boolean,
       fileName: String,
       shouldFindAllNavigatables: Boolean,
-    ) -> List<Navigatable?>
+    ) -> List<PreviewNavigatableWrapper>
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
   // Default location to use when components are not found
@@ -71,7 +72,7 @@ open class DefaultNavigationHandler(
     @SwingCoordinate hitY: Int,
     requestFocus: Boolean,
     isOptionDown: Boolean,
-  ): List<Navigatable?> {
+  ): List<PreviewNavigatableWrapper> {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
     return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
   }

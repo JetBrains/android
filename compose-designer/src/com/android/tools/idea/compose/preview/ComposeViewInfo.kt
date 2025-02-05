@@ -25,9 +25,11 @@ data class ComposeViewInfo(
   val sourceLocation: SourceLocation,
   val bounds: PxBounds,
   val children: List<ComposeViewInfo>,
+  val name: String,
 ) {
   override fun toString(): String =
     """$sourceLocation
+      |   name=${name}
       |   bounds=(top=${bounds.top}, left=${bounds.left}, bottom=${bounds.bottom}, right=${bounds.right})
       |   childCount=${children.size}"""
       .trimMargin()

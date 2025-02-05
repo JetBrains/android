@@ -54,6 +54,7 @@ class JumpToDefinitionAction(
     AndroidCoroutineScope(sceneView).launch {
       navigationHandler
         .findNavigatablesWithCoordinates(sceneView, x, y, true, false)
+        .map { it.navigatable }
         .firstOrNull()
         ?.let {
           // We first try to navigate to specific components within the coordinates, but fall back

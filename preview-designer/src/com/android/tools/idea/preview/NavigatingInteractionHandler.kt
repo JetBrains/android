@@ -34,11 +34,11 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.pom.Navigatable
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -333,16 +333,17 @@ class NavigatingInteractionHandler(
           needsFocusEditor,
           isOptionDown,
         )
+
       if (isOptionDown && isPopUpEnabled()) {
         // Open a pop up menu with all components under coordinates
-        var actions = createActionGroup(sceneView, navigatables)
+        val actions = createActionGroup(sceneView, navigatables)
         withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }
         return@launch
       }
 
       val navigated =
         navigatables.firstOrNull()?.let {
-          navigationHandler.navigateTo(sceneView, it!!, needsFocusEditor)
+          navigationHandler.navigateTo(sceneView, it.navigatable!!, needsFocusEditor)
         }
           ?: run {
             if (needsFocusEditor) {
@@ -364,13 +365,14 @@ class NavigatingInteractionHandler(
   // + clicking on component.
   private fun createActionGroup(
     sceneView: SceneView,
-    navigatables: List<Navigatable?>,
+    navigatables: List<PreviewNavigatableWrapper>,
   ): DefaultActionGroup {
     val defaultGroup = DefaultActionGroup()
     navigatables.forEach {
-      it?.let {
+      val name = it.name
+      it.navigatable?.let {
         defaultGroup.addAction(
-          object : AnAction(it.toString()) {
+          object : AnAction(name) {
             override fun actionPerformed(e: AnActionEvent) {
               scope.launch(AndroidDispatchers.workerThread) {
                 navigationHandler.navigateTo(sceneView, it, false)

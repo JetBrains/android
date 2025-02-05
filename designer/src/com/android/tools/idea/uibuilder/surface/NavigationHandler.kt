@@ -39,7 +39,7 @@ interface NavigationHandler : Disposable {
     @SwingCoordinate y: Int,
     requestFocus: Boolean,
     shouldFindAllNavigatables: Boolean,
-  ): List<Navigatable?>
+  ): List<PreviewNavigatableWrapper>
 
   /**
    * Triggered when preview in the design surface is clicked, returns true if the navigation was
