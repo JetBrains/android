@@ -76,6 +76,10 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
           ?: projectSettingsModel?.run {
             pluginManagement().plugins().plugins().filter { it.isAgp() }.map { it.version() }.nullize()
           }
+          ?: projectSettingsModel?.run {
+            // declarative branch
+            plugins().plugins().filter { it.isAgp() }.map { it.version() }.nullize()
+          }
         when {
           models == null -> null.also { LOG.warn("Android Gradle Plugin Version not found") }
           models.isEmpty() -> error("AGP version parsed property implementation inconsistency")

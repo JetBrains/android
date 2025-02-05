@@ -85,8 +85,10 @@ iml_module(
         "//tools/adt/idea/project-system-gradle/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:declarative_android_gradle_plugin.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/external/gradle:gradle-8.12-20241105002153+0000",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
@@ -123,6 +125,8 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )
 
@@ -153,6 +157,8 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
+        "@maven//:androidx.test.rules_1.4.0-alpha06",
+        "@maven//:androidx.test.runner_1.4.0-alpha06",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
@@ -178,6 +184,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:org.mockito.mockito-core_5.12.0",
