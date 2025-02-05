@@ -79,6 +79,7 @@ class DataBindingAnnotationsService(val module: Module) {
         scope,
         PsiMethod::class.java,
       )
+      .asIterable()
       .mapNotNull { annotatedMethod -> AnnotationUtil.findAnnotation(annotatedMethod, fqName) }
   }
 

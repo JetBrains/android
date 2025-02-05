@@ -61,7 +61,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import java.util.ArrayList
 import javax.swing.Icon
 
 /**
@@ -230,7 +229,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         return listOf(GotoRelatedItem(declared))
       }
 
-      return ReferencesSearch.search(field, module.getModuleScope(false)).mapNotNull { reference ->
+      return ReferencesSearch.search(field, module.getModuleScope(false)).asIterable().mapNotNull { reference ->
         val element = reference.element
         when (element.language) {
           KotlinLanguage.INSTANCE -> checkKotlinReference(element)
