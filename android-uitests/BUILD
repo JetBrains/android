@@ -326,9 +326,7 @@ maven_repository(
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.code.gson.gson_2.6.2",
         "@maven//:com.google.dagger.dagger-compiler_2.52",
-        "@maven//:com.google.dagger.dagger-compiler_2.6",
         "@maven//:com.google.dagger.dagger_2.52",
-        "@maven//:com.google.dagger.dagger_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_28.2-jre",
@@ -574,6 +572,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.DownloadableFontTest"],
     tags = COMMON_TAGS + [
@@ -1256,6 +1255,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:platforms/android-35",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -2384,6 +2384,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ] + glob([
         "testData/ResourceManagerApp/**",
     ]),
@@ -2522,6 +2523,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ] + glob([
         "testData/PrivateResource/**",
     ]),
