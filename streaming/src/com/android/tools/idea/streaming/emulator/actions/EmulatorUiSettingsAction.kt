@@ -16,8 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -48,7 +47,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
     val config = getEmulatorConfig(event) ?: return
     val model = UiSettingsModel(config.displaySize, config.density, config.api, config.deviceType)
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
-    AndroidCoroutineScope(emulatorView).launch {
+    emulatorView.createCoroutineScope().launch {
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, config.deviceType)

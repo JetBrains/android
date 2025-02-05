@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.benchmark
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.bottom
@@ -227,7 +227,7 @@ internal class DeviceAdapter(
   private val readyIndicator: ProgressIndicator? = null,
   private val timeSource: TimeSource = TimeSource.Monotonic,
   private val installer: StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstaller(project, target.serialNumber),
-  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
+  private val coroutineScope: CoroutineScope = target.view.createCoroutineScope(),
 ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
   private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize

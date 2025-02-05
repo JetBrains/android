@@ -20,7 +20,7 @@ import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -245,7 +245,7 @@ internal class DeviceView(
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
     maxVideoSize = physicalSize
-    AndroidCoroutineScope(this@DeviceView).launch {
+    createCoroutineScope().launch {
       connectToAgent(maxVideoSize, initialDisplayOrientation)
     }
   }

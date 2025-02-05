@@ -21,7 +21,7 @@ import com.android.adblib.shellAsLines
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
@@ -142,7 +142,8 @@ internal class EmulatorUiSettingsController(
   emulatorConfig: EmulatorConfiguration,
   parentDisposable: Disposable,
 ) : UiSettingsController(model, UiSettingsStats(emulatorConfig.toDeviceInfo(deviceSerialNumber))) {
-  private val scope = AndroidCoroutineScope(parentDisposable)
+
+  private val scope = parentDisposable.createCoroutineScope()
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT))
   private var readApplicationId = ""
   private var readPhysicalDensity = 160

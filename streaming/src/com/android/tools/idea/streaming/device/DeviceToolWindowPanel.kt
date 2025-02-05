@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
@@ -249,7 +249,7 @@ internal class DeviceToolWindowPanel(
     @AnyThread
     fun initialize() {
       contentDisposable?.let {
-        AndroidCoroutineScope(it).launch {
+        it.createCoroutineScope().launch {
           val displays = try {
             deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
           }

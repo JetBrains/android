@@ -16,8 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceUiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -52,7 +51,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val density = config.deviceProperties.density ?: return
     val model = UiSettingsModel(screenSize, density, config.apiLevel, deviceType)
     val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
-    AndroidCoroutineScope(deviceView).launch {
+    deviceView.createCoroutineScope().launch {
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, deviceType)

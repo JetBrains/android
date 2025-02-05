@@ -26,7 +26,7 @@ import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
@@ -135,7 +135,7 @@ internal class DeviceClient(
 
   val deviceName: String = deviceConfig.deviceName
   val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
-  private val clientScope = AndroidCoroutineScope(this)
+  private val clientScope = createCoroutineScope()
   private val connectionHolder = AtomicReference<Connection>()
   val deviceController: DeviceController?
     get() = connectionHolder.get()?.deviceController

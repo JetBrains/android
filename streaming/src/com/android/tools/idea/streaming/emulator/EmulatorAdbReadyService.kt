@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.ide.ActivityTracker
@@ -35,8 +35,9 @@ fun isReadyForAdbCommands(project: Project, serialNumber: String): Boolean =
 
 @Service(Service.Level.PROJECT)
 internal class EmulatorAdbReadyService(private val project: Project): Disposable {
+
   private val deviceHandleMap = ConcurrentCollectionFactory.createConcurrentMap<String, DeviceHandle>()
-  private val scope = AndroidCoroutineScope(this)
+  private val scope = createCoroutineScope()
 
   override fun dispose() {
   }

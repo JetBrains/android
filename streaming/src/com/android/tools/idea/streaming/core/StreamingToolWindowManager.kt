@@ -31,7 +31,6 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -1063,7 +1062,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     init {
       Disposer.register(disposableParent, this)
       val executor = createBoundedApplicationPoolExecutor("EmulatorToolWindowManager.PhysicalDeviceWatcher", 1)
-      coroutineScope = AndroidCoroutineScope(this, executor.asCoroutineDispatcher())
+      coroutineScope = createCoroutineScope(executor.asCoroutineDispatcher())
       coroutineScope.launch {
         deviceProvisioner.mirrorableDevicesBySerialNumber().collect { newOnlineDevices ->
           UIUtil.invokeLaterIfNeeded {
