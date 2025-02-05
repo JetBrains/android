@@ -46,5 +46,11 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.backend.workspace" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
   </component>
 </module>
