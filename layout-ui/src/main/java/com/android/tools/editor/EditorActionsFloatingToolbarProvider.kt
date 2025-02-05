@@ -15,6 +15,7 @@
  */
 package com.android.tools.editor
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -119,6 +120,7 @@ abstract class EditorActionsFloatingToolbarProvider(
     return ActionToolbarUtil.findActionButton(toolbar, action)
   }
 
+  @UiThread
   protected fun updateToolbar() {
     val toolbarPlace = actionPlacePrefix + zoomActionPlace
     val labelPlace = actionPlacePrefix + zoomLabelPlace

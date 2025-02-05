@@ -41,7 +41,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.flow.flowOn
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -88,9 +87,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   init {
     Disposer.register(parent, this)
     scope.launch {
-      merge(surface.panningChanged, surface.zoomChanged).flowOn(uiThread).collect {
-        northEastToolbar?.updateActionsAsync()
-
+      merge(surface.panningChanged, surface.zoomChanged).collect {
+        withContext(uiThread) { northEastToolbar?.updateActionsAsync() }
       }
     }
 
