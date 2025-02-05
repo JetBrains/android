@@ -14,6 +14,8 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 

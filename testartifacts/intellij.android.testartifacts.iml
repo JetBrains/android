@@ -12,5 +12,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
