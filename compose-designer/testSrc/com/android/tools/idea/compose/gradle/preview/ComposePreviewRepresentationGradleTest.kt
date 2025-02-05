@@ -23,6 +23,7 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
@@ -668,18 +669,7 @@ class ComposePreviewRepresentationGradleTest {
     assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
 
     // Start Interactive Preview mode.
-    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
-      composePreviewRepresentation.setMode(PreviewMode.Interactive(selectedPreviewElement))
-    }
-    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
-      composePreviewRepresentation.mode.value is PreviewMode.Interactive
-    }
-    // FakeUi doesn't call the designSurface.resize() callback needed to call the [notifyZoomToFit]
-    // when the render has finished. We need then to do notify the resize manually.
-    previewView.mainSurface.notifyComponentResizedForTest()
-    delayUntilCondition(delayPerIterationMs = 250) {
-      !previewView.mainSurface.zoomController.canZoomToFit()
-    }
+    startInteractiveMode(selectedPreviewElement)
 
     // Interactive Preview mode should be in zoom-to-fit scale.
     assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Interactive)
@@ -698,6 +688,27 @@ class ComposePreviewRepresentationGradleTest {
     }
     assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
     assertEquals(defaultModeScale, previewView.mainSurface.zoomController.scale, 0.001)
+
+    // Start Interactive Preview mode.
+    startInteractiveMode(selectedPreviewElement)
+
+    // Interactive Preview again and should be in zoom-to-fit scale again.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Interactive)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+  }
+
+  private suspend fun startInteractiveMode(
+    selectedPreviewElement: PsiComposePreviewElementInstance
+  ) {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Interactive(selectedPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.Interactive
+    }
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
   }
 
   private suspend fun switchToDefaultMode() {

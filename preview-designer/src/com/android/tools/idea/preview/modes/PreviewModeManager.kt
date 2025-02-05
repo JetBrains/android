@@ -19,7 +19,9 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.preview.Colors
 import com.android.tools.preview.PreviewElement
 import com.google.common.base.Objects
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.project.Project
 import java.awt.Color
 import kotlinx.coroutines.flow.StateFlow
 
@@ -70,6 +72,59 @@ sealed class PreviewMode {
   open val selected: PreviewElement<*>? = null
 
   /**
+   * This function returns to false if the given [PreviewMode] doesn't trigger any resize of
+   * [DesignSurface] (default). Override it to true if are entering a [PreviewMode] that triggers a
+   * [DesignSurface] resize explaining why a resize is expected when it returns true.
+   *
+   * @param previousMode The previous [PreviewMode] before the following one.
+   * @param project The [Project] used by the [Preview]
+   *
+   * Example: entering UiCheck mode from Default mode
+   *
+   *   Default mode with            Ui Check **resizes** DesignSurface
+   *   problem panel close          to show problem panel
+   *    _______________             _______________
+   *  |        |      |            |        |      |
+   *  |        |      |            |________|______|
+   *  |        |      |    =>      |               |
+   *  |        |      |            | problem panel |
+   *  |________|______|            |_______________|
+   *
+   *
+   *   Default mode with          Ui Check **doesn't resize**, problem
+   *   problem panel open         panel is already open.
+   *   _______________            _______________
+   *  |        |      |          |        |      |
+   *  |________|______|    =>    |________|______|
+   *  |               |          |               |
+   *  | problem panel |          | problem panel |
+   *  |_______________|          |_______________|
+   *
+   *  Example: entering Ui Check from focus Mode
+   *
+   *   Focus mode with              Ui Check **resizes** DesignSurface
+   *   problem panel close          to delete Focus mode tab bar and
+   *                                create problem panel
+   *    _______________             _______________
+   *  |        |______|            |        |      |
+   *  |        | O  O |            |________|______|
+   *  |        | o  O |    =>      |               |
+   *  |        | o  O |            | problem panel |
+   *  |________|______|            |_______________|
+   *
+   *   Focus mode with            Ui Check **resizes** DesignSurface
+   *   problem panel open         to delete Focus mode tab bar and
+   *     _______________           _______________
+   *   |        |______|          |        |      |
+   *   |        | O  O |    =>    |________|______|
+   *   |        | o  O |          |               |
+   *   |        | o  O |          | problem panel |
+   *   |________|______|          |_______________|
+   *
+   */
+  open fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean = false
+
+  /**
    * Returns a [PreviewMode] with the same content as the current one, but with a different layout
    * option if that is allowed by the mode. Modes that want to react to layout changes have to
    * override this.
@@ -94,6 +149,13 @@ sealed class PreviewMode {
 
   class Default(override val layoutOption: SurfaceLayoutOption = DEFAULT_LAYOUT_OPTION) :
     RestorePreviewMode() {
+
+    // Resize is expected in Default PreviewMode if the previous Preview was Animation Inspection or
+    // Focus mode.
+    override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean {
+      return previousMode is Focus || previousMode is AnimationInspection
+    }
+
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
       return Default(layoutOption)
     }
@@ -110,6 +172,18 @@ sealed class PreviewMode {
   ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 
+    override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean {
+      if (previousMode is Focus) {
+        // We always expect a resize on enter if the previous mode was of type Focus.
+        return true
+      }
+      val isProblemPanelNotVisible =
+        ProblemsViewToolWindowUtils.getToolWindow(project)?.isVisible == false
+      // If we are in Default mode and the problem panel is not open we expect a resize when
+      // entering Ui Check mode.
+      return previousMode is Default && isProblemPanelNotVisible
+    }
+
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
       return UiCheck(baseInstance, layoutOption)
     }
@@ -125,6 +199,10 @@ sealed class PreviewMode {
 
   class Focus(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
     override val layoutOption: SurfaceLayoutOption = FOCUS_MODE_LAYOUT_OPTION
+
+    // We always return true because the Focus PreviewMode resizes DesignSurface to create the top
+    // FocusModeTabs toolbar.
+    override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project) = true
 
     /**
      * If list of previews is updated while [PreviewMode.Focus] is selected - [selected] element
@@ -161,12 +239,21 @@ sealed class PreviewMode {
   class Interactive(selected: PreviewElement<*>) : SingleItemMode<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
+
+    // We expect a resize if the previous mode was of type Focus.
+    override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean {
+      return previousMode is Focus
+    }
   }
 
   class AnimationInspection(selected: PreviewElement<*>) :
     SingleItemMode<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
+
+    // We always return true when entering Animation Inspection PreviewMode because of the animation
+    // panel positioned below the preview.
+    override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project) = true
   }
 }
 

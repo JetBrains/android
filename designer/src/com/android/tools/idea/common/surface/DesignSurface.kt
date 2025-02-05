@@ -46,6 +46,7 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.surface.DesignSurface.ZoomMaskConstants.Companion.INITIAL_STATE_INT_MASK
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane.Companion.createDefaultScrollPane
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
@@ -607,21 +608,38 @@ abstract class DesignSurface<T : SceneManager>(
    *
    * This is useful when we switch modes or layouts.
    *
+   * @param shouldWaitForResize When true, the zoom mask waits for the resize notification
+   *   [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK]. When false, the notification is
+   *   applied immediately, avoiding the need to wait for the next [DesignSurface] resize event.
+   *
    * Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait [notifyZoomToFit] to be
    * performed at least once before trying to apply zoom-to-fit.
    */
-  fun resetZoomToFitNotifier() {
+  fun resetZoomToFitNotifier(shouldWaitForResize: Boolean = true) {
+    var newZoomToFitStateMask = INITIAL_STATE_INT_MASK
+
+    if (!shouldWaitForResize && height > 0 && width > 0) {
+      // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
+      // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
+      newZoomToFitStateMask =
+        newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+    }
+
     if (
       readyToZoomToFitMask.get() == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
         height > 0 &&
         width > 0
     ) {
-      // If we have performed already the first [DesignSurface.zoomToFit] we can just set the
-      // bitwise map with the NOTIFY_ZOOM_TO_FIT_INT_MASK flag.
-      readyToZoomToFitMask.set(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
-    } else {
-      readyToZoomToFitMask.set(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
+      // If we have already performed a zoom-to-fit and we want to perform it again but the
+      // [DesignSurface] has changed we shouldn't wait for zoom-to-fit again. In this the new mask
+      // value will be NOTIFY_ZOOM_TO_FIT_INT_MASK flag.
+      newZoomToFitStateMask = newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK
     }
+
+    // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
+    // the resize of design surface we set the mask to its initial bitwise number
+    // [INITIAL_STATE_INT_MASK].
+    readyToZoomToFitMask.set(newZoomToFitStateMask)
   }
 
   @TestOnly
@@ -659,7 +677,6 @@ abstract class DesignSurface<T : SceneManager>(
     if (newMask == expectedZoomToFitMask) {
       return zoomController.zoomToFit()
     }
-
     return false
   }
 
