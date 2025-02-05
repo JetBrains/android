@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -488,6 +489,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
             if (appDependOnLibrary) listOf(AndroidModuleDependency(":library1", "debug"))
             else emptyList()
           },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalAppDeclaredDependencies) },
           androidLibraryDependencyList = { additionalAppResolvedDependencies }
         )
       ),
@@ -496,6 +498,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         "debug",
         AndroidProjectBuilder(
           projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalLibrary1DeclaredDependencies) },
           androidLibraryDependencyList = { additionalLibrary1ResolvedDependencies }
         )
       )

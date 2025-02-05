@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -626,6 +627,7 @@ class KotlinModelConverter {
       rootDirPath = rootModulePath!!,
       androidProject = androidProject,
       selectedVariantName = kotlinMultiplatformAndroidVariantName,
+      declaredDependencies = IdeDeclaredDependenciesImpl(mapOf()),
       variants = listOf(androidMainVariant)
     )
   }

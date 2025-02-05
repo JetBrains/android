@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
@@ -82,6 +83,7 @@ class GradleAndroidModel(
   val moduleName: String get() = data.moduleName
   val rootDirPath: File get() = data.rootDirPath
   val androidProject: IdeAndroidProject get() = data.androidProject
+  val declaredDependencies: IdeDeclaredDependencies get() = data.declaredDependencies
   val selectedVariantName: String get() = data.selectedVariantName
   val selectedBasicVariant: IdeBasicVariant get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
   val selectedVariant: IdeVariant get() = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
