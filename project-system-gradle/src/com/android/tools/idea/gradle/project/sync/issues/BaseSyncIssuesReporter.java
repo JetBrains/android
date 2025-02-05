@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessageWithContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
@@ -42,8 +43,8 @@ abstract class BaseSyncIssuesReporter {
    * @param buildFileMap  map of build files per module, this map provides information to each of the reporters to support quick links to
    *                      the build.gradle files, entries in this map are optional.
    */
-  abstract @NotNull List<? extends SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
-                                                                   @NotNull Map<IdeSyncIssue, Module> moduleMap,
-                                                                   @NotNull Map<Module, VirtualFile> buildFileMap);
+  abstract @NotNull List<SyncMessageWithContext> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                                                           @NotNull Map<IdeSyncIssue, Module> moduleMap,
+                                                           @NotNull Map<Module, VirtualFile> buildFileMap);
 
 }

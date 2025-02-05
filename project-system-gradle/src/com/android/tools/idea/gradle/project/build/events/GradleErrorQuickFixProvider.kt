@@ -19,10 +19,13 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssu
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
+import com.android.tools.idea.util.PositionInFile
 import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.SystemIndependent
 
 /**
  * Quick fix provider to provide quick fixes for Gradle build/sync errors.
@@ -36,7 +39,12 @@ interface GradleErrorQuickFixProvider {
    * if a quick fix can be offered to the user for a build issue.
    */
   fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix?
-  fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncMessageHyperlink?
+  fun createSyncMessageAdditionalLink(
+    syncMessage: SyncMessage,
+    affectedModules: List<Module>,
+    buildFileMap: Map<Module, VirtualFile>,
+    rootProjectPath: @SystemIndependent String
+  ): SyncMessageHyperlink?
 
   companion object {
     val EP_NAME = ExtensionPointName.create<GradleErrorQuickFixProvider>("com.android.tools.idea.gradle.errorQuickFixProvider")

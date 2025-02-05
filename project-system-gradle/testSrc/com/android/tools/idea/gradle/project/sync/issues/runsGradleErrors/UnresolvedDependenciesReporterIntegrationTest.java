@@ -29,6 +29,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertNotNull;
+import static org.assertj.core.util.Arrays.asList;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -43,6 +44,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -101,7 +103,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(Pattern.compile("Failed to resolve: com.google.guava:guava:19.0.*" +
@@ -114,6 +116,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
       VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
       assertSame(buildFile, file);
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       Assert.assertEquals(
         ImmutableList.of(
           GradleSyncIssue
@@ -122,7 +126,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -144,14 +148,16 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(Pattern.compile("Failed to resolve: com.android.support.constraint:constraint-layout:\\+.*" +
                                        "Affected Modules:", Pattern.DOTALL));
 
-      final var quickFixes = messages.get(0).getQuickFixes();
+      final var quickFixes = message.getQuickFixes();
       assertNotEmpty(quickFixes);
+
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
 
       assertEquals(
         ImmutableList.of(
@@ -162,7 +168,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -185,7 +191,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
         assertSize(1, messages);
 
-        final var message = messages.get(0);
+        final var message = messages.get(0).getSyncMessage();
         assertEquals("Unresolved dependencies", message.getGroup());
         assertThat(message.getMessage())
           .containsMatch(Pattern.compile("""
@@ -204,6 +210,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
           assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
         }
 
+        assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
         assertEquals(
           ImmutableList.of(
             GradleSyncIssue
@@ -212,7 +220,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
               .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
               .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
               .build()),
-          SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+          SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
       });
   }
 
@@ -235,7 +243,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(Pattern.compile("Failed to resolve: com.android.support:appcompat-v7:24.1.1.*" +
@@ -256,6 +264,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
       }
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       assertEquals(
         ImmutableList.of(
           GradleSyncIssue
@@ -265,7 +275,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -293,7 +303,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
       assertSize(1, messages);
 
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\n" +
                    "<a href=\"open.dependency.in.project.structure\">Show in Project Structure dialog</a>\n" +
@@ -308,6 +318,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         assertThat(quickFixes.get(0)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
       }
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       assertEquals(
         ImmutableList.of(
           maybeAddShowDependencyInProjectStructureHyperLink(
@@ -315,7 +327,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
               .newBuilder()
               .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY))
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -342,7 +354,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\n" +
                    "<a href=\"add.google.maven.repository\">Add Google Maven repository and sync project</a>\n" +
@@ -365,6 +377,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
       }
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       assertEquals(
         ImmutableList.of(
           maybeAddShowDependencyInProjectStructureHyperLink(
@@ -373,7 +387,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
               .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
               .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK))
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -395,7 +409,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(Pattern.compile("Failed to resolve: com.google.android.gms:play-services:9.4.0.*" +
@@ -413,6 +427,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
       }
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       assertEquals(
         ImmutableList.of(
           maybeAddShowDependencyInProjectStructureHyperLink(
@@ -423,7 +439,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
           )
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -489,12 +505,14 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var message = messages.get(0);
+      final var message = messages.get(0).getSyncMessage();
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(
           Pattern.compile("Failed to resolve: com.google.android.gms:play-services:.*Affected Modules:",
                           Pattern.DOTALL));
+
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule, libModule));
 
       assertEquals(
         ImmutableList.of(
@@ -505,7 +523,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 
@@ -585,7 +603,8 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       assertSize(1, messages);
 
-      final var links = messages.get(0).getQuickFixes();
+      SyncMessage message = messages.get(0).getSyncMessage();
+      final var links = message.getQuickFixes();
       boolean studio = IdeInfo.getInstance().isAndroidStudio();
       int size = (studio ? 2 : 1) + 1; /* affected modules */
       if (googleRepoExistInSettings) {
@@ -607,9 +626,11 @@ public class UnresolvedDependenciesReporterIntegrationTest {
       builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK);
       builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK);
 
+      assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
       assertEquals(
         ImmutableList.of(builder.build()),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
     });
   }
 

@@ -127,4 +127,10 @@ public class SyncMessage {
   private static String joinText(@NotNull String[] text) {
     return String.join("\n", text);
   }
+
+  public SyncMessage copy() {
+    SyncMessage copy = new SyncMessage(myGroup, myType, myNavigatable, myText, myPosition);
+    copy.add(myQuickFixes);
+    return copy;
+  }
 }

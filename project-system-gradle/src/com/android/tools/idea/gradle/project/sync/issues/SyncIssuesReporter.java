@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixPro
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessageWithContext;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -122,15 +123,15 @@ public class SyncIssuesReporter {
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
       }
-      List<? extends SyncMessage> messages = strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
+      List<SyncMessageWithContext> messages = strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
 
-      SyncIssueUsageReporterUtils.collect(syncIssueUsageReporter, entry.getKey(), messages);
+      List<SyncMessage> finalMessages = addAdditionalIssueLinks(messages, buildFileMap, rootProjectPath);
+      SyncIssueUsageReporterUtils.collect(syncIssueUsageReporter, entry.getKey(), finalMessages);
 
-      syncMessages.addAll(messages);
+      syncMessages.addAll(finalMessages);
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
 
-    addAdditionalIssueLinks(syncMessages);
 
     for (SyncMessage syncMessage : syncMessages) {
       gradleSyncMessages.report(syncMessage);
@@ -147,16 +148,21 @@ public class SyncIssuesReporter {
     }
   }
 
-  private static void addAdditionalIssueLinks(@NotNull List<SyncMessage> syncMessages) {
+  private static List<SyncMessage> addAdditionalIssueLinks(@NotNull List<SyncMessageWithContext> syncMessages, Map<Module, VirtualFile> buildFileMap, @SystemIndependent String rootProjectPath) {
     List<GradleErrorQuickFixProvider> providers = GradleErrorQuickFixProvider.Companion.getProviders();
-    for (SyncMessage syncMessage : syncMessages) {
+    List<SyncMessage> updatedMessages = new ArrayList<>(syncMessages.size());
+    for (SyncMessageWithContext syncMessage : syncMessages) {
+      SyncMessage originalSyncMessage = syncMessage.getSyncMessage();
+      SyncMessage updatedMessage = originalSyncMessage.copy();
       for (GradleErrorQuickFixProvider provider : providers) {
-        SyncMessageHyperlink link = provider.createSyncMessageAdditionalLink(syncMessage);
+        SyncMessageHyperlink link = provider.createSyncMessageAdditionalLink(originalSyncMessage, syncMessage.getAffectedModules(), buildFileMap, rootProjectPath);
         if (link != null) {
-          syncMessage.add(link);
+          updatedMessage.add(link);
         }
       }
+      updatedMessages.add(updatedMessage);
     }
+    return updatedMessages;
   }
 
   @VisibleForTesting

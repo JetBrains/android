@@ -68,10 +68,11 @@ class CompileSdkVersionTooHighReporterTest {
 
     preparedProject.open { project ->
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -83,10 +84,11 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
       assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(listOf(module), messages[0].affectedModules)
     }
   }
 
@@ -103,10 +105,11 @@ class CompileSdkVersionTooHighReporterTest {
       mock.whenever<Any?> { AndroidPluginInfo.find(project) }.thenReturn(pluginInfo)
 
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -118,10 +121,11 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
       assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(listOf(module), messages[0].affectedModules)
       mock.close()
     }
   }
@@ -139,10 +143,11 @@ class CompileSdkVersionTooHighReporterTest {
       mock.whenever<Any?> { AndroidPluginInfo.find(project) }.thenReturn(pluginInfo)
 
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -153,8 +158,9 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(0 + 1 /* affected modules */, quickFixes)
+      assertEquals(listOf(module), messages[0].affectedModules)
       mock.close()
     }
   }

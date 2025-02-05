@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstant
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
@@ -37,6 +38,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -45,6 +47,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
+import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -406,7 +409,10 @@ class TomlErrorParserTest {
         }
       }
 
-      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage): SyncIssueNotificationHyperlink? {
+      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage,
+                                                   affectedModules: List<Module>,
+                                                   buildFileMap: Map<Module, VirtualFile>,
+                                                   rootProjectPath: @SystemIndependent String): SyncMessageHyperlink? {
         error("Should not be called in this test")
       }
     }
