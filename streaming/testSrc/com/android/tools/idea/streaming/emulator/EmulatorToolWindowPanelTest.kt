@@ -137,10 +137,6 @@ class EmulatorToolWindowPanelTest {
     @JvmField
     @ClassRule
     val iconRule = IconLoaderRule()
-
-    init {
-      System.setProperty("idea.leak.check.enabled", "false") // TODO(b/394175845): fix leaks.
-    }
   }
 
   private val projectRule = ProjectRule()

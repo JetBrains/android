@@ -388,6 +388,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
     synchronized(dataLock) {
       listeners = emptyList()
       updateIntervalsByListener.clear()
+      for (emulator in emulators) {
+        Disposer.dispose(emulator)
+      }
       emulators = emptySet()
       registrationDirectory = directory ?: computeRegistrationDirectory()
     }
