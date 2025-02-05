@@ -112,7 +112,7 @@ jvm_library(
     "//xml/xml-analysis-impl:analysis-impl",
     "//xml/dom-openapi:dom",
     "//xml/dom-impl",
-    "//xml/xml-frontback:frontback",
+    "//xml/xml-parser:parser",
     "//xml/impl",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",

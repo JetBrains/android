@@ -34,7 +34,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/util",
-    "//xml/xml-frontback:frontback",
+    "//xml/xml-parser:parser",
     "//xml/xml-psi-api:psi",
   ]
 )

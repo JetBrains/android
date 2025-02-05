@@ -76,7 +76,7 @@ jvm_library(
     "//plugins/properties/properties-psi-api:psi",
     "//plugins/toml/core",
     "//xml/dom-openapi:dom",
-    "//xml/xml-frontback:frontback",
+    "//xml/xml-parser:parser",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",

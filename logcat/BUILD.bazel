@@ -57,7 +57,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
-    "//xml/xml-frontback:frontback",
+    "//xml/xml-parser:parser",
     "//android/ml-api",
   ],
   runtime_deps = [":logcat_resources"]
@@ -127,7 +127,7 @@ jvm_test(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
-    "//xml/xml-frontback:frontback",
+    "//xml/xml-parser:parser",
     "//android/ml-api",
   ]
 )

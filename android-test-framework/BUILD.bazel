@@ -117,6 +117,8 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2_test_lib",
+    "//plugins/kotlin/gradle/gradle-java:kotlin-gradle-gradle-java",
+    "//plugins/kotlin/gradle/gradle-java:kotlin-gradle-gradle-java_test_lib",
   ]
 )
 
