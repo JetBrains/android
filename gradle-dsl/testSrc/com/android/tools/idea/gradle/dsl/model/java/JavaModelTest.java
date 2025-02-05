@@ -261,6 +261,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
   /**
    * to run this test, disable the first check in
    * {@link com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase#before()}
+   * @throws IOException
    */
   @Test
   public void testDeclarative() throws IOException {
