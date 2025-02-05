@@ -24,10 +24,12 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.intellij.util.ui.CheckBox;
 import java.awt.Dimension;
 import java.awt.Insets;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -47,6 +49,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private HyperlinkLabel myAdbServerLifecycleLabel;
   private JComboBox myAdbServerBurstMode;
   private HyperlinkLabel myAdbServerBurstModeLabel;
+  private JCheckBox myEnableADBServerLogs;
 
   public AdbConfigurableUi() {
     setupUI();
@@ -58,7 +61,8 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
            || getAdbServerMdnsBackend() != settings.getAdbServerMdnsBackend()
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
            || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort()
-           || getAdbServerBurstMode() != settings.getAdbServerBurstMode();
+           || getAdbServerBurstMode() != settings.getAdbServerBurstMode()
+           || getAdbServerLogsEnabled() != settings.getAdbServerLogsEnabled();
   }
 
   @Override
@@ -74,6 +78,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
     setAdbServerBurstMode(settings.getAdbServerBurstMode());
+    setAdbServerLogsEnabled(settings.getAdbServerLogsEnabled());
   }
 
   @Override
@@ -84,6 +89,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
       .setAdbServerMdnsBackend(getAdbServerMdnsBackend())
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
       .setBurstMode(getAdbServerBurstMode())
+      .setAdbServerLogsEnabled(getAdbServerLogsEnabled())
       .commit();
   }
 
@@ -91,17 +97,17 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   @Override
   public JComponent getComponent() {
     myAdbServerUsbBackend.setModel(new DefaultComboBoxModel(AdbServerUsbBackend.values()));
-    myAdbServerUsbBackendLabel.setHyperlinkText("ADB server USB backend (", "See support list", ")");
+    myAdbServerUsbBackendLabel.setHyperlinkText("ADB server USB backend (", "Support list", ")");
     myAdbServerUsbBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#backends");
     myAdbServerUsbBackendLabel.setIcon(null);
 
     myAdbServerMdnsBackend.setModel(new DefaultComboBoxModel(AdbServerMdnsBackend.values()));
-    myAdbServerMdnsBackendLabel.setHyperlinkText("ADB server mDNS backend (", "See support list", ")");
+    myAdbServerMdnsBackendLabel.setHyperlinkText("ADB server mDNS backend (", "Support list", ")");
     myAdbServerMdnsBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#mdnsBackends");
     myAdbServerMdnsBackendLabel.setIcon(null);
 
     myAdbServerBurstMode.setModel(new DefaultComboBoxModel(AdbServerBurstMode.values()));
-    myAdbServerBurstModeLabel.setHyperlinkText("ADB server burst mode (", "See support list", ")");
+    myAdbServerBurstModeLabel.setHyperlinkText("ADB server Burst Mode (", "Support list", ")");
     myAdbServerBurstModeLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#burstMode");
     myAdbServerBurstModeLabel.setIcon(null);
 
@@ -217,6 +223,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myPanel.add(myAdbServerMdnsBackend, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                             new Dimension(83, 38), null, 0, false));
+
     myAdbServerMdnsBackendLabel = new HyperlinkLabel();
     myAdbServerMdnsBackendLabel.setAlignmentX(0.5f);
     myAdbServerMdnsBackendLabel.setText("");
@@ -226,15 +233,33 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myPanel.add(myAdbServerBurstMode, new GridConstraints(2, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                           new Dimension(83, 38), null, 0, false));
+
     myAdbServerBurstModeLabel = new HyperlinkLabel();
     myAdbServerBurstModeLabel.setAlignmentX(0.5f);
     myAdbServerBurstModeLabel.setText("");
     myPanel.add(myAdbServerBurstModeLabel,
                 new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                     GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+
+    myEnableADBServerLogs = new JCheckBox();
+    myEnableADBServerLogs.setAlignmentX(0.5f);
+    myEnableADBServerLogs.setText("Enable ADB server logs");
+    myPanel.add(myEnableADBServerLogs,
+                new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+
     ButtonGroup buttonGroup;
     buttonGroup = new ButtonGroup();
     buttonGroup.add(myAutomaticallyStartAndManageServerRadioButton);
     buttonGroup.add(myUseExistingManuallyManagedServerRadioButton);
+
+  }
+
+  void setAdbServerLogsEnabled(boolean enabled) {
+    myEnableADBServerLogs.setSelected(enabled);
+  }
+
+  boolean getAdbServerLogsEnabled() {
+    return myEnableADBServerLogs.isSelected();
   }
 }
