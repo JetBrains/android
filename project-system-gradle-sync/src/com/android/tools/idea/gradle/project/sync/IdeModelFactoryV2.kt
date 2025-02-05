@@ -35,7 +35,7 @@ class IdeModelFactoryV2(
 ) {
 
   /**
-   * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
+   * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha08.
    * Any attempt to read these values from a version prior to this will result in an exception.
    */
   private val useAdditionalArtifactsFromLibraries =
