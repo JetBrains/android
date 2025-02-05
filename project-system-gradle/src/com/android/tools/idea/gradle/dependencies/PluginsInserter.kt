@@ -49,12 +49,6 @@ interface PluginsInserter {
 
   fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)): PsiFile?
 
-
-  fun addPluginToModule(pluginId: String,
-                        version: String,
-                        buildModel: GradleBuildModel,
-                        matcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile>
-
   fun addRepositoryFor(version: String, model: RepositoriesModel): PsiFile?
 
   fun applySettingsPlugin(pluginId: String,

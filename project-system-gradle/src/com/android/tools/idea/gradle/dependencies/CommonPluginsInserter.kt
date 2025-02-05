@@ -358,10 +358,10 @@ open class CommonPluginsInserter(private val projectModel: ProjectBuildModel): P
    * Adds plugin to module but insert/check version catalog first
    * Project build file/settings stay intact
    */
-  override fun addPluginToModule(pluginId: String,
+  open fun addPluginToModule(pluginId: String,
                              version: String,
                              buildModel: GradleBuildModel,
-                             matcher: PluginMatcher): Set<PsiFile> {
+                             matcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
     addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
     return changedFiles

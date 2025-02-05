@@ -151,16 +151,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, nonAndroidxKtxLibraryMap).let {
             changedFiles.addAll(it)
         }
-        /*
-        We need to
-        - apply the plugin (it is known to be missing at this point, otherwise we would not be configuring Kotlin in the first place)
-        - add an android.kotlinOptions jvmTarget property, if jvmTarget is not null.
-
-        Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
-         */
-        helper.addPluginToModule("org.jetbrains.kotlin.android", version, moduleBuildModel).let {
-            changedFiles.addAll(it)
-        }
 
         LanguageLevel.parse(jvmTarget)?.let { languageLevel ->
             moduleBuildModel.android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
