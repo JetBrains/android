@@ -132,6 +132,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
         bindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
+        .asIterable()
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
           val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
@@ -171,6 +172,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
         bindingMethodsAnnotation, moduleScope, PsiClass::class.java)
+        .asIterable()
         .forEach { bindingMethodsAnnotatedElements ->
           val bindingMethodsAnnotation = AnnotationUtil.findAnnotation(bindingMethodsAnnotatedElements, mode.bindingMethods)
                                          ?: return@forEach
@@ -231,6 +233,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
         inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
+        .asIterable()
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
           val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteral)
@@ -265,6 +268,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
         inverseBindingMethodsAnnotation, moduleScope, PsiClass::class.java)
+        .asIterable()
         .forEach { inverseBindingMethodsAnnotatedElements ->
           val inverseBindingMethodsAnnotation = AnnotationUtil.findAnnotation(inverseBindingMethodsAnnotatedElements,
                                                                               mode.inverseBindingMethods)
