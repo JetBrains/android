@@ -2195,6 +2195,18 @@ public final class StudioFlags {
                 "Generation model context size in tokens",
                 APOLLO_GENERATION_MODEL_CONTEXT_SIZE);
 
+  public static final Flag<Integer> STUDIOBOT_CHAT_MODEL_INPUT_TOKEN_LIMIT =
+    new IntFlag(STUDIOBOT, "chat.model.input.tokens",
+                "Input token limit for default chat model",
+                "Input token limit for default chat model",
+                16384);
+
+  public static final Flag<Integer> STUDIOBOT_CHAT_MODEL_OUTPUT_TOKEN_LIMIT =
+    new IntFlag(STUDIOBOT, "chat.model.output.tokens",
+                "Output token limit for default chat model",
+                "Output token limit for default chat model",
+                8192);
+
   public static final Flag<Boolean> STUDIOBOT_GENERATE_TEST_SCENARIOS =
     new BooleanFlag(STUDIOBOT, "generate.test.scenarios",
                     "Enable test scenario generation.",
