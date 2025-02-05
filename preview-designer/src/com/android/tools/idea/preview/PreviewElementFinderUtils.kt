@@ -19,6 +19,7 @@ import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.getUAnnotations
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
@@ -36,16 +37,28 @@ import org.jetbrains.uast.tryResolve
 
 /** Helper method that returns a map with all the default values of a preview annotation */
 fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
-  when (val resolvedImplementation = this.resolve()) {
-    is ClsClassImpl ->
-      resolvedImplementation.methods.associate { psiMethod ->
-        Pair(psiMethod.name, (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize())
-      }
-    is KtLightClass ->
-      resolvedImplementation.methods.associate { psiMethod ->
-        Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
-      }
-    else -> mapOf()
+  try {
+    when (val resolvedImplementation = this.resolve()) {
+      is ClsClassImpl ->
+        resolvedImplementation.methods.associate { psiMethod ->
+          Pair(
+            psiMethod.name,
+            (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize(),
+          )
+        }
+      is KtLightClass ->
+        resolvedImplementation.methods.associate { psiMethod ->
+          Pair(
+            psiMethod.name,
+            (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize(),
+          )
+        }
+      else -> mapOf()
+    }
+  } catch (_: IndexNotReadyException) {
+    // UAnnotation#resolve needs the index to be ready, if called during indexing, we simply do not
+    // return any default values.
+    mapOf()
   }
 
 /** Helper getter that returns a qualified name for a given [UMethod] */

@@ -67,9 +67,11 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
@@ -173,7 +175,10 @@ class ComposePreviewRepresentationProvider(
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() &&
-      (readAction { (psiFile.getModuleSystem()?.usesCompose == true || isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary() })
+      (readAction {
+        (psiFile.getModuleSystem()?.usesCompose == true ||
+          isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
+      })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
@@ -199,6 +204,9 @@ class ComposePreviewRepresentationProvider(
 }
 
 private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
+  // We need to be in smart mode to be able to access the index for the annotations.
+  if (DumbService.getInstance(file.project).isDumb) return false
+
   val module = ModuleUtilCore.findModuleForFile(file) ?: return false
   // we only accept modules that are:
   // - Android modules
@@ -207,8 +215,9 @@ private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
   if (!module.isAndroidModule() && !module.isCommonWithAndroidModule()) {
     return false
   }
-  val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/*includeTests = */true)
-  val foundClasses = KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
+  val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/* includeTests= */ true)
+  val foundClasses =
+    KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
   return foundClasses.isNotEmpty()
 }
 
