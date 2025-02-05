@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersionUtil
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
@@ -278,7 +279,7 @@ class FakeScreenSharingAgent(
     val audioChannel = if (featureLevel >= 31) SuspendingSocketChannel.open().also { this.audioChannel = it } else null
     val controlChannel = SuspendingSocketChannel.open()
 
-    ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
+    ChannelClosingSynchronizer(this, listOf(videoChannel, controlChannel)).start()
     val socketAddress = InetSocketAddress("localhost", hostPort)
     videoChannel.connect(socketAddress)
     audioChannel?.connect(socketAddress)
@@ -1133,10 +1134,16 @@ class FakeScreenSharingAgent(
   /**
    * Makes sure that when one of the given channels is closed, other channels are closed too.
    */
-  private class ChannelClosingSynchronizer(private val channels: List<SuspendingSocketChannel>) {
+  private class ChannelClosingSynchronizer(disposableParent: Disposable, private val channels: List<SuspendingSocketChannel>): Disposable {
+
+    var job: Job? = null
+
+    init {
+      Disposer.register(disposableParent, this)
+    }
 
     fun start() {
-      CoroutineScope(Dispatchers.IO).launch {
+      job = createCoroutineScope(Dispatchers.IO).launch {
         while (true) {
           for (channel1 in channels) {
             if (!channel1.isOpen) {
@@ -1155,6 +1162,10 @@ class FakeScreenSharingAgent(
           delay(100)
         }
       }
+    }
+
+    override fun dispose() {
+      job?.cancel()
     }
   }
 

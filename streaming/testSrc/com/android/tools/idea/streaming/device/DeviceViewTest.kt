@@ -177,11 +177,6 @@ internal class DeviceViewTest {
   private val agent
     get() = device.agent
 
-  companion object {
-      init {
-        System.setProperty("idea.leak.check.enabled", "false") // TODO(b/394392531): fix leaks.
-      }
-  }
   @Before
   fun setUp() {
     BitRateManager.getInstance().clear()
