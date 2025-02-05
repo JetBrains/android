@@ -31,6 +31,7 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.ScreenshotConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
@@ -335,15 +336,13 @@ class ScreenshotViewerTest {
     StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
-    overrideFileEditorManager()
+    service<ScreenshotConfiguration>().postSaveAction = PostSaveAction.NONE
 
     viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     assertThat(fileNamePrompts).isEmpty()
-    assertThat(openedFiles).hasSize(1)
-    assertThat(openedFiles[0]).matches(".*/Desktop/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d.png")
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)

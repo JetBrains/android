@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.save.SaveConfiguration.Companion.PROJECT_DIR_MA
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -57,39 +58,56 @@ class SaveConfigurationDialogTest {
   @Test
   fun testBasic() {
     // Create an instance of SaveConfigurationDialog (you might need to modify constructor arguments)
-    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%m%S", EXT_PNG, timestamp, 5)
+    val dialog = SaveConfigurationDialog(
+      project,
+      DEFAULT_SAVE_LOCATION,
+      "Screenshot_%Y%M%D_%H%m%S",
+      PostSaveAction.OPEN,
+      EXT_PNG, timestamp,
+      5)
 
     val dialogWrapper = dialog.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val saveLocationField = ui.getComponent<TextFieldWithBrowseButton>()
-      val filenameTemplateField = ui.getComponent<JBTextField>()
-      val previewField = ui.getComponent<JEditorPane>()
       assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
+      val filenameTemplateField = ui.getComponent<JBTextField>()
       assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S")
+      val previewField = ui.getComponent<JEditorPane>()
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_102214.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
       filenameTemplateField.text = "screenshots/%4d"
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
+      val postSavingActionSelector = ui.getComponent<ComboBox<PostSaveAction>>()
+      assertThat(postSavingActionSelector.itemCount).isEqualTo(PostSaveAction.entries.filter(PostSaveAction::isSupported).size)
+      assertThat(postSavingActionSelector.selectedItem).isEqualTo(PostSaveAction.OPEN)
+      postSavingActionSelector.selectedItem = PostSaveAction.NONE
       dlg.clickDefaultButton()
     }
     assertThat(dialogWrapper.isDisposed).isTrue()
     assertThat(dialogWrapper.isOK).isTrue()
     assertThat(dialog.saveLocation).isEqualTo("$PROJECT_DIR_MACRO/foo/bar")
     assertThat(dialog.filenameTemplate).isEqualTo("screenshots/%4d")
+    assertThat(dialog.postSaveAction).isEqualTo(PostSaveAction.NONE)
   }
 
   @Test
   fun testPatternInsertion() {
     // Create an instance of SaveConfigurationDialog (you might need to modify constructor arguments)
-    val dialog = SaveConfigurationDialog(project, DEFAULT_SAVE_LOCATION, "Screenshot_%Y%M%D_%H%m%S", EXT_PNG, timestamp, 5)
+    val dialog = SaveConfigurationDialog(
+      project,
+      DEFAULT_SAVE_LOCATION,
+      "Screenshot_%Y%M%D_%H%m%S",
+      PostSaveAction.NONE,
+      EXT_PNG, timestamp,
+      5)
 
     val dialogWrapper = dialog.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
-      val filenameTemplateField = ui.getComponent<JBTextField>()
       val patternInserter = ui.getComponent<JEditorPane> { it.text.contains("year (4 digits)") }
       patternInserter.clickOnHyperlink("%Nd")
+      val filenameTemplateField = ui.getComponent<JBTextField>()
       assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S%3d")
       filenameTemplateField.selectionStart = filenameTemplateField.text.indexOf("%Y")
       filenameTemplateField.selectionEnd = filenameTemplateField.text.indexOf("%3d")

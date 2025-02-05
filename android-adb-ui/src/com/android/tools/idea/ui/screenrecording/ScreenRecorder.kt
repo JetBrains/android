@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.screenrecording
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
 import com.intellij.CommonBundle
 import com.intellij.ide.actions.RevealFileAction
@@ -62,6 +63,7 @@ private const val ADVANCE_NOTICE_MILLIS = 100
 internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
+  private val options: ScreenRecorderPersistentOptions,
   deviceName: String,
 ) {
 
@@ -120,7 +122,6 @@ internal class ScreenRecorder(
       return
     }
 
-    val options = ScreenRecorderPersistentOptions.getInstance()
     val recordingFile = if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
       delay(200) // Wait for the video file to be finalized.
       val saveConfig = project.service<SaveConfiguration>()
@@ -188,38 +189,47 @@ internal class ScreenRecorder(
   }
 
   private suspend fun handleSavedRecording(file: Path) {
-    val message = message("screenrecord.action.view.recording", file)
-    val cancel = CommonBundle.getOkButtonText()
-    val icon = Messages.getInformationIcon()
-    if (RevealFileAction.isSupported()) {
-      val no = message("screenrecord.action.show.in", RevealFileAction.getFileManagerName())
-      val result = withContext(Dispatchers.EDT) {
-        Messages.showYesNoCancelDialog(
-          project,
-          message,
-          dialogTitle,
-          message("screenrecord.action.open"),
-          no,
-          cancel,
-          icon)
-      }
-      when (result) {
-        Messages.YES -> openSavedFile(file)
-        Messages.NO -> RevealFileAction.openFile(file)
+    if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+      when (options.postSaveAction) {
+        PostSaveAction.NONE -> {}
+        PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
+        PostSaveAction.OPEN -> openSavedFile(file)
       }
     }
     else {
-      val result = withContext(Dispatchers.EDT) {
-        Messages.showOkCancelDialog(
-          project,
-          message,
-          dialogTitle,
-          message("screenrecord.action.open.file"),
-          cancel,
-          icon)
+      val message = message("screenrecord.action.view.recording", file)
+      val cancel = CommonBundle.getOkButtonText()
+      val icon = Messages.getInformationIcon()
+      if (RevealFileAction.isSupported()) {
+        val no = message("post.save.action.show.in", RevealFileAction.getFileManagerName())
+        val result = withContext(Dispatchers.EDT) {
+          Messages.showYesNoCancelDialog(
+            project,
+            message,
+            dialogTitle,
+            message("screenrecord.action.open"),
+            no,
+            cancel,
+            icon)
+        }
+        when (result) {
+          Messages.YES -> openSavedFile(file)
+          Messages.NO -> RevealFileAction.openFile(file)
+        }
       }
-      if (result == Messages.OK) {
-        openSavedFile(file)
+      else {
+        val result = withContext(Dispatchers.EDT) {
+          Messages.showOkCancelDialog(
+            project,
+            message,
+            dialogTitle,
+            message("screenrecord.action.open.file"),
+            cancel,
+            icon)
+        }
+        if (result == Messages.OK) {
+          openSavedFile(file)
+        }
       }
     }
   }

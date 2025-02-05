@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
 import com.android.tools.idea.ui.save.SaveConfigurationDialog
 import com.android.tools.pixelprobe.color.Colors
@@ -27,6 +28,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent.DecorationOption
 import com.intellij.icons.AllIcons
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
@@ -45,6 +47,7 @@ import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
+import com.intellij.openapi.fileTypes.NativeFileType.openAssociatedApplication
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -297,9 +300,10 @@ class ScreenshotViewer(
       return false
     }
 
-    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)
-    if (virtualFile != null) {
-      FileEditorManager.getInstance(project).openFile(virtualFile, true)
+    when (config.postSaveAction) {
+      PostSaveAction.NONE -> {}
+      PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
+      PostSaveAction.OPEN -> LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)?.let { openAssociatedApplication(it) }
     }
 
     return true
@@ -440,14 +444,18 @@ class ScreenshotViewer(
   }
 
   private fun configureSave() {
-    val saveLocation = config.saveLocation
-    val filenameTemplate = config.filenameTemplate
-    val screenshotCount = config.screenshotCount
-    val timestamp = displayedImageRef.get()?.timestamp ?: Instant.now()
-    val dialog = SaveConfigurationDialog(project, saveLocation, filenameTemplate, EXT_PNG, timestamp, screenshotCount + 1)
+    val dialog = SaveConfigurationDialog(
+        project,
+        config.saveLocation,
+        config.filenameTemplate,
+        config.postSaveAction,
+        EXT_PNG,
+        displayedImageRef.get()?.timestamp ?: Instant.now(),
+        config.screenshotCount + 1)
     if (dialog.createWrapper(null, rootPane).showAndGet()) {
       config.filenameTemplate = dialog.filenameTemplate
       config.saveLocation = dialog.saveLocation
+      config.postSaveAction = dialog.postSaveAction
     }
   }
 
@@ -544,6 +552,7 @@ class ScreenshotViewer(
     var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
     var filenameTemplate: String = "Screenshot_%Y%M%D_%H%m%S"
     var screenshotCount: Int = 0
+    var postSaveAction: PostSaveAction = PostSaveAction.OPEN
 
     override fun getState(): ScreenshotConfiguration {
       return this

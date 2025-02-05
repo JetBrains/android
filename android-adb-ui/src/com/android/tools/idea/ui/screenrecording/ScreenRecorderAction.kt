@@ -129,7 +129,8 @@ class ScreenRecorderAction : DumbAwareAction(
             adbSession)
         }
         val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
-        ScreenRecorder(project, recodingProvider, params.deviceName).recordScreen(timeLimit)
+        val recorder = ScreenRecorder(project, recodingProvider, ScreenRecorderPersistentOptions.getInstance(), params.deviceName)
+        recorder.recordScreen(timeLimit)
       }
       finally {
         if (options.showTouches != showTouchEnabled) {

@@ -103,15 +103,18 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   private fun configureSave() {
-    val saveLocation = options.saveLocation
-    val filenameTemplate = options.filenameTemplate
-    val recordingCount = options.recordingCount
-    val timestamp = Instant.now()
-    val extension = if (isEmulator && options.useEmulatorRecording) "webm" else "mp4"
-    val dialog = SaveConfigurationDialog(project, saveLocation, filenameTemplate, extension, timestamp, recordingCount + 1)
+    val dialog = SaveConfigurationDialog(
+        project,
+        options.saveLocation,
+        options.filenameTemplate,
+        options.postSaveAction,
+        if (isEmulator && options.useEmulatorRecording) "webm" else "mp4",
+        Instant.now(),
+        options.recordingCount + 1)
     if (dialog.createWrapper(null, rootPane).showAndGet()) {
       options.filenameTemplate = dialog.filenameTemplate
       options.saveLocation = dialog.saveLocation
+      options.postSaveAction = dialog.postSaveAction
     }
   }
 

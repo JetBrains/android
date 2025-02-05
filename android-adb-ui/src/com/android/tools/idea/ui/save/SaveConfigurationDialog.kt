@@ -31,6 +31,7 @@ import com.intellij.ui.components.dialog
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
+import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
@@ -44,10 +45,11 @@ import javax.swing.JEditorPane
 import javax.swing.JTextField
 import javax.swing.event.HyperlinkEvent
 
-class SaveConfigurationDialog(
+internal class SaveConfigurationDialog(
   project: Project,
   saveLocation: String,
   filenameTemplate: String,
+  postSaveAction: PostSaveAction,
   private val fileExtension: String,
   private val timestamp: Instant,
   private val sequentialNumber: Int,
@@ -57,6 +59,8 @@ class SaveConfigurationDialog(
     get() = saveConfig.generalizeSaveLocation(saveLocationInternal.trim())
   val filenameTemplate: String
     get() = normalizeFilename(filenameTemplateInternal).replace(File.separatorChar, '/')
+  var postSaveAction: PostSaveAction = postSaveAction
+    private set
   private val saveConfig = project.service<SaveConfiguration>()
   private var saveLocationInternal: String = saveConfig.expandSaveLocation(saveLocation).replace('/', File.separatorChar)
   private var filenameTemplateInternal: String = filenameTemplate.replace('/', File.separatorChar)
@@ -109,6 +113,10 @@ class SaveConfigurationDialog(
              "${placeholder("%p")} ${message("configure.screenshot.dialog.project.name")}<br>" +
              "${placeholder(File.separator)} ${message("configure.screenshot.dialog.directory.separator")}",
              action = hyperlinkAction)
+      }
+      row("After Saving:") {
+        comboBox(PostSaveAction.entries.filter(PostSaveAction::isSupported))
+          .bindItem(::postSaveAction) { postSaveAction = it!! }
       }
     }
   }

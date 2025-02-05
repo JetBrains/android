@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -39,6 +40,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
   var useEmulatorRecording: Boolean = true
   var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
   var filenameTemplate: String = "Screen_recording_%Y%M%D_%H%m%S"
+  var postSaveAction: PostSaveAction = PostSaveAction.OPEN
   var recordingCount: Int = 0
 
   companion object {
