@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import java.io.File;
@@ -256,10 +257,18 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_8, buildModel.java().sourceCompatibility().toLanguageLevel());
   }
 
+
+  /**
+   * to run this test, disable the first check in
+   * {@link com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase#before()}
+   * @throws IOException
+   */
   @Test
   public void testDeclarative() throws IOException {
     isIrrelevantForGroovy("no reason");
     isIrrelevantForKotlinScript("no reason");
+
+    DeclarativeStudioSupport.override(true);
 
     writeToBuildFile(TestFile.DECLARATIVE);
     GradleBuildModel buildModel = getGradleBuildModel();
