@@ -29,7 +29,7 @@ class CollectDaemonLogsRule : ExternalResource(){
       .walk()
       .filter { it.name.endsWith("out.log") }
       .forEach {
-        Files.move(it.toPath(), testOutputDir.resolve(it.name))
+        Files.copy(it.toPath(), testOutputDir.resolve(it.name))
       }
   }
 }
