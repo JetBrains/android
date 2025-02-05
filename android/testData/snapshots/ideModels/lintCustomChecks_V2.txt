@@ -538,11 +538,11 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-commons/9.7/asm-commons-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm-commons/9.7.1/asm-commons-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-tree/9.7/asm-tree-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm-tree/9.7.1/asm-tree-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm/9.7/asm-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
