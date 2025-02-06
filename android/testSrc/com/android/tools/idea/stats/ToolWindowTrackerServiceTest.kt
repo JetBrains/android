@@ -18,19 +18,18 @@ package com.android.tools.idea.stats
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Ignore
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
-@Ignore("TODO(b/189824635) testOpen is failing too frequently")
 class ToolWindowTrackerServiceTest : AndroidTestCase() {
   private lateinit var myUsageTracker: TestUsageTracker
   private lateinit var myService : ToolWindowTrackerService
@@ -70,8 +69,7 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     myService.stateChanged()
 
     // check
-    val usages = myUsageTracker.usages.filterNotNull()
-    assert(usages.isNotEmpty())
-    assert(usages.all { usage ->  usage.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS})
+    val usageEvents = myUsageTracker.usages.map { usage -> usage.studioEvent.kind }
+    Truth.assertThat(usageEvents).contains(AndroidStudioEvent.EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
   }
 }
