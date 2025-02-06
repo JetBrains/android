@@ -353,6 +353,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           mainFile.virtualFile,
           source,
           setOf(HardcodedValuesDetector.ISSUE),
+          null,
         )
       val data =
         LintProblemData(

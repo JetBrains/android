@@ -44,7 +44,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
     val issueId = linkInfo.issueId ?: return true
     val issue =
       BuiltinIssueRegistry().getIssue(issueId)
-        ?: AndroidLintInspectionBase.findIssueByShortName(project, issueId)
+        ?: AndroidLintInspectionBase.findIssueInCurrentInspectionProfile(project, issueId)
     if (issue == null) {
       LOG.warn("Could not find issue: issue id: $issueId")
       return true
@@ -56,7 +56,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
   override fun getDescription(refSuffix: String, editor: Editor): String? {
     val issue =
       BuiltinIssueRegistry().getIssue(refSuffix)
-        ?: AndroidLintInspectionBase.findIssueByShortName(editor.project, refSuffix)
+        ?: AndroidLintInspectionBase.findIssueInCurrentInspectionProfile(editor.project, refSuffix)
         ?: return null
     val html = issue.getExplanation(TextFormat.HTML)
 

@@ -25,7 +25,23 @@ import java.io.File
 sealed class LintResult {
   open fun getModule(): Module? = null
 
-  abstract fun getIssues(): Set<Issue>
+  /** Issues that were present and enabled in the inspection profile. */
+  abstract val enabledIssues: Set<Issue>
+
+  /**
+   * Issues that were present and disabled in the inspection profile.
+   *
+   * Setting to null (rather than an empty set) allows IDE features that use Lint (such as
+   * UnusedResourcesProcessor and WrongThreadInterproceduralAction) to ONLY enable the relevant
+   * issues ([enabledIssues]), without also enabling discovered third party issues.
+   *
+   * If null, ONLY issues in [enabledIssues] will be enabled.
+   *
+   * If non-null, issues that are not in [enabledIssues] nor in [disabledIssues] may still be
+   * reported; this is so that newly discovered third party issues (found during this lint run, but
+   * that were not yet registered in the profile) will still report incidents in this run.
+   */
+  abstract val disabledIssues: Set<Issue>?
 }
 
 /**
@@ -33,27 +49,25 @@ sealed class LintResult {
  * infrastructure (such as [ApiLookup] and need to construct a client but you don't need to record
  * any potential warnings.
  */
-class LintIgnoredResult() : LintResult() {
-  override fun getIssues(): Set<Issue> = emptySet()
+class LintIgnoredResult : LintResult() {
+  override val enabledIssues: Set<Issue> = emptySet()
+  override val disabledIssues: Set<Issue> = emptySet()
 }
 
 data class LintBatchResult(
   val project: Project,
   val problemMap: Map<Issue, Map<File, List<LintProblemData>>>,
   val scope: AnalysisScope,
-  private val issues: Set<Issue>,
-) : LintResult() {
-  override fun getIssues(): Set<Issue> {
-    return issues
-  }
-}
+  override val enabledIssues: Set<Issue>,
+  override val disabledIssues: Set<Issue>?,
+) : LintResult()
 
-class LintEditorResult
-constructor(
+class LintEditorResult(
   private val myModule: Module,
   val mainFile: VirtualFile,
   val mainFileContent: String,
-  private val myIssues: Set<Issue>,
+  override val enabledIssues: Set<Issue>,
+  override val disabledIssues: Set<Issue>?,
 ) : LintResult() {
   val problems: List<LintProblemData> = ArrayList()
 
@@ -67,9 +81,5 @@ constructor(
 
   override fun getModule(): Module {
     return myModule
-  }
-
-  override fun getIssues(): Set<Issue> {
-    return myIssues
   }
 }

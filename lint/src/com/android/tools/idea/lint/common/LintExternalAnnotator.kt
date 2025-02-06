@@ -27,13 +27,13 @@ import com.android.tools.lint.checks.DeprecationDetector
 import com.android.tools.lint.checks.DiscouragedDetector
 import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.checks.WrongIdDetector
+import com.android.tools.lint.client.api.JarFileIssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintRequest
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.android.tools.lint.detector.api.TextFormat.HTML
 import com.android.tools.lint.detector.api.TextFormat.RAW
-import com.google.common.collect.Sets
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -50,6 +50,7 @@ import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction
 import com.intellij.codeInspection.ex.DisableInspectionToolAction
+import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.annotation.AnnotationHolder
@@ -91,30 +92,36 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       LintClient.clientName = LintClient.CLIENT_STUDIO
     }
 
-    fun getIssuesFromInspections(project: Project, context: PsiElement?): Set<Issue> {
-      val fullRegistry = LintIdeIssueRegistry.get()
-      val issueList = fullRegistry.issues
-      val result = Sets.newHashSetWithExpectedSize<Issue>(issueList.size + 10)
-      for (issue in issueList) {
-        val inspectionShortName =
-          AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: continue
-        val key = HighlightDisplayKey.find(inspectionShortName) ?: continue
-        val profile: InspectionProfile =
-          InspectionProjectProfileManager.getInstance(project).currentProfile
-        val enabled =
-          if (context != null) profile.isToolEnabled(key, context) else profile.isToolEnabled(key)
-        if (!enabled) continue
-        if (!issue.isEnabledByDefault()) {
-          // If an issue is marked as not enabled by default, lint won't run it, even
-          // if it's in the set of issues provided by an issue registry. Since in the
-          // IDE we're enforcing the enabled-state via inspection profiles, mark the
-          // issue as enabled to allow users to turn on a lint check directly via the
-          // inspections UI.
-          issue.setEnabledByDefault(true)
+    data class InspectionProfileIssues(
+      val enabledIssues: Set<Issue>,
+      val disabledIssues: Set<Issue>,
+    )
+
+    /**
+     * Returns the enabled and disabled [Issue]s from [profile].
+     *
+     * The reason we want to include the disabled issues: In [LintIdeConfiguration], we want to
+     * treat "undiscovered" third party issues (that were discovered during the lint run, but are
+     * not yet present in the profile) as enabled (if enabled by default), otherwise the first lint
+     * run will have different results to subsequent runs. We can only know if an issue is
+     * undiscovered by including all issues from the profile (both enabled and disabled).
+     */
+    fun getIssuesFromInspectionProfile(profile: InspectionProfileImpl): InspectionProfileIssues {
+      val tools = profile.tools
+      val numInspections = tools.size
+      val enabledIssues = HashSet<Issue>(numInspections)
+      val disabledIssues = HashSet<Issue>(numInspections / 2)
+
+      for (tool in tools) {
+        val inspection = tool.tool.tool as? AndroidLintInspectionBase ?: continue
+        val issue = inspection.issue
+        if (tool.isEnabled) {
+          enabledIssues.add(issue)
+        } else {
+          disabledIssues.add(issue)
         }
-        result.add(issue)
       }
-      return result
+      return InspectionProfileIssues(enabledIssues, disabledIssues)
     }
 
     fun getHighlightLevelAndInspection(
@@ -123,7 +130,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       context: PsiElement,
     ): Pair<AndroidLintInspectionBase, HighlightDisplayLevel>? {
       val inspectionShortName =
-        AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: return null
+        AndroidLintInspectionBase.getInspectionShortNameByIssue(issue) ?: return null
       val key = HighlightDisplayKey.find(inspectionShortName) ?: return null
       val profile: InspectionProfile =
         InspectionProjectProfileManager.getInstance(context.project).currentProfile
@@ -167,8 +174,9 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     if (!isRelevant(file, module)) {
       return null
     }
-    val issues = getIssuesFromInspections(file.project, file)
-    return LintEditorResult(module, vFile, file.text, issues)
+    val profile = InspectionProjectProfileManager.getInstance(file.project).currentProfile
+    val issues = getIssuesFromInspectionProfile(profile)
+    return LintEditorResult(module, vFile, file.text, issues.enabledIssues, issues.disabledIssues)
   }
 
   override fun doAnnotate(lintResult: LintEditorResult?): LintEditorResult? {
@@ -232,6 +240,19 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       request.setScope(scope)
       val lint = client.createDriver(request)
       lint.analyze()
+
+      // In analyze(), LintDriver's registry is updated to include all discovered third party
+      // issues. We can now access these issues, and make sure they are registered.
+      val thirdPartyIssues =
+        lint.registry.issues.filter { issue -> issue.registry is JarFileIssueRegistry }.toList()
+
+      // Ensure all third party issues are registered in the current project's inspection profile.
+      AndroidLintInspectionBase.ensureInspectionsRegistered(
+        project,
+        thirdPartyIssues,
+        InspectionProjectProfileManager.getInstance(project).currentProfile,
+      )
+
       lint.analysisStartTime = startTime
       LintIdeSupport.get().logSession(lint, lintResult)
     } finally {

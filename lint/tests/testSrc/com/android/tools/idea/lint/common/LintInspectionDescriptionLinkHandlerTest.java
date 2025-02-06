@@ -27,12 +27,14 @@ import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeInsight.hint.TooltipLinkHandlerEP;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.Collections;
 import org.mockito.Mockito;
 
 public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
@@ -180,7 +182,9 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
       "TestThirdPartyIssue", "My Issue Summary",
       explanation,
       Category.CORRECTNESS, 6, Severity.WARNING, new Implementation(ApiDetector.class, Scope.JAVA_FILE_SCOPE));
-    AndroidLintInspectionBase.getInspectionShortNameByIssue(project, testIssue);
+    AndroidLintInspectionBase.ensureInspectionsRegistered(project,
+                                                          Collections.singletonList(testIssue),
+                                                          InspectionProjectProfileManager.getInstance(project).getCurrentProfile());
 
     String description = TooltipLinkHandlerEP.getDescription(LintInspectionDescriptionLinkHandler.LINK_PREFIX + "TestThirdPartyIssue", editor);
     assertThat(description).isEqualTo(explanation + "<br><br>Issue id: TestThirdPartyIssue");

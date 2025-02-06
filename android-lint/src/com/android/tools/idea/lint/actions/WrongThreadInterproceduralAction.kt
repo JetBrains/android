@@ -61,14 +61,11 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
 
           override fun run(indicator: ProgressIndicator) {
             val time = measureTimeMillis {
-              // The Lint check won't run unless explicitly enabled by default..
-              val wasEnabledByDefault =
-                WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
-              val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
+              val enabledIssues = setOf(WrongThreadInterproceduralDetector.ISSUE)
               val client =
                 LintIdeSupport.get()
                   .createBatchClient(
-                    LintBatchResult(project, mutableMapOf(), scope, setOf(detectorIssue))
+                    LintBatchResult(project, mutableMapOf(), scope, enabledIssues, null)
                   )
               try {
                 val files = ArrayList<VirtualFile>()
@@ -85,7 +82,6 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
                 client.createDriver(request, issue).analyze()
               } finally {
                 Disposer.dispose(client)
-                WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(wasEnabledByDefault)
               }
             }
             LOG.info("Interprocedural thread check: ${time}ms")

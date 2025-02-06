@@ -304,10 +304,10 @@ public class LintIdeClient extends LintClient implements Disposable {
       LintModelLintOptions options = model.getLintOptions();
       return configurations.createLintOptionsConfiguration(
         project, options, false, defaultConfiguration,
-        () -> new LintIdeGradleConfiguration(configurations, options, getIssues())
+        () -> new LintIdeGradleConfiguration(configurations, options, myLintResult.getEnabledIssues(), myLintResult.getDisabledIssues())
       );
     } else {
-      return new LintIdeConfiguration(configurations, project, getIssues());
+      return new LintIdeConfiguration(configurations, project, myLintResult.getEnabledIssues(), myLintResult.getDisabledIssues());
     }
   }
 
@@ -440,9 +440,6 @@ public class LintIdeClient extends LintClient implements Disposable {
         reportSecondary(context, issue, severity, location, message, format, quickfixData);
       }
     }
-
-    // Ensure third party issue registered
-    AndroidLintInspectionBase.getInspectionShortNameByIssue(myProject, issue);
   }
 
   /**
@@ -469,7 +466,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @NonNull
   protected Set<Issue> getIssues() {
-    return myLintResult.getIssues();
+    return myLintResult.getEnabledIssues();
   }
 
   @Nullable
