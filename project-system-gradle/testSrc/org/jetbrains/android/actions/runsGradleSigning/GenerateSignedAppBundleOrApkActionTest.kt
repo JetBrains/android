@@ -48,7 +48,7 @@ class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
   }
 
   fun testLibraryOnlyProjectActionDisabled() {
-    disableKtsIndexing(testRootDisposable)
+    disableKtsIndexing(project, testRootDisposable)
     loadProject(KOTLIN_LIB)
     val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)

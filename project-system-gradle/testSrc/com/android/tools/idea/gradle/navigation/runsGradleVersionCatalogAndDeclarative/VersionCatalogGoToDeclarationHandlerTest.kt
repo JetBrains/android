@@ -35,7 +35,7 @@ class VersionCatalogGoToDeclarationHandlerTest {
 
   @Test
   fun testGoToDeclarationInToml() {
-    disableKtsIndexing(projectRule.fixture.testRootDisposable)
+    disableKtsIndexing(project, projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     // Check Go To Declaration within the TOML file
@@ -78,7 +78,7 @@ class VersionCatalogGoToDeclarationHandlerTest {
 
   @Test
   fun testGotoCatalogDeclarationInKts() {
-    disableKtsIndexing(projectRule.fixture.testRootDisposable)
+    disableKtsIndexing(project, projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
     checkUsage(

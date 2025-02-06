@@ -33,7 +33,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.IconManager
 import com.intellij.ui.icons.CoreIconManager
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
@@ -341,13 +340,10 @@ data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftw
 
   override fun runTest(root: File, project: Project) {
     assertThat(DumbService.isDumb(project)).isFalse()
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      // TODO With K2 disable KTS indexing assertion fails b/383979995
-    } else {
-      // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
-      val files = FilenameIndex.getVirtualFilesByName("KotlinBasePlugin.class", GlobalSearchScope.everythingScope(project))
-      assertThat(files.isEmpty()).isTrue()
-    }
+
+    // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
+    val files = FilenameIndex.getVirtualFilesByName("KotlinBasePlugin.class", GlobalSearchScope.everythingScope(project))
+    assertThat(files.isEmpty()).isTrue()
   }
 
   override val name: String

@@ -121,7 +121,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -129,6 +128,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
 import com.android.tools.idea.sdk.IdeSdks
@@ -212,7 +212,10 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEPENDENCIES_SOURCES
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
+import org.jetbrains.kotlin.idea.gradleJava.scripting.GradleScriptDependenciesSource
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2226,16 +2229,15 @@ private fun <T> openPreparedProject(
       val project = runInEdtAndGet {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-        if (options.disableKtsRelatedIndexing) {
-          // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
-          // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
-          // run faster.
-          disableKtsIndexing(disposable)
-        }
-
         var afterCreateCalled = false
 
         fun afterCreate(project: Project) {
+          if (options.disableKtsRelatedIndexing) {
+            // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
+            // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
+            // run faster.
+            disableKtsIndexing(project, disposable)
+          }
           // After create is invoked via three different execution paths:
           //   (1) when we import a new Android Gradle project that does not yet have a `.idea` directory. In this case this method is
           //       called `GradleProjectImporter.createProject`;
@@ -2634,8 +2636,12 @@ private fun Project.maybeOutputDiagnostics() {
   }
 }
 
-fun disableKtsIndexing(disposable: Disposable) {
+fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
   val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    SCRIPT_DEPENDENCIES_SOURCES.getPoint(project).unregisterExtension(GradleScriptDependenciesSource::class.java)
+  }
 }

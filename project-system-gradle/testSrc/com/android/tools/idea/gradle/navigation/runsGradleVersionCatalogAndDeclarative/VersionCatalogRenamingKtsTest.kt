@@ -47,7 +47,7 @@ class VersionCatalogRenamingKtsTest  {
 
   @Before
   fun removeKtsIndexing() {
-    disableKtsIndexing(fixture.testRootDisposable)
+    disableKtsIndexing(project, fixture.testRootDisposable)
   }
 
   @Test
