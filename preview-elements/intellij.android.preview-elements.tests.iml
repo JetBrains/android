@@ -14,6 +14,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
     <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
