@@ -25,7 +25,7 @@ import com.android.adblib.utils.ByteArrayShellCollector
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
@@ -43,7 +43,8 @@ class AdbScreenCapScreenshotSupplier(
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
 ) : ScreenshotSupplier {
-  private val coroutineScope = AndroidCoroutineScope(this)
+
+  private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)
   private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)")
 

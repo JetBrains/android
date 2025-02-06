@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.screenrecording
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -65,7 +65,7 @@ internal class ShellCommandRecordingProvider(
       }
     }
 
-    val job = AndroidCoroutineScope(this).launch {
+    val job = createCoroutineScope().launch {
       try {
         val commandOutput = adbSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
         if (commandOutput.exitCode != 0) {

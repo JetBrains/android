@@ -23,8 +23,8 @@ import com.android.prefs.AndroidLocationsException
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.ui.AndroidAdbUiBundle
@@ -45,7 +45,6 @@ import kotlinx.coroutines.withContext
 import java.awt.Dimension
 import java.nio.file.Path
 import java.time.Duration
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A [DumbAwareAction] that records the screen.
@@ -102,7 +101,7 @@ class ScreenRecorderAction : DumbAwareAction(
     recordingInProgress.add(serialNumber)
 
     val disposableParent = params.recordingLifetimeDisposable
-    val coroutineScope = AndroidCoroutineScope(disposableParent, EmptyCoroutineContext)
+    val coroutineScope = disposableParent.createCoroutineScope()
     val exceptionHandler = coroutineExceptionHandler(project, coroutineScope)
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
