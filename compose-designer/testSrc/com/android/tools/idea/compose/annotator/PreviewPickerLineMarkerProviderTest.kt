@@ -16,10 +16,8 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
@@ -36,7 +34,6 @@ import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -56,8 +53,6 @@ class PreviewPickerLineMarkerProviderTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
-    ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
 
     fixture.addFileToProject(
@@ -87,11 +82,6 @@ class PreviewPickerLineMarkerProviderTest {
       """
         .trimIndent(),
     )
-  }
-
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
   }
 
   @RunsInEdt

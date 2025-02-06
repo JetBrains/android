@@ -64,7 +64,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     if (element !is LeafPsiElement) return null
     if (element.tokenType != KtTokens.IDENTIFIER) return null
     if (!element.isValid) return null
-    if (element.getModuleSystem()?.isPreviewPickerEnabled() != true) return null
+    if (element.getModuleSystem()?.usesCompose != true) return null
     if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 
     val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null

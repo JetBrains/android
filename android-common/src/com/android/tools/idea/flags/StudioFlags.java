@@ -1486,13 +1486,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = new BooleanFlag(
-    COMPOSE, "preview.element.picker.enable",
-    "Enable @Preview picker",
-    "If enabled, the picker for @Preview elements will be available",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_RESIZING = new BooleanFlag(
     COMPOSE, "preview.resizing",
     "Enable resizing for Compose Preview",
