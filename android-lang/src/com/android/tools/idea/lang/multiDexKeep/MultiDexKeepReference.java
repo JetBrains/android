@@ -82,7 +82,7 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
       myElement.getResolveScope().intersectWith(GlobalSearchScope.notScope(new JdkScope(module.getProject(), jdkOrderEntry)));
 
     ArrayList<LookupElement> result = new ArrayList<>();
-    AllClassesSearch.search(scope, myElement.getProject()).forEach(psiClass -> {
+    AllClassesSearch.search(scope, myElement.getProject()).asIterable().forEach(psiClass -> {
       String qualifiedName = JvmClassUtil.getJvmClassName(psiClass);
       if (qualifiedName != null) {
         result.add(JavaLookupElementBuilder.forClass(psiClass, qualifiedName.replace(".", "/").concat(".class")));

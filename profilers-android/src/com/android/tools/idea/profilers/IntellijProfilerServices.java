@@ -142,7 +142,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     Query<PsiClass> query = AllClassesSearch.INSTANCE.search(ProjectScope.getProjectScope(myProject), myProject);
 
     Set<String> classNames = new HashSet<>();
-    query.forEach(aClass -> {
+    query.asIterable().forEach(aClass -> {
       classNames.add(aClass.getQualifiedName());
     });
     return classNames;

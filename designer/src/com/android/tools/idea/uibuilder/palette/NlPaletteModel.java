@@ -112,7 +112,7 @@ public class NlPaletteModel implements Disposable {
     static Collection<CustomViewInfo> fromPsiClasses(Query<PsiClass> psiClasses) {
       ArrayList<CustomViewInfo> componentInfos = new ArrayList<>();
 
-      psiClasses.forEach(psiClass -> {
+      psiClasses.asIterable().forEach(psiClass -> {
         String description = psiClass.getName(); // We use the "simple" name as description on the preview.
         String tagName = psiClass.getQualifiedName();
         String className = PackageClassConverter.getQualifiedName(psiClass);
