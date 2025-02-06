@@ -16,11 +16,8 @@
 package com.android.tools.idea.gradle.dcl.lang.sync
 
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
-import org.gradle.StartParameter
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
