@@ -43,8 +43,10 @@ class ToolWindowTrackerService(private val project: Project) : ToolWindowManager
     fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
   }
 
-  override fun toolWindowRegistered(id: String) {
-    stateMap[id] = getToolWindowState(ToolWindowManager.getInstance(project).getToolWindow(id))
+  override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
+    for (id in ids) {
+      stateMap[id] = getToolWindowState(toolWindowManager.getToolWindow(id))
+    }
   }
 
   override fun stateChanged() {
