@@ -53,12 +53,11 @@ internal class BackupAppAction(
     if (actionHelper.getApplicationId(project) == null) {
       return Disabled("Selected run configuration is not an app")
     }
+    val backupManager = BackupManager.getInstance(project)
     return when (val backupInfo = e.getBackupInfo()) {
       is Invalid -> Disabled(backupInfo.reason)
       is Valid -> {
-        val installed =
-          BackupManager.getInstance(project)
-            .isInstalled(backupInfo.serialNumber, backupInfo.applicationId)
+        val installed = backupManager.isInstalled(backupInfo.serialNumber, backupInfo.applicationId)
         if (installed) Enabled else Disabled(message("error.application.not.installed"))
       }
     }
@@ -87,6 +86,12 @@ internal class BackupAppAction(
 
   private suspend fun AnActionEvent.getBackupInfo(): BackupInfo {
     val project = project ?: throw IllegalStateException("Missing project")
+    val serialNumber =
+      actionHelper.getDeployTargetSerial(project)
+        ?: return Invalid(message("error.device.not.running"))
+    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+      return Invalid(message("error.device.not.supported"))
+    }
     val applicationId =
       actionHelper.getApplicationId(project)
         ?: return Invalid(message("error.incompatible.run.config"))
@@ -97,11 +102,6 @@ internal class BackupAppAction(
       targetCount > 1 -> return Invalid(message("error.multiple.devices"))
     }
 
-    // TODO(b/348406593) Validate GMS version
-
-    val serialNumber =
-      actionHelper.getDeployTargetSerial(project)
-        ?: return Invalid(message("error.device.not.running"))
     return Valid(applicationId, serialNumber)
   }
 

@@ -32,15 +32,20 @@ class ActionHelperImpl : ActionHelper {
   }
 
   override fun getDeployTargetCount(project: Project) =
-    getDeployTarget(project)?.getAndroidDevices(project)?.size ?: 0
+    getDeployTarget(project).getAndroidDevices(project).size
 
   override suspend fun getDeployTargetSerial(project: Project): String? {
-    val deployTarget = getDeployTarget(project) ?: return null
+    val deployTarget = getDeployTarget(project)
     val targets = deployTarget.getAndroidDevices(project)
     if (targets.size != 1) {
       return null
     }
-    return targets.first().ddmlibDevice?.serialNumber
+
+    val device = targets.first().ddmlibDevice
+    if (device?.isOnline != true) {
+      return null
+    }
+    return device.serialNumber
   }
 
   override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
@@ -49,12 +54,9 @@ class ActionHelperImpl : ActionHelper {
     return applicationIds.any { backupManager.isInstalled(serialNumber, it) }
   }
 
-  private fun getDeployTarget(project: Project): DeployTarget? {
+  private fun getDeployTarget(project: Project): DeployTarget {
     val targetProvider: DeployTargetProvider =
       DeployTargetContext().getCurrentDeployTargetProvider()
-    return when (targetProvider.requiresRuntimePrompt(project)) {
-      true -> null
-      false -> targetProvider.getDeployTarget(project)
-    }
+    return targetProvider.getDeployTarget(project)
   }
 }

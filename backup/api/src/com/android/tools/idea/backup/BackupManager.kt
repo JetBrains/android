@@ -103,6 +103,9 @@ interface BackupManager {
   /** Returns true is the application is installed on the device . */
   suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean
 
+  /** Returns true is the device supports Backup/Restore . */
+  suspend fun isDeviceSupported(serialNumber: String): Boolean
+
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 

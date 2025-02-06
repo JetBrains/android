@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.adblib.DeviceSelector
 import com.android.annotations.concurrency.UiThread
 import com.android.backup.BackupException
 import com.android.backup.BackupMetadata
@@ -30,6 +31,7 @@ import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
@@ -39,6 +41,7 @@ import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.ExecutionManager
@@ -48,6 +51,7 @@ import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -173,6 +177,15 @@ internal constructor(
 
   override suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean {
     return backupService.isInstalled(serialNumber, applicationId)
+  }
+
+  override suspend fun isDeviceSupported(serialNumber: String): Boolean {
+    val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+    val deviceHandle =
+      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
+        ?: return false
+    val deviceType = deviceHandle.state.properties.deviceType
+    return deviceType == DeviceType.HANDHELD
   }
 
   override fun isAppSupported(applicationId: String) =

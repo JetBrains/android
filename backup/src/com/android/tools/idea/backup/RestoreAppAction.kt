@@ -72,6 +72,9 @@ internal class RestoreAppAction(
     }
     val serialNumber =
       getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
+    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+      return Disabled(message("error.device.not.supported"))
+    }
     return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
       true -> Enabled
       else -> Disabled(message("error.applications.not.installed"))
@@ -100,7 +103,10 @@ internal class RestoreAppAction(
 
   private suspend fun getDeviceSerialNumber(e: AnActionEvent): String? {
     val project = e.project ?: return null
-    return SERIAL_NUMBER_KEY.getData(e.dataContext) ?: actionHelper.getDeployTargetSerial(project)
+    return when (e.place) {
+      "StreamingToolbarVirtualDevice" -> SERIAL_NUMBER_KEY.getData(e.dataContext)
+      else -> actionHelper.getDeployTargetSerial(project)
+    }
   }
 
   internal sealed class Config {

@@ -18,8 +18,11 @@ package com.android.tools.idea.backup
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.asyncaction.ActionEnableState
 import com.android.tools.idea.backup.testing.FakeActionHelper
+import com.android.tools.idea.backup.testing.FakeBackupManager
+import com.android.tools.idea.backup.testing.hasTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -46,9 +49,30 @@ class RestoreAppActionGroupTest {
 
   private val temporaryFolder =
     TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val fakeBackupManager = FakeBackupManager()
 
   @get:Rule
-  val rule = RuleChain(projectRule, FlagRule(StudioFlags.BACKUP_ENABLED, true), temporaryFolder)
+  val rule =
+    RuleChain(
+      projectRule,
+      FlagRule(StudioFlags.BACKUP_ENABLED, true),
+      ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
+      temporaryFolder,
+    )
+
+  @Test
+  fun update_deviceNotSupported() {
+    val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
+    val event = testEvent(project)
+    fakeBackupManager.isDeviceSupported = false
+
+    action.update(event)
+
+    val presentation = event.presentation
+    assertThat(presentation.isVisible).isTrue()
+    assertThat(presentation.isEnabled).isFalse()
+    assertThat(presentation.hasTooltip()).isTrue()
+  }
 
   @Test
   fun update_withoutFileHistory() {

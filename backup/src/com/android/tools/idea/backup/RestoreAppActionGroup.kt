@@ -59,6 +59,9 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
     }
     val serialNumber =
       getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
+    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+      return Disabled(message("error.device.not.supported"))
+    }
     return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
       true -> Enabled
       else -> Disabled(message("error.applications.not.installed"))

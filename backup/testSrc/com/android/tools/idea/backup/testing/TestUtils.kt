@@ -17,6 +17,8 @@
 package com.android.tools.idea.backup.testing
 
 import com.android.tools.adtui.TreeWalker
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.DialogWrapper
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -32,3 +34,8 @@ internal fun DialogWrapper.clickOk() {
   val buttons = TreeWalker(this.rootPane).descendants().filterIsInstance<JButton>()
   buttons.first { it.text == "OK" }.doClick()
 }
+
+// It's possible to extract the actual text, but it requires knowledge of
+// implementation details that might change.
+internal fun Presentation.hasTooltip(): Boolean =
+  getClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP) != null

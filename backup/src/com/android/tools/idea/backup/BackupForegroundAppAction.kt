@@ -53,6 +53,9 @@ internal class BackupForegroundAppAction(
   override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
     val serialNumber =
       getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.ready"))
+    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+      return Disabled(message("error.device.not.supported"))
+    }
     return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
       true -> Enabled
       else -> Disabled(message("error.applications.not.installed"))

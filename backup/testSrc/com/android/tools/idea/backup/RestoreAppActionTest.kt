@@ -18,8 +18,11 @@ package com.android.tools.idea.backup
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
 import com.android.tools.idea.backup.testing.FakeActionHelper
+import com.android.tools.idea.backup.testing.FakeBackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
+import com.android.tools.idea.backup.testing.hasTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -34,17 +37,11 @@ import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import java.nio.file.Path
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RestoreAppActionTest {
@@ -53,14 +50,7 @@ class RestoreAppActionTest {
   private val project
     get() = projectRule.project
 
-  private val mockBackupManager =
-    mock<BackupManager>().apply {
-      runBlocking {
-        whenever(isInstalled(any(), any())).thenReturn(true)
-        whenever(chooseRestoreFile()).thenReturn(Path.of("file.backup"))
-      }
-    }
-
+  private val fakeBackupManager = FakeBackupManager()
   private val fakeDialogFactory = FakeDialogFactory()
 
   private val temporaryFolder =
@@ -71,7 +61,7 @@ class RestoreAppActionTest {
     RuleChain(
       projectRule,
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
-      ProjectServiceRule(projectRule, BackupManager::class.java, mockBackupManager),
+      ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
       temporaryFolder,
     )
 
@@ -84,6 +74,20 @@ class RestoreAppActionTest {
 
     val presentation = event.presentation
     assertThat(presentation.isEnabledAndVisible).isTrue()
+  }
+
+  @Test
+  fun update_deviceNotSupported() {
+    val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
+    val event = testEvent(project)
+    fakeBackupManager.isDeviceSupported = false
+
+    action.update(event)
+
+    val presentation = event.presentation
+    assertThat(presentation.isVisible).isTrue()
+    assertThat(presentation.isEnabled).isFalse()
+    assertThat(presentation.hasTooltip()).isTrue()
   }
 
   @Test
@@ -122,9 +126,10 @@ class RestoreAppActionTest {
 
     runInEdtAndWait {}
 
-    verify(mockBackupManager).chooseRestoreFile()
-    verify(mockBackupManager)
-      .restoreModal("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
+    assertThat(fakeBackupManager.restoreModalInvocations)
+      .containsExactly(
+        RestoreModalInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
+      )
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
@@ -138,7 +143,7 @@ class RestoreAppActionTest {
 
     runInEdtAndWait {}
 
-    verifyNoInteractions(mockBackupManager)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }

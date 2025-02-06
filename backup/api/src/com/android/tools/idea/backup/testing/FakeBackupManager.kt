@@ -33,13 +33,21 @@ import javax.swing.JPanel
 
 @TestOnly
 class FakeBackupManager : BackupManager {
+  var isDeviceSupported = true
+  val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
+  val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
+
   @UiThread
   override fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
     source: BackupManager.Source,
     notify: Boolean,
-  ) {}
+  ) {
+    showBackupDialogInvocations.add(
+      ShowBackupDialogInvocation(serialNumber, applicationId, source, notify)
+    )
+  }
 
   @UiThread
   override fun restoreModal(
@@ -47,7 +55,10 @@ class FakeBackupManager : BackupManager {
     backupFile: Path,
     source: BackupManager.Source,
     notify: Boolean,
-  ): BackupResult = Success
+  ): BackupResult {
+    restoreModalInvocations.add(RestoreModalInvocation(serialNumber, backupFile, source, notify))
+    return Success
+  }
 
   override suspend fun restore(
     serialNumber: String,
@@ -64,6 +75,8 @@ class FakeBackupManager : BackupManager {
   override suspend fun getForegroundApplicationId(serialNumber: String) = "com.app"
 
   override suspend fun isInstalled(serialNumber: String, applicationId: String) = true
+
+  override suspend fun isDeviceSupported(serialNumber: String) = isDeviceSupported
 
   override fun isAppSupported(applicationId: String) = true
 
@@ -82,4 +95,18 @@ class FakeBackupManager : BackupManager {
       override fun updateBasedOnInstantState(instantAppDeploy: Boolean) {}
     }
   }
+
+  data class ShowBackupDialogInvocation(
+    val serialNumber: String,
+    val applicationId: String,
+    val source: BackupManager.Source,
+    val notify: Boolean,
+  )
+
+  data class RestoreModalInvocation(
+    val serialNumber: String,
+    val backupFile: Path,
+    val source: BackupManager.Source,
+    val notify: Boolean,
+  )
 }
