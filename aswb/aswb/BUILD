@@ -88,6 +88,8 @@ java_library(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/cpp",
         "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/shared:artifact",
