@@ -35,6 +35,7 @@ namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
+constexpr int64_t INITIAL_FRAME_TIMEOUT_MILLIS = 200;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
 constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
@@ -305,7 +306,8 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     if (frame_number_ == initial_frame_number_) {
       Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
     }
-    if (!codec_buffer.Deque(-1)) {
+    int64_t timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT_MILLIS * 1000 : -1;
+    if (!codec_buffer.Deque(timeout)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
         Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
