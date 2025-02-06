@@ -20,11 +20,11 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverSimpleFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
@@ -83,7 +83,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
         else if (parent is GradleDslInfixExpression) {
           // this is only for id("").value("") with restriction to one parameter function call chain
           val literal = factory.createLiteral(element.value)
-          factory.createOneParameterFactory(element.name, literal.text).factoryReceiver
+          factory.createOneParameterFactory(element.name, literal.text)
         } else // default syntax
           factory.createAssignment(name, "\"placeholder\"")
       is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
@@ -108,7 +108,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     // after processing
     val comma = factory.createComma()
     when (parentPsiElement) {
-      is DeclarativeFactory ->
+      is DeclarativeReceiverPrefixedFactory ->
         // if it's only one element in prefixedFactory it's not fully
         // constructed yet and methods may return exceptions/wrong results
         if(parentPsiElement.children.filterIsInstance<DeclarativeFactoryReceiver>().size > 1 )
@@ -185,10 +185,10 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
-    val call = createDslElement(methodCall) as DeclarativeFactory
+    val call = createDslElement(methodCall) as DeclarativeSimpleFactory
     if (methodCall.isDoubleFunction())
       call.argumentsList?.arguments?.forEach {
-        (it as? DeclarativeFactory)?.argumentsList?.let { arg -> methodCall.argumentsElement.psiElement = arg }
+        (it as? DeclarativeSimpleFactory)?.argumentsList?.let { arg -> methodCall.argumentsElement.psiElement = arg }
       }
     else
       methodCall.argumentsElement.psiElement = call.argumentsList
@@ -217,7 +217,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val element =
       when(psiElement){
         is DeclarativeAssignment -> psiElement.value?.firstChild?.replace(newElement) ?: return
-        is DeclarativeFactory-> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
+        is DeclarativeSimpleFactory-> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
         is DeclarativeFactoryReceiver -> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
         else -> psiElement.replace(newElement)
       }
@@ -282,15 +282,9 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
             element.delete()
           else return
 
-        is DeclarativeReceiverSimpleFactory ->
+        is DeclarativeSimpleFactory ->
           if (element.argumentsList == null || element.argumentsList?.arguments?.isEmpty() == true) {
-            val psiParent = element.parent ?: return
-            if (psiParent is DeclarativeFactory) {
-              psiParent.delete()
-            }
-            else {
-              element.delete()
-            }
+            element.delete()
           }
           else return
 

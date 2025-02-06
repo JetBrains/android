@@ -24,10 +24,10 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.STRING
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
@@ -104,7 +104,7 @@ fun getSimpleType(type: SimpleDataType): ElementType = when (type) {
 
 fun PsiElement.getElementType(): ElementType? = when (this) {
   is DeclarativeBlock -> if (embeddedFactory != null) FACTORY_BLOCK else BLOCK
-  is DeclarativeFactory -> FACTORY
+  is DeclarativeAbstractFactory -> FACTORY
   is DeclarativeAssignment ->
     when (val rvalue = value) {
       is DeclarativeBare -> ENUM
@@ -117,7 +117,7 @@ fun PsiElement.getElementType(): ElementType? = when (this) {
           else -> ENUM
         }
 
-      is DeclarativeFactory -> FACTORY_VALUE
+      is DeclarativeAbstractFactory -> FACTORY_VALUE
       else -> null
     }
 

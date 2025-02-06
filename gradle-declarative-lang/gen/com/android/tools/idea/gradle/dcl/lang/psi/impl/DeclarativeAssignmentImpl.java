@@ -52,12 +52,6 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
 
   @Override
   @Nullable
-  public DeclarativeFactory getFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
-  }
-
-  @Override
-  @Nullable
   public DeclarativeLiteral getLiteral() {
     return PsiTreeUtil.getChildOfType(this, DeclarativeLiteral.class);
   }

@@ -1,12 +1,11 @@
 FILE
-  PsiElement(FACTORY)
-    PsiElement(RECEIVER_SIMPLE_FACTORY)
-      PsiElement(IDENTIFIER)
-        PsiElement(DeclarativeTokenType.token)('func1')
-      PsiElement(DeclarativeTokenType.()('(')
-      PsiElement(ARGUMENTS_LIST)
-        <empty list>
-      PsiElement(DeclarativeTokenType.))(')')
+  PsiElement(SIMPLE_FACTORY)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('func1')
+    PsiElement(DeclarativeTokenType.()('(')
+    PsiElement(ARGUMENTS_LIST)
+      <empty list>
+    PsiElement(DeclarativeTokenType.))(')')
   PsiWhiteSpace(' ')
   PsiErrorElement:DeclarativeTokenType.; expected, got 'block'
     PsiElement(DeclarativeTokenType.token)('block')

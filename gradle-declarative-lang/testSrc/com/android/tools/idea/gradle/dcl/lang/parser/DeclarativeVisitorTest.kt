@@ -18,17 +18,17 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeVisitor
 import com.intellij.lang.LanguageASTFactory
-import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.ParsingTestCase
 import kotlin.reflect.KClass
@@ -55,7 +55,7 @@ class DeclarativeVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", Dec
   }
 
   fun `test visit function`() {
-    doTest<DeclarativeFactory>(
+    doTest<DeclarativeSimpleFactory>(
       """
          hel<caret>lo("world")
       """.trimIndent(), DeclarativeEntry::class)
@@ -115,9 +115,9 @@ class DeclarativeVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", Dec
         super.visitEntry(o)
       }
 
-      override fun visitFactory(o: DeclarativeFactory) {
-        visits.add(DeclarativeFactory::class)
-        super.visitFactory(o)
+      override fun visitSimpleFactory(o: DeclarativeSimpleFactory) {
+        visits.add(DeclarativeSimpleFactory::class)
+        super.visitSimpleFactory(o)
       }
     }
 

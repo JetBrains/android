@@ -28,14 +28,14 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
+public class DeclarativePropertySimpleFactoryImpl extends DeclarativeFactoryMixin implements DeclarativePropertySimpleFactory {
 
-  public DeclarativeFactoryImpl(@NotNull IElementType type) {
+  public DeclarativePropertySimpleFactoryImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitFactory(this);
+    visitor.visitPropertySimpleFactory(this);
   }
 
   @Override
@@ -46,32 +46,14 @@ public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements D
 
   @Override
   @Nullable
-  public DeclarativeFactoryReceiver getFactoryReceiver() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactoryReceiver.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativePropertyReceiver getPropertyReceiver() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativePropertyReceiver.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeSimpleFactory getSimpleFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeSimpleFactory.class);
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
   }
 
   @Override
   @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return PsiImplUtil.getIdentifier(this);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeArgumentsList getArgumentsList() {
-    return PsiImplUtil.getArgumentsList(this);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

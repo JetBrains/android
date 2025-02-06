@@ -1,11 +1,11 @@
 FILE
-  PsiElement(FACTORY)
+  PsiElement(FACTORY_PROPERTY_RECEIVER)
     PsiElement(BARE_RECEIVER)
       PsiElement(IDENTIFIER)
         PsiElement(DeclarativeTokenType.token)('rootProject')
     PsiElement(DeclarativeTokenType..)('.')
     PsiWhiteSpace('\n')
-    PsiElement(SIMPLE_FACTORY)
+    PsiElement(PROPERTY_SIMPLE_FACTORY)
       PsiElement(IDENTIFIER)
         PsiElement(DeclarativeTokenType.token)('include')
       PsiElement(DeclarativeTokenType.()('(')

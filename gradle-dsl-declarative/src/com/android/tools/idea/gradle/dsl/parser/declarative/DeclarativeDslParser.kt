@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
@@ -110,7 +109,7 @@ class DeclarativeDslParser(
           psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.assignableProperty, this@DeclarativeDslParser)))
         }
 
-        override fun visitReceiverSimpleFactory(psi: DeclarativeReceiverSimpleFactory) {
+        override fun visitSimpleFactory(psi: DeclarativeSimpleFactory) {
           val dslElement = maybeCreateBlock(psi, context) ?: parseFactory(psi, context, nameElement) ?: return
           context.addParsedElement(dslElement)
         }
@@ -118,7 +117,7 @@ class DeclarativeDslParser(
         override fun visitReceiverPrefixedFactory(factory: DeclarativeReceiverPrefixedFactory) {
           val expression = GradleDslInfixExpression(context, factory)
           //parse factory if expression consists only one element
-          factory.getReceiver()?.let { receiver ->
+          factory.getReceiver().let { receiver ->
             if (receiver.getReceiver() != null) return // handle only two call a().b() max
             val list = listOf(receiver, factory)
             if (list.any { it.argumentsList?.arguments?.size == 1 }) {
@@ -202,13 +201,13 @@ class DeclarativeDslParser(
         list.addParsedExpression(literal)
       }
 
-      override fun visitFactory(psi: DeclarativeFactory) {
-        val methodCall = psi.factoryReceiver?.let { parseFactory(it, context, GradleNameElement.empty()) } ?: return
+      override fun visitFactoryReceiver(psi: DeclarativeFactoryReceiver) {
+        val methodCall = parseFactory(psi, context, GradleNameElement.empty()) ?: return
         list.addParsedExpression(methodCall)
       }
     }
 
-  private fun maybeCreateBlock(factory: DeclarativeReceiverSimpleFactory,
+  private fun maybeCreateBlock(factory: DeclarativeSimpleFactory,
                                context: GradlePropertiesDslElement): GradleDslElement? {
     val name = factory.identifier.name
     val description = context.getChildPropertiesElementDescription(this@DeclarativeDslParser, name)

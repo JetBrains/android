@@ -32,4 +32,7 @@ public interface DeclarativeReceiverPrefixedFactory extends DeclarativeFactoryRe
   @Nullable
   DeclarativeIdentifier getIdentifier();
 
+  @NotNull
+  DeclarativeFactoryReceiver getReceiver();
+
 }

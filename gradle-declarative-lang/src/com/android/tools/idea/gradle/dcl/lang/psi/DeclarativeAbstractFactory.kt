@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-interface DeclarativeAbstractFactory : DeclarativeElement, ArgumentListManipulator {
+interface DeclarativeAbstractFactory : DeclarativeElement, ArgumentListManipulator, DeclarativeValue {
   val argumentsList: DeclarativeArgumentsList?
   val identifier: DeclarativeIdentifier
 }

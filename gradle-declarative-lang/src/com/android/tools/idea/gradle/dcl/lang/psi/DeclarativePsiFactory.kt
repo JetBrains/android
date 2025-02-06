@@ -124,8 +124,8 @@ class DeclarativePsiFactory(private val project: Project) {
   private fun String.maybeAddBackticks(): String =
     if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
 
-  fun createPrefixedFactory(): DeclarativeFactory {
-    val prefixedFactory: DeclarativeFactory = createFromText("fun().fun()") ?: error(
+  fun createPrefixedFactory(): DeclarativeFactoryReceiver {
+    val prefixedFactory: DeclarativeFactoryReceiver = createFromText("fun().fun()") ?: error(
       "Failed to create DeclarativeReceiverPrefixedFactory")
     prefixedFactory.children.forEach { it.delete() }
     return prefixedFactory
@@ -141,9 +141,9 @@ class DeclarativePsiFactory(private val project: Project) {
   fun createProperty(value: String): DeclarativeProperty =
     createFromText("placeholder = $value") ?: error("Failed to create DeclarativeProperty `$value`")
 
-  fun createFactory(identifier: String): DeclarativeFactory {
+  fun createFactory(identifier: String): DeclarativeSimpleFactory {
     val id = identifier.maybeAddBackticks()
-    val factory = createFromText<DeclarativeFactory>("$id()")
+    val factory = createFromText<DeclarativeSimpleFactory>("$id()")
     return factory ?: error("Failed to create createFactory `$id( )`")
   }
 
@@ -156,13 +156,13 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createOneParameterFactory(identifier: String,
                                 plainParameter: Any,
-                                parameterIdentifier: String? = null): DeclarativeFactory {
+                                parameterIdentifier: String? = null): DeclarativeSimpleFactory {
     val id = identifier.maybeAddBackticks()
     val factory =
       if (parameterIdentifier == null)
-        createFromText<DeclarativeFactory>("$id($plainParameter)")
+        createFromText<DeclarativeSimpleFactory>("$id($plainParameter)")
       else
-        createFromText<DeclarativeFactory>("$id($parameterIdentifier = $plainParameter)")
+        createFromText<DeclarativeSimpleFactory>("$id($parameterIdentifier = $plainParameter)")
 
     return factory ?: error("Failed to create createFactory `$id($plainParameter)`")
   }

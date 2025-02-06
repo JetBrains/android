@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 
 class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativeParserDefinition()) {
 
@@ -169,10 +169,10 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     val entries = (psiFile as DeclarativeFile).getEntries()
     assertThat(entries).hasSize(1)
 
-    assertThat(entries[0]).isInstanceOf(DeclarativeFactory::class.java)
-    assertThat((entries[0] as DeclarativeFactory).identifier.name).isEqualTo("include")
+    assertThat(entries[0]).isInstanceOf(DeclarativeAbstractFactory::class.java)
+    assertThat((entries[0] as DeclarativeAbstractFactory).identifier.name).isEqualTo("include")
 
-    val argumentsList = (entries[0] as DeclarativeFactory).argumentsList?.argumentList
+    val argumentsList = (entries[0] as DeclarativeAbstractFactory).argumentsList?.argumentList
     assertThat(argumentsList).isNotNull()
     assertThat(argumentsList).hasSize(1)
     assertThat(argumentsList!![0].value).isInstanceOf(DeclarativeLiteral::class.java)
@@ -195,9 +195,9 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     val blockEntries = (entries[0] as DeclarativeBlock).entries
     assertThat(blockEntries).hasSize(3)
 
-    assertThat(blockEntries[0]).isInstanceOf(DeclarativeFactory::class.java)
+    assertThat(blockEntries[0]).isInstanceOf(DeclarativeAbstractFactory::class.java)
     // checking that getName removes wrapping ``
-    assertThat((blockEntries[0] as DeclarativeFactory).identifier.name).isEqualTo("function")
+    assertThat((blockEntries[0] as DeclarativeAbstractFactory).identifier.name).isEqualTo("function")
 
     assertThat(blockEntries[1]).isInstanceOf(DeclarativeBlock::class.java)
     // checking that getName removes wrapping `` and unescapes

@@ -24,18 +24,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeReceiverSimpleFactoryImpl extends DeclarativeFactoryReceiverImpl implements DeclarativeReceiverSimpleFactory {
+public class DeclarativeFactoryPropertyReceiverImpl extends DeclarativeFactoryMixin implements DeclarativeFactoryPropertyReceiver {
 
-  public DeclarativeReceiverSimpleFactoryImpl(@NotNull IElementType type) {
+  public DeclarativeFactoryPropertyReceiverImpl(@NotNull IElementType type) {
     super(type);
   }
 
-  @Override
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitReceiverSimpleFactory(this);
+    visitor.visitFactoryPropertyReceiver(this);
   }
 
   @Override
@@ -45,15 +45,33 @@ public class DeclarativeReceiverSimpleFactoryImpl extends DeclarativeFactoryRece
   }
 
   @Override
+  @NotNull
+  public DeclarativePropertyReceiver getPropertyReceiver() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativePropertyReceiver.class);
+  }
+
+  @Override
+  @NotNull
+  public DeclarativePropertySimpleFactory getPropertySimpleFactory() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativePropertySimpleFactory.class);
+  }
+
+  @Override
+  @Nullable
+  public DeclarativePropertyReceiver getReceiver() {
+    return PsiImplUtil.getReceiver(this);
+  }
+
+  @Override
   @Nullable
   public DeclarativeArgumentsList getArgumentsList() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
+    return PsiImplUtil.getArgumentsList(this);
   }
 
   @Override
   @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+    return PsiImplUtil.getIdentifier(this);
   }
 
 }

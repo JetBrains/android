@@ -221,14 +221,14 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
   fun testFactory() {
     val factory = DeclarativePsiFactory(project).createFactory("factory")
     assertThat(factory).isNotNull()
-    assertThat(factory).isInstanceOf(DeclarativeFactory::class.java)
+    assertThat(factory).isInstanceOf(DeclarativeAbstractFactory::class.java)
     assertThat(factory.text).isEqualTo("factory()")
   }
 
   fun testEscapeFactory() {
     val factory = DeclarativePsiFactory(project).createFactory("fact%ory")
     assertThat(factory).isNotNull()
-    assertThat(factory).isInstanceOf(DeclarativeFactory::class.java)
+    assertThat(factory).isInstanceOf(DeclarativeAbstractFactory::class.java)
     assertThat(factory.text).isEqualTo("`fact%ory`()")
   }
 

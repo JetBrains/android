@@ -72,15 +72,16 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitAbstractFactory(o);
   }
 
-  public void visitFactory(@NotNull DeclarativeFactory o) {
+  public void visitFactoryPropertyReceiver(@NotNull DeclarativeFactoryPropertyReceiver o) {
     visitEntry(o);
     // visitIdentifierOwner(o);
-    // visitValue(o);
-    // visitAbstractFactory(o);
+    // visitReceiverBasedFactory(o);
   }
 
   public void visitFactoryReceiver(@NotNull DeclarativeFactoryReceiver o) {
-    visitReceiverPrefixed(o);
+    visitEntry(o);
+    // visitIdentifierOwner(o);
+    // visitReceiverBasedFactory(o);
   }
 
   public void visitIdentifier(@NotNull DeclarativeIdentifier o) {
@@ -104,6 +105,12 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     // visitValueFieldOwner(o);
   }
 
+  public void visitPropertySimpleFactory(@NotNull DeclarativePropertySimpleFactory o) {
+    visitEntry(o);
+    // visitIdentifierOwner(o);
+    // visitAbstractFactory(o);
+  }
+
   public void visitQualified(@NotNull DeclarativeQualified o) {
     visitProperty(o);
   }
@@ -116,12 +123,8 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitFactoryReceiver(o);
   }
 
-  public void visitReceiverSimpleFactory(@NotNull DeclarativeReceiverSimpleFactory o) {
-    visitFactoryReceiver(o);
-  }
-
   public void visitSimpleFactory(@NotNull DeclarativeSimpleFactory o) {
-    visitElement(o);
+    visitFactoryReceiver(o);
   }
 
   public void visitAbstractFactory(@NotNull DeclarativeAbstractFactory o) {

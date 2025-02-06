@@ -37,16 +37,16 @@ public interface DeclarativeElementTypeHolder {
   IElementType BLOCK = new DeclarativeElementType("BLOCK");
   IElementType BLOCK_GROUP = new DeclarativeElementType("BLOCK_GROUP");
   IElementType EMBEDDED_FACTORY = new DeclarativeElementType("EMBEDDED_FACTORY");
-  IElementType FACTORY = new DeclarativeElementType("FACTORY");
+  IElementType FACTORY_PROPERTY_RECEIVER = new DeclarativeElementType("FACTORY_PROPERTY_RECEIVER");
   IElementType FACTORY_RECEIVER = new DeclarativeElementType("FACTORY_RECEIVER");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
+  IElementType PROPERTY_SIMPLE_FACTORY = new DeclarativeElementType("PROPERTY_SIMPLE_FACTORY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
   IElementType QUALIFIED_RECEIVER = new DeclarativeElementType("QUALIFIED_RECEIVER");
   IElementType RECEIVER_PREFIXED_FACTORY = new DeclarativeElementType("RECEIVER_PREFIXED_FACTORY");
-  IElementType RECEIVER_SIMPLE_FACTORY = new DeclarativeElementType("RECEIVER_SIMPLE_FACTORY");
   IElementType SIMPLE_FACTORY = new DeclarativeElementType("SIMPLE_FACTORY");
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
@@ -102,14 +102,17 @@ public interface DeclarativeElementTypeHolder {
       else if (type == EMBEDDED_FACTORY) {
         return new DeclarativeEmbeddedFactoryImpl(type);
       }
-      else if (type == FACTORY) {
-        return new DeclarativeFactoryImpl(type);
+      else if (type == FACTORY_PROPERTY_RECEIVER) {
+        return new DeclarativeFactoryPropertyReceiverImpl(type);
       }
       else if (type == IDENTIFIER) {
         return new DeclarativeIdentifierImpl(type);
       }
       else if (type == LITERAL) {
         return new DeclarativeLiteralImpl(type);
+      }
+      else if (type == PROPERTY_SIMPLE_FACTORY) {
+        return new DeclarativePropertySimpleFactoryImpl(type);
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);
@@ -119,9 +122,6 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == RECEIVER_PREFIXED_FACTORY) {
         return new DeclarativeReceiverPrefixedFactoryImpl(type);
-      }
-      else if (type == RECEIVER_SIMPLE_FACTORY) {
-        return new DeclarativeReceiverSimpleFactoryImpl(type);
       }
       else if (type == SIMPLE_FACTORY) {
         return new DeclarativeSimpleFactoryImpl(type);

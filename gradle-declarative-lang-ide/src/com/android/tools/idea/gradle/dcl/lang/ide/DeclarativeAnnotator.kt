@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignableProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
@@ -183,13 +183,10 @@ class DeclarativeAnnotator : Annotator {
     var current: PsiElement = element
     while (current.parent != null && current is DeclarativeElement) {
       when (current) {
-        is DeclarativeArgumentsList -> current = skip<DeclarativeFactory>(current)
+        is DeclarativeArgumentsList -> current = skip<DeclarativeAbstractFactory>(current)
         is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
         is DeclarativeFactoryReceiver ->
           current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
-
-        is DeclarativeFactory ->
-          current = current.parent
 
         else -> {
           (current as? DeclarativeIdentifierOwner)?.identifier?.name?.let { result.add(it) }

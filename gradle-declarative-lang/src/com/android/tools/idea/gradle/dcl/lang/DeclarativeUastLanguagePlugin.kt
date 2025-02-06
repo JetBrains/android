@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.dcl.lang
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignableProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryPropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValueFieldOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
@@ -29,6 +30,8 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverBasedFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue
 import com.intellij.lang.Language
@@ -90,7 +93,7 @@ class DeclarativeUastLanguagePlugin : UastLanguagePlugin {
       is DeclarativeFile -> DeclarativeUFile(element, this)
       is DeclarativeAssignment -> DeclarativeUAssignment(element, parentProvider)
       is DeclarativeBlock -> DeclarativeUBlock(element, parentProvider)
-      is DeclarativeFactory -> DeclarativeUFactory(element, parentProvider)
+      is DeclarativeReceiverBasedFactory<*> -> DeclarativeUFactory(element, parentProvider)
       else -> null
     }
       ?.takeIf { requiredType?.isAssignableFrom(it.javaClass) ?: true }
@@ -152,12 +155,15 @@ abstract class AbstractUFactory: DeclarativeUEntry, UCallExpression {
 }
 
 class DeclarativeUFactory(
-  override val sourcePsi: DeclarativeFactory,
+  override val sourcePsi: DeclarativeReceiverBasedFactory<*>,
   parentProvider: () -> UElement?,
 ) : AbstractUFactory() {
-  override val receiver: UExpression? =
-    sourcePsi.factoryReceiver?.toDeclarativeUExpression(this) ?:
-    sourcePsi.propertyReceiver?.toDeclarativeUExpression(this)
+  override val receiver: UExpression? = when (sourcePsi) {
+    is DeclarativeFactoryPropertyReceiver-> sourcePsi.getReceiver()?.toDeclarativeUExpression(this)
+    is DeclarativeFactoryReceiver-> sourcePsi.getReceiver()?.toDeclarativeUExpression(this)
+    else -> null
+  }
+
 
   override val valueArguments: List<UExpression> = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) }
                                                    ?: listOf()
@@ -258,7 +264,7 @@ fun DeclarativeFactoryReceiver.toDeclarativeUExpression(uastParent: UElement?): 
 fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpression =
   when (this) {
     is DeclarativeLiteral -> DeclarativeULiteral(this, uastParent)
-    is DeclarativeFactory -> DeclarativeUFactory(this) { uastParent }
+    is DeclarativeReceiverBasedFactory<*> -> DeclarativeUFactory(this) { uastParent }
     is DeclarativeProperty -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
     else -> error("Unexpected DeclarativeValue: $this")

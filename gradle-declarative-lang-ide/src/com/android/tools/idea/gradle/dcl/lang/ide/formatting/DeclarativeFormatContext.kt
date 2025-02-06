@@ -20,7 +20,8 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_COMMA
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_DOT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
 import com.intellij.formatting.SpacingBuilder
@@ -46,7 +48,9 @@ data class DeclarativeFormatContext(
     fun create(settings: CodeStyleSettings): DeclarativeFormatContext {
       val commonSettings = settings.getCommonSettings(DeclarativeLanguage.INSTANCE)
       val elements = TokenSet.create(ASSIGNMENT,
-                                     FACTORY,
+                                     RECEIVER_PREFIXED_FACTORY,
+                                     FACTORY_RECEIVER,
+                                     SIMPLE_FACTORY,
                                      BLOCK)
       val builder = SpacingBuilder(commonSettings)
         // factory

@@ -62,4 +62,10 @@ public class DeclarativeReceiverPrefixedFactoryImpl extends DeclarativeFactoryRe
     return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
+  @Override
+  @NotNull
+  public DeclarativeFactoryReceiver getReceiver() {
+    return PsiImplUtil.getReceiver(this);
+  }
+
 }

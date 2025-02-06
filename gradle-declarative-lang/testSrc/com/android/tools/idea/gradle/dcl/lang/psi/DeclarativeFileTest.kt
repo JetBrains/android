@@ -37,8 +37,8 @@ class DeclarativeFileTest : LightPlatformTestCase() {
     assertThat(entries).hasSize(5)
     assertThat(entries[0]).isInstanceOf(DeclarativeBlock::class.java)
     assertThat(entries[1]).isInstanceOf(DeclarativeAssignment::class.java)
-    assertThat(entries[2]).isInstanceOf(DeclarativeFactory::class.java)
-    assertThat(entries[3]).isInstanceOf(DeclarativeFactory::class.java)
+    assertThat(entries[2]).isInstanceOf(DeclarativeAbstractFactory::class.java)
+    assertThat(entries[3]).isInstanceOf(DeclarativeAbstractFactory::class.java)
     assertThat(entries[4]).isInstanceOf(DeclarativeBlock::class.java)
   }
 }

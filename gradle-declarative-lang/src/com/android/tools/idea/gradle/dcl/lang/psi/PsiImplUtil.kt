@@ -63,6 +63,13 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getReceiver(property: DeclarativeSimpleFactory): DeclarativeFactoryReceiver? = null
+
+    @JvmStatic
+    fun getReceiver(property: DeclarativeFactoryPropertyReceiver): DeclarativePropertyReceiver? =
+      property.propertyReceiver
+
+    @JvmStatic
     fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier = when (property) {
       is DeclarativeAssignableBare -> property.identifier
       is DeclarativeAssignableQualified -> property.identifier
@@ -73,22 +80,22 @@ class PsiImplUtil {
     fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
       assignment.assignableProperty.field
 
-    @JvmStatic
-    fun getIdentifier(factory: DeclarativeFactory): DeclarativeIdentifier =
-      factory.simpleFactory?.getIdentifier() ?: factory.factoryReceiver!!.identifier
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
        PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
 
     @JvmStatic
-    fun getArgumentsList(factory: DeclarativeFactory): DeclarativeArgumentsList? =
-      factory.simpleFactory?.argumentsList ?: PsiTreeUtil.getChildOfType(factory.factoryReceiver,DeclarativeArgumentsList::class.java)
-
+    fun getArgumentsList(factory: DeclarativeFactoryPropertyReceiver): DeclarativeArgumentsList? =
+      factory.propertySimpleFactory.argumentsList
 
     @JvmStatic
-    fun getArgumentsList(factory: DeclarativeFactoryReceiver): DeclarativeArgumentsList? =
-      PsiTreeUtil.getChildOfType(factory, DeclarativeArgumentsList::class.java)
+    fun getIdentifier(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeIdentifier =
+      PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
+
+    @JvmStatic
+    fun getIdentifier(receiver: DeclarativeFactoryPropertyReceiver): DeclarativeIdentifier =
+      receiver.propertySimpleFactory.identifier
 
     @JvmStatic
     fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
@@ -144,11 +151,8 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getReceiver(receiver: DeclarativeFactoryReceiver): DeclarativeFactoryReceiver? =
-      when (receiver) {
-        is DeclarativeReceiverPrefixedFactory -> receiver.getFactoryReceiver()
-        else -> null
-      }
+    fun getReceiver(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeFactoryReceiver =
+      receiver.factoryReceiver
 
     @JvmStatic
     fun getReceiver(receiver: DeclarativePropertyReceiver): DeclarativePropertyReceiver? =

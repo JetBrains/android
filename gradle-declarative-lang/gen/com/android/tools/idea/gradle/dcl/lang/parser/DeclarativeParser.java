@@ -55,7 +55,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     create_token_set_(ASSIGNABLE_BARE, ASSIGNABLE_PROPERTY, ASSIGNABLE_QUALIFIED),
     create_token_set_(BARE, PROPERTY, QUALIFIED),
     create_token_set_(BARE_RECEIVER, PROPERTY_RECEIVER, QUALIFIED_RECEIVER),
-    create_token_set_(FACTORY_RECEIVER, RECEIVER_PREFIXED_FACTORY, RECEIVER_SIMPLE_FACTORY),
+    create_token_set_(FACTORY_RECEIVER, RECEIVER_PREFIXED_FACTORY, SIMPLE_FACTORY),
   };
 
   /* ********************************************************** */
@@ -368,27 +368,27 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // factory_receiver | property_receiver OP_DOT simple_factory
-  public static boolean factory(PsiBuilder b, int l) {
+  // factory_receiver | factory_property_receiver
+  static boolean factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "factory")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = factory_receiver(b, l + 1, -1);
-    if (!r) r = factory_1(b, l + 1);
-    exit_section_(b, m, FACTORY, r);
+    if (!r) r = factory_property_receiver(b, l + 1);
     return r;
   }
 
-  // property_receiver OP_DOT simple_factory
-  private static boolean factory_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "factory_1")) return false;
+  /* ********************************************************** */
+  // property_receiver OP_DOT property_simple_factory
+  public static boolean factory_property_receiver(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "factory_property_receiver")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = property_receiver(b, l + 1, -1);
     r = r && consumeToken(b, OP_DOT);
-    r = r && simple_factory(b, l + 1);
-    exit_section_(b, m, null, r);
+    r = r && property_simple_factory(b, l + 1);
+    exit_section_(b, m, FACTORY_PROPERTY_RECEIVER, r);
     return r;
   }
 
@@ -514,6 +514,18 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // private_factory
+  public static boolean property_simple_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "property_simple_factory")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = private_factory(b, l + 1);
+    exit_section_(b, m, PROPERTY_SIMPLE_FACTORY, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // factory | property | literal
   static boolean rvalue(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "rvalue")) return false;
@@ -521,18 +533,6 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     r = factory(b, l + 1);
     if (!r) r = property(b, l + 1, -1);
     if (!r) r = literal(b, l + 1);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // private_factory
-  public static boolean simple_factory(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "simple_factory")) return false;
-    if (!nextTokenIs(b, TOKEN)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = private_factory(b, l + 1);
-    exit_section_(b, m, SIMPLE_FACTORY, r);
     return r;
   }
 
@@ -597,14 +597,14 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   // Expression root: factory_receiver
   // Operator priority table:
   // 0: POSTFIX(receiver_prefixed_factory)
-  // 1: ATOM(receiver_simple_factory)
+  // 1: ATOM(simple_factory)
   public static boolean factory_receiver(PsiBuilder b, int l, int g) {
     if (!recursion_guard_(b, l, "factory_receiver")) return false;
     addVariant(b, "<factory receiver>");
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<factory receiver>");
-    r = receiver_simple_factory(b, l + 1);
+    r = simple_factory(b, l + 1);
     p = r;
     r = r && factory_receiver_0(b, l + 1, g);
     exit_section_(b, l, m, null, r, p, null);
@@ -640,13 +640,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   // private_factory
-  public static boolean receiver_simple_factory(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "receiver_simple_factory")) return false;
+  public static boolean simple_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "simple_factory")) return false;
     if (!nextTokenIsSmart(b, TOKEN)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = private_factory(b, l + 1);
-    exit_section_(b, m, RECEIVER_SIMPLE_FACTORY, r);
+    exit_section_(b, m, SIMPLE_FACTORY, r);
     return r;
   }
 

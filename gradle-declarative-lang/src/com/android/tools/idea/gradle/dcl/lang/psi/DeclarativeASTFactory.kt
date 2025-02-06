@@ -21,17 +21,17 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.EMBEDDED_FACTORY
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.IDENTIFIER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_SIMPLE_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY_SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
@@ -43,14 +43,14 @@ import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareReceiverIm
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockGroupImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeEmbeddedFactoryImpl
-import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeIdentifierImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeLiteralImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryPropertyReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeReceiverPrefixedFactoryImpl
-import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeReceiverSimpleFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleFactoryImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativePropertySimpleFactoryImpl
 import com.intellij.lang.ASTFactory
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
@@ -65,11 +65,11 @@ class DeclarativeASTFactory : ASTFactory() {
     BARE_RECEIVER -> DeclarativeBareReceiverImpl(type)
     BLOCK -> DeclarativeBlockImpl(type)
     BLOCK_GROUP -> DeclarativeBlockGroupImpl(type)
-    FACTORY -> DeclarativeFactoryImpl(type)
+    FACTORY_PROPERTY_RECEIVER -> DeclarativeFactoryPropertyReceiverImpl(type)
     SIMPLE_FACTORY -> DeclarativeSimpleFactoryImpl(type)
     QUALIFIED_RECEIVER -> DeclarativeQualifiedReceiverImpl(type)
     RECEIVER_PREFIXED_FACTORY -> DeclarativeReceiverPrefixedFactoryImpl(type)
-    RECEIVER_SIMPLE_FACTORY -> DeclarativeReceiverSimpleFactoryImpl(type)
+    PROPERTY_SIMPLE_FACTORY -> DeclarativePropertySimpleFactoryImpl(type)
     EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
     IDENTIFIER -> DeclarativeIdentifierImpl(type)
     LITERAL -> DeclarativeLiteralImpl(type)

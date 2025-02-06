@@ -27,9 +27,6 @@ public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIden
   DeclarativeAssignableProperty getAssignableProperty();
 
   @Nullable
-  DeclarativeFactory getFactory();
-
-  @Nullable
   DeclarativeLiteral getLiteral();
 
   @Nullable
