@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
@@ -25,6 +27,12 @@ import com.intellij.openapi.project.Project
 /** Exposes AI related tools to AQI. */
 interface AiInsightToolkit {
   val aiInsightOnboardingProvider: InsightsOnboardingProvider
+
+  /**
+   * Provides deprecation data related to AI insights only. For deprecation data related to AQI see
+   * [com.android.tools.idea.insights.AppInsightsConfigurationManager]
+   */
+  val insightDeprecationData: DevServicesDeprecationData
 
   /**
    * Gets the source files for the given [stack].
@@ -46,6 +54,15 @@ class AiInsightToolkitImpl(
   private val codeContextResolver: CodeContextResolver,
 ) : AiInsightToolkit {
 
+  override val insightDeprecationData = run {
+    val geminiData = getDeprecationData("gemini/gemini")
+    if (geminiData.isDeprecated()) {
+      geminiData
+    } else {
+      getDeprecationData("aqi/insights")
+    }
+  }
+
   override suspend fun getSource(
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
@@ -53,4 +70,7 @@ class AiInsightToolkitImpl(
     if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.UNASSIGNED
     return codeContextResolver.getSource(stack, overrideSourceLimit)
   }
+
+  private fun getDeprecationData(service: String) =
+    DevServicesDeprecationDataProvider.getInstance().getCurrentDeprecationData(service)
 }

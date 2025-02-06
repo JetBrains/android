@@ -61,7 +61,9 @@ data class DevServicesDeprecationData(
   val showUpdateAction: Boolean,
   // Deprecation status of the service
   val status: DevServicesDeprecationStatus,
-)
+) {
+  fun isDeprecated() = status == UNSUPPORTED
+}
 
 /** Provides [DevServicesDeprecationStatus] based on server flags. */
 class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecationDataProvider {

@@ -116,6 +116,12 @@ sealed class LoadingState<out T> {
     override fun <U> map(fn: (Nothing) -> U) = this
   }
 
+  data object Deprecated : Failure() {
+    override val message = null
+
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
   data class UnsupportedOperation(
     override val message: String?,
     override val cause: Throwable? = null,

@@ -357,6 +357,7 @@ class ActionDispatcher(
       .launch {
         val insight =
           when {
+            aiInsightToolkit.insightDeprecationData.isDeprecated() -> LoadingState.Deprecated
             !GeminiPluginApi.getInstance().isAvailable() ->
               LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)

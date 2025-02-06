@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -57,7 +56,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     activeTabFlow: Flow<Boolean>,
   ) {
     val deprecationData = getConfigurationManager(project).deprecationData
-    if (deprecationData.status == DevServicesDeprecationStatus.UNSUPPORTED) {
+    if (deprecationData.isDeprecated()) {
       tabPanel.setComponent(
         ServiceDeprecatedPanel(deprecationData) { UpdateChecker.updateAndShowResult(project) }
       )

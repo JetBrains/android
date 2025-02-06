@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
@@ -25,6 +27,10 @@ open class FakeAiInsightToolkit(
   override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
     StubInsightsOnboardingProvider(),
 ) : AiInsightToolkit {
+
+  override val insightDeprecationData: DevServicesDeprecationData
+    get() = DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
+
   override suspend fun getSource(
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,

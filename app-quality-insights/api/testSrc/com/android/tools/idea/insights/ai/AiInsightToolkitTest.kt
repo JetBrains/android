@@ -17,6 +17,10 @@ package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
@@ -37,6 +41,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AiInsightToolkitTest {
 
@@ -46,6 +53,7 @@ class AiInsightToolkitTest {
 
   private lateinit var scope: CoroutineScope
   private lateinit var geminiToolWindow: FakeGeminiToolWindow
+  private lateinit var deprecationDataProvider: DevServicesDeprecationDataProvider
 
   @Before
   fun setUp() {
@@ -71,6 +79,14 @@ class AiInsightToolkitTest {
       },
       projectRule.disposable,
     )
+    deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
+    whenever(deprecationDataProvider.getCurrentDeprecationData(any()))
+      .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
+    application.replaceService(
+      DevServicesDeprecationDataProvider::class.java,
+      deprecationDataProvider,
+      projectRule.disposable,
+    )
   }
 
   @Test
@@ -87,5 +103,47 @@ class AiInsightToolkitTest {
 
     fakeGeminiPluginApi.contextAllowed = true
     assertThat(toolKit.getSource(StacktraceGroup()).codeContext).isNotEmpty()
+  }
+
+  @Test
+  fun `insight deprecation data checks gemini first`() = runBlocking {
+    whenever(deprecationDataProvider.getCurrentDeprecationData("gemini/gemini"))
+      .thenReturn(DevServicesDeprecationData("Gemini", "desc", "url", true, UNSUPPORTED))
+    whenever(deprecationDataProvider.getCurrentDeprecationData("aqi/insights"))
+      .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
+    val toolkit =
+      AiInsightToolkitImpl(
+        projectRule.project,
+        StubInsightsOnboardingProvider(),
+        FakeCodeContextResolver(emptyList()),
+      )
+
+    val data = toolkit.insightDeprecationData
+    assertThat(data.isDeprecated()).isTrue()
+    assertThat(data.header).isEqualTo("Gemini")
+    assertThat(data.description).isEqualTo("desc")
+    assertThat(data.moreInfoUrl).isEqualTo("url")
+    assertThat(data.showUpdateAction).isTrue()
+  }
+
+  @Test
+  fun `insight deprecation data checks insights after checking gemini`() = runBlocking {
+    whenever(deprecationDataProvider.getCurrentDeprecationData("gemini/gemini"))
+      .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
+    whenever(deprecationDataProvider.getCurrentDeprecationData("aqi/insights"))
+      .thenReturn(DevServicesDeprecationData("AQI", "desc", "url", true, UNSUPPORTED))
+    val toolkit =
+      AiInsightToolkitImpl(
+        projectRule.project,
+        StubInsightsOnboardingProvider(),
+        FakeCodeContextResolver(emptyList()),
+      )
+
+    val data = toolkit.insightDeprecationData
+    assertThat(data.isDeprecated()).isTrue()
+    assertThat(data.header).isEqualTo("AQI")
+    assertThat(data.description).isEqualTo("desc")
+    assertThat(data.moreInfoUrl).isEqualTo("url")
+    assertThat(data.showUpdateAction).isTrue()
   }
 }

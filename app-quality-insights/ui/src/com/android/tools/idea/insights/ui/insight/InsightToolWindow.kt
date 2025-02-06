@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
+import com.android.tools.idea.insights.ui.InsightDeprecatedPanel
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
 import icons.StudioIcons
@@ -82,10 +83,17 @@ private class InsightToolWindowContent(
   private val component = JPanel(BorderLayout())
 
   init {
-    component.add(
-      InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler),
-      BorderLayout.CENTER,
-    )
+    val comp =
+      if (projectController.aiInsightToolkit.insightDeprecationData.isDeprecated()) {
+        InsightDeprecatedPanel(
+          projectController.project,
+          projectController.aiInsightToolkit.insightDeprecationData,
+        )
+      } else {
+        InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler)
+      }
+
+    component.add(comp, BorderLayout.CENTER)
   }
 
   override fun dispose() = Unit
