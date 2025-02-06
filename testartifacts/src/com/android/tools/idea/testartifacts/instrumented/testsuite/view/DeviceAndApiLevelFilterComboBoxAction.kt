@@ -66,7 +66,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
 
     val apiLevelGroup = DefaultActionGroup("API level", true)
     apiLevelGroup.addAll(myAvailableApiLevels.map { version ->
-      createFilterAction("API ${version.apiString}", null) { it.version.apiString == version.apiString }
+      createFilterAction("API ${version.apiStringWithExtension}", null) { it.version.apiStringWithExtension == version.apiStringWithExtension }
     })
     actionGroup.add(apiLevelGroup)
     actionGroup.addSeparator()

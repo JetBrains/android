@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 
