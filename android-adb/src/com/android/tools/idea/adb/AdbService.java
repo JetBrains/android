@@ -369,8 +369,8 @@ public final class AdbService implements Disposable {
     }
 
     switch (AdbOptionsService.getInstance().getAdbServerBurstMode()) {
-      case ENABLED ->  options.withEnv("ADB_DELAYED_ACK", "1");
-      case DISABLED ->  options.withEnv("ADB_DELAYED_ACK", "0");
+      case ENABLED ->  options.withEnv("ADB_BURST_MODE", "1");
+      case DISABLED ->  options.withEnv("ADB_BURST_MODE", "0");
       case DEFAULT -> {}
     }
 
