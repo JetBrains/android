@@ -14,12 +14,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "common_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "common",
   module_name = "intellij.android.common",
@@ -75,10 +69,7 @@ jvm_library(
     "//plugins/kotlin/core",
     "//plugins/kotlin/base/facet:kotlin-base-facet",
   ],
-  runtime_deps = [
-    ":common_resources",
-    ":common_resources_1",
-  ]
+  runtime_deps = [":common_resources"]
 )
 ### auto-generated section `build intellij.android.common` end
 

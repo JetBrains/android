@@ -3,8 +3,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_resourc
 
 jvm_resources(
   name = "android-kotlin-output-parser_resources",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
 )
 
 jvm_provided_library(

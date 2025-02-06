@@ -1,5 +1,11 @@
 ### auto-generated section `build intellij.android.bleak` start
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "bleak_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
 
 jvm_library(
   name = "bleak",
@@ -13,6 +19,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util",
-  ]
+  ],
+  runtime_deps = [":bleak_resources"]
 )
 ### auto-generated section `build intellij.android.bleak` end

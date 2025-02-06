@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "build-attribution_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "build-attribution",
   module_name = "intellij.android.build-attribution",
@@ -63,10 +57,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//plugins/properties/properties-psi-api:psi",
   ],
-  runtime_deps = [
-    ":build-attribution_resources",
-    ":build-attribution_resources_1",
-  ]
+  runtime_deps = [":build-attribution_resources"]
 )
 ### auto-generated section `build intellij.android.build-attribution` end
 
