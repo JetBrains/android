@@ -158,7 +158,7 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
       useScopeSearchScope
     }
 
-    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, searchScope)) {
+    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, searchScope).asIterable()) {
       val element = psiReference.element
       val (nameRef, resource) = when (element.language) {
         JavaLanguage.INSTANCE -> {
