@@ -76,7 +76,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       weightx = 1.0
       weighty = 1.0
       anchor = GridBagConstraints.LAST_LINE_END
-      insets = JBUI.insets(0)
+      insets = JBUI.emptyInsets()
     }
   private val zoomControlsConstraints
     get() =
