@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchm
 
 import com.android.tools.idea.perfetto.PerfettoTraceWebLoader
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -26,6 +25,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.net.URI
 
@@ -83,4 +84,6 @@ class BenchmarkLinkListener(
     link.startsWith(BENCHMARK_TRACE_FILE_PREFIX_V3) -> link // no-op
     else -> error("Unsupported Benchmark link format: $link")
   }
+
+  private fun VirtualFile.toIoFile(): File = VfsUtil.virtualToIoFile(this)
 }

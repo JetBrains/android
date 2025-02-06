@@ -16,6 +16,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
