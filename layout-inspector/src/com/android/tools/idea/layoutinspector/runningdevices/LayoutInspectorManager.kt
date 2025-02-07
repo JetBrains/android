@@ -18,12 +18,18 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RootPanelRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
@@ -224,7 +230,13 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     val selectedTabContent =
       RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
     val selectedDataContext =
-      IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedTabContent!!.component) })
+      IdeUiService.getInstance()
+        .createCustomizedDataContext(
+          DataContext.EMPTY_CONTEXT,
+          EdtNoGetDataProvider { sink ->
+            DataSink.uiDataSnapshot(sink, selectedTabContent!!.component)
+          },
+        )
 
     val streamingContentPanel = selectedDataContext.getData(STREAMING_CONTENT_PANEL_KEY)!!
     val displayView = selectedDataContext.getData(DISPLAY_VIEW_KEY)!!
@@ -240,7 +252,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         displayView = displayView,
       )
 
-    return SelectedTabState(project, deviceId, tabComponents, project.getLayoutInspector())
+    val layoutInspector = project.getLayoutInspector()
+    val rendererPanel = createRendererPanel(tabComponents, layoutInspector)
+    return SelectedTabState(project, deviceId, tabComponents, layoutInspector, rendererPanel)
   }
 
   override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
@@ -332,4 +346,108 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
  */
 private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService.getInstance(this).getLayoutInspector()
+}
+
+private fun createRendererPanel(
+  tabComponents: TabComponents,
+  layoutInspector: LayoutInspector,
+): RootPanelRenderer {
+  return RootPanelRenderer(
+    disposable = tabComponents,
+    renderModel = layoutInspector.renderModel,
+    onDeviceRendererProvider = { parentDisposable ->
+      val viewInspector =
+        (layoutInspector.currentClient as? AppInspectionInspectorClient)?.viewInspector
+      if (viewInspector == null) {
+        throw IllegalStateException(
+          "Trying to initialize on-device rendering with a null view inspector."
+        )
+      }
+      OnDeviceRendererPanel(
+        disposable = parentDisposable,
+        scope = layoutInspector.coroutineScope,
+        client = viewInspector.onDeviceRendering,
+        renderModel = layoutInspector.renderModel,
+      )
+    },
+    studioRendererProvider = { parentDisposable ->
+      StudioRendererPanel(
+        disposable = parentDisposable,
+        coroutineScope = layoutInspector.coroutineScope,
+        renderLogic = layoutInspector.renderLogic,
+        renderModel = layoutInspector.renderModel,
+        notificationModel = layoutInspector.notificationModel,
+        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
+        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+        orientationQuadrantProvider = {
+          calculateRotationCorrection(
+            layoutInspector.inspectorModel,
+            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
+            displayOrientationQuadrantCorrection = {
+              tabComponents.displayView.displayOrientationCorrectionQuadrants
+            },
+          )
+        },
+        currentSessionStatistics = { layoutInspector.currentClient.stats },
+      )
+    },
+  )
+}
+
+/**
+ * Returns the quadrant in which the rendering of Layout Inspector should be rotated in order to
+ * match the rendering from Running Devices. It does this by calculating the rotation difference
+ * between the rotation of the device and the rotation of the rendering from Running Devices.
+ *
+ * Both the rendering from RD and the device can be rotated in all 4 quadrants, independently of
+ * each other. We use the diff to reconcile the difference in rotation, as ultimately the rendering
+ * from LI should match the rendering of the display from RD.
+ *
+ * Note that the rendering from Layout Inspector should be rotated only sometimes, to match the
+ * rendering from Running Devices. Here are a few examples:
+ * * Device is in portrait mode, auto-rotation is off, running devices rendering has no rotation ->
+ *   apply no rotation
+ * * Device is in landscape mode, auto-rotation is off, running devices rendering has rotation to be
+ *   horizontal -> apply rotation, because the app is in portrait mode in the device, so should be
+ *   rotated to match rendering from RD.
+ * * Device is in landscape mode, auto-rotation is on, running devices rendering has rotation to be
+ *   horizontal -> apply no rotation, because the app is already in landscape mode, so no rotation
+ *   is needed to match rendering from RD.
+ *
+ * Note that: when rendering a streamed device (as opposed to an emulator), the Running Devices Tool
+ * Window fakes the rotation of the screen (b/273699961). This means that for those cases we can't
+ * reliably use the rotation provided by the device to calculate the rotation for the Layout
+ * Inspector rendering. In these cases we should use the rotation correction provided by the RD Tool
+ * Window. But in the case of emulators, the rotation correction from Running Devices is always 0.
+ * In these case we should calculate our own rotation correction.
+ */
+@VisibleForTesting
+fun calculateRotationCorrection(
+  layoutInspectorModel: InspectorModel,
+  displayOrientationQuadrant: () -> Int,
+  displayOrientationQuadrantCorrection: () -> Int,
+): Int {
+  val orientationCorrectionFromRunningDevices = displayOrientationQuadrantCorrection()
+
+  // Correction can be different from 0 only for streamed devices (as opposed to emulators).
+  if (orientationCorrectionFromRunningDevices != 0) {
+    return -orientationCorrectionFromRunningDevices
+  }
+
+  // The rotation of the display rendering coming from Running Devices.
+  val displayRectangleOrientationQuadrant = displayOrientationQuadrant()
+
+  // The rotation of the display coming from Layout Inspector.
+  val layoutInspectorDisplayOrientationQuadrant =
+    when (layoutInspectorModel.resourceLookup.displayOrientation) {
+      0 -> 0
+      90 -> 1
+      180 -> 2
+      270 -> 3
+      else -> 0
+    }
+
+  // The difference in quadrant rotation between Layout Inspector rendering and the Running Devices
+  // rendering.
+  return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
 }

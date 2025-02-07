@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.runningdevices.ui
+package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.runningdevices.calculateRotationCorrection
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
@@ -68,7 +69,6 @@ import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -82,9 +82,9 @@ import org.mockito.kotlin.whenever
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2
 
-class LayoutInspectorRendererTest {
+class StudioRendererPanelTest {
 
-  private val androidProjectRule = AndroidProjectRule.withSdk()
+  private val androidProjectRule = AndroidProjectRule.Companion.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)!!
@@ -527,33 +527,6 @@ class LayoutInspectorRendererTest {
   }
 
   @Test
-  @RunsInEdt
-  fun testSelectionIsClearedWhenDisablingDeepInspect() {
-    val layoutInspectorRenderer = createRenderer()
-    val parent = BorderLayoutPanel()
-    parent.add(layoutInspectorRenderer)
-    parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    layoutInspectorRenderer.interceptClicks = true
-
-    val fakeUi = FakeUi(layoutInspectorRenderer)
-
-    fakeUi.render()
-
-    // click mouse above VIEW1.
-    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
-
-    fakeUi.render()
-    fakeUi.layoutAndDispatchEvents()
-
-    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
-
-    layoutInspectorRenderer.interceptClicks = false
-
-    assertThat(renderModel.model.selection).isNull()
-  }
-
-  @Test
   fun testLayoutInspectorRenderingOutsideOfMainDisplayShowError() {
     val inspectorModelWithLeftBorder =
       model(disposable) {
@@ -591,7 +564,7 @@ class LayoutInspectorRendererTest {
 
   private fun paint(
     image: BufferedImage,
-    layoutInspectorRenderer: LayoutInspectorRenderer,
+    layoutInspectorRenderer: StudioRendererPanel,
     displayQuadrant: Int = 0,
   ) {
     val graphics = image.createGraphics()
@@ -628,8 +601,8 @@ class LayoutInspectorRendererTest {
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
     notificationModel: NotificationModel = NotificationModel(androidProjectRule.project),
-  ): LayoutInspectorRenderer {
-    return LayoutInspectorRenderer(
+  ): StudioRendererPanel {
+    return StudioRendererPanel(
       androidProjectRule.testRootDisposable,
       AndroidCoroutineScope(androidProjectRule.testRootDisposable),
       renderLogic,

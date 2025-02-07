@@ -34,6 +34,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiInjected
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiRemoved
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -52,6 +54,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
+private class FakeLayoutInspectorRenderer : LayoutInspectorRenderer() {
+  override var interceptClicks = false
+
+  override fun dispose() {}
+}
+
 class SelectedTabStateTest {
 
   @get:Rule val edtRule = EdtRule()
@@ -59,7 +67,7 @@ class SelectedTabStateTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
-  private lateinit var layoutInspectorRenderer: LayoutInspectorRenderer
+  private lateinit var layoutInspectorRenderer: StudioRendererPanel
   private lateinit var emulatorView: EmulatorView
 
   @Before
@@ -115,7 +123,7 @@ class SelectedTabStateTest {
       )
 
     layoutInspectorRenderer =
-      LayoutInspectorRenderer(
+      StudioRendererPanel(
         disposable = displayViewRule.disposable,
         coroutineScope = AndroidCoroutineScope(displayViewRule.disposable),
         renderLogic = layoutInspector.renderLogic,
@@ -188,15 +196,16 @@ class SelectedTabStateTest {
       TabComponents(displayViewRule.disposable, content, container, emulatorView)
     val selectedTabState1 =
       SelectedTabState(
-        displayViewRule.project,
-        DeviceId.ofPhysicalDevice("tab"),
-        tabsComponents1,
-        layoutInspector,
+        project = displayViewRule.project,
+        deviceId = DeviceId.ofPhysicalDevice("tab"),
+        tabComponents = tabsComponents1,
+        layoutInspector = layoutInspector,
+        rendererPanel = FakeLayoutInspectorRenderer(),
       )
 
     selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
 
-    verifyUiInjected(
+    verifyUiInjected<FakeLayoutInspectorRenderer>(
       UiConfig.VERTICAL,
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
@@ -215,15 +224,16 @@ class SelectedTabStateTest {
       TabComponents(displayViewRule.disposable, content, container, emulatorView)
     val selectedTabState2 =
       SelectedTabState(
-        displayViewRule.project,
-        DeviceId.ofPhysicalDevice("tab"),
-        tabsComponents2,
-        layoutInspector,
+        project = displayViewRule.project,
+        deviceId = DeviceId.ofPhysicalDevice("tab"),
+        tabComponents = tabsComponents2,
+        layoutInspector = layoutInspector,
+        rendererPanel = FakeLayoutInspectorRenderer(),
       )
 
     selectedTabState2.enableLayoutInspector()
 
-    verifyUiInjected(
+    verifyUiInjected<FakeLayoutInspectorRenderer>(
       UiConfig.VERTICAL,
       tabsComponents2.tabContentPanel,
       tabsComponents2.tabContentPanelContainer,
@@ -241,21 +251,22 @@ class SelectedTabStateTest {
     val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
     val selectedTabState =
       SelectedTabState(
-        displayViewRule.project,
-        DeviceId.ofPhysicalDevice("tab"),
-        tabsComponents,
-        layoutInspector,
+        project = displayViewRule.project,
+        deviceId = DeviceId.ofPhysicalDevice("tab"),
+        tabComponents = tabsComponents,
+        layoutInspector = layoutInspector,
+        rendererPanel = FakeLayoutInspectorRenderer(),
       )
 
     val inspector1 =
-      DataManager.getDataProvider(selectedTabState.layoutInspectorRenderer)
+      DataManager.getDataProvider(selectedTabState.rendererPanel)
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector1).isNotNull()
 
     Disposer.dispose(selectedTabState)
 
     val inspector2 =
-      DataManager.getDataProvider(selectedTabState.layoutInspectorRenderer)
+      DataManager.getDataProvider(selectedTabState.rendererPanel)
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as? LayoutInspector
     assertThat(inspector2).isNull()
   }
@@ -265,7 +276,7 @@ class SelectedTabStateTest {
 
     selectedTabState.enableLayoutInspector(uiConfig)
 
-    verifyUiInjected(
+    verifyUiInjected<FakeLayoutInspectorRenderer>(
       uiConfig,
       selectedTabState.tabComponents.tabContentPanel,
       selectedTabState.tabComponents.tabContentPanelContainer,
@@ -288,10 +299,11 @@ class SelectedTabStateTest {
 
     val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
     return SelectedTabState(
-      displayViewRule.project,
-      DeviceId.ofPhysicalDevice("tab"),
-      tabsComponents,
-      layoutInspector,
+      project = displayViewRule.project,
+      deviceId = DeviceId.ofPhysicalDevice("tab"),
+      tabComponents = tabsComponents,
+      layoutInspector = layoutInspector,
+      rendererPanel = FakeLayoutInspectorRenderer(),
     )
   }
 }

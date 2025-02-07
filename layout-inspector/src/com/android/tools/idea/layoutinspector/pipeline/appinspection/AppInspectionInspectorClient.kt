@@ -104,7 +104,7 @@ class AppInspectionInspectorClient(
     parentDisposable,
   ) {
 
-  private var viewInspector: ViewLayoutInspectorClient? = null
+  var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */

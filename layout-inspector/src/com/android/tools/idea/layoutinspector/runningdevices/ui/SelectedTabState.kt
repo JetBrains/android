@@ -22,7 +22,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
@@ -38,6 +37,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVertica
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -85,26 +85,7 @@ data class SelectedTabState(
   val deviceId: DeviceId,
   val tabComponents: TabComponents,
   val layoutInspector: LayoutInspector,
-  val layoutInspectorRenderer: LayoutInspectorRenderer =
-    LayoutInspectorRenderer(
-      tabComponents,
-      layoutInspector.coroutineScope,
-      layoutInspector.renderLogic,
-      layoutInspector.renderModel,
-      layoutInspector.notificationModel,
-      { tabComponents.displayView.displayRectangle },
-      { tabComponents.displayView.screenScalingFactor },
-      {
-        calculateRotationCorrection(
-          layoutInspector.inspectorModel,
-          displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
-          displayOrientationQuadrantCorrection = {
-            tabComponents.displayView.displayOrientationCorrectionQuadrants
-          },
-        )
-      },
-      { layoutInspector.currentClient.stats },
-    ),
+  val rendererPanel: LayoutInspectorRenderer,
 ) : Disposable {
 
   private var uiConfig = UiConfig.HORIZONTAL
@@ -118,8 +99,8 @@ data class SelectedTabState(
     uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
 
     val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-    DataManager.registerDataProvider(layoutInspectorRenderer, layoutInspectorProvider)
-    Disposer.register(this) { DataManager.removeDataProvider(layoutInspectorRenderer) }
+    DataManager.registerDataProvider(rendererPanel, layoutInspectorProvider)
+    Disposer.register(this) { DataManager.removeDataProvider(rendererPanel) }
   }
 
   @TestOnly
@@ -132,7 +113,7 @@ data class SelectedTabState(
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     wrapUi(uiConfig)
-    tabComponents.displayView.add(layoutInspectorRenderer)
+    tabComponents.displayView.add(rendererPanel)
 
     layoutInspector.inspectorModel.addSelectionListener(selectionChangedListener)
     layoutInspector.processModel?.addSelectedProcessListeners(
@@ -235,8 +216,8 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        isSelected = { layoutInspectorRenderer.interceptClicks },
-        setSelected = { layoutInspectorRenderer.interceptClicks = it },
+        isSelected = { rendererPanel.interceptClicks },
+        setSelected = { rendererPanel.interceptClicks = it },
         isRendering = { layoutInspector.renderModel.isActive },
         connectedClientProvider = { layoutInspector.currentClient },
       )
@@ -302,7 +283,7 @@ data class SelectedTabState(
 
     unwrapUi()
 
-    tabComponents.displayView.remove(layoutInspectorRenderer)
+    tabComponents.displayView.remove(rendererPanel)
     layoutInspector.inspectorModel.removeSelectionListener(selectionChangedListener)
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
@@ -310,8 +291,9 @@ data class SelectedTabState(
     tabComponents.tabContentPanelContainer.repaint()
   }
 
+  // TODO(b/397664222) move this insider the renderer
   private val selectionChangedListener: SelectionListener = SelectionListener { _, _, _ ->
-    layoutInspectorRenderer.refresh()
+    rendererPanel.refresh()
   }
 
   private val selectedProcessListener = {
@@ -319,7 +301,7 @@ data class SelectedTabState(
     // are invoked.
     if (!project.isDisposed) {
       layoutInspector.inspectorClientSettings.inLiveMode = true
-      layoutInspectorRenderer.interceptClicks = false
+      rendererPanel.interceptClicks = false
     }
   }
 
@@ -414,62 +396,4 @@ data class SelectedTabState(
       overrideSplit = true,
     )
   }
-}
-
-/**
- * Returns the quadrant in which the rendering of Layout Inspector should be rotated in order to
- * match the rendering from Running Devices. It does this by calculating the rotation difference
- * between the rotation of the device and the rotation of the rendering from Running Devices.
- *
- * Both the rendering from RD and the device can be rotated in all 4 quadrants, independently of
- * each other. We use the diff to reconcile the difference in rotation, as ultimately the rendering
- * from LI should match the rendering of the display from RD.
- *
- * Note that the rendering from Layout Inspector should be rotated only sometimes, to match the
- * rendering from Running Devices. Here are a few examples:
- * * Device is in portrait mode, auto-rotation is off, running devices rendering has no rotation ->
- *   apply no rotation
- * * Device is in landscape mode, auto-rotation is off, running devices rendering has rotation to be
- *   horizontal -> apply rotation, because the app is in portrait mode in the device, so should be
- *   rotated to match rendering from RD.
- * * Device is in landscape mode, auto-rotation is on, running devices rendering has rotation to be
- *   horizontal -> apply no rotation, because the app is already in landscape mode, so no rotation
- *   is needed to match rendering from RD.
- *
- * Note that: when rendering a streamed device (as opposed to an emulator), the Running Devices Tool
- * Window fakes the rotation of the screen (b/273699961). This means that for those cases we can't
- * reliably use the rotation provided by the device to calculate the rotation for the Layout
- * Inspector rendering. In these cases we should use the rotation correction provided by the RD Tool
- * Window. But in the case of emulators, the rotation correction from Running Devices is always 0.
- * In these case we should calculate our own rotation correction.
- */
-@VisibleForTesting
-fun calculateRotationCorrection(
-  layoutInspectorModel: InspectorModel,
-  displayOrientationQuadrant: () -> Int,
-  displayOrientationQuadrantCorrection: () -> Int,
-): Int {
-  val orientationCorrectionFromRunningDevices = displayOrientationQuadrantCorrection()
-
-  // Correction can be different from 0 only for streamed devices (as opposed to emulators).
-  if (orientationCorrectionFromRunningDevices != 0) {
-    return -orientationCorrectionFromRunningDevices
-  }
-
-  // The rotation of the display rendering coming from Running Devices.
-  val displayRectangleOrientationQuadrant = displayOrientationQuadrant()
-
-  // The rotation of the display coming from Layout Inspector.
-  val layoutInspectorDisplayOrientationQuadrant =
-    when (layoutInspectorModel.resourceLookup.displayOrientation) {
-      0 -> 0
-      90 -> 1
-      180 -> 2
-      270 -> 3
-      else -> 0
-    }
-
-  // The difference in quadrant rotation between Layout Inspector rendering and the Running Devices
-  // rendering.
-  return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
 }

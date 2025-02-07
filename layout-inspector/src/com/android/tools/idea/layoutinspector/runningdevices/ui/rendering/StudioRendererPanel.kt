@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.runningdevices.ui
+package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
@@ -26,22 +26,17 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.PopupHandler
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
-import java.awt.event.MouseMotionListener
-import java.awt.event.MouseWheelEvent
-import java.awt.event.MouseWheelListener
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
-import javax.swing.JPanel
 import kotlin.math.abs
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Panel responsible for rendering the [RenderModel] into a [Graphics] object and reacting to mouse
@@ -57,7 +52,7 @@ import kotlin.math.max
  *   applied to the Layout Inspector's rendering in order to match the rendering from Running
  *   Devices.
  */
-class LayoutInspectorRenderer(
+class StudioRendererPanel(
   disposable: Disposable,
   private val coroutineScope: CoroutineScope,
   private val renderLogic: RenderLogic,
@@ -67,24 +62,11 @@ class LayoutInspectorRenderer(
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
   private val currentSessionStatistics: () -> SessionStatistics,
-) : JPanel(), Disposable {
+) : LayoutInspectorRenderer() {
 
-  var interceptClicks = false
-    set(value) {
-      field = value
-
-      if (!interceptClicks) {
-        renderModel.clearSelection()
-      }
-    }
+  override var interceptClicks = false
 
   private val repaintDisplayView = { refresh() }
-
-  fun interface RefreshListener {
-    fun onRefresh()
-  }
-
-  private val listeners = mutableListOf<RefreshListener>()
 
   companion object {
     private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
@@ -119,18 +101,9 @@ class LayoutInspectorRenderer(
     renderModel.clearSelection()
   }
 
-  fun refresh() {
+  override fun refresh() {
     revalidate()
     repaint()
-    listeners.forEach { it.onRefresh() }
-  }
-
-  fun addListener(listener: RefreshListener) {
-    listeners.add(listener)
-  }
-
-  fun removeListener(listener: RefreshListener) {
-    listeners.remove(listener)
   }
 
   /**
@@ -264,7 +237,7 @@ class LayoutInspectorRenderer(
       val modelCoordinates =
         toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
       val views = renderModel.findViewsAt(modelCoordinates.x, modelCoordinates.y)
-      showViewContextMenu(views.toList(), renderModel.model, this@LayoutInspectorRenderer, x, y)
+      showViewContextMenu(views.toList(), renderModel.model, this@StudioRendererPanel, x, y)
     }
   }
 
@@ -302,37 +275,6 @@ class LayoutInspectorRenderer(
         hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
 
       refresh()
-    }
-  }
-}
-
-/**
- * A mouse listener that forwards its events to the component provided by [componentProvider] if
- * [shouldForward] returns true.
- */
-private class ForwardingMouseListener(
-  private val componentProvider: () -> Component,
-  private val shouldForward: () -> Boolean,
-) : MouseListener, MouseWheelListener, MouseMotionListener {
-  override fun mouseClicked(e: MouseEvent) = forwardEvent(e)
-
-  override fun mousePressed(e: MouseEvent) = forwardEvent(e)
-
-  override fun mouseReleased(e: MouseEvent) = forwardEvent(e)
-
-  override fun mouseEntered(e: MouseEvent) = forwardEvent(e)
-
-  override fun mouseExited(e: MouseEvent) = forwardEvent(e)
-
-  override fun mouseWheelMoved(e: MouseWheelEvent) = forwardEvent(e)
-
-  override fun mouseDragged(e: MouseEvent) = forwardEvent(e)
-
-  override fun mouseMoved(e: MouseEvent) = forwardEvent(e)
-
-  private fun forwardEvent(e: MouseEvent) {
-    if (shouldForward()) {
-      componentProvider().dispatchEvent(e)
     }
   }
 }
