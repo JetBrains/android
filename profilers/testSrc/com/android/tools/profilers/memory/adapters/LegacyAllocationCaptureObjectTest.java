@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
@@ -34,6 +35,7 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -111,7 +113,8 @@ public class LegacyAllocationCaptureObjectTest {
                                                                     {0, 0, 1, 3},
                                                                   }
                                                                 });
-    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    File tempFile = TransportServiceUtils.createTempFile("allocations", ".alloc", ByteString.copyFrom(buffer));
+    myTransportService.addFile(Long.toString(startTimeNs), tempFile.getAbsolutePath());
     doneLatch.await();
 
     assertTrue(capture.isDoneLoading());

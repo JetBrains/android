@@ -64,12 +64,12 @@ public class TransportProxy {
   @NotNull private final TransportServiceProxy myProxyService;
   @NotNull private final LinkedBlockingDeque<Common.Event> myProxyEventQueue = new LinkedBlockingDeque<>();
   // General file/byte cache used in the proxy layer.
-  @NotNull private final Map<String, ByteString> myProxyBytesCache = Collections.synchronizedMap(new HashMap<>());
+  @NotNull private final Map<String, String> myProxyFilePathCache = Collections.synchronizedMap(new HashMap<>());
 
   public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
-    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyEventQueue, myProxyBytesCache);
+    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyEventQueue, myProxyFilePathCache);
   }
 
   @NotNull
@@ -78,8 +78,8 @@ public class TransportProxy {
   }
 
   @NotNull
-  public Map<String, ByteString> getBytesCache() {
-    return myProxyBytesCache;
+  public Map<String, String> getFilePathCache() {
+    return myProxyFilePathCache;
   }
 
   /**

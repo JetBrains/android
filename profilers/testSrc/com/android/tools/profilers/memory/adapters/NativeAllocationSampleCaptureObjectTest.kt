@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.transport.TransportServiceUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Trace
@@ -30,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 
 class NativeAllocationSampleCaptureObjectTest {
 
@@ -71,7 +73,8 @@ class NativeAllocationSampleCaptureObjectTest {
     val endTimeNs: Long = 8
     val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
-    transportService.addFile(java.lang.Long.toString(startTimeNs), ByteString.copyFrom("TODO".toByteArray()))
+    val todoBytes = ByteString.copyFrom("TODO".toByteArray())
+    transportService.addFile(startTimeNs.toString(), TransportServiceUtils.createTempFile("native-alloc-sample", "trace", todoBytes).absolutePath)
     assertThat(capture.load(null, null)).isTrue()
     assertThat(capture.isDoneLoading).isTrue()
     assertThat(capture.isError).isFalse()

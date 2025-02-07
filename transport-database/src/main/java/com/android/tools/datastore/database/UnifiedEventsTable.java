@@ -18,7 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
-import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.Transport.FileResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,8 +45,8 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       "WHERE StreamId = ? AND ProcessId = ? And GroupId = ? And Kind = ? AND Timestamp >= ? AND Timestamp <= ?"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
-    INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
-    GET_BYTES("SELECT Data FROM [BytesTable] WHERE StreamId = ? AND Id = ?");
+    INSERT_FILE("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Path) VALUES (?, ?, ?)"),
+    GET_FILE("SELECT Path FROM [BytesTable] WHERE StreamId = ? AND Id = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -85,7 +85,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "IsEnded INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
+      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Path STRING NOT NULL");
       createUniqueIndex("UnifiedEventsTable", "Kind", "StreamId", "ProcessId", "GroupId", "Timestamp", "IsEnded");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }
@@ -241,19 +241,19 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     return builderGroups.values().stream().map(EventGroup.Builder::build).collect(Collectors.toList());
   }
 
-  public void insertBytes(long streamId, @NotNull String id, @NotNull BytesResponse response) {
-    execute(Statements.INSERT_BYTES, streamId, id, response.toByteArray());
+  public void insertFile(long streamId, @NotNull String id, @NotNull FileResponse response) {
+    execute(Statements.INSERT_FILE, streamId, id, response.getFilePath());
   }
 
   @Nullable
-  public BytesResponse getBytes(@NotNull BytesRequest request) {
+  public FileResponse getFile(@NotNull BytesRequest request) {
     try {
-      ResultSet results = executeQuery(Statements.GET_BYTES, request.getStreamId(), request.getId());
+      ResultSet results = executeQuery(Statements.GET_FILE, request.getStreamId(), request.getId());
       if (results.next()) {
-        return BytesResponse.parseFrom(results.getBytes(1));
+        return FileResponse.newBuilder().setFilePath(results.getString(1)).build();
       }
     }
-    catch (InvalidProtocolBufferException | SQLException ex) {
+    catch (SQLException ex) {
       onError(ex);
     }
 

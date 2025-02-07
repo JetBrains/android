@@ -29,7 +29,7 @@ fun mockTransportProxy(): TransportProxy {
   val mockProxy: TransportProxy = mock()
   val channel = NettyChannelBuilder.forTarget("someTarget").usePlaintext().build()
   whenever(mockProxy.transportChannel).thenReturn(channel)
-  whenever(mockProxy.bytesCache).thenReturn(mutableMapOf())
+  whenever(mockProxy.filePathCache).thenReturn(mutableMapOf())
   whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
 
   val mockDevice: IDevice = mock()

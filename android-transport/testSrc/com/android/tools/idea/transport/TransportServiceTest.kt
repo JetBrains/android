@@ -20,8 +20,10 @@ import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
+import com.android.tools.idea.transport.TransportServiceUtils
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import java.io.File
 import org.junit.Rule
 import org.junit.rules.Timeout
 import java.io.IOException
@@ -121,18 +123,24 @@ class TransportServiceTest : LightPlatformTestCase() {
 
     // Validates that bytes can be queried from the custom stream as well.
     val testBytes = ByteString.copyFrom("DeadBeef".toByteArray())
-    testStreamServer.byteCacheMap["test"] = testBytes
+    val tempFile = TransportServiceUtils.createTempFile("transport", ".dat", testBytes)
+    testStreamServer.filePathCache["test"] = tempFile.absolutePath
     assertThat(client.transportStub
-                 .getBytes(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test").build())
-                 .contents)
-      .isEqualTo(testBytes)
+                   .getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test").build())
+                   .filePath)
+                   .isEqualTo(tempFile.absolutePath)
 
     // Validates that bytes can't be queried after server stopped.
     service.unregisterStreamServer(stream.streamId)
-    testStreamServer.byteCacheMap["test2"] = ByteString.copyFrom("DeadBeef2".toByteArray())
+    val testBytes2 = ByteString.copyFrom("DeadBeef2".toByteArray())
+    val tempFile2 = TransportServiceUtils.createTempFile("transport2", ".dat", testBytes2)
+    // Note: The server is unregistered, but we add to its cache anyway to prove the client can't reach it.
+    testStreamServer.filePathCache["test2"] = tempFile2.absolutePath
     assertThat(client.transportStub
-                 .getBytes(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build()))
-      .isEqualTo(Transport.BytesResponse.getDefaultInstance())
+                 .getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build())
+                 .filePath)
+                  .isEmpty()
+
     client.shutdown()
   }
 

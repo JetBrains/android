@@ -42,6 +42,7 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.FakeEventService;
@@ -60,7 +61,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -136,7 +140,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Stops the tracking session.
-    myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
+    try {
+      File file = TransportServiceUtils.createTempFile("temp_alloc", ".alloc", ByteString.copyFrom(FAKE_ALLOC_BUFFER));
+      myTransportService.addFile(Long.toString(infoStart), file.getAbsolutePath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
@@ -674,7 +683,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
-    myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
+    try {
+      File file = TransportServiceUtils.createTempFile("temp_alloc", ".alloc", ByteString.copyFrom(FAKE_ALLOC_BUFFER));
+      myTransportService.addFile(Long.toString(infoStart), file.getAbsolutePath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
