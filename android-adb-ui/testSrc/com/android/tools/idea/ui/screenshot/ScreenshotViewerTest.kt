@@ -335,6 +335,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Phone() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
@@ -378,6 +379,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Wear() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)

@@ -1194,11 +1194,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCREENSHOT_STREAMLINED_SAVING = new BooleanFlag(
     SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
     "Save screenshots and screen recordings without asking user",
-    false);
+    enabledUpTo(CANARY));
   public static final Flag<Boolean> SCREENSHOT_RESIZING = new BooleanFlag(
     SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
     "Allow screenshots to be resized",
-    false);
+    enabledUpTo(CANARY));
   //endregion
 
   // region Device Definition Download Service
