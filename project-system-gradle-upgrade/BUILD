@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_test")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list", "get_agp_versions_from_tests_list")
 load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_DATA")
 load("//tools/base/bazel:bazel.bzl", "iml_module")

@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:utils.bzl", "java_jarjar")
 

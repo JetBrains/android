@@ -1,4 +1,5 @@
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 

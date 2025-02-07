@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 java_proto_library(
     name = "server-flag-test-proto",
@@ -25,8 +26,6 @@ iml_module(
         "//tools/adt/idea/server-flags:libserver-flag-test-proto[test]",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

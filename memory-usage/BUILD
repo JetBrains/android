@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build

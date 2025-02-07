@@ -1,6 +1,6 @@
-package(default_visibility = ["//visibility:public"])
-
 load("//tools/base/bazel:proto.bzl", "android_java_proto_library")
+
+package(default_visibility = ["//visibility:public"])
 
 android_java_proto_library(
     name = "layout_inspector_snapshot_java_proto",

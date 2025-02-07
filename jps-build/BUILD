@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("//tools/base/bazel:utils.bzl", "flat_archive")
 
 py_binary(

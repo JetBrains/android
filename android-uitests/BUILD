@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
