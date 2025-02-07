@@ -98,6 +98,7 @@ import javax.swing.Action
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * A dialog that shows a captured screenshot.
@@ -206,13 +207,13 @@ class ScreenshotViewer(
 
     val decorationListener = ActionListener {
       config.frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
-      updateImageFrame()
+      processScreenshot()
     }
     decorationComboBox.addActionListener(decorationListener)
 
     init()
 
-    updateImageFrame()
+    processScreenshot()
   }
 
   override fun createCenterPanel(): JComponent {
@@ -236,7 +237,19 @@ class ScreenshotViewer(
       row {
         cell(imageFileEditor.component).align(Align.FILL)
       }.resizableRow()
-      if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+      if (StudioFlags.SCREENSHOT_RESIZING.get()) {
+        row(message("screenshot.options.resolution")) {
+          comboBox(listOf(100, 50, 25))
+            .onChanged { updateScale(it.item / 100.0) }
+            .applyToComponent { item = (config.scale * 100).roundToInt() }
+
+          if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+            button(message("configure.save.button.text")) { configureSave() }
+              .align(AlignX.RIGHT)
+          }
+        }
+      }
+      else {
         row {
           button(message("configure.save.button.text")) { configureSave() }
             .align(AlignX.RIGHT)
@@ -430,8 +443,9 @@ class ScreenshotViewer(
     processScreenshot(numQuadrants)
   }
 
-  private fun updateImageFrame() {
-    processScreenshot(0)
+  private fun updateScale(scale: Double) {
+    config.scale = scale
+    processScreenshot()
   }
 
   private fun copyImageToClipboard() {
@@ -459,8 +473,8 @@ class ScreenshotViewer(
     }
   }
 
-  private fun processScreenshot(rotationQuadrants: Int) {
-    val rotatedImage = sourceImageRef.get().rotated(rotationQuadrants)
+  private fun processScreenshot(rotationQuadrants: Int = 0) {
+    val rotatedImage = sourceImageRef.get().rotatedAndScaled(rotationQuadrants = rotationQuadrants)
     val processedImage = processImage(rotatedImage)
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
@@ -482,7 +496,7 @@ class ScreenshotViewer(
 
   private fun processImage(sourceImage: ScreenshotImage): BufferedImage {
     val decoration = decorationComboBox.selectedItem as ScreenshotDecorationOption
-    return screenshotDecorator.decorate(sourceImage, decoration)
+    return screenshotDecorator.decorate(sourceImage.rotatedAndScaled(scale = config.scale), decoration)
   }
 
   private fun updateEditorImage() {
@@ -550,6 +564,7 @@ class ScreenshotViewer(
   internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
     var frameScreenshot: Boolean = false
     var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
+    var scale: Double = 1.0
     var filenameTemplate: String = "Screenshot_%Y%M%D_%H%m%S"
     var screenshotCount: Int = 0
     var postSaveAction: PostSaveAction = PostSaveAction.OPEN

@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.image.BufferedImage
+import kotlin.math.roundToInt
 
 class ScreenshotImage(
   val image: BufferedImage,
@@ -44,14 +45,14 @@ class ScreenshotImage(
     get() = deviceType == DeviceType.WEAR
 
   /**
-   * Returns the rotated screenshot.
+   * Returns the rotated and scaled screenshot.
    */
-  fun rotated(rotationQuadrants: Int): ScreenshotImage {
-    if (rotationQuadrants == 0) {
+  fun rotatedAndScaled(rotationQuadrants: Int = 0, scale: Double = 1.0): ScreenshotImage {
+    if (rotationQuadrants == 0 && scale == 1.0) {
       return this
     }
     return ScreenshotImage(
-      image = ImageUtils.rotateByQuadrants(image, rotationQuadrants),
+      image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (width * scale).roundToInt(), (height * scale).roundToInt()),
       screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
       displayInfo = displayInfo,
       deviceType = deviceType)

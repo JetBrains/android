@@ -1195,6 +1195,10 @@ public final class StudioFlags {
     SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
     "Save screenshots and screen recordings without asking user",
     false);
+  public static final Flag<Boolean> SCREENSHOT_RESIZING = new BooleanFlag(
+    SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
+    "Allow screenshots to be resized",
+    false);
   //endregion
 
   // region Device Definition Download Service
