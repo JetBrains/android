@@ -236,10 +236,6 @@ internal class DeviceView(
     }
   }
 
-  override fun addNotify() {
-    super.addNotify()
-  }
-
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
