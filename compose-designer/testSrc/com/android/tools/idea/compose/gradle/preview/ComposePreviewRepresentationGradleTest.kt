@@ -76,7 +76,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -151,7 +150,6 @@ class ComposePreviewRepresentationGradleTest {
     }
   }
 
-  @Ignore("b/390401504")
   @Test
   fun `panel renders correctly first time`() = runBlocking {
     withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
