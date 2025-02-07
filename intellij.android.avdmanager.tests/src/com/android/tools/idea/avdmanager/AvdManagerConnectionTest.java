@@ -60,6 +60,9 @@ import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
+import com.intellij.credentialStore.Credentials;
+import com.intellij.util.net.ProxyConfiguration;
+import com.intellij.util.net.ProxyCredentialStore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -529,6 +532,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false);
     assertThat(info).isNotNull();
     assertThat(info.getUserSettings().get(PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
+  }
+
+  public void testStudioParams() {
+    ProxyConfiguration.StaticProxyConfiguration config =
+      ProxyConfiguration.proxy(ProxyConfiguration.ProxyProtocol.HTTP, "proxy.com", 80, "");
+    ProxyCredentialStore.getInstance().setCredentials("proxy.com", 80, new Credentials("myuser", "hunter2"), false);
+
+    List<String> params = AvdManagerConnectionKt.toStudioParams(config, ProxyCredentialStore.getInstance());
+    assertThat(params).containsExactly("http.proxyHost=proxy.com", "http.proxyPort=80", "proxy.authentication.username=myuser",
+                                       "proxy.authentication.password=hunter2");
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {
