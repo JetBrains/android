@@ -60,7 +60,7 @@ internal class DeviceDisplayPanel(
   }
 
   @UiThread
-  override fun connectionStateChanged(serialNumber: String, connectionState: ConnectionState) {
+  override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       createFloatingToolbar()
     }
