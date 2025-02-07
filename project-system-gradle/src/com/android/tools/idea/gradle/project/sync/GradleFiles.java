@@ -302,14 +302,6 @@ public class GradleFiles implements Disposable.Default {
     return ReadAction.compute(() -> !checkHashesOfChangedFiles());
   }
 
-  public boolean areExternalBuildFilesModified() {
-    return ReadAction.compute(() -> {
-      synchronized (myLock) {
-        return !filterHashes(myChangedExternalFiles);
-      }
-    });
-  }
-
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
     return FileRelevanceKt.isGradleFile(psiFile);
   }

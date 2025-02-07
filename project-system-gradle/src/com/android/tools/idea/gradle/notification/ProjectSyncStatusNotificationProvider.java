@@ -191,13 +191,6 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
               text = "Gradle JDK configuration has changed. A project sync may be necessary for the IDE to apply those changes.";
             case GRADLE_BUILD_FILES_CHANGED ->
               text = "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
-            case EXTERNAL_BUILD_FILES_CHANGED -> {
-              // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
-              // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
-              project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
-
-              text = "External build files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
-            }
           }
           String finalText = text;
           return (editor) -> new StaleGradleModelNotificationPanel(project, finalText);

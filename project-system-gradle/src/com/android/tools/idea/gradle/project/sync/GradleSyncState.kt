@@ -26,7 +26,6 @@ import com.intellij.util.messages.MessageBusConnection
 import org.gradle.util.GradleVersion
 
 enum class GradleSyncNeededReason {
-  EXTERNAL_BUILD_FILES_CHANGED,
   GRADLE_BUILD_FILES_CHANGED,
   GRADLE_JVM_CONFIG_CHANGED
 }
