@@ -602,7 +602,7 @@ public final class StudioFlags {
     "Enable Android Studio usage stats for IDevice methods",
     "Track IDevice method calls and success rates. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> ADBLIB_ONE_SESSION_PER_PROJECT = new BooleanFlag(
     RUNDEBUG,
