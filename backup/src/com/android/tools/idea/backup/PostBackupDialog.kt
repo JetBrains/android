@@ -64,6 +64,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
   init {
     init()
     title = "Add To Run Configuration"
+    pack()
     isResizable = false
   }
 
