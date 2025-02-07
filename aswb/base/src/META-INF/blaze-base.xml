@@ -218,7 +218,6 @@
     <postStartupActivity implementation="com.google.idea.blaze.base.formatter.ExternalFormatterCodeStyleManager$Installer"/>
     <postStartupActivity implementation="com.google.idea.blaze.base.prefetch.PrefetchProjectInitializer" />
 
-
     <toolWindow id="Blaze"
         anchor="bottom"
         secondary="false"
@@ -362,6 +361,7 @@
     <notificationGroup displayType="BALLOON" id="AddToProject" />
     <notificationGroup displayType="STICKY_BALLOON" id="QuerySyncPromo" />
     <notificationGroup displayType="BALLOON" id="QuerySyncBuild" />
+    <cachesInvalidator implementation="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction$CacheInvalidator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

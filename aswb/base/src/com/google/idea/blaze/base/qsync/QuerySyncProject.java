@@ -359,12 +359,17 @@ public class QuerySyncProject {
   }
 
   public void resetQuerySyncState(BlazeContext context) throws BuildException {
+    invalidateQuerySyncState(context);
+    fullSync(context);
+  }
+
+  public void invalidateQuerySyncState(BlazeContext context) throws BuildException {
     try {
       artifactTracker.clear();
     } catch (IOException e) {
       throw new BuildException("Failed to clear dependency info", e);
     }
-    fullSync(context);
+    onNewSnapshot(context, QuerySyncProjectSnapshot.EMPTY);
   }
 
   public void build(BlazeContext parentContext, DependencyTracker.DependencyBuildRequest request)

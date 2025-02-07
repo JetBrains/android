@@ -54,7 +54,6 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class QuerySyncProjectSnapshot {
 
-  @VisibleForTesting
   public static final QuerySyncProjectSnapshot EMPTY =
       builder()
           .graph(BuildGraphData.EMPTY)
