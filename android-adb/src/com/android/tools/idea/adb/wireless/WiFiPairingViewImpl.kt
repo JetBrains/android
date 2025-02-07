@@ -144,6 +144,22 @@ class WiFiPairingViewImpl(
     )
   }
 
+  override fun showMdnsDisabledOnAdbServer() {
+    dlg.showLoadingError(
+      buildErrorHtml {
+        add("mDNS backend is disabled")
+        newline()
+        newline()
+        add("1. Make sure it is enabled in ")
+        addLink("ADB Settings", Urls.openAdbSettings)
+        add(".")
+        newline()
+        add("2. Make sure you are not using a manually managed ADB server.")
+        newline()
+      }
+    )
+  }
+
   override fun addListener(listener: WiFiPairingView.Listener) {
     listeners.add(listener)
   }

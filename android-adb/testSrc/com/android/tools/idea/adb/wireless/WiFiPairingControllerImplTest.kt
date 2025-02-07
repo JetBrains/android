@@ -234,6 +234,27 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   @Test
+  fun mDNSShowWhenDisabled() {
+    adbService.useMock = true
+    mDNSConfigurationRetriever.useMock = true
+    adbOptionRetriever.useMock = true
+    systemRetriever.useMock = true
+    runBlocking {
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+        .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns discovery disabled"), listOf()))
+
+      whenever(systemRetriever.instance.isMac()).thenReturn(true)
+      whenever(adbService.instance.getServerStatus())
+        .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
+      whenever(adbOptionRetriever.instance.getMdnsBackend())
+        .thenReturn(AdbServerMdnsBackend.DISABLED)
+
+      val support = devicePairingService.checkMdnsSupport()
+      Assert.assertEquals(MdnsSupportState.AdbDisabled, support)
+    }
+  }
+
+  @Test
   fun viewShouldShowErrorIfMdnsCheckIsNotSupported() {
     // Prepare
     adbService.useMock = true
