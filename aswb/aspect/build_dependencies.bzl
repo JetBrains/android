@@ -14,13 +14,6 @@ load(
 
 ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import, j2kt_native_import"
 
-PROTO_RULE_KINDS = [
-    "java_proto_library",
-    "java_lite_proto_library",
-    "java_mutable_proto_library",
-    "kt_proto_library_helper",
-]
-
 def _rule_function(
         rule):  # @unused
     return []
@@ -64,6 +57,7 @@ IDE_KOTLIN = _validate_ide(
 IDE_JAVA_PROTO = _validate_ide(
     _ide_java_proto_not_validated,
     template = struct(
+        get_java_proto_info = _target_rule_function,  # A function that takes a rule and returns a marker structure (empty for now).
         srcs_attributes = [],  # Additional srcs like attributes.
         follow_attributes = [],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
         followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
@@ -513,7 +507,6 @@ def _get_followed_java_dependency_infos(
 def _collect_own_java_artifacts(
         target,
         ctx,
-        can_follow_dependencies,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
@@ -533,6 +526,9 @@ def _collect_own_java_artifacts(
     resource_package = ""
 
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
+
+    # Targets recognised as java_proto_info can have java_info dependencies.
+    java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
     android = _get_android_provider(target)
 
     if must_build_main_artifacts:
@@ -544,10 +540,7 @@ def _collect_own_java_artifacts(
         # are collected via attribute traversal, but still requires jars for any
         # proto deps of the underlying proto_library.
         if java_info:
-            if can_follow_dependencies:
-                own_jar_depsets.append(java_info.compile_jars)
-            else:
-                own_jar_depsets.append(java_info.transitive_compile_time_jars)
+            own_jar_depsets.append(java_info.compile_jars)
 
         if declares_android_resources(target, ctx):
             ide_aar = _get_ide_aar_file(target, ctx)
@@ -629,7 +622,7 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
-    if not (java_info or android or own_gensrc_files or own_src_files or own_srcjar_files):
+    if not (java_info or android or java_proto_info or own_gensrc_files or own_src_files or own_srcjar_files):
         return None
     if own_jar_files or len(own_jar_depsets) > 1:
         own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
@@ -667,11 +660,6 @@ def _target_to_artifact_entry(
         "android_resources_package": android_resources_package,
     }
 
-def _can_follow_dependencies(ctx):
-    # Toolchains are collected for proto targets via aspect traversal, but jars
-    # produced for proto deps of the underlying proto_library are not
-    return not ctx.rule.kind in PROTO_RULE_KINDS
-
 # Collects artifacts exposed by this java-like (i.e. java, android or proto-for-java) target and its dependencies if it is such a target.
 # For non-Java targets only generated sources are collected without recursing to its dependencies. Therefore, for example, if there are
 # generated proto files they won't be collected and this use case will need to be supported explicitly. Not following non-Java dependencies
@@ -685,12 +673,9 @@ def _collect_own_and_dependency_java_artifacts(
         use_generated_srcjars,
         target_is_within_project_scope,
         experiment_multi_info_file):
-    can_follow_dependencies = _can_follow_dependencies(ctx)
-
     own_files = _collect_own_java_artifacts(
         target,
         ctx,
-        can_follow_dependencies,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
@@ -698,6 +683,8 @@ def _collect_own_and_dependency_java_artifacts(
     )
 
     if not own_files:
+        # Any target recognized as a java related target gets at least
+        # an empty own_files structure.
         return None
 
     target_to_artifacts = {}
@@ -834,11 +821,9 @@ def _collect_java_dependencies_core_impl(
 
     test_mode_own_files = None
     if test_mode:
-        can_follow_dependencies = _can_follow_dependencies(ctx)
         within_scope_own_files = _collect_own_java_artifacts(
             target,
             ctx,
-            can_follow_dependencies,
             params.always_build_rules,
             params.generate_aidl_classes,
             params.use_generated_srcjars,

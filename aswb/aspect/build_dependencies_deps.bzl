@@ -63,6 +63,9 @@ IDE_KOTLIN = struct(
 
 # PROTO
 
+def _get_java_proto_info(target, rule):
+    return None
+
 def _get_followed_java_proto_dependencies(rule):
     deps = []
     if rule.kind in ["proto_lang_toolchain", "java_rpc_toolchain"]:
@@ -72,6 +75,7 @@ def _get_followed_java_proto_dependencies(rule):
     return deps
 
 IDE_JAVA_PROTO = struct(
+    get_java_proto_info = _get_java_proto_info,
     srcs_attributes = [],
     follow_attributes = ["_toolchain", "runtime"],
     followed_dependencies = _get_followed_java_proto_dependencies,
