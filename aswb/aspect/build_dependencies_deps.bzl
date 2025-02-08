@@ -61,6 +61,23 @@ IDE_KOTLIN = struct(
     toolchains_aspects = [],
 )
 
+# PROTO
+
+def _get_followed_java_proto_dependencies(rule):
+    deps = []
+    if rule.kind in ["proto_lang_toolchain", "java_rpc_toolchain"]:
+        deps.extend(_get_dependency_attribute(rule, "runtime"))
+    if rule.kind in ["_java_grpc_library", "_java_lite_grpc_library"]:
+        deps.extend(_get_dependency_attribute(rule, "_toolchain"))
+    return deps
+
+IDE_JAVA_PROTO = struct(
+    srcs_attributes = [],
+    follow_attributes = ["_toolchain", "runtime"],
+    followed_dependencies = _get_followed_java_proto_dependencies,
+    toolchains_aspects = [],
+)
+
 # CC
 
 def _get_cc_toolchain_target(rule):

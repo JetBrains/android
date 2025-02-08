@@ -8,6 +8,7 @@ load(
     "ZIP_TOOL_LABEL",
     _ide_cc_not_validated = "IDE_CC",
     _ide_java_not_validated = "IDE_JAVA",
+    _ide_java_proto_not_validated = "IDE_JAVA_PROTO",
     _ide_kotlin_not_validated = "IDE_KOTLIN",
 )
 
@@ -60,6 +61,16 @@ IDE_KOTLIN = _validate_ide(
     ),
 )
 
+IDE_JAVA_PROTO = _validate_ide(
+    _ide_java_proto_not_validated,
+    template = struct(
+        srcs_attributes = [],  # Additional srcs like attributes.
+        follow_attributes = [],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+    ),
+)
+
 IDE_CC = _validate_ide(
     _ide_cc_not_validated,
     template = struct(
@@ -71,7 +82,7 @@ IDE_CC = _validate_ide(
     ),
 )
 
-JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_KOTLIN.srcs_attributes)
+JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_JAVA_PROTO.srcs_attributes + IDE_KOTLIN.srcs_attributes)
 
 def _noneToEmpty(d):
     return d if d else depset()
@@ -483,14 +494,6 @@ def _get_dependency_attribute(rule, attr):
             return [to_add]
     return []
 
-def _get_followed_java_proto_dependencies(rule):
-    deps = []
-    if rule.kind in ["proto_lang_toolchain", "java_rpc_toolchain"]:
-        deps.extend(_get_dependency_attribute(rule, "runtime"))
-    if rule.kind in ["_java_grpc_library", "_java_lite_grpc_library"]:
-        deps.extend(_get_dependency_attribute(rule, "_toolchain"))
-    return deps
-
 def _get_followed_java_dependency_infos(
         label,  # @unused
         rule):
@@ -498,7 +501,7 @@ def _get_followed_java_dependency_infos(
     for attr in FOLLOW_JAVA_ATTRIBUTES:
         deps.extend(_get_dependency_attribute(rule, attr))
 
-    deps.extend(_get_followed_java_proto_dependencies(rule))
+    deps.extend(IDE_JAVA_PROTO.followed_dependencies(rule))
     deps.extend(IDE_KOTLIN.followed_dependencies(rule))
 
     return {
@@ -1039,13 +1042,14 @@ FOLLOW_JAVA_ATTRIBUTES = [
     "_aspect_java_proto_toolchain",
 ] + IDE_KOTLIN.follow_attributes
 
+FOLLOW_JAVA_PROTO_ATTRIBUTES = IDE_JAVA_PROTO.follow_attributes
 FOLLOW_CC_ATTRIBUTES = IDE_CC.follow_attributes
 
 FOLLOW_ADDITIONAL_ATTRIBUTES = ["runtime", "_toolchain"] + IDE_KOTLIN.follow_additional_attributes
 
-FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLLOW_ADDITIONAL_ATTRIBUTES)
+FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_JAVA_PROTO_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLLOW_ADDITIONAL_ATTRIBUTES)
 
-TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_CC.toolchains_aspects
+TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_JAVA_PROTO.toolchains_aspects + IDE_CC.toolchains_aspects
 
 def collect_dependencies(parameters):
     def _impl(target, ctx):
