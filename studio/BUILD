@@ -767,6 +767,19 @@ studio_plugin(
     ],
 )
 
+studio_plugin(
+    name = "com.android.altlang.soong",
+    directory = "soong-plugin",
+    libs = [
+        "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
+        "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
+    ],
+    modules = {
+        "soong-plugin.jar": ["//tools/vendor/google/alt-lang/soong/plugin:soong-plugin"],
+    },
+    visibility = ["//visibility:public"],
+)
+
 exports_files([
     "codesign/entitlements.xml",
     "studio.py",
