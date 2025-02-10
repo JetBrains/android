@@ -2197,14 +2197,6 @@ public final class StudioFlags {
                 "How many candidates to request for each generation",
                 1);
 
-  private static final int APOLLO_GENERATION_MODEL_CONTEXT_SIZE = 8192;
-
-  public static final Flag<Integer> STUDIOBOT_GENERATION_MODEL_CONTEXT_SIZE_TOKENS =
-    new IntFlag(STUDIOBOT, "generations.model.context.size",
-                "Generation model context size in tokens",
-                "Generation model context size in tokens",
-                APOLLO_GENERATION_MODEL_CONTEXT_SIZE);
-
   public static final Flag<Integer> STUDIOBOT_CHAT_MODEL_INPUT_TOKEN_LIMIT =
     new IntFlag(STUDIOBOT, "chat.model.input.tokens",
                 "Input token limit for default chat model",
