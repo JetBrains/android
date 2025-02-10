@@ -13,5 +13,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
     ],
 )

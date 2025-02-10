@@ -23,4 +23,8 @@
     <listener class="com.android.tools.idea.settingssync.DisableIJSettingsSyncAction"
               topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
+
+  <extensions defaultExtensionNs="com.google.gct.login">
+    <googleLoginFeature implementation="com.android.tools.idea.settingssync.SettingsSyncFeature"/>
+  </extensions>
 </idea-plugin>
