@@ -217,8 +217,7 @@ iml_module(
         "//tools/data-binding:data_binding_runtime.zip",
     ],
     test_jvm_flags = [
-        "-agentpath:$(location //tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse)",
-        "-Dmemory.agent.path=$(location //tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse)",
+        "-Didea.skip.indices.initialization=true",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
