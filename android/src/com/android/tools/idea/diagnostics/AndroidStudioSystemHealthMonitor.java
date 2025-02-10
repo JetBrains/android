@@ -50,6 +50,7 @@ import com.google.common.io.Files;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GcPauseEvent;
 import com.google.wireless.android.sdk.stats.GcPauseInfo;
 import com.google.wireless.android.sdk.stats.HeapReportEvent;
 import com.google.wireless.android.sdk.stats.StudioCrash;
@@ -199,6 +200,9 @@ public final class AndroidStudioSystemHealthMonitor {
   private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
   /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_GC_PAUSE_TIME_MS = 30 * 60 * 1000;
+
+  /** Pauses longer than this threshold will produce a separate event, in addition to being recorded in the histogram. */
+  private static final long GC_PAUSE_THRESHOLD_FOR_INDIVIDUAL_REPORT_MS = 1000;
 
   private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
 
@@ -436,6 +440,18 @@ public final class AndroidStudioSystemHealthMonitor {
     GcPauseInfo.GcType gcType = getGcType(gcName);
     myGcPauseInfo.computeIfAbsent(gcType, (unused) -> new SingleWriterRecorder(1))
       .recordValue(Math.min(durationMs, MAX_GC_PAUSE_TIME_MS));
+    if (durationMs > GC_PAUSE_THRESHOLD_FOR_INDIVIDUAL_REPORT_MS) {
+      Runtime runtime = Runtime.getRuntime();
+      long totalMemory = runtime.totalMemory();
+      long usedMemory = totalMemory - runtime.freeMemory();
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(EventKind.GC_PAUSE_EVENT)
+                         .setGcPauseEvent(GcPauseEvent.newBuilder()
+                                            .setPauseDurationMs(durationMs)
+                                            .setGcType(getGcType(gcName))
+                                            .setUsedMemoryMb(usedMemory)
+                                            .setTotalMemoryMb(totalMemory)));
+    }
   }
 
   private static GcPauseInfo.GcType getGcType (String name) {
