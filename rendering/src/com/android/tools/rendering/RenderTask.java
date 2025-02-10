@@ -316,7 +316,12 @@ public class RenderTask {
     }
   }
 
+  /**
+   * Set the target quality to use when rendering.
+   * Note that a quality of 100% is enforced if layout validation is currently enabled.
+   */
   public void setQuality(float quality) {
+    if (myEnableLayoutScanner) quality = 1f;
     quality = Math.max(0f, Math.min(quality, 1f));
     if (quality == myTargetQuality) return;
     myTargetQuality = quality;

@@ -332,6 +332,9 @@ class LayoutlibSceneRenderer(
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
           lastRenderQuality = quality
+          // After the first successful render of a render task, layout validation doesn't need to
+          // be executed again for this render task.
+          renderTask?.setEnableLayoutScanner(false)
           // When the layout was inflated in this same call, we do not have to update the hierarchy
           // again
           if (inflateResult == null) reverseUpdate.set(updateHierarchy(result))

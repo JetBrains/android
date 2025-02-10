@@ -37,7 +37,7 @@ import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
-private const val NUMBER_OF_WARM_UP = 2
+const val NUMBER_OF_WARM_UP = 2
 private const val NUMBER_OF_SAMPLES = 40
 private const val MAX_PRUNED_SAMPLES = NUMBER_OF_SAMPLES / 4
 

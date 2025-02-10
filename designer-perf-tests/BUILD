@@ -61,6 +61,14 @@ iml_module(
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeRenderQualityGradleTest",
         },
+        "perfgateComposeUiCheckGradle": {
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "shard_count": 1,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeUiCheckGradleTest",
+        },
         "perfgateUiCheck": {
             "tags": [
                 "noci:studio-linux",

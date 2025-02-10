@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.MetricMeasurement
+import com.android.tools.idea.rendering.NUMBER_OF_WARM_UP
 import com.android.tools.idea.rendering.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.executeAndSave
@@ -88,24 +89,27 @@ open class PerfgateComposeGradleTestBase {
     nPreviewsToAdd: Int,
     nExpectedPreviewInstances: Int,
     measurements: List<MetricMeasurement<Unit>>,
+    nSamples: Int = NUMBER_OF_SAMPLES,
     measuredRunnable: suspend () -> Unit = {
-      fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds)
+      fullRefresh(maxOf(20, 3 * nExpectedPreviewInstances).seconds)
     },
   ) = runBlocking {
-    projectRule.runAndWaitForRefresh(
-      allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds,
-      failOnTimeout = false,
-    ) {
-      runWriteActionAndWait {
-        fixture.openFileInEditor(psiMainFile.virtualFile)
-        fixture.moveCaret("|@Preview")
-        fixture.editor.executeAndSave {
-          fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd))
-        }
-        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-        FileDocumentManager.getInstance().saveAllDocuments()
-        if (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled) {
-          composePreviewRepresentation.requestRefreshForTest()
+    if (nPreviewsToAdd > 0) {
+      projectRule.runAndWaitForRefresh(
+        allRefreshesFinishTimeout = maxOf(20, 3 * nExpectedPreviewInstances).seconds,
+        failOnTimeout = false,
+      ) {
+        runWriteActionAndWait {
+          fixture.openFileInEditor(psiMainFile.virtualFile)
+          fixture.moveCaret("|@Preview")
+          fixture.editor.executeAndSave {
+            fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd))
+          }
+          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+          FileDocumentManager.getInstance().saveAllDocuments()
+          if (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled) {
+            composePreviewRepresentation.requestRefreshForTest()
+          }
         }
       }
     }
@@ -120,7 +124,8 @@ open class PerfgateComposeGradleTestBase {
 
     composeGradleTimeBenchmark.measureOperation(
       measurements,
-      samplesCount = NUMBER_OF_SAMPLES,
+      samplesCount = nSamples,
+      warmUpCount = minOf(nSamples, NUMBER_OF_WARM_UP),
       printSamples = true,
     ) {
       runBlocking { measuredRunnable() }
