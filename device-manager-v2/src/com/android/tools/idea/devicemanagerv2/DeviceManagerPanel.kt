@@ -299,6 +299,7 @@ constructor(
       for (notificationBanner in banners) {
         notificationHolderPanel.add(notificationBanner)
       }
+      revalidate()
     }
   }
 
