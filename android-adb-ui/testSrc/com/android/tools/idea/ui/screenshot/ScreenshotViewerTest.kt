@@ -140,17 +140,15 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
     val imageComponent = ui.getComponent<ImageComponent>()
     waitForCondition(2.seconds) { imageComponent.document.value != null }
-    var image = imageComponent.document.value
+    val image = imageComponent.document.value
     assertThat(image.width).isEqualTo(50)
     assertThat(image.height).isEqualTo(100)
     @Suppress("UNCHECKED_CAST") val resolutionComboBox = ui.getComponent<ComboBox<*>> { it.item is Int } as ComboBox<Int>
     assertThat(resolutionComboBox.item).isEqualTo(50)
     resolutionComboBox.item = 25
-    waitForCondition(2.seconds) { imageComponent.document.value != image }
-    image = imageComponent.document.value
-    assertThat(image.width).isEqualTo(25)
-    assertThat(image.height).isEqualTo(50)
     assertThat(config.scale == 0.25)
+    waitForCondition(2.seconds) { imageComponent.document.value?.width == 25 }
+    assertThat(imageComponent.document.value.height).isEqualTo(50)
   }
 
   @Test
