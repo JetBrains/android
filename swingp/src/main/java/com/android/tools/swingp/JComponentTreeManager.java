@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 import javax.swing.JComponent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,7 +32,9 @@ import org.jetbrains.annotations.NotNull;
  * Render passes over a Swing tree are sparse, skipping some elements, so this class provides the path between the current
  * node and the most recently rendered parent.
  */
-class JComponentTreeManager {
+@ApiStatus.Internal
+@VisibleForTesting
+public final class JComponentTreeManager {
   // It's theoretically possible to have more than one Swing EDTs.
   private static final ThreadLocal<Stack<JComponent>> ourStack = ThreadLocal.withInitial(() -> new Stack<>());
   private static boolean ourIsEnabled;
