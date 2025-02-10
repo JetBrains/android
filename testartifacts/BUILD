@@ -19,6 +19,10 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
+        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
 )
 
