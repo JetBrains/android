@@ -15,11 +15,12 @@
   -->
 <idea-plugin>
   <applicationListeners>
+    <listener class="com.android.tools.idea.settingssync.DisableIJSettingSyncConfigurableProvider"
+              topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
+
+  <applicationListeners>
     <listener class="com.android.tools.idea.settingssync.DisableIJSettingsSyncAction"
               topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationInitializedListener id="DisableIJSettingSyncConfigurableProvider"
-                                    implementation="com.android.tools.idea.settingssync.DisableIJSettingSyncConfigurableProvider" />
-  </extensions>
 </idea-plugin>

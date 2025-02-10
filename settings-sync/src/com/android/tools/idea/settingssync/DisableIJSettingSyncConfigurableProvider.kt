@@ -16,7 +16,7 @@
 package com.android.tools.idea.settingssync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.ApplicationInitializedListener
+import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginId
@@ -34,9 +34,8 @@ internal fun checkIfFeaturePluginEnabled(): Boolean =
  * If users explicitly enable the feature plugin from the JetBrains Marketplace, this configurable
  * will still be visible.
  */
-class DisableIJSettingSyncConfigurableProvider : ApplicationInitializedListener {
-
-  override suspend fun execute() {
+class DisableIJSettingSyncConfigurableProvider : AppLifecycleListener {
+  override fun appFrameCreated(commandLineArgs: List<String?>) {
     if (!StudioFlags.SETTINGS_SYNC_ENABLED.get() && !checkIfFeaturePluginEnabled()) {
       disableConfigurable()
     }
