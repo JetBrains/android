@@ -22,6 +22,7 @@ import com.android.ide.common.pagealign.SO_FILE_16K_ALIGNED
 import com.android.ide.common.pagealign.SO_FILE_NOT_16K_ALIGNED
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
+import com.google.protobuf.TextFormat
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.PageAlign16kb
 import com.android.tools.idea.testing.registerServiceInstance
@@ -47,10 +48,25 @@ class PageAlignNotifierTest {
   @get:Rule val appRule = ApplicationRule()
   @get:Rule val disposableRule = DisposableRule()
 
+  // This is the currently planned server flag.
+  val configWithMessages = parseServerFlag("""
+    play_store_deadline_date: "November 2026"
+    message_url: "developer.android.com/16kb-page-size"
+    so_unaligned_in_apk_message: "The following native libraries are not aligned at 16 KB boundary inside [APK]:"
+    unaligned_load_segments_message: "The following native libraries have segments that are not aligned at 16 KB boundary inside [APK]:"
+    message_postscript: "Beginning [DATE] the Google Play Store requires that all apps must be 16 KB compatible. For more information, visit [URL]."
+  """.trimIndent())
+
+  fun parseServerFlag(textProto : String) : PageAlign16kb {
+    val builder = PageAlign16kb.newBuilder()
+    TextFormat.getParser().merge(textProto, builder)
+    return builder.build()
+  }
+
   @Test
   fun `multiple APKs are reported`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       productCpuAbiList = "arm64-v8a",
       buildCharacteristics = null,
       Apk(SO_FILE_NOT_16K_ALIGNED to AlignedUncompressed),
@@ -66,7 +82,7 @@ class PageAlignNotifierTest {
   @Test
   fun `APK with no so files`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       productCpuAbiList = "arm64-v8a",
       buildCharacteristics = null,
       Apk())
@@ -77,7 +93,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -89,7 +105,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -101,7 +117,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -113,7 +129,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -127,7 +143,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -139,7 +155,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -151,7 +167,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -165,7 +181,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a")
@@ -181,7 +197,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -193,7 +209,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -205,7 +221,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -217,7 +233,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -229,7 +245,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -241,7 +257,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag off`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -253,7 +269,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -265,7 +281,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag on`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64")
@@ -278,7 +294,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -291,7 +307,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -304,7 +320,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -317,7 +333,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -330,7 +346,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -343,7 +359,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -356,7 +372,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -369,7 +385,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -382,7 +398,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -395,7 +411,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -408,7 +424,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -421,7 +437,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -434,7 +450,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -447,7 +463,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag off on Wear OS`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -460,7 +476,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -473,7 +489,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag on on Wear OS`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -487,7 +503,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -500,7 +516,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -513,7 +529,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -526,7 +542,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -539,7 +555,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -552,7 +568,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -565,7 +581,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant so unaligned in APK with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -578,7 +594,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant so unaligned in APK with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "arm64-v8a",
@@ -591,7 +607,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -604,7 +620,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -617,7 +633,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -630,7 +646,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = AlignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -643,7 +659,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -656,7 +672,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag off on Android Auto`() {
     testNotifier(
-      serverFlag = false,
+      serverFlag = null,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -669,7 +685,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB compliant x86_64 so unaligned in APK with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -682,7 +698,7 @@ class PageAlignNotifierTest {
   @Test
   fun `16 KB non-compliant x86_64 so unaligned in APK with server flag on on Android Auto`() {
     testNotifier(
-      serverFlag = true,
+      serverFlag = configWithMessages,
       so = SO_FILE_NOT_16K_ALIGNED,
       zipLayout = UnalignedUncompressed,
       productCpuAbiList = "x86_64",
@@ -697,7 +713,7 @@ class PageAlignNotifierTest {
   )
 
   fun testNotifier(
-    serverFlag : Boolean,
+    serverFlag : PageAlign16kb?,
     productCpuAbiList : String,
     buildCharacteristics : String? = null,
     vararg apks : Apk)  : TestablePageAlignNotifier {
@@ -711,24 +727,19 @@ class PageAlignNotifierTest {
     }
     val apkInfo = ApkInfo(apkFiles, "application.id")
 
-    if (serverFlag) {
-      val config = PageAlign16kb.newBuilder()
-        .setMessageUrl("test.url")
-        .setPlayStoreDeadlineDate("test.deadline")
-        .build()
-      val service = Mockito.mock(ServerFlagService::class.java)
-      whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(config)
-      ApplicationManager.getApplication()
-        .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
-    }
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(serverFlag)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
     val notifier = TestablePageAlignNotifier()
+    
     notifier.notify16kbAlignmentViolations(apkInfo, productCpuAbiList.split(","), buildCharacteristics)
     return notifier
   }
 
   fun testNotifier(
     so : ByteArray,
-    serverFlag : Boolean,
+    serverFlag : PageAlign16kb?,
     zipLayout : ZipEntryOptions,
     productCpuAbiList : String,
     buildCharacteristics : String? = null

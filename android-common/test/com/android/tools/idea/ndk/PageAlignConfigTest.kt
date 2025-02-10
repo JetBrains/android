@@ -20,6 +20,7 @@ import com.android.tools.idea.serverflags.protos.PageAlign16kb
 import com.android.tools.idea.testing.registerServiceInstance
 import org.junit.Test
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.TextFormat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -45,12 +46,19 @@ class PageAlignConfigTest {
 
   @Test
   fun `check server flag enabled`() {
-    val config = PageAlign16kb.newBuilder()
-      .setMessageUrl("test.url")
-      .setPlayStoreDeadlineDate("test.deadline")
-      .build()
+    // This is the currently planned server flag.
+    val textProto = """
+      play_store_deadline_date: "November 2026"
+      message_url: "developer.android.com/16kb-page-size"
+      so_unaligned_in_apk_message: "The following native libraries are not aligned at 16 KB boundary inside [APK]:"
+      unaligned_load_segments_message: "The following native libraries have segments that are not aligned at 16 KB boundary inside [APK]:"
+      message_postscript: "Beginning [DATE] the Google Play Store requires that all apps must be 16 KB compatible. For more information, visit [URL]."
+    """.trimIndent()
+    val builder = PageAlign16kb.newBuilder()
+    TextFormat.getParser().merge(textProto, builder)
     val service = Mockito.mock(ServerFlagService::class.java)
-    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(config)
+    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE))
+      .thenReturn(builder.build())
     ApplicationManager.getApplication()
       .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
@@ -58,7 +66,8 @@ class PageAlignConfigTest {
     val message = PageAlignConfig.createSoNotAlignedInZipMessage(
       File("example.apk"),
       listOf("example.so"))
-    assertThat(message).contains("test.url")
-    assertThat(message).contains("test.deadline")
+    assertThat(message).contains("November 2026")
+    assertThat(message).contains("example.apk")
+    assertThat(message).contains("example.so")
   }
 }
