@@ -99,8 +99,6 @@
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-http-jvm/3/ktor-http-jvm-3.jar
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-utils-jvm/3/ktor-utils-jvm-3.jar
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-io-jvm/3/ktor-io-jvm-3.jar
-    - name: $MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-io-core-jvm/0/kotlinx-io-core-jvm-0.jar
-    - name: $MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-io-bytestring-jvm/0/kotlinx-io-bytestring-jvm-0.jar
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-events-jvm/3/ktor-events-jvm-3.jar
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-websocket-serialization-jvm/3/ktor-websocket-serialization-jvm-3.jar
     - name: $MAVEN_REPOSITORY$/io/ktor/ktor-serialization-jvm/3/ktor-serialization-jvm-3.jar
