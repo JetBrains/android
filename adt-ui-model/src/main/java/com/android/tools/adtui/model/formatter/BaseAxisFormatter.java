@@ -264,9 +264,10 @@ public abstract class BaseAxisFormatter {
     return factors;
   }
 
-  protected static class Multiplier {
-    final int index;
-    final long accumulation;
+  protected static final class Multiplier {
+    public final int index;
+    public final long accumulation;
+
     Multiplier(int index, long accumulation) {
       this.index = index;
       this.accumulation = accumulation;
