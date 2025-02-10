@@ -18,6 +18,7 @@ package com.android.tools.idea.preview
 import com.android.tools.preview.AnnotatedMethod
 import com.android.tools.preview.AnnotationAttributesProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.uast.UMethod
 
@@ -48,6 +49,9 @@ class UastAnnotatedMethod(
       method.uastParameters.mapNotNull { parameter ->
         parameter.uAnnotations
           .firstOrNull { previewParameterAnnotationFqn == it.qualifiedName }
-          ?.let { parameter.name to UastAnnotationAttributesProvider(it, emptyMap()) }
+          ?.let { anno ->
+            val name = (parameter.javaPsi as PsiParameter).name
+            name to UastAnnotationAttributesProvider(anno, emptyMap())
+          }
       }
 }
