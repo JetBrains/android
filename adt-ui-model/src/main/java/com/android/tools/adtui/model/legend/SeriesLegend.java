@@ -32,8 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * based on the max value of the input range.
  */
 public final class SeriesLegend implements Legend {
-
-  @VisibleForTesting final static String UNAVAILABLE_MESSAGE = "N/A";
+  public @VisibleForTesting final static String UNAVAILABLE_MESSAGE = "N/A";
 
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
