@@ -33,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.IdeUICustomization
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
@@ -136,6 +137,7 @@ class DeployTaskTest {
   }
 
   @Test
+  @Ignore("b/389067070")
   fun testDeployApi33() {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU))

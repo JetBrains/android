@@ -445,7 +445,7 @@ public final class StudioFlags {
     "install.use.pm.terminate",
     "When installing via the Package Manager, do not use the --dont-kill flag and skip process termination for API33+",
     "We assume there are no race conditions with the package manager and give full control to it.",
-    true);
+    false);
 
   public static final Flag<Boolean> SUPPORT_CUSTOM_ARTIFACTS = new BooleanFlag(
     RUNDEBUG,
