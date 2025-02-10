@@ -118,7 +118,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
         return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
       }
-      catch (e: InterruptedException) {
+      catch (_: InterruptedException) {
         throw ProcessCanceledException()
       }
       catch (e: IOException) {
