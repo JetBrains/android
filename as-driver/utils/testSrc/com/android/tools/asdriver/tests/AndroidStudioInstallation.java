@@ -261,6 +261,20 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
 
   /**
+   * Changes the settings not to show balloon notifications.
+   */
+  public void disableBalloonNotifications() throws IOException {
+    Path filetypePaths = configDir.resolve("options/notifications.xml");
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      """
+      <application>
+        <component name="NotificationConfiguration" showBalloons="false"/>
+      </application>""";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
+  /**
    * Accept the legal notice about showing decompiler .class files in editor.
    */
   public void acceptLegalDecompilerNotice() throws IOException {
