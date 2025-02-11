@@ -175,7 +175,7 @@ class AndroidVersionsInfo(
       }
     }
 
-    sdkHandler.getSdkManager(REPO_LOG).load(
+    sdkHandler.getRepoManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       listOf(onLocalComplete),
       listOf(onComplete),
@@ -289,7 +289,7 @@ private fun loadInstalledCompilationTargets(): Array<IAndroidTarget> =
 
 private fun getPackageList(requestedPaths: Collection<String>,
                            sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
-  val packages = sdkHandler.getSdkManager(REPO_LOG).packages
+  val packages = sdkHandler.getRepoManagerAndLoadSynchronously(REPO_LOG).packages
   val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
 
   return try {

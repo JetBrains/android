@@ -37,7 +37,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -134,7 +133,7 @@ class SdkSourceFinderForApiLevelTest {
     )
 
     val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      .getSdkManager(StudioLoggerProgressIndicator(this::class.java))
+      .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
       .packages
     val localPackages = packages.localPackages.values
 
@@ -150,7 +149,7 @@ class SdkSourceFinderForApiLevelTest {
   private fun restoreLocalTargetSdkPackages() {
     if (originalLocalPackages != null) {
       val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        .getSdkManager(StudioLoggerProgressIndicator(this::class.java))
+        .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
         .packages
       packages.setLocalPkgInfos(originalLocalPackages!!)
 

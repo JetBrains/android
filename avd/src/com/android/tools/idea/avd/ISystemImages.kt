@@ -80,7 +80,7 @@ internal class SystemImageStateService(val coroutineScope: CoroutineScope) {
 internal object ISystemImages {
   fun systemImageFlow(sdkHandler: AndroidSdkHandler, project: Project?): Flow<SystemImageState> {
     val indicator = StudioLoggerProgressIndicator(ISystemImages::class.java)
-    val repoManager = sdkHandler.getSdkManager(indicator)
+    val repoManager = sdkHandler.getRepoManager(indicator)
 
     fun systemImages(): ImmutableList<ISystemImage> {
       // The SystemImageManager gets destroyed and recreated every time the packages change; do

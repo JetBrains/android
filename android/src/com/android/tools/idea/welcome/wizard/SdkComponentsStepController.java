@@ -190,7 +190,7 @@ public abstract class SdkComponentsStepController {
       startLoading();
 
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        localHandler.getSdkManager(progress)
+        localHandler.getRepoManager(progress)
           .loadSynchronously(
             RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
             null,

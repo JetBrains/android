@@ -124,7 +124,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   RepoManager getRepoManager() {
-    return getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    return getSdkHandler().getRepoManagerAndLoadSynchronously(new StudioLoggerProgressIndicator(getClass()));
   }
 
   @Override

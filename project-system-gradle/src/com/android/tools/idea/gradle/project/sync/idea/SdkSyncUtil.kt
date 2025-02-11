@@ -98,7 +98,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   // find any unregistered sdks.
   val progress = StudioLoggerProgressIndicator(SdkSync::class.java)
   ProgressManager.getInstance().runProcessWithProgressSynchronously(
-    { tryToChooseSdkHandler().getSdkManager(progress).reloadLocalIfNeeded(progress) },
+    { tryToChooseSdkHandler().getRepoManager(progress).reloadLocalIfNeeded(progress) },
     "Reloading SDKs",
     false,
     project

@@ -114,7 +114,7 @@ internal class SdkSourceFinderForApiLevel(val project: Project, private val apiL
 
   private fun createSourcePackageForApiLevel(): VirtualFile? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val sdkManager = sdkHandler.getSdkManager(StudioLoggerProgressIndicator(this::class.java))
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
 
     for (sourcePackage in sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)) {
       val typeDetails = sourcePackage.typeDetails

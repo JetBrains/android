@@ -126,7 +126,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
-    val sdkManager = sdkHandler.getSdkManager(progressIndicator)
+    val sdkManager = sdkHandler.getRepoManager(progressIndicator)
     val progressRunner = StudioProgressRunner(false, false, "Loading Remote SDK", project)
 
     val onComplete = RepoManager.RepoLoadedListener { packages: RepositoryPackages ->

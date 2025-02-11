@@ -153,7 +153,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       ModalityState.any());
 
     StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Images", myProject);
-    mySdkHandler.getSdkManager(LOGGER)
+    mySdkHandler.getRepoManager(LOGGER)
       .load(forceRefresh ? 0 : RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
             ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance());
   }

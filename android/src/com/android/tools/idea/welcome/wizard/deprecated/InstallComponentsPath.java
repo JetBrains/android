@@ -103,7 +103,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     components.add(new AndroidSdkComponentTreeNode(myInstallUpdates));
 
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    RepoManager sdkManager = localHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    RepoManager sdkManager = localHandler.getRepoManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance());

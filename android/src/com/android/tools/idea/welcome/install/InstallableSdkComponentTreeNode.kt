@@ -62,7 +62,7 @@ abstract class InstallableSdkComponentTreeNode(
     }
 
   protected val repositoryPackages: RepositoryPackages
-    get() = sdkHandler!!.getSdkManager(PROGRESS_LOGGER).packages
+    get() = sdkHandler!!.getRepoManagerAndLoadSynchronously(PROGRESS_LOGGER).packages
 
   /** Gets the unfiltered collection of all packages required by this component. */
   protected abstract val requiredSdkPackages: Collection<String>

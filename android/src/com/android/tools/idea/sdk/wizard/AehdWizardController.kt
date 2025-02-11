@@ -63,7 +63,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     sdkHandler
-      .getSdkManager(progressIndicator)
+      .getRepoManager(progressIndicator)
       .loadSynchronously(
         RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
     aehdSdkComponentTreeNode.updateState(sdkHandler)
@@ -102,7 +102,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
     finally {
       if (!aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted && aehdSdkComponentTreeNode.installationIntention != InstallationIntention.UNINSTALL) {
         // The intention was to install AEHD, but the installation failed. Ensure we don't leave the SDK package behind
-        sdkHandler.getSdkManager(progressIndicator).reloadLocalIfNeeded(progressIndicator)
+        sdkHandler.getRepoManager(progressIndicator).reloadLocalIfNeeded(progressIndicator)
         sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progressIndicator)
       }
     }
@@ -118,7 +118,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
         val progress: ProgressIndicator = StudioLoggerProgressIndicator(aClass)
-        sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress)
+        sdkHandler.getRepoManager(progress).reloadLocalIfNeeded(progress)
         sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progress)
       }
       catch (e: Exception) {

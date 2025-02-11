@@ -74,7 +74,7 @@ class ManagedVirtualDeviceCatalogService
           override fun logVerbose(s: String) = iLogger.verbose(s)
         }
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val repoManager = sdkHandler.getSdkManager(progress)
+        val repoManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
         val systemImages = repoManager.packages.consolidatedPkgs
         systemImages.filter {
           it.key.contains("system-images") &&

@@ -78,7 +78,7 @@ public class SdkQuickfixUtilsTest {
     mySdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
-    assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
+    assertSame(myRepoManager, mySdkHandler.getRepoManager(progress));
 
     originalAndroidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     AndroidSdkData data = mock(AndroidSdkData.class);

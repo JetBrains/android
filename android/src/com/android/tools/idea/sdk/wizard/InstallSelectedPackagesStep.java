@@ -181,7 +181,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myOutputStyle = mySdkManagerOutput.addStyle(null, null);
 
     AndroidSdkHandler sdkHandler = mySdkHandlerSupplier.get();
-    RepoManager repoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    RepoManager repoManager = sdkHandler.getRepoManagerAndLoadSynchronously(new StudioLoggerProgressIndicator(getClass()));
     Path path = repoManager.getLocalPath();
     myLabelSdkPath.setText(path.toString());
 

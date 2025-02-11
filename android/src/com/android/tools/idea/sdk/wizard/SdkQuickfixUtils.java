@@ -178,7 +178,7 @@ public final class SdkQuickfixUtils {
       return null;
     }
 
-    RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
+    RepoManager mgr = sdkHandler.getRepoManager(REPO_LOGGER);
 
     if (mgr.getLocalPath() == null) {
       showSdkMissingDialog();
@@ -307,7 +307,7 @@ public final class SdkQuickfixUtils {
     // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
     ApplicationManager.getApplication().assertReadAccessNotAllowed();
 
-    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
+    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getRepoManager(REPO_LOGGER);
     mgr.loadSynchronously(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       null,

@@ -73,7 +73,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     openMocks(this)
-    whenever(mockAndroidSdks.tryToChooseSdkHandler().getSdkManager(any())).thenReturn(mockRepoManager)
+    whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManagerAndLoadSynchronously(any())).thenReturn(mockRepoManager)
     whenever(mockUpdatablePackage.remote).thenReturn(mockRemotePackage)
     whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
     TestApplicationManager.getInstance()

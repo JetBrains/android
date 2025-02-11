@@ -69,7 +69,7 @@ class FirstRunWizardModel(
     if (initialSdkLocation.isDirectory()) {
       val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
       val progress = StudioLoggerProgressIndicator(javaClass)
-      sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
+      sdkHandler.getRepoManagerAndLoadSynchronously(progress).packages.localPackages.isNotEmpty()
     } else {
       false
     }
@@ -115,7 +115,7 @@ class FirstRunWizardModel(
       mutableListOf(AndroidSdkComponentTreeNode(installUpdates))
 
     val sdkManager =
-      localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
+      localHandler.getRepoManager(StudioLoggerProgressIndicator(javaClass)).apply {
         loadSynchronously(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
           null,

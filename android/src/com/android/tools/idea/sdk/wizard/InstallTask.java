@@ -82,7 +82,7 @@ class InstallTask extends Task.Backgroundable {
                      @NotNull ProgressIndicator logger) {
     super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
     myLogger = logger;
-    myRepoManager = sdkHandler.getSdkManager(logger);
+    myRepoManager = sdkHandler.getRepoManagerAndLoadSynchronously(logger);
     myInstallerFactory = installerFactory;
     mySettingsController = settings;
   }
