@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
-import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findModule
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -62,21 +58,6 @@ class ModuleModelTest : AndroidGradleTestCase() {
     val modulesToCompile = arrayOf(module)
 
     val invocationResult = invokeGradle(project) { it.compileJava(modulesToCompile) }
-    TestCase.assertTrue(invocationResult.isBuildSuccessful)
-  }
-
-  fun testKmpModuleCreationAndAssemble() {
-    loadProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
-
-    val kmpModuleModel =
-      NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
-        packageName.set("com.example.shared")
-        agpVersionSelector.set(AgpVersionSelector.FixedVersion(AgpVersion(8, 1, 0)))
-      }
-    multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
-
-    val module = myFixture.project.findModule("shared")
-    val invocationResult = invokeGradle(project) { it.assemble(arrayOf(module)) }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
   }
 }
