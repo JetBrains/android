@@ -715,14 +715,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
@@ -751,14 +743,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
@@ -778,14 +762,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
@@ -809,10 +785,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -829,10 +801,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -861,7 +829,7 @@ Projects:
                     - FunctionName                  : buildTypes
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -885,7 +853,7 @@ Projects:
                     - FunctionName                  : productFlavors
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -916,14 +884,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.TestedExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.TestedExtension
                       Parameters
@@ -1016,10 +976,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
                     - FunctionName                  : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -1036,10 +992,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -1068,7 +1020,7 @@ Projects:
                     - FunctionName                  : buildTypes
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - FunctionName                  : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -1092,7 +1044,7 @@ Projects:
                     - FunctionName                  : productFlavors
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -1110,7 +1062,21 @@ Projects:
             com.android.build.gradle.internal.dsl.BaseFlavor
                 Name                          : com.android.build.gradle.internal.dsl.BaseFlavor
                 MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension
             com.android.build.gradle.internal.dsl.BuildType
                 Name                          : com.android.build.gradle.internal.dsl.BuildType
@@ -1119,6 +1085,89 @@ Projects:
                     - PropertyName                  : isMinifyEnabled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.builder.core.AbstractBuildType,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.BuildType,com.android.build.gradle.internal.dsl.CoreBuildType,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.InternalBuildType
+            com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                MemberFunctions
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : project
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : projectPath
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                Properties
+                Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
             com.android.build.gradle.internal.dsl.CoreBuildType
                 Name                          : com.android.build.gradle.internal.dsl.CoreBuildType
                 MemberFunctions
@@ -1129,6 +1178,42 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : com.android.builder.model.ProductFlavor,com.android.builder.model.BaseConfig,com.android.builder.model.Named,kotlin.Any,com.android.builder.model.DimensionAware,org.gradle.api.Named
+            com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                Name                          : com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                MemberFunctions
+                    - FunctionName                  : dependencies
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                Properties
+                    - PropertyName                  : isMinifyEnabled
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : com.android.build.gradle.internal.dsl.BuildType,com.android.builder.core.AbstractBuildType,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.BuildType,com.android.build.gradle.internal.dsl.CoreBuildType,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.InternalBuildType
+            com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                Name                          : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - FunctionName                  : dependencies
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                      Parameters
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                Properties
+                    - PropertyName                  : dimension
+                      Property SimpleType           : STRING
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
+                Supertypes                    : com.android.build.gradle.internal.dsl.ProductFlavor,com.android.build.gradle.internal.dsl.BaseFlavor,com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationProductFlavor,com.android.build.api.dsl.ProductFlavor,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.DynamicFeatureProductFlavor,com.android.build.api.dsl.LibraryProductFlavor,com.android.build.api.dsl.TestProductFlavor
             com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 MemberFunctions
@@ -1235,8 +1320,107 @@ Projects:
             com.android.build.gradle.internal.dsl.ProductFlavor
                 Name                          : com.android.build.gradle.internal.dsl.ProductFlavor
                 MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : dimension
+                      Property SimpleType           : STRING
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.internal.dsl.BaseFlavor,com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationProductFlavor,com.android.build.api.dsl.ProductFlavor,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.DynamicFeatureProductFlavor,com.android.build.api.dsl.LibraryProductFlavor,com.android.build.api.dsl.TestProductFlavor
+            com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                MemberFunctions
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : project
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : projectPath
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                Properties
+                Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
             com.android.build.gradle.internal.dsl.SigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.SigningConfig
                 MemberFunctions
@@ -1249,6 +1433,11 @@ Projects:
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,kotlin.Any
             com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent
                 Name                          : com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -1388,26 +1577,26 @@ Projects:
                       Block ReferenceType           : com.android.build.gradle.api.BaseVariantOutput
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                 MemberFunctions
                     - FunctionName                  : buildType
-                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                       Parameters
                           - Name                          : name
                             Value SimpleType              : STRING
-                      Block ReferenceType           : com.android.build.gradle.internal.dsl.BuildType
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeBuildType
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
-                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                 MemberFunctions
                     - FunctionName                  : productFlavor
-                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                       Parameters
                           - Name                          : name
                             Value SimpleType              : STRING
-                      Block ReferenceType           : com.android.build.gradle.internal.dsl.ProductFlavor
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
@@ -2859,14 +3048,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
@@ -2895,14 +3076,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
@@ -2922,14 +3095,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
@@ -2953,10 +3118,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -2973,10 +3134,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -3005,7 +3162,7 @@ Settings:
                     - FunctionName                  : buildTypes
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -3029,7 +3186,7 @@ Settings:
                     - FunctionName                  : productFlavors
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -3060,14 +3217,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.TestedExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.TestedExtension
                       Parameters
@@ -3160,10 +3309,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - FunctionName                  : buildTypes
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
                     - FunctionName                  : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -3180,10 +3325,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - FunctionName                  : productFlavors
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -3212,7 +3353,7 @@ Settings:
                     - FunctionName                  : buildTypes
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - FunctionName                  : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -3236,7 +3377,7 @@ Settings:
                     - FunctionName                  : productFlavors
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                     - FunctionName                  : signingConfigs
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -3254,7 +3395,21 @@ Settings:
             com.android.build.gradle.internal.dsl.BaseFlavor
                 Name                          : com.android.build.gradle.internal.dsl.BaseFlavor
                 MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension
             com.android.build.gradle.internal.dsl.BuildType
                 Name                          : com.android.build.gradle.internal.dsl.BuildType
@@ -3263,6 +3418,89 @@ Settings:
                     - PropertyName                  : isMinifyEnabled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.builder.core.AbstractBuildType,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.BuildType,com.android.build.gradle.internal.dsl.CoreBuildType,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.InternalBuildType
+            com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                MemberFunctions
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : project
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : projectPath
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                Properties
+                Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
             com.android.build.gradle.internal.dsl.CoreBuildType
                 Name                          : com.android.build.gradle.internal.dsl.CoreBuildType
                 MemberFunctions
@@ -3273,6 +3511,42 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : com.android.builder.model.ProductFlavor,com.android.builder.model.BaseConfig,com.android.builder.model.Named,kotlin.Any,com.android.builder.model.DimensionAware,org.gradle.api.Named
+            com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                Name                          : com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                MemberFunctions
+                    - FunctionName                  : dependencies
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
+                Properties
+                    - PropertyName                  : isMinifyEnabled
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : com.android.build.gradle.internal.dsl.BuildType,com.android.builder.core.AbstractBuildType,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.BuildType,com.android.build.gradle.internal.dsl.CoreBuildType,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.InternalBuildType
+            com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                Name                          : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - FunctionName                  : dependencies
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
+                      Parameters
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                Properties
+                    - PropertyName                  : dimension
+                      Property SimpleType           : STRING
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
+                Supertypes                    : com.android.build.gradle.internal.dsl.ProductFlavor,com.android.build.gradle.internal.dsl.BaseFlavor,com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationProductFlavor,com.android.build.api.dsl.ProductFlavor,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.DynamicFeatureProductFlavor,com.android.build.api.dsl.LibraryProductFlavor,com.android.build.api.dsl.TestProductFlavor
             com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 MemberFunctions
@@ -3379,8 +3653,107 @@ Settings:
             com.android.build.gradle.internal.dsl.ProductFlavor
                 Name                          : com.android.build.gradle.internal.dsl.ProductFlavor
                 MemberFunctions
+                    - FunctionName                  : buildConfigField
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                          - Name                          : type
+                            Value SimpleType              : STRING
+                          - Name                          : value
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : dimension
+                      Property SimpleType           : STRING
+                    - PropertyName                  : minSdk
+                      Property SimpleType           : INT
+                    - PropertyName                  : testInstrumentationRunner
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.internal.dsl.BaseFlavor,com.android.builder.core.AbstractProductFlavor,com.android.builder.internal.BaseConfigImpl,java.io.Serializable,kotlin.Any,com.android.builder.model.BaseConfig,com.android.builder.model.Named,com.android.builder.model.ProductFlavor,com.android.builder.model.DimensionAware,com.android.build.gradle.internal.dsl.CoreProductFlavor,org.gradle.api.Named,com.android.build.api.dsl.ApplicationBaseFlavor,com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.DynamicFeatureBaseFlavor,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.LibraryBaseFlavor,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.TestBaseFlavor,com.android.build.api.dsl.TestVariantDimension,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFix,com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,com.android.build.api.dsl.ApplicationProductFlavor,com.android.build.api.dsl.ProductFlavor,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.DynamicFeatureProductFlavor,com.android.build.api.dsl.LibraryProductFlavor,com.android.build.api.dsl.TestProductFlavor
+            com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                MemberFunctions
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : api
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : implementation
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : project
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : projectPath
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - FunctionName                  : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                Properties
+                Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
             com.android.build.gradle.internal.dsl.SigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.SigningConfig
                 MemberFunctions
@@ -3393,6 +3766,11 @@ Settings:
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent,kotlin.Any
             com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent
                 Name                          : com.android.build.gradle.internal.dsl.VariantDimensionBinaryCompatibilityFixParent
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension
+                Name                          : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -3532,26 +3910,26 @@ Settings:
                       Block ReferenceType           : com.android.build.gradle.api.BaseVariantOutput
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
-                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                 MemberFunctions
                     - FunctionName                  : buildType
-                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                       Parameters
                           - Name                          : name
                             Value SimpleType              : STRING
-                      Block ReferenceType           : com.android.build.gradle.internal.dsl.BuildType
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeBuildType
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
-                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                 MemberFunctions
                     - FunctionName                  : productFlavor
-                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_ProductFlavor
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
                       Parameters
                           - Name                          : name
                             Value SimpleType              : STRING
-                      Block ReferenceType           : com.android.build.gradle.internal.dsl.ProductFlavor
+                      Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeProductFlavor
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
