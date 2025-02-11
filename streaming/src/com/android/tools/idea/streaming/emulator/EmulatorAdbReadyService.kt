@@ -65,19 +65,15 @@ internal class EmulatorAdbReadyService(private val project: Project): Disposable
     if (connectedDevice != null) {
       deviceHandleMap[connectedDevice.serialNumber] = this
       if (state.isReady) {
-        updateToolbar()
+        ActivityTracker.getInstance().inc()
       }
     }
     else {
       val serialNumber = deviceHandleMap.keys.find { deviceHandleMap[it] == this }
       deviceHandleMap.values.remove(this)
       serialNumber?.let {
-        updateToolbar()
+        ActivityTracker.getInstance().inc()
       }
     }
-  }
-
-  private fun updateToolbar() {
-    ActivityTracker.getInstance().inc()
   }
 }

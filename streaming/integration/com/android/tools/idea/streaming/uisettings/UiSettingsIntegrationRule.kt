@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestP
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth
 import com.intellij.execution.process.ProcessIOExecutorService
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -142,11 +143,12 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   internal fun openUiSettings(): UiSettingsPanel {
     waitForCondition(60.seconds) {
-      toolWindow.updateMainToolbar()
+      ActivityTracker.getInstance().inc()
       val button = fakeUi.findComponent<ActionButton> {
         it.action.templateText == SETTINGS_BUTTON_TEXT
       }
-      Logger.getInstance(UiSettingsIntegrationRule::class.java).warn("Button found: $button, enabled: ${button?.isEnabled}, showing: ${button?.isShowing}")
+      Logger.getInstance(UiSettingsIntegrationRule::class.java)
+        .warn("Button found: $button, enabled: ${button?.isEnabled}, showing: ${button?.isShowing}")
       button?.isEnabled ?: false
     }
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }

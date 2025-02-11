@@ -198,7 +198,7 @@ class EmulatorAdbReadyServiceTest {
   }
 
   private fun settingsButtonIsVisible(fakeUi: FakeUi, panel: EmulatorToolWindowPanel): Boolean {
-    panel.updateMainToolbar()
+    ActivityTracker.getInstance().inc()
     return fakeUi.findComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT } != null
   }
 }

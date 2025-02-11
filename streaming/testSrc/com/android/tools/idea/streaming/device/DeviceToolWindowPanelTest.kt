@@ -205,6 +205,7 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
+    fakeUi.updateToolbars()
     // Check push button actions.
     val pushButtonCases = listOf(
       Pair("Button 1", AKEYCODE_STEM_PRIMARY),

@@ -132,10 +132,6 @@ abstract class StreamingDevicePanel(
     return toolbar
   }
 
-  fun updateMainToolbar() {
-    mainToolbar.updateActionsAsync()
-  }
-
   private fun findNotificationHolderPanel() =
       primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()
 

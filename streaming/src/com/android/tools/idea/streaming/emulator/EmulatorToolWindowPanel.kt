@@ -49,6 +49,7 @@ import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDial
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.components.PersistentStateComponent
@@ -174,9 +175,7 @@ internal class EmulatorToolWindowPanel(
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
     emulatorView.addPostureListener(object: PostureListener {
       override fun postureChanged(posture: PostureDescriptor) {
-        EventQueue.invokeLater {
-          mainToolbar.updateActionsAsync()
-        }
+        ActivityTracker.getInstance().inc()
       }
     })
     emulator.addConnectionStateListener(this)
@@ -199,8 +198,7 @@ internal class EmulatorToolWindowPanel(
     mainToolbar.targetComponent = emulatorView
     secondaryToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
-      mainToolbar.updateActionsAsync()
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
@@ -332,8 +330,7 @@ internal class EmulatorToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
-      mainToolbar.updateActionsAsync()
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -388,8 +385,7 @@ internal class EmulatorToolWindowPanel(
       // Toolbar updates should be requested after all AbstractDisplayView have been placed in component hierarchy.
       // Otherwise, we risk the action update to have a partial component hierarchy which may lead to wrong results.
       // See b/351129848
-      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     private fun getDisplayDescriptors(emulatorView: EmulatorView, displays: List<DisplayConfiguration>): List<DisplayDescriptor> {
