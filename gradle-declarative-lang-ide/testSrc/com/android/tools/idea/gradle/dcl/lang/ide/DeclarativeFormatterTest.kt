@@ -168,6 +168,23 @@ false    )
   }
 
   @Test
+  fun testFileProperty() {
+    doTest("""
+      androidApp{ bundle{
+          deviceTargetingConfig = layout
+          .projectDirectory.   file( "someDir"
+          )
+          } }
+      ""","""
+      androidApp {
+          bundle {
+              deviceTargetingConfig = layout.projectDirectory.file("someDir")
+          }
+      }
+      """)
+  }
+
+  @Test
   fun testEnum() {
     doTest("""
       androidApp{

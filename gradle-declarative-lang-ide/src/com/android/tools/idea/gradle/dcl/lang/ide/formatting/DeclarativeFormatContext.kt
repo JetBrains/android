@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
 import com.intellij.formatting.SpacingBuilder
@@ -74,6 +75,8 @@ data class DeclarativeFormatContext(
                                               ASSIGNABLE_QUALIFIED,
                                               QUALIFIED,
                                               QUALIFIED_RECEIVER,
+                                              PROPERTY_RECEIVER,
+                                              FACTORY_PROPERTY_RECEIVER,
                                               RECEIVER_PREFIXED_FACTORY))
         .spacing(0, 0, 0, false, 0)
 
