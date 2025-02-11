@@ -18,14 +18,6 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import java.util.stream.Stream;
-
-import static com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl.JAVA_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl.MAIN_CLASS;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 public class JavaDclElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<JavaDclElement> JAVA_APPLICATION =
