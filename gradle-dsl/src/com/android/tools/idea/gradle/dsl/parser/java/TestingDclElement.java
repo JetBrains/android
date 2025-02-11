@@ -1,8 +1,7 @@
 // Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import static com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl.JAVA_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl.MAIN_CLASS;
+import static com.android.tools.idea.gradle.dsl.model.java.JavaTestDeclarativeModelImpl.TEST_JAVA_VERSION;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -19,18 +18,16 @@ import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public class JavaDclElement extends GradleDslBlockElement {
-  public static final PropertiesElementDescription<JavaDclElement> JAVA_APPLICATION =
-    new PropertiesElementDescription<>("javaApplication", JavaDclElement.class, JavaDclElement::new);
+public class TestingDclElement extends GradleDslBlockElement {
+  public static final PropertiesElementDescription<TestingDclElement> TESTING =
+    new PropertiesElementDescription<>("testing", TestingDclElement.class, TestingDclElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
-    {"dependencies", DependenciesDslElement.DEPENDENCIES},
-    {"testing", TestingDclElement.TESTING}
+    {"dependencies", DependenciesDslElement.DEPENDENCIES}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
-    {"javaVersion", property, JAVA_VERSION, VAR},
-    {"mainClass", property, MAIN_CLASS, VAR},
+    {"testJavaVersion", property, TEST_JAVA_VERSION, VAR}
   }).collect(toModelMap());
 
   @Override
@@ -43,7 +40,7 @@ public class JavaDclElement extends GradleDslBlockElement {
     return declarativeToModelNameMap;
   }
 
-  public JavaDclElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+  public TestingDclElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 }

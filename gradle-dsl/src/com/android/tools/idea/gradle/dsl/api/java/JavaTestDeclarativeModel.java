@@ -5,17 +5,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface JavaDeclarativeModel extends GradleBlockModel {
+public interface JavaTestDeclarativeModel extends GradleBlockModel {
 
   @NotNull
   LanguageLevelPropertyModel javaVersion();
 
   @NotNull
-  String mainClass();
-
-  @NotNull
   DependenciesModel dependencies();
-
-  @NotNull
-  JavaTestDeclarativeModel testing();
 }
