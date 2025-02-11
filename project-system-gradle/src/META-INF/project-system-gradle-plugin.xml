@@ -379,6 +379,8 @@
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
 
+    <group id="Android.BuildTree.AdditionalActions" searchable="false"/>
+
     <action internal="true" id="Android.DumpProject"
             class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction">
       <add-to-group group-id="Internal.Android"/>

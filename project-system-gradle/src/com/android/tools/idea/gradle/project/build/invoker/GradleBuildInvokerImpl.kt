@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter
@@ -58,6 +57,7 @@ import com.intellij.build.events.impl.StartBuildEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
 import com.intellij.icons.AllIcons
 import com.intellij.ide.SaveAndSyncHandler
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -525,7 +525,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
           .withExecutionEnvironment(request.executionEnvironment)
           .withContextAction {
             // add a new item to the build output popup menu
-            ExplainSyncOrBuildOutput()
+            ActionManager.getInstance().getAction("Android.BuildTree.AdditionalActions")
           }
         if (isBuildAttributionEnabledForProject(project)) {
           buildDescriptor.withExecutionFilter(BuildAttributionOutputLinkFilter())
