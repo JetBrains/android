@@ -47,16 +47,16 @@ def aswb_test_deps_dependencies():
     http_file(
         name = "aswb_test_deps_bazel",
         executable = True,
-        sha256 = "09bac5c11165a6ab0b7a90d6937c8bc3fcdcda662ffe0590e87ac2ae0e5e8978",
-        url = "https://github.com/bazelbuild/bazel/releases/download/7.2.0/bazel-7.2.0-linux-x86_64",
+        sha256 = "40f243b118f46d1c88842315e78ec5f9f6390980d67a90f7b64098613e60d65b",
+        url = "https://github.com/bazelbuild/bazel/releases/download/8.0.1/bazel-8.0.1-linux-x86_64",
         visibility = ["//tools/vendor/google3/aswb:__subpackages__"],
     )
 
     http_file(
         name = "aswb_test_deps_bazel_central_registry",
-        sha256 = "efd1680b1ce48c1115d533ed76124eb107335da7cd48059f4ddfa780170fe1e1",
+        sha256 = "c2a7ef99ac2b35eb4b0bac43ad096c522ddbec84ee324247564d33256a479e79",
         downloaded_file_path = "bazel_central_registry.zip",
-        url = "https://github.com/bazelbuild/bazel-central-registry/archive/f30c64985debcbcd04cffe783047b9cbaee47099.zip",
+        url = "https://github.com/bazelbuild/bazel-central-registry/archive/922aac243abc5c548b985deccabfe51d5cfd127e.zip",
         visibility = ["//tools/vendor/google3/aswb:__subpackages__"],
     )
 
