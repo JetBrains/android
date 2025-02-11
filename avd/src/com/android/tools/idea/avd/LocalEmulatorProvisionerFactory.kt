@@ -79,7 +79,9 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
 }
 
 private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPlugin.AvdManager {
-  private val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
+  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
+  private val avdManagerConnection
+    get() = AvdManagerConnection.getDefaultAvdManagerConnection()
 
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
