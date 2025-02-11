@@ -79,6 +79,7 @@ public class BlazeQuerySourceToTargetProvider implements SourceToTargetProvider 
 
   /** Prefix to identify targets connected to Kotlin macros */
   public static final String KOTLIN_MACRO_PREFIX = "kt_";
+
   /** Suffix to identify Kotlin source files */
   public static final String KOTLIN_FILE_SUFFIX = ".kt";
 

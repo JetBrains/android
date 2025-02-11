@@ -131,7 +131,9 @@ public class BazelQueryRunner implements QueryRunner {
   /** Allows derived classes to add proprietary flags to the query invocation. */
   protected void addExtraFlags(BlazeCommand.Builder commandBuilder, BuildInvoker invoker) {}
 
-  protected QuerySummary readFrom(QuerySpec.QueryStrategy queryStrategy, InputStream in, BlazeContext context) throws BuildException {
+  protected QuerySummary readFrom(
+      QuerySpec.QueryStrategy queryStrategy, InputStream in, BlazeContext context)
+      throws BuildException {
     logger.info(String.format("Summarising query from %s", in));
     Instant start = Instant.now();
     try {

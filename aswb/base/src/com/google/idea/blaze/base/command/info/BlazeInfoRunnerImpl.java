@@ -84,6 +84,7 @@ class BlazeInfoRunnerImpl extends BlazeInfoRunner {
                 parseBlazeInfoResult(new String(bytes, StandardCharsets.UTF_8).trim())),
         BlazeExecutor.getInstance().getExecutor());
   }
+
   private static ImmutableMap<String, String> parseBlazeInfoResult(String blazeInfoString) {
     ImmutableMap.Builder<String, String> blazeInfoMapBuilder = ImmutableMap.builder();
     String[] blazeInfoLines = blazeInfoString.split("\n");

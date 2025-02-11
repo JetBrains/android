@@ -15,9 +15,9 @@
  */
 package com.google.idea.blaze.base.run.testlogs;
 
-import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import java.util.Optional;
 
 /**

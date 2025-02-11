@@ -32,20 +32,18 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
-/**
- * Simple implementation of {@link BuildInvoker} for injecting dependencies in test code.
- */
+/** Simple implementation of {@link BuildInvoker} for injecting dependencies in test code. */
 @AutoValue
 public abstract class FakeBuildInvoker implements BuildInvoker {
 
   public static Builder builder() {
     return new AutoValue_FakeBuildInvoker.Builder()
-      .type(BuildBinaryType.NONE)
-      .binaryPath("")
-      .supportsParallelism(false)
-      .buildResultHelperSupplier(() -> null)
-      .commandRunner(new FakeBlazeCommandRunner())
-      .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
+        .type(BuildBinaryType.NONE)
+        .binaryPath("")
+        .supportsParallelism(false)
+        .buildResultHelperSupplier(() -> null)
+        .commandRunner(new FakeBlazeCommandRunner())
+        .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
 
   @Override
@@ -94,13 +92,26 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
 
   private BuildEventStreamProvider fakeBuildEventStreamProvider() {
     return new BuildEventStreamProvider() {
-      private UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages = ImmutableList.of(
-        BuildEventStreamProtos.BuildEvent.newBuilder().setId(BuildEventStreamProtos.BuildEventId.newBuilder().setStarted(
-            BuildEventStreamProtos.BuildEventId.BuildStartedId.getDefaultInstance()))
-          .setStarted(BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId")).build(),
-        BuildEventStreamProtos.BuildEvent.newBuilder().setId(BuildEventStreamProtos.BuildEventId.newBuilder().setBuildFinished(
-            BuildEventStreamProtos.BuildEventId.BuildFinishedId.getDefaultInstance()))
-          .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder()).build()).iterator();
+      private UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages =
+          ImmutableList.of(
+                  BuildEventStreamProtos.BuildEvent.newBuilder()
+                      .setId(
+                          BuildEventStreamProtos.BuildEventId.newBuilder()
+                              .setStarted(
+                                  BuildEventStreamProtos.BuildEventId.BuildStartedId
+                                      .getDefaultInstance()))
+                      .setStarted(
+                          BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId"))
+                      .build(),
+                  BuildEventStreamProtos.BuildEvent.newBuilder()
+                      .setId(
+                          BuildEventStreamProtos.BuildEventId.newBuilder()
+                              .setBuildFinished(
+                                  BuildEventStreamProtos.BuildEventId.BuildFinishedId
+                                      .getDefaultInstance()))
+                      .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder())
+                      .build())
+              .iterator();
 
       @Override
       public Object getId() {
@@ -122,9 +133,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
       }
 
       @Override
-      public void close() {
-
-      }
+      public void close() {}
     };
   }
 

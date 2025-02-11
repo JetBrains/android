@@ -23,10 +23,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.ideinfo.PyIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -43,7 +44,6 @@ import com.google.idea.blaze.base.run.WithBrowserHyperlinkExecutionException;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationRunner.BlazeCommandRunProfileState;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.ProcessGroupUtil;
@@ -230,9 +230,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
   }
 
   private static ImmutableList<Filter> getFilters() {
-    return ImmutableList.<Filter>builder()
-        .add(new UrlFilter())
-        .build();
+    return ImmutableList.<Filter>builder().add(new UrlFilter()).build();
   }
 
   @Override
@@ -344,13 +342,14 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
       List<File> candidateFiles;
       try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         candidateFiles =
-          LocalFileArtifact.getLocalFiles(
-              BlazeBuildOutputs.fromParsedBepOutput(
-                  BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
-                .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString()).asList())
-            .stream()
-            .filter(File::canExecute)
-            .collect(Collectors.toList());
+            LocalFileArtifact.getLocalFiles(
+                    BlazeBuildOutputs.fromParsedBepOutput(
+                            BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
+                        .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString())
+                        .asList())
+                .stream()
+                .filter(File::canExecute)
+                .collect(Collectors.toList());
       } catch (GetArtifactsException e) {
         throw new ExecutionException(
             String.format(

@@ -62,14 +62,16 @@ import java.nio.file.StandardOpenOption;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
-/**
- * A local Blaze/Bazel invoker that issues commands via CLI.
- */
+/** A local Blaze/Bazel invoker that issues commands via CLI. */
 public class LocalInvoker extends AbstractBuildInvoker1 {
   private static Logger logger = Logger.getInstance(LocalInvoker.class);
   private final BuildBinaryType buildBinaryType;
 
-  public LocalInvoker(Project project, BlazeContext blazeContext, BuildSystem buildSystem, BuildBinaryType binaryType) {
+  public LocalInvoker(
+      Project project,
+      BlazeContext blazeContext,
+      BuildSystem buildSystem,
+      BuildBinaryType binaryType) {
     super(project, blazeContext, buildSystem, binaryPath(binaryType, project));
     this.buildBinaryType = binaryType;
   }
@@ -101,19 +103,19 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
 
   @Override
   public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
-    throws BuildException {
+      throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
-    }
-    catch (ExecutionDeniedException e) {
+    } catch (ExecutionDeniedException e) {
       throw new BuildException(e.getMessage(), e);
     }
     File outputFile = BuildEventProtocolUtils.createTempOutputFile();
     BuildResult buildResult =
-      issueBuild(blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext, outputFile);
+        issueBuild(
+            blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext, outputFile);
     if (blazeCommandBuilder.build().getName().equals(BlazeCommandName.BUILD)) {
       BuildDepsStatsScope.fromContext(blazeContext)
-        .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
+          .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
     }
     return getBepStream(outputFile);
   }
@@ -122,8 +124,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
     try {
       performGuardCheck(project, blazeContext);
-    }
-    catch (ExecutionDeniedException e) {
+    } catch (ExecutionDeniedException e) {
       logger.error(e);
       return null;
     }
@@ -131,41 +132,41 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
     BlazeCommand blazeCommand = blazeCommandBuilder.build();
     try (Closer closer = Closer.create()) {
       Path tempFile =
-        Files.createTempFile(
-          String.format("intellij-bazel-%s-", blazeCommand.getName()), ".stdout");
+          Files.createTempFile(
+              String.format("intellij-bazel-%s-", blazeCommand.getName()), ".stdout");
       OutputStream out = closer.register(Files.newOutputStream(tempFile));
       WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
       Function<String, String> rootReplacement =
-        WorkspaceRootReplacement.create(workspaceRoot.path(), blazeCommand);
+          WorkspaceRootReplacement.create(workspaceRoot.path(), blazeCommand);
       boolean isUnitTestMode = ApplicationManager.getApplication().isUnitTestMode();
       int retVal =
-        ExternalTask.builder(workspaceRoot)
-          .addBlazeCommand(blazeCommand)
-          .context(blazeContext)
-          .stdout(out)
-          .stderr(
-            LineProcessingOutputStream.of(
-              line -> {
-                line = rootReplacement.apply(line);
-                // errors are expected, so limit logging to info level
-                if (isUnitTestMode) {
-                  // This is essential output in bazel-in-bazel tests if they fail.
-                  System.out.println(line.stripTrailing());
-                }
-                Logger.getInstance(this.getClass()).info(line.stripTrailing());
-                blazeContext.output(PrintOutput.output(line.stripTrailing()));
-                return true;
-              }))
-          .ignoreExitCode(true)
-          .build()
-          .run();
+          ExternalTask.builder(workspaceRoot)
+              .addBlazeCommand(blazeCommand)
+              .context(blazeContext)
+              .stdout(out)
+              .stderr(
+                  LineProcessingOutputStream.of(
+                      line -> {
+                        line = rootReplacement.apply(line);
+                        // errors are expected, so limit logging to info level
+                        if (isUnitTestMode) {
+                          // This is essential output in bazel-in-bazel tests if they fail.
+                          System.out.println(line.stripTrailing());
+                        }
+                        Logger.getInstance(this.getClass()).info(line.stripTrailing());
+                        blazeContext.output(PrintOutput.output(line.stripTrailing()));
+                        return true;
+                      }))
+              .ignoreExitCode(true)
+              .build()
+              .run();
       SyncQueryStatsScope.fromContext(blazeContext)
-        .ifPresent(stats -> stats.setBazelExitCode(retVal));
-      BazelExitCodeException.throwIfFailed(blazeCommand, retVal, BazelExitCodeException.ThrowOption.ALLOW_PARTIAL_SUCCESS);
+          .ifPresent(stats -> stats.setBazelExitCode(retVal));
+      BazelExitCodeException.throwIfFailed(
+          blazeCommand, retVal, BazelExitCodeException.ThrowOption.ALLOW_PARTIAL_SUCCESS);
       return new BufferedInputStream(
-        Files.newInputStream(tempFile, StandardOpenOption.DELETE_ON_CLOSE));
-    }
-    catch (IOException | BuildException e) {
+          Files.newInputStream(tempFile, StandardOpenOption.DELETE_ON_CLOSE));
+    } catch (IOException | BuildException e) {
       logger.error(e);
       return null;
     }
@@ -176,8 +177,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
     try {
       performGuardCheck(project, blazeContext);
-    }
-    catch (ExecutionDeniedException e) {
+    } catch (ExecutionDeniedException e) {
       logger.error(e);
       return null;
     }
@@ -185,26 +185,25 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
     BlazeCommand blazeCommand = blazeCommandBuilder.build();
     try (Closer closer = Closer.create()) {
       Path tmpFile =
-        Files.createTempFile(
-          String.format("intellij-bazel-%s-", blazeCommand.getName()), ".stdout");
+          Files.createTempFile(
+              String.format("intellij-bazel-%s-", blazeCommand.getName()), ".stdout");
       OutputStream out = closer.register(Files.newOutputStream(tmpFile));
       OutputStream stderr =
-        closer.register(
-          LineProcessingOutputStream.of(new PrintOutputLineProcessor(blazeContext)));
+          closer.register(
+              LineProcessingOutputStream.of(new PrintOutputLineProcessor(blazeContext)));
       int exitCode =
-        ExternalTask.builder(WorkspaceRoot.fromProject(project))
-          .addBlazeCommand(blazeCommand)
-          .context(blazeContext)
-          .stdout(out)
-          .stderr(stderr)
-          .ignoreExitCode(true)
-          .build()
-          .run();
+          ExternalTask.builder(WorkspaceRoot.fromProject(project))
+              .addBlazeCommand(blazeCommand)
+              .context(blazeContext)
+              .stdout(out)
+              .stderr(stderr)
+              .ignoreExitCode(true)
+              .build()
+              .run();
       BazelExitCodeException.throwIfFailed(blazeCommand, exitCode);
       return new BufferedInputStream(
-        Files.newInputStream(tmpFile, StandardOpenOption.DELETE_ON_CLOSE));
-    }
-    catch (IOException | BuildException e) {
+          Files.newInputStream(tmpFile, StandardOpenOption.DELETE_ON_CLOSE));
+    } catch (IOException | BuildException e) {
       logger.error(e);
       return null;
     }
@@ -216,49 +215,52 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   private BuildResult issueBuild(
-    BlazeCommand.Builder blazeCommandBuilder, WorkspaceRoot workspaceRoot, BlazeContext context, File outputFile) {
+      BlazeCommand.Builder blazeCommandBuilder,
+      WorkspaceRoot workspaceRoot,
+      BlazeContext context,
+      File outputFile) {
     blazeCommandBuilder.addBlazeFlags(BuildEventProtocolUtils.getBuildFlags(outputFile));
     int retVal =
-      ExternalTask.builder(workspaceRoot)
-        .addBlazeCommand(blazeCommandBuilder.build())
-        .context(context)
-        .stderr(
-          LineProcessingOutputStream.of(
-            BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
-        .ignoreExitCode(true)
-        .build()
-        .run();
+        ExternalTask.builder(workspaceRoot)
+            .addBlazeCommand(blazeCommandBuilder.build())
+            .context(context)
+            .stderr(
+                LineProcessingOutputStream.of(
+                    BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
+            .ignoreExitCode(true)
+            .build()
+            .run();
     return BuildResult.fromExitCode(retVal);
   }
 
-  private BuildEventStreamProvider getBepStream(File outputFile) throws BuildResultHelper.GetArtifactsException {
+  private BuildEventStreamProvider getBepStream(File outputFile)
+      throws BuildResultHelper.GetArtifactsException {
     try {
       return BuildEventStreamProvider.fromInputStream(
-        new BufferedInputStream(new FileInputStream(outputFile)));
-    }
-    catch (FileNotFoundException e) {
+          new BufferedInputStream(new FileInputStream(outputFile)));
+    } catch (FileNotFoundException e) {
       logger.error(e);
       throw new BuildResultHelper.GetArtifactsException(e.getMessage());
     }
   }
 
   private void performGuardCheck(Project project, BlazeContext context)
-    throws ExecutionDeniedException {
+      throws ExecutionDeniedException {
     try {
       BazelGuard.checkExtensionsIsExecutionAllowed(project);
-    }
-    catch (ExecutionDeniedException e) {
+    } catch (ExecutionDeniedException e) {
       IssueOutput.error(
-          "Can't invoke "
-          + Blaze.buildSystemName(project)
-          + " because the project is not trusted")
-        .submit(context);
+              "Can't invoke "
+                  + Blaze.buildSystemName(project)
+                  + " because the project is not trusted")
+          .submit(context);
       throw e;
     }
   }
 
   private static String binaryPath(BuildBinaryType binaryType, Project project) {
-    if (binaryType.equals(BuildBinaryType.BLAZE) || binaryType.equals(BuildBinaryType.BLAZE_CUSTOM)) {
+    if (binaryType.equals(BuildBinaryType.BLAZE)
+        || binaryType.equals(BuildBinaryType.BLAZE_CUSTOM)) {
       return BlazeUserSettings.getInstance().getBlazeBinaryPath();
     }
     File projectSpecificBinary = null;

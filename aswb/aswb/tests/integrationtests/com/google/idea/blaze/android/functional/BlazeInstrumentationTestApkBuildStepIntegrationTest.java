@@ -119,9 +119,10 @@ public class BlazeInstrumentationTestApkBuildStepIntegrationTest
     AndroidDeployInfo fakeAppProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     when(helper.readDeployInfoProtoForTarget(
-            eq(instrumentorTarget),  eq("android_deploy_info"), any(BuildResultHelper.class), any()))
+            eq(instrumentorTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeInstrumentorProto);
-    when(helper.readDeployInfoProtoForTarget(eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeAppProto);
     when(helper.extractInstrumentationTestDeployInfoAndInvalidateManifests(
             eq(getProject()),
@@ -207,7 +208,8 @@ public class BlazeInstrumentationTestApkBuildStepIntegrationTest
     when(helper.readDeployInfoProtoForTarget(
             eq(instrumentorTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeInstrumentorProto);
-    when(helper.readDeployInfoProtoForTarget(eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeAppProto);
     when(helper.extractInstrumentationTestDeployInfoAndInvalidateManifests(
             any(), any(), any(), any()))
@@ -247,7 +249,8 @@ public class BlazeInstrumentationTestApkBuildStepIntegrationTest
     when(helper.readDeployInfoProtoForTarget(
             eq(instrumentorTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeInstrumentorProto);
-    when(helper.readDeployInfoProtoForTarget(eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeAppProto);
     when(helper.extractInstrumentationTestDeployInfoAndInvalidateManifests(
             eq(getProject()),
@@ -297,7 +300,8 @@ public class BlazeInstrumentationTestApkBuildStepIntegrationTest
     when(helper.readDeployInfoProtoForTarget(
             eq(instrumentorTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeInstrumentorProto);
-    when(helper.readDeployInfoProtoForTarget(eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(appTarget), eq("android_deploy_info"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeAppProto);
     when(helper.extractInstrumentationTestDeployInfoAndInvalidateManifests(
             eq(getProject()),

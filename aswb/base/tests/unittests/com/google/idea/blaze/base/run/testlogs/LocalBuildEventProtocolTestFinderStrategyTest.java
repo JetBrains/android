@@ -23,10 +23,10 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.TestResultId;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolOutputReader;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.rules.TempDirectory;
 import java.io.ByteArrayOutputStream;
@@ -43,8 +43,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase {
 
-  @Rule
-  public TempDirectory tempDirectory = new TempDirectory();
+  @Rule public TempDirectory tempDirectory = new TempDirectory();
 
   @Test
   public void testFinder_fileDeletedAfterCleanup() throws GetArtifactsException {
@@ -79,8 +78,9 @@ public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase
     LocalBuildEventProtocolTestFinderStrategy strategy =
         new LocalBuildEventProtocolTestFinderStrategy(new BuildResultHelperBep(bepOutputFile));
 
-    BlazeTestResults results = BuildEventProtocolOutputReader.parseTestResults(BuildEventStreamProvider.fromInputStream(
-      Files.newInputStream(bepOutputFile.toPath())));
+    BlazeTestResults results =
+        BuildEventProtocolOutputReader.parseTestResults(
+            BuildEventStreamProvider.fromInputStream(Files.newInputStream(bepOutputFile.toPath())));
     BlazeTestResults finderStrategyResults = strategy.findTestResults();
 
     assertThat(finderStrategyResults.perTargetResults.entries())

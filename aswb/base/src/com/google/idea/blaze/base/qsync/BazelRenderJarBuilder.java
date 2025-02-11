@@ -113,8 +113,9 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
 
   private void runFullSyncAndNotifyListeners(BlazeBuildOutputs buildOutputs) {
     // TODO(b/336622303): Send an event instead of null to stats
-    ListenableFuture<Boolean> syncFuture = QuerySyncManager.getInstance(project)
-        .fullSync(QuerySyncActionStatsScope.create(getClass(), null), TaskOrigin.USER_ACTION);
+    ListenableFuture<Boolean> syncFuture =
+        QuerySyncManager.getInstance(project)
+            .fullSync(QuerySyncActionStatsScope.create(getClass(), null), TaskOrigin.USER_ACTION);
     // Notify the build listeners after file caches are done refreshing.
     // This is required for the Project System to render the preview (check BuildCallbackPublisher)
     // TODO(b/336620315): Migrate this to new preview design
@@ -178,7 +179,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
 
   private RenderJarInfo createRenderJarInfo(BlazeBuildOutputs blazeBuildOutputs) {
     ImmutableList<OutputArtifact> renderJars =
-      blazeBuildOutputs.getOutputGroupArtifacts("render_jars");
+        blazeBuildOutputs.getOutputGroupArtifacts("render_jars");
     // TODO(b/283283123): Update the aspect to only return the render jar of the required target.
     // TODO(b/283280194): To setup fqcn -> target and target -> render jar mappings that would
     // increase the count of render jars but help with the performance by reducing the size of the
@@ -187,4 +188,3 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
     return RenderJarInfo.create(renderJars, blazeBuildOutputs.buildResult().exitCode);
   }
 }
-

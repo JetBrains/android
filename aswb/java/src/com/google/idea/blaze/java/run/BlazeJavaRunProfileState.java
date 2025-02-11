@@ -106,8 +106,9 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
                 getExecutorType(),
                 getConfiguration().getTargetKind());
     BlazeTestUiSession testUiSession = null;
-    boolean debuggingLocalTest = TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
-                && getExecutorType().isDebugType();
+    boolean debuggingLocalTest =
+        TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
+            && getExecutorType().isDebugType();
     if (debuggingLocalTest && !invoker.getCommandRunner().canUseCli()) {
       return startProcessRunfilesCase(project);
     }
@@ -117,27 +118,27 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   private ProcessHandler startProcessRunfilesCase(Project project) throws ExecutionException {
     File downloadDir = getDownloadDir();
     WorkspaceRoot workspaceRoot =
-      new WorkspaceRoot(
-        new File(downloadDir, WorkspaceRoot.fromProject(project).directory().getName()));
+        new WorkspaceRoot(
+            new File(downloadDir, WorkspaceRoot.fromProject(project).directory().getName()));
     ImmutableList.Builder<String> commandBuilder =
-      ImmutableList.<String>builder()
-        .add("env")
-        .add("-")
-        .add(JAVA_RUNFILES_ENV + downloadDir.getAbsolutePath());
+        ImmutableList.<String>builder()
+            .add("env")
+            .add("-")
+            .add(JAVA_RUNFILES_ENV + downloadDir.getAbsolutePath());
 
     // android_local_tests need additional env variables
     if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())) {
       commandBuilder
-        .add(TEST_TIMEOUT_ENV + "300")
-        .add(TEST_SIZE_ENV + "medium")
-        .add(
-          TEST_DIAGNOSTICS_OUTPUT_DIR_ENV
-          + downloadDir.getAbsolutePath()
-          + TEST_DIAGNOSTICS_OUTPUT_DIR);
+          .add(TEST_TIMEOUT_ENV + "300")
+          .add(TEST_SIZE_ENV + "medium")
+          .add(
+              TEST_DIAGNOSTICS_OUTPUT_DIR_ENV
+                  + downloadDir.getAbsolutePath()
+                  + TEST_DIAGNOSTICS_OUTPUT_DIR);
     }
     commandBuilder
-      .add(getEntryPointScript())
-      .add(debugPortFlag(false, getState(getConfiguration()).getDebugPortState().port));
+        .add(getEntryPointScript())
+        .add(debugPortFlag(false, getState(getConfiguration()).getDebugPortState().port));
     if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())
         && BlazeCommandRunnerExperiments.USE_SINGLEJAR_FOR_DEBUGGING.getValue()) {
       commandBuilder.add("--singlejar");
@@ -145,8 +146,9 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot);
   }
 
-  private ProcessHandler startProcessBazelCliCase(BuildInvoker invoker, Project project, BlazeTestUiSession testUiSession)
-    throws ExecutionException {
+  private ProcessHandler startProcessBazelCliCase(
+      BuildInvoker invoker, Project project, BlazeTestUiSession testUiSession)
+      throws ExecutionException {
     BlazeCommand.Builder blazeCommand;
     try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
       if (useTestUi()
@@ -164,24 +166,24 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     if (testUiSession != null) {
       blazeCommand =
           getBlazeCommandBuilder(
-            project,
-            getConfiguration(),
-            testUiSession.getBlazeFlags(),
-            getExecutorType(),
-            kotlinxCoroutinesJavaAgent);
+              project,
+              getConfiguration(),
+              testUiSession.getBlazeFlags(),
+              getExecutorType(),
+              kotlinxCoroutinesJavaAgent);
       final BlazeTestUiSession finalTestUiSession = testUiSession;
       setConsoleBuilder(
           new TextConsoleBuilderImpl(project) {
             @Override
             protected ConsoleView createConsole() {
               return SmRunnerUtils.getConsoleView(
-                project, getConfiguration(), getEnvironment().getExecutor(), finalTestUiSession);
+                  project, getConfiguration(), getEnvironment().getExecutor(), finalTestUiSession);
             }
           });
     } else {
       blazeCommand =
           getBlazeCommandBuilder(
-            project,
+              project,
               getConfiguration(),
               ImmutableList.of(),
               getExecutorType(),
@@ -189,7 +191,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     }
     addConsoleFilters(
         ToolWindowTaskIssueOutputFilter.createWithDefaultParsers(
-          project,
+            project,
             WorkspaceRoot.fromProject(project),
             BlazeInvocationContext.ContextType.RunConfiguration));
 

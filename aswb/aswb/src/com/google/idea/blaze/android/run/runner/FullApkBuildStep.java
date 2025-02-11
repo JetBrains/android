@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
@@ -45,7 +46,6 @@ import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -219,8 +219,11 @@ public class FullApkBuildStep implements ApkBuildStep {
       }
 
       AndroidDeployInfo deployInfoProto =
-        deployInfoHelper.readDeployInfoProtoForTarget(
-          label, ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME, buildResultHelper, fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
+          deployInfoHelper.readDeployInfoProtoForTarget(
+              label,
+              ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME,
+              buildResultHelper,
+              fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
       ImmutableList<File> libs =
           nativeSymbolFinderList.stream()
               .flatMap(

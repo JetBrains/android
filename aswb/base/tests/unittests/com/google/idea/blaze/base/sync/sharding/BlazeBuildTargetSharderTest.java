@@ -36,6 +36,7 @@ import com.google.idea.blaze.base.bazel.FakeBlazeCommandRunner;
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BuildFlagsProvider;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider.GeneralProvider;
@@ -61,7 +62,6 @@ import com.google.idea.blaze.base.scope.BlazeScope;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder.ShardedTargetsResult;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.exception.BuildException;
@@ -459,9 +459,7 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
     final int returnVal;
 
     FakeWildCardTargetExpanderExternalTask(
-        @Nullable OutputStream stdout,
-        int returnVal,
-        String... outputMessages) {
+        @Nullable OutputStream stdout, int returnVal, String... outputMessages) {
       this.stdout = stdout != null ? stdout : NULL_STREAM;
       this.outputMessages = outputMessages;
       this.returnVal = returnVal;
