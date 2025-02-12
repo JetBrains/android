@@ -105,6 +105,7 @@ public class Emulator implements AutoCloseable {
       "-delay-adb",
       "-no-boot-anim",
       "-verbose",
+      "-show-kernel",
       "-logcat",
       "*:V",
       "-logcat-output",
