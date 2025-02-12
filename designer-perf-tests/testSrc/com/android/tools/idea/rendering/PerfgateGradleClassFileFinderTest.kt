@@ -47,12 +47,6 @@ import com.intellij.testFramework.utils.io.createFile
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
-import org.junit.After
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
@@ -60,12 +54,19 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import kotlin.random.Random
+import org.junit.After
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private val NUMBER_OF_SAMPLES = 40
 
 /**
- * Class with utilities to generate content for a compile root. This class will generate a number of unique classes and unique R.jar files
- * that can be used to test the [GradleClassFileFinder] lookup methods. The class files are not valid class files but this is ok since the
+ * Class with utilities to generate content for a compile root. This class will generate a number of
+ * unique classes and unique R.jar files that can be used to test the [GradleClassFileFinder] lookup
+ * methods. The class files are not valid class files but this is ok since the
  * [GradleClassFileFinder] only locates them and does not instantiate them.
  */
 private class ContentGenerator(
@@ -76,7 +77,7 @@ private class ContentGenerator(
   /** Number of R.jar files */
   val numberOfRClassFiles: Int = 50,
   /** Number of different packages containing R class definitions in every R.jar */
-  val numberOfRPackagesPerFile: Int = 5
+  val numberOfRPackagesPerFile: Int = 5,
 ) {
   private val compileRoot: Path = Files.createTempDirectory("compileRoot")
   val generatedClasses = mutableListOf<String>()
@@ -84,9 +85,7 @@ private class ContentGenerator(
   private fun generateRandomPackagePrefix(): String =
     "package/".repeat(Random.Default.nextInt(0, 3))
 
-  /**
-   * Generates random content in the given file [path] of [size].
-   */
+  /** Generates random content in the given file [path] of [size]. */
   private fun generateFile(path: Path, size: Int) {
     path.parent.createDirectories()
     val classContents = ByteArray(size)
@@ -187,18 +186,21 @@ class PerfgateGradleClassFileFinderTest {
   fun testWithCachedRoots() {
     val samples: MutableList<Metric.MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
-    // We use the generated classes 4 times and then shuffle them to ensure only taking 1 size worth of classes
+    // We use the generated classes 4 times and then shuffle them to ensure only taking 1 size worth
+    // of classes
     // to ensure that cache is can also be hit sometimes.
-    val classesToQuery = (content.generatedClasses + content.generatedClasses + content.generatedClasses + content.generatedClasses)
-      .shuffled()
-      .take(content.generatedClasses.size)
+    val classesToQuery =
+      (content.generatedClasses +
+          content.generatedClasses +
+          content.generatedClasses +
+          content.generatedClasses)
+        .shuffled()
+        .take(content.generatedClasses.size)
 
     repeat(NUMBER_OF_SAMPLES) {
       val stopWatch = Stopwatch.createStarted()
       val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
-      classesToQuery.forEach {
-        assertNotNull(gradleClassFinder.findClassFile(it))
-      }
+      classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }
     Metric("gradle_class_finder_cached_roots_time").apply {
@@ -212,21 +214,26 @@ class PerfgateGradleClassFileFinderTest {
   fun testInvalidatingRoots() {
     val samples: MutableList<Metric.MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
-    // We use the generated classes 4 times and then shuffle them to ensure only taking 1 size worth of classes
+    // We use the generated classes 4 times and then shuffle them to ensure only taking 1 size worth
+    // of classes
     // to ensure that cache is can also be hit sometimes.
-    val classesToQuery = (content.generatedClasses + content.generatedClasses + content.generatedClasses + content.generatedClasses)
-      .shuffled()
-      .take(content.generatedClasses.size)
+    val classesToQuery =
+      (content.generatedClasses +
+          content.generatedClasses +
+          content.generatedClasses +
+          content.generatedClasses)
+        .shuffled()
+        .take(content.generatedClasses.size)
 
     repeat(NUMBER_OF_SAMPLES) {
       // Invalidate roots to ensure they get recalculated in every iteration
-      projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      projectRule.project.messageBus
+        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val stopWatch = Stopwatch.createStarted()
       val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
-      classesToQuery.forEach {
-        assertNotNull(gradleClassFinder.findClassFile(it))
-      }
+      classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }
     Metric("gradle_class_finder_invalidated_roots_time").apply {

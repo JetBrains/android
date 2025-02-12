@@ -15,25 +15,15 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.rendering.RenderResult
-import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
-import com.android.tools.idea.testing.virtualFile
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Path
 
 class RenderATFComplexPerfgateTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT) {
 
@@ -57,7 +47,7 @@ class RenderATFComplexPerfgateTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYO
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
       var metric: PerfgateRenderMetric? = null
       RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration, true) {
-        metric = getRenderMetric(it, {_ -> }, ::checkATFComplexLayoutRenderResult)
+        metric = getRenderMetric(it, { _ -> }, ::checkATFComplexLayoutRenderResult)
       }
       metric!!
     }
@@ -65,9 +55,7 @@ class RenderATFComplexPerfgateTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYO
     computeAndRecordMetric("render_time_atf_complex", "render_memory_atf_complex", computable)
   }
 
-  /**
-   * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
-   */
+  /** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
   fun checkATFComplexLayoutRenderResult(result: RenderResult) {
     checkComplexLayoutRenderResult(result)
     verifyValidatorResult(result)

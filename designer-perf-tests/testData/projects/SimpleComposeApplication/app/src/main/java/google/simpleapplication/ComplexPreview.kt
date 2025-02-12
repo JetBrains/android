@@ -32,33 +32,25 @@ fun ComplexPreview() {
   MaterialTheme {
     Column {
       Row {
-        Button(onClick = {}) {
-          Text("Button1")
-        }
-        Button(onClick = {}) {
-          Text("Button2")
-        }
+        Button(onClick = {}) { Text("Button1") }
+        Button(onClick = {}) { Text("Button2") }
       }
       Text("Text1")
       Box(
-        modifier = Modifier
-          .background(
-            Color.Blue,
-            RoundedCornerShape(15.dp)
-          )
-          .clickable { short = !short }
-          .padding(20.dp)
-          .wrapContentSize()
-          .animateContentSize { startSize, endSize -> println("$startSize -> $endSize") }
+        modifier =
+          Modifier.background(Color.Blue, RoundedCornerShape(15.dp))
+            .clickable { short = !short }
+            .padding(20.dp)
+            .wrapContentSize()
+            .animateContentSize { startSize, endSize -> println("$startSize -> $endSize") }
       ) {
         Text(
           if (short) {
             shortText
-          }
-          else {
+          } else {
             longText
           },
-          style = LocalTextStyle.current.copy(color = Color.White)
+          style = LocalTextStyle.current.copy(color = Color.White),
         )
       }
     }

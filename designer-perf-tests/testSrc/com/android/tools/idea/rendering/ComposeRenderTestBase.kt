@@ -19,8 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withCompileSdk
-import com.android.tools.idea.testing.withKotlin
-import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
@@ -29,22 +27,24 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
-
 open class ComposeRenderTestBase(val testProject: String = SIMPLE_COMPOSE_PROJECT_PATH) {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   open fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
-    val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
+    val baseTestPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
     projectRule.load(testProject, AGP_CURRENT.withCompileSdk("35"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+      Assert.assertTrue(
+        "The project must compile correctly for the test to pass",
+        isBuildSuccessful,
+      )
     }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
@@ -54,9 +54,7 @@ open class ComposeRenderTestBase(val testProject: String = SIMPLE_COMPOSE_PROJEC
   @After
   open fun tearDown() {
     StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(false)
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
     StudioRenderService.setForTesting(projectRule.project, null)
   }
 }
@@ -68,7 +66,8 @@ fun AndroidGradleProjectRule.buildAndAssertSuccess(task: String = "assemble") {
         Build failed with:
 
         ${buildResult.buildError}
-      """.trimIndent(),
-    buildResult.isBuildSuccessful
+      """
+      .trimIndent(),
+    buildResult.isBuildSuccessful,
   )
 }

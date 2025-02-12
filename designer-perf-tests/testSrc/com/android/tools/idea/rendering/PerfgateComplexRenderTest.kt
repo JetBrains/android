@@ -16,30 +16,21 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.rendering.RenderResult
-import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.virtualFile
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 fun checkComplexLayoutInflateResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 }
 
-/**
- * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
- */
+/** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
 fun checkComplexLayoutRenderResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 
@@ -78,7 +69,8 @@ class PerfgateComplexRenderTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT)
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
       var metric: PerfgateRenderMetric? = null
       RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
-        metric = getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
+        metric =
+          getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
       }
       metric!!
     }

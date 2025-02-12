@@ -31,37 +31,44 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Assert
 import org.junit.Rule
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private const val NUMBER_OF_SAMPLES = 5
 
-private val composeGradleTimeBenchmark = Benchmark.Builder("Compose Preview Gradle Benchmark")
-  .setProject("Design Tools")
-  .setDescription("Base line for Compose Preview time and memory (mean) after $NUMBER_OF_SAMPLES" +
-                  " samples. The tests are configured using a FakeUi+Gradle approach to make" +
-                  " them run in a context similar to production")
-  .build()
+private val composeGradleTimeBenchmark =
+  Benchmark.Builder("Compose Preview Gradle Benchmark")
+    .setProject("Design Tools")
+    .setDescription(
+      "Base line for Compose Preview time and memory (mean) after $NUMBER_OF_SAMPLES" +
+        " samples. The tests are configured using a FakeUi+Gradle approach to make" +
+        " them run in a context similar to production"
+    )
+    .build()
 
 open class PerfgateComposeGradleTestBase {
   @get:Rule
-  val projectRule = ComposePreviewFakeUiGradleRule(
-    projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
-    previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
-    testDataPath = "tools/adt/idea/designer-perf-tests/testData",
-    enableRenderQuality = false
-  )
+  val projectRule =
+    ComposePreviewFakeUiGradleRule(
+      projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
+      previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
+      testDataPath = "tools/adt/idea/designer-perf-tests/testData",
+      enableRenderQuality = false,
+    )
 
   protected val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
+
   protected val composePreviewRepresentation: ComposePreviewRepresentation
     get() = projectRule.composePreviewRepresentation
+
   private val psiMainFile: PsiFile
     get() = projectRule.psiMainFile
+
   protected val previewView: TestComposePreviewView
     get() = projectRule.previewView
 
@@ -73,42 +80,60 @@ open class PerfgateComposeGradleTestBase {
   }
 
   /**
-   * First, without using the [measurements], add [nPreviewsToAdd] @Previews on top of the first @Preview found in [psiMainFile], and wait
-   * for a refresh to happen.
-   * Then, execute the [measuredRunnable] under all [measurements] (see [measureOperation]).
+   * First, without using the [measurements], add [nPreviewsToAdd] @Previews on top of the
+   * first @Preview found in [psiMainFile], and wait for a refresh to happen. Then, execute the
+   * [measuredRunnable] under all [measurements] (see [measureOperation]).
    */
   protected fun addPreviewsAndMeasure(
     nPreviewsToAdd: Int,
     nExpectedPreviewInstances: Int,
     measurements: List<MetricMeasurement<Unit>>,
-    measuredRunnable: suspend () -> Unit = { fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds) }
+    measuredRunnable: suspend () -> Unit = {
+      fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds)
+    },
   ) = runBlocking {
-    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds, failOnTimeout = false) {
+    projectRule.runAndWaitForRefresh(
+      allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds,
+      failOnTimeout = false,
+    ) {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
-        fixture.editor.executeAndSave { fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd)) }
+        fixture.editor.executeAndSave {
+          fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd))
+        }
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         FileDocumentManager.getInstance().saveAllDocuments()
-        if(AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled) {
+        if (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled) {
           composePreviewRepresentation.requestRefreshForTest()
         }
       }
     }
-    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
+    Assert.assertEquals(
+      nExpectedPreviewInstances,
+      composePreviewRepresentation
+        .renderedPreviewElementsInstancesFlowForTest()
+        .value
+        .asCollection()
+        .size,
+    )
 
-    composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
-      runBlocking {
-        measuredRunnable()
-      }
+    composeGradleTimeBenchmark.measureOperation(
+      measurements,
+      samplesCount = NUMBER_OF_SAMPLES,
+      printSamples = true,
+    ) {
+      runBlocking { measuredRunnable() }
     }
   }
 
-  private fun generatePreviewAnnotations(nPreviews: Int) : String {
+  private fun generatePreviewAnnotations(nPreviews: Int): String {
     val builder = StringBuilder()
     repeat(nPreviews) {
       // Use 'showSystemUi = true' for the previews to be somewhat big
-      builder.appendLine("@Preview(name = \"new ${it}\", showSystemUi = true, showBackground = true)")
+      builder.appendLine(
+        "@Preview(name = \"new ${it}\", showSystemUi = true, showBackground = true)"
+      )
     }
     return builder.toString()
   }

@@ -21,14 +21,14 @@ fun VisualLintErrorPreview() {
     TextField(
       value = textState.value,
       modifier = Modifier.fillMaxWidth(),
-      onValueChange = { textState.value = it }
+      onValueChange = { textState.value = it },
     )
     Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
       Text(text = "This is a wide button")
     }
     Text(
       text =
-      "This is a very very very very\n\nvery very very very very very very very very very very very very very very very very long text that has a line with more than 120 characters."
+        "This is a very very very very\n\nvery very very very very very very very very very very very very very very very very long text that has a line with more than 120 characters."
     )
     Box {
       Text(text = "This is a background text")
