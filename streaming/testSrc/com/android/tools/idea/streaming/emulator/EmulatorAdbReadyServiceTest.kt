@@ -188,7 +188,7 @@ class EmulatorAdbReadyServiceTest {
       view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
       view.currentPosture?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber &&
-      settingsButtonIsVisible(ui, panel)
+      settingsButtonIsVisible(ui)
     }
   }
 
@@ -197,8 +197,8 @@ class EmulatorAdbReadyServiceTest {
     return view.frameNumber
   }
 
-  private fun settingsButtonIsVisible(fakeUi: FakeUi, panel: EmulatorToolWindowPanel): Boolean {
-    ActivityTracker.getInstance().inc()
+  private fun settingsButtonIsVisible(fakeUi: FakeUi): Boolean {
+    fakeUi.updateToolbarsIfNecessary()
     return fakeUi.findComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT } != null
   }
 }
