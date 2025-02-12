@@ -24,6 +24,13 @@ import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRen
 import static com.android.tools.idea.rendering.RenderTestUtil.getLowPriorityRenderingTopicForTest;
 import static com.android.tools.idea.testing.JavacUtil.getJavac;
 import static com.intellij.util.TimeoutUtil.sleep;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -41,6 +48,7 @@ import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.Wallpaper;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -49,16 +57,17 @@ import com.android.tools.rendering.RenderTask;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
-import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -77,10 +86,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class RenderTaskTest extends AndroidTestCase {
+@RunWith(JUnit4.class)
+public class RenderTaskTest {
+
+  @Rule
+  public final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk();
+
+
   // Using native rendering should have less variation between machines than Java rendering
   // so the threshold for image diff can be lower than the default.
   private static final double IMAGE_DIFF_THRESHOLD_PERCENT = 0.1;
@@ -106,22 +127,33 @@ public class RenderTaskTest extends AndroidTestCase {
                                               "    \n" +
                                               "\n" +
                                               "</LinearLayout>";
+  private CodeInsightTestFixture myFixture;
+  private @NotNull AndroidFacet myFacet;
+  private @NotNull Module myModule;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    RenderTestUtil.beforeRenderTestCase();
+  private Project getProject() {
+    return myProjectRule.getProject();
   }
 
-  @Override
-  protected void tearDown() throws Exception {
+  @Before
+  public void setUp() throws Exception {
+    RenderTestUtil.beforeRenderTestCase();
+    myFixture = myProjectRule.getFixture();
+    myModule = myProjectRule.getModule();
+    myFacet = AndroidFacet.getInstance(myModule);
+  }
+
+  @After
+  public void tearDown() {
     try {
       RenderTestUtil.afterRenderTestCase();
-    } finally {
-      super.tearDown();
+    }
+    catch (Exception e) {
+      //Ignore
     }
   }
 
+  @Test
   public void testCrashReport() {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
@@ -135,7 +167,8 @@ public class RenderTaskTest extends AndroidTestCase {
         task.render((w, h) -> {
           throw new NullPointerException();
         }).get();
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
 
@@ -143,6 +176,7 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testRenderCrash() {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
@@ -171,6 +205,7 @@ public class RenderTaskTest extends AndroidTestCase {
   }
 
 
+  @Test
   public void testDrawableRender() {
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
                                                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -201,12 +236,14 @@ public class RenderTaskTest extends AndroidTestCase {
         }
 
         ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
   }
 
+  @Test
   public void testCustomDrawableRender() throws Exception {
     File tmpDir = Files.createTempDir();
     File srcDir = new File(tmpDir, "src");
@@ -219,11 +256,10 @@ public class RenderTaskTest extends AndroidTestCase {
                                          "    super(Orientation.TOP_BOTTOM, new int[] {Color.RED, Color.BLUE});\n" +
                                          "  }\n" +
                                          "}");
-    ApplicationManager.getApplication().runWriteAction(
-      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
+    PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true));
     getJavac().run(null, null, null, customDrawable.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
-    CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    CompilerProjectExtension.getInstance(myModule.getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
     FileUtil.copy(new File(srcDir, "com/google/test/CustomDrawable.class"), new File(outputDir, "com/google/test/CustomDrawable.class"));
 
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
@@ -249,23 +285,22 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testCustomViewRenderOutOfDateIsReported() throws Exception {
     File tmpDir = Files.createTempDir();
     File srcDir = new File(tmpDir, "src");
     File customView = new File(srcDir, "com/google/test/CustomView.java");
     FileUtil.writeToFile(customView, "package com.google.test;\n" +
-                                         "import android.content.Context;\n" +
-                                         "import android.util.AttributeSet;\n" +
-                                         "import android.widget.TextView;\n" +
-                                         "public class CustomView extends TextView {\n" +
-                                         "  public CustomView(Context context, AttributeSet attrs) {\n" +
-                                         "    super(context);\n" +
-                                         "    setText(\"Hello\");\n" +
-                                         "  }\n" +
-                                         "}");
-    ApplicationManager.getApplication().runWriteAction(
-      (Computable<SourceFolder>)() ->
-        PsiTestUtil.addSourceRoot(myModule, Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir, true))));
+                                     "import android.content.Context;\n" +
+                                     "import android.util.AttributeSet;\n" +
+                                     "import android.widget.TextView;\n" +
+                                     "public class CustomView extends TextView {\n" +
+                                     "  public CustomView(Context context, AttributeSet attrs) {\n" +
+                                     "    super(context);\n" +
+                                     "    setText(\"Hello\");\n" +
+                                     "  }\n" +
+                                     "}");
+    PsiTestUtil.addSourceRoot(myModule, Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir, true)));
     getJavac().run(null, null, null, customView.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
     File outputFile = new File(outputDir, "com/google/test/CustomView.class");
@@ -273,16 +308,16 @@ public class RenderTaskTest extends AndroidTestCase {
     FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
 
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/test.xml",
-                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                          "    android:layout_height=\"match_parent\"\n" +
-                                                          "    android:layout_width=\"match_parent\"\n" +
-                                                          "    android:orientation=\"vertical\"\n" +
-                                                          "    android:background=\"#FFF\">\n" +
-                                                          "  <com.google.test.CustomView" +
-                                                          "    android:layout_height=\"match_parent\"\n" +
-                                                          "    android:layout_width=\"match_parent\" />\n" +
-                                                          "</LinearLayout>\n")
+                                                        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                        "    android:layout_height=\"match_parent\"\n" +
+                                                        "    android:layout_width=\"match_parent\"\n" +
+                                                        "    android:orientation=\"vertical\"\n" +
+                                                        "    android:background=\"#FFF\">\n" +
+                                                        "  <com.google.test.CustomView" +
+                                                        "    android:layout_height=\"match_parent\"\n" +
+                                                        "    android:layout_width=\"match_parent\" />\n" +
+                                                        "</LinearLayout>\n")
       .getVirtualFile();
 
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
@@ -338,6 +373,7 @@ public class RenderTaskTest extends AndroidTestCase {
     return result;
   }
 
+  @Test
   public void testRender() {
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
@@ -369,6 +405,7 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testRenderQuality() {
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
@@ -409,7 +446,8 @@ public class RenderTaskTest extends AndroidTestCase {
       assertEquals(expectedHeight, result.getRenderedImage().getHeight());
       assertEquals(expectedWidth, result.getRenderedImage().getWidth());
       try {
-        ImageDiffUtil.assertImageSimilar("Reused render task", initialImage, result.getRenderedImage().getCopy(), IMAGE_DIFF_THRESHOLD_PERCENT);
+        ImageDiffUtil.assertImageSimilar("Reused render task", initialImage, result.getRenderedImage().getCopy(),
+                                         IMAGE_DIFF_THRESHOLD_PERCENT);
       }
       catch (Exception ex) {
         throw new RuntimeException(ex);
@@ -417,6 +455,7 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testAsyncCallAndDispose() {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
@@ -466,43 +505,44 @@ public class RenderTaskTest extends AndroidTestCase {
         semaphore.release();
         try {
           disposeFuture.get(500, TimeUnit.MILLISECONDS);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
           throw new RuntimeException(ex);
         }
       });
     }
   }
 
+  @Test
   public void testAaptGradient() {
-    @Language("XML")
-    final String content = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                           "        xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
-                           "        android:width=\"24dp\"\n" +
-                           "        android:height=\"24dp\"\n" +
-                           "        android:viewportWidth=\"24.0\"\n" +
-                           "        android:viewportHeight=\"24.0\">\n" +
-                           "  <path android:pathData=\"l24,0,0,24,-24,0z\">\n" +
-                           "    <aapt:attr name=\"android:fillColor\">\n" +
-                           "      <gradient\n" +
-                           "          xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                           "          android:endX=\"30\"\n" +
-                           "          android:endY=\"30\"\n" +
-                           "          android:startX=\"0\"\n" +
-                           "          android:startY=\"0\"\n" +
-                           "          android:type=\"linear\">\n" +
-                           "        <item\n" +
-                           "            android:color=\"#FF0\"\n" +
-                           "            android:offset=\"0.0\" />\n" +
-                           "        <item\n" +
-                           "            android:color=\"#F0F\"\n" +
-                           "            android:offset=\"0.5\" />\n" +
-                           "        <item\n" +
-                           "            android:color=\"#0FF\"\n" +
-                           "            android:offset=\"1.0\" />\n" +
-                           "      </gradient>\n" +
-                           "    </aapt:attr>\n" +
-                           "  </path>\n" +
-                           "</vector>\n";
+    @Language("XML") final String content = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "        xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
+                                            "        android:width=\"24dp\"\n" +
+                                            "        android:height=\"24dp\"\n" +
+                                            "        android:viewportWidth=\"24.0\"\n" +
+                                            "        android:viewportHeight=\"24.0\">\n" +
+                                            "  <path android:pathData=\"l24,0,0,24,-24,0z\">\n" +
+                                            "    <aapt:attr name=\"android:fillColor\">\n" +
+                                            "      <gradient\n" +
+                                            "          xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "          android:endX=\"30\"\n" +
+                                            "          android:endY=\"30\"\n" +
+                                            "          android:startX=\"0\"\n" +
+                                            "          android:startY=\"0\"\n" +
+                                            "          android:type=\"linear\">\n" +
+                                            "        <item\n" +
+                                            "            android:color=\"#FF0\"\n" +
+                                            "            android:offset=\"0.0\" />\n" +
+                                            "        <item\n" +
+                                            "            android:color=\"#F0F\"\n" +
+                                            "            android:offset=\"0.5\" />\n" +
+                                            "        <item\n" +
+                                            "            android:color=\"#0FF\"\n" +
+                                            "            android:offset=\"1.0\" />\n" +
+                                            "      </gradient>\n" +
+                                            "    </aapt:attr>\n" +
+                                            "  </path>\n" +
+                                            "</vector>\n";
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
                                                           content).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
@@ -516,37 +556,37 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
         ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
   }
 
+  @Test
   public void testAnimatedVectorDrawable() {
-    @Language("XML")
-    final String vector = "<animated-vector\n" +
-                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                           "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
-                           "    <aapt:attr name=\"android:drawable\">\n" +
-                           "        <vector\n" +
-                           "            android:width=\"24dp\"\n" +
-                           "            android:height=\"24dp\"\n" +
-                           "            android:viewportWidth=\"24\"\n" +
-                           "            android:viewportHeight=\"24\">\n" +
-                           "            <path\n" +
-                           "                android:name=\"outline\"\n" +
-                           "                android:fillAlpha=\"0.5\"\n" +
-                           "                android:fillColor=\"#f00\"\n" +
-                           "                android:pathData=\"@string/path\"\n" +
-                           "                android:strokeColor=\"#000\"\n" +
-                           "                android:strokeWidth=\"2\" />\n" +
-                           "        </vector>\n" +
-                           "    </aapt:attr>\n" +
-                           "</animated-vector>\n";
-    @Language("XML")
-    final String path = "<resources>\n" +
-                        "    <string name=\"path\">M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67</string>\n" +
-                        "</resources>\n";
+    @Language("XML") final String vector = "<animated-vector\n" +
+                                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                           "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
+                                           "    <aapt:attr name=\"android:drawable\">\n" +
+                                           "        <vector\n" +
+                                           "            android:width=\"24dp\"\n" +
+                                           "            android:height=\"24dp\"\n" +
+                                           "            android:viewportWidth=\"24\"\n" +
+                                           "            android:viewportHeight=\"24\">\n" +
+                                           "            <path\n" +
+                                           "                android:name=\"outline\"\n" +
+                                           "                android:fillAlpha=\"0.5\"\n" +
+                                           "                android:fillColor=\"#f00\"\n" +
+                                           "                android:pathData=\"@string/path\"\n" +
+                                           "                android:strokeColor=\"#000\"\n" +
+                                           "                android:strokeWidth=\"2\" />\n" +
+                                           "        </vector>\n" +
+                                           "    </aapt:attr>\n" +
+                                           "</animated-vector>\n";
+    @Language("XML") final String path = "<resources>\n" +
+                                         "    <string name=\"path\">M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67</string>\n" +
+                                         "</resources>\n";
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
                                                           vector).getVirtualFile();
     myFixture.addFileToProject("res/values/strings.xml", path);
@@ -561,63 +601,64 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-golden.png"));
         ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
   }
 
+  @Test
   public void testCjkFontSupport() {
-    @Language("XML")
-    final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                          "    android:layout_height=\"match_parent\"\n" +
-                          "    android:layout_width=\"match_parent\"\n" +
-                          "    android:orientation=\"vertical\"\n" +
-                          "    android:background=\"#FFF\">\n" +
-                          "\n" +
-                          // CJK Unified Ideographs
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"门蠁\"/>\n" +
-                          // Chinese only
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"λ点  e书本s ，。？！\"/>\n" +
-                          // Korean only
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"곶㭐㸴\"/>\n" +
-                          // Japanese only
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"蘰躵鯏\"/>\n" +
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"さしすせそ\"/>\n" +
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"ラリルレロ\"/>\n" +
-                          // Combined only
-                          "    <TextView\n" +
-                          "        android:layout_width=\"wrap_content\"\n" +
-                          "        android:layout_height=\"wrap_content\"\n" +
-                          "        android:textSize=\"50sp\"\n" +
-                          "        android:text=\"蘰门Hello鯏\"/>\n" +
-                          "    \n" +
-                          "\n" +
-                          "</LinearLayout>";
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "\n" +
+                                            // CJK Unified Ideographs
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"门蠁\"/>\n" +
+                                            // Chinese only
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"λ点  e书本s ，。？！\"/>\n" +
+                                            // Korean only
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"곶㭐㸴\"/>\n" +
+                                            // Japanese only
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"蘰躵鯏\"/>\n" +
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"さしすせそ\"/>\n" +
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"ラリルレロ\"/>\n" +
+                                            // Combined only
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"蘰门Hello鯏\"/>\n" +
+                                            "    \n" +
+                                            "\n" +
+                                            "</LinearLayout>";
 
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
@@ -630,90 +671,90 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
         ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
   }
 
+  @Test
   public void testAnimatedVectorDrawableWithNestedAaptAttr() {
-    @Language("XML")
-    final String vector = "<animated-vector\n" +
-                          "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                          "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
-                          "    <aapt:attr name=\"android:drawable\">\n" +
-                          "        <vector\n" +
-                          "            android:width=\"24dp\"\n" +
-                          "            android:height=\"24dp\"\n" +
-                          "            android:viewportWidth=\"24\"\n" +
-                          "            android:viewportHeight=\"24\">\n" +
-                          "            <path\n" +
-                          "                android:name=\"outline\"\n" +
-                          "                android:fillColor=\"#ff0000\"\n" +
-                          "                android:pathData=\"M 11.925 18 L 21.17 18 C 21.63 18 22 17.65 22 17.25 L 22 14.57 C 20.912 14.181 20.182 13.155 20.17 12 C 20.17 10.82 20.93 9.82 22 9.43 L 22 9.43 L 22 6.75 C 22 6.35 21.63 6 21.17 6 L 2.83 6 C 2.37 6 2.01 6.35 2.01 6.75 L 2.01 9.43 C 3.07 9.83 3.83 10.82 3.83 12 C 3.83 13.18 3.07 14.18 2 14.57 L 2 17.25 C 2 17.65 2.37 18 2.83 18 L 11.925 18\"\n" +
-                          "                android:strokeColor=\"#FF0000\"\n" +
-                          "                android:strokeWidth=\"2\" />\n" +
-                          "            <group\n" +
-                          "                android:name=\"star_group\"\n" +
-                          "                android:pivotX=\"12\"\n" +
-                          "                android:pivotY=\"13\">\n" +
-                          "                <path\n" +
-                          "                    android:fillColor=\"#fff\"\n" +
-                          "                    android:pathData=\"M 15.1 16 L 14.16 12.46 L 17 10.13 L 13.34 9.91 L 12 6.5 L 10.65 9.9 L 6.99 10.12 L 9.83 12.45 L 8.91 16 L 12.01 14 L 15.1 16 Z\" />\n" +
-                          "            </group>\n" +
-                          "            <path\n" +
-                          "                android:name=\"progress\"\n" +
-                          "                android:pathData=\"M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67\"\n" +
-                          "                android:strokeAlpha=\"0\"\n" +
-                          "                android:strokeColor=\"#ffffff00\"\n" +
-                          "                android:strokeWidth=\"2\"\n" +
-                          "                android:trimPathEnd=\"0.03\"\n" +
-                          "                android:trimPathOffset=\"0\"\n" +
-                          "                android:trimPathStart=\"0\" />\n" +
-                          "        </vector>\n" +
-                          "    </aapt:attr>\n" +
-                          "    <target android:name=\"progress\">\n" +
-                          "        <aapt:attr name=\"android:animation\">\n" +
-                          "            <set>\n" +
-                          "                <objectAnimator\n" +
-                          "                    android:duration=\"1333\"\n" +
-                          "                    android:propertyName=\"trimPathStart\"\n" +
-                          "                    android:repeatCount=\"-1\"\n" +
-                          "                    android:valueFrom=\"0\"\n" +
-                          "                    android:valueTo=\"0.75\"\n" +
-                          "                    android:valueType=\"floatType\">\n" +
-                          "                    <aapt:attr name=\"android:interpolator\">\n" +
-                          "                        <pathInterpolator\n" +
-                          "                            android:pathData=\"L0.5,0 C 0.7,0 0.6,1 1,1\" />\n" +
-                          "                    </aapt:attr>\n" +
-                          "                </objectAnimator>\n" +
-                          "                <objectAnimator\n" +
-                          "                    android:duration=\"1333\"\n" +
-                          "                    android:propertyName=\"trimPathEnd\"\n" +
-                          "                    android:repeatCount=\"-1\"\n" +
-                          "                    android:valueFrom=\"0.03\"\n" +
-                          "                    android:valueTo=\"0.78\"\n" +
-                          "                    android:valueType=\"floatType\">\n" +
-                          "                    <aapt:attr name=\"android:interpolator\">\n" +
-                          "                        <pathInterpolator\n" +
-                          "                            android:pathData=\"C0.2,0 0.1,1 0.5,0.96 C 0.96666666666,0.96 0.99333333333,1 1,1\" />\n" +
-                          "                    </aapt:attr>\n" +
-                          "                </objectAnimator>\n" +
-                          "            </set>\n" +
-                          "        </aapt:attr>\n" +
-                          "    </target>\n" +
-                          "</animated-vector>\n";
-    @Language("XML")
-    final String content= "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                          "    android:layout_height=\"match_parent\"\n" +
-                          "    android:layout_width=\"match_parent\">\n" +
-                          "\n" +
-                          "    <ImageView\n" +
-                          "        android:layout_width=\"240dp\"\n" +
-                          "        android:layout_height=\"240dp\"\n" +
-                          "        android:src=\"@drawable/test\"/>\n" +
-                          "    \n" +
-                          "</FrameLayout>";
+    @Language("XML") final String vector = "<animated-vector\n" +
+                                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                           "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
+                                           "    <aapt:attr name=\"android:drawable\">\n" +
+                                           "        <vector\n" +
+                                           "            android:width=\"24dp\"\n" +
+                                           "            android:height=\"24dp\"\n" +
+                                           "            android:viewportWidth=\"24\"\n" +
+                                           "            android:viewportHeight=\"24\">\n" +
+                                           "            <path\n" +
+                                           "                android:name=\"outline\"\n" +
+                                           "                android:fillColor=\"#ff0000\"\n" +
+                                           "                android:pathData=\"M 11.925 18 L 21.17 18 C 21.63 18 22 17.65 22 17.25 L 22 14.57 C 20.912 14.181 20.182 13.155 20.17 12 C 20.17 10.82 20.93 9.82 22 9.43 L 22 9.43 L 22 6.75 C 22 6.35 21.63 6 21.17 6 L 2.83 6 C 2.37 6 2.01 6.35 2.01 6.75 L 2.01 9.43 C 3.07 9.83 3.83 10.82 3.83 12 C 3.83 13.18 3.07 14.18 2 14.57 L 2 17.25 C 2 17.65 2.37 18 2.83 18 L 11.925 18\"\n" +
+                                           "                android:strokeColor=\"#FF0000\"\n" +
+                                           "                android:strokeWidth=\"2\" />\n" +
+                                           "            <group\n" +
+                                           "                android:name=\"star_group\"\n" +
+                                           "                android:pivotX=\"12\"\n" +
+                                           "                android:pivotY=\"13\">\n" +
+                                           "                <path\n" +
+                                           "                    android:fillColor=\"#fff\"\n" +
+                                           "                    android:pathData=\"M 15.1 16 L 14.16 12.46 L 17 10.13 L 13.34 9.91 L 12 6.5 L 10.65 9.9 L 6.99 10.12 L 9.83 12.45 L 8.91 16 L 12.01 14 L 15.1 16 Z\" />\n" +
+                                           "            </group>\n" +
+                                           "            <path\n" +
+                                           "                android:name=\"progress\"\n" +
+                                           "                android:pathData=\"M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67\"\n" +
+                                           "                android:strokeAlpha=\"0\"\n" +
+                                           "                android:strokeColor=\"#ffffff00\"\n" +
+                                           "                android:strokeWidth=\"2\"\n" +
+                                           "                android:trimPathEnd=\"0.03\"\n" +
+                                           "                android:trimPathOffset=\"0\"\n" +
+                                           "                android:trimPathStart=\"0\" />\n" +
+                                           "        </vector>\n" +
+                                           "    </aapt:attr>\n" +
+                                           "    <target android:name=\"progress\">\n" +
+                                           "        <aapt:attr name=\"android:animation\">\n" +
+                                           "            <set>\n" +
+                                           "                <objectAnimator\n" +
+                                           "                    android:duration=\"1333\"\n" +
+                                           "                    android:propertyName=\"trimPathStart\"\n" +
+                                           "                    android:repeatCount=\"-1\"\n" +
+                                           "                    android:valueFrom=\"0\"\n" +
+                                           "                    android:valueTo=\"0.75\"\n" +
+                                           "                    android:valueType=\"floatType\">\n" +
+                                           "                    <aapt:attr name=\"android:interpolator\">\n" +
+                                           "                        <pathInterpolator\n" +
+                                           "                            android:pathData=\"L0.5,0 C 0.7,0 0.6,1 1,1\" />\n" +
+                                           "                    </aapt:attr>\n" +
+                                           "                </objectAnimator>\n" +
+                                           "                <objectAnimator\n" +
+                                           "                    android:duration=\"1333\"\n" +
+                                           "                    android:propertyName=\"trimPathEnd\"\n" +
+                                           "                    android:repeatCount=\"-1\"\n" +
+                                           "                    android:valueFrom=\"0.03\"\n" +
+                                           "                    android:valueTo=\"0.78\"\n" +
+                                           "                    android:valueType=\"floatType\">\n" +
+                                           "                    <aapt:attr name=\"android:interpolator\">\n" +
+                                           "                        <pathInterpolator\n" +
+                                           "                            android:pathData=\"C0.2,0 0.1,1 0.5,0.96 C 0.96666666666,0.96 0.99333333333,1 1,1\" />\n" +
+                                           "                    </aapt:attr>\n" +
+                                           "                </objectAnimator>\n" +
+                                           "            </set>\n" +
+                                           "        </aapt:attr>\n" +
+                                           "    </target>\n" +
+                                           "</animated-vector>\n";
+    @Language("XML") final String content = "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\">\n" +
+                                            "\n" +
+                                            "    <ImageView\n" +
+                                            "        android:layout_width=\"240dp\"\n" +
+                                            "        android:layout_height=\"240dp\"\n" +
+                                            "        android:src=\"@drawable/test\"/>\n" +
+                                            "    \n" +
+                                            "</FrameLayout>";
     myFixture.addFileToProject("res/drawable/test.xml", vector);
     // We render a full layout in this test instead of just the drawable as the problem is with parsing the animator, which happens
     // only when rendering the animated vector drawable inside a layout.
@@ -728,12 +769,14 @@ public class RenderTaskTest extends AndroidTestCase {
         //ImageIO.write(result, "png", new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
         ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
   }
 
+  @Test
   public void testEmojiSupport() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
@@ -768,6 +811,7 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testDynamicTheming() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
@@ -837,6 +881,7 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testMacroTagSupport() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
@@ -902,6 +947,7 @@ public class RenderTaskTest extends AndroidTestCase {
     return null;
   }
 
+  @Test
   public void testRunRenderActionWithSessionHasAccessToResources() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
@@ -931,12 +977,13 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  @Test
   public void testAdapterBindingWithInclude() {
     @Language("XML") final String spinnerItem = "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                            "    style=\"?android:attr/spinnerDropDownItemStyle\"\n" +
-                                            "    android:layout_width=\"match_parent\"\n" +
-                                            "    android:layout_height=\"wrap_content\"\n" +
-                                            "    android:text=\"This is a spinner item\" />";
+                                                "    style=\"?android:attr/spinnerDropDownItemStyle\"\n" +
+                                                "    android:layout_width=\"match_parent\"\n" +
+                                                "    android:layout_height=\"wrap_content\"\n" +
+                                                "    android:text=\"This is a spinner item\" />";
     myFixture.addFileToProject("res/layout/spinner_item.xml", spinnerItem);
 
     @Language("XML") final String spinner = "<Spinner xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -979,14 +1026,18 @@ public class RenderTaskTest extends AndroidTestCase {
   /**
    * Checks that disposing of render tasks is not delayed by adding more tasks to the rendering queue.
    */
+  @Test
   public void testDisposePriority() {
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
-    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
-    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task1 =
+      createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task2 =
+      createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task3 =
+      createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1021,6 +1072,7 @@ public class RenderTaskTest extends AndroidTestCase {
     }
   }
 
+  @Test
   public void testTaskError() {
     PsiFile file = myFixture.addFileToProject("src/EmptyFile.kt", "");
     RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"), null);
