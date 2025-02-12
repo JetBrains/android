@@ -117,7 +117,7 @@ class FakeUi @JvmOverloads constructor(
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
     }
-    updateToolbars()
+    doUpdateToolbars()
   }
 
   /**
@@ -289,21 +289,27 @@ class FakeUi @JvmOverloads constructor(
   /** Updates toolbars if the [ActivityTracker.count] changed since the last toolbar update. */
   fun updateToolbarsIfNecessary() {
     if (ActivityTracker.getInstance().count > lastActivityTrackerCount) {
-      updateToolbars()
+      doUpdateToolbars()
     }
   }
 
   /**
-   * This method is public only for historical reasons. Tests should use [updateToolbarsIfNecessary] instead.
+   * This method exists only for historical reasons. Tests should use [updateToolbarsIfNecessary] instead.
    * If a test fails after replacing [updateToolbars] with [updateToolbarsIfNecessary], most likely there
-   * a missing `ActivityTracker.getInstance().inc()` in the production code.
-   *
+   * a missing `ActivityTracker.getInstance().inc()` call in the production code.
+   */
+  @Deprecated("Use updateToolbarsIfNecessary", replaceWith = ReplaceWith("updateToolbarsIfNecessary"))
+  fun updateToolbars() {
+    doUpdateToolbars()
+  }
+
+  /**
    * In a test environment the state of toolbar buttons is not always updated automatically.
    * Calling this method forces an unconditional update.
    */
-  fun updateToolbars() {
+  private fun doUpdateToolbars() {
     lastActivityTrackerCount = ActivityTracker.getInstance().count
-    updateToolbars(root)
+    doUpdateToolbars(root)
     if (SwingUtilities.isEventDispatchThread()) {
       UIUtil.dispatchAllInvocationEvents()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -314,7 +320,7 @@ class FakeUi @JvmOverloads constructor(
     }
   }
 
-  private fun updateToolbars(component: Component) {
+  private fun doUpdateToolbars(component: Component) {
     val componentQueue = ArrayDeque<Component>()
     val futures = mutableListOf<Future<*>>()
     componentQueue.add(component)
