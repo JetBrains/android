@@ -136,5 +136,10 @@ fun getRootFunctions(parent: PsiElement, schemas: BuildDeclarativeSchemas): List
       }
     }.distinct()
 
+fun getRootProperties(parent: PsiElement, schemas: BuildDeclarativeSchemas): List<DataProperty> =
+  schemas.getTopLevelEntries(parent.containingFile.name)
+    .map { it.entry }
+    .filterIsInstance<DataProperty>().distinct()
+
 fun getRootPlainFunctions(parent: PsiElement, schemas: BuildDeclarativeSchemas): List<PlainFunction> =
   getRootFunctions(parent, schemas).map { it.semantic }.filterIsInstance<PlainFunction>()

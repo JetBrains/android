@@ -152,7 +152,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary"
+        "androidApp", "androidLibrary", "layout"
       )
     }
   }
@@ -198,6 +198,47 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       // sourceCompatibility and targetCompatibility are enums
       Truth.assertThat(suggestions.toList()).containsExactly(
         "encoding", "isCoreLibraryDesugaringEnabled", "sourceCompatibility", "targetCompatibility"
+      )
+    }
+  }
+
+  @Test
+  fun testLayoutFileFactory() {
+    // test first level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = $caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "layout"
+      )
+    }
+
+    // test second level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = layout.$caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "projectDirectory", "settingsDirectory"
+      )
+    }
+    // test last level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = layout.projectDirectory.$caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "dir", "file"
       )
     }
   }
@@ -409,7 +450,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("uri")
+      Truth.assertThat(suggestions.toList()).containsExactly("rootProject", "uri")
     }
   }
 

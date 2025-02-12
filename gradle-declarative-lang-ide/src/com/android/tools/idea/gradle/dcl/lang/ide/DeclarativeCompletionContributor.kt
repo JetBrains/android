@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
@@ -71,6 +72,7 @@ import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.prevLeafs
+import com.intellij.psi.util.siblings
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -127,7 +129,7 @@ private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<L
       psiElement().withText("=")
     )
 
-private val AFTER_PROPERTY_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
+private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
     .withParent(DeclarativeFile::class.java)
@@ -139,6 +141,11 @@ private val AFTER_PROPERTY_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsi
       psiElement().andOr(psiElement().whitespace(), psiElement().withText(".")),
       psiElement().withText("rootProject")
     )
+
+private val AFTER_PROPERTY_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
+  psiElement(LeafPsiElement::class.java)
+    .with(declarativeFlag)
+    .withParents(DeclarativeIdentifier::class.java, DeclarativeQualified::class.java)
 
 private val AFTER_FUNCTION_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -176,7 +183,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   init {
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN, createCompletionProvider())
     extend(CompletionType.BASIC, DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN, createAssignValueCompletionProvider())
-    extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_SYNTAX_PATTERN, createRootProjectCompletionProvider())
+    extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN, createRootProjectCompletionProvider())
+    extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_SYNTAX_PATTERN, createPropertyCompletionProvider())
     extend(CompletionType.BASIC, AFTER_FUNCTION_DOT_SYNTAX_PATTERN, createPluginCompletionProvider())
   }
 
@@ -222,6 +230,21 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
   }
 
+  private fun createPropertyCompletionProvider(): CompletionProvider<CompletionParameters> {
+    return object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+        val project = parameters.originalFile.project
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+
+        val element = parameters.position.parent
+        result.addAllElements(getSuggestionList(element, schema).map { (entry, suggestion) ->
+          LookupElementBuilder.create(suggestion.name)
+            .withTypeText(suggestion.type.str, null, true)
+        })
+      }
+    }
+  }
+
   private fun createAssignValueCompletionProvider(): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
@@ -231,7 +254,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val identifier = parameters.position.findParentOfType<DeclarativeAssignment>()?.identifier ?: return
         var suggestions = getMaybeEnumList(identifier, schema) + getMaybeBooleanList(identifier, schema)
         if (suggestions.isEmpty()) {
-          suggestions = getRootFunctions(identifier, schema).map { Suggestion(it.name, FACTORY) }
+          suggestions = getRootFunctions(identifier, schema).map { Suggestion(it.name, FACTORY) } +
+                        getRootProperties(identifier, schema). map { Suggestion (it.name, PROPERTY)}
+
         }
         result.addAllElements(suggestions.map {
           LookupElementBuilder.create(it.name)
@@ -446,6 +471,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun getPath(parent: PsiElement, includeCurrent: Boolean): List<String> {
     if (parent is DeclarativeFile) return listOf()
     val result = mutableListOf<String>()
+    // try handle property
+    tryParsePropertyPath(parent, includeCurrent)?.let { return it }
     var current = if (includeCurrent)
       (parent as? DeclarativeIdentifierOwner) ?: parent.findParentNamedBlock()
     else parent.findParentNamedBlock()
@@ -457,6 +484,23 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       current = current.parent
     }
     return result.reversed()
+  }
+
+  // return null if not property case
+  private fun tryParsePropertyPath(parent: PsiElement, includeCurrent: Boolean): List<String>? {
+    if (parent.parent is DeclarativeQualified) {
+      val result = mutableListOf<String>()
+      val qualified = parent.parent as DeclarativeQualified
+      if (includeCurrent) qualified.identifier.name?.let { result.add(it) }
+      var current = qualified.getReceiver()
+      while (current != null) {
+        current.identifier.name?.let { result.add(it) }
+        current = current.getReceiver()
+      }
+      return result.reversed()
+    }
+    else
+      return null
   }
 }
 

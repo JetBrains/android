@@ -17,6 +17,22 @@
             }
         ],
         "properties": [
+            {
+                "type": "dataProperty",
+                "name": "layout",
+                "valueType": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.file",
+                        "simpleName": "ProjectLayout"
+                    }
+                },
+                "mode": {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                },
+                "hasDefaultValue": true
+            }
         ],
         "memberFunctions": [
             {
@@ -119,6 +135,22 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "layout",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.file",
+                            "simpleName": "ProjectLayout"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                }
             ],
             "memberFunctions": [
                 {
@@ -193,6 +225,244 @@
                         }
                     }
                 }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.file",
+            "simpleName": "ProjectLayout"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.file",
+                "simpleName": "ProjectLayout"
+            },
+            "javaTypeName": "org.gradle.api.file.ProjectLayout",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "projectDirectory",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.file",
+                            "simpleName": "Directory"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "settingsDirectory",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.file",
+                            "simpleName": "Directory"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                }
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.file",
+            "simpleName": "Directory"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.file",
+                "simpleName": "Directory"
+            },
+            "javaTypeName": "org.gradle.api.file.Directory",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.file",
+                    "simpleName": "FileSystemLocation"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.file",
+                            "simpleName": "Directory"
+                        }
+                    },
+                    "simpleName": "file",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "path",
+                            "privateType": {
+                                "type": "dataTypeRefType",
+                                "dataType": {
+                                    "type": "string"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.file",
+                                "simpleName": "RegularFile"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.file",
+                            "simpleName": "Directory"
+                        }
+                    },
+                    "simpleName": "dir",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "path",
+                            "privateType": {
+                                "type": "dataTypeRefType",
+                                "dataType": {
+                                    "type": "string"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.file",
+                                "simpleName": "Directory"
+                            }
+                        }
+                    }
+                }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.file",
+            "simpleName": "RegularFile"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.file",
+                "simpleName": "RegularFile"
+            },
+            "javaTypeName": "org.gradle.api.file.RegularFile",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.file",
+                    "simpleName": "FileSystemLocation"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.file",
+            "simpleName": "FileSystemLocation"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.file",
+                "simpleName": "FileSystemLocation"
+            },
+            "javaTypeName": "org.gradle.api.file.FileSystemLocation",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
             ],
             "constructors": [
             ]
