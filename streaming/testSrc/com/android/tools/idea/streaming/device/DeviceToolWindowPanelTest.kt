@@ -512,7 +512,7 @@ class DeviceToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    fakeUi.updateToolbars()
+    fakeUi.updateToolbarsIfNecessary()
     val image = fakeUi.render()
     val maxPercentDifferent = when {
       SystemInfo.isMac -> maxPercentDifferentMac

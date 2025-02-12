@@ -289,7 +289,7 @@ class FakeUi @JvmOverloads constructor(
   /** Updates toolbars if the [ActivityTracker.count] changed since the last toolbar update. */
   fun updateToolbarsIfNecessary() {
     if (ActivityTracker.getInstance().count > lastActivityTrackerCount) {
-      updateToolbars(root)
+      updateToolbars()
     }
   }
 

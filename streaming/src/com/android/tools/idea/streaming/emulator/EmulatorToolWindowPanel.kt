@@ -150,6 +150,7 @@ internal class EmulatorToolWindowPanel(
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
     }
+    ActivityTracker.getInstance().inc()
   }
 
   /**
