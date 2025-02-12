@@ -16,18 +16,23 @@
 package com.android.tools.idea.material.icons.download
 
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.testing.disposable
 import com.android.utils.SdkUtils
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
+import com.intellij.util.io.delete
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -36,6 +41,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 import java.io.File
+import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
@@ -46,123 +52,212 @@ import kotlin.test.assertEquals
 private const val HOST = "my.host.com"
 private const val PATTERN = "/s/i/{family}/{icon}/v{version}/{asset}"
 private const val NOT_EXECUTABLE_PREFIX = ")]}'\n"
-private const val OLD_METADATA_CONTENT =
-  ")]}'\n" +
-  "{\n" +
-  "  \"host\": \"$HOST\",\n" +
-  "  \"asset_url_pattern\": \"$PATTERN\",\n" +
-  "  \"families\": [\n" +
-  "    \"Style 1\"\n" +
-  "  ],\n" +
-  "  \"icons\": [\n" +
-  "    {\n" +
-  "      \"name\": \"my_icon_1\",\n" +
-  "      \"version\": 1,\n" +
-  "      \"unsupported_families\": [],\n" +
-  "      \"categories\": [],\n" +
-  "      \"tags\": []\n" +
-  "    },\n" +
-  "    {\n" +
-  "      \"name\": \"my_icon_2\",\n" +
-  "      \"version\": 1,\n" +
-  "      \"unsupported_families\": [],\n" +
-  "      \"categories\": [],\n" +
-  "      \"tags\": []\n" +
-  "    }\n" +
-  "  ]\n" +
-  "}"
-private const val NEW_METADATA_CONTENT =
-  ")]}'\n" +
-  "{\n" +
-  "  \"host\": \"$HOST\",\n" +
-  "  \"asset_url_pattern\": \"$PATTERN\",\n" +
-  "  \"families\": [\n" +
-  "    \"Style 1\"\n" +
-  "  ],\n" +
-  "  \"icons\": [\n" +
-  "    {\n" +
-  "      \"name\": \"my_icon_1\",\n" +
-  "      \"version\": 2,\n" +
-  "      \"unsupported_families\": [],\n" +
-  "      \"categories\": [],\n" +
-  "      \"tags\": [\n" +
-  "        \"plaît\",\n" +
-  "        \"respond\",\n" +
-  "        \"répondez\"\n" +
-  "      ]\n" +
-  "    }\n" +
-  "  ]\n" +
-  "}"
+private const val OLD_METADATA_CONTENT = """)]}'
+{
+  "host": "$HOST",
+  "asset_url_pattern": "$PATTERN",
+  "families": [
+    "Style 1"
+  ],
+  "icons": [
+    {
+      "name": "my_icon_1",
+      "version": 1,
+      "unsupported_families": [],
+      "categories": [],
+      "tags": []
+    },
+    {
+      "name": "my_icon_2",
+      "version": 1,
+      "unsupported_families": [],
+      "categories": [],
+      "tags": []
+    }
+  ]
+}
+"""
+private const val NEW_METADATA_CONTENT = """)]}'
+{
+  "host": "$HOST",
+  "asset_url_pattern": "$PATTERN",
+  "families": [
+    "Style 1"
+  ],
+  "icons": [
+    {
+      "name": "my_icon_1",
+      "version": 2,
+      "unsupported_families": [],
+      "categories": [],
+      "tags": [
+        "plaît",
+        "respond",
+        "répondez"
+      ]
+    }
+  ]
+}
+"""
 
-private const val OLD_VD = "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
+private const val OLD_VD =
+  "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
 private const val NEW_VD = "new"
 
-private const val ICON_DOWNLOAD_URL = "https://my.host.com/s/i/style1/my_icon_1/v2/24px.xml"
+data class FakeDownload(val url: String, val downloadPath: String, val destinationPath: String)
 
 class MaterialIconsUpdaterTest {
-
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var testDirectory: Path
   private lateinit var downloadDir: Path
   private lateinit var existingMetadataFile: File
+  private lateinit var iconsUrlProvider: MaterialIconsUrlProvider
+
+  /**
+   * Provides a mock [DownloadableFileService] that will respond to downloads from the given
+   * [iconDownloadUrl].
+   *
+   * The files map contains the relative path of the file and the contents to download.
+   */
+  private fun mockDownloadService(downloads: List<FakeDownload>) {
+    // Setup mocked DownloadFileService, this will write a 'downloaded' file to the 'Downloads'
+    // directory when called properly
+    val mockDownloadableFileService = Mockito.mock(DownloadableFileService::class.java)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(
+        DownloadableFileService::class.java,
+        mockDownloadableFileService,
+        projectRule.disposable,
+      )
+    val mockDownloader = Mockito.mock(FileDownloader::class.java)
+    val downloadDirAsFile = downloadDir.toFile()
+
+    downloads.forEach {
+      val descriptor =
+        DownloadableFileDescriptionImpl(
+          it.url,
+          FileUtil.toSystemDependentName(it.downloadPath),
+          "tmp",
+        )
+
+      whenever(
+          mockDownloadableFileService.createFileDescription(
+            it.url,
+            FileUtil.toSystemDependentName(it.destinationPath),
+          )
+        )
+        .thenReturn(descriptor)
+
+      // Mock the download call
+      whenever(mockDownloader.download(downloadDirAsFile)).thenAnswer {
+        // Write file with the new file contents to the 'downloads' directory
+        val downloadedFile =
+          downloadDir
+            .resolve(descriptor.defaultFileName)
+            .apply {
+              parent.createDirectories()
+              writeText(NEW_VD)
+            }
+            .toFile()
+        return@thenAnswer listOf(Pair(downloadedFile, descriptor))
+      }
+    }
+    whenever(
+        mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))
+      )
+      .thenReturn(mockDownloader)
+  }
 
   @Before
   fun setup() {
     testDirectory = createTempDirectory(javaClass.simpleName)
     downloadDir = testDirectory.resolve("downloads")
-    existingMetadataFile = downloadDir.resolve(METADATA_FILE_NAME).createParentDirectories().createFile().apply {
-      writeText(OLD_METADATA_CONTENT)
-    }.toFile()
-    // Setup 'Downloads' directory with the existing XML files of the `old` metadata
-    downloadDir.resolve("style1/my_icon_1").apply { createDirectories() }.resolve("my_icon_1.xml").writeText(OLD_VD)
-    downloadDir.resolve("style1/my_icon_2").apply { createDirectories() }.resolve("my_icon_2.xml").writeText(OLD_VD)
+    existingMetadataFile =
+      downloadDir
+        .resolve(METADATA_FILE_NAME)
+        .createParentDirectories()
+        .createFile()
+        .apply { writeText(OLD_METADATA_CONTENT) }
+        .toFile()
 
-    // Setup mocked DownloadFileService, this will write a 'downloaded' file to the 'Downloads' directory when called properly
-    val mockDownloadableFileService = projectRule.mockService(DownloadableFileService::class.java)
-    val fileDescription = DownloadableFileDescriptionImpl(
-      ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon_1/my_icon_1"), "tmp")
-    val mockDownloader = Mockito.mock(FileDownloader::class.java)
-    val downloadDirAsFile = downloadDir.toFile()
-    whenever(mockDownloader.download(downloadDirAsFile)).thenAnswer {
-      // Write file with the new file contents to the 'downloads' directory
-      val downloadedFile = downloadDir.resolve(fileDescription.defaultFileName).apply {
-        parent.createDirectories()
-        writeText(NEW_VD)
-      }.toFile()
-      return@thenAnswer listOf(Pair(downloadedFile, fileDescription))
-    }
-    whenever(mockDownloadableFileService.createFileDescription(
-      ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon_1/style1_my_icon_1_24.tmp"))).thenReturn(fileDescription)
-    whenever(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
+    downloadDir
+      .resolve("style1/my_unused_icon")
+      .apply { createDirectories() }
+      .resolve("style1_my_unused_icon_24.xml")
+      .writeText(OLD_VD)
+
+    // Setup 'Downloads' directory with the existing XML files of the `old` metadata
+    downloadDir
+      .resolve("style1/my_icon_1")
+      .apply { createDirectories() }
+      .resolve("style1_my_icon_1_24.xml")
+      .writeText(OLD_VD)
+    downloadDir
+      .resolve("style1/my_icon_2")
+      .apply { createDirectories() }
+      .resolve("style1_my_icon_2_24.xml")
+      .writeText(OLD_VD)
+
+    iconsUrlProvider =
+      object : MaterialIconsUrlProvider {
+        override fun getStyleUrl(style: String): URL? =
+          downloadDir.resolve(style.toDirFormat()).toUri().toURL()
+
+        override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? =
+          downloadDir
+            .resolve(style.toDirFormat())
+            .resolve(iconName)
+            .resolve(iconFileName)
+            .toUri()
+            .toURL()
+      }
   }
 
   @Test
   fun updateIcons() {
-    val existingIcon1 = downloadDir.resolve("style1/my_icon_1/my_icon_1.xml")
-    val existingIcon2 = downloadDir.resolve("style1/my_icon_2/my_icon_2.xml")
+    mockDownloadService(
+      listOf(
+        FakeDownload(
+          url = "https://my.host.com/s/i/style1/my_icon_1/v2/24px.xml",
+          downloadPath = "style1/my_icon_1/my_icon_1",
+          destinationPath = "style1/my_icon_1/style1_my_icon_1_24.tmp",
+        )
+      )
+    )
+    val unusedIcon = downloadDir.resolve("style1/my_unused_icon/style1_my_unused_icon_24.xml")
+    val existingIcon1 = downloadDir.resolve("style1/my_icon_1/style1_my_icon_1_24.xml")
+    val existingIcon2 = downloadDir.resolve("style1/my_icon_2/style1_my_icon_2_24.xml")
+    // Verify that all exist
+    assertEquals(OLD_VD, unusedIcon.readText())
     assertEquals(OLD_VD, existingIcon1.readText())
     assertEquals(OLD_VD, existingIcon2.readText())
 
     val loadExistingMetadata: () -> MaterialIconsMetadata = {
-      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile), thisLogger())
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow()
     }
 
-    val testDownloadedMetadataFile = testDirectory.resolve("downloaded_metadata.txt").apply { writeText(NEW_METADATA_CONTENT) }.toFile()
+    val testDownloadedMetadataFile =
+      testDirectory
+        .resolve("downloaded_metadata.txt")
+        .apply { writeText(NEW_METADATA_CONTENT) }
+        .toFile()
     val loadTestDownloadedMetadata: () -> MaterialIconsMetadata = {
-      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile), thisLogger())
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile)).getOrThrow()
     }
 
-    assertTrue(updateIconsAtDir(
-      existingMetadata = loadExistingMetadata(),
-      newMetadata = loadTestDownloadedMetadata(),
-      targetDir = downloadDir
-    ))
+    assertTrue(
+      updateIconsAtDir(
+        existingMetadata = loadExistingMetadata(),
+        newMetadata = loadTestDownloadedMetadata(),
+        targetDir = downloadDir,
+        iconsUrlProvider = iconsUrlProvider,
+      )
+    )
 
-    // Downloaded version of Icon 1 forces a specific file name and deletes the existing XML file
-    assertThat(existingIcon1).doesNotExist()
-    // Icon2 may still be in use, so it shouldn't be deleted yet, we just update the metadata file
+    // Unused icon should have been removed
+    assertThat(unusedIcon).doesNotExist()
+    assertThat(existingIcon1).exists()
     assertThat(existingIcon2).exists()
 
     // Icon directories should still exist
@@ -171,22 +266,57 @@ class MaterialIconsUpdaterTest {
 
     assertEquals(NEW_VD, existingIcon1.parent.resolve("style1_my_icon_1_24.xml").readText())
 
-    // The existing metadata file should reflect the new information, however it will be formatted differently, removing all whitespace
+    // The existing metadata file should reflect the new information, however it will be formatted
+    // differently, removing all whitespace
     // while keeping the not executable prefix
     val expectedMetadataContent = testDownloadedMetadataFile.readText().toExpectedJsonFormat()
     assertEquals(expectedMetadataContent, existingMetadataFile.readText())
 
     // Calling updateIconsAtDir again will remove any unused Icons from the current metadata.
     // Because the metadata is already up to date, updateIconsAtDir will return false.
-    assertFalse(updateIconsAtDir(
-      existingMetadata = loadExistingMetadata(),
-      newMetadata = loadTestDownloadedMetadata(),
-      targetDir = downloadDir
-    ))
+    assertFalse(
+      updateIconsAtDir(
+        existingMetadata = loadExistingMetadata(),
+        newMetadata = loadTestDownloadedMetadata(),
+        targetDir = downloadDir,
+        iconsUrlProvider = iconsUrlProvider,
+      )
+    )
 
     // Icon 2 should be deleted now, since it's not in use by the current metadata
     assertThat(existingIcon1.parent).exists()
     assertThat(existingIcon2.parent).doesNotExist()
+  }
+
+  @Test
+  fun reDownloadBrokenIcons() {
+    mockDownloadService(
+      listOf(
+        FakeDownload(
+          url = "https://my.host.com/s/i/style1/my_icon_1/v1/24px.xml",
+          downloadPath = "style1/my_icon_1/my_icon_1",
+          destinationPath = "style1/my_icon_1/style1_my_icon_1_24.tmp",
+        )
+      )
+    )
+    val existingIcon1 = downloadDir.resolve("style1/my_icon_1/style1_my_icon_1_24.xml")
+    val existingIcon2 = downloadDir.resolve("style1/my_icon_2/style1_my_icon_2_24.xml")
+
+    existingIcon1.delete()
+
+    assertTrue(
+      updateIconsAtDir(
+        existingMetadata =
+          MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
+        newMetadata =
+          MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
+        targetDir = downloadDir,
+        iconsUrlProvider = iconsUrlProvider,
+      )
+    )
+
+    assertThat(existingIcon1).exists()
+    assertThat(existingIcon2).exists()
   }
 
   private fun String.toExpectedJsonFormat(): String {

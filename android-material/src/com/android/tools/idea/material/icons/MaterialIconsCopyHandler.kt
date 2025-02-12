@@ -161,10 +161,13 @@ class MaterialIconsCopyHandler(
     val metadataTempFile = File(targetPath, METADATA_TEMP_FILE_NAME)
     if (metadataTempFile.exists() && !metadataTempFile.isDirectory) {
       LOG.info("Continuing icons copy")
-      val metadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(metadataTempFile), LOG)
-      metadata.icons.forEach {
-        metadataBuilder.addIconMetadata(it)
-      }
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(metadataTempFile))
+        .onSuccess { metadata ->
+          metadata.icons.forEach {
+            metadataBuilder.addIconMetadata(it)
+          }
+        }
+        .onFailure { t -> LOG.warn("Failed to parse metadata $metadataTempFile", t) }
     }
     return metadataBuilder
   }

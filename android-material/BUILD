@@ -23,6 +23,7 @@ iml_module(
     name = "intellij.android.android-material.tests",
     iml_files = ["intellij.android.android-material.tests.iml"],
     test_class = "com.android.tools.idea.MaterialTestSuite",
+    test_friends = ["//tools/adt/idea/android-material:intellij.android.android-material"],
     test_srcs = [
         "testResources",
         "testSrc",

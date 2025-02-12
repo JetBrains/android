@@ -16,6 +16,7 @@
 package com.android.tools.idea.material.icons.utils
 
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
@@ -85,8 +86,8 @@ object MaterialIconsUtils {
    * @see [MaterialIconsMetadata.writeAsJson]
    * @return The [MaterialIconsMetadata] parsed from the URL provided.
    */
-  fun getMetadata(url: URL): MaterialIconsMetadata {
-    return MaterialIconsMetadata.parse(url, LOG)
+  fun getMetadata(url: URL): Result<MaterialIconsMetadata> {
+    return MaterialIconsMetadata.parse(url)
   }
 
   /**
