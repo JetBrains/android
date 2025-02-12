@@ -478,20 +478,16 @@ public final class AdbService implements Disposable {
 
     @WorkerThread
     public void terminate() {
-      try {
-        LOG.info("Terminating ADB connection");
-
-        if (!AndroidDebugBridge.disconnectBridge(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
-          LOG.warn("ADB connection did not terminate within specified timeout");
-          throw new TimeoutException("ADB did not terminate within the specified timeout");
-        }
-
-        AndroidDebugBridge.terminate();
-        LOG.info("ADB connection successfully terminated");
+      LOG.info("Terminating ADB connection");
+      if (!AndroidDebugBridge.disconnectBridge(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+        LOG.warn("`ADB.disconnectBridge` did not complete within specified timeout. adb server may still be running");
       }
-      catch (TimeoutException e) {
-        LOG.warn("Timed out waiting for adb to terminate");
-      }
+
+      // Even though `AndroidDebugBridge.disconnectBridge` might have failed to stop Adb Server we
+      // still call `terminate` method as `AndroidDebugBridge` is now unusable and the caller should be
+      // able to call `AdbService.createBridge` in an attempt to recreate it.
+      AndroidDebugBridge.terminate();
+      LOG.info("ADB connection successfully terminated");
     }
 
     @WorkerThread
