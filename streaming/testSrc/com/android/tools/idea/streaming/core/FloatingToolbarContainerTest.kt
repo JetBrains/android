@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -127,7 +128,8 @@ class FloatingToolbarContainerTest {
   }
 
   private fun assertAppearance(goldenImageName: String) {
-    fakeUi.updateToolbars()
+    ActivityTracker.getInstance().inc()
+    fakeUi.updateToolbarsIfNecessary()
     val image = fakeUi.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
