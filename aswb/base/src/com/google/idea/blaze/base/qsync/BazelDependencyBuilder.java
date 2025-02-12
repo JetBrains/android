@@ -569,7 +569,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         readArtifactInfoProtoFile(CcCompilationInfo.newBuilder(), file).build());
   }
 
-  protected <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, ByteSource file)
+  @VisibleForTesting
+  public static <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, ByteSource file)
       throws BuildException {
     try (InputStream inputStream = file.openStream()) {
       TextFormat.Parser parser = TextFormat.Parser.newBuilder().build();
