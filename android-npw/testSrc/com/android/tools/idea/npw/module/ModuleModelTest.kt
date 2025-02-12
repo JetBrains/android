@@ -18,21 +18,26 @@ package com.android.tools.idea.npw.module
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
-import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class ModuleModelTest : AndroidGradleTestCase() {
+@RunWith(JUnit4::class)
+class ModuleModelTest {
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   private val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-
   private val multiTemplateRenderer: MultiTemplateRenderer
     get() = MultiTemplateRenderer { renderer ->
       object :
           Task.Modal(
-            project,
+            projectRule.project,
             AndroidBundle.message("android.compile.messages.generating.r.java.content.name"),
             false,
           ) {
@@ -41,23 +46,21 @@ class ModuleModelTest : AndroidGradleTestCase() {
           }
         }
         .queue()
-      projectSyncInvoker.syncProject(project)
+      projectSyncInvoker.syncProject(projectRule.project)
     }
 
+  @Test
   fun testInitFillsAllTheDataForLibraryModule() {
-    loadSimpleApplication()
-
-    val libraryModuleModel =
-      NewLibraryModuleModel(project, ":", projectSyncInvoker).apply {
-        packageName.set("com.google.lib")
-      }
-
-    multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
-
-    val module = myFixture.project.findModule("lib")
-    val modulesToCompile = arrayOf(module)
-
-    val invocationResult = invokeGradle(project) { it.compileJava(modulesToCompile) }
-    TestCase.assertTrue(invocationResult.isBuildSuccessful)
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION) {
+      val libraryModuleModel =
+        NewLibraryModuleModel(projectRule.project, ":", projectSyncInvoker).apply {
+          packageName.set("com.google.lib")
+        }
+      multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
+    }
+    projectRule.invokeTasks("compileDebugSources", ":lib:compileJava").apply {
+      buildError?.printStackTrace()
+      assertTrue(isBuildSuccessful)
+    }
   }
 }
