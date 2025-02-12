@@ -236,7 +236,10 @@ public class Emulator implements AutoCloseable {
     public final String path;
 
     private SystemImage(@NotNull String path) {
-      this.path = path;
+      // When running from IDE, we need to adjust the path of the artifact.
+      // Run "bazel cquery --output=files @system_image_android-31_default_x86_64//:*"
+      // to see the actual path.
+      this.path = TestUtils.runningFromBazel() ? path : "_main~_repo_rules~" + path;
     }
   }
 }
