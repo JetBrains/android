@@ -28,9 +28,8 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Objects;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -63,7 +62,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
 
     UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
       Object item = box.getSelectedItem();
-      if (item instanceof String && item.equals("Style 1")) {
+      if (Objects.requireNonNull(item).toString().equals("Style 1")) {
         // Select the "Style 2" style.
         box.setSelectedIndex(1);
       }
@@ -82,7 +81,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
 
     UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
       Object item = box.getSelectedItem();
-      if (item instanceof String && item.equals("All")) {
+      if (Objects.requireNonNull(item).toString().equals("All")) {
         // Select category: "Category3" which should only have 1 icon: 'my_icon_2.xml'.
         box.setSelectedIndex(3);
       }

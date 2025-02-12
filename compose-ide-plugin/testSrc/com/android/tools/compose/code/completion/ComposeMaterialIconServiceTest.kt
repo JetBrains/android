@@ -76,8 +76,8 @@ class ComposeMaterialIconServiceTest {
     val mockStyle1VdIcon: VdIcon = mock()
     val mockStyle1BufferedImage: BufferedImage = mock()
 
-    whenever(mockMaterialVdIcons.styles).thenReturn(arrayOf("style1"))
-    whenever(mockMaterialVdIcons.getAllIcons("style1")).thenReturn(arrayOf(mockStyle1VdIcon))
+    whenever(mockMaterialVdIcons.styles).thenReturn(listOf("style1"))
+    whenever(mockMaterialVdIcons.getAllIcons("style1")).thenReturn(listOf(mockStyle1VdIcon))
     whenever(mockStyle1VdIcon.name).thenReturn("mockStyle1VdIcon.xml")
     whenever(mockStyle1VdIcon.renderIcon(16, 16)).thenReturn(mockStyle1BufferedImage)
 
@@ -100,9 +100,9 @@ class ComposeMaterialIconServiceTest {
     val mockStyle1VdIcon: VdIcon = mock()
     val mockStyle1BufferedImage: BufferedImage = mock()
 
-    whenever(mockMaterialVdIconsBatch1.styles).thenReturn(arrayOf("style1", "style2"))
-    whenever(mockMaterialVdIconsBatch1.getAllIcons("style1")).thenReturn(arrayOf(mockStyle1VdIcon))
-    whenever(mockMaterialVdIconsBatch1.getAllIcons("style2")).thenReturn(arrayOf())
+    whenever(mockMaterialVdIconsBatch1.styles).thenReturn(listOf("style1", "style2"))
+    whenever(mockMaterialVdIconsBatch1.getAllIcons("style1")).thenReturn(listOf(mockStyle1VdIcon))
+    whenever(mockMaterialVdIconsBatch1.getAllIcons("style2")).thenReturn(listOf())
     whenever(mockStyle1VdIcon.name).thenReturn("mockStyle1VdIcon.xml")
     whenever(mockStyle1VdIcon.renderIcon(16, 16)).thenReturn(mockStyle1BufferedImage)
 
@@ -110,9 +110,9 @@ class ComposeMaterialIconServiceTest {
     val mockStyle2VdIcon: VdIcon = mock()
     val mockStyle2BufferedImage: BufferedImage = mock()
 
-    whenever(mockMaterialVdIconsBatch2.styles).thenReturn(arrayOf("style1", "style2"))
-    whenever(mockMaterialVdIconsBatch2.getAllIcons("style1")).thenReturn(arrayOf(mockStyle1VdIcon))
-    whenever(mockMaterialVdIconsBatch2.getAllIcons("style2")).thenReturn(arrayOf(mockStyle2VdIcon))
+    whenever(mockMaterialVdIconsBatch2.styles).thenReturn(listOf("style1", "style2"))
+    whenever(mockMaterialVdIconsBatch2.getAllIcons("style1")).thenReturn(listOf(mockStyle1VdIcon))
+    whenever(mockMaterialVdIconsBatch2.getAllIcons("style2")).thenReturn(listOf(mockStyle2VdIcon))
     whenever(mockStyle2VdIcon.name).thenReturn("mockStyle2VdIcon.xml")
     whenever(mockStyle2VdIcon.renderIcon(16, 16)).thenReturn(mockStyle2BufferedImage)
 

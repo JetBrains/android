@@ -118,7 +118,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
 
     private val iconMap: Map<String, Supplier<Icon?>> =
       materialVdIcons.styles
-        .flatMap { style -> materialVdIcons.getAllIcons(style).asList() }
+        .flatMap { style -> materialVdIcons.getAllIcons(style) }
         .associate { icon -> icon.name to Suppliers.memoize { icon.to16by16() } }
 
     fun getIcon(iconFileName: String): Icon? = iconMap[iconFileName]?.get()
