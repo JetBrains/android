@@ -1080,4 +1080,39 @@ public class RenderTaskTest {
     assertTrue(result.getLogger().hasErrors());
     assertEquals("Render error (<A HREF=\"\">Details</A>)", result.getLogger().getMessages().get(0).getHtml());
   }
+
+  @Test
+  public void testOverrideRenderSizeTriggersRemeasure() {
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/test.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      try {
+        // Initial render with default size
+        RenderResult initialResult = task.render().get();
+
+        // Get initial dimensions from the result
+        int initialWidth = initialResult.getRenderedImage().getWidth();
+        int initialHeight = initialResult.getRenderedImage().getHeight();
+
+        // Override the render size
+        int newWidth = initialWidth * 2; // Example: double the width
+        int newHeight = initialHeight / 2; // Example: halve the height
+        task.setOverrideRenderSize(newWidth, newHeight);
+
+        // Render again with overridden size
+        RenderResult overriddenResult = task.render().get();
+
+        // Check that the image dimensions match the overridden size
+        int overriddenWidth = overriddenResult.getRenderedImage().getWidth();
+        int overriddenHeight = overriddenResult.getRenderedImage().getHeight();
+        assertEquals(newWidth, overriddenWidth);
+        assertEquals(newHeight, overriddenHeight);
+      }
+      catch (InterruptedException | ExecutionException e) {
+        fail(e.getMessage()); // Fail the test if an exception occurs
+      }
+    });
+  }
 }

@@ -109,6 +109,11 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class RenderTask {
   /**
+   * Indicates whether the size of the hardware used for rendering has changed.
+   */
+  private boolean isSizeChanged = false;
+
+  /**
    * Listener that receives call before and after relevant {@link RenderTask} events.
    * This is <b>only for testing</b> and can only be set via a {@link TestOnly} method. This can be used
    * for test logging or to inject errors during a specific phase of the execution.
@@ -475,6 +480,10 @@ public class RenderTask {
   @NotNull
   public RenderTask setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
     myHardwareConfigHelper.setOverrideRenderSize(overrideRenderWidth, overrideRenderHeight);
+    if (myRenderSession != null) {
+      myRenderSession.updateHardwareConfiguration(myHardwareConfigHelper.getConfig());
+      isSizeChanged = true;
+    }
     return this;
   }
 
@@ -1179,9 +1188,10 @@ public class RenderTask {
   public CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
     // If a re-render is happening after changing the quality up, then we need to re-measure
-    // to avoid the rendered image to show things out of place.
-    boolean forceMeasure = myTargetQuality > myCurrentQuality;
+    // to avoid the rendered image to show things out of place. Also if size has changed, we need to re-measure.
+    boolean forceMeasure = myTargetQuality > myCurrentQuality || isSizeChanged;
     myCurrentQuality = myTargetQuality;
+    isSizeChanged = false;
     return renderInner(forceMeasure);
   }
 
