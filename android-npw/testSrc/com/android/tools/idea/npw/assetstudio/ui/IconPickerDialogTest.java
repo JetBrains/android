@@ -122,6 +122,44 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
     dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
+  public void testMaterialSymbolsStylesShowAtTheTop() {
+    IconPickerDialog dialog = getInitializedIconPickerDialog(
+      new IconPickerDialog(null, new TestUrlMetadataProvider(ICONS_PATH + "icons_metadata_with_material_symbols_test.txt"), new TestUrlLoaderProvider())
+    );
+
+    JComboBox<?> stylesBox = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JComboBox.class)
+      .stream()
+      .filter((box) -> "Styles".equals(box.getName()))
+      .findFirst()
+      .orElseThrow();
+
+    WaitFor wait = new WaitFor(3000) {
+      @Override
+      protected boolean condition() {
+        return stylesBox.getModel().getSize() == 4;
+      }
+    };
+    assertTrue("Styles were not correctly populated", wait.isConditionRealized());
+
+    StringBuilder stylesString = new StringBuilder();
+    for (int i = 0; i < stylesBox.getModel().getSize(); i++) {
+      stylesString.append(stylesBox.getModel().getElementAt(i)).append("\n");
+    }
+
+    assertEquals(
+      """
+      Material Symbols Style 1
+      Material Symbols Style 2
+      Style 1
+      Style 2
+      """,
+      stylesString.toString()
+    );
+
+
+    dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
   @NotNull
   public static String tableToString(@NotNull JTable table) {
     return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 20);

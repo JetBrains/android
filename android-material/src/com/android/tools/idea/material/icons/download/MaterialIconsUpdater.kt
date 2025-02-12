@@ -243,9 +243,9 @@ private fun getIconsUpdateData(
       commonIcons.filter { icon ->
         if (icon.unsupportedFamilies.contains(family)) return@filter false // This is not broken since it's not supported by this family
         val expectedFileName = getIconFileNameWithoutExtension(iconName = icon.name, styleName = family) + SdkConstants.DOT_XML
-        val iconPath = iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.path ?: return@filter false
+        val uri = iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.toURI() ?: return@filter false
 
-        !Path.of(iconPath).exists()
+        !Path.of(uri).exists()
       }.asSequence()
   }
 

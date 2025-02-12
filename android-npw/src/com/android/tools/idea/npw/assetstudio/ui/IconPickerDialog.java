@@ -263,7 +263,9 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
 
     myIconTable.getEmptyText().setText("Loading icons...");
     myStylesBox.setVisible(false);
+    myStylesBox.setName("Styles");
     myCategoriesBox.setVisible(false);
+    myCategoriesBox.setName("Categories");
     ItemListener stylesBoxListener = e -> {
       if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
         return;
@@ -397,7 +399,11 @@ false);
 
   private void setStylesBoxModel() {
     Style[] stylesArray = myIcons.getStyles().stream()
-      .sorted()
+      .sorted(
+        Comparator
+          // Promote Material Symbols to the top of the list
+          .<String>comparingInt((style) -> style.startsWith("Material Symbols") ? -1 : 0)
+          .thenComparing(Object::toString))
       .map(Style::new)
       .toArray(Style[]::new);
     myStylesBox.setModel(new DefaultComboBoxModel<>(stylesArray));
@@ -412,6 +418,7 @@ false);
   private void setCategoriesBoxModel(int styleIndex) {
     Style style = styleIndex < myStylesBox.getItemCount() ? myStylesBox.getModel().getElementAt(styleIndex) : Style.EMPTY;
     ArrayList<Category> categoriesArray = myIcons.getCategories(style.myName).stream()
+      .sorted()
       .map(Category::new)
       .collect(Collectors.toCollection(ArrayList::new));
 
