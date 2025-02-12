@@ -94,12 +94,10 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   }
 
   /**
-   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the
-   *
-   * @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation entry,
-   *   including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also show
-   *   the
-   * @Preview picker option.
+   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for
+   * the @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation
+   * entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also
+   * show the @Preview picker option.
    */
   private fun createInfo(
     element: PsiElement,
