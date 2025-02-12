@@ -127,6 +127,7 @@ GRADLE_7_2 = "7.2"
 GRADLE_7_0_2 = "7.0.2"
 GRADLE_6_7_1 = "6.7.1"
 GRADLE_6_5 = "6.5"
+GRADLE_6_1_1 = "6.1.1"
 GRADLE_5_5 = "5.5"
 GRADLE_5_3_1 = "5.3.1"
 
@@ -141,6 +142,7 @@ GRADLE_DISTRIBUTIONS = {
     GRADLE_7_0_2: ["//tools/base/build-system:gradle-distrib-7.0.2"],
     GRADLE_6_7_1: ["//tools/base/build-system:gradle-distrib-6.7.1"],
     GRADLE_6_5: ["//tools/base/build-system:gradle-distrib-6.5"],
+    GRADLE_6_1_1: ["//tools/base/build-system:gradle-distrib-6.1.1"],
     GRADLE_5_5: ["//tools/base/build-system:gradle-distrib-5.5"],
     GRADLE_5_3_1: ["//tools/base/build-system:gradle-distrib-5.3.1"],
 }

@@ -26,7 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
-@OldAgpTest(agpVersions = ["4.0.0"], gradleVersions = ["6.7.1"])
+@OldAgpTest(agpVersions = ["4.0.0"], gradleVersions = ["6.1.1"])
 class MakeBeforeRunTaskProviderIntegrationOldAgpTest {
 
   @get:Rule
