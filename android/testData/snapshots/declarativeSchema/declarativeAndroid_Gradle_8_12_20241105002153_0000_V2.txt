@@ -159,6 +159,10 @@ Projects:
             com.android.build.api.dsl.ApplicationExtension
                 Name                          : com.android.build.api.dsl.ApplicationExtension
                 MemberFunctions
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationExtension
                       Parameters
@@ -292,6 +296,15 @@ Projects:
                     - PropertyName                  : isMinifyEnabled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware
+            com.android.build.api.dsl.Bundle
+                Name                          : com.android.build.api.dsl.Bundle
+                MemberFunctions
+                Properties
+                    - PropertyName                  : deviceTargetingConfig
+                      Property ReferenceType        : org.gradle.api.file.RegularFileProperty
+                    - PropertyName                  : integrityConfigDir
+                      Property ReferenceType        : org.gradle.api.file.DirectoryProperty
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.CommonExtension
                 Name                          : com.android.build.api.dsl.CommonExtension
                 MemberFunctions
@@ -1016,6 +1029,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -1061,6 +1078,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -1120,6 +1141,10 @@ Projects:
             com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 MemberFunctions
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
@@ -2437,6 +2462,10 @@ Settings:
             com.android.build.api.dsl.ApplicationExtension
                 Name                          : com.android.build.api.dsl.ApplicationExtension
                 MemberFunctions
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationExtension
                       Parameters
@@ -2570,6 +2599,15 @@ Settings:
                     - PropertyName                  : isMinifyEnabled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware
+            com.android.build.api.dsl.Bundle
+                Name                          : com.android.build.api.dsl.Bundle
+                MemberFunctions
+                Properties
+                    - PropertyName                  : deviceTargetingConfig
+                      Property ReferenceType        : org.gradle.api.file.RegularFileProperty
+                    - PropertyName                  : integrityConfigDir
+                      Property ReferenceType        : org.gradle.api.file.DirectoryProperty
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.CommonExtension
                 Name                          : com.android.build.api.dsl.CommonExtension
                 MemberFunctions
@@ -3294,6 +3332,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -3339,6 +3381,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_BuildType
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -3398,6 +3444,10 @@ Settings:
             com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                 MemberFunctions
+                    - FunctionName                  : bundle
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.Bundle
                     - FunctionName                  : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
