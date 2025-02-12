@@ -209,10 +209,8 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   @Test
   fun checkCorrectSettingsSyntax(){
     val file = fixture.addFileToProject("settings.gradle.dcl",
-                                        """
-      rootProject {
-         name = "nowinandroid"
-      }
+    """
+      rootProject.name = "nowinandroid"
 
       enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
       include(":app")
@@ -321,6 +319,34 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun layoutPositiveTest() {
+    val file = addDeclarativeBuildFile("""
+       androidApp {
+        bundle {
+          deviceTargetingConfig = layout.projectDirectory.file("myfile")
+        }
+      }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun layoutNegativeTest() {
+    val file = addDeclarativeBuildFile("""
+       androidApp {
+        bundle {
+          deviceTargetingConfig = ${"Layout" highlightedAs HighlightSeverity.ERROR }.${"projectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
+          deviceTargetingConfig = layout.${"ProjectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
+          deviceTargetingConfig = layout.projectDirectory.${"File" highlightedAs HighlightSeverity.ERROR }("myfile")
+        }
+      }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
 

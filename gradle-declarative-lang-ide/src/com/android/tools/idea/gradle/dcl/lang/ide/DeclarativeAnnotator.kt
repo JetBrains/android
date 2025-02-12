@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
@@ -56,10 +57,12 @@ class DeclarativeAnnotator : Annotator {
       val path = getPath(element)
       val result = mutableListOf<SearchResult>()
       result.addAll(searchForType(path, schema, element.containingFile.name))
-      if (element.parent is DeclarativeFactoryReceiver) {
+      // for anything with receiver - need to check if it comes from root object
+      val parent = element.parent
+      if (parent is DeclarativeReceiverPrefixed<*>) {
         // search for plain function like uri, file etc
         element.name?.let {
-          result.addAll(searchForType(listOf(it), schema, element.containingFile.name))
+          result.addAll(searchForType(getReceiversPath(parent), schema, element.containingFile.name))
           // also check direct parent if it has function like dependenciesDcl.project
           findParentBlock(element)?.let { parentBlock ->
             result.addAll(searchForType(getPath(parentBlock.identifier) + it, schema, element.containingFile.name))
@@ -107,8 +110,6 @@ class DeclarativeAnnotator : Annotator {
   }
 
   sealed class SearchResult {
-    // TODO make it dynamic in future by requesting this from schema
-    private var producerFunctionAvailable = listOf("java.net.URI")
     fun toElementType(): ElementType {
       return when (this) {
         is FoundFunction -> when (type.semantic) {
@@ -116,22 +117,21 @@ class DeclarativeAnnotator : Annotator {
           is BlockFunction -> if (type.parameters.isNotEmpty()) ElementType.FACTORY_BLOCK else ElementType.BLOCK
         }
 
-        is FoundClass ->
-          if (producerFunctionAvailable.contains(type.name.name))
-            ElementType.FACTORY_VALUE
-          else
+        is FoundBlock ->
             ElementType.BLOCK
 
-        is FoundProperty -> getSimpleType(type)
+        is FoundObjectProperty -> ElementType.OBJECT_VALUE
+        is FoundSimpleProperty -> getSimpleType(type)
         is FoundEnum -> ElementType.ENUM
       }
     }
   }
 
-  data class FoundClass(val type: ClassModel) : SearchResult()
+  data class FoundBlock(val type: ClassModel) : SearchResult()
   data class FoundEnum(val type: EnumModel) : SearchResult()
   data class FoundFunction(val type: SchemaFunction) : SearchResult()
-  data class FoundProperty(val type: SimpleDataType) : SearchResult()
+  data class FoundSimpleProperty(val type: SimpleDataType) : SearchResult()
+  data class FoundObjectProperty(val type: ClassModel) : SearchResult()
 
   private fun searchForType(path: List<String>, schema: BuildDeclarativeSchemas, fileName: String): List<SearchResult> {
     if (path.isEmpty()) return listOf()
@@ -153,13 +153,13 @@ class DeclarativeAnnotator : Annotator {
           is DataClassRef -> receiver.resolveRef(type.fqName)?.let {
             listOf(
               when (it) {
-                is ClassModel -> FoundClass(it)
+                is ClassModel -> FoundObjectProperty(it)
                 is EnumModel -> FoundEnum(it)
               }
             )
           } ?: listOf()
 
-          is SimpleTypeRef -> listOf(FoundProperty(type.dataType))
+          is SimpleTypeRef -> listOf(FoundSimpleProperty(type.dataType))
         }
       }
     }
@@ -185,6 +185,8 @@ class DeclarativeAnnotator : Annotator {
       when (current) {
         is DeclarativeArgumentsList -> current = skip<DeclarativeAbstractFactory>(current)
         is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
+        is DeclarativePropertyReceiver -> current = parseReceiver<DeclarativePropertyReceiver>(current, result).parent
+
         is DeclarativeFactoryReceiver ->
           current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
 
@@ -194,6 +196,17 @@ class DeclarativeAnnotator : Annotator {
         }
       }
     }
+    return result.reversed()
+  }
+
+  private fun getReceiversPath(element: DeclarativeReceiverPrefixed<*>): List<String> {
+    val result = mutableListOf<String>()
+    var current: DeclarativeReceiverPrefixed<*>? = element
+    do {
+      current?.identifier?.name?.let { result.add(it) }
+      current = current?.getReceiver()
+    }
+    while (current != null)
     return result.reversed()
   }
 

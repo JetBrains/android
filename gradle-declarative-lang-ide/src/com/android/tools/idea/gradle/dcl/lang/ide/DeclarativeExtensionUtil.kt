@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
-import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_VALUE
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.STRING
@@ -51,7 +51,7 @@ enum class ElementType(val str: String) {
   ENUM("Enum"),
   BLOCK("Block element"),
   FACTORY_BLOCK("Factory block"),
-  FACTORY_VALUE("Factory value"),
+  OBJECT_VALUE("Factory value"),
   FACTORY("Factory"),
   PROPERTY("Property"),
   ENUM_CONSTANT("Enum Constant")
@@ -64,7 +64,7 @@ fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve:
         if (rootFunction
             .map { it.returnValue }
             .filterIsInstance<DataClassRef>()
-            .any { it.fqName == type.fqName }) FACTORY_VALUE
+            .any { it.fqName == type.fqName }) OBJECT_VALUE
         else ElementType.PROPERTY
 
       is EnumModel -> ENUM
@@ -117,7 +117,7 @@ fun PsiElement.getElementType(): ElementType? = when (this) {
           else -> ENUM
         }
 
-      is DeclarativeAbstractFactory -> FACTORY_VALUE
+      is DeclarativeAbstractFactory -> OBJECT_VALUE
       else -> null
     }
 
