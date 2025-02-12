@@ -26,6 +26,7 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.utils.editor.saveToDisk
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertNotEquals
 import org.mockito.kotlin.whenever
 
 class LayoutlibSceneManagerTest : SceneTest() {
@@ -128,6 +129,33 @@ class LayoutlibSceneManagerTest : SceneTest() {
       assertEquals(768, it.rootViewDimensions.width)
       assertEquals(1280, it.rootViewDimensions.height)
     }
+  }
+
+  fun testRequestRenderWithNewSize() = runBlocking {
+    val surface = myScene.designSurface as NlDesignSurface
+    whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    myLayoutlibSceneManager.updateSceneViews()
+
+    myLayoutlibSceneManager.requestRenderAndWait()
+
+    val initialResult = myLayoutlibSceneManager.renderResult!!
+    val initialWidth = initialResult.rootViewDimensions.width
+    val initialHeight = initialResult.rootViewDimensions.height
+
+    val newWidthDp = 200
+    val newHeightDp = 300
+
+    myLayoutlibSceneManager.requestRenderWithNewSize(newWidthDp, newHeightDp)
+
+    // to ensure rendering is done
+    myLayoutlibSceneManager.requestRenderAndWait()
+    val result = myLayoutlibSceneManager.renderResult!!
+
+    assertNotEquals(initialWidth, result.rootViewDimensions.width)
+    assertNotEquals(initialHeight, result.rootViewDimensions.height)
+
+    assertEquals(newWidthDp, result.rootViewDimensions.width)
+    assertEquals(newHeightDp, result.rootViewDimensions.height)
   }
 
   override fun createModel(): ModelBuilder {

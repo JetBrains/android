@@ -305,6 +305,11 @@ open class LayoutlibSceneManager(
     layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRender(getRenderTrigger())
   }
 
+  fun requestRenderWithNewSize(overrideWidth: Int, overrideHeight: Int) {
+    layoutlibSceneRenderer.renderTask?.setOverrideRenderSize(overrideWidth, overrideHeight)
+    requestRender()
+  }
+
   /** Adds a new render request to the queue and wait for it to finish. */
   @RequiresBackgroundThread
   override suspend fun requestRenderAndWait() {
