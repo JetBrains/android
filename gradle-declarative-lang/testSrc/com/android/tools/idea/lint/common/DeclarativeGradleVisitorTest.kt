@@ -134,6 +134,18 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testLayout() {
+    check(
+      """
+       deviceTargetingConfig = layout.projectDirectory.file("myfile")
+      """,
+      """
+      checkDslPropertyAssignment(property="deviceTargetingConfig", value="layout.projectDirectory.file("myfile")", parent="")
+      checkMethodCall(statement="file", unnamedArguments=""myfile"")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("Declarative") gradleSource: String, expected: String) {

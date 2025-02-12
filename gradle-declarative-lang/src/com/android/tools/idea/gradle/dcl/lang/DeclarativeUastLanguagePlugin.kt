@@ -267,6 +267,8 @@ fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpressio
     is DeclarativeReceiverBasedFactory<*> -> DeclarativeUFactory(this) { uastParent }
     is DeclarativeProperty -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
+    is DeclarativePropertyReceiver -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
+      this.field, uastParent)
     else -> error("Unexpected DeclarativeValue: $this")
   }
 
