@@ -38,7 +38,6 @@ private const val FILE_COUNT_LIMIT = 10
  * - Writing content to a file.
  * - Reading the content of a file by its name.
  * - Deleting files.
- * - Checking for file existence.
  * - Retrieving the latest file metadata.
  * - Enforcing a limit on the number of files with the same name.
  */
@@ -108,16 +107,6 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
    */
   fun delete(filePath: String) {
     getAllFileIds(filePath).forEach { deleteByFileId(it) }
-  }
-
-  /**
-   * Checks if a file with the given name exists on Google Drive.
-   *
-   * This function determines if a file with a name matching the provided file path exists on Google
-   * Drive.
-   */
-  fun checkExists(filePath: String): Boolean {
-    return getLatestUpdatedFileMetadata(filePath) != null
   }
 
   /**
