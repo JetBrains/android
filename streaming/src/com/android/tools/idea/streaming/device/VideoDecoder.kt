@@ -597,7 +597,7 @@ internal class VideoDecoder(
     override fun toString(): String {
       return "PacketHeader(" +
              "displayId=$displayId, " +
-             "displaySize=$displaySize, " +
+             "displaySize=${displaySize.width}x${displaySize.height}, " +
              "displayOrientation=$displayOrientation, " +
              "displayOrientationCorrection=$displayOrientationCorrection, " +
              "flags=$flags, " +
