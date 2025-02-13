@@ -77,14 +77,6 @@ object ForegroundProcessDetectionInitializer {
 
     return ForegroundProcessListener { device, foregroundProcess, isDebuggable ->
       synchronized(lock) {
-        // There could be multiple projects open. Project1 with device1 selected, Project2 with
-        // device2 selected.
-        // Because every event from the Transport is dispatched to every open project,
-        // both Project1 and Project2 are going to receive events from device1 and device2.
-        if (device != deviceModel.selectedDevice) {
-          return@ForegroundProcessListener
-        }
-
         if (isDebuggable) {
           missingForegroundProcess = null
           logger.info(

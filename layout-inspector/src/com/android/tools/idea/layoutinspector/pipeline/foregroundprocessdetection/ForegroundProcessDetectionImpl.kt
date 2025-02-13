@@ -43,6 +43,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import layout_inspector.LayoutInspector
@@ -292,6 +293,12 @@ class ForegroundProcessDetectionImpl(
                     startTime = { currentTime },
                   )
                 )
+                // There can be multiple projects or devices open, which can lead to race
+                // conditions. For example, in the case of projects: Project1 with device1 selected,
+                // Project2 with device2 selected.
+                // Because every event from the Transport is dispatched to every open project,
+                // both Project1 and Project2 are going to receive events from device1 and device2.
+                .filter { activity -> streamDevice == deviceModel.selectedDevice }
                 .collect { streamEvent ->
                   val foregroundProcess = streamEvent.toForegroundProcess()
                   if (foregroundProcess != null) {

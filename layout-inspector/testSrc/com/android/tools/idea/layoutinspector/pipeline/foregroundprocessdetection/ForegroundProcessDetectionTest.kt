@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -957,6 +958,52 @@ class ForegroundProcessDetectionTest {
 
     foregroundProcessDetection.stopPollingSelectedDevice()
     stopTrackingSyncChannel.receive()
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun testProcessFromUnselectedDeviceIsIgnored(): Unit = runBlocking {
+    val processDiscovery = TestProcessDiscovery()
+    val (deviceModel, processModel) = createDeviceModel(listOf(device1), processDiscovery)
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.disposable,
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        streamManagerRule.streamManager,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L,
+      )
+    foregroundProcessDetection.start()
+
+    val foregroundProcessSyncChannel = Channel<Pair<NewForegroundProcess, Boolean>>()
+    foregroundProcessDetection.addForegroundProcessListener {
+      device,
+      foregroundProcess,
+      isDebuggable ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(
+          NewForegroundProcess(device, foregroundProcess) to isDebuggable
+        )
+      }
+    }
+
+    connectDevice(device1)
+    handshakeSyncChannel.receive()
+    startTrackingSyncChannel.receive()
+
+    connectDevice(device2)
+    handshakeSyncChannel.receive()
+
+    processDiscovery.fireConnected(device1.toDeviceDescriptor().createProcess("process1", 1))
+    sendForegroundProcessEvent(device2, ForegroundProcess(1, "process1"))
+    assertThat(foregroundProcessSyncChannel.isEmpty).isTrue()
   }
 
   @Test
