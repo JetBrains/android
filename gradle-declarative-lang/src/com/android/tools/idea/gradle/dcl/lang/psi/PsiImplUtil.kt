@@ -86,16 +86,8 @@ class PsiImplUtil {
        PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
 
     @JvmStatic
-    fun getArgumentsList(factory: DeclarativeFactoryPropertyReceiver): DeclarativeArgumentsList? =
-      factory.propertySimpleFactory.argumentsList
-
-    @JvmStatic
     fun getIdentifier(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeIdentifier =
       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
-
-    @JvmStatic
-    fun getIdentifier(receiver: DeclarativeFactoryPropertyReceiver): DeclarativeIdentifier =
-      receiver.propertySimpleFactory.identifier
 
     @JvmStatic
     fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()

@@ -45,33 +45,27 @@ public class DeclarativeFactoryPropertyReceiverImpl extends DeclarativeFactoryMi
   }
 
   @Override
+  @Nullable
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
+  }
+
+  @Override
+  @NotNull
+  public DeclarativeIdentifier getIdentifier() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+  }
+
+  @Override
   @NotNull
   public DeclarativePropertyReceiver getPropertyReceiver() {
     return PsiTreeUtil.getChildOfType(this, DeclarativePropertyReceiver.class);
   }
 
   @Override
-  @NotNull
-  public DeclarativePropertySimpleFactory getPropertySimpleFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativePropertySimpleFactory.class);
-  }
-
-  @Override
   @Nullable
   public DeclarativePropertyReceiver getReceiver() {
     return PsiImplUtil.getReceiver(this);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeArgumentsList getArgumentsList() {
-    return PsiImplUtil.getArgumentsList(this);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiImplUtil.getIdentifier(this);
   }
 
 }

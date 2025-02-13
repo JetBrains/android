@@ -60,7 +60,7 @@
     double_literal
   ]
 
-  implements("assignment|block|factory_property_receiver|factory_receiver|property_simple_factory")=[
+  implements("assignment|block|factory_property_receiver|factory_receiver")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry"
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner"
   ]
@@ -72,7 +72,7 @@
   implements("property|literal")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
-  implements("property_simple_factory|embedded_factory")=[
+  implements("embedded_factory")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
   ]
   implements("property|assignable_property")=[
@@ -163,12 +163,9 @@ embedded_factory ::= private_factory { // part of block - cannot be independent
 
 private factory ::=  factory_receiver | factory_property_receiver
 
-factory_property_receiver ::= property_receiver OP_DOT property_simple_factory {
+factory_property_receiver ::= property_receiver OP_DOT private_factory {
   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
-  methods=[getReceiver getArgumentsList getIdentifier]
-}
-property_simple_factory ::= private_factory {
-  mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+  methods=[getReceiver]
 }
 
 property_receiver ::= qualified_receiver | bare_receiver {methods=[getField getReceiver]}

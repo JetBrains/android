@@ -43,7 +43,6 @@ public interface DeclarativeElementTypeHolder {
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
-  IElementType PROPERTY_SIMPLE_FACTORY = new DeclarativeElementType("PROPERTY_SIMPLE_FACTORY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
   IElementType QUALIFIED_RECEIVER = new DeclarativeElementType("QUALIFIED_RECEIVER");
   IElementType RECEIVER_PREFIXED_FACTORY = new DeclarativeElementType("RECEIVER_PREFIXED_FACTORY");
@@ -110,9 +109,6 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == LITERAL) {
         return new DeclarativeLiteralImpl(type);
-      }
-      else if (type == PROPERTY_SIMPLE_FACTORY) {
-        return new DeclarativePropertySimpleFactoryImpl(type);
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);

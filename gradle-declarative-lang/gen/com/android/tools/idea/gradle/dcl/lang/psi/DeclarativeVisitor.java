@@ -105,12 +105,6 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     // visitValueFieldOwner(o);
   }
 
-  public void visitPropertySimpleFactory(@NotNull DeclarativePropertySimpleFactory o) {
-    visitEntry(o);
-    // visitIdentifierOwner(o);
-    // visitAbstractFactory(o);
-  }
-
   public void visitQualified(@NotNull DeclarativeQualified o) {
     visitProperty(o);
   }

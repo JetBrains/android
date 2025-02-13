@@ -23,19 +23,16 @@ import com.intellij.psi.PsiElement;
 
 public interface DeclarativeFactoryPropertyReceiver extends DeclarativeEntry, DeclarativeIdentifierOwner, DeclarativeReceiverBasedFactory<DeclarativePropertyReceiver> {
 
-  @NotNull
-  DeclarativePropertyReceiver getPropertyReceiver();
-
-  @NotNull
-  DeclarativePropertySimpleFactory getPropertySimpleFactory();
-
-  @Nullable
-  DeclarativePropertyReceiver getReceiver();
-
   @Nullable
   DeclarativeArgumentsList getArgumentsList();
 
   @NotNull
   DeclarativeIdentifier getIdentifier();
+
+  @NotNull
+  DeclarativePropertyReceiver getPropertyReceiver();
+
+  @Nullable
+  DeclarativePropertyReceiver getReceiver();
 
 }
