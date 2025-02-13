@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.util.io.URLUtil;
 import java.io.File;
@@ -103,7 +102,7 @@ public final class BuildEventProtocolOutputReader {
       @Nullable Kind kind,
       BuildEventStreamProtos.TestResult testResult,
       long startTimeMillis) {
-    ImmutableSet<BlazeArtifact> files =
+    ImmutableSet<OutputArtifact> files =
         testResult.getTestActionOutputList().stream()
             .map(
                 file ->
@@ -123,7 +122,7 @@ public final class BuildEventProtocolOutputReader {
   }
 
   @Nullable
-  private static BlazeArtifact parseTestFile(
+  private static OutputArtifact parseTestFile(
       BuildEventStreamProtos.File file,
       Predicate<String> fileFilter,
       long startTimeMillis) {
