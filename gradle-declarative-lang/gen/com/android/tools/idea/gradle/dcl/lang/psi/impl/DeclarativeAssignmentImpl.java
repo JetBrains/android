@@ -74,4 +74,10 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
     return PsiImplUtil.getIdentifier(this);
   }
 
+  @Override
+  @NotNull
+  public AssignmentType getAssignmentType() {
+    return PsiImplUtil.getAssignmentType(this);
+  }
+
 }

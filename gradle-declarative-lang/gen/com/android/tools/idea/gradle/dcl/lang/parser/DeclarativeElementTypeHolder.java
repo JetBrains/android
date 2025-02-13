@@ -62,6 +62,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType OP_EQ = new DeclarativeTokenType("=");
   IElementType OP_LBRACE = new DeclarativeTokenType("{");
   IElementType OP_LPAREN = new DeclarativeTokenType("(");
+  IElementType OP_PLUS_EQ = new DeclarativeTokenType("+=");
   IElementType OP_RBRACE = new DeclarativeTokenType("}");
   IElementType OP_RPAREN = new DeclarativeTokenType(")");
   IElementType SEMI = new DeclarativeTokenType(";");

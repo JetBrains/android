@@ -132,18 +132,27 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // lvalue OP_EQ rvalue
+  // lvalue (OP_EQ | OP_PLUS_EQ) rvalue
   public static boolean assignment(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "assignment")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, ASSIGNMENT, null);
     r = lvalue(b, l + 1);
-    r = r && consumeToken(b, OP_EQ);
+    r = r && assignment_1(b, l + 1);
     p = r; // pin = 2
     r = r && rvalue(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  // OP_EQ | OP_PLUS_EQ
+  private static boolean assignment_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignment_1")) return false;
+    boolean r;
+    r = consumeToken(b, OP_EQ);
+    if (!r) r = consumeToken(b, OP_PLUS_EQ);
+    return r;
   }
 
   /* ********************************************************** */

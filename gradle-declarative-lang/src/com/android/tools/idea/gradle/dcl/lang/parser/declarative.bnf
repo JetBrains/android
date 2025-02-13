@@ -36,6 +36,7 @@
     // list of tokens so that the DeclarativeElementTypeHolder has all necessary fields generated (corresponding
     // to these token names).
     OP_EQ = "="
+    OP_PLUS_EQ = "+="
     OP_DOT = "."
     OP_LBRACE = "{"
     OP_RBRACE = "}"
@@ -98,11 +99,12 @@ entries ::= one_line_entries*
 private one_line_entries::=<<atNewLine (entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?)>>
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
 private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN|SEMI)
-assignment ::= lvalue OP_EQ rvalue {
+assignment ::= lvalue (OP_EQ | OP_PLUS_EQ) rvalue {
    pin=2
    methods=[
       getValue
       getIdentifier
+      getAssignmentType
       factory_receiver=""
       factory_property_receiver=""
    ]

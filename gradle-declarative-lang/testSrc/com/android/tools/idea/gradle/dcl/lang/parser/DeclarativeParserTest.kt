@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
@@ -26,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 
 class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativeParserDefinition()) {
 
@@ -48,6 +50,20 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
 
   fun testAssignment() {
     doTest(true, true)
+    val entries = getDeclarativeEntries()
+
+    assertThat(entries).hasSize(2)
+    assertThat(entries[0]).isInstanceOf(DeclarativeAssignment::class.java)
+    assertThat((entries[0] as DeclarativeAssignment).assignmentType).isEqualTo(AssignmentType.ASSIGNMENT)
+  }
+
+  fun testAppend() {
+    doTest(true, true)
+    val entries = getDeclarativeEntries()
+
+    assertThat(entries).hasSize(2)
+    assertThat(entries[0]).isInstanceOf(DeclarativeAssignment::class.java)
+    assertThat((entries[0] as DeclarativeAssignment).assignmentType).isEqualTo(AssignmentType.APPEND)
   }
 
   fun testBlock() {
@@ -164,9 +180,7 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
 
   fun testPropertyDotNewlineFunction() {
     doTest(true, false)
-    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
-    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
-    val entries = (psiFile as DeclarativeFile).getEntries()
+    val entries = getDeclarativeEntries()
     assertThat(entries).hasSize(1)
 
     assertThat(entries[0]).isInstanceOf(DeclarativeAbstractFactory::class.java)
@@ -183,9 +197,7 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
   fun testEscapedAndSingleQuote() {
     doTest(true, true)
 
-    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
-    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
-    val entries = (psiFile as DeclarativeFile).getEntries()
+    val entries = getDeclarativeEntries()
 
     assertThat(entries).hasSize(1)
     assertThat(entries[0]).isInstanceOf(DeclarativeBlock::class.java)
@@ -217,5 +229,13 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     assertThat(assignment.identifier.name).isEqualTo("assignment.my")
     assertThat((assignment.value as DeclarativeLiteral).value).isEqualTo(1)
   }
+
+  private fun getDeclarativeEntries(): List<DeclarativeEntry> {
+    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
+    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
+    val entries = (psiFile as DeclarativeFile).getEntries()
+    return entries
+  }
+
   override fun getTestDataPath(): String = resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
 }

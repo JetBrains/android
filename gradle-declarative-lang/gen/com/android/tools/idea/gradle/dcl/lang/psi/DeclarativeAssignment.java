@@ -38,4 +38,7 @@ public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIden
   @NotNull
   DeclarativeIdentifier getIdentifier();
 
+  @NotNull
+  AssignmentType getAssignmentType();
+
 }

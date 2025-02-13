@@ -80,6 +80,15 @@ class PsiImplUtil {
     fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
       assignment.assignableProperty.field
 
+    @JvmStatic
+    fun getAssignmentType(assignment: DeclarativeAssignment): AssignmentType =
+      assignment.children.getOrNull(1)?.let{
+         when (it.text){
+          "=" -> AssignmentType.ASSIGNMENT
+          "+=" -> AssignmentType.APPEND
+           else -> throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
+        }
+      } ?: throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
