@@ -2170,7 +2170,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
                     "When enabled, enables the actions to manage attachments",
-                    false);
+                    enabledUpTo(CANARY));
 
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
