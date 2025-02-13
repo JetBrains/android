@@ -107,7 +107,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   fun testAddSupportDependencyWithMatchInSubModule() {
     setupProject(
       appDependOnLibrary = true,
-      additionalLibrary1DeclaredDependencies = "implementation 'com.android.support:appcompat-v7:+'",
+      additionalLibrary1DeclaredDependencies = listOf("com.android.support:appcompat-v7:+"),
       additionalLibrary1ResolvedDependencies = listOf(ideAndroidLibrary("com.android.support:appcompat-v7:23.1.1"))
     )
     // Check that the version is picked up from one of the sub modules
@@ -123,7 +123,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     setupProject(
       appDependOnLibrary = true,
       additionalAppResolvedDependencies = listOf(ideAndroidLibrary("com.android.support:recyclerview-v7:22.2.1")),
-      additionalLibrary1DeclaredDependencies = "implementation 'com.android.support:appcompat-v7:+'"
+      additionalLibrary1DeclaredDependencies = listOf("com.android.support:appcompat-v7:+")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -141,10 +141,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         ideAndroidLibrary("androidx.appcompat:appcompat:2.0.0"),
         ideAndroidLibrary("androidx.appcompat:appcompat:1.2.0")
       ),
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'androidx.appcompat:appcompat:2.0.0'
-          implementation 'androidx.appcompat:appcompat:1.2.0'
-        """
+      additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -167,10 +164,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         ideAndroidLibrary("androidx.appcompat:appcompat:2.0.0"),
         ideAndroidLibrary("androidx.core:core:1.0.0")
       ),
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'androidx.appcompat:appcompat:2.0.0'
-          implementation 'androidx.core:core:1.0.0'
-        """
+      additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.core:core:1.0.0")
     )
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate("androidx.fragment", "fragment", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
@@ -196,9 +190,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalAppResolvedDependencies = listOf(
         ideAndroidLibrary("com.google.android.material:material:1.3.0")
       ),
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'com.google.android.material:material:1.3.0'
-        """
+      additionalLibrary1DeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -223,9 +215,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     setupProject(
       appDependOnLibrary = true,
       additionalLibrary1ResolvedDependencies = listOf(ideAndroidLibrary("com.google.android.material:material:1.3.0")),
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'com.google.android.material:material:1.3.0'
-        """,
+      additionalLibrary1DeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -248,9 +238,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   fun testPreviewsAreAcceptedIfNoStableExists() {
     setupProject(
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'androidx.appcompat:appcompat:2.0.0'
-        """
+      additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -266,9 +254,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalAppResolvedDependencies = listOf(
         ideAndroidLibrary("androidx.appcompat:appcompat:1.0.0")
       ),
-      additionalLibrary1DeclaredDependencies = """
-          implementation 'androidx.appcompat:appcompat:1.0.0'
-        """
+      additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:1.0.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
@@ -409,17 +395,17 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   private fun setupProject(
     appDependOnLibrary: Boolean = false,
-    additionalAppDeclaredDependencies: String? = null,
+    additionalAppDeclaredDependencies: List<String> = emptyList(),
     additionalAppResolvedDependencies: List<AndroidLibraryDependency> = emptyList(),
-    additionalLibrary1DeclaredDependencies: String? = null,
+    additionalLibrary1DeclaredDependencies: List<String> = emptyList(),
     additionalLibrary1ResolvedDependencies: List<AndroidLibraryDependency> = emptyList(),
   ) {
 
-    fun config(declaredDependencies: String?): String =
-      if (declaredDependencies != null)
+    fun config(declaredDependencies: List<Pair<String,String>>): String =
+      if (declaredDependencies.isNotEmpty())
         """
         dependencies {
-          $declaredDependencies
+          ${declaredDependencies.joinToString("\n") { "  ${it.first} ${it.second}" }}
         }
         """
       else ""
@@ -448,18 +434,14 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     myFixture.addFileToProject(
       "app/build.gradle",
       config(
-        listOfNotNull(
-          if (appDependOnLibrary) "\napi project(':library1')\n" else null,
-          additionalAppDeclaredDependencies
-        )
-          .joinToString(separator = "\n")
-          .takeUnless { it.isEmpty() }
+        (if (appDependOnLibrary) listOf("api" to "project(':library1')") else listOf()) +
+          additionalAppDeclaredDependencies.map { "implementation" to "'$it'" }
       )
     )
 
     myFixture.addFileToProject(
       "library1/build.gradle",
-      config(additionalLibrary1DeclaredDependencies)
+      config(additionalLibrary1DeclaredDependencies.map { "implementation" to "'$it'" })
     )
 
     setupTestProjectFromAndroidModel(
