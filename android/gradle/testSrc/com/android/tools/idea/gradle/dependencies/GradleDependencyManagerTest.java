@@ -182,15 +182,8 @@ public class GradleDependencyManagerTest {
       // 2. RecyclerView should be declared but NOT yet resolved (because we didn't sync)
       assertTrue(result);
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isEmpty();
-      if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
-        // I'm not sure this is actually a sound assertion, even once we fix getRegisteredDependencies().  I think it's reasonable for the
-        // project system to require a synced project for such queries, and indeed the most natural implementation of
-        // getRegisteredDependencies() would query a synced model rather than (as seems to be the assumption here) parsing build
-        // files.  (The behaviour of GradleDependencyManager, which is what is really under test here, is allowed to be different;
-        // it is a Gradle-specific facility, not completely generic, and as such can make different assumptions about when it is
-        // expected to work and when not.
-        assertTrue(isRecyclerViewRegistered(project));
-      }
+      // Make no assertion about the state of getRegisteredDependencies(): implementation-dependent.  But we can assert that
+      // we have not yet resolved recyclerview.
       assertFalse(isRecyclerViewResolved(project));
       return null;
     });

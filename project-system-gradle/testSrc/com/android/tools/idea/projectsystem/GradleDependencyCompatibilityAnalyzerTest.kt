@@ -313,19 +313,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     val foundDependency = found.first()
     assertThat(foundDependency.artifactId).isEqualTo(SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID)
     assertThat(foundDependency.groupId).isEqualTo(SdkConstants.SUPPORT_LIB_GROUP_ID)
-    assertThat(foundDependency.lowerBoundVersion!!.major).isEqualTo(23)
-
-    // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
-    if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
-      // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
-      assertThat(foundDependency.acceptsGreaterRevisions()).isTrue()
-    }
-    else {
-      // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
-      assertThat(foundDependency.lowerBoundVersion!!.minor).isEqualTo(1)
-      assertThat(foundDependency.lowerBoundVersion!!.micro).isEqualTo(1)
-    }
+    assertThat(foundDependency.lowerBoundVersion.major).isEqualTo(23)
+    assertThat(foundDependency.lowerBoundVersion.minor).isEqualTo(1)
+    assertThat(foundDependency.lowerBoundVersion.micro).isEqualTo(1)
   }
 
   fun testGetAvailableDependencyWhenUnavailable() {
