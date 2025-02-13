@@ -134,7 +134,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
         update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
     ArrayListMultimap<Path, ArtifactWithOrigin> srcsByJavaPath = ArrayListMultimap.create();
     List<BuildArtifact> missingPackageArtifacts = Lists.newArrayList();
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       for (BuildArtifact genSrc : getSourceFileArtifacts(target)) {
 
         String javaPackage =

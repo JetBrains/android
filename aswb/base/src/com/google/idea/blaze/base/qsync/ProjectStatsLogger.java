@@ -69,7 +69,7 @@ public class ProjectStatsLogger implements QuerySyncProjectListener {
                   .setTargetMapSize(instance.graph().targetMap().size())
                   .setLibraryCount(instance.project().getLibraryCount())
                   .setJarCount(
-                      instance.artifactState().depsMap().values().stream()
+                      instance.artifactState().targets().stream()
                           .map(TargetBuildInfo::javaInfo)
                           .flatMap(Optional::stream)
                           .map(JavaArtifactInfo::jars)

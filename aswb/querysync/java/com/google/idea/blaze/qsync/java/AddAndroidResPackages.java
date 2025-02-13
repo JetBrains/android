@@ -41,7 +41,7 @@ public class AddAndroidResPackages implements ProjectProtoUpdateOperation {
     update
         .workspaceModule()
         .addAllAndroidSourcePackages(
-            artifactState.depsMap().values().stream()
+            artifactState.targets().stream()
                 .map(TargetBuildInfo::javaInfo)
                 .flatMap(Optional::stream)
                 .map(JavaArtifactInfo::androidResourcesPackage)

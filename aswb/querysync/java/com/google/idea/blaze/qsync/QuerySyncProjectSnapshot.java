@@ -77,7 +77,7 @@ public abstract class QuerySyncProjectSnapshot {
   public PendingExternalDeps<Label> pendingExternalDeps() {
     return new PendingExternalDeps<>(
         graph().transitiveExternalDeps(),
-        Sets.difference(artifactState().depsMap().keySet(), incompleteTargets()),
+        Sets.difference(artifactState().deprecatedSyncedTargetKeys(), incompleteTargets()),
         graph()::getDependencyTrackingBehaviors);
   }
 

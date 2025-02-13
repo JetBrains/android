@@ -92,7 +92,7 @@ public class ConfigureCcCompilation {
 
     visitToolchainMap(artifactState.ccToolchainMap());
 
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       if (target.ccInfo().isEmpty()) {
         continue;
       }

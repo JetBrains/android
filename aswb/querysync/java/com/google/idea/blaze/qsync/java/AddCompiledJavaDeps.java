@@ -33,7 +33,7 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
         for (BuildArtifact jar : javaInfo.jars()) {

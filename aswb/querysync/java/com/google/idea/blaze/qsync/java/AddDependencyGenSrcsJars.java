@@ -74,7 +74,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
 
   @Override
   public void update(ProjectProtoUpdate update, State artifactState) throws BuildException {
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       getDependencyGenSrcJars(target)
           .forEach(
               genSrc -> {

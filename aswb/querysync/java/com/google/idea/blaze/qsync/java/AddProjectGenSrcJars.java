@@ -77,7 +77,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       getProjectGenSrcJars(target)
           .forEach(
               genSrc -> {

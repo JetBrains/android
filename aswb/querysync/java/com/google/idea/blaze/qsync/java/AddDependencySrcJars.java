@@ -51,7 +51,7 @@ public class AddDependencySrcJars implements ProjectProtoUpdateOperation {
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
       throws BuildException {
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isEmpty()) {
         continue;
       }

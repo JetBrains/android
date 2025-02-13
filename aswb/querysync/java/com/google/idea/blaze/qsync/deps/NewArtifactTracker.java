@@ -71,6 +71,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The artifact tracker performs the following tasks:
@@ -120,7 +121,8 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     loadState();
   }
 
-  public ImmutableCollection<TargetBuildInfo> getBuiltDeps() {
+  @TestOnly
+  public ImmutableCollection<TargetBuildInfo> getBuiltDepsForTesting() {
     synchronized (stateLock) {
       return ImmutableList.copyOf(builtDeps.values());
     }
