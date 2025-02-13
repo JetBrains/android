@@ -154,7 +154,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     InstallSelectedPackagesStep installPackagesStep =
-      new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
+      new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), () -> AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
 
     return Lists.newArrayList(myLicenseAgreementStep, installPackagesStep);
   }

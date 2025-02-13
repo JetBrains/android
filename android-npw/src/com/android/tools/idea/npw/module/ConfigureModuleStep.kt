@@ -214,7 +214,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       InstallSelectedPackagesStep(
         installRequests,
         hashSetOf(),
-        AndroidSdks.getInstance().tryToChooseSdkHandler(),
+        { AndroidSdks.getInstance().tryToChooseSdkHandler() },
         false,
       )
     return listOf(licenseAgreementStep, installPackagesStep)

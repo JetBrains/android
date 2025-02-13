@@ -247,7 +247,7 @@ public final class SdkQuickfixUtils {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), () -> installRequests));
     InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
+      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, () -> sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);
     ModelWizard wizard = wizardBuilder.build();
 

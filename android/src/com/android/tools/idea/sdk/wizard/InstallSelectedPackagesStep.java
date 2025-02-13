@@ -22,9 +22,7 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
@@ -35,16 +33,13 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.ThrottledProgressWrapper;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkInstallListener;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,11 +57,11 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -93,7 +88,8 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
-  private final AndroidSdkHandler mySdkHandler;
+  /** We defer retrieval of the SDK handler in case a previous wizard step installed the SDK. */
+  private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
 
   private JPanel myContentPanel;
   private JBLabel myLabelSdkPath;
@@ -105,22 +101,24 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   private List<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
 
-  // Ok to keep a reference, since the wizard is short-lived and modal.
-  private final RepoManager myRepoManager;
   private com.android.repository.api.ProgressIndicator myLogger;
   private static final Object LOGGER_LOCK = new Object();
   private BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
-  private InstallerFactory myFactory;
+  private InstallerFactoryFactory myFactory;
   private boolean myThrottleProgress;
 
   private MutableAttributeSet myOutputStyle;
 
+  private interface InstallerFactoryFactory {
+    InstallerFactory createInstallerFactory(@NotNull AndroidSdkHandler sdkHandler);
+  }
+
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
-                                     @NotNull AndroidSdkHandler sdkHandler,
+                                     @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier,
                                      boolean backgroundable) {
-    this(installRequests, uninstallRequests, sdkHandler, backgroundable, StudioSdkInstallerUtil.createInstallerFactory(sdkHandler), false);
+    this(installRequests, uninstallRequests, sdkHandlerSupplier, backgroundable, StudioSdkInstallerUtil::createInstallerFactory, false);
   }
 
   @VisibleForTesting
@@ -130,14 +128,23 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      boolean backgroundable,
                                      @NotNull InstallerFactory factory,
                                      boolean throttleProgress) {
+    this(installRequests, uninstallRequests, () -> sdkHandler, backgroundable, (unused) -> factory, throttleProgress);
+  }
+
+  @VisibleForTesting
+  private InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
+                                     @NotNull Collection<LocalPackage> uninstallRequests,
+                                     @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier,
+                                     boolean backgroundable,
+                                     @NotNull InstallerFactoryFactory factory,
+                                     boolean throttleProgress) {
     super(message("android.sdk.manager.installer.panel.title"));
     myInstallRequests = installRequests;
     myUninstallRequests = uninstallRequests;
-    myRepoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.sdk.manager.installer.panel.description"));
     myBackgroundable = backgroundable;
-    mySdkHandler = sdkHandler;
+    mySdkHandlerSupplier = sdkHandlerSupplier;
     myFactory = factory;
     myThrottleProgress = throttleProgress;
   }
@@ -167,16 +174,14 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     mySdkManagerOutput.setText("");
     mySdkManagerOutput.setFont(JBFont.create(new Font("Monospaced", Font.PLAIN, 13)));
     myOutputStyle = mySdkManagerOutput.addStyle(null, null);
-    Path path = myRepoManager.getLocalPath();
-    if (path == null) {
-      File defaultPath = IdeSdks.getInstance().getAndroidSdkPath();
-      path = defaultPath == null ? null : mySdkHandler.toCompatiblePath(defaultPath);
-      myRepoManager.setLocalPath(path);
-    }
+
+    AndroidSdkHandler sdkHandler = mySdkHandlerSupplier.get();
+    RepoManager repoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    Path path = repoManager.getLocalPath();
     myLabelSdkPath.setText(path.toString());
 
     myInstallationFinished.set(false);
-    startSdkInstall();
+    startSdkInstall(sdkHandler);
   }
 
   @Override
@@ -213,7 +218,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
   }
 
-  private void startSdkInstall() {
+  private void startSdkInstall(AndroidSdkHandler sdkHandler) {
     CustomLogger customLogger = new CustomLogger();
     synchronized (LOGGER_LOCK) {
       myLogger = myThrottleProgress ? new ThrottledProgressWrapper(customLogger) : customLogger;
@@ -244,7 +249,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       return null;
     };
 
-    InstallTask task = new InstallTask(myFactory, mySdkHandler, StudioSettingsController.getInstance(), myLogger);
+    InstallTask task = new InstallTask(myFactory.createInstallerFactory(sdkHandler), sdkHandler, StudioSettingsController.getInstance(), myLogger);
     task.setInstallRequests(myInstallRequests);
     task.setUninstallRequests(myUninstallRequests);
     task.setCompleteCallback(completeCallback);
