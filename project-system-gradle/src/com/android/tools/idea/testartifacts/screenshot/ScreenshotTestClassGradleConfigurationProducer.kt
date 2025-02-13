@@ -45,7 +45,8 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()?:
                    getPsiParentsOfType(location.psiElement, PsiClassOwner::class.java, false).firstOrNull()?.classes?.firstOrNull() ?: return false
 
-    val androidFacet = AndroidFacet.getInstance(AndroidUtils.getAndroidModule(context)!!) ?: return false
+    val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
+    val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
     if (!isClassDeclarationWithPreviewAnnotatedMethods(psiClass, visitedAnnotation)) return false
 

@@ -41,7 +41,8 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
     val location = context.location ?: return false
     val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement) ?: return false
 
-    val androidFacet = AndroidFacet.getInstance(AndroidUtils.getAndroidModule(context)!!) ?: return false
+    val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
+    val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
 
     val configurationTaskNames = configuration.settings.taskNames
