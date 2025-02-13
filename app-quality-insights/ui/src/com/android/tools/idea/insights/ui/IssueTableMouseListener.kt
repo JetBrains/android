@@ -31,7 +31,7 @@ class IssueTableMouseListener(private val controller: AppInsightsProjectLevelCon
   private val appInsightState =
     controller.state.stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
 
-  override fun mouseClicked(e: MouseEvent) = handleMouseClick(e)
+  override fun mouseReleased(e: MouseEvent) = handleMouseClick(e)
 
   override fun mousePressed(e: MouseEvent) = handleMouseClick(e)
 
