@@ -35,6 +35,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.junit.*
+import org.junit.Assert.assertNull
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.kotlin.doReturn
@@ -200,5 +201,17 @@ class ClearResourceCacheAfterFirstBuildTest {
 
     verify(resourceClassRegistry, times(2)).clearCache()
     verify(localResourceManager).invalidateAttributeDefinitions()
+  }
+
+  @Test
+  fun cacheDoesNotTriggerResourceInitialization() {
+    val module = projectRule.module
+    Facets.createAndAddAndroidFacet(module)
+
+    clearResourceCacheAfterFirstBuild.syncSucceeded()
+
+    assertNull(StudioResourceIdManager.getInstanceIfCreated(module))
+    assertNull(StudioResourceRepositoryManager.getInstanceIfCreated(AndroidFacet.getInstance(module)!!))
+    assertNull(ResourceClassRegistry.getInstanceIfCreated(project))
   }
 }

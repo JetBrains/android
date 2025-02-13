@@ -127,6 +127,12 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   private final Object myLibraryLock = new Object();
 
+
+  @Nullable
+  public static StudioResourceRepositoryManager getInstanceIfCreated(@NotNull AndroidFacet facet) {
+    return facet.getUserData(KEY);
+  }
+
   @NotNull
   public static StudioResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
     ResourceNamespacing namespacing = toResourceNamespacing(AndroidProjectModelUtils.getNamespacing(facet));

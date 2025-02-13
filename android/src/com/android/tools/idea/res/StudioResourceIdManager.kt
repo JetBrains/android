@@ -24,5 +24,14 @@ class StudioResourceIdManager private constructor(module: Module) :
   ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module)) {
   companion object {
     @JvmStatic fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
+
+    /**
+     * Return a [com.android.tools.idea.res.StudioResourceIdManager] instance if it already exists.
+     * Use this method if you want to do something only if the service already exists, like clearing
+     * the caches.
+     */
+    @JvmStatic
+    fun getInstanceIfCreated(module: Module) =
+      module.getServiceIfCreated(ResourceIdManager::class.java)
   }
 }

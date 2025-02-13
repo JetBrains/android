@@ -148,9 +148,12 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     ResourceClassRegistry.get(project).clearCache()
 
     ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).forEach { facet ->
-      StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
-      StudioResourceIdManager.get(facet.module).resetDynamicIds()
-      ResourceClassRegistry.get(project).clearCache()
+      // Unfortunately this runs on the AWT thread and the initialization of the managers below might be expensive.
+      // Luckily, we are here just to clear the caches so if the service does not exist, we do not need to clear anything. For that
+      // purpose we use the getInstanceIfCreated method if available.
+      StudioResourceRepositoryManager.getInstanceIfCreated(facet)?.resetAllCaches()
+      StudioResourceIdManager.getInstanceIfCreated(facet.module)?.resetDynamicIds()
+      ResourceClassRegistry.getInstanceIfCreated(project)?.clearCache()
       ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
     }
   }
