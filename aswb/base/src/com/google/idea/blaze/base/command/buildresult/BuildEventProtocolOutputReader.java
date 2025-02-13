@@ -52,9 +52,7 @@ public final class BuildEventProtocolOutputReader {
    */
   public static BlazeTestResults parseTestResults(BuildEventStreamProvider streamProvider)
       throws BuildEventStreamException {
-    Map<String, String> configIdToMnemonic = new HashMap<>();
     Map<String, Kind> labelToKind = new HashMap<>();
-    Map<String, String> labelToMnemonic = new HashMap<>();
     long startTimeMillis = 0L;
     ImmutableList.Builder<BlazeTestResult> results = ImmutableList.builder();
     BuildEventStreamProtos.BuildEvent event;
@@ -63,16 +61,8 @@ public final class BuildEventProtocolOutputReader {
         case STARTED:
           startTimeMillis = event.getStarted().getStartTimeMillis();
           continue;
-        case CONFIGURATION:
-          configIdToMnemonic.put(
-              event.getId().getConfiguration().getId(), event.getConfiguration().getMnemonic());
-          continue;
         case TARGET_COMPLETED:
           String label = event.getId().getTargetCompleted().getLabel();
-          labelToMnemonic.put(
-              label,
-              configIdToMnemonic.get(
-                  event.getId().getTargetCompleted().getConfiguration().getId()));
           Kind kind = parseTargetKind(event.getCompleted().getTargetKind());
           if (kind != null) {
             labelToKind.put(label, kind);
@@ -91,7 +81,6 @@ public final class BuildEventProtocolOutputReader {
               parseTestResult(
                   label,
                   labelToKind.get(label),
-                  labelToMnemonic.get(label),
                   event.getTestResult(),
                   startTimeMillis));
           continue;
@@ -112,14 +101,13 @@ public final class BuildEventProtocolOutputReader {
   private static BlazeTestResult parseTestResult(
       String label,
       @Nullable Kind kind,
-      @Nullable String mnemonic,
       BuildEventStreamProtos.TestResult testResult,
       long startTimeMillis) {
     ImmutableSet<BlazeArtifact> files =
         testResult.getTestActionOutputList().stream()
             .map(
                 file ->
-                    parseTestFile(file, mnemonic, path -> path.endsWith(".xml"), startTimeMillis))
+                    parseTestFile(file, path -> path.endsWith(".xml"), startTimeMillis))
             .filter(Objects::nonNull)
             .collect(toImmutableSet());
     return BlazeTestResult.create(
@@ -137,28 +125,9 @@ public final class BuildEventProtocolOutputReader {
   @Nullable
   private static BlazeArtifact parseTestFile(
       BuildEventStreamProtos.File file,
-      @Nullable String mnemonic,
       Predicate<String> fileFilter,
       long startTimeMillis) {
-    if (mnemonic == null) {
-      return parseLocalFile(file, fileFilter);
-    }
     OutputArtifact output = OutputArtifactParser.parseArtifact(file, startTimeMillis);
     return output == null || !fileFilter.test(output.getBazelOutRelativePath()) ? null : output;
-  }
-
-  @Nullable
-  private static SourceArtifact parseLocalFile(
-      BuildEventStreamProtos.File file, Predicate<String> fileFilter) {
-    String uri = file.getUri();
-    if (!uri.startsWith(URLUtil.FILE_PROTOCOL)) {
-      return null;
-    }
-    try {
-      File f = new File(new URI(uri));
-      return fileFilter.test(f.getPath()) ? new SourceArtifact(f) : null;
-    } catch (URISyntaxException | IllegalArgumentException e) {
-      return null;
-    }
   }
 }

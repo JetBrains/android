@@ -25,8 +25,11 @@ import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolOutputReader;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
+import com.google.idea.blaze.base.command.buildresult.LocalFileParser;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
+import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser;
+import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.rules.TempDirectory;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +47,14 @@ import org.junit.runners.JUnit4;
 public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase {
 
   @Rule public TempDirectory tempDirectory = new TempDirectory();
+
+  @Override
+  protected void initTest(Container applicationServices, Container projectServices) {
+    super.initTest(applicationServices, projectServices);
+    ExtensionPointImpl<OutputArtifactParser> parserEp =
+      registerExtensionPoint(OutputArtifactParser.EP_NAME, OutputArtifactParser.class);
+    parserEp.registerExtension(new LocalFileParser());
+  }
 
   @Test
   public void testFinder_fileDeletedAfterCleanup() throws GetArtifactsException {
