@@ -17,21 +17,30 @@ package com.android.tools.idea.preview.fast
 
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.moveCaret
+import com.intellij.codeInsight.template.impl.TemplateManagerImpl
+import com.intellij.ide.DataManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.refactoring.actions.RenameElementAction
+import com.intellij.testFramework.TestActionEvent
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,12 +51,15 @@ import org.junit.Test
 class FastPreviewUtilTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
+  private val fixture
+    get() = projectRule.fixture
+
   private lateinit var testFile: PsiFile
 
   @Before
   fun setUp() {
     testFile =
-      projectRule.fixture.addFileToProject(
+      fixture.addFileToProject(
         "src/Test.kt",
         """
       fun testA() {
@@ -82,7 +94,7 @@ class FastPreviewUtilTest {
     val blockingDaemon = BlockingDaemonClient()
     val testPreviewManager =
       FastPreviewManager.getTestInstance(projectRule.project, { _, _, _, _ -> blockingDaemon })
-        .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
+        .also { Disposer.register(fixture.testRootDisposable, it) }
 
     val launchedCompileRequests = AtomicInteger(0)
     runBlocking {
@@ -109,5 +121,46 @@ class FastPreviewUtilTest {
       }
     }
     assertEquals(50, launchedCompileRequests.get())
+  }
+
+  @Test
+  fun `in-place rename blocks compilation`() = runBlocking {
+    FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
+    setUpComposeInProjectFixture(projectRule)
+    TemplateManagerImpl.setTemplateTesting(projectRule.testRootDisposable)
+
+    withContext(Dispatchers.Main) {
+      fixture.configureFromExistingVirtualFile(testFile.virtualFile)
+      fixture.moveCaret("test|A()")
+      val fakeEvent =
+        TestActionEvent.createTestEvent(
+          DataManager.getInstance().getDataContext(fixture.editor.component)
+        )
+      RenameElementAction().actionPerformed(fakeEvent)
+    }
+
+    val uniqueCoroutineLauncher = UniqueTaskCoroutineLauncher(this, "FastPreviewLauncher")
+    val testPreviewViewModelStatus =
+      object : PreviewViewModelStatus {
+        override var isRefreshing: Boolean = false
+        override var hasErrorsAndNeedsBuild: Boolean = false
+        override var hasSyntaxErrors: Boolean = false
+        override var isOutOfDate: Boolean = false
+        override val areResourcesOutOfDate: Boolean = false
+        override var previewedFile: PsiFile? = null
+      }
+    val result =
+      requestFastPreviewRefreshAndTrack(
+        projectRule.testRootDisposable,
+        runReadAction { BuildTargetReference.gradleOnly(testFile.module!!) },
+        setOf(testFile),
+        testPreviewViewModelStatus,
+        uniqueCoroutineLauncher,
+        {},
+      )
+    assertEquals(
+      "Renaming in progress",
+      (result as CompilationResult.CompilationAborted).e!!.message,
+    )
   }
 }

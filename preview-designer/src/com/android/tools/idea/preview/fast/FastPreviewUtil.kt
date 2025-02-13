@@ -25,10 +25,12 @@ import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.refactoring.rename.inplace.InplaceRefactoring
 import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -93,6 +95,14 @@ internal suspend fun fastCompile(
     compileProgressIndicator.processFinish()
   }
 }
+
+/** Returns whether any of the files is in in-place edit mode. */
+private fun isInInPlaceEditMode(files: Set<PsiFile>) =
+  files
+    .map { FileEditorManager.getInstance(it.project).selectedTextEditor }
+    .distinct()
+    .mapNotNull { InplaceRefactoring.getActiveInplaceRenamer(it) }
+    .any()
 
 /**
  * Requests a "Fast Preview" compilation and invokes the [trackedForceRefresh] if successful. This
@@ -166,44 +176,53 @@ suspend fun requestFastPreviewRefreshAndTrack(
     }
 
   // We only want the first result sent through the channel
-  val deferredCompilationResult =
-    CompletableDeferred<CompilationResult>(CompilationResult.CompilationError())
+  val deferredCompilationResult = CompletableDeferred<CompilationResult>()
 
   launcher.launch {
     try {
-      if (!currentStatus.hasSyntaxErrors) {
-        val (result, outputAbsolutePath) =
-          fastCompile(
-            parentDisposable,
-            contextBuildTargetReference,
-            files,
-            requestTracker = requestTracker,
-          )
-        deferredCompilationResult.complete(result)
-        if (result is CompilationResult.Success) {
-          val refreshStartMs = System.currentTimeMillis()
-          try {
-            trackedForceRefresh(outputAbsolutePath)
-            requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
-          } catch (t: CancellationException) {
-            requestTracker.refreshCancelled(compilationCompleted = true)
-            throw t
-          } catch (t: Throwable) {
-            requestTracker.refreshFailed()
-            throw t
-          }
-        } else {
-          if (result is CompilationResult.CompilationAborted) {
-            requestTracker.refreshCancelled(compilationCompleted = false)
-          } else {
-            // Compilation failed, report the refresh as failed too
-            requestTracker.refreshFailed()
-          }
+      // We do not want to trigger the compilation if the code has syntax errors or if there is an
+      // editor in in-place edit mode.
+      if (currentStatus.hasSyntaxErrors) {
+        deferredCompilationResult.complete(
+          CompilationResult.CompilationAborted(IllegalStateException("Files have syntax errors"))
+        )
+        return@launch
+      }
+
+      if (isInInPlaceEditMode(files)) {
+        deferredCompilationResult.complete(
+          CompilationResult.CompilationAborted(IllegalStateException("Renaming in progress"))
+        )
+        return@launch
+      }
+
+      val (result, outputAbsolutePath) =
+        fastCompile(
+          parentDisposable,
+          contextBuildTargetReference,
+          files,
+          requestTracker = requestTracker,
+        )
+      deferredCompilationResult.complete(result)
+      if (result is CompilationResult.Success) {
+        val refreshStartMs = System.currentTimeMillis()
+        try {
+          trackedForceRefresh(outputAbsolutePath)
+          requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
+        } catch (t: CancellationException) {
+          requestTracker.refreshCancelled(compilationCompleted = true)
+          throw t
+        } catch (t: Throwable) {
+          requestTracker.refreshFailed()
+          throw t
         }
       } else {
-        // At this point, the compilation result should have already been sent if any compilation
-        // was done. So, send CompilationAborted result.
-        deferredCompilationResult.complete(CompilationResult.CompilationAborted())
+        if (result is CompilationResult.CompilationAborted) {
+          requestTracker.refreshCancelled(compilationCompleted = false)
+        } else {
+          // Compilation failed, report the refresh as failed too
+          requestTracker.refreshFailed()
+        }
       }
     } catch (e: CancellationException) {
       // Any cancellations during the compilation step are handled by fastCompile, so at
