@@ -24,9 +24,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationEvent
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationKind
-import org.jetbrains.kotlin.idea.util.publishGlobalSourceOutOfBlockModification
+import org.jetbrains.kotlin.analysis.api.platform.modification.publishGlobalSourceOutOfBlockModificationEvent
 
 /** Raises module-change events when a module's SafeArgs eligibility state may have changed. */
 @Service(Service.Level.PROJECT)
@@ -49,8 +49,8 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
 
   private fun dispatchSafeArgsModeChange(module: Module) {
     runInEdt {
-      module.fireEvent(KotlinModificationTopics.MODULE_STATE_MODIFICATION) {
-        onModification(it, KotlinModuleStateModificationKind.UPDATE)
+      module.fireModificationEvent {
+        KotlinModuleStateModificationEvent(it, KotlinModuleStateModificationKind.UPDATE)
       }
     }
   }
@@ -58,7 +58,7 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
   private fun dispatchProjectSystemSync() {
     // We never care about non-source modules, so we only dispatch a global source module
     // state-change event here, so we don't unnecessarily invalidate binary module cached data.
-    runInEdt { runWriteAction { project.publishGlobalSourceOutOfBlockModification() } }
+    runInEdt { runWriteAction { project.publishGlobalSourceOutOfBlockModificationEvent() } }
   }
 
   companion object {

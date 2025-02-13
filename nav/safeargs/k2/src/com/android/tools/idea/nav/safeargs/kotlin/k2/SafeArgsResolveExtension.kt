@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
-import org.jetbrains.kotlin.idea.util.publishModuleOutOfBlockModification
+import org.jetbrains.kotlin.idea.util.publishModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -97,7 +97,7 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
 
   private fun fireInvalidateEvent(reason: NavInfoChangeReason) {
     if (reason.shouldRaiseOutOfBlockModification()) {
-      runWriteAction { module.publishModuleOutOfBlockModification() }
+      runWriteAction { module.publishModuleOutOfBlockModificationEvent() }
     }
   }
 

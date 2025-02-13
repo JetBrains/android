@@ -25,11 +25,12 @@ import com.android.tools.idea.testing.KotlinPluginRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.messages.Topic
 import com.intellij.util.ui.EDT
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics.GLOBAL_SOURCE_OUT_OF_BLOCK_MODIFICATION
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics.MODULE_STATE_MODIFICATION
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceOutOfBlockModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEventListener
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationEvent
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationKind
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
@@ -46,14 +47,11 @@ class ChangeListenerProjectServiceTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(KotlinPluginRule(KotlinPluginMode.K2)).around(safeArgsRule)
 
-  private inline fun <reified T : Any> withAnalysisBusListener(
-    topic: Topic<T>,
-    block: (T) -> Unit,
-  ) {
+  private inline fun withAnalysisBusListener(block: (KotlinModificationEventListener) -> Unit) {
     val disposable = Disposer.newDisposable()
     try {
-      val listener = mock<T>()
-      safeArgsRule.project.analysisMessageBus.connect(disposable).subscribe(topic, listener)
+      val listener = mock<KotlinModificationEventListener>()
+      safeArgsRule.project.analysisMessageBus.connect(disposable).subscribe(KotlinModificationEvent.TOPIC, listener)
       block(listener)
     } finally {
       Disposer.dispose(disposable)
@@ -67,21 +65,21 @@ class ChangeListenerProjectServiceTest {
 
   @Test
   fun `fires module OOB for module SafeArgs mode change`() =
-    withAnalysisBusListener(MODULE_STATE_MODIFICATION) { listener ->
+    withAnalysisBusListener { listener ->
       safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.JAVA
       runInEdtAndWait { EDT.dispatchAllInvocationEvents() }
       safeArgsRule.module.toKaModulesForModificationEvents().forEach {
-        verify(listener).onModification(it, KotlinModuleStateModificationKind.UPDATE)
+        verify(listener).onModification(KotlinModuleStateModificationEvent(it, KotlinModuleStateModificationKind.UPDATE))
       }
     }
 
   @Test
   fun `fires global source change for completed project sync`() =
-    withAnalysisBusListener(GLOBAL_SOURCE_OUT_OF_BLOCK_MODIFICATION) { listener ->
+    withAnalysisBusListener { listener ->
       val future = safeArgsRule.project.getSyncManager().syncProject(SyncReason.USER_REQUEST)
       val result = future.get()
       assertThat(result).isNoneOf(SyncResult.FAILURE, SyncResult.CANCELLED, SyncResult.UNKNOWN)
       runInEdtAndWait { EDT.dispatchAllInvocationEvents() }
-      verify(listener).onModification()
+      verify(listener).onModification(KotlinGlobalSourceOutOfBlockModificationEvent)
     }
 }
