@@ -257,7 +257,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     ListenableFuture<?> fetchLocalFilesFuture =
         PrefetchService.getInstance()
             .prefetchFiles(
-                /* files= */ LocalFileArtifact.getLocalFiles(diff.getUpdatedOutputs()),
+                /* files= */ LocalFileArtifact.getLocalFilesForLegacySync(diff.getUpdatedOutputs()),
                 /* refetchCachedFiles= */ true,
                 /* fetchFileTypes= */ false);
     if (!FutureUtil.waitForFuture(context, fetchLocalFilesFuture)

@@ -160,7 +160,7 @@ public class JdepsFileReader {
                 /* outputArtifacts= */ RemoteOutputArtifact.getRemoteArtifacts(outputArtifacts));
     ListenableFuture<?> fetchLocalFilesFuture =
         PrefetchService.getInstance()
-            .prefetchFiles(LocalFileArtifact.getLocalFiles(outputArtifacts), true, false);
+            .prefetchFiles(LocalFileArtifact.getLocalFilesForLegacySync(outputArtifacts), true, false);
     if (!FutureUtil.waitForFuture(
             context, Futures.allAsList(downloadArtifactsFuture, fetchLocalFilesFuture))
         .timed("FetchJdeps", EventType.Prefetching)

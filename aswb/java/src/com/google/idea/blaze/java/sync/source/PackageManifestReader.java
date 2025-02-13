@@ -117,7 +117,7 @@ public class PackageManifestReader {
         RemoteArtifactPrefetcher.getInstance().downloadArtifacts(project.getName(), toDownload);
     ListenableFuture<PrefetchStats> fetchLocalFilesFuture =
         PrefetchService.getInstance()
-            .prefetchFiles(LocalFileArtifact.getLocalFiles(diff.getUpdatedOutputs()), true, false);
+            .prefetchFiles(LocalFileArtifact.getLocalFilesForLegacySync(diff.getUpdatedOutputs()), true, false);
 
     if (!FutureUtil.waitForFuture(
             context, Futures.allAsList(fetchRemoteArtifactFuture, fetchLocalFilesFuture))

@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.common.artifact.BlazeArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.io.File;
 import java.util.Collection;
 
@@ -32,11 +33,24 @@ public interface LocalFileArtifact extends BlazeArtifact {
    * <p>Some callers will only ever accept local outputs (e.g. when debugging, and making use of
    * runfiles directories).
    */
-  static ImmutableList<File> getLocalFiles(Collection<? extends BlazeArtifact> artifacts) {
+  static ImmutableList<File> getLocalFiles(Collection<? extends OutputArtifact> artifacts) {
     return artifacts.stream()
         .filter(a -> a instanceof LocalFileArtifact)
         .map(a -> ((LocalFileArtifact) a).getFile())
         .collect(toImmutableList());
+  }
+
+  /**
+   * Filters out non-local artifacts for legacy sync as it supports BlazeArtifact.
+   *
+   * <p>Some callers will only ever accept local outputs (e.g. when debugging, and making use of
+   * runfiles directories).
+   */
+  static ImmutableList<File> getLocalFilesForLegacySync(Collection<? extends BlazeArtifact> artifacts) {
+    return artifacts.stream()
+      .filter(a -> a instanceof LocalFileArtifact)
+      .map(a -> ((LocalFileArtifact) a).getFile())
+      .collect(toImmutableList());
   }
 
   File getFile();
