@@ -84,8 +84,22 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     return descriptor
   }
 
+  fun checkFileOpened(
+    fileName: String,
+    focusEditor: Boolean,
+    timeout: Long = TIMEOUT,
+    unit: TimeUnit = TimeUnit.SECONDS
+  ) {
+    waitForCondition(timeout, unit) { Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFile" }}
+    val file = ArgumentCaptor.forClass(VirtualFile::class.java)
+    verify(fileManager!!).openFile(file.capture(), eq(focusEditor))
+    val vFile = file.value
+    assertThat(vFile.name).isEqualTo(fileName)
+  }
+
   fun checkNoNavigation() {
     verify(fileManager!!, never()).openFileEditor(any(), anyBoolean())
+    verify(fileManager!!, never()).openFile(any(), anyBoolean())
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {

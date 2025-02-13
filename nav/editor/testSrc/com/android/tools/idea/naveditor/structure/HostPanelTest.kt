@@ -15,17 +15,43 @@
  */
 package com.android.tools.idea.naveditor.structure
 
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.laf.HeadlessListUI
+import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.naveditor.NavEditorRule
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
-import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.codeVision.ui.popup.layouter.bottom
 import com.intellij.testFramework.DumbModeTestUtils
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
 import javax.swing.DefaultListModel
+import kotlin.test.fail
+import org.junit.Rule
+import org.junit.Test
 
-class HostPanelTest : NavTestCase() {
+@RunsInEdt
+class HostPanelTest {
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val navRule = NavEditorRule(projectRule)
+  private val fileOpenRule = FileOpenCaptureRule(projectRule)
 
+  @get:Rule val chain = RuleChain(projectRule, navRule, fileOpenRule, EdtRule())
+
+  @Test
   fun testDumbMode() {
     // This has a navHostFragment referencing our nav file
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "res/layout/file1.xml",
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -40,13 +66,13 @@ class HostPanelTest : NavTestCase() {
         "</LinearLayout>",
     )
     val model = modelBuilder("nav.xml") { navigation() }.build(false)
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(projectRule.module)
     val panel = HostPanel(model.surface as NavDesignSurface)
     val listModel = panel.list.model as DefaultListModel
     waitFor("list was never populated") { !listModel.isEmpty }
     panel.list.model = listModel
 
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+    DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
       model.activate(this)
       waitFor("list expected to be empty") { listModel.isEmpty }
     }
@@ -60,9 +86,48 @@ class HostPanelTest : NavTestCase() {
     waitFor("list should be re-populated") { !listModel.isEmpty }
   }
 
+  @Test
+  fun testDoubleClick() {
+    // This has a navHostFragment referencing our nav file
+    projectRule.fixture.addFileToProject(
+      "res/layout/file1.xml",
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
+        "\n" +
+        "    <fragment\n" +
+        "        android:id=\"@+id/fragment3\"\n" +
+        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
+        "        app:defaultNavHost=\"true\"\n" +
+        "        app:navGraph=\"@navigation/nav\" />\n" +
+        "\n" +
+        "</LinearLayout>",
+    )
+    val model = modelBuilder("nav.xml") { navigation() }.build(false)
+    waitForResourceRepositoryUpdates(projectRule.module)
+    val panel = HostPanel(model.surface as NavDesignSurface)
+    panel.list.ui = HeadlessListUI()
+    val listModel = panel.list.model as DefaultListModel
+    waitFor("list was never populated") { !listModel.isEmpty }
+    panel.list.model = listModel
+
+    panel.size = Dimension(2000, 5000)
+    val ui = FakeUi(panel)
+    val bounds = panel.list.getCellBounds(0, 0)
+
+    // A double click below the items in the list, does not go anywhere:
+    ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.bottom + 10)
+    fileOpenRule.checkNoNavigation()
+
+    // A double click on the item does:
+    ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.centerY.toInt())
+    fileOpenRule.checkFileOpened("file1.xml", true)
+  }
+
+  @Test
   fun testFindReferences() {
     // This has a navHostFragment referencing our nav file
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "res/layout/file1.xml",
       """
       .<?xml version="1.0" encoding="utf-8"?>
@@ -81,7 +146,7 @@ class HostPanelTest : NavTestCase() {
     )
 
     // This has a navHostFragment referencing a different nav file
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "res/layout/file2.xml",
       """
       .<?xml version="1.0" encoding="utf-8"?>
@@ -100,7 +165,7 @@ class HostPanelTest : NavTestCase() {
     )
 
     // This has a fragment referencing this file, but it's not a navHostFragment
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "res/layout/file3.xml",
       """
       .<?xml version="1.0" encoding="utf-8"?>
@@ -119,17 +184,18 @@ class HostPanelTest : NavTestCase() {
     )
 
     val model = model("nav.xml") { navigation() }
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(projectRule.module)
 
     val references = findReferences(model.file, model.module)
-    assertEquals(1, references.size)
-    assertEquals("file1.xml", references[0].containingFile.name)
-    assertEquals(174, references[0].textOffset)
+    assertThat(references.size).isEqualTo(1)
+    assertThat(references[0].containingFile.name).isEqualTo("file1.xml")
+    assertThat(references[0].textOffset).isEqualTo(174)
   }
 
+  @Test
   fun testFindDerivedClassReference() {
     // This has a subclass of NavHostFragment referencing this file
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "res/layout/file1.xml",
       """
       .<?xml version="1.0" encoding="utf-8"?>
@@ -147,7 +213,7 @@ class HostPanelTest : NavTestCase() {
         .trimMargin("."),
     )
 
-    myFixture.addFileToProject(
+    projectRule.fixture.addFileToProject(
       "src/mytest/navtest/NavHostFragmentChild.java",
       """
       .package mytest.navtest;
@@ -160,12 +226,25 @@ class HostPanelTest : NavTestCase() {
     )
 
     val model = model("nav.xml") { navigation() }
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(projectRule.module)
 
     val references = findReferences(model.file, model.module)
-    assertEquals(1, references.size)
-    assertEquals("file1.xml", references[0].containingFile.name)
-    assertEquals(174, references[0].textOffset)
+    assertThat(references.size).isEqualTo(1)
+    assertThat(references[0].containingFile.name).isEqualTo("file1.xml")
+    assertThat(references[0].textOffset).isEqualTo(174)
+  }
+
+  private fun model(name: String, f: () -> ComponentDescriptor): SyncNlModel {
+    return modelBuilder(name, f).build()
+  }
+
+  private fun modelBuilder(name: String, f: () -> ComponentDescriptor): ModelBuilder {
+    return NavModelBuilderUtil.model(
+      name,
+      projectRule.module.androidFacet!!,
+      projectRule.fixture,
+      f,
+    )
   }
 
   private fun waitFor(error: String, condition: () -> Boolean) {

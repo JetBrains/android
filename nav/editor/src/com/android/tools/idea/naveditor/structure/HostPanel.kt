@@ -65,6 +65,7 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.Point
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.KeyAdapter
@@ -169,7 +170,11 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           if (e.clickCount == 2) {
-            activate(list.locationToIndex(e.point))
+            val index = list.locationToIndex(e.point)
+            val bounds = list.getCellBounds(index, index + 1)
+            if (locationInCellBounds(index, e.point)) {
+              activate(list.locationToIndex(e.point))
+            }
           }
         }
       }
@@ -267,6 +272,11 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         }
       cardLayout.show(this, name)
     }
+  }
+
+  private fun locationInCellBounds(index: Int, location: Point): Boolean {
+    val bounds = list.getCellBounds(index, index + 1) ?: return false
+    return bounds.contains(location)
   }
 
   @VisibleForTesting
