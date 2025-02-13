@@ -49,8 +49,7 @@ import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
+import org.jetbrains.kotlin.analysis.api.platform.modification.publishModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
@@ -156,8 +155,7 @@ class MergedManifestModificationListener(
         if (facet.isDisposed || facet.module.project.isDisposed) return@runWriteAction
         // The manifest does not belong to any Gradle source set, so we need to manually flush Kotlin analysis caches
         // so that changes to the XML file can cause re-resolution of references to the Manifest class.
-        val publisher = facet.module.project.analysisMessageBus.syncPublisher(KotlinModificationTopics.MODULE_OUT_OF_BLOCK_MODIFICATION)
-        ktModules.forEach(publisher::onModification)
+        ktModules.forEach { it.publishModuleOutOfBlockModificationEvent() }
       }
     }
   }
