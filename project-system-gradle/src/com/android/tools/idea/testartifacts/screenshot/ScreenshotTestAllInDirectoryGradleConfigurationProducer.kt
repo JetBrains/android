@@ -41,7 +41,8 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
     val location = context.location ?: return false
     if (location.psiElement !is PsiDirectory) return false
 
-    val androidFacet = AndroidFacet.getInstance(AndroidUtils.getAndroidModule(context)!!) ?: return false
+    val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
+    val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
 
     val taskNames = getScreenshotTestTaskNames(context) ?: return false

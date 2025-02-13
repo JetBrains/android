@@ -45,7 +45,8 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     val location = context.location ?: return false
     val psiMethod = getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).firstOrNull()?: return false
 
-    val androidFacet = AndroidFacet.getInstance(AndroidUtils.getAndroidModule(context)!!) ?: return false
+    val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
+    val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
     if (!isMethodDeclarationPreviewannotated(psiMethod, visitedAnnotations)) return false
 
