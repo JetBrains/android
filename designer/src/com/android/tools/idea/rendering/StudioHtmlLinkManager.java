@@ -29,7 +29,6 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
-import static com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServicesKt.requestBuildArtifactsForRendering;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEBUG_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
@@ -115,8 +114,8 @@ import com.intellij.util.PsiNavigateUtil;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
@@ -876,7 +875,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(id.getCoordinate("+")), false,
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Set.of(id), false,
                                                                    false, dependencyType)
       .isEmpty()) {
       return;

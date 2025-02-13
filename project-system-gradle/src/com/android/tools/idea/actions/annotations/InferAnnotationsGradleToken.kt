@@ -85,9 +85,8 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
       val manager = RepositoryUrlManager.get()
       val revision = manager.getLibraryRevision(artifact.mavenGroupId, artifact.mavenArtifactId, null, false, FileSystems.getDefault())
       if (revision != null) {
-        val coordinates = listOf(artifact.getCoordinate(revision))
         for (module in modulesWithoutAnnotations) {
-          val notAdded = module.addDependenciesWithUiConfirmation(coordinates, false, requestSync = false)
+          val notAdded = module.addDependenciesWithUiConfirmation(setOf(artifact), false, requestSync = false)
           if (notAdded.isNotEmpty()) {
             break // user canceled or some other problem; don't resume with other modules
           }

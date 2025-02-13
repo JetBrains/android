@@ -20,7 +20,6 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -36,7 +35,6 @@ import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -197,9 +195,8 @@ public class DependencyManager implements Disposable {
     if (needsLibraryLoad(item)) {
       GoogleMavenArtifactId id = item.getGradleCoordinateId();
       if (id != null) {
-        GradleCoordinate coordinate = id.getCoordinate("+");
         synchronized (mySync) {
-          DependencyManagementUtil.addDependenciesWithUiConfirmation(myModule, Collections.singletonList(coordinate), true);
+          DependencyManagementUtil.addDependenciesWithUiConfirmation(myModule, Set.of(id), true);
         }
       }
     }

@@ -81,10 +81,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import javax.swing.ImageIcon;
@@ -267,7 +267,7 @@ public class AppBarConfigurationDialog extends JDialog {
                                      GoogleMavenArtifactId.ANDROIDX_DESIGN :
                                      GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
-      .addDependenciesWithUiConfirmation(module, Collections.singletonList(artifact.getCoordinate("+")), true, false)
+      .addDependenciesWithUiConfirmation(module, Set.of(artifact), true, false)
       .isEmpty();
 
     if (!designAdded) {

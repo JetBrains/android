@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.util
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
@@ -28,7 +27,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.LightPlatformTestCase
-import java.util.Collections
+import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  * Tests for [DependencyManagement].
@@ -90,21 +89,21 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testUserConfirmationMultipleArtifactsMessage() {
     val artifacts = listOf(
-      GoogleMavenArtifactId.DESIGN.getCoordinate("+"),
-      GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+      GoogleMavenArtifactId.DESIGN,
+      GoogleMavenArtifactId.APP_COMPAT_V7
     )
     val correctMessage = "This operation requires the libraries com.android.support:design:+, " +
                          "com.android.support:appcompat-v7:+.\n\nWould you like to add these now?"
 
-    Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
+    Truth.assertThat(createAddDependencyMessage(artifacts.map { it.getCoordinate("+") })).isEqualTo(correctMessage)
   }
 
   fun testUserConfirmationSingleArtifactsMessage() {
-    val artifacts = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"))
+    val artifacts = listOf(GoogleMavenArtifactId.DESIGN)
     val correctMessage = "This operation requires the library com.android.support:design:+.\n\n" +
                          "Would you like to add this now?"
 
-    Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
+    Truth.assertThat(createAddDependencyMessage(artifacts.map { it.getCoordinate("+")})).isEqualTo(correctMessage)
   }
 
   fun testUserConfirmationMultipleArtifactMessageWithWarning() {
@@ -157,41 +156,41 @@ class DependencyManagementTest : LightPlatformTestCase() {
   fun testAddEmptyListOfDependencies() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.emptyList(), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(), false)
 
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddDependency() {
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), false)
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddMultipleDependencies() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddSingleUnavailableDependencies() {
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(playServices), false)
+    val playServices = GoogleMavenArtifactId.PLAY_SERVICES
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
@@ -199,12 +198,12 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testAddMultipleUnavailableDependencies() {
     // Note that during setup PLAY_SERVICES and PLAY_SERVICES_MAPS are not included in the list of available dependencies.
-    val playServicesMaps = GoogleMavenArtifactId.PLAY_SERVICES_MAPS.getCoordinate("+")
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(playServicesMaps, playServices), false)
+    val playServicesMaps = GoogleMavenArtifactId.PLAY_SERVICES_MAPS
+    val playServices = GoogleMavenArtifactId.PLAY_SERVICES
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServicesMaps, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServicesMaps)).isNull()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServicesMaps.getCoordinate("+"))).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices, playServicesMaps)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -215,23 +214,23 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testAddMultipleDependenciesWithSomeUnavailable() {
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(appCompat, playServices), false)
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val playServices = GoogleMavenArtifactId.PLAY_SERVICES
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(appCompat, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
   }
 
   fun testAddDependenciesWithoutTriggeringSync() {
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), false, false)
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false, false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).isEmpty()
   }
@@ -239,10 +238,10 @@ class DependencyManagementTest : LightPlatformTestCase() {
   fun testAddDependenciesWithoutUserApproval() {
     dialogAnswer = Messages.CANCEL
 
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), true, false)
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), true, false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -252,36 +251,14 @@ class DependencyManagementTest : LightPlatformTestCase() {
       """.trimIndent())
   }
 
-  fun testAddSomeNonExistentDependenciesWithoutUserApproval() {
-    dialogAnswer = Messages.CANCEL
-
-    // Here CONSTRAINT_LAYOUT is valid but bad:worse:1.2.3 is not. If the user rejects the adding of dependencies then the resulting list
-    // should contain both dependencies because none of them were added.
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val badNonExistentDependency = GradleCoordinate("bad", "worse", "1.2.3")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, badNonExistentDependency), true, false)
-
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout, badNonExistentDependency)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
-    Truth.assertThat(dialogMessages).containsExactly("""
-      This operation requires the libraries com.android.support.constraint:constraint-layout:+, bad:worse:1.2.3.
-
-      Problem: Can't find bad:worse:1.2.3
-
-
-      The project may not compile after adding these libraries.
-      Would you like to add them anyway?""".trimIndent())
-  }
-
   fun testAddDependenciesWithSomeErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -292,14 +269,14 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddDependenciesAllWillErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    projectSystem.addFakeErrorForRegisteringDependency(constraintLayout, "Can't add constraintLayout because reasons.")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    addFakeErrorForRegisteringMavenArtifact(constraintLayout, "Can't add constraintLayout because reasons.")
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, constraintLayout)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -310,16 +287,16 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddDependenciesWithUnavailableDependenciesAndSomeErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat, playServices), false)
+    val playServices = GoogleMavenArtifactId.PLAY_SERVICES
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly(
@@ -332,14 +309,14 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddMultipleDependenciesWithCompatibilityError() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    projectSystem.addIncompatibleDependencyPair(appCompat, constraintLayout)
-    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), true)
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+    addIncompatibleArtifactPair(appCompat, constraintLayout)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), true)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("""
       This operation requires the libraries com.android.support.constraint:constraint-layout:+, com.android.support:appcompat-v7:+.
@@ -350,4 +327,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
       The project may not compile after adding these libraries.
       Would you like to add them anyway?""".trimIndent())
   }
+
+  private fun addFakeErrorForRegisteringMavenArtifact(id: GoogleMavenArtifactId, error: String) =
+    projectSystem.addFakeErrorForRegisteringDependency(id.getCoordinate("+"), error)
+  private fun addIncompatibleArtifactPair(id1: GoogleMavenArtifactId, id2: GoogleMavenArtifactId) =
+    projectSystem.addIncompatibleDependencyPair(id1.getCoordinate("+"), id2.getCoordinate("+"))
 }

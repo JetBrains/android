@@ -16,16 +16,16 @@
 package com.google.idea.blaze.android.projectsystem;
 
 import static com.android.tools.idea.util.DependencyManagementUtil.addDependenciesWithUiConfirmation;
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,15 +35,13 @@ public class BazelNavDesignSurfaceToken implements NavDesignSurfaceToken<BazelPr
   public boolean modifyProject(@NotNull BazelProjectSystem projectSystem, @NotNull NlModel model) {
     AtomicBoolean didAdd = new AtomicBoolean(false);
     Module module = model.getModule();
-    List<GradleCoordinate> coordinates =
-        NavDesignSurface.getDependencies(module).stream()
-            .map((a) -> a.getCoordinate("+"))
-            .collect(toImmutableList());
+    Set<GoogleMavenArtifactId> artifacts =
+        NavDesignSurface.getDependencies(module).stream().collect(toImmutableSet());
     Runnable runnable =
         () -> {
           try {
             didAdd.set(
-                addDependenciesWithUiConfirmation(module, coordinates, true, false).isEmpty());
+                addDependenciesWithUiConfirmation(module, artifacts, true, false).isEmpty());
           } catch (Throwable t) {
             Logger.getInstance(NavDesignSurface.class).warn("Failed to add dependencies", t);
             didAdd.set(false);

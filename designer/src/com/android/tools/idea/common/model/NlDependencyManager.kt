@@ -17,7 +17,6 @@ package com.android.tools.idea.common.model
 
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -69,7 +68,9 @@ class NlDependencyManager private constructor() {
   ): Boolean {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies =
-      collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
+      collectDependencies(components)
+        .filter { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) == null }
+        .toSet()
     if (missingDependencies.isEmpty()) {
       // We don't have any missing dependencies, therefore they're all present.
       dependenciesPresentCallback?.run()
@@ -126,7 +127,10 @@ class NlDependencyManager private constructor() {
   fun checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>, facet: AndroidFacet): Boolean {
     val dependencies = collectDependencies(toAdd)
     val moduleSystem = facet.module.getModuleSystem()
-    val missing = dependencies.filter { moduleSystem.getRegisteredDependency(it) == null }
+    val missing =
+      dependencies
+        .map { it.getCoordinate("+") }
+        .filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missing.none()) {
       return true
     }
@@ -143,15 +147,8 @@ class NlDependencyManager private constructor() {
     return userWantsToAdd(facet.module.project, missing)
   }
 
-  /**
-   * Finds all dependencies for the given components and maps them to a [GradleCoordinate]
-   *
-   * @see GradleCoordinate.parseCoordinateString()
-   */
-  private fun collectDependencies(components: Iterable<NlComponent>): Iterable<GradleCoordinate> {
-    return components
-      .flatMap { it.dependencies }
-      .map { artifact -> artifact.getCoordinate("+") }
-      .toList()
+  /** Finds all dependencies for the given components and maps them to a [GoogleMavenArtifactId] */
+  private fun collectDependencies(components: Iterable<NlComponent>): Set<GoogleMavenArtifactId> {
+    return components.flatMap { it.dependencies }.toSet()
   }
 }
