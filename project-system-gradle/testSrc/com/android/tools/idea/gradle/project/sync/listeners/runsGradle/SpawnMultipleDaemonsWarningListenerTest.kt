@@ -69,7 +69,7 @@ class SpawnMultipleDaemonsWarningListenerTest : AndroidGradleTestCase() {
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
 
-    createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION.toString())
+    createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION)
     loadSimpleApplication()
 
     notifications

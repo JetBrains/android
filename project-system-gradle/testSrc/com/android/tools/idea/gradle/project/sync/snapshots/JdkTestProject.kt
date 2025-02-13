@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import java.io.File
 import java.nio.file.Files
 
@@ -53,7 +54,8 @@ sealed class JdkTestProject(
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
     gradleLocalJavaHome: String? = null,
-    gradlePropertiesJavaHome: String? = null
+    gradlePropertiesJavaHome: String? = null,
+    gradleDaemonJvmCriteria: GradleDaemonJvmCriteria? = null,
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -73,6 +75,9 @@ sealed class JdkTestProject(
       }
       gradlePropertiesJavaHome?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
+      }
+      gradleDaemonJvmCriteria?.let {
+        ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
       }
     }
   )

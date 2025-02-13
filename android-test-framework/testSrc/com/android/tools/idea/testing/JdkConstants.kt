@@ -34,5 +34,5 @@ object JdkConstants {
   val JDK_1_8_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() }
   val JDK_EMBEDDED_PATH by lazy { IdeSdks.getInstance().embeddedJdkPath.absolutePathString() }
 
-  val JDK_EMBEDDED_VERSION by lazy { JdkVersionDetector.getInstance().detectJdkVersionInfo(JDK_EMBEDDED_PATH)!!.version.feature }
+  val JDK_EMBEDDED_VERSION by lazy { JdkVersionDetector.getInstance().detectJdkVersionInfo(JDK_EMBEDDED_PATH)!!.version.feature.toString() }
 }

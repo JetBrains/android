@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project.sync.utils
-import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -29,11 +29,15 @@ import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.jetbrains.jps.model.serialization.JpsComponentLoader
+import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
 import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
+import java.nio.file.Paths
 
 private const val PROJECT_DIR = "${'$'}PROJECT_DIR${'$'}"
 private const val PROJECT_IDEA_GRADLE_XML_PATH = "$DIRECTORY_STORE_FOLDER/gradle.xml"
@@ -47,6 +51,12 @@ object ProjectJdkUtils {
       save()
     }
   }
+
+  fun setProjectGradleDaemonJvmCriteria(projectRoot: File, jvmCriteria: GradleDaemonJvmCriteria) = createProjectFile(
+    projectRoot = projectRoot,
+    relativePath = Paths.get(GRADLE_FOLDER, GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME).toString(),
+    text = GradleUtils.buildDamonJvmCriteriaProperties(jvmCriteria)
+  )
 
   fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHome: String) {
     val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)

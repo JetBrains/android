@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.utils
 import com.android.SdkConstants
 import com.google.common.base.Strings
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_VENDOR_PROPERTY
+import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_VERSION_PROPERTY
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
@@ -39,4 +42,13 @@ object GradleUtils {
     }
     return File(gradleUserHome, SdkConstants.FN_GRADLE_PROPERTIES)
   }
+
+  fun buildDamonJvmCriteriaProperties(jvmCriteria: GradleDaemonJvmCriteria) = StringBuilder().apply {
+      jvmCriteria.version?.let {
+        appendLine("$GRADLE_DAEMON_JVM_VERSION_PROPERTY=$it")
+      }
+      jvmCriteria.vendor?.let {
+        appendLine("$GRADLE_DAEMON_JVM_VENDOR_PROPERTY=$it")
+      }
+    }.toString()
 }
