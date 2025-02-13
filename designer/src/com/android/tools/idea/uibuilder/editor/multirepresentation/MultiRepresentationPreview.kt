@@ -158,7 +158,7 @@ open class MultiRepresentationPreview(
         field = value
 
         onRepresentationChanged()
-        if (isActive.get()) {
+        if (_previewIsActive.get()) {
           LOG.debug { "[$instanceId] Activating '$value'" }
           currentRepresentation?.onActivate()
           currentRepresentationIsActive.set(true)
@@ -176,7 +176,10 @@ open class MultiRepresentationPreview(
    * [AtomicBoolean] to track activations. Indicates whether the current preview is active. If
    * false, the preview might be hidden or in the background.
    */
-  private val isActive = AtomicBoolean(false)
+  private val _previewIsActive = AtomicBoolean(false)
+
+  val previewIsActive
+    get() = _previewIsActive.get()
 
   private val caretListener =
     object : CaretListener {
@@ -492,7 +495,7 @@ open class MultiRepresentationPreview(
 
   /** Method called when this preview becomes active. */
   fun onActivate() {
-    if (isActive.getAndSet(true)) return
+    if (_previewIsActive.getAndSet(true)) return
 
     if (!currentRepresentationIsActive.getAndSet(true)) {
       LOG.debug { "[$instanceId] Activating '$currentRepresentationName'" }
@@ -508,7 +511,7 @@ open class MultiRepresentationPreview(
    * [onActivate].
    */
   fun onDeactivate() {
-    if (!isActive.getAndSet(false)) return
+    if (!_previewIsActive.getAndSet(false)) return
     currentRepresentationIsActive.set(false)
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'" }
     editor.caretModel.removeCaretListener(caretListener)

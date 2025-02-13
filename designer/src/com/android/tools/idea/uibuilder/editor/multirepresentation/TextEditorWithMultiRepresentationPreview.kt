@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -86,7 +87,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   }
 
   /** Whether this editor is active currently or not. */
-  private var isActive = false
+  private var isActive = AtomicBoolean(false)
 
   /** True until the first activation happens. */
   private var firstActivation = true
@@ -154,12 +155,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   }
 
   private fun activate() {
-    if (isActive) return
-    isActive = true
+    setActive(true)
+  }
+
+  private fun deactivate() {
+    setActive(false)
+  }
+
+  private fun setActive(activate: Boolean) {
+    if (isActive.getAndSet(activate) == activate) return
     launch(workerThread) {
-      // onActivate is not a suspendable function so we put it in a blockingContextScope
-      // to make it cancellable.
-      blockingContextScope { preview.onActivate() }
+      // onActivate and onDeactivate is not a suspendable function so we put it in a
+      // blockingContextScope to make it cancellable.
+      blockingContextScope { if (isActive.get()) preview.onActivate() else preview.onDeactivate() }
     }
   }
 
@@ -174,17 +182,6 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     }
 
     super.navigateTo(navigatable)
-  }
-
-  private fun deactivate() {
-    if (!isActive) return
-    isActive = false
-
-    launch(workerThread) {
-      // onDeactivate is not a suspendable function so we put it in a blockingContextScope
-      // to make it cancellable.
-      blockingContextScope { preview.onDeactivate() }
-    }
   }
 
   final override fun selectNotify() {

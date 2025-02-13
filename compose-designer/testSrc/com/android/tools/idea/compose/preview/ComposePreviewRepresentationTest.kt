@@ -723,6 +723,65 @@ class ComposePreviewRepresentationTest {
     }
   }
 
+  // Test for b/381975273
+  @Test
+  fun hideAndShowPreview() {
+    // Use the real FileEditorManager
+    project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
+    project.replaceService(
+      FileEditorManager::class.java,
+      FileEditorManagerImpl(project, project.coroutineScope),
+      projectRule.fixture.testRootDisposable,
+    )
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
+
+    val testPsiFile = runWriteActionAndWait {
+      // Do not use addFileToProjectAndInvalidate(..) here. It generates/caches a document with null
+      // virtual file, which results in the inconsistency with the document for the PSI virtual file
+      // after updating PSI. See b/381432038 for further information.
+      fixture.addFileToProject(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
+            fun Preview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+    testPsiFile.putUserData(FileEditorProvider.KEY, SourceCodeEditorProvider())
+
+    val editor =
+      runBlocking(uiThread) {
+        val editor =
+          withContext(uiThread) {
+            val editors =
+              FileEditorManager.getInstance(project).openFile(testPsiFile.virtualFile, true, true)
+            (editors[0] as TextEditorWithMultiRepresentationPreview<*>)
+          }
+        delayUntilCondition(250) { editor.getPreviewManager<ComposePreviewManager>() != null }
+        editor
+      }
+
+    val mainSurface = runBlocking(uiThread) { editor.getDesignSurface() as NlDesignSurface }
+
+    runComposePreviewRepresentationTest(testPsiFile, mainSurface) {
+      delayUntilCondition(2000) { editor.preview.previewIsActive }
+
+      editor.preview.component.isVisible = false
+      delayUntilCondition(2000) { !editor.preview.previewIsActive }
+
+      withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
+    }
+  }
+
   @Test
   fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsDisabled() =
     runComposePreviewRepresentationTest {
