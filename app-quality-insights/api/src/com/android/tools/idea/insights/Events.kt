@@ -126,7 +126,11 @@ data class Device(
 }
 
 /** Describes a mobile device's OS. */
-data class OperatingSystemInfo(val displayVersion: String, val displayName: String) {
+data class OperatingSystemInfo(
+  val displayVersion: String,
+  val displayName: String,
+  val filterName: String = displayName,
+) {
   companion object {
     val ALL = OperatingSystemInfo(displayVersion = "", displayName = "")
   }
