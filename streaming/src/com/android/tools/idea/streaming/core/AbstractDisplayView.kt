@@ -28,6 +28,7 @@ import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
@@ -88,7 +89,7 @@ import kotlin.math.roundToInt
 abstract class AbstractDisplayView(
   project: Project,
   val displayId: Int,
-) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
+) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner, UiDataProvider {
 
   /** Serial number of the device shown in the view. */
   val deviceSerialNumber: String

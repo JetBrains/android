@@ -232,6 +232,7 @@ class ScreenRecorderAction : DumbAwareAction(
     val serialNumber: String,
     val featureLevel: Int,
     val avdId: String?,
+    val displayId: Int,
     val recordingLifetimeDisposable: Disposable,
   )
 }

@@ -61,6 +61,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -69,6 +70,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -208,7 +210,6 @@ class EmulatorView(
     }
   override val apiLevel: Int
     get() = emulatorConfig.api
-
   private var lastScreenshot: Screenshot? = null
   private var deviceScaleFactor: Double = 1.0
   private val displayTransform = AffineTransform()
@@ -222,7 +223,8 @@ class EmulatorView(
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
     get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
-  override val deviceId: DeviceId = DeviceId.ofEmulator(emulator.emulatorId)
+  private val emulatorId = emulator.emulatorId
+  override val deviceId: DeviceId = DeviceId.ofEmulator(emulatorId)
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L
@@ -835,6 +837,20 @@ class EmulatorView(
       return null
     }
     return skin.findSkinButtonContaining(x - displayRect.x, y - displayRect.y)?.keyName
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[EMULATOR_VIEW_KEY] = this
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
+  }
+
+  private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
+    return if (emulator.connectionState == ConnectionState.CONNECTED) {
+      ScreenRecorderAction.Parameters(emulatorId.avdName, deviceSerialNumber, emulatorConfig.api, emulatorId.avdId, displayId, emulator)
+    }
+    else {
+      null
+    }
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {

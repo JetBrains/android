@@ -906,7 +906,7 @@ constructor(
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
     sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
-      device?.let { ScreenshotOptions(it.serialNumber, it.model, null) }
+      device?.let { ScreenshotOptions(it.serialNumber, it.model, 0, null) }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
         ScreenRecorderAction.Parameters(
@@ -914,6 +914,7 @@ constructor(
           it.serialNumber,
           it.featureLevel,
           if (it.isEmulator) it.deviceId else null,
+          0,
           this,
         )
       }

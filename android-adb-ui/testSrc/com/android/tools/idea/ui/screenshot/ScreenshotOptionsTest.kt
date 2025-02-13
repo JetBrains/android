@@ -189,7 +189,7 @@ class ScreenshotOptionsTest {
   }
 
   private fun createScreenshotOptions(deviceProperties: DeviceProperties, screenshotRotation: ScreenshotRotation? = null) =
-      ScreenshotOptions(serialNumber, deviceProperties.model, screenshotRotation?.let { { it } })
+      ScreenshotOptions(serialNumber, deviceProperties.model, 0, screenshotRotation?.let { { it } })
 
   private fun getGoldenFile(name: String): Path =
       TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")

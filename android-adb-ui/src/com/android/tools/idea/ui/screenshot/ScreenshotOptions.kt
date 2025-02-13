@@ -42,6 +42,7 @@ private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 class ScreenshotOptions(
   val serialNumber: String,
   private val deviceModel: String?,
+  val displayId: Int,
   private val orientationProvider: (() -> ScreenshotAction.ScreenshotRotation)?,
 ) {
 

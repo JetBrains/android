@@ -34,9 +34,13 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
+import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -168,6 +172,8 @@ internal class DeviceView(
 
   internal val deviceController: DeviceController?
     get() = deviceClient.deviceController
+  private val deviceConfig
+    get() = deviceClient.deviceConfig
 
   override val deviceDisplaySize = Dimension()
 
@@ -201,6 +207,9 @@ internal class DeviceView(
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
+  private val screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
+    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
+
 
   init {
     Disposer.register(disposableParent, this)
@@ -548,6 +557,16 @@ internal class DeviceView(
   fun removeConnectionStateListener(listener: ConnectionStateListener) {
     connectionStateListeners.remove(listener)
   }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = if (isConnected) createScreenshotOptions() else null
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let {
+      ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, displayId, it)
+    }
+  }
+
+  private fun createScreenshotOptions() =
+      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, displayId, screenshotOrientationProvider)
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
