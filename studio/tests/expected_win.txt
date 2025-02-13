@@ -2128,6 +2128,7 @@ android-studio/plugins/directaccess/lib/google-api-services-storage-v1-rev202303
 android-studio/plugins/directaccess/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 android-studio/plugins/directaccess/lib/libadb_proxy_java_proto.jar
+android-studio/plugins/directaccess/lib/libdevice_streaming_java_proto.jar
 android-studio/plugins/directaccess/lib/libftl_client_java_proto.jar
 android-studio/plugins/directaccess/resources/reverse_daemon.dex
 android-studio/plugins/editorconfig/lib/editorconfig.jar

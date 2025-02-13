@@ -2858,6 +2858,7 @@ Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/libadb_proxy_java_proto.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/libdevice_streaming_java_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/libftl_client_java_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/resources/reverse_daemon.dex
 Android Studio Preview.app/Contents/plugins/editorconfig/lib/editorconfig.jar
