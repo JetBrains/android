@@ -40,7 +40,7 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.utils.executeWithRetries
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessIOExecutorService
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
@@ -153,7 +153,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     button.click()
     waitForCondition(30.seconds) { popupRule.fakePopupFactory.balloonCount > 0 }
     val balloon = popupRule.fakePopupFactory.getNextBalloon()
-    Truth.assertThat(balloon).isNotNull()
+    assertThat(balloon).isNotNull()
     return balloon.component as UiSettingsPanel
   }
 
