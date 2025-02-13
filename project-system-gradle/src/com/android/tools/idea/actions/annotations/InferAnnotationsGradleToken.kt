@@ -70,7 +70,7 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
       StringUtil.pluralize("module", count),
       moduleNames,
       if (count > 1) "do" else "does",
-      GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.mavenArtifactId,
+      artifact.mavenArtifactId,
       StringUtil.pluralize("dependency", count)
     )
     if (Messages.showOkCancelDialog(
@@ -87,8 +87,8 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
       if (revision != null) {
         val coordinates = listOf(artifact.getCoordinate(revision))
         for (module in modulesWithoutAnnotations) {
-          val added = module.addDependenciesWithUiConfirmation(coordinates, false, requestSync = false)
-          if (added.isEmpty()) {
+          val notAdded = module.addDependenciesWithUiConfirmation(coordinates, false, requestSync = false)
+          if (notAdded.isNotEmpty()) {
             break // user canceled or some other problem; don't resume with other modules
           }
         }
