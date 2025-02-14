@@ -48,6 +48,9 @@ public class ProjectProtos {
             NOOP_CONTEXT,
             ProjectDefinition.builder()
                 .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
+                .setProjectExcludes(ImmutableSet.of())
+                .setSystemExcludes(ImmutableSet.of())
+                .setTestSources(ImmutableSet.of())
                 .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                 .build(),
             newDirectExecutorService());

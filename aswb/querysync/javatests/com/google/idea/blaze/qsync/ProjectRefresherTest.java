@@ -186,6 +186,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .setBazelVersion(Optional.of("1.0.0"))
@@ -219,6 +222,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .build();
@@ -254,6 +260,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .build();
@@ -285,6 +294,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .build();
@@ -318,6 +330,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .build();
@@ -351,6 +366,9 @@ public class ProjectRefresherTest {
             .setProjectDefinition(
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setProjectExcludes(ImmutableSet.of())
+                    .setSystemExcludes(ImmutableSet.of())
+                    .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
                     .build())
             .build();

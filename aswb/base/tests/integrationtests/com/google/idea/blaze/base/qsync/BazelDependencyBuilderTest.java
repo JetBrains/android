@@ -78,7 +78,13 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var dependencyBuilder =
       new BazelDependencyBuilder(getProject(),
                                  new BazelBuildSystemProvider().getBuildSystem(),
-                                 ProjectDefinition.builder().build(),
+                                 ProjectDefinition.builder()
+                                   .setProjectIncludes(ImmutableSet.of())
+                                   .setProjectExcludes(ImmutableSet.of())
+                                   .setSystemExcludes(ImmutableSet.of())
+                                   .setTestSources(ImmutableSet.of())
+                                   .setLanguageClasses(ImmutableSet.of())
+                                   .build(),
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),
@@ -130,7 +136,13 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var dependencyBuilder =
       new BazelDependencyBuilder(getProject(),
                                  new BazelBuildSystemProvider().getBuildSystem(),
-                                 ProjectDefinition.builder().build(),
+                                 ProjectDefinition.builder()
+                                   .setProjectIncludes(ImmutableSet.of())
+                                   .setProjectExcludes(ImmutableSet.of())
+                                   .setSystemExcludes(ImmutableSet.of())
+                                   .setTestSources(ImmutableSet.of())
+                                   .setLanguageClasses(ImmutableSet.of())
+                                   .build(),
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),
