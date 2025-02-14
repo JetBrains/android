@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import org.gradle.api.Project
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.gradle.BasicGradleProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import org.jetbrains.plugins.gradle.tooling.Message
@@ -33,36 +33,40 @@ enum class TestGradleModelProviderMode {
 
 class TestGradleModelProvider(private val paramValue: String, val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
 
-  override fun populateProjectModels(
+  override fun populateModels(
     controller: BuildController,
-    projectModel: BasicGradleProject,
-    modelConsumer: GradleModelConsumer
+    buildModels: Collection<GradleBuild>,
+    modelConsumer: GradleModelConsumer,
   ) {
-    when (mode) {
-      TestGradleModelProviderMode.IDE_MODELS -> Unit
-      TestGradleModelProviderMode.TEST_GRADLE_MODELS -> {
-        val testGradleModel = controller.findModel(projectModel, TestGradleModel::class.java)
-        if (testGradleModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testGradleModel, TestGradleModel::class.java)
-        }
+    for (buildModel in buildModels) {
+      for (projectModel in buildModel.projects) {
+        when (mode) {
+          TestGradleModelProviderMode.IDE_MODELS -> Unit
+          TestGradleModelProviderMode.TEST_GRADLE_MODELS -> {
+            val testGradleModel = controller.findModel(projectModel, TestGradleModel::class.java)
+            if (testGradleModel != null) {
+              modelConsumer.consumeProjectModel(projectModel, testGradleModel, TestGradleModel::class.java)
+            }
 
-        val testParameterizedGradleModel =
-          controller.findModel(
-            projectModel,
-            TestParameterizedGradleModel::class.java,
-            ModelBuilderService.Parameter::class.java
-          ) { parameter ->
-            parameter.value = paramValue
+            val testParameterizedGradleModel =
+              controller.findModel(
+                projectModel,
+                TestParameterizedGradleModel::class.java,
+                ModelBuilderService.Parameter::class.java
+              ) { parameter ->
+                parameter.value = paramValue
+              }
+            if (testParameterizedGradleModel != null) {
+              modelConsumer.consumeProjectModel(projectModel, testParameterizedGradleModel, TestParameterizedGradleModel::class.java)
+            }
           }
-        if (testParameterizedGradleModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testParameterizedGradleModel, TestParameterizedGradleModel::class.java)
-        }
-      }
 
-      TestGradleModelProviderMode.TEST_EXCEPTION_MODELS -> {
-        val testExceptionModel = controller.findModel(projectModel, TestExceptionModel::class.java)
-        if (testExceptionModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testExceptionModel, TestExceptionModel::class.java)
+          TestGradleModelProviderMode.TEST_EXCEPTION_MODELS -> {
+            val testExceptionModel = controller.findModel(projectModel, TestExceptionModel::class.java)
+            if (testExceptionModel != null) {
+              modelConsumer.consumeProjectModel(projectModel, testExceptionModel, TestExceptionModel::class.java)
+            }
+          }
         }
       }
     }
