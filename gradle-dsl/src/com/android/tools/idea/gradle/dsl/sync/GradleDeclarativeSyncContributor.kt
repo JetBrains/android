@@ -56,7 +56,6 @@ class GradleDeclarativeSyncContributor : GradleSyncContributor {
     // return if there is already a model other than the simple project root one
     val contentRootEntities = storage.entities<ContentRootEntity>()
     if(!contentRootEntities.toList().isEmpty()) {
-      // check if the project root model can be updated
       val linkedProjectEntitySource = GradleLinkedProjectEntitySource(projectRootUrl)
       if (contentRootEntities.any { it -> it.entitySource != linkedProjectEntitySource })
         return
@@ -68,6 +67,7 @@ class GradleDeclarativeSyncContributor : GradleSyncContributor {
       }
     }
 
+    // try finding the Gradle build file in the project root directory
     val declarativeGradleBuildFile = File(context.projectPath, "build.gradle.dcl")
 
     val virtualBuildFile: VirtualFile? = if (declarativeGradleBuildFile.isFile) {
@@ -82,16 +82,26 @@ class GradleDeclarativeSyncContributor : GradleSyncContributor {
     val projectName = entitySource.projectRootUrl.fileName // the settings model does not contain the project name
 
     val settingsModel = projectBuildModel.projectSettingsModel
-    if(settingsModel == null) { // no settings file
-      if(projectBuildModel.projectBuildModel == null) return
+    if(settingsModel == null) { // no settings file so assume simple project
+      if(projectBuildModel.projectBuildModel == null) {
+        val rootModuleEntity = addModuleEntity(storage, entitySource, projectName, listOf(
+          InheritedSdkDependency,
+          ModuleSourceDependency
+        ))
+        addContentRootEntity(storage, entitySource, rootModuleEntity, projectRootUrl)
+        return
+      }
       configureModule(storage, entitySource, projectRootUrl, projectName, projectBuildModel.projectBuildModel!!)
       return
     }
 
+    // configure all modules found in settings file include statements including the root
     for(modulePath in settingsModel.modulePaths()) {
       val buildModel = settingsModel.moduleModel(modulePath)
       val moduleRootUrl = Path.of(settingsModel.moduleDirectory(modulePath).toString()).toVirtualFileUrl(virtualFileUrlManager)
       val moduleName: String = if(modulePath.equals(":")) projectName else projectName + "." + modulePath.replace(':', '.').removePrefix(".")
+
+      // if the build file is missing in root, configure the project root module
       if(buildModel == null || !buildModel.virtualFile.isFile) {
         if(!modulePath.equals(":")) continue
         val rootModuleEntity = addModuleEntity(storage, entitySource, moduleName, listOf(
@@ -103,6 +113,55 @@ class GradleDeclarativeSyncContributor : GradleSyncContributor {
       }
       configureModule(storage, entitySource, moduleRootUrl, moduleName, buildModel)
     }
+  }
+
+  private fun configureModule(storage: MutableEntityStorage, entitySource: GradleDeclarativeEntitySource, moduleRootUrl: VirtualFileUrl, moduleName: String, buildModel: GradleBuildModel) {
+    val javaModel = buildModel.javaApplication()
+
+    val rootModuleEntity = addModuleEntity(storage, entitySource, moduleName, listOf(
+      InheritedSdkDependency,
+      ModuleSourceDependency
+    ))
+    addContentRootEntity(storage, entitySource, rootModuleEntity, moduleRootUrl)
+
+    val dependenciesModel = javaModel.dependencies() //TODO convert android dependencies to workspace deps
+    val mainSdkDependency: ModuleDependencyItem = if(javaModel.javaVersion().getValueType() == ValueType.NONE)
+      InheritedSdkDependency else SdkDependency(SdkId(javaModel.javaVersion().toString(), "JavaSDK"))
+    val mainDependencies = listOf(mainSdkDependency, ModuleSourceDependency)
+      .plus(dependenciesModel.artifacts().map {
+        LibraryDependency(LibraryId("Gradle: " + it.compactNotation(), LibraryTableId.ProjectLibraryTableId), false,
+                          DependencyScope.COMPILE) // TODO should library deps be added?
+      })
+      .plus(dependenciesModel.modules().map {
+        ModuleDependency(ModuleId(entitySource.projectRootUrl.fileName + "." + it.name() + ".main"), false, DependencyScope.COMPILE, false)
+      })
+
+
+    val mainModuleEntity = addModuleEntity(storage, entitySource, "$moduleName.main", mainDependencies)
+    val mainContentRootEntity = addContentRootEntity(storage, entitySource, mainModuleEntity,
+                                                     moduleRootUrl.append("src").append("main"))
+    addSourceRootEntity(storage, entitySource, "java-source", moduleRootUrl.append("src").append("main").append("java"),
+                        mainContentRootEntity)
+
+    val mainModuleDep = ModuleDependency(ModuleId(mainModuleEntity.name), false, DependencyScope.COMPILE, false)
+    val testSdkDependency: ModuleDependencyItem = if(javaModel.testing().javaVersion().getValueType() == ValueType.NONE)
+      mainSdkDependency else SdkDependency(SdkId(javaModel.javaVersion().toString(), "JavaSDK"))
+    val testDependenciesModel = javaModel.testing().dependencies()
+    val testDependencies = listOf(testSdkDependency, ModuleSourceDependency, mainModuleDep)
+      .plus(mainDependencies)
+      .plus(testDependenciesModel.artifacts().map {
+        LibraryDependency(LibraryId("Gradle: " + it.compactNotation(), LibraryTableId.ProjectLibraryTableId), false,
+                          DependencyScope.COMPILE) // TODO should library deps be added?
+      })
+      .plus(testDependenciesModel.modules().map {
+        ModuleDependency(ModuleId(entitySource.projectRootUrl.fileName + "." + it.name().replace(":", ".") + ".main"), false, DependencyScope.COMPILE, false)
+      })
+
+    val testModuleEntity = addModuleEntity(storage, entitySource, "$moduleName.test", testDependencies)
+    val testContentRootEntity = addContentRootEntity(storage, entitySource, testModuleEntity,
+                                                     moduleRootUrl.append("src").append("test"))
+    addSourceRootEntity(storage, entitySource, "java-test", moduleRootUrl.append("src").append("test").append("java"),
+                        testContentRootEntity)
   }
 
   private fun addModuleEntity(
@@ -186,46 +245,4 @@ class GradleDeclarativeSyncContributor : GradleSyncContributor {
       storage.removeEntity(projectEntity)
     }
   }
-
-  private fun configureModule(storage: MutableEntityStorage, entitySource: GradleDeclarativeEntitySource, moduleRootUrl: VirtualFileUrl, moduleName: String, buildModel: GradleBuildModel) {
-    val javaModel = buildModel.javaApplication()
-
-    val rootModuleEntity = addModuleEntity(storage, entitySource, moduleName, listOf(
-      InheritedSdkDependency,
-      ModuleSourceDependency
-    ))
-    addContentRootEntity(storage, entitySource, rootModuleEntity, moduleRootUrl)
-
-    val dependenciesModel = javaModel.dependencies() //TODO convert android dependencies to workspace deps
-    val mainSdkDependency: ModuleDependencyItem = if(javaModel.javaVersion().getValueType() == ValueType.NONE)
-      InheritedSdkDependency else SdkDependency(SdkId(javaModel.javaVersion().toString(), "JavaSDK"))
-    val mainDependencies = listOf(mainSdkDependency, ModuleSourceDependency).plus(
-      dependenciesModel.artifacts().map {
-        LibraryDependency(LibraryId("Gradle: " + it.compactNotation(), LibraryTableId.ProjectLibraryTableId), false,
-                          DependencyScope.COMPILE) // TODO should library deps be added?
-      })
-
-    val mainModuleEntity = addModuleEntity(storage, entitySource, "$moduleName.main", mainDependencies)
-    val mainContentRootEntity = addContentRootEntity(storage, entitySource, mainModuleEntity,
-                                                     moduleRootUrl.append("src").append("main"))
-    addSourceRootEntity(storage, entitySource, "java-source", moduleRootUrl.append("src").append("main").append("java"),
-                        mainContentRootEntity)
-
-    val moduleDep = ModuleDependency(ModuleId(mainModuleEntity.name), false, DependencyScope.COMPILE, false)
-    val testSdkDependency: ModuleDependencyItem = if(javaModel.testing().javaVersion().getValueType() == ValueType.NONE)
-      mainSdkDependency else SdkDependency(SdkId(javaModel.javaVersion().toString(), "JavaSDK"))
-    val testDependenciesModel = javaModel.testing().dependencies()
-    val testDependencies = listOf(testSdkDependency, moduleDep, ModuleSourceDependency).plus(
-      testDependenciesModel.modules().map {
-        ModuleDependency(ModuleId(entitySource.projectRootUrl.fileName + "." + it.name()), false, DependencyScope.COMPILE, false)
-      }
-    )
-
-    val testModuleEntity = addModuleEntity(storage, entitySource, "$moduleName.test", testDependencies)
-    val testContentRootEntity = addContentRootEntity(storage, entitySource, testModuleEntity,
-                                                     moduleRootUrl.append("src").append("test"))
-    addSourceRootEntity(storage, entitySource, "java-test", moduleRootUrl.append("src").append("test").append("java"),
-                        testContentRootEntity)
-  }
-
 }
