@@ -24,7 +24,7 @@ import com.android.tools.preview.PreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
-internal class TestBasePreviewElement<T>(
+class TestBasePreviewElement<T>(
   displayName: String = "",
   baseName: String = "",
   parameterName: String? = null,
@@ -72,7 +72,6 @@ internal class TestBasePreviewElement<T>(
     )
 }
 
-internal typealias PsiTestPreviewElement =
-  TestBasePreviewElement<SmartPsiElementPointer<PsiElement>>
+typealias PsiTestPreviewElement = TestBasePreviewElement<SmartPsiElementPointer<PsiElement>>
 
-internal typealias TestPreviewElement = TestBasePreviewElement<Unit>
+typealias TestPreviewElement = TestBasePreviewElement<Unit>

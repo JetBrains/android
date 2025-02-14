@@ -20,7 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

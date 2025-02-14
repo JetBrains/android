@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview
+package com.android.tools.idea.preview.find
 
-import com.android.tools.idea.preview.find.NodeInfo
-import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
-import com.android.tools.idea.preview.find.getUAnnotations
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiClass

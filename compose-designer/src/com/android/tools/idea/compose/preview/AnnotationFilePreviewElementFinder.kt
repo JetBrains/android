@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
-import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.progress.ProgressManager

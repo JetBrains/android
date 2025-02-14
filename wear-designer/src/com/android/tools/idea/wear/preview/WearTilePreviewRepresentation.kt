@@ -18,11 +18,11 @@ package com.android.tools.idea.wear.preview
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.animation.AnimationPreview
+import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NavigationHandler

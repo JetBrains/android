@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTrac
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.idea.preview.find.toSmartPsiPointer
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor

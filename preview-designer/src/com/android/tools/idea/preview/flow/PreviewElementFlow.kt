@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.flow
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.preview.PreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage

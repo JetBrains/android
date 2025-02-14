@@ -19,9 +19,9 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonPreviewToolbar
+import com.android.tools.idea.preview.find.FilePreviewElementFinder
+import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -67,7 +67,8 @@ class WearTilePreviewRepresentationProvider(
     if (!virtualFile.isSourceFileType()) return false
     if (DumbService.isDumb(project)) return false
     // Wear Tile previews are only supported in Android modules.
-    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
+    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true)
+      return false
 
     return StudioFlags.WEAR_TILE_PREVIEW.get() &&
       filePreviewElementFinder.hasPreviewElements(project, virtualFile)
