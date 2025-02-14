@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.lint.detector.api.isKotlin
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -41,6 +42,7 @@ import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiJavaCodeReferenceElement
 import com.intellij.psi.PsiJavaFile
@@ -156,6 +158,18 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       }
 
     return true
+  }
+
+  override fun generatePreview(
+    project: Project,
+    editor: Editor,
+    file: PsiFile,
+  ): IntentionPreviewInfo {
+    // b/396483011: Since this action uses write commands and does a Gradle sync, it doesn't work
+    // well with previews. Previews also don't make a ton of sense here, since the code being
+    // modified is not at the same location as the cursor. To handle this, we simply don't give a
+    // preview for this actoin.
+    return IntentionPreviewInfo.EMPTY
   }
 
   companion object {
