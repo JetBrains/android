@@ -879,7 +879,7 @@ public final class StudioFlags {
     GRADLE_IDE, "recommend.patch.releases", "Recommend upgrading to the latest patch release of AGP",
     "While stable versions of Android Studio support importing projects of newer patch releases of the same major-minor series " +
     "unless this is enabled, the upgrade assistant will not recommend those updates.",
-    false);
+    true);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = new BooleanFlag(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
