@@ -56,7 +56,7 @@ private fun IdeSourceProvider.processAll(
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
 
-  processor(manifestFile.absolutePath, null)
+  manifestFile?.let { processor(it.absolutePath, null) }
 
   val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories
 

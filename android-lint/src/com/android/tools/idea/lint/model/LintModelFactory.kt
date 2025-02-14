@@ -514,7 +514,7 @@ class LintModelFactory : LintModelModuleLoader {
   ): LintModelSourceProvider? {
     val provider = providerContainer.sourceProvider ?: return null
     return DefaultLintModelSourceProvider(
-      manifestFiles = listOf(provider.manifestFile),
+      manifestFiles = listOfNotNull(provider.manifestFile),
       javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
@@ -533,7 +533,7 @@ class LintModelFactory : LintModelModuleLoader {
     testFixturesOnly: Boolean = false,
   ): LintModelSourceProvider {
     return DefaultLintModelSourceProvider(
-      manifestFiles = listOf(provider.manifestFile),
+      manifestFiles = listOfNotNull(provider.manifestFile),
       javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,

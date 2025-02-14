@@ -622,7 +622,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     private fun dump(ideSourceProvider: IdeSourceProvider?) {
       if (ideSourceProvider == null) return
       prop("Name") { ideSourceProvider.name }
-      prop("Manifest") { ideSourceProvider.manifestFile.path.toPrintablePath() }
+      ideSourceProvider.manifestFile?.let {
+        prop("Manifest") { it.path.toPrintablePath() }
+      }
       ideSourceProvider.javaDirectories.forEach { prop("JavaDirectories") { it.path.toPrintablePath() } }
       ideSourceProvider.kotlinDirectories.forEach { prop("KotlinDirectories") { it.path.toPrintablePath() } }
       ideSourceProvider.resourcesDirectories.forEach { prop("ResourcesDirectories") { it.path.toPrintablePath() } }

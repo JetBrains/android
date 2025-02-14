@@ -87,7 +87,7 @@ fun Project.dumpSourceProviders(): String {
     fun IdeSourceProvider.dump() {
       out(name)
       nest {
-        dumpPaths("Manifest") { listOf(manifestFile) }
+        dumpPaths("Manifest") { listOfNotNull(manifestFile) }
         dumpPaths("AidlDirectories") { it.aidlDirectories }
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
         dumpPaths("JavaDirectories") { it.javaDirectories }

@@ -32,7 +32,7 @@ class NamedIdeaSourceProviderImpl(
 ) : NamedIdeaSourceProvider {
 
   interface Core {
-    val manifestFileUrl: String
+    val manifestFileUrl: String?
     val javaDirectoryUrls: Sequence<String>
     val kotlinDirectoryUrls: Sequence<String>
     val resourcesDirectoryUrls: Sequence<String>
@@ -47,7 +47,7 @@ class NamedIdeaSourceProviderImpl(
     val baselineProfileDirectoryUrls: Sequence<String>
   }
 
-  private val manifestFileUrl: String get() = core.manifestFileUrl
+  private val manifestFileUrl: String? get() = core.manifestFileUrl
   override val javaDirectoryUrls: Iterable<String> get() = core.javaDirectoryUrls.asIterable()
   override val kotlinDirectoryUrls: Iterable<String> get() = core.kotlinDirectoryUrls.asIterable()
   override val resourcesDirectoryUrls: Iterable<String> get() = core.resourcesDirectoryUrls.asIterable()
@@ -68,7 +68,7 @@ class NamedIdeaSourceProviderImpl(
   private val manifestFile: VirtualFile?
     get() {
       if (myManifestFile == null || !myManifestFile!!.isValid) {
-        myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
+        myManifestFile = manifestFileUrl?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
       }
       return myManifestFile
     }
@@ -80,7 +80,7 @@ class NamedIdeaSourceProviderImpl(
     get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
 
   override val manifestFileUrls: Collection<String>
-    get() = listOf(manifestFileUrl)
+    get() = listOfNotNull(manifestFileUrl)
 
   override val manifestFiles: Collection<VirtualFile>
     get() = listOfNotNull(manifestFile)

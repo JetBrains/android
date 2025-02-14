@@ -148,13 +148,13 @@ internal fun modelCacheV2Impl(
   /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
-    val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
+    val folder: File? = provider.manifestFile?.let { it.parentFile?.deduplicateFile() }
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
       name = provider.name.deduplicate(),
       folder = folder,
-      manifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
+      manifestFile = provider.manifestFile?.makeRelativeAndDeduplicate(),
       javaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
       kotlinDirectories = provider.kotlinDirectories.makeRelativeAndDeduplicate(),
       resourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
