@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.flow
 
-import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
@@ -77,7 +77,7 @@ class ComposePreviewElementFlowTest {
     val listenersReady = CompletableDeferred<Unit>()
     val previousElement = AtomicReference<Collection<ComposePreviewElement<*>>>(emptySet())
     val previewElementProvider =
-      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
+      FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
@@ -188,7 +188,7 @@ class ComposePreviewElementFlowTest {
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
     val previewElementProvider =
-      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
+      FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
 
     runBlocking {
       val flowScope = createChildScope()

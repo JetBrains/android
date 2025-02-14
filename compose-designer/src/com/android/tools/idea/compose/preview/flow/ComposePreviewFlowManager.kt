@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -130,7 +130,7 @@ internal class ComposePreviewFlowManager(
           requestFastPreviewRefresh = requestFastPreviewRefresh,
           restorePreviousMode = restorePreviousMode,
           previewElementProvider =
-            FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder),
+            FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder),
           toInstantiatedPreviewElementsFlow =
             ComposePreviewElementsModel::instantiatedPreviewElementsFlow,
         )

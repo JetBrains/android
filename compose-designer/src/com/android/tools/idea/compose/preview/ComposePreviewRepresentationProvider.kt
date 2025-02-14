@@ -22,6 +22,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
@@ -34,6 +35,7 @@ import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -154,8 +156,10 @@ class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: 
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
-  private val filePreviewElementProvider: () -> ComposeFilePreviewElementFinder =
-    ::defaultFilePreviewElementFinder
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder<PsiComposePreviewElement> =
+    {
+      AnnotationFilePreviewElementFinder
+    }
 ) : PreviewRepresentationProvider {
 
   private object ComposeEditorFileType :

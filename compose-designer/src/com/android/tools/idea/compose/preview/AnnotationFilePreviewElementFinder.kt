@@ -22,8 +22,8 @@ import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.preview.annotations.hasAnnotation
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -39,8 +39,8 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
 import org.jetbrains.uast.UMethod
 
-/** [ComposeFilePreviewElementFinder] that uses `@Preview` annotations. */
-object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
+/** [FilePreviewElementFinder] for Compose Preview annotations. */
+object AnnotationFilePreviewElementFinder : FilePreviewElementFinder<PsiComposePreviewElement> {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
     findAnnotatedMethodsValues(
         project,
@@ -51,9 +51,6 @@ object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
         getPreviewNodes(methods, false)
       }
       .any()
-
-  override suspend fun hasComposableMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotation(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
 
   /**
    * Returns all the preview elements in the [vFile]. Preview elements are `@Composable` functions
