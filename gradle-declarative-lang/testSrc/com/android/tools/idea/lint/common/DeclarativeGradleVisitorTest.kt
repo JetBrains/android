@@ -201,7 +201,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     sb.append('\n')
   }
 
-  override fun visitBuildScript(context: Context) {
+  override fun visitBuildScript(context: GradleContext) {
     log("visitBuildScript", "file" to context.file.name)
   }
 
