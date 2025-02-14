@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.libraries.compose.desktop">
+  <library name="studio-plugin-intellij.platform.vcs.impl.lang.actions">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.libraries.compose.desktop.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.vcs.impl.lang.actions.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

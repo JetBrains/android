@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.smart.update">
+  <library name="studio-plugin-intellij.platform.editor.backend">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.smart.update.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.editor.backend.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

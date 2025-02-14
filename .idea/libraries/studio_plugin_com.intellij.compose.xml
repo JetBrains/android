@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-org.jetbrains.plugins.yaml">
+  <library name="studio-plugin-com.intellij.compose">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/yaml/lib/yaml.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="studio-plugin-com.intellij.modules.json">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/json/lib/json-split.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/json/lib/json.jar!/" />
     </CLASSES>
     <JAVADOC />

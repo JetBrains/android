@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.markdown.compose.preview">
+  <library name="studio-plugin-intellij.platform.jewel.ideLafBridge">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/markdown/lib/modules/intellij.markdown.compose.preview.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.jewel.ideLafBridge.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
