@@ -73,7 +73,10 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return when (kind) {
-      DECLARATIVE -> DECLARATIVE_ROOT_ELEMENTS_MAP
+      DECLARATIVE -> mapOf(
+        "javaApplication" to JavaDclElement.JAVA_APPLICATION,
+        "javaLibrary" to JavaDclElement.JAVA_LIBRARY
+      )
       else -> DEFAULT_ROOT_ELEMENTS_MAP
     }
   }
@@ -89,11 +92,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "repositories" to RepositoriesDslElement.REPOSITORIES,
       "subprojects" to SubProjectsDslElement.SUBPROJECTS,
       "plugins" to PluginsDslElement.PLUGINS)
-
-    private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
-      "javaApplication" to JavaDclElement.JAVA_APPLICATION,
-      "javaLibrary" to JavaDclElement.JAVA_LIBRARY
-    )
 
     private fun declarativeJavaBuilder(file: GradleBuildFile): JavaDeclarativeModel {
       file.getPropertyElement(JavaDclElement.JAVA_APPLICATION)?.let { element ->
