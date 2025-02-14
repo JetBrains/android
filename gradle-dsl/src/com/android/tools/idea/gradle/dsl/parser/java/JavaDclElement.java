@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public class JavaDclElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<JavaDclElement> JAVA_APPLICATION =
     new PropertiesElementDescription<>("javaApplication", JavaDclElement.class, JavaDclElement::new);
+  public static final PropertiesElementDescription<JavaDclElement> JAVA_LIBRARY =
+    new PropertiesElementDescription<>("javaLibrary", JavaDclElement.class, JavaDclElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dependencies", DependenciesDslElement.DEPENDENCIES},

@@ -89,7 +89,8 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
     private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
       "androidApp" to AndroidDslElement.ANDROID_APP,
       "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY,
-      "javaApplication" to JavaDclElement.JAVA_APPLICATION
+      "javaApplication" to JavaDclElement.JAVA_APPLICATION,
+      "javaLibrary" to JavaDclElement.JAVA_LIBRARY
     )
 
     private fun declarativeBuilder(file: GradleBuildFile): AndroidModel {
@@ -103,12 +104,23 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       throw IllegalStateException("Cannot create android[App|Library] dsl element")
     }
 
+    private fun declarativeJavaBuilder(file: GradleBuildFile): JavaDeclarativeModel {
+      file.getPropertyElement(JavaDclElement.JAVA_APPLICATION)?.let { element ->
+        return JavaDeclarativeModelImpl(element)
+      }
+      file.getPropertyElement(JavaDclElement.JAVA_LIBRARY)?.let { element ->
+        return JavaDeclarativeModelImpl(element)
+      }
+      // TODO throw exception for now but need to create add element mechanism
+      throw IllegalStateException("Cannot create java[Application|Library] dsl element")
+    }
+
     private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
       AndroidModel::class.java from {
         declarativeBuilder(it)
       },
       JavaDeclarativeModel::class.java from {
-        JavaDeclarativeModelImpl(it.ensurePropertyElement(JavaDclElement.JAVA_APPLICATION))
+        declarativeJavaBuilder(it)
       }
     )
 
