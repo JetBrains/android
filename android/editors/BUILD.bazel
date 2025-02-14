@@ -21,6 +21,7 @@ jvm_test(
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",
     "//android/android-common:common",
     "//android/android:core-tests_test_lib",
+    "//android/preview-fast-compile",
     "//android/project-system:projectSystem",
     "//android/render-resources",
     "//android/android-test-framework:testFramework_test_lib",

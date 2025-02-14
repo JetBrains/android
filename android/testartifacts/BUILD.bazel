@@ -38,6 +38,7 @@ jvm_library(
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/utp",
     "//android/utp:utp_test_lib",
