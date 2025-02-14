@@ -243,27 +243,27 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     if (referencePoint != null) {
       val movementScale = if (inputMode == XrInputMode.VIEW_DIRECTION) ROTATION_SCALE else TRANSLATION_SCALE
       val scale = movementScale * scaleFactor.toFloat() / min(deviceDisplaySize.width, deviceDisplaySize.height)
-      val deltaX = (event.x - referencePoint.x) * scale
-      val deltaY = (event.y - referencePoint.y) * scale
+      val deltaX = event.x - referencePoint.x
+      val deltaY = event.y - referencePoint.y
       mouseDragReferencePoint = event.point
-      if (deltaX != 0f || deltaY != 0f) {
+      if (deltaX != 0 || deltaY != 0) {
         inputEvent.clear()
         when (inputMode) {
           XrInputMode.LOCATION_IN_SPACE_XY -> {
             translation.clear()
-            translation.deltaX = deltaX
-            translation.deltaY = deltaY
+            translation.deltaX = -deltaX * scale
+            translation.deltaY = -deltaY * scale
             inputEvent.setXrHeadMovementEvent(translation)
           }
           XrInputMode.LOCATION_IN_SPACE_Z -> {
             translation.clear()
-            translation.deltaZ = deltaY
+            translation.deltaZ = -deltaY * scale
             inputEvent.setXrHeadMovementEvent(translation)
           }
           XrInputMode.VIEW_DIRECTION -> {
             // Moving the mouse between opposite edges of the device display shifts the view direction by 180 degrees
-            rotation.x = deltaY
-            rotation.y = -deltaX
+            rotation.x = -deltaY * scale
+            rotation.y = deltaX * scale
             inputEvent.setXrHeadRotationEvent(rotation)
           }
           else -> throw Error("Internal error") // Unreachable due to the !isMouseUsedForNavigation check above.
