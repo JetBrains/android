@@ -10,6 +10,7 @@ aswb_library(
     ],
     deps = [
         ":artifact_tracker_state_java_proto",
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:cc_compilation_info_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:java_target_info_java_proto",

@@ -45,10 +45,13 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
   private final ProjectDefinition projectDefinition;
   private final Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata;
 
+  private final boolean enableBazelAdditionalLibraryRootsProvider;
+
   public AddDependencyGenSrcsJars(
-      ProjectDefinition projectDefinition, Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata) {
+      ProjectDefinition projectDefinition, Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata, boolean enableBazelAdditionalLibraryRootsProvider) {
     this.projectDefinition = projectDefinition;
     this.srcJarPathsMetadata = srcJarPathsMetadata;
+    this.enableBazelAdditionalLibraryRootsProvider = enableBazelAdditionalLibraryRootsProvider;
   }
 
   private Stream<BuildArtifact> getDependencyGenSrcJars(TargetBuildInfo target) {
@@ -93,7 +96,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
                       .map(projectArtifact::withInnerJarPath)
                       .map(ProjectPath::toProto)
                       .map(LibrarySource.newBuilder()::setSrcjar)
-                      .forEach(update.library(JAVA_DEPS_LIB_NAME)::addSources);
+                      .forEach(update.library(enableBazelAdditionalLibraryRootsProvider ? target.label().toString() : JAVA_DEPS_LIB_NAME)::addSources);
                 }
               });
     }

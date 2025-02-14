@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
+import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
@@ -36,10 +37,10 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots;
 import com.google.idea.blaze.qsync.project.ProjectProto;
-import com.google.idea.blaze.qsync.project.ProjectProto.Library;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
 import com.google.idea.blaze.qsync.testdata.TestData;
+import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,21 +59,32 @@ public class AddDependencyGenSrcsJarsTest {
   @Mock public BuildArtifactCache cache;
 
   private final TestDataSyncRunner syncer =
-      new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
+    new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
+
+  private final QuerySyncProjectSnapshot original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
 
   private final SrcJarPackageRootsExtractor innerRootsMetadata =
-      new SrcJarPackageRootsExtractor(null);
+    new SrcJarPackageRootsExtractor(null);
+
+  public AddDependencyGenSrcsJarsTest() throws IOException, BuildException { }
 
   @Test
-  public void no_deps_built() throws Exception {
-
-    QuerySyncProjectSnapshot original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
-
+  public void enable_library_provider_no_deps_built() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-        new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+    no_deps_built(addGenSrcJars);
+  }
 
+  @Test
+  public void disable_library_provider_no_deps_built() throws Exception {
+    AddDependencyGenSrcsJars addGenSrcJars =
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+    no_deps_built(addGenSrcJars);
+  }
+
+  private void no_deps_built(AddDependencyGenSrcsJars addGenSrcJars) throws Exception {
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
     addGenSrcJars.update(update, State.EMPTY);
 
@@ -84,28 +96,35 @@ public class AddDependencyGenSrcsJarsTest {
   }
 
   @Test
-  public void project_gensrcs_ignored() throws Exception {
+  public void enable_library_provider_project_gensrcs_ignored() throws Exception {
+    AddDependencyGenSrcsJars addGenSrcJars =
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+    project_gensrcs_ignored(addGenSrcJars);
+  }
 
+  @Test
+  public void disable_library_provider_project_gensrcs_ignored() throws Exception {
+    AddDependencyGenSrcsJars addGenSrcJars =
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+    project_gensrcs_ignored(addGenSrcJars);
+  }
+
+  private void project_gensrcs_ignored(AddDependencyGenSrcsJars addGenSrcJars) throws Exception {
     TestData testProject = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY;
 
-    QuerySyncProjectSnapshot original = syncer.sync(testProject);
-
     ArtifactTracker.State artifactState =
-        ArtifactTracker.State.forJavaArtifacts(
-            JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel()).toBuilder()
-                .setGenSrcs(
-                    ImmutableList.of(
-                        BuildArtifact.create(
-                            "srcjardigest",
-                            Path.of("output/path/to/in_project.srcjar"),
-                            testProject.getAssumedOnlyLabel())))
-                .build());
-
-    AddDependencyGenSrcsJars addGenSrcJars =
-        new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
+      ArtifactTracker.State.forJavaArtifacts(
+        JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel()).toBuilder()
+          .setGenSrcs(
+            ImmutableList.of(
+              BuildArtifact.create(
+                "srcjardigest",
+                Path.of("output/path/to/in_project.srcjar"),
+                testProject.getAssumedOnlyLabel())))
+          .build());
 
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
     addGenSrcJars.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
@@ -117,92 +136,126 @@ public class AddDependencyGenSrcsJarsTest {
   }
 
   @Test
-  public void external_gensrcs_added() throws Exception {
-    QuerySyncProjectSnapshot original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
-
-    ArtifactTracker.State artifactState =
-        ArtifactTracker.State.forTargets(
-            TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
-                    .toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                    "srcjardigest",
-                                    Path.of("output/path/to/external.srcjar"),
-                                    Label.of("//java/com/google/common/collect:collect"))
-                                .withMetadata(
-                                    new SrcJarJavaPackageRoots(
-                                        ImmutableSet.of(Path.of("root"), Path.of("root2"))))))
-                    .build(),
-                DependencyBuildContext.NONE));
-
+  public void enable_library_provider_external_gensrcs_added() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-        new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
-
-    ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update, artifactState);
-    ProjectProto.Project newProject = update.build();
-
-    assertThat(newProject.getLibraryList()).hasSize(1);
-    Library depsLib = newProject.getLibrary(0);
-    assertThat(depsLib.getName()).isEqualTo(".dependencies");
-    assertThat(depsLib.getSourcesList())
-        .containsExactly(
-            ProjectProto.LibrarySource.newBuilder()
-                .setSrcjar(
-                    ProjectPath.newBuilder()
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+    external_gensrcs_added(addGenSrcJars, ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
+      .addSources(ProjectProto.LibrarySource.newBuilder()
+                    .setSrcjar(
+                      ProjectPath.newBuilder()
                         .setBase(Base.PROJECT)
                         .setPath(".bazel/buildout/output/path/to/external.srcjar")
                         .setInnerPath("root"))
-                .build(),
-            ProjectProto.LibrarySource.newBuilder()
-                .setSrcjar(
-                    ProjectPath.newBuilder()
+                    .build())
+      .addSources(
+        ProjectProto.LibrarySource.newBuilder()
+          .setSrcjar(
+            ProjectPath.newBuilder()
+              .setBase(Base.PROJECT)
+              .setPath(".bazel/buildout/output/path/to/external.srcjar")
+              .setInnerPath("root2"))
+          .build())
+      .build());
+  }
+
+  @Test
+  public void disable_library_provider_external_gensrcs_added() throws Exception {
+    AddDependencyGenSrcsJars addGenSrcJars =
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+    external_gensrcs_added(addGenSrcJars, ProjectProto.Library.newBuilder().setName(".dependencies")
+      .addSources(ProjectProto.LibrarySource.newBuilder()
+                    .setSrcjar(
+                      ProjectPath.newBuilder()
                         .setBase(Base.PROJECT)
                         .setPath(".bazel/buildout/output/path/to/external.srcjar")
-                        .setInnerPath("root2"))
-                .build());
+                        .setInnerPath("root"))
+                    .build())
+      .addSources(
+        ProjectProto.LibrarySource.newBuilder()
+          .setSrcjar(
+            ProjectPath.newBuilder()
+              .setBase(Base.PROJECT)
+              .setPath(".bazel/buildout/output/path/to/external.srcjar")
+              .setInnerPath("root2"))
+          .build())
+      .build());
+  }
+
+  private void external_gensrcs_added(AddDependencyGenSrcsJars addGenSrcJars, ProjectProto.Library... expectedLibraries) throws Exception {
+    ArtifactTracker.State artifactState =
+      ArtifactTracker.State.forTargets(
+        TargetBuildInfo.forJavaTarget(
+          JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
+            .toBuilder()
+            .setGenSrcs(
+              ImmutableList.of(
+                BuildArtifact.create(
+                    "srcjardigest",
+                    Path.of("output/path/to/external.srcjar"),
+                    Label.of("//java/com/google/common/collect:collect"))
+                  .withMetadata(
+                    new SrcJarJavaPackageRoots(
+                      ImmutableSet.of(Path.of("root"), Path.of("root2"))))))
+            .build(),
+          DependencyBuildContext.NONE));
+
+    ProjectProtoUpdate update =
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+    addGenSrcJars.update(update, artifactState);
+    ProjectProto.Project newProject = update.build();
+
+    assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);
   }
 
 
   @Test
-  public void no_metadata_present() throws Exception {
-    QuerySyncProjectSnapshot original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
-
-    ArtifactTracker.State artifactState =
-        ArtifactTracker.State.forTargets(
-            TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
-                    .toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                "srcjardigest",
-                                Path.of("output/path/to/external.srcjar"),
-                                Label.of("//java/com/google/common/collect:collect"))))
-                    .build(),
-                DependencyBuildContext.NONE));
-
+  public void enable_library_provider_no_metadata_present() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-        new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+    no_metadata_present(addGenSrcJars, ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
+      .addSources(ProjectProto.LibrarySource.newBuilder()
+                    .setSrcjar(
+                      ProjectPath.newBuilder()
+                        .setBase(Base.PROJECT)
+                        .setPath(".bazel/buildout/output/path/to/external.srcjar"))
+                    .build())
+      .build());
+  }
+
+  @Test
+  public void disable_library_provider_no_metadata_present() throws Exception {
+    AddDependencyGenSrcsJars addGenSrcJars =
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+    no_metadata_present(addGenSrcJars, ProjectProto.Library.newBuilder().setName(".dependencies")
+      .addSources(ProjectProto.LibrarySource.newBuilder()
+                    .setSrcjar(
+                      ProjectPath.newBuilder()
+                        .setBase(Base.PROJECT)
+                        .setPath(".bazel/buildout/output/path/to/external.srcjar"))
+                    .build())
+      .build());
+  }
+
+  private void no_metadata_present(AddDependencyGenSrcsJars addGenSrcJars, ProjectProto.Library... expectedLibraries) throws Exception {
+    ArtifactTracker.State artifactState =
+      ArtifactTracker.State.forTargets(
+        TargetBuildInfo.forJavaTarget(
+          JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
+            .toBuilder()
+            .setGenSrcs(
+              ImmutableList.of(
+                BuildArtifact.create(
+                  "srcjardigest",
+                  Path.of("output/path/to/external.srcjar"),
+                  Label.of("//java/com/google/common/collect:collect"))))
+            .build(),
+          DependencyBuildContext.NONE));
 
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
     addGenSrcJars.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
-    assertThat(newProject.getLibraryList()).hasSize(1);
-    Library depsLib = newProject.getLibrary(0);
-    assertThat(depsLib.getName()).isEqualTo(".dependencies");
-    assertThat(depsLib.getSourcesList())
-        .containsExactly(
-            ProjectProto.LibrarySource.newBuilder()
-                .setSrcjar(
-                    ProjectPath.newBuilder()
-                        .setBase(Base.PROJECT)
-                        .setPath(".bazel/buildout/output/path/to/external.srcjar"))
-                .build());
+    assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);
   }
 }

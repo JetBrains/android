@@ -34,7 +34,7 @@ public interface ProjectProtoUpdateOperation {
   ImmutableSet<String> JAVA_ARCHIVE_EXTENSIONS = ImmutableSet.of("jar", "srcjar");
 
   default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(
-      TargetBuildInfo forTarget) {
+    TargetBuildInfo forTarget) {
     return ImmutableSetMultimap.of();
   }
 

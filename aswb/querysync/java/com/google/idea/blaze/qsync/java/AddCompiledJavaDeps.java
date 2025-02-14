@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.qsync.java;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
@@ -24,28 +26,62 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectProto.JarDirectory;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /** Adds compiled jars from dependencies to the project. */
 public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
+  private final boolean enableBazelAdditionalLibraryRootsProvider;
 
-  public AddCompiledJavaDeps() {}
+  public AddCompiledJavaDeps(boolean enableBazelAdditionalLibraryRootsProvider) {
+    this.enableBazelAdditionalLibraryRootsProvider = enableBazelAdditionalLibraryRootsProvider;
+  }
 
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
+    Map<String, Set<String>> libNameToJars = new HashMap<>();
     for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
         for (BuildArtifact jar : javaInfo.jars()) {
           javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
+          libNameToJars
+            .computeIfAbsent(target.label().toString(), t -> new HashSet())
+            .add(javaDepsDir.path().resolve(jar.artifactPath()).toString());
         }
       }
     }
+    if (!enableBazelAdditionalLibraryRootsProvider) {
+      updateProjectProtoUpdateAllJarsInOneLibrary(javaDepsDir, update);
+    } else {
+      updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update);
+    }
+  }
+
+  private void updateProjectProtoUpdateOneTargetToOneLibrary(
+    Map<String, Set<String>> libNameToJars, ProjectProtoUpdate update) {
+    libNameToJars.forEach(
+      (name, jars) ->
+        update
+          .library(name)
+          .addAllClassesJar(
+            jars.stream()
+              .map(
+                jar ->
+                  JarDirectory.newBuilder().setPath(jar).setRecursive(false).build())
+              .collect(toImmutableSet())));
+  }
+
+  private void updateProjectProtoUpdateAllJarsInOneLibrary(
+    ArtifactDirectoryBuilder javaDepsDir, ProjectProtoUpdate update) {
     if (!javaDepsDir.isEmpty()) {
       update
-          .library(JAVA_DEPS_LIB_NAME)
-          .addClassesJar(
-              JarDirectory.newBuilder().setPath(javaDepsDir.path().toString()).setRecursive(true));
+        .library(JAVA_DEPS_LIB_NAME)
+        .addClassesJar(
+          JarDirectory.newBuilder().setPath(javaDepsDir.path().toString()).setRecursive(true));
       if (!update.workspaceModule().getLibraryNameList().contains(JAVA_DEPS_LIB_NAME)) {
         update.workspaceModule().addLibraryName(JAVA_DEPS_LIB_NAME);
       }

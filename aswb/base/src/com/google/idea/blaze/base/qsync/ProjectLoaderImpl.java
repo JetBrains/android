@@ -249,7 +249,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         new DependenciesProjectProtoUpdater(
             latestProjectDef,
             projectPathResolver,
-            QuerySync.ATTACH_DEP_SRCJARS::getValue));
+            QuerySync.ATTACH_DEP_SRCJARS::getValue,
+            QuerySync.enableBazelAdditionalLibraryRootsProvider()));
     projectTransformRegistry.add(new CcProjectProtoTransform());
 
     artifactTracker = tracker;
