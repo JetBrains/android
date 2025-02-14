@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceView

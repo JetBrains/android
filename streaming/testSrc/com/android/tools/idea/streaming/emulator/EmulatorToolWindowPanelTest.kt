@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
@@ -36,7 +37,6 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor

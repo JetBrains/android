@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
@@ -27,7 +28,6 @@ import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode

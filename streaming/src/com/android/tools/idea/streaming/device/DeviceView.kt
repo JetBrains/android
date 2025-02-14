@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
@@ -25,7 +26,6 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
 import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener

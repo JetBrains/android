@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
@@ -32,7 +33,6 @@ import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

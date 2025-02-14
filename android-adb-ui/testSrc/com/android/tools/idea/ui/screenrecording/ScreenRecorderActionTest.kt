@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -66,7 +67,8 @@ class ScreenRecorderActionTest {
   @Before
   fun setUp() {
     userData[CommonDataKeys.PROJECT.name] = project
-    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = ScreenRecorderAction.Parameters("My device", "device", 30, null, 0, testRootDisposable)
+    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] =
+        ScreenRecorderAction.Parameters("My device", "device", 30, null, PRIMARY_DISPLAY_ID, testRootDisposable)
   }
 
   @Test

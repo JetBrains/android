@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.CameraNotification
 import com.android.emulator.control.ClipData
@@ -74,7 +75,6 @@ import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.utils.FileUtils.copyDirectory

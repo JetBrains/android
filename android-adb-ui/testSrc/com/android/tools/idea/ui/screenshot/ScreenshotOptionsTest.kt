@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -189,7 +190,7 @@ class ScreenshotOptionsTest {
   }
 
   private fun createScreenshotOptions(deviceProperties: DeviceProperties, screenshotRotation: ScreenshotRotation? = null) =
-      ScreenshotOptions(serialNumber, deviceProperties.model, 0, screenshotRotation?.let { { it } })
+      ScreenshotOptions(serialNumber, deviceProperties.model, PRIMARY_DISPLAY_ID, screenshotRotation?.let { { it } })
 
   private fun getGoldenFile(name: String): Path =
       TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")

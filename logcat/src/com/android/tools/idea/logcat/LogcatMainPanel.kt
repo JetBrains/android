@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
@@ -906,7 +907,7 @@ constructor(
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
     sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
-      device?.let { ScreenshotOptions(it.serialNumber, it.model, 0, null) }
+      device?.let { ScreenshotOptions(it.serialNumber, it.model, PRIMARY_DISPLAY_ID, null) }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
         ScreenRecorderAction.Parameters(
@@ -914,7 +915,7 @@ constructor(
           it.serialNumber,
           it.featureLevel,
           if (it.isEmulator) it.deviceId else null,
-          0,
+          PRIMARY_DISPLAY_ID,
           this,
         )
       }

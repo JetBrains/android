@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
@@ -50,7 +51,6 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown

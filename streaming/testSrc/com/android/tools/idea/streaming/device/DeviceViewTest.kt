@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
@@ -35,7 +36,6 @@ import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
