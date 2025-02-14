@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.qsync;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -31,11 +30,11 @@ import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.qsync.artifacts.GeneratedSourcesStripper;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
-import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
@@ -44,9 +43,7 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
-import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
 import com.google.idea.blaze.qsync.ProjectProtoTransform.Registry;
@@ -101,7 +98,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
   public record QuerySyncProjectDeps(BlazeImportSettings importSettings,
                                      WorkspaceRoot workspaceRoot,
                                      WorkspacePathResolver workspacePathResolver,
-                                     ProjectViewManager projectViewManager,
                                      ProjectViewSet projectViewSet,
                                      BuildSystem buildSystem,
                                      WorkspaceLanguageSettings workspaceLanguageSettings,
@@ -171,7 +167,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.projectPathResolver(),
           result.workspaceLanguageSettings(),
           result.sourceToTargetMap(),
-          result.projectViewManager(),
           result.buildSystem(),
           result.projectTransformRegistry());
     QuerySyncProjectListenerProvider.registerListenersFor(querySyncProject);
@@ -180,51 +175,45 @@ public class ProjectLoaderImpl implements ProjectLoader {
     return querySyncProject;
   }
 
-  private QuerySyncProjectDeps instantiateDeps(BlazeContext context) throws BuildException {
+  @Override
+  public ProjectToLoadDefinition loadProjectDefinition(BlazeContext context) throws BuildException {
     BlazeImportSettings importSettings =
-        Preconditions.checkNotNull(
-            BlazeImportSettingsManager.getInstance(project).getImportSettings());
-
+      Preconditions.checkNotNull(
+        BlazeImportSettingsManager.getInstance(project).getImportSettings());
     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    ProjectViewManager projectViewManager = ProjectViewManager.getInstance(project);
     // TODO we may need to get the WorkspacePathResolver from the VcsHandler, as the old sync
     // does inside ProjectStateSyncTask.computeWorkspacePathResolverAndProjectView
     // Things will probably work without that, but we should understand why the other
     // implementations of WorkspacePathResolver exists. Perhaps they are performance
     // optimizations?
     WorkspacePathResolver workspacePathResolver = new WorkspacePathResolverImpl(workspaceRoot);
-
-    ProjectViewManager projectViewManager = ProjectViewManager.getInstance(project);
     ProjectViewSet projectViewSet =
-        projectViewManager.reloadProjectView(context, workspacePathResolver);
-    ImportRoots importRoots =
-        ImportRoots.builder(workspaceRoot, importSettings.getBuildSystem())
-            .add(projectViewSet)
-            .build();
-    BuildSystem buildSystem =
-        BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem())
-            .getBuildSystem();
+      projectViewManager.reloadProjectView(context, workspacePathResolver);
+    ProjectDefinition projectDefinition =
+      createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
     WorkspaceLanguageSettings workspaceLanguageSettings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+      LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+    BuildSystem buildSystem =
+      BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem())
+        .getBuildSystem();
 
-    ImmutableSet<String> testSourceGlobs =
-        projectViewSet.listItems(TestSourceSection.KEY).stream()
-            .map(Glob::toString)
-            .collect(ImmutableSet.toImmutableSet());
+    return new ProjectToLoadDefinition(workspaceRoot, buildSystem, projectDefinition, projectViewSet, workspaceLanguageSettings);
+  }
 
-    ProjectDefinition latestProjectDef =
-        ProjectDefinition.builder()
-            .setProjectIncludes(importRoots.rootPaths())
-            .setProjectExcludes(importRoots.excludePaths())
-            .setLanguageClasses(
-                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
-            .setTestSources(testSourceGlobs)
-            .setSystemExcludes(ImmutableSet.<Path>builder()
-                                 .addAll(importRoots.systemExcludes())
-                                 .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
-                                 .build())
-          .build();
+  private QuerySyncProjectDeps instantiateDeps(BlazeContext context) throws BuildException {
+    BlazeImportSettings importSettings =
+        Preconditions.checkNotNull(
+            BlazeImportSettingsManager.getInstance(project).getImportSettings());
 
+    ProjectToLoadDefinition projectToLoad = loadProjectDefinition(context);
+    final var projectViewSet = projectToLoad.projectViewSet();
+    final var workspaceRoot = projectToLoad.workspaceRoot();
+    final var latestProjectDef = projectToLoad.definition();
+    final var buildSystem = projectToLoad.buildSystem();
     Path snapshotFilePath = getSnapshotFilePath(importSettings);
+
+    WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
 
     ImmutableSet<String> handledRules = getHandledRuleKinds();
     Optional<BlazeVcsHandler> vcsHandler =
@@ -305,14 +294,12 @@ public class ProjectLoaderImpl implements ProjectLoader {
             new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project, context)));
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(graph, workspaceRoot.path());
-    QuerySyncProjectDeps result =
-      new QuerySyncProjectDeps(importSettings, workspaceRoot, workspacePathResolver, projectViewManager, projectViewSet, buildSystem,
-                               workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
-                               graph, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
-                               renderJarTracker, appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
-                               projectQuerier,
-                               sourceToTargetMap);
-    return result;
+    return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
+                                    workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
+                                    graph, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
+                                    renderJarTracker, appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
+                                    projectQuerier,
+                                    sourceToTargetMap);
   }
 
   public static Path getBuildCachePath(Project project) {
@@ -370,6 +357,31 @@ public class ProjectLoaderImpl implements ProjectLoader {
       defaultRules.addAll(ep.handledRuleKinds(project));
     }
     return defaultRules.build();
+  }
+
+  private static ProjectDefinition createProjectDefinition(WorkspaceRoot workspaceRoot,
+                                                           BuildSystemName buildSystem,
+                                                           ProjectViewSet projectViewSet) {
+    ImportRoots importRoots =
+      ImportRoots.builder(workspaceRoot, buildSystem)
+        .add(projectViewSet)
+        .build();
+    WorkspaceLanguageSettings workspaceLanguageSettings =
+      LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+    ImmutableSet<String> testSourceGlobs =
+      projectViewSet.listItems(TestSourceSection.KEY).stream()
+        .map(Glob::toString)
+        .collect(ImmutableSet.toImmutableSet());
+    return ProjectDefinition.builder()
+      .setProjectIncludes(importRoots.rootPaths())
+      .setProjectExcludes(importRoots.excludePaths())
+      .setLanguageClasses(LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
+      .setTestSources(testSourceGlobs)
+      .setSystemExcludes(ImmutableSet.<Path>builder()
+                           .addAll(importRoots.systemExcludes())
+                           .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
+                           .build())
+      .build();
   }
 
   @Override

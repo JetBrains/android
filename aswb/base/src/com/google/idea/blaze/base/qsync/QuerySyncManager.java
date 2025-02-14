@@ -532,7 +532,8 @@ public class QuerySyncManager implements Disposable {
   private boolean projectDefinitionHasChanged(BlazeContext context) throws BuildException {
     // Ensure edits to the project view and any imports have been saved
     SaveUtil.saveAllFiles();
-    return !loadedProject.isDefinitionCurrent(context);
+    final var projectDefinition = loader.loadProjectDefinition(context).definition();
+    return !loadedProject.getProjectDefinition().equals(projectDefinition);
   }
 
   /** Displays error notification popup balloon in IDE. */

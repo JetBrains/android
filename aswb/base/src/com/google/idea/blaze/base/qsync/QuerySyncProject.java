@@ -32,16 +32,12 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.Glob;
-import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
-import com.google.idea.blaze.base.sync.projectview.ImportRoots;
-import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
@@ -113,10 +109,8 @@ public class QuerySyncProject {
   // TODO(mathewi) only one of these two should strictly be necessary:
   private final WorkspacePathResolver workspacePathResolver;
   private final ProjectPath.Resolver projectPathResolver;
-  private final WorkspaceLanguageSettings workspaceLanguageSettings;
   private final QuerySyncSourceToTargetMap sourceToTargetMap;
 
-  private final ProjectViewManager projectViewManager;
   private final BuildSystem buildSystem;
   private final ProjectProtoTransform.Registry projectProtoTransforms;
 
@@ -144,7 +138,6 @@ public class QuerySyncProject {
       ProjectPath.Resolver projectPathResolver,
       WorkspaceLanguageSettings workspaceLanguageSettings,
       QuerySyncSourceToTargetMap sourceToTargetMap,
-      ProjectViewManager projectViewManager,
       BuildSystem buildSystem,
       ProjectProtoTransform.Registry projectProtoTransforms) {
     this.project = project;
@@ -166,9 +159,7 @@ public class QuerySyncProject {
     this.projectViewSet = projectViewSet;
     this.workspacePathResolver = workspacePathResolver;
     this.projectPathResolver = projectPathResolver;
-    this.workspaceLanguageSettings = workspaceLanguageSettings;
     this.sourceToTargetMap = sourceToTargetMap;
-    this.projectViewManager = projectViewManager;
     this.buildSystem = buildSystem;
     this.projectProtoTransforms = projectProtoTransforms;
     projectData = new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings);
@@ -212,10 +203,6 @@ public class QuerySyncProject {
 
   public ProjectArtifactStore getArtifactStore() {
     return artifactStore;
-  }
-
-  public WorkspaceLanguageSettings getWorkspaceLanguageSettings() {
-    return workspaceLanguageSettings;
   }
 
   public ArtifactTracker<?> getArtifactTracker() {
@@ -463,38 +450,6 @@ public class QuerySyncProject {
             .map(s -> s.getPendingTargets(workspaceRoot.relativize(virtualFile)))
             .orElse(ImmutableSet.of());
     return pendingTargets.isEmpty();
-  }
-
-  /**
-   * Reloads the project view and checks it against the stored {@link ProjectDefinition}.
-   *
-   * @return true if the stored {@link ProjectDefinition} matches that derived from the {@link
-   *     ProjectViewSet}
-   */
-  public boolean isDefinitionCurrent(BlazeContext context) throws BuildException {
-    ProjectViewSet projectViewSet =
-        projectViewManager.reloadProjectView(context, workspacePathResolver);
-    ImportRoots importRoots =
-        ImportRoots.builder(workspaceRoot, importSettings.getBuildSystem())
-            .add(projectViewSet)
-            .build();
-    WorkspaceLanguageSettings workspaceLanguageSettings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-    ImmutableSet<String> testSourceGlobs =
-        projectViewSet.listItems(TestSourceSection.KEY).stream()
-            .map(Glob::toString)
-            .collect(ImmutableSet.toImmutableSet());
-    ProjectDefinition projectDefinition =
-        ProjectDefinition.builder()
-            .setProjectIncludes(importRoots.rootPaths())
-            .setProjectExcludes(importRoots.excludePaths())
-            .setLanguageClasses(
-                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
-            .setTestSources(testSourceGlobs)
-            .setSystemExcludes(importRoots.systemExcludes())
-            .build();
-
-    return this.projectDefinition.equals(projectDefinition);
   }
 
   public Optional<PostQuerySyncData> readSnapshotFromDisk(BlazeContext context) throws IOException {
