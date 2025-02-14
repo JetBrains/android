@@ -464,6 +464,7 @@ android-studio/lib/modules/intellij.platform.vcs.dvcs.impl.jar
 android-studio/lib/modules/intellij.platform.vcs.impl.jar
 android-studio/lib/modules/intellij.platform.vcs.log.impl.jar
 android-studio/lib/modules/intellij.rml.dfa.impl.jar
+android-studio/lib/modules/intellij.settingsSync.core.jar
 android-studio/lib/modules/intellij.smart.update.jar
 android-studio/lib/native/linux-x86_64/libsqliteij.so
 android-studio/lib/nio-fs.jar

@@ -474,6 +474,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.dvcs.impl.
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.log.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.rml.dfa.impl.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.settingsSync.core.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.smart.update.jar
 Android Studio Preview.app/Contents/lib/native/mac-x86_64/libsqliteij.jnilib
 Android Studio Preview.app/Contents/lib/nio-fs.jar

@@ -78,6 +78,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.rml.dfa.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.settingsSync.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.smart.update" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.webp" level="project" />
