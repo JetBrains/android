@@ -42,7 +42,7 @@ iml_module(
     split_test_targets = {
         # this target does some performance tests and takes a long time to run
         "AnnotationsGraphTest": {
-            "test_filter": "com.android.tools.idea.preview.annotations.AnnotationsGraphTest",
+            "test_filter": "com.android.tools.idea.preview.find.AnnotationsGraphTest",
         },
         "other": {
             "shard_count": 2,

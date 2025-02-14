@@ -27,13 +27,13 @@ import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
 import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.UastAnnotatedMethod
 import com.android.tools.idea.preview.UastAnnotationAttributesProvider
-import com.android.tools.idea.preview.annotations.NodeInfo
-import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
-import com.android.tools.idea.preview.annotations.getUAnnotations
-import com.android.tools.idea.preview.annotations.isAnnotatedWith
 import com.android.tools.idea.preview.directPreviewChildrenCount
+import com.android.tools.idea.preview.find.NodeInfo
+import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.preview.find.getUAnnotations
+import com.android.tools.idea.preview.find.isAnnotatedWith
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -62,7 +62,8 @@ import org.jetbrains.uast.UMethod
 @RequiresReadLock
 fun UAnnotation.isPreviewAnnotation() =
   (COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
-    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) || MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName
+    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) ||
+    MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.
@@ -136,7 +137,7 @@ private suspend fun getPreviewNodes(
   includeAllNodes: Boolean,
   rootSearchElement: UElement,
 ): Flow<PreviewNode> {
-  if (readAction {!composableMethod.isComposable()}) return emptyFlow()
+  if (readAction { !composableMethod.isComposable() }) return emptyFlow()
   val composableFqn = readAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
 

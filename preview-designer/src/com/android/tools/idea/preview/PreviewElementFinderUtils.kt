@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.tools.idea.preview.annotations.NodeInfo
-import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
-import com.android.tools.idea.preview.annotations.getUAnnotations
+import com.android.tools.idea.preview.find.NodeInfo
+import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.find.getUAnnotations
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiClass

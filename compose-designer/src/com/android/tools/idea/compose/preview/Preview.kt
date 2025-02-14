@@ -69,11 +69,11 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode

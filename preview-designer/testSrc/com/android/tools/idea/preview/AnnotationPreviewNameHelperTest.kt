@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.readAction

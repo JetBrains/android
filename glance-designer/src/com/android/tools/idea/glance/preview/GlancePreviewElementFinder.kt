@@ -20,11 +20,11 @@ import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.annotations.NodeInfo
-import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.preview.find.NodeInfo
+import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration

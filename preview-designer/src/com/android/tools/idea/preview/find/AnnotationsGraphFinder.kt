@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.annotations
+package com.android.tools.idea.preview.find
 
 import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.application.readAction
