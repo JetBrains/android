@@ -281,8 +281,9 @@ internal class DeviceView(
         }
       }
     }
-    catch (_: CancellationException) {
+    catch (e: CancellationException) {
       // The view has been closed.
+      throw e
     }
     catch (e: Throwable) {
       disconnected(initialDisplayOrientation, e)
