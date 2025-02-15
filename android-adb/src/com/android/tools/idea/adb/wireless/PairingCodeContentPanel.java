@@ -21,8 +21,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -45,6 +48,7 @@ public class PairingCodeContentPanel {
   @NotNull List<PairingCodeDevicePanel> myPanels = new ArrayList<>();
 
   public PairingCodeContentPanel() {
+    setupUI();
     myDeviceList.setLayout(new VerticalFlowLayout());
 
     myEmptyPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -156,6 +160,40 @@ public class PairingCodeContentPanel {
     }
 
     return buf.toString();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootComponent = new JPanel();
+    myRootComponent.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myDevicesPanel = new JPanel();
+    myDevicesPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myRootComponent.add(myDevicesPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            null, null, null, 0, false));
+    myDevicesPanel.add(myDeviceListScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myDeviceList = new JPanel();
+    myDeviceList.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myDeviceListScrollPane.setViewportView(myDeviceList);
+    myEmptyPanel = new JPanel();
+    myEmptyPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myRootComponent.add(myEmptyPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, false));
+    myDeviceLineupLabel = new JBLabel();
+    myDeviceLineupLabel.setHorizontalTextPosition(0);
+    myDeviceLineupLabel.setIconTextGap(0);
+    myDeviceLineupLabel.setText("Searching for devices...");
+    myDeviceLineupLabel.setVerticalTextPosition(3);
+    myEmptyPanel.add(myDeviceLineupLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                              null, null, 0, false));
   }
 
   private static boolean isPanelDeleted(@NotNull List<MdnsService> services, @NotNull PairingCodeDevicePanel panel) {
