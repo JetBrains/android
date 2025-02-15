@@ -21,8 +21,13 @@ import static javax.swing.Action.NAME;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBDimension;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -53,6 +58,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
     @NotNull CompileRuntimeConfigurationRefactoringProcessor compileRuntimeProcessor
   ) {
     super(processor.getProject());
+    setupUI();
     myProcessor = processor;
     myCompileRuntimeProcessor = compileRuntimeProcessor;
 
@@ -98,7 +104,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
   @Override
   protected Action[] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog.PreviewRefactoringAction();
-    return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
+    return ArrayUtil.mergeArrays(super.createActions(), new Action[]{previewAction});
   }
 
   @Override
@@ -127,6 +133,18 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
     Action okAction = super.getOKAction();
     okAction.putValue(NAME, "Upgrade");
     return okAction;
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myEditorPane = new JEditorPane();
+    myPanel.add(myEditorPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                  new Dimension(150, 50), null, 0, false));
   }
 
   private class PreviewRefactoringAction extends DialogWrapperAction {

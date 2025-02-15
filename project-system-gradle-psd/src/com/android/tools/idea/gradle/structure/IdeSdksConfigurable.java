@@ -47,9 +47,13 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.Function;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -60,6 +64,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -91,6 +96,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private String mySelectedComponentId;
 
   public IdeSdksConfigurable() {
+    setupUI();
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
     myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);
 
@@ -145,6 +151,35 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private void createUIComponents() {
     createSdkLocationTextField();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myWholePanel = new JPanel();
+    myWholePanel.setLayout(new GridLayoutManager(3, 1, new Insets(24, 20, 0, 20), 0, 0));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), 0, 2));
+    myWholePanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    panel1.add(mySdkLocationTextField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           new Dimension(518, -1), null, null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 3, 0, 0), -1, -1));
+    panel1.add(panel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    final JLabel label1 = new JLabel();
+    label1.setText(
+      "<html><b>Android SDK location</b><br> This location will be used for new projects and for existing projects that do not have a local.properties file with a sdk.dir property.</html>");
+    panel2.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
   }
 
   private static void copyItemToToolTip(@NotNull JComboBox comboBox) {

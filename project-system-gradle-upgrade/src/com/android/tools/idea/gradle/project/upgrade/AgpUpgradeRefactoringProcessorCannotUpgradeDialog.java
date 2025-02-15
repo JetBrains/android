@@ -20,7 +20,12 @@ import static com.intellij.ide.BrowserUtil.browse;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBDimension;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,6 +43,7 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
 
   AgpUpgradeRefactoringProcessorCannotUpgradeDialog(@NotNull AgpUpgradeRefactoringProcessor processor) {
     super(processor.getProject());
+    setupUI();
 
     setTitle("Android Gradle Plugin Upgrade Assistant");
     init();
@@ -83,6 +89,18 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
 
   @Override
   protected Action[] createActions() {
-    return new Action[] { getOKAction() };
+    return new Action[]{getOKAction()};
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myEditorPane = new JEditorPane();
+    myPanel.add(myEditorPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                  new Dimension(150, 50), null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 }

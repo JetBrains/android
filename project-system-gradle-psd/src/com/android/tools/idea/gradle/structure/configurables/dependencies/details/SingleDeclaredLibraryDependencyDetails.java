@@ -19,6 +19,13 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Insets;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +47,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
   @Nullable private JComponent myEditorComponent;
 
   public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {
+    setupUI();
     myContext = context;
   }
 
@@ -51,7 +59,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
 
   @Override
   public void display(@NotNull PsBaseDependency dependency) {
-    PsDeclaredLibraryDependency d = (PsDeclaredLibraryDependency) dependency;
+    PsDeclaredLibraryDependency d = (PsDeclaredLibraryDependency)dependency;
 
     displayVersion(d);
     displayConfiguration(d, PsModule.ImportantFor.LIBRARY);
@@ -106,5 +114,65 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
   @Override
   public JPanel getConfigurationUI() {
     return myConfigurationPanel;
+  }
+
+  private void setupUI() {
+    myMainPanel = new JPanel();
+    myMainPanel.setLayout(new GridLayoutManager(4, 3, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setComponentStyle(UIUtil.ComponentStyle.SMALL);
+    jBLabel1.setFontColor(UIUtil.FontColor.NORMAL);
+    jBLabel1.setText("Group ID:");
+    myMainPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setComponentStyle(UIUtil.ComponentStyle.SMALL);
+    jBLabel2.setFontColor(UIUtil.FontColor.NORMAL);
+    jBLabel2.setHorizontalAlignment(10);
+    jBLabel2.setText("Artifact Name:");
+    myMainPanel.add(jBLabel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    myGroupIdLabel = new JXLabel();
+    Font myGroupIdLabelFont = UIManager.getFont("Tree.font");
+    if (myGroupIdLabelFont != null) myGroupIdLabel.setFont(myGroupIdLabelFont);
+    myMainPanel.add(myGroupIdLabel, new GridConstraints(0, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
+    myArtifactNameLabel = new JXLabel();
+    Font myArtifactNameLabelFont = UIManager.getFont("Tree.font");
+    if (myArtifactNameLabelFont != null) myArtifactNameLabel.setFont(myArtifactNameLabelFont);
+    myMainPanel.add(myArtifactNameLabel, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setComponentStyle(UIUtil.ComponentStyle.SMALL);
+    jBLabel3.setFontColor(UIUtil.FontColor.NORMAL);
+    jBLabel3.setText("Configuration:");
+    myMainPanel.add(jBLabel3, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    final JBLabel jBLabel4 = new JBLabel();
+    jBLabel4.setComponentStyle(UIUtil.ComponentStyle.SMALL);
+    jBLabel4.setFontColor(UIUtil.FontColor.NORMAL);
+    jBLabel4.setText("Requested Version:");
+    myMainPanel.add(jBLabel4, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    myRequestedVersion = new JPanel();
+    myRequestedVersion.setLayout(new BorderLayout(0, 0));
+    myMainPanel.add(myRequestedVersion, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            null, null, null, 0, false));
+    myConfigurationPanel = new JPanel();
+    myConfigurationPanel.setLayout(new BorderLayout(0, 0));
+    myMainPanel.add(myConfigurationPanel, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              null, null, null, 0, false));
   }
 }

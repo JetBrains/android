@@ -20,6 +20,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +43,7 @@ public class GradleEditTaskDialog extends DialogWrapper {
 
   protected GradleEditTaskDialog(@Nullable Project project) {
     super(project);
+    setupUI();
 
     setTitle("Select Gradle Task");
     setModal(true);
@@ -76,5 +84,29 @@ public class GradleEditTaskDialog extends DialogWrapper {
 
   public void setAvailableGoals(List<String> availableTasks) {
     myAvailableTasks = availableTasks;
+  }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Task:");
+    myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    final Spacer spacer1 = new Spacer();
+    myContentPanel.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myTaskPanel = new JPanel();
+    myTaskPanel.setLayout(new BorderLayout(0, 0));
+    myContentPanel.add(myTaskPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        new Dimension(300, -1), null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Leave empty to assemble the relevant module.");
+    myContentPanel.add(jBLabel2, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
   }
 }
