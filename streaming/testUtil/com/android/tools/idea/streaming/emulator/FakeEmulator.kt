@@ -51,6 +51,7 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.XrOptions
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
@@ -151,7 +152,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
       }
     }
-
+  @Volatile var xrOptions: XrOptions =
+      XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
       if (field != value) {
@@ -554,6 +556,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           else -> {}
         }
         sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun setXrOptions(request: XrOptions, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        xrOptions = request
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getXrOptions(request: Empty, responseObserver: StreamObserver<XrOptions>) {
+      executor.execute {
+        sendResponse(responseObserver, xrOptions)
       }
     }
 
@@ -1926,7 +1941,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     @JvmStatic
     val DEFAULT_CALL_FILTER = CallFilter("android.emulation.control.EmulatorController/getVmState",
                                          "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                         "android.emulation.control.EmulatorController/streamNotification")
+                                         "android.emulation.control.EmulatorController/streamNotification",
+                                         "android.emulation.control.EmulatorController/getXrOptions")
     val IGNORE_SCREENSHOT_CALL_FILTER =
         DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }

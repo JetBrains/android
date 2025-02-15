@@ -21,11 +21,16 @@ import com.android.emulator.control.InputEvent
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Translation
 import com.android.emulator.control.Velocity
+import com.android.emulator.control.XrOptions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -57,9 +62,25 @@ import kotlin.math.min
 private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
 
 /**
- * Orchestrates mouse and keyboard input for XR devices. Thread safe.
+ * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
+ * Thread safe.
  */
-internal class EmulatorXrInputController(private val emulator: EmulatorController): Disposable {
+internal class EmulatorXrInputController(private val emulator: EmulatorController) : ConnectionStateListener, Disposable {
+
+  @Volatile var environment: XrOptions.Environment = XrOptions.Environment.LIVING_ROOM_DAY
+    set(value) {
+      if (field != value) {
+        field = value
+        ActivityTracker.getInstance().inc()
+      }
+    }
+  @Volatile var passthroughCoefficient: Float = 0f
+    set(value) {
+      if (field != value) {
+        field = value
+        ActivityTracker.getInstance().inc()
+      }
+    }
 
   @Volatile var inputMode: XrInputMode =
       if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.HARDWARE
@@ -102,6 +123,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   init {
     Disposer.register(emulator, this)
+    emulator.addConnectionStateListener(this)
   }
 
   /**
@@ -426,6 +448,21 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   private fun sendInputEvent(inputEvent: InputEvent) {
     emulator.getOrCreateInputEventSender().onNext(inputEvent)
+  }
+
+  override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
+    if (connectionState == ConnectionState.CONNECTED) {
+      updateXrOptions()
+    }
+  }
+
+  private fun updateXrOptions() {
+    emulator.getXrOptions(object : EmptyStreamObserver<XrOptions>() {
+      override fun onNext(message: XrOptions) {
+        environment = message.environment
+        passthroughCoefficient = message.passthroughCoefficient
+      }
+    })
   }
 
   companion object {

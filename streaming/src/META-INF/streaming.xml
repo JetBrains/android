@@ -188,6 +188,14 @@
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.emulator.xr.passthrough"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrPassthroughAction"
+              icon="StudioIcons.Emulator.XR.PASSTHROUGH_ON"
+              text="Toggle Passthrough" description="Turn passthrough on or off">
+        <keyboard-shortcut first-keystroke="control P" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device">
         <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
@@ -277,6 +285,9 @@
       <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
         <reference ref="android.streaming.hardware.input"/>
         <separator/>
+      </group>
+      <group id="android.emulator.xr.passthrough.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
+        <reference ref="android.emulator.xr.passthrough"/>
       </group>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->

@@ -398,6 +398,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check XR-specific actions.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
@@ -420,6 +421,18 @@ class EmulatorToolWindowPanelTest {
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
+
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(0f)
+    val togglePassthroughButton = ui.getComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }
+    assertThat(togglePassthroughButton.isSelected).isFalse()
+    ui.mouseClickOn(togglePassthroughButton)
+    val call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
+    assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0")
+    waitForCondition(200.seconds) { xrInputController.passthroughCoefficient != 0f }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
+    ui.updateToolbarsIfNecessary()
+    assertThat(togglePassthroughButton.isSelected).isTrue()
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
