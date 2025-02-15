@@ -67,9 +67,14 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -78,13 +83,18 @@ import java.text.ParsePosition;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -175,6 +185,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
+    setupUI();
     myFacet = facet;
 
     int minSdkVersion = StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
@@ -284,11 +295,11 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
       EnabledProperty widthEnabled = new EnabledProperty(myWidthTextField);
       ObservableValue<String> widthForValidation =
-          Expression.create(() -> widthEnabled.get() ? widthText.get() : "24", widthText, widthEnabled);
+        Expression.create(() -> widthEnabled.get() ? widthText.get() : "24", widthText, widthEnabled);
       myValidatorPanel.registerValidator(widthForValidation, new SizeValidator("Width has to be a positive number"));
       EnabledProperty heightEnabled = new EnabledProperty(myHeightTextField);
       ObservableValue<String> heightForValidation =
-          Expression.create(() -> heightEnabled.get() ? heightText.get() : "24", heightText, heightEnabled);
+        Expression.create(() -> heightEnabled.get() ? heightText.get() : "24", heightText, heightEnabled);
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
@@ -301,7 +312,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
       myListeners.listenAll(myActiveAsset, activeAsset.outputWidth(), activeAsset.outputHeight(), activeAsset.color(),
                             activeAsset.opacityPercent(), activeAsset.autoMirrored())
-          .with(this::renderPreviews);
+        .with(this::renderPreviews);
     });
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
@@ -422,6 +433,235 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    */
   private void invokeLater(@NotNull Runnable runnable) {
     ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any(), o -> Disposer.isDisposed(this));
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.setMinimumSize(new Dimension(720, 512));
+    myPanel.setPreferredSize(new Dimension(-1, -1));
+    myPanel.setToolTipText("");
+    myLeftPanel = new JPanel();
+    myLeftPanel.setLayout(new GridLayoutManager(9, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(myLeftPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    myResourceNamePanel = new JPanel();
+    myResourceNamePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(myResourceNamePanel, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             null, null, null, 0, true));
+    final JLabel label1 = new JLabel();
+    label1.setText("Name:");
+    myResourceNamePanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                        new Dimension(-1, 15), null, null, 0, false));
+    myOutputNameTextField = new JTextField();
+    myOutputNameTextField.setText("(name)");
+    myResourceNamePanel.add(myOutputNameTextField,
+                            new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                new Dimension(-1, 20), null, null, 0, false));
+    myIconPickerPanel = new JPanel();
+    myIconPickerPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(myIconPickerPanel, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           null, null, null, 0, true));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Clip art:");
+    myIconPickerPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                        null, 0, false));
+    myClipartAssetButton = new VectorIconButton();
+    myIconPickerPanel.add(myClipartAssetButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(24, 24), null,
+                                                                    0, false));
+    myFileBrowserPanel = new JPanel();
+    myFileBrowserPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myFileBrowserPanel.setVisible(true);
+    myLeftPanel.add(myFileBrowserPanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            null, null, null, 0, true));
+    final JLabel label2 = new JLabel();
+    label2.setText("Path:");
+    myFileBrowserPanel.add(label2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                       0, false));
+    myFileBrowser = new VectorAssetBrowser();
+    myFileBrowserPanel.add(myFileBrowser, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              null, null, null, 0, false));
+    mySourceAssetTypePanel = new JPanel();
+    mySourceAssetTypePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(mySourceAssetTypePanel, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, true));
+    mySourceAssetRadioButtons = new JPanel();
+    mySourceAssetRadioButtons.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    mySourceAssetTypePanel.add(mySourceAssetRadioButtons,
+                               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myClipartRadioButton = new JRadioButton();
+    myClipartRadioButton.setSelected(true);
+    myClipartRadioButton.setText("Clip art");
+    mySourceAssetRadioButtons.add(myClipartRadioButton,
+                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myLocalFileRadioButton = new JRadioButton();
+    myLocalFileRadioButton.setText("Local file (SVG, PSD)");
+    mySourceAssetRadioButtons.add(myLocalFileRadioButton,
+                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Asset type:");
+    mySourceAssetTypePanel.add(jBLabel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                             null, 0, false));
+    myResizePanel = new JPanel();
+    myResizePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(myResizePanel, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, true));
+    final JLabel label3 = new JLabel();
+    label3.setText("Size:");
+    myResizePanel.add(label3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), 0, -1));
+    myResizePanel.add(panel1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, 1,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  new Dimension(-1, 25), null, null, 0, false));
+    myWidthTextField = new JFormattedTextField();
+    myWidthTextField.setText("24");
+    panel1.add(myWidthTextField,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(50, -1), null, 0, false));
+    final JLabel label4 = new JLabel();
+    label4.setText("dp  X ");
+    panel1.add(label4,
+               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myHeightTextField = new JFormattedTextField();
+    myHeightTextField.setText("24");
+    panel1.add(myHeightTextField,
+               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(50, -1), null, 0, false));
+    final JLabel label5 = new JLabel();
+    label5.setText("dp");
+    panel1.add(label5,
+               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myColorRowPanel = new JPanel();
+    myColorRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(myColorRowPanel, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Color:");
+    myColorRowPanel.add(jBLabel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                      0, false));
+    myColorPanel = new ColorPanel();
+    myColorPanel.setSelectedColor(new Color(-16777216));
+    myColorRowPanel.add(myColorPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          new Dimension(78, -1), null, null, 0, false));
+    myOpacityPanel = new JPanel();
+    myOpacityPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLeftPanel.add(myOpacityPanel, new GridConstraints(6, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, true));
+    final JLabel label6 = new JLabel();
+    label6.setText("Opacity:");
+    myOpacityPanel.add(label6, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                   false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myOpacityPanel.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myOpacitySlider = new JSlider();
+    myOpacitySlider.setMajorTickSpacing(20);
+    myOpacitySlider.setMinorTickSpacing(10);
+    myOpacitySlider.setPaintLabels(false);
+    myOpacitySlider.setPaintTicks(false);
+    myOpacitySlider.setPaintTrack(true);
+    myOpacitySlider.setValue(100);
+    panel2.add(myOpacitySlider, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                    null, 0, false));
+    myOpacityValueLabel = new JBLabel();
+    myOpacityValueLabel.setHorizontalAlignment(4);
+    myOpacityValueLabel.setText("100 %");
+    panel2.add(myOpacityValueLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                        new Dimension(40, -1), null, 0, false));
+    myEnableAutoMirroredCheckBox = new JCheckBox();
+    myEnableAutoMirroredCheckBox.setText("Enable auto mirroring for RTL layout");
+    myEnableAutoMirroredCheckBox.setToolTipText("Check if your icon should flip in right-to-left layouts.");
+    myLeftPanel.add(myEnableAutoMirroredCheckBox, new GridConstraints(7, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                      GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                      GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myLeftPanel.add(spacer1, new GridConstraints(8, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                 GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myRightPanel = new JPanel();
+    myRightPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(myRightPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
+                                                  null, 0, false));
+    myPreviewPanel = new JPanel();
+    myPreviewPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 20, 0, 20), -1, -1));
+    myRightPanel.add(myPreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myImagePreviewPanel = new JPanel();
+    myImagePreviewPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myPreviewPanel.add(myImagePreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, false));
+    myImagePreviewPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myImagePreview = new VectorImageComponent();
+    myImagePreviewPanel.add(myImagePreview, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(256, 256),
+                                                                new Dimension(256, 256), null, 0, false));
+    final JLabel label7 = new JLabel();
+    label7.setText("Vector drawable preview");
+    myPreviewPanel.add(label7, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                   false));
+    label1.setLabelFor(myOutputNameTextField);
+    ButtonGroup buttonGroup;
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(myClipartRadioButton);
+    buttonGroup.add(myLocalFileRadioButton);
   }
 
   /**

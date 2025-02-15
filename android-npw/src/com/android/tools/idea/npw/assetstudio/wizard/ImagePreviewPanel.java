@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.adtui.ImageComponent;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +31,10 @@ public class ImagePreviewPanel {
   private JBLabel myImageLabel;
   private ImageComponent myImage;
   private JPanel myComponent;
+
+  public ImagePreviewPanel() {
+    setupUI();
+  }
 
   @NotNull
   public JComponent getComponent() {
@@ -74,5 +80,23 @@ public class ImagePreviewPanel {
         return height;
       }
     };
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myComponent.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myComponent.setOpaque(false);
+    myImageLabel = new JBLabel();
+    myImageLabel.setHorizontalAlignment(0);
+    myImageLabel.setHorizontalTextPosition(0);
+    myImageLabel.setText("ImageTitle");
+    myComponent.add(myImageLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myImage = new ImageComponent();
+    myComponent.add(myImage, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
   }
 }

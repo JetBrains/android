@@ -39,15 +39,25 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +78,10 @@ public class FormFactorSdkControls implements Disposable {
   private JLabel myLoadingDataLabel;
   private final AndroidApiLevelComboBox myMinSdkCombobox = new AndroidApiLevelComboBox();
   private JPanel myRoot;
+
+  public FormFactorSdkControls() {
+    setupUI();
+  }
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
@@ -176,6 +190,82 @@ public class FormFactorSdkControls implements Disposable {
     else if (myStatsDataLoadingStatus == LoadStatus.FAILED) {
       myLoadingDataLabel.setText(message("android.wizard.project.loading.stats.fail"));
     }
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRoot = new JPanel();
+    myRoot.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myStatsPanel = new JPanel();
+    myStatsPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), 4, -1));
+    myRoot.add(myStatsPanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    myApiPercentIcon = new JBLabel();
+    myApiPercentIcon.setText("");
+    myStatsPanel.add(myApiPercentIcon, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                           null, 0, false));
+    myApiPercentLabel = new JBLabel();
+    myApiPercentLabel.setText("API level percentage");
+    myStatsPanel.add(myApiPercentLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myLearnMoreLink = new HyperlinkLabel();
+    Font myLearnMoreLinkFont = getFont(null, -1, 11, myLearnMoreLink.getFont());
+    if (myLearnMoreLinkFont != null) myLearnMoreLink.setFont(myLearnMoreLinkFont);
+    myLearnMoreLink.setOpaque(true);
+    myLearnMoreLink.setText("");
+    myLearnMoreLink.setVisible(true);
+    myStatsPanel.add(myLearnMoreLink, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myRoot.add(spacer1, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myLoadingDataPanel = new JPanel();
+    myLoadingDataPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myRoot.add(myLoadingDataPanel, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_FIXED,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    myLoadingDataPanel.add(myLoadingDataIcon, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                  null, null, 0, false));
+    myLoadingDataLabel = new JBLabel();
+    myLoadingDataLabel.setText("(loading SDK Data and Stats)");
+    myLoadingDataPanel.add(myLoadingDataLabel,
+                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myRoot.add(spacer2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 12), null, 0, false));
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
   }
 
   @Slow

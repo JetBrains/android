@@ -82,22 +82,29 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import javax.swing.DefaultComboBoxModel;
 import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -142,6 +149,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
+    setupUI();
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myRootPanel = wrapWithVScroll(myValidatorPanel);
 
@@ -192,19 +200,19 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
       myBindings.bind(myProjectModel.getUseGradleKts(), new TransformOptionalExpression<BuildConfigurationLanguageForNewProject, Boolean>(true, new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)) {
-        @NotNull
-        @Override
-        protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
-          return value.getUseKts();
-        }
-      });
+                        @NotNull
+                        @Override
+                        protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
+                          return value.getUseKts();
+                        }
+                      });
     } else {
       myBuildConfigurationLanguageLabel.setVisible(false);
       myBuildConfigurationLanguageCombo.setVisible(false);
     }
 
     if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() || (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
-         GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD)) {
+                                                             GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD)) {
       AgpVersions.NewProjectWizardAgpVersion
         placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(
           /* Resolve as if IdeGoogleMavenRepository.getAgpVersions() is not available as a placeholder */
@@ -333,6 +341,206 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(21, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myAppName = new JTextField();
+    myAppName.setToolTipText("The name that will be shown in the Android launcher for this application");
+    myPanel.add(myAppName, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                               new Dimension(150, -1), null, 0, false));
+    myPackageName = new JTextField();
+    myPanel.add(myPackageName, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                   new Dimension(150, -1), null, 0, false));
+    myProjectLocation = new TextFieldWithBrowseButton();
+    myPanel.add(myProjectLocation, new GridConstraints(9, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                       new Dimension(150, -1), null, 0, false));
+    myPanel.add(myProjectLanguage, new GridConstraints(11, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myPanel.add(spacer2, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    final Spacer spacer3 = new Spacer();
+    myPanel.add(spacer3, new GridConstraints(10, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    myPanel.add(myFormFactorSdkControlsPanel, new GridConstraints(14, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    final Spacer spacer4 = new Spacer();
+    myPanel.add(spacer4, new GridConstraints(15, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    final Spacer spacer5 = new Spacer();
+    myPanel.add(spacer5, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
+    myWearCheck = new JBCheckBox();
+    Font myWearCheckFont = getFont(null, Font.PLAIN, -1, myWearCheck.getFont());
+    if (myWearCheckFont != null) myWearCheck.setFont(myWearCheckFont);
+    myWearCheck.setLabel("Pair with Empty Phone app");
+    myWearCheck.setText("Pair with Empty Phone app");
+    myPanel.add(myWearCheck, new GridConstraints(16, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myTvCheck = new JBCheckBox();
+    Font myTvCheckFont = getFont(null, Font.PLAIN, -1, myTvCheck.getFont());
+    if (myTvCheckFont != null) myTvCheck.setFont(myTvCheckFont);
+    myTvCheck.setLabel("Pair with companion Phone app");
+    myTvCheck.setText("Pair with companion Phone app");
+    myPanel.add(myTvCheck, new GridConstraints(17, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    Font jBLabel1Font = getFont(null, Font.PLAIN, -1, jBLabel1.getFont());
+    if (jBLabel1Font != null) jBLabel1.setFont(jBLabel1Font);
+    jBLabel1.setText("Name");
+    jBLabel1.setDisplayedMnemonic('N');
+    jBLabel1.setDisplayedMnemonicIndex(0);
+    jBLabel1.setVerticalAlignment(0);
+    myPanel.add(jBLabel1,
+                new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 24), null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    Font jBLabel2Font = getFont(null, Font.PLAIN, -1, jBLabel2.getFont());
+    if (jBLabel2Font != null) jBLabel2.setFont(jBLabel2Font);
+    jBLabel2.setText("Package name");
+    jBLabel2.setDisplayedMnemonic('P');
+    jBLabel2.setDisplayedMnemonicIndex(0);
+    jBLabel2.setVerticalAlignment(0);
+    myPanel.add(jBLabel2,
+                new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    Font jBLabel3Font = getFont(null, Font.PLAIN, -1, jBLabel3.getFont());
+    if (jBLabel3Font != null) jBLabel3.setFont(jBLabel3Font);
+    jBLabel3.setText("Save location");
+    jBLabel3.setDisplayedMnemonic('S');
+    jBLabel3.setDisplayedMnemonicIndex(0);
+    jBLabel3.setVerticalAlignment(0);
+    myPanel.add(jBLabel3,
+                new GridConstraints(9, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myProjectLanguageLabel = new JBLabel();
+    Font myProjectLanguageLabelFont = getFont(null, Font.PLAIN, -1, myProjectLanguageLabel.getFont());
+    if (myProjectLanguageLabelFont != null) myProjectLanguageLabel.setFont(myProjectLanguageLabelFont);
+    myProjectLanguageLabel.setText("Language");
+    myProjectLanguageLabel.setDisplayedMnemonic('L');
+    myProjectLanguageLabel.setDisplayedMnemonicIndex(0);
+    myProjectLanguageLabel.setVerticalAlignment(0);
+    myPanel.add(myProjectLanguageLabel,
+                new GridConstraints(11, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer6 = new Spacer();
+    myPanel.add(spacer6, new GridConstraints(12, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    myTemplateTitle = new JBLabel();
+    Font myTemplateTitleFont = getFont(null, Font.BOLD, -1, myTemplateTitle.getFont());
+    if (myTemplateTitleFont != null) myTemplateTitle.setFont(myTemplateTitleFont);
+    myTemplateTitle.setText("Template title");
+    myTemplateTitle.setVerticalAlignment(0);
+    myPanel.add(myTemplateTitle,
+                new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 24), null, 0, false));
+    final Spacer spacer7 = new Spacer();
+    myPanel.add(spacer7, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    final Spacer spacer8 = new Spacer();
+    myPanel.add(spacer8, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 14), null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            0, false));
+    myTemplateDetail = new JBLabel();
+    Font myTemplateDetailFont = getFont(null, Font.PLAIN, -1, myTemplateDetail.getFont());
+    if (myTemplateDetailFont != null) myTemplateDetail.setFont(myTemplateDetailFont);
+    myTemplateDetail.setText("Template detail");
+    myTemplateDetail.setVerticalAlignment(0);
+    panel1.add(myTemplateDetail, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 24), null, 0, false));
+    myDocumentationLink = new HyperlinkLabel();
+    myDocumentationLink.setText("");
+    panel1.add(myDocumentationLink, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel4 = new JBLabel();
+    Font jBLabel4Font = getFont(null, Font.PLAIN, -1, jBLabel4.getFont());
+    if (jBLabel4Font != null) jBLabel4.setFont(jBLabel4Font);
+    jBLabel4.setText("Minimum SDK");
+    jBLabel4.setVerticalAlignment(0);
+    myPanel.add(jBLabel4,
+                new GridConstraints(13, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPanel.add(myMinSdkCombo, new GridConstraints(13, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myBuildConfigurationLanguageCombo = new JComboBox();
+    final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+    myBuildConfigurationLanguageCombo.setModel(defaultComboBoxModel1);
+    myBuildConfigurationLanguageCombo.setName("buildConfigurationLanguageCombo");
+    myPanel.add(myBuildConfigurationLanguageCombo,
+                new GridConstraints(18, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                    GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBuildConfigurationLanguageLabel.setText("Build configuration language");
+    myPanel.add(myBuildConfigurationLanguageLabel,
+                new GridConstraints(18, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAndroidGradlePluginLabel.setText("Android Gradle plugin (internal option)");
+    myPanel.add(myAndroidGradlePluginLabel,
+                new GridConstraints(19, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAndroidGradlePluginCombo = new JComboBox();
+    myPanel.add(myAndroidGradlePluginCombo, new GridConstraints(19, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, false));
+    final Spacer spacer9 = new Spacer();
+    myPanel.add(spacer9, new GridConstraints(20, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    jBLabel1.setLabelFor(myAppName);
+    jBLabel2.setLabelFor(myPackageName);
+    jBLabel3.setLabelFor(myProjectLocation);
+    myProjectLanguageLabel.setLabelFor(myProjectLanguage);
+    myTemplateTitle.setLabelFor(myAppName);
+    myTemplateDetail.setLabelFor(myAppName);
+    jBLabel4.setLabelFor(myProjectLanguage);
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
   }
 
   @NotNull

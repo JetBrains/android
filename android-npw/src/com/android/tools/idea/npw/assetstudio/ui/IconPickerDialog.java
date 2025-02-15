@@ -37,10 +37,17 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.hover.TableHoverListener;
 import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -190,6 +197,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     super(false);
     myIconToSelectInTable = selectedIcon;
 
+    setupUI();
     setTitle("Select Icon");
 
     // The default panel color in darcula mode is too dark given that our icons are all black.
@@ -292,9 +300,9 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   /**
    * Refreshes the current icons list including styles and categories.
    * @param metadataUrlProvider the url provider for the metadata information
-   * @param iconsUrlProvider the url provider for the icon content
-   * @param isFirstRefresh true if this is the first call to refresh icon during the dialog initialization. If true, a second call to this
-   *                       method might happen some time later if the download process detects icons remotely that were not present locally.
+   * @param iconsUrlProvider    the url provider for the icon content
+   * @param isFirstRefresh      true if this is the first call to refresh icon during the dialog initialization. If true, a second call to this
+   *                            method might happen some time later if the download process detects icons remotely that were not present locally.
    */
   private void refreshIconList(@Nullable MaterialIconsMetadataUrlProvider metadataUrlProvider,
                                @Nullable MaterialIconsUrlProvider iconsUrlProvider,
@@ -488,5 +496,52 @@ false);
   @TestOnly
   boolean isBusy() {
     return isBusy.get();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new BorderLayout(20, 10));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridBagLayout());
+    myContentPanel.add(panel1, BorderLayout.NORTH);
+    GridBagConstraints gbc;
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.weightx = 2.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    panel1.add(mySearchField, gbc);
+    myCategoriesBox = new JComboBox();
+    myCategoriesBox.setMinimumSize(new Dimension(140, 30));
+    final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+    myCategoriesBox.setModel(defaultComboBoxModel1);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    panel1.add(myCategoriesBox, gbc);
+    myStylesBox = new JComboBox();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    panel1.add(myStylesBox, gbc);
+    myIconsPanel = new JPanel();
+    myIconsPanel.setLayout(new BorderLayout(0, 0));
+    myIconsPanel.setMinimumSize(new Dimension(300, 400));
+    myContentPanel.add(myIconsPanel, BorderLayout.CENTER);
+    myLicensePanel = new JPanel();
+    myLicensePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPanel.add(myLicensePanel, BorderLayout.SOUTH);
+    myLicenseLabel = new HyperlinkLabel();
+    myLicensePanel.add(myLicenseLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           null, null, null, 0, false));
   }
 }

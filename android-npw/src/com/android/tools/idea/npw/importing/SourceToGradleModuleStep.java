@@ -53,6 +53,11 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -98,6 +103,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   public SourceToGradleModuleStep(@NotNull SourceToGradleModuleModel model) {
     super(model, message("android.wizard.module.import.source.title"));
 
+    setupUI();
     mySourceLocation.addBrowseFolderListener(getModel().getProject(), FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor()
       .withTitle(message("android.wizard.module.import.source.browse.title"))
       .withDescription(message("android.wizard.module.import.source.browse.description")));
@@ -248,7 +254,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
         message("android.wizard.module.import.source.browse.bad.modules.2"),
         message("android.wizard.module.import.source.browse.bad.modules.more")
       );
-      String htmlFormattedMessage =  WizardUtils.toHtmlString(formattedMessage);
+      String htmlFormattedMessage = WizardUtils.toHtmlString(formattedMessage);
       return new Validator.Result(Validator.Severity.WARNING, htmlFormattedMessage);
     }
     return Validator.Result.OK;
@@ -274,5 +280,65 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     myModuleNameLabel = myPrimaryModel.getModuleNameLabel();
     myModuleNameField = myPrimaryModel.getModuleNameField();
     myPrimaryModuleState = myPrimaryModel.getPrimaryModuleState();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(7, 2, new Insets(0, 0, 0, 0), -1, -1));
+    mySourceDirTitle = new JBLabel();
+    mySourceDirTitle.setText("Gradle project");
+    myPanel.add(mySourceDirTitle,
+                new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                             new Dimension(1, 1), null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Source directory:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySourceLocation = new TextFieldWithBrowseButton();
+    myPanel.add(mySourceLocation, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                      null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myPanel.add(spacer2,
+                new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, 1, new Dimension(-1, 16),
+                                    new Dimension(-1, 40), new Dimension(-1, 40), 0, false));
+    myRequiredModulesLabel = new JLabel();
+    myRequiredModulesLabel.setText("Additional required modules:");
+    myPanel.add(myRequiredModulesLabel,
+                new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myModulesScroller = new JBScrollPane();
+    myModulesScroller.setHorizontalScrollBarPolicy(31);
+    myModulesScroller.setVisible(false);
+    myPanel.add(myModulesScroller, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                       null, null, 0, false));
+    myModulesPanel = new ModulesTable();
+    myModulesScroller.setViewportView(myModulesPanel);
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            0, false));
+    myModuleNameLabel.setHorizontalAlignment(2);
+    myModuleNameLabel.setText("Module name");
+    panel1.add(myModuleNameLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    panel1.add(myModuleNameField,
+               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPrimaryModuleState.setText("");
+    panel1.add(myPrimaryModuleState, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 }

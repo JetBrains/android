@@ -34,10 +34,14 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TextFieldWithAutoCompletion;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.labels.LinkLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -73,6 +77,7 @@ public class ModuleDownloadDeviceFeature {
                                      @NotNull DeviceFeatureModel model,
                                      @NotNull ObservableValue<Boolean> isActive,
                                      @NotNull ValidatorPanel validator) {
+    setupUI();
     myModel = model;
 
     myFeatureNameCombo.setModel(new DefaultComboBoxModel<>(DeviceFeatureKind.values()));
@@ -108,6 +113,35 @@ public class ModuleDownloadDeviceFeature {
       }
     });
   }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), 2, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("device-feature");
+    myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    myFeatureNameCombo = new JComboBox();
+    myRootPanel.add(myFeatureNameCombo, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                            null, 1, false));
+    myFeatureValueContainer = new JPanel();
+    myFeatureValueContainer.setLayout(new BorderLayout(0, 0));
+    myRootPanel.add(myFeatureValueContainer, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myRemoveFeatureLinkLabel = new LinkLabel();
+    myRootPanel.add(myRemoveFeatureLinkLabel, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    jBLabel1.setLabelFor(myFeatureNameCombo);
+  }
+
+  public JComponent getRootComponent() { return myRootPanel; }
 
   @NotNull
   private static List<String> getModelForFeatureType(DeviceFeatureKind featureType) {

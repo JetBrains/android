@@ -25,6 +25,8 @@ import com.android.utils.Pair;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBImageIcon;
@@ -34,6 +36,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,10 +47,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,6 +73,7 @@ public class PreviewIconsPanel extends JPanel {
 
   public PreviewIconsPanel(@NotNull String title, @NotNull Theme theme) {
     super(new BorderLayout());
+    setupUI();
     add(myRootPanel);
 
     myTitleLabel.setText(title);
@@ -76,6 +84,27 @@ public class PreviewIconsPanel extends JPanel {
     myRootPanel.setOpaque(myTheme != Theme.TRANSPARENT);
     myTitleLabel.setForeground(myTheme.getAltColor());
     setName("PreviewIconsPanel"); // for UI tests
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPanel.setOpaque(true);
+    myRootPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myIconsPanel = new JPanel();
+    myIconsPanel.setLayout(new GridBagLayout());
+    myIconsPanel.setOpaque(false);
+    myRootPanel.add(myIconsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                      null, null, 0, false));
+    myTitleLabel = new JBLabel();
+    myTitleLabel.setText("(title)");
+    myRootPanel.add(myTitleLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                      0, false));
   }
 
   private static void showPreviewImageImpl(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
@@ -180,11 +209,11 @@ public class PreviewIconsPanel extends JPanel {
     // Default implementation displays all preview icons of type "GeneratedImageIcon".
     Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
     List<Pair<String, BufferedImage>> list = generatedIcons.stream()
-        .filter(icon -> icon instanceof GeneratedImageIcon && icon.getCategory() == IconCategory.PREVIEW)
-        .map(icon -> (GeneratedImageIcon)icon)
-        .sorted(Comparator.comparingInt(icon -> -icon.getDensity().getDpiValue()))
-        .map(icon -> Pair.of(icon.getName(), icon.getImage()))
-        .collect(Collectors.toList());
+      .filter(icon -> icon instanceof GeneratedImageIcon && icon.getCategory() == IconCategory.PREVIEW)
+      .map(icon -> (GeneratedImageIcon)icon)
+      .sorted(Comparator.comparingInt(icon -> -icon.getDensity().getDpiValue()))
+      .map(icon -> Pair.of(icon.getName(), icon.getImage()))
+      .collect(Collectors.toList());
     showPreviewImagesImpl(list);
   }
 
