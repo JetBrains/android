@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,6 +33,9 @@ class DependencyInfoPanel {
   private JPanel myDependencyDetailsPanel;
   private JPanel myIssuesPanel;
 
+  public DependencyInfoPanel() {
+    setupUI();
+  }
   void setDependencyDetails(@NotNull DependencyDetails details) {
     ((CollapsiblePanel)myDependencyDetailsPanel).setContents(details.getPanel());
     revalidateAndRepaintPanel();
@@ -52,5 +58,22 @@ class DependencyInfoPanel {
 
   void revalidateAndRepaintPanel() {
     revalidateAndRepaint(myMainPanel);
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myMainPanel = new JPanel();
+    myMainPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myMainPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myMainPanel.add(myDependencyDetailsPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                  null, null, null, 0, false));
+    myMainPanel.add(myIssuesPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                       null, null, 0, false));
   }
 }

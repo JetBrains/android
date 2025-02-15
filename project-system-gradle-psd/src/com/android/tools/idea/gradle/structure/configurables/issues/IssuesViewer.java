@@ -25,7 +25,10 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.Font;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +56,7 @@ public class IssuesViewer {
   @Nullable private Set<PsIssue> myLastDisplayedIssues = null;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull DependencyViewIssuesRenderer renderer) {
+    setupUI();
     myContext = context;
     myRenderer = renderer;
   }
@@ -84,7 +89,7 @@ public class IssuesViewer {
     // Start displaying from last to first, so that if any issue panels are visible the vertically-expanding
     // one at the bottom of IssuesViewer.form is (to keep the locations of the issues stable)
     for (int index = 3; index >= 0; index--) {
-      if(typeCount <= 0) {
+      if (typeCount <= 0) {
         myIssuesPanels.get(index).setVisible(false);
       } else {
         PsIssue.Severity severity = severities.get(--typeCount);
@@ -115,12 +120,34 @@ public class IssuesViewer {
     myIssuesPanel2 = new IssuesViewerPanel(hyperlinkListener, font);
     myIssuesPanel3 = new IssuesViewerPanel(hyperlinkListener, font);
     myIssuesPanel4 = new IssuesViewerPanel(hyperlinkListener, font);
-    myIssuesPanels = Arrays.asList((IssuesViewerPanel) myIssuesPanel1,
-                                   (IssuesViewerPanel) myIssuesPanel2,
-                                   (IssuesViewerPanel) myIssuesPanel3,
-                                   (IssuesViewerPanel) myIssuesPanel4);
+    myIssuesPanels = Arrays.asList((IssuesViewerPanel)myIssuesPanel1,
+                                   (IssuesViewerPanel)myIssuesPanel2,
+                                   (IssuesViewerPanel)myIssuesPanel3,
+                                   (IssuesViewerPanel)myIssuesPanel4);
     for (IssuesViewerPanel panel : myIssuesPanels) {
       panel.setVisible(false);
     }
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myMainPanel = new JPanel();
+    myMainPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myMainPanel.add(myIssuesPanel4, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                        null, null, 0, false));
+    myMainPanel.add(myIssuesPanel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
+    myMainPanel.add(myIssuesPanel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
+    myMainPanel.add(myIssuesPanel3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
   }
 }

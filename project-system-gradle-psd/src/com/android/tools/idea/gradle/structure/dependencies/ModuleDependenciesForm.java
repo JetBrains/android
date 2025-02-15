@@ -26,8 +26,12 @@ import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckboxTreeAdapter;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
+import java.awt.Insets;
 import java.util.ArrayList;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
@@ -53,6 +57,7 @@ class ModuleDependenciesForm {
   private JXLabel myModulesLabel;
 
   ModuleDependenciesForm(@NotNull PsModule module) {
+    setupUI();
     myModulesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myModulesLabel.setBackground(getTextFieldBackground());
     myModulesLabel.setText(" ");
@@ -110,6 +115,25 @@ class ModuleDependenciesForm {
     });
 
     myModulesScrollPane.setViewportView(myPossibleDependenciesTree);
+  }
+
+  private void setupUI() {
+    myMainPanel = new JPanel();
+    myMainPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myModulesScrollPane = new JBScrollPane();
+    myMainPanel.add(myModulesScrollPane, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Modules:");
+    myMainPanel.add(jBLabel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    myModulesLabel = new JXLabel();
+    myMainPanel.add(myModulesLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 
   @NotNull

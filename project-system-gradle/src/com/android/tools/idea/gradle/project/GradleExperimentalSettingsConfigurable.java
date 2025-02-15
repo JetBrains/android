@@ -29,9 +29,14 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Insets;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +60,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   }
 
   public GradleExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings) {
+    setupUI();
     mySettings = settings;
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
@@ -109,7 +115,8 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
-    autoSyncBehaviorComboBox.setSelectedIndex(AutoSyncBehavior.getEntries().indexOf(GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR));
+    autoSyncBehaviorComboBox.setSelectedIndex(
+      AutoSyncBehavior.getEntries().indexOf(GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR));
   }
 
   @VisibleForTesting
@@ -131,7 +138,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myConfigureAllGradleTasks.setSelected(value);
   }
 
-   boolean isParallelSyncEnabled() {
+  boolean isParallelSyncEnabled() {
     return myEnableParallelSync.isSelected();
   }
 
@@ -190,5 +197,63 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
             .build()
         )
     );
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(7, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myUseMultiVariantExtraArtifacts = new JCheckBox();
+    myUseMultiVariantExtraArtifacts.setText("Enable support for multi-variant Javadocs and Sources");
+    myPanel.add(myUseMultiVariantExtraArtifacts, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                     null, null, null, 0, false));
+    myConfigureAllGradleTasks = new JCheckBox();
+    myConfigureAllGradleTasks.setText("Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)");
+    myPanel.add(myConfigureAllGradleTasks, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myEnableParallelSync = new JCheckBox();
+    myEnableParallelSync.setText("Enable parallel Gradle Sync");
+    myPanel.add(myEnableParallelSync, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myEnableDeviceApiOptimization = new JCheckBox();
+    myEnableDeviceApiOptimization.setText("Optimize build for target device API level only");
+    myPanel.add(myEnableDeviceApiOptimization, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                   null, null, null, 0, false));
+    myDeriveRuntimeClasspathsForLibraries = new JCheckBox();
+    myDeriveRuntimeClasspathsForLibraries.setText("Derive runtime classpaths for libraries from application modules");
+    myPanel.add(myDeriveRuntimeClasspathsForLibraries,
+                new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myShowAgpVersionChooserInNewProjectWizard = new JCheckBox();
+    myShowAgpVersionChooserInNewProjectWizard.setText("Show Android Gradle plugin version dropdown in the New Project Wizard");
+    myPanel.add(myShowAgpVersionChooserInNewProjectWizard,
+                new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            0, false));
+    autoSyncBehaviorComboBox = new JComboBox();
+    autoSyncBehaviorComboBox.setToolTipText("");
+    panel1.add(autoSyncBehaviorComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             null, null, 0, false));
+    final JLabel label1 = new JLabel();
+    label1.setText("Project Sync mode");
+    panel1.add(label1,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 }

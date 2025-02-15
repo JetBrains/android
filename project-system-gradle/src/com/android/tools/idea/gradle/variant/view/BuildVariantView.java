@@ -44,9 +44,13 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -56,6 +60,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -108,7 +113,42 @@ public class BuildVariantView {
 
   private BuildVariantView(@NotNull Project project) {
     myProject = project;
+    setupUI();
     ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myToolWindowPanel = new JPanel();
+    myToolWindowPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myToolWindowPanel.add(jBScrollPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                             null, null, null, 0, false));
+    myVariantsTable.setCellSelectionEnabled(true);
+    jBScrollPane1.setViewportView(myVariantsTable);
+    myToolWindowPanel.add(myNotificationPanel,
+                          new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                              false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myToolWindowPanel.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                      null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    panel1.add(spacer2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myImportDefaultsButton.setText("Re-import with defaults");
+    myImportDefaultsButton.setVerticalTextPosition(0);
+    panel1.add(myImportDefaultsButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 
   private void createUIComponents() {
@@ -119,7 +159,7 @@ public class BuildVariantView {
 
     myImportDefaultsButton = new JButton();
     myImportDefaultsButton.setToolTipText(
-        "Resets variant selection to the default variants (automatically selected if not specified in Gradle build files)");
+      "Resets variant selection to the default variants (automatically selected if not specified in Gradle build files)");
     myImportDefaultsButton.addActionListener(
       event -> BuildVariantUpdater.requestGradleSync(myProject, null, true));
   }
@@ -239,7 +279,7 @@ public class BuildVariantView {
     }
 
     @Override
-    public void setBackground(Color bg) {}
+    public void setBackground(Color bg) { }
 
     @Override
     public Color getBackground() {
@@ -251,8 +291,8 @@ public class BuildVariantView {
 
     private int nextConflictModule(Function<Integer, Integer> getNextIndex) {
       int index = getNextIndex.apply(myCurrentConflictIndex);
-      for(int i = 0; i < getVariantsTable().getRowCount(); i++) {
-        if(getVariantsTable().hasConflict(index)) {
+      for (int i = 0; i < getVariantsTable().getRowCount(); i++) {
+        if (getVariantsTable().hasConflict(index)) {
           return index;
         }
         index = getNextIndex.apply(index);
@@ -328,7 +368,7 @@ public class BuildVariantView {
         return ImmutableList.of();
       }
       var conflicts = myConflicts.stream()
-        .filter(conflict -> conflict.hasAffectedModule((Module) module))
+        .filter(conflict -> conflict.hasAffectedModule((Module)module))
         .collect(Collectors.toList());
 
       return new ImmutableList.Builder<Conflict>().addAll(conflicts).build();
@@ -341,7 +381,7 @@ public class BuildVariantView {
     @Nullable
     Module findModule(int row) {
       Object module = getValueAt(row, MODULE_COLUMN_INDEX);
-      return module instanceof Module ? (Module) module : null;
+      return module instanceof Module ? (Module)module : null;
     }
 
     @Override
@@ -493,7 +533,7 @@ public class BuildVariantView {
       editor.setFont(StartupUiUtil.getLabelFont());
       Module module = ((BuildVariantTable)table).findModule(row);
       String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
-                                    : variantsCellHelpTooltipText;
+                                                      : variantsCellHelpTooltipText;
       editor.setToolTipText(toolTip);
 
       // add some padding to table cells. It is hard to read text of combo box.
@@ -608,7 +648,7 @@ public class BuildVariantView {
       boolean isAndroidGradleModule = false;
       Module module = null;
       if (value != null) {
-        module = (Module) value;
+        module = (Module)value;
         myValue = module;
         if (!module.isDisposed()) {
           String modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(module);
