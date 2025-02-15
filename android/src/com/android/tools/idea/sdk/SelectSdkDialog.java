@@ -26,6 +26,11 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Dimension;
+import java.awt.Insets;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +64,7 @@ public class SelectSdkDialog extends DialogWrapper {
    */
   public SelectSdkDialog(@Nullable String jdkPath, @Nullable String sdkPath) {
     super(false);
+    setupUI();
 
     init();
 
@@ -153,6 +159,56 @@ public class SelectSdkDialog extends DialogWrapper {
     }
     return null;
   }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    mySelectSdkLabel = new JBLabel();
+    mySelectSdkLabel.setText("Select Android SDK:");
+    myPanel.add(mySelectSdkLabel,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySdkTextFieldWithButton = new TextFieldWithBrowseButton();
+    myPanel.add(mySdkTextFieldWithButton, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                              GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                              new Dimension(300, -1), null, null, 0, false));
+    mySelectSdkDescriptionLabel = new JBLabel();
+    mySelectSdkDescriptionLabel.setText("");
+    myPanel.add(mySelectSdkDescriptionLabel, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                 null, null, 0, false));
+    mySdkHyperlinkLabel = new HyperlinkLabel();
+    myPanel.add(mySdkHyperlinkLabel, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    mySelectJdkLabel = new JBLabel();
+    mySelectJdkLabel.setText("Select Java JDK:");
+    myPanel.add(mySelectJdkLabel,
+                new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myJdkTextFieldWithButton = new TextFieldWithBrowseButton();
+    myPanel.add(myJdkTextFieldWithButton, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                              GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                              new Dimension(300, -1), null, null, 0, false));
+    mySelectJdkDescriptionLabel = new JBLabel();
+    myPanel.add(mySelectJdkDescriptionLabel, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                 null, null, 0, false));
+    myJdkHyperlinkLabel = new HyperlinkLabel();
+    myPanel.add(myJdkHyperlinkLabel, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    mySpacer = new JBLabel();
+    mySpacer.setText(" ");
+    myPanel.add(mySpacer, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                              false));
+  }
+
+  public JComponent getRootComponent() { return myPanel; }
 
   @Nullable
   private static String validateJdkPath(@Nullable String path) {

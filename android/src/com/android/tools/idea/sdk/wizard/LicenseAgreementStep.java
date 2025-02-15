@@ -36,6 +36,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -119,6 +120,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     boolean selectedByDefault
   ) {
     super(model, "License Agreement");
+    setupUI();
     myInstallRequestsSupplier = installRequestsSupplier;
     mySelectedByDefault = selectedByDefault;
 
@@ -341,6 +343,49 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   private void createUIComponents() {
     optionsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new BorderLayout(0, 0));
+    myRootPanel.setMaximumSize(new Dimension(1250, 937));
+    myRootPanel.setMinimumSize(new Dimension(230, 160));
+    myRootPanel.setPreferredSize(new Dimension(230, 160));
+    splitter = new Splitter();
+    splitter.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+    splitter.setMaximumSize(new Dimension(1250, 937));
+    splitter.setPreferredSize(new Dimension(230, 160));
+    splitter.setProportion(0.3f);
+    splitter.setShowDividerControls(false);
+    splitter.setShowDividerIcon(false);
+    myRootPanel.add(splitter, BorderLayout.CENTER);
+    myTreeScroll = new JBScrollPane();
+    splitter.add(myTreeScroll);
+    myChangeTree = new Tree();
+    myTreeScroll.setViewportView(myChangeTree);
+    myLicensePane = new JBScrollPane();
+    splitter.add(myLicensePane);
+    myLicenseTextField = new JTextPane();
+    myLicenseTextField.setAutoscrolls(false);
+    myLicenseTextField.setEditable(false);
+    myLicenseTextField.setMaximumSize(new Dimension(1250, 937));
+    myLicenseTextField.setPreferredSize(new Dimension(230, 160));
+    myLicenseTextField.putClientProperty("JEditorPane.honorDisplayProperties", Boolean.FALSE);
+    myLicenseTextField.putClientProperty("charset", "");
+    myLicensePane.setViewportView(myLicenseTextField);
+    optionsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+    myRootPanel.add(optionsPanel, BorderLayout.SOUTH);
+    myDeclineRadioButton = new JBRadioButton();
+    myDeclineRadioButton.setText("Decline");
+    optionsPanel.add(myDeclineRadioButton);
+    myAcceptRadioButton = new JBRadioButton();
+    myAcceptRadioButton.setText("Accept");
+    optionsPanel.add(myAcceptRadioButton);
+    splitter.setFirstComponent(myTreeScroll);
+    splitter.setSecondComponent(myLicensePane);
+  }
+
+  public JComponent getRootComponent() { return myRootPanel; }
 
   private final static class Change {
     public RemotePackage myPackage;

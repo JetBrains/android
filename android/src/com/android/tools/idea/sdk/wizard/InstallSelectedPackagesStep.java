@@ -51,11 +51,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -139,6 +143,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      @NotNull InstallerFactoryFactory factory,
                                      boolean throttleProgress) {
     super(message("android.sdk.manager.installer.panel.title"));
+    setupUI();
     myInstallRequests = installRequests;
     myUninstallRequests = uninstallRequests;
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
@@ -269,6 +274,47 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     customLogger.setIndicator(indicator);
     indicator.setIndeterminate(false);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+  }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("SDK Path:");
+    myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myLabelSdkPath = new JBLabel();
+    myLabelSdkPath.setText("<placeholder path>");
+    myContentPanel.add(myLabelSdkPath, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                           null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    jBScrollPane1.setVerticalScrollBarPolicy(22);
+    myContentPanel.add(jBScrollPane1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          null, null, null, 0, false));
+    mySdkManagerOutput = new JTextPane();
+    mySdkManagerOutput.setEditable(false);
+    jBScrollPane1.setViewportView(mySdkManagerOutput);
+    myProgressOverallLabel = new JBLabel();
+    myContentPanel.add(myProgressOverallLabel,
+                       new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                           false));
+    myProgressBar = new JProgressBar();
+    myContentPanel.add(myProgressBar, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myProgressDetailLabel = new JBLabel();
+    myProgressDetailLabel.setBackground(new Color(-3355444));
+    myProgressDetailLabel.setHorizontalTextPosition(10);
+    myProgressDetailLabel.setVerticalAlignment(1);
+    myContentPanel.add(myProgressDetailLabel, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                  null, null, null, 0, false));
   }
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {

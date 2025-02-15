@@ -76,10 +76,14 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
@@ -220,17 +224,18 @@ public class SdkUpdaterConfigPanel implements Disposable {
   /**
    * Construct a new SdkUpdaterConfigPanel.
    *
-   * @param downloader             {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
-   *                               only show local packages.
-   * @param settings               {@link SettingsController} for e.g. proxy settings.
-   * @param configurable           The {@link SdkUpdaterConfigurable} that created this.
+   * @param downloader   {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
+   *                     only show local packages.
+   * @param settings     {@link SettingsController} for e.g. proxy settings.
+   * @param configurable The {@link SdkUpdaterConfigurable} that created this.
    */
   public SdkUpdaterConfigPanel(@Nullable Downloader downloader,
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
+    setupUI();
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.SDK_MANAGER)
-                                     .setKind(EventKind.SDK_MANAGER_LOADED));
+                       .setCategory(EventCategory.SDK_MANAGER)
+                       .setKind(EventKind.SDK_MANAGER_LOADED));
 
     myConfigurable = configurable;
     myUpdateSitesPanel.setConfigurable(configurable);
@@ -275,6 +280,97 @@ public class SdkUpdaterConfigPanel implements Disposable {
   @Nullable
   File getSelectedSdkLocation() {
     return mySelectedSdkLocation.get().orElse(null);
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootPane = new JPanel();
+    myRootPane.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Manager for the Android SDK and Tools used by the IDE");
+    myRootPane.add(jBLabel1,
+                   new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPane.add(panel1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                               null, 0, false));
+    mySdkLocationLabel = new JBLabel();
+    mySdkLocationLabel.setEnabled(true);
+    mySdkLocationLabel.setText("Android SDK Location:");
+    panel1.add(mySdkLocationLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySdkErrorLabel = new JBLabel();
+    mySdkErrorLabel.setText("SDK Location must be set");
+    mySdkErrorLabel.setVisible(false);
+    panel1.add(mySdkErrorLabel,
+               new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySdkLocationPanel = new JPanel();
+    mySdkLocationPanel.setLayout(new CardLayout(0, 0));
+    panel1.add(mySdkLocationPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    mySdkLocationPanel.add(panel2, "SingleSdk");
+    mySdkLocationTextField = new JTextField();
+    panel2.add(mySdkLocationTextField, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           new Dimension(400, -1), null, null, 0, false));
+    myEditSdkLink = new HyperlinkLabel();
+    panel2.add(myEditSdkLink,
+               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
+    myCleanupDiskLink = new HyperlinkLabel();
+    panel2.add(myCleanupDiskLink,
+               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySdkLocationPanel.add(panel3, "MultiSdk");
+    mySdkLocationChooser = new JComboBox();
+    panel3.add(mySdkLocationChooser, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    myTabPane = new JBTabbedPane();
+    myRootPane.add(myTabPane, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                  new Dimension(200, 200), null, 0, false));
+    final JPanel panel4 = new JPanel();
+    panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myTabPane.addTab("SDK Platforms", panel4);
+    myPlatformComponentsPanel = new PlatformComponentsPanel();
+    panel4.add(myPlatformComponentsPanel.getRootComponent(),
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
+    final JPanel panel5 = new JPanel();
+    panel5.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myTabPane.addTab("SDK Tools", panel5);
+    myToolComponentsPanel = new ToolComponentsPanel();
+    panel5.add(myToolComponentsPanel.getRootComponent(),
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
+    final JPanel panel6 = new JPanel();
+    panel6.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myTabPane.addTab("SDK Update Sites", panel6);
+    panel6.add(myUpdateSitesPanel.getRootComponent(),
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                   false));
   }
 
   @NotNull
@@ -373,7 +469,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               return htmlBuilder;
             }
             return null;
-          },"Analyzing SDK Disk Space Utilization", true, null);
+          }, "Analyzing SDK Disk Space Utilization", true, null);
       }
       catch (ProcessCanceledException ex) {
         return;
@@ -391,7 +487,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               File cleanupDirFile = new File(sdkLocation, cleanupDir);
               FileUtil.delete(cleanupDirFile);
             }
-          },"Deleting SDK Temporary Files", false, null);
+          }, "Deleting SDK Temporary Files", false, null);
       }
     });
   }
@@ -546,13 +642,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+              progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+              progressRunner, null, mySettings);
     }
   }
 

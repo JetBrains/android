@@ -29,18 +29,24 @@ import com.google.common.collect.TreeMultimap;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.CardLayout;
+import java.awt.Insets;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -88,6 +94,7 @@ public class PlatformComponentsPanel {
 
   @VisibleForTesting
   PlatformComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+    setupUI();
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
     myPlatformLoadingLabel.setForeground(JBColor.GRAY);
 
@@ -216,4 +223,67 @@ public class PlatformComponentsPanel {
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
     myConfigurable = configurable;
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPanel.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                null, 0, false));
+    myPlatformDetailsCheckbox = new JCheckBox();
+    myPlatformDetailsCheckbox.setText("Show Package Details");
+    panel1.add(myPlatformDetailsCheckbox,
+               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPlatformLoadingPanel = new JPanel();
+    myPlatformLoadingPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel1.add(myPlatformLoadingPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           null, null, null, 0, false));
+    myPlatformLoadingLabel = new JBLabel();
+    myPlatformLoadingLabel.setText("Looking for updates...");
+    myPlatformLoadingPanel.add(myPlatformLoadingLabel,
+                               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                   false));
+    myPlatformLoadingPanel.add(myPlatformLoadingIcon,
+                               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myHideObsoletePackagesCheckbox = new JCheckBox();
+    myHideObsoletePackagesCheckbox.setSelected(true);
+    myHideObsoletePackagesCheckbox.setText("Hide Obsolete Packages");
+    panel1.add(myHideObsoletePackagesCheckbox,
+               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText(
+      "<html>Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display individual SDK components.</html>");
+    myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPlatformPanel = new JPanel();
+    myPlatformPanel.setLayout(new CardLayout(0, 0));
+    myRootPanel.add(myPlatformPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                         null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myPlatformPanel.add(jBScrollPane1, "summary");
+    jBScrollPane1.setViewportView(myPlatformSummaryTable);
+    final JBScrollPane jBScrollPane2 = new JBScrollPane();
+    myPlatformPanel.add(jBScrollPane2, "details");
+    jBScrollPane2.setViewportView(myPlatformDetailTable);
+  }
+
+  public JComponent getRootComponent() { return myRootPanel; }
 }
