@@ -94,6 +94,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" groupName="Android Lint: Correctness" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" groupName="Android Lint: Internationalization" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongCommentType" groupName="Android Lint: Correctness" displayName="Wrong Comment Type" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWrongCommentTypeInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongGradleMethod" groupName="Android Lint: Correctness" displayName="Wrong Gradle method invoked" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintWrongGradleMethodInspection"/>
 
     <notificationGroup id="Wrote Baseline" displayType="BALLOON"/>
 

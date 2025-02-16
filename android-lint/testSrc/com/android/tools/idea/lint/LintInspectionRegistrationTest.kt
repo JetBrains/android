@@ -63,7 +63,18 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 // (If you're on the lint team and do this a lot see also the system
 // property lookup near the usage of this flag below and add it to your
 // Run Configuration.)
-private const val UPDATE_IN_PLACE = false
+private var UPDATE_IN_PLACE = false
+
+// Run this function to perform in place to update
+@Suppress("unused")
+fun main(args: Array<String>) {
+  try {
+    UPDATE_IN_PLACE = true
+    LintInspectionRegistrationTest().testAllLintChecksRegistered()
+  } finally {
+    UPDATE_IN_PLACE = false
+  }
+}
 
 class LintInspectionRegistrationTest : AndroidTestCase() {
   init {

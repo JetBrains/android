@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
+import com.android.tools.idea.lint.common.AndroidLintWrongGradleMethodInspection
 import com.android.tools.idea.lint.inspections.AndroidLintAligned16KBInspection
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateActivityInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
@@ -265,6 +266,40 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  fun testWrongGradleMethod() {
+    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintWrongGradleMethodInspection(),
+      "dep|endencies { // Wrong place: product flavor" to
+        """
+        Error: Suspicious receiver type; this does not apply to product flavors. This will apply to a receiver of type `Project`, found in one of the enclosing lambdas. Make sure it's declared in the right place in the file. If you wanted a product flavor specific dependency, use `demoImplementation` rather than `implementation` in the top level `dependencies` block.
+                    dependencies { // Wrong place: product flavor
+                    ~~~~~~~~~~~~
+            Fix: Suppress WrongGradleMethod with a comment
+        """,
+      "dep|endencies { // Wrong place: build type" to
+        """
+        Error: Suspicious receiver type; this does not apply to build types. This will apply to a receiver of type `Project`, found in one of the enclosing lambdas. Make sure it's declared in the right place in the file. If you wanted a build type specific dependency, use `releaseImplementation` rather than `implementation` in the top level `dependencies` block.
+                    dependencies { // Wrong place: build type
+                    ~~~~~~~~~~~~
+            Fix: Suppress WrongGradleMethod with a comment
+        """,
+      "kotlin|Options { // Wrong place: options" to
+        """
+        Error: Suspicious receiver type; this does not apply to the current receiver of type `ApplicationDefaultConfig`. This will apply to a receiver of type `BaseAppModuleExtension`, found in one of the enclosing lambdas. Make sure it's declared in the right place in the file.
+                kotlinOptions { // Wrong place: options
+                ~~~~~~~~~~~~~
+            Fix: Suppress WrongGradleMethod with a comment
+        """,
+      "dep|endencies { // OK" to
+        """
+        No warnings.
+        """,
+    )
+  }
+
   fun doGlobalInspectionTest(
     tool: GlobalInspectionTool,
     scope: AnalysisScope,
@@ -303,54 +338,65 @@ fun JavaCodeInsightTestFixture.checkLint(
   caret: String,
   expected: String,
 ) {
+  checkLint(psiFile, inspection, caret to expected)
+}
+
+fun JavaCodeInsightTestFixture.checkLint(
+  psiFile: PsiFile,
+  inspection: AndroidLintInspectionBase,
+  vararg caretToExpectations: Pair<String, String>,
+) {
   AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
   enableInspections(inspection)
   val fileText = psiFile.text
-  val sb = StringBuilder()
-  val target = psiFile.findCaretOffset(caret)
-  editor.caretModel.moveToOffset(target)
-  val highlights =
-    doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
-  for (highlight in highlights) {
-    val startIndex = highlight.startOffset
-    val endOffset = highlight.endOffset
-    if (target < startIndex || target > endOffset) {
-      continue
-    }
-    val description = highlight.description
-    val severity = highlight.severity
-    sb.append(severity.name.lowercase(Locale.ROOT).capitalize()).append(": ")
-    sb.append(description).append("\n")
 
-    val lineStart = fileText.lastIndexOf("\n", startIndex).let { if (it == -1) 0 else it + 1 }
-    val lineEnd = fileText.indexOf("\n", startIndex).let { if (it == -1) fileText.length else it }
-    sb.append(fileText.substring(lineStart, lineEnd)).append("\n")
-    val rangeEnd = if (lineEnd < endOffset) lineEnd else endOffset
-    for (i in lineStart until startIndex) sb.append(" ")
-    for (i in startIndex until rangeEnd) sb.append("~")
-    sb.append("\n")
-
-    highlight.findRegisteredQuickFix { desc, range ->
-      val action = desc.action
-      sb.append("    ")
-      if (action.isAvailable(project, editor, psiFile)) {
-        sb.append("Fix: ")
-        sb.append(action.text)
-      } else {
-        sb.append("Disabled Fix: ")
-        sb.append(action.text)
+  for ((caret, expected) in caretToExpectations) {
+    val sb = StringBuilder()
+    val target = psiFile.findCaretOffset(caret)
+    editor.caretModel.moveToOffset(target)
+    val highlights =
+      doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+    for (highlight in highlights) {
+      val startIndex = highlight.startOffset
+      val endOffset = highlight.endOffset
+      if (target < startIndex || target > endOffset) {
+        continue
       }
+      val description = highlight.description
+      val severity = highlight.severity
+      sb.append(severity.name.lowercase(Locale.ROOT).capitalize()).append(": ")
+      sb.append(description).append("\n")
+
+      val lineStart = fileText.lastIndexOf("\n", startIndex).let { if (it == -1) 0 else it + 1 }
+      val lineEnd = fileText.indexOf("\n", startIndex).let { if (it == -1) fileText.length else it }
+      sb.append(fileText.substring(lineStart, lineEnd)).append("\n")
+      val rangeEnd = if (lineEnd < endOffset) lineEnd else endOffset
+      for (i in lineStart until startIndex) sb.append(" ")
+      for (i in startIndex until rangeEnd) sb.append("~")
       sb.append("\n")
-      null
+
+      highlight.findRegisteredQuickFix { desc, range ->
+        val action = desc.action
+        sb.append("    ")
+        if (action.isAvailable(project, editor, psiFile)) {
+          sb.append("Fix: ")
+          sb.append(action.text)
+        } else {
+          sb.append("Disabled Fix: ")
+          sb.append(action.text)
+        }
+        sb.append("\n")
+        null
+      }
     }
-  }
 
-  if (sb.isEmpty()) {
-    sb.append("No warnings.")
-  }
+    if (sb.isEmpty()) {
+      sb.append("No warnings.")
+    }
 
-  AndroidGradleTestCase.assertEquals(
-    expected.trimIndent().trim(),
-    sb.toString().trimIndent().trim(),
-  )
+    AndroidGradleTestCase.assertEquals(
+      expected.trimIndent().trim(),
+      sb.toString().trimIndent().trim(),
+    )
+  }
 }
