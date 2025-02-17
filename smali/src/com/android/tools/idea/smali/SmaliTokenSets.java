@@ -55,7 +55,7 @@ import static com.android.tools.idea.smali.psi.SmaliTypes.TRUE;
 
 import com.intellij.psi.tree.TokenSet;
 
-final class SmaliTokenSets {
+public final class SmaliTokenSets {
   private SmaliTokenSets() {
   }
 
