@@ -28,6 +28,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.android.tools.idea.run.configuration.execution.AndroidDeclarativeWatchFaceConfigurationExecutor
 import com.intellij.execution.runners.ProgramRunner
 
 /**

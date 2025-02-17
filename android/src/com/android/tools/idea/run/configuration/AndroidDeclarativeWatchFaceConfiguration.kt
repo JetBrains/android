@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.editors.AndroidDeclarativeWatchFaceConfigurationEditor
+import com.android.tools.idea.run.configuration.execution.AndroidDeclarativeWatchFaceConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.editor.DeployTargetProvider
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -49,10 +55,27 @@ class AndroidDeclarativeWatchFaceConfiguration(project: Project, factory: Config
     deployTargetContext.getApplicableDeployTargetProviders(true)
 
   override fun getExecutor(
-    env: ExecutionEnvironment,
+    environment: ExecutionEnvironment,
     facet: AndroidFacet,
     deviceFutures: DeviceFutures,
-  ) = null
+  ): AndroidConfigurationExecutor {
+    val applicationIdProvider =
+      project.getProjectSystem().getApplicationIdProvider(this)
+        ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+    val apkProvider =
+      environment.project.getProjectSystem().getApkProvider(this)
+        ?: throw ExecutionException(message("android.run.configuration.not.supported", this::class.simpleName))
+    val applicationDeployer =
+      ApplicationDeployerImpl(environment.project, RunStats.from(environment))
+
+    return AndroidDeclarativeWatchFaceConfigurationExecutor(
+      environment,
+      deviceFutures,
+      applicationIdProvider,
+      apkProvider,
+      applicationDeployer,
+    )
+  }
 
   override fun getConfigurationEditor() = AndroidDeclarativeWatchFaceConfigurationEditor(project)
 }
