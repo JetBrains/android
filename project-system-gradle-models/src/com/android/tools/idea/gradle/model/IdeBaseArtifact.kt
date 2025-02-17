@@ -24,14 +24,14 @@ interface IdeBaseArtifactCore : Serializable {
 
   /** @return the name of the task used to compile the code.
    */
-  val compileTaskName: String
+  val compileTaskName: String?
 
   /**
    * Returns the name of the task used to generate the artifact output(s).
    *
    * @return the name of the task.
    */
-  val assembleTaskName: String
+  val assembleTaskName: String?
 
   /**
    * Returns the folder containing the class files. This is the output of the java compilation.

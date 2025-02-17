@@ -22,7 +22,7 @@ interface IdeBuildTasksAndOutputInformation {
    *
    * @return the name of the task.
    */
-  val assembleTaskName: String
+  val assembleTaskName: String?
 
   /**
    * Returns the absolute path for the listing file that will get updated after each build. The

@@ -25,8 +25,8 @@ import java.io.File
 
 data class IdeJavaArtifactCoreImpl(
   override val name: IdeArtifactName,
-  override val compileTaskName: String,
-  override val assembleTaskName: String,
+  override val compileTaskName: String?,
+  override val assembleTaskName: String?,
   override val classesFolder: Collection<File>,
   override val variantSourceProvider: IdeSourceProviderImpl?,
   override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
