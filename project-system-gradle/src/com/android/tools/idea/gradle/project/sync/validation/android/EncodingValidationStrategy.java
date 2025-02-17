@@ -62,7 +62,9 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
       if (isOneDotTwoOrNewer) {
         try {
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
-          modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
+          if (androidProject.getJavaCompileOptions() != null) {
+            modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
+          }
         }
         catch (UnsupportedCharsetException ignore) {
           // It's not going to happen.

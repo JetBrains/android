@@ -129,7 +129,7 @@ class LintModelFactory : LintModelModuleLoader {
           resourcePrefix = project.resourcePrefix,
           dynamicFeatures = project.dynamicFeatures,
           bootClassPath = project.bootClasspath.map { File(it) },
-          javaSourceLevel = project.javaCompileOptions.sourceCompatibility,
+          javaSourceLevel = project.javaCompileOptions?.sourceCompatibility,
           compileTarget = project.compileTarget,
           neverShrinking = isNeverShrinking(project),
           variants = variantList,
@@ -554,7 +554,8 @@ class LintModelFactory : LintModelModuleLoader {
   ): LintModelBuildFeatures {
     return DefaultLintModelBuildFeatures(
       viewBinding = usesViewBinding(project, agpVersion),
-      coreLibraryDesugaringEnabled = project.javaCompileOptions.isCoreLibraryDesugaringEnabled,
+      coreLibraryDesugaringEnabled =
+        project.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true,
       namespacingMode = getNamespacingMode(project),
     )
   }
@@ -681,8 +682,8 @@ class LintModelFactory : LintModelModuleLoader {
     override val bootClassPath: List<File>
       get() = project.bootClasspath.map { File(it) }
 
-    override val javaSourceLevel: String
-      get() = project.javaCompileOptions.sourceCompatibility
+    override val javaSourceLevel: String?
+      get() = project.javaCompileOptions?.sourceCompatibility
 
     override val compileTarget: String
       get() = project.compileTarget

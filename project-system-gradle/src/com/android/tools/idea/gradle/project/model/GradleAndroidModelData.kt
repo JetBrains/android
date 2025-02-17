@@ -100,13 +100,13 @@ data class GradleAndroidModelDataImpl(
   override val mainArtifactCore: IdeAndroidArtifactCore get() = selectedVariantCore.mainArtifact
 
   override fun getJavaSourceLanguageLevel(): LanguageLevel? {
-    val compileOptions = androidProject.javaCompileOptions
+    val compileOptions = androidProject.javaCompileOptions ?: return null
     val sourceCompatibility = compileOptions.sourceCompatibility
     return LanguageLevel.parse(sourceCompatibility)
   }
 
   override fun getJavaTargetLanguageLevel(): LanguageLevel? {
-    val compileOptions = androidProject.javaCompileOptions
+    val compileOptions = androidProject.javaCompileOptions ?: return null
     val targetCompatibility = compileOptions.targetCompatibility
     return LanguageLevel.parse(targetCompatibility)
   }

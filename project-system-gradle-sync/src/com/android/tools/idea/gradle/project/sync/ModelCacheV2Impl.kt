@@ -1209,7 +1209,8 @@ internal fun modelCacheV2Impl(
     isCheckReleaseBuilds = options.checkReleaseBuilds
   )
 
-  fun javaCompileOptionsFrom(options: JavaCompileOptions): IdeJavaCompileOptionsImpl {
+  fun javaCompileOptionsFrom(options: JavaCompileOptions?): IdeJavaCompileOptionsImpl? {
+    options ?: return null
     return IdeJavaCompileOptionsImpl(
       encoding = options.encoding,
       sourceCompatibility = options.sourceCompatibility,

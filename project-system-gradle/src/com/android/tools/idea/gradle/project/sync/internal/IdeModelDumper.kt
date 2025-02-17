@@ -254,7 +254,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("TestNamespace") { ideAndroidModel.testNamespace }
       dump(ideAndroidModel.aaptOptions)
       ideAndroidModel.lintOptions?.let { dump(it) }
-      dump(ideAndroidModel.javaCompileOptions)
+      ideAndroidModel.javaCompileOptions?.let { dump(it) }
       dump(ideAndroidModel.agpFlags)
       ideAndroidModel.basicVariants.forEach { dump(it) }
       ideAndroidModel.flavorDimensions.forEach { prop("FlavorDimensions") { it } }
