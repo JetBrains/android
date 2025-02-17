@@ -334,6 +334,7 @@
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first" id="DefaultStudioProgramRunner"/>
+    <programRunner implementation="com.android.tools.idea.run.AndroidDeclarativeWatchFaceProgramRunner" order="after DefaultStudioProgramRunner" />
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>
 
