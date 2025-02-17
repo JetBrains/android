@@ -17,16 +17,12 @@ package com.android.tools.idea.wear.preview.animation
 
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import com.android.flags.junit.FlagRule
-import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.android.tools.idea.wear.preview.PsiWearTilePreviewElement
@@ -87,8 +83,6 @@ class AnimationUtilsKtTest {
   fun `detectAnimations - updates preview element and flag`() {
     val layoutlibSceneManager = mock<LayoutlibSceneManager>()
 
-    val scene = mock<Scene>()
-    val root = mock<SceneComponent>()
     val nlComponent =
       MockNlComponent.create(
         runReadAction {
@@ -104,12 +98,9 @@ class AnimationUtilsKtTest {
       }
 
     val model = nlComponent.model
-    whenever(model.dataProvider).thenReturn(dataProvider)
-
     whenever(layoutlibSceneManager.model).thenReturn(model)
-    whenever(layoutlibSceneManager.scene).thenReturn(scene)
-    whenever(scene.root).thenReturn(root)
-    whenever(root.nlComponent).thenReturn(nlComponent)
+
+    whenever(model.dataProvider).thenReturn(dataProvider)
 
     // With animations
     val tileServiceViewAdapter =
@@ -117,12 +108,8 @@ class AnimationUtilsKtTest {
         fun getAnimations() = listOf(TestDynamicTypeAnimator())
       }
 
-    val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
-
-    nlComponent.viewInfo = viewInfo
-
+    whenever(layoutlibSceneManager.viewObject).thenReturn(tileServiceViewAdapter)
     detectAnimations(layoutlibSceneManager)
-
     assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapter)
     assertThat(previewElement.hasAnimations).isTrue()
 
@@ -132,11 +119,7 @@ class AnimationUtilsKtTest {
         fun getAnimations() = emptyList<DynamicTypeAnimator>()
       }
 
-    val viewInfoNoAnimation =
-      ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapterNoAnimations, null, null)
-
-    nlComponent.viewInfo = viewInfoNoAnimation
-
+    whenever(layoutlibSceneManager.viewObject).thenReturn(tileServiceViewAdapterNoAnimations)
     detectAnimations(layoutlibSceneManager)
 
     assertThat(previewElement.tileServiceViewAdapter.value)
@@ -149,8 +132,6 @@ class AnimationUtilsKtTest {
   fun `detectAnimations - handles view adapter without getAnimations method`() {
     val layoutlibSceneManager = mock<LayoutlibSceneManager>()
 
-    val scene = mock<Scene>()
-    val root = mock<SceneComponent>()
     val nlComponent =
       MockNlComponent.create(
         runReadAction {
@@ -167,18 +148,12 @@ class AnimationUtilsKtTest {
     val model = nlComponent.model
     whenever(model.dataProvider).thenReturn(dataProvider)
     whenever(layoutlibSceneManager.model).thenReturn(model)
-    whenever(layoutlibSceneManager.scene).thenReturn(scene)
-    whenever(scene.root).thenReturn(root)
-    whenever(root.nlComponent).thenReturn(nlComponent)
 
     val tileServiceViewAdapter =
       object {
         // no getAnimations here
       }
-
-    val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
-
-    nlComponent.viewInfo = viewInfo
+    whenever(layoutlibSceneManager.viewObject).thenReturn(tileServiceViewAdapter)
 
     try {
       detectAnimations(layoutlibSceneManager)

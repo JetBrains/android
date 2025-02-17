@@ -18,7 +18,6 @@ package com.android.tools.idea.wear.preview.animation
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.wear.preview.WearTilePreviewElement
 
 /**
@@ -32,7 +31,7 @@ fun detectAnimations(sceneManager: SceneManager) {
   val previewElementInstance =
     sceneManager.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
       ?: return
-  val tileServiceViewAdapter = sceneManager.scene.root?.nlComponent?.viewInfo?.viewObject
+  val tileServiceViewAdapter = sceneManager.viewObject
   previewElementInstance.tileServiceViewAdapter.value = tileServiceViewAdapter
   previewElementInstance.hasAnimations =
     StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get() &&
