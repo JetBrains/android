@@ -6,7 +6,6 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 create_kotlinc_options(
   name = "custom",
-  jvm_target = 17,
   opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
 )
 
