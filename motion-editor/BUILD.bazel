@@ -80,6 +80,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-ui",
     "@lib//:protobuf",
     "//platform/core-impl",

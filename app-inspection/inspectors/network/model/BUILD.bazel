@@ -66,6 +66,7 @@ jvm_library(
     "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/platform-api:ide",

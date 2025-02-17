@@ -68,6 +68,7 @@ jvm_library(
     "//platform/analysis-impl",
     "//platform/code-style-api:codeStyle",
     "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",

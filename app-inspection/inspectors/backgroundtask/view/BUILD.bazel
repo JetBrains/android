@@ -94,6 +94,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",

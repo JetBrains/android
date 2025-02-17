@@ -60,6 +60,7 @@ jvm_test(
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
     "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
