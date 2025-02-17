@@ -389,7 +389,8 @@ class PreviewDeviceShouldUseNewSpec :
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
   ) {
-    checkDeviceIsValid(holder, previewAnnotation)
+    // TODO(b/375166200): Re-enable check once we remove support to pre-1.8 specs
+    // checkDeviceIsValid(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
@@ -397,7 +398,8 @@ class PreviewDeviceShouldUseNewSpec :
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
   ) {
-    checkDeviceIsValid(holder, previewAnnotation)
+    // TODO(b/375166200): Re-enable check once we remove support to pre-1.8 specs
+    // checkDeviceIsValid(holder, previewAnnotation)
   }
 
   private fun checkDeviceIsValid(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
