@@ -430,11 +430,6 @@ class WearTilePreviewRepresentationTest {
     assertThat(preview.previewView.focusMode).isNotNull()
   }
 
-  private val WearTilePreviewRepresentation.mainSurfaceDataContext
-    get() =
-      DataManager.getInstance()
-        .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
-
   private val WearTilePreviewRepresentation.previewModeManager
     get() =
       PreviewModeManager.KEY.getData(
