@@ -44,10 +44,13 @@ import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,7 +69,6 @@ import javax.annotation.Nullable;
  */
 @AutoValue
 public abstract class BuildGraphData {
-
   /** A map from target to file on disk for all source files */
   public abstract ImmutableSet<Label> sourceFileLabels();
 
@@ -478,12 +480,23 @@ public abstract class BuildGraphData {
   }
 
   public ImmutableSet<DependencyTrackingBehavior> getDependencyTrackingBehaviors(Label target) {
-    if (!targetMap().containsKey(target)) {
+    final var targetInfo = targetMap().get(target);
+    if (targetInfo == null) {
       return ImmutableSet.of();
     }
-    return targetMap().get(target).languages().stream()
-        .map(l -> l.dependencyTrackingBehavior)
-        .collect(toImmutableSet());
+    return getDependencyTrackingBehaviors(targetInfo);
+  }
+
+  private ImmutableSet<DependencyTrackingBehavior> getDependencyTrackingBehaviors(ProjectTarget target) {
+    return target.languages().stream()
+      .map(l -> l.dependencyTrackingBehavior)
+      .collect(toImmutableSet());
+  }
+
+  private boolean getDependencyTrackingIncludeExternalDependencies(ProjectTarget target) {
+    return target.languages().stream()
+      .map(l -> l.dependencyTrackingBehavior)
+      .anyMatch(it -> it.shouldIncludeExternalDependencies);
   }
 
   /**
@@ -545,16 +558,22 @@ public abstract class BuildGraphData {
    *     {@link #getDependencyTrackingBehaviors(Label)} of the targets given.
    */
   public Optional<RequestedTargets> computeRequestedTargets(ImmutableSet<Label> projectTargets) {
-    ImmutableSet<Label> externalDeps =
-        projectTargets.stream()
-            .filter(
-                t ->
-                    getDependencyTrackingBehaviors(t).stream()
-                        .anyMatch(b -> b.shouldIncludeExternalDependencies))
-            .map(this::getTransitiveExternalDependencies)
-            .flatMap(Set::stream)
-            .collect(toImmutableSet());
-
-    return Optional.of(new RequestedTargets(projectTargets, externalDeps));
+    final var externalDeps = new LinkedHashSet<Label>();
+    final var seen = new HashSet<>(projectTargets);
+    final var queue = new ArrayDeque<Label>(projectTargets);
+    while (!queue.isEmpty()) {
+      final var target = queue.remove();
+      final var targetInfo = targetMap().get(target);
+      if (targetInfo == null) {
+        // External dependency.
+        externalDeps.add(target);
+        continue;
+      }
+      final var dependencyTracking = getDependencyTrackingIncludeExternalDependencies(targetInfo);
+      if (dependencyTracking) {
+        queue.addAll(targetInfo.deps().stream().filter(seen::add).toList());
+      }
+    }
+    return Optional.of(new RequestedTargets(projectTargets, ImmutableSet.copyOf(externalDeps)));
   }
 }
