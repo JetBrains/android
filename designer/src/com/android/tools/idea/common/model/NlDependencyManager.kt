@@ -129,8 +129,8 @@ class NlDependencyManager private constructor() {
     val moduleSystem = facet.module.getModuleSystem()
     val missing =
       dependencies
-        .map { it.getCoordinate("+") }
-        .filter { moduleSystem.getRegisteredDependency(it) == null }
+        .filter { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) == null }
+        .toSet()
     if (missing.none()) {
       return true
     }

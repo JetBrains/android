@@ -134,7 +134,7 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
 
   // If [promptUserBeforeAdding] is false then we need to inform the user of any compatibility errors in a separate message window.
   if (promptUserBeforeAdding) {
-    if (!userWantsToAdd(project, coordinates, warning)) {
+    if (!userWantsToAdd(project, artifacts, warning)) {
       return coordinates.mapNotNull { coordinateMap[it] }.toSet()
     }
   }
@@ -180,9 +180,15 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
   return (incompatibleDependencies + coordinatesToExceptions.map { it.first }).mapNotNull { coordinateMap[it] }.toSet()
 }
 
+@Deprecated("use the method with Set<GoogleMavenArtifactId> argument instead")
 fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>, warning: String = ""): Boolean {
   return Messages.OK == Messages.showOkCancelDialog(
     project, createAddDependencyMessage(coordinates, warning), "Add Project Dependency", Messages.getErrorIcon())
+}
+
+fun userWantsToAdd(project: Project, ids: Set<GoogleMavenArtifactId>, warning: String = ""): Boolean {
+  @Suppress("DEPRECATION")
+  return userWantsToAdd(project, ids.map { it.getCoordinate("+") }, warning)
 }
 
 @VisibleForTesting
