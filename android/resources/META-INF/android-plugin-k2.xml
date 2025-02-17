@@ -18,9 +18,5 @@
     <!-- TODO(b/404571134): enable the new Kotlin project structure (from IntelliJ 2025.1) after fixing remaining issues. -->
     <registryKey overrides="true" key="kotlin.use.new.project.structure.provider" defaultValue="false"
                  description="Use new project structure provider for Kotlin"/>
-    <!-- TODO(b/404571134): the following service override can be removed once we switch to the new Kotlin project structure. -->
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.base.projectStructure.forwardDeclarations.KotlinForwardDeclarationsFileOwnerTracker"
-                    serviceImplementation="com.android.tools.idea.AndroidStudioK2KotlinForwardDeclarationsFileOwnerTrackerImpl"
-                    overrides="true"/>
   </extensions>
 </idea-plugin>
