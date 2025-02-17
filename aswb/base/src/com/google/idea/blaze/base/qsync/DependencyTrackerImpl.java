@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.idea.blaze.base.bazel.BazelExitCode;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
@@ -92,10 +91,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
       case MULTIPLE_TARGETS:
         return snapshot.graph().computeRequestedTargets(request.targets);
       case WHOLE_PROJECT:
-        return Optional.of(
-            new RequestedTargets(
-                ImmutableSet.copyOf(snapshot.graph().allTargets()),
-                snapshot.graph().projectDeps()));
+        return snapshot.graph().computeRequestedTargets(snapshot.graph().allTargets());
     }
     throw new IllegalArgumentException("Invalid request type: " + request.requestType);
   }
