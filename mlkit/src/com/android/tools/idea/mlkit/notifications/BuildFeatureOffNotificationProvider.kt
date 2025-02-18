@@ -51,7 +51,7 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
     if (TfliteModelFileType.TFLITE_EXTENSION != file.extension) return null
 
     val module = ModuleUtilCore.findModuleForFile(file, project)
-    if (module == null || MlUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlUtils.isModelFileInMlModelsFolder(module, file)) {
+    if (module == null || MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
       return null
     }
     return Function { fileEditor ->

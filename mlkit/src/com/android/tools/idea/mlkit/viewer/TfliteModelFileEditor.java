@@ -55,6 +55,7 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -157,6 +158,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     else {
       LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
     }
+    EditorNotifications.getInstance(project).updateNotifications(file);
   }
 
   @NotNull
@@ -860,7 +862,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myTabbedCodePaneForFocus;
+    if (myTabbedCodePaneForFocus != null) {
+      return myTabbedCodePaneForFocus;
+    }
+    return myRootPane;
   }
 
   @NotNull
