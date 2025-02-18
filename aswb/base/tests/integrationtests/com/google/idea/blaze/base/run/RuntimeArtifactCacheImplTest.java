@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run;
+package com.google.idea.blaze.base.run;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.idea.blaze.base.artifact.TestOutputArtifact;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
@@ -34,7 +35,6 @@ import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.BuildArtifactCacheDirectory;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
-import com.google.idea.blaze.common.artifact.TestOutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
 import java.nio.file.Files;

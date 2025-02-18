@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run;
+package com.google.idea.blaze.base.run;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.scope.BlazeContext;

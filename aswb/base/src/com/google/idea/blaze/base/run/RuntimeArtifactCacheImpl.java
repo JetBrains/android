@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run;
+package com.google.idea.blaze.base.run;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
+public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
   private static final Logger logger = Logger.getInstance(RuntimeArtifactCacheImpl.class);
   private final Map<Label, Map<Path, ProjectProto.ProjectArtifact>> artifactCacheMap = new HashMap<>();
   private final Path runfilesDirectory;
