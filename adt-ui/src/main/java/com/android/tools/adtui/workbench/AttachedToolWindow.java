@@ -89,7 +89,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String LABEL_HEADER = "LABEL";
   static final String SEARCH_HEADER = "SEARCH";
 
-  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
+  public enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
   private final WorkBench<T> myWorkBench;
   private final ToolWindowDefinition<T> myDefinition;
