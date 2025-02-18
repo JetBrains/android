@@ -219,9 +219,9 @@ import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEPENDENCIES_SOURCES
+import org.jetbrains.kotlin.idea.core.script.SCRIPT_CONFIGURATIONS_SOURCES
+import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEFINITIONS_SOURCES
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
-import org.jetbrains.kotlin.idea.gradleJava.scripting.GradleScriptDependenciesSource
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2675,6 +2675,7 @@ fun disableKtsIndexing(project: Project, disposable: Disposable) {
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 
   if (KotlinPluginModeProvider.isK2Mode()) {
-    SCRIPT_DEPENDENCIES_SOURCES.getPoint(project).unregisterExtension(GradleScriptDependenciesSource::class.java)
+    SCRIPT_DEFINITIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
+    SCRIPT_CONFIGURATIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
   }
 }
