@@ -213,36 +213,13 @@ interface AndroidProjectRule : TestRule {
         createAndroidProjectBuilderForDefaultTestProjectStructure()
     ): Typed<JavaCodeInsightTestFixture, Nothing> {
       return withAndroidModels(
+        prepareProjectSources = null,
         AndroidModuleModelBuilder(
           gradlePath = ":",
           selectedBuildVariant = "debug",
           projectBuilder = androidProjectBuilder,
-        )
+        ),
       )
-    }
-
-    /**
-     * Returns an [AndroidProjectRule] that initializes the project from models obtained from
-     * [projectModuleBuilders] and populates its source directories by invoking
-     * [prepareProjectSources].
-     */
-    @JvmStatic
-    fun withAndroidModels(
-      prepareProjectSources: ((dir: File) -> Unit)? = null,
-      vararg projectModuleBuilders: ModuleModelBuilder,
-    ): Typed<JavaCodeInsightTestFixture, Nothing> {
-      val fixtureFactory: FixtureFactory<JavaCodeInsightTestFixture> = { projectName, _ ->
-        createJavaCodeInsightTestFixtureAndModels(
-          projectName,
-          projectModuleBuilders = projectModuleBuilders.toList(),
-          prepareProjectSourcesWith = prepareProjectSources,
-        )
-      }
-
-      val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
-      val fixtureRule = FixtureRuleImpl(fixtureFactory, withAndroidSdk = false, initAndroid = false)
-      val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
-      return chain(testEnvironmentRule, fixtureRule, projectEnvironmentRule)
     }
 
     /**
@@ -255,9 +232,58 @@ interface AndroidProjectRule : TestRule {
     ): Typed<JavaCodeInsightTestFixture, Nothing> =
       withAndroidModels(prepareProjectSources = null, *projectModuleBuilders)
 
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from models obtained from
+     * [projectModuleBuilders].
+     */
     @JvmStatic
-    fun withIntegrationTestEnvironment(): IntegrationTestEnvironmentRule {
-      val projectRule = withAndroidModels()
+    fun withAndroidModels(
+      prepareProjectSources: ((dir: File) -> Unit)? = null,
+      vararg projectModuleBuilders: ModuleModelBuilder,
+    ): Typed<JavaCodeInsightTestFixture, Nothing> =
+      withAndroidModels(
+        prepareProjectSources = prepareProjectSources,
+        *projectModuleBuilders,
+        androidPlatformVersion = Sdks.getLatestAndroidPlatform(),
+      )
+
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from models obtained from
+     * [projectModuleBuilders] and populates its source directories by invoking
+     * [prepareProjectSources].
+     */
+    @JvmStatic
+    fun withAndroidModels(
+      prepareProjectSources: ((dir: File) -> Unit)? = null,
+      vararg projectModuleBuilders: ModuleModelBuilder,
+      androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform(),
+    ): Typed<JavaCodeInsightTestFixture, Nothing> {
+      val fixtureFactory: FixtureFactory<JavaCodeInsightTestFixture> = { projectName, _ ->
+        createJavaCodeInsightTestFixtureAndModels(
+          projectName,
+          projectModuleBuilders = projectModuleBuilders.toList(),
+          prepareProjectSourcesWith = prepareProjectSources,
+        )
+      }
+
+      val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
+      val fixtureRule =
+        FixtureRuleImpl(
+          fixtureFactory,
+          withAndroidSdk = false,
+          initAndroid = false,
+          androidPlatformVersion = androidPlatformVersion,
+        )
+      val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
+      return chain(testEnvironmentRule, fixtureRule, projectEnvironmentRule)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun withIntegrationTestEnvironment(
+      androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform()
+    ): IntegrationTestEnvironmentRule {
+      val projectRule = withAndroidModels(androidPlatformVersion = androidPlatformVersion)
       val wrappedRules: TestRule =
         RuleChain.outerRule(EdtAndroidProjectRule(projectRule)).around(EdtRule())!!
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
