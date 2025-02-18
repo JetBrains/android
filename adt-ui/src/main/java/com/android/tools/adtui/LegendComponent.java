@@ -377,7 +377,7 @@ public class LegendComponent extends AnimatedComponent {
    * An instruction to render an {@link LegendConfig.IconType} icon.
    */
   @VisibleForTesting
-  static final class LegendIconInstruction extends RenderInstruction {
+  public static final class LegendIconInstruction extends RenderInstruction {
     private static final int ICON_HEIGHT_PX = 15;
     private static final int LINE_THICKNESS = 3;
 

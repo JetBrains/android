@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.adtui.workbench;
 
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
@@ -83,7 +83,7 @@ import org.jetbrains.annotations.TestOnly;
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
+public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
