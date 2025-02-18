@@ -361,7 +361,7 @@
     <notificationGroup displayType="BALLOON" id="AddToProject" />
     <notificationGroup displayType="STICKY_BALLOON" id="QuerySyncPromo" />
     <notificationGroup displayType="BALLOON" id="QuerySyncBuild" />
-    <cachesInvalidator implementation="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction$CacheInvalidator"/>
+    <cachesInvalidator implementation="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction$CachesInvalidator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
