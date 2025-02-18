@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import java.io.File;
 
 /** Configures Blaze build to output native symbols and obtains symbol file paths. */
@@ -33,5 +34,5 @@ public interface NativeSymbolFinder {
 
   /** Returns native symbol files present in build output. */
   ImmutableList<File> getNativeSymbolsForBuild(
-    BlazeContext context, Label label, BlazeBuildOutputs outputs);
+    Project project, BlazeContext context, Label label, BlazeBuildOutputs outputs);
 }

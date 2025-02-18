@@ -218,7 +218,7 @@ public class FullApkBuildStep implements ApkBuildStep {
           nativeSymbolFinderList.stream()
               .flatMap(
                   finder ->
-                      finder.getNativeSymbolsForBuild(context, label, outputs).stream())
+                      finder.getNativeSymbolsForBuild(project, context, label, outputs).stream())
               .collect(ImmutableList.toImmutableList());
       deployInfo =
           deployInfoHelper.extractDeployInfoAndInvalidateManifests(

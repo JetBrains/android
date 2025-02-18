@@ -45,23 +45,27 @@ import com.google.idea.blaze.base.model.primitives.GenericBlazeRules.RuleTypes;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -83,6 +87,19 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   @Parameter public boolean useOldFormatFileUri = false;
 
   @Rule public TemporaryFolder tmpFolder = new TemporaryFolder();
+  private BlazeContext context;
+
+  private static class TestRuntimeArtifactCache implements RuntimeArtifactCache {
+    @Override
+    public ImmutableList<Path> fetchArtifacts(
+      com.google.idea.blaze.common.Label label,
+      List<? extends OutputArtifact> artifacts,
+      BlazeContext context) {
+      return artifacts.stream()
+        .map(a -> Paths.get(a.getBazelOutRelativePath()))
+        .collect(toImmutableList());
+    }
+  }
 
   @Override
   protected void initTest(Container applicationServices, Container projectServices) {
@@ -93,14 +110,17 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     applicationServices.register(Kind.ApplicationState.class, new Kind.ApplicationState());
     applicationServices.register(ExperimentService.class, new MockExperimentService());
     applicationServices.register(QuerySyncSettings.class, new QuerySyncSettings());
+    projectServices.register(RuntimeArtifactCache.class, new TestRuntimeArtifactCache());
 
     ExtensionPointImpl<OutputArtifactParser> parserEp =
         registerExtensionPoint(OutputArtifactParser.EP_NAME, OutputArtifactParser.class);
     parserEp.registerExtension(new LocalFileParser());
+    context = BlazeContext.create();
   }
 
   @Test
   public void parseAllOutputs_singleTargetEvents_returnsAllOutputs() throws Exception {
+    var label = "//some:target";
     ImmutableList<String> filePaths =
         ImmutableList.of(
             "/usr/local/lib/File.py", "/usr/bin/python2.7", "/usr/local/home/script.sh");
@@ -109,14 +129,14 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             configuration("config-id", "k8-opt"),
             setOfFiles(filePaths, "set-id"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("name", ImmutableList.of("set-id")))));
 
     List<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(filePaths.stream().map(File::new).toArray())
         .inOrder();
   }
@@ -135,6 +155,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
   @Test
   public void parseAllOutputs_singleTargetEventsPlusExtras_returnsAllOutputs() throws Exception {
+    var label = "//some:target";
     ImmutableList<String> filePaths =
         ImmutableList.of(
             "/usr/local/lib/Provider.java",
@@ -149,14 +170,14 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             configuration("config-id", "k8-opt"),
             setOfFiles(filePaths, "set-id"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("name", ImmutableList.of("set-id")))));
 
     List<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(filePaths.stream().map(File::new).toArray())
         .inOrder();
   }
@@ -175,7 +196,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             "/usr/local/code/ParserTest.java",
             "/usr/local/code/action_output.bzl",
             "/usr/genfiles/BUILD.bazel");
-
+    var label = "//some:target";
     ImmutableList<BuildEvent.Builder> events =
         ImmutableList.of(
             BuildEvent.newBuilder()
@@ -186,7 +207,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             setOfFiles(fileSet1, "set-1"),
             setOfFiles(fileSet2, "set-2"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(
                     outputGroup("name1", ImmutableList.of("set-1")),
@@ -200,13 +221,14 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     List<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
 
   @Test
   public void parseAllOutputs_streamWithDuplicateFiles_returnsUniqueOutputs() throws Exception {
+    var label = "//some:target";
     ImmutableList<String> fileSet1 = ImmutableList.of("/usr/out/genfiles/foo.pb.h");
 
     ImmutableList<String> fileSet2 =
@@ -222,7 +244,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             setOfFiles(fileSet1, "set-1"),
             setOfFiles(fileSet2, "set-2"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(
                     outputGroup("name1", ImmutableList.of("set-1")),
@@ -236,7 +258,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     List<OutputArtifact> parsedFilenames =
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
@@ -245,7 +267,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   public void parseArtifactsForTarget_singleTarget_returnsTargetOutputs() throws Exception {
     ImmutableList<String> fileSet =
         ImmutableList.of("/usr/out/genfiles/foo.pb.h", "/usr/out/genfiles/foo.proto.h");
-
+    var label = "//some:target";
     ImmutableList<BuildEvent.Builder> events =
         ImmutableList.of(
             BuildEvent.newBuilder()
@@ -255,7 +277,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             configuration("config-id", "k8-opt"),
             setOfFiles(fileSet, "set-id"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("group-name", ImmutableList.of("set-id")))));
 
@@ -268,13 +290,14 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
               BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getOutputGroupTargetArtifacts(
                 "group-name", "//some:target");
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
 
   @Test
   public void parseArtifactsForTarget_twoTargets_returnsCorrectTargetOutputs() throws Exception {
+    var label = "//some:target";
     ImmutableList<String> targetFileSet =
         ImmutableList.of("/usr/out/genfiles/foo.pb.h", "/usr/out/genfiles/foo.proto.h");
     ImmutableList<String> otherTargetFileSet =
@@ -291,7 +314,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             setOfFiles(targetFileSet, "target-set"),
             setOfFiles(otherTargetFileSet, "other-set"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("group-name", ImmutableList.of("target-set")))),
             targetComplete(
@@ -308,7 +331,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
               BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getOutputGroupTargetArtifacts(
                 "group-name", "//some:target");
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
@@ -320,7 +343,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     ImmutableList<String> fileSet2 =
         ImmutableList.of(
             "/usr/local/lib/File.py", "/usr/bin/python2.7", "/usr/local/home/script.sh");
-
+    var label = "//some:target";
     ImmutableList<BuildEvent.Builder> events =
         ImmutableList.of(
             BuildEvent.newBuilder()
@@ -331,7 +354,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             setOfFiles(fileSet1, "set-1"),
             setOfFiles(fileSet2, "set-2"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("group-name", ImmutableList.of("set-1")))),
             targetComplete(
@@ -354,7 +377,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getOutputGroupArtifacts(
                                      "group-name");
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
@@ -367,7 +390,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     ImmutableList<String> fileSet2 =
         ImmutableList.of(
             "/usr/local/lib/File.py", "/usr/bin/python2.7", "/usr/local/home/script.sh");
-
+    var label = "//some:target";
     ImmutableList<BuildEvent.Builder> events =
         ImmutableList.of(
             BuildEvent.newBuilder()
@@ -378,7 +401,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
             setOfFiles(fileSet1, "set-1"),
             setOfFiles(fileSet2, "set-2"),
             targetComplete(
-                "//some:target",
+                label,
                 "config-id",
                 ImmutableList.of(outputGroup("group-1", ImmutableList.of("set-1")))),
             targetComplete(
@@ -395,7 +418,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getOutputGroupArtifacts(
                                      "group-1");
 
-    assertThat(LocalFileArtifact.getLocalFiles(parsedFilenames))
+    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject()))
         .containsExactlyElementsIn(allFiles)
         .inOrder();
   }
@@ -427,7 +450,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     assertThat(results.perTargetResults.get(label)).hasSize(1);
     BlazeTestResult result = results.perTargetResults.get(label).iterator().next();
     assertThat(result.getTestStatus()).isEqualTo(TestStatus.FAILED);
-    assertThat(getOutputXmlFiles(result))
+    assertThat(getOutputXmlFiles(label, result, context, project))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
   }
 
@@ -449,7 +472,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     BlazeTestResult result = results.perTargetResults.get(label).iterator().next();
     assertThat(result.getTargetKind()).isEqualTo(RuleTypes.SH_TEST.getKind());
     assertThat(result.getTestStatus()).isEqualTo(TestStatus.FAILED);
-    assertThat(getOutputXmlFiles(result))
+    assertThat(getOutputXmlFiles(label, result, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
   }
 
@@ -471,7 +494,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     BlazeTestResult result = results.perTargetResults.get(label).iterator().next();
     assertThat(result.getTargetKind()).isEqualTo(RuleTypes.SH_TEST.getKind());
     assertThat(result.getTestStatus()).isEqualTo(TestStatus.FAILED);
-    assertThat(getOutputXmlFiles(result))
+    assertThat(getOutputXmlFiles(label, result, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
   }
 
@@ -494,7 +517,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     BlazeTestResult result = results.perTargetResults.get(label).iterator().next();
     assertThat(result.getTargetKind()).isEqualTo(RuleTypes.SH_TEST.getKind());
     assertThat(result.getTestStatus()).isEqualTo(TestStatus.FAILED);
-    assertThat(getOutputXmlFiles(result))
+    assertThat(getOutputXmlFiles(label, result, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
   }
 
@@ -513,7 +536,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         BuildEventProtocolOutputReader.parseTestResults(BuildEventStreamProvider.fromInputStream(asInputStream(event)));
 
     BlazeTestResult result = results.perTargetResults.get(label).iterator().next();
-    assertThat(getOutputXmlFiles(result))
+    assertThat(getOutputXmlFiles(label, result, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
   }
 
@@ -547,22 +570,24 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
     assertThat(result1.getTestStatus()).isEqualTo(TestStatus.PASSED);
     assertThat(result2.getTestStatus()).isEqualTo(TestStatus.FAILED);
-    assertThat(getOutputXmlFiles(result1))
+    assertThat(getOutputXmlFiles(label, result1, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/shard1_of_2.xml"));
-    assertThat(getOutputXmlFiles(result2))
+    assertThat(getOutputXmlFiles(label, result2, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/shard2_of_2.xml"));
   }
 
   @Test
   public void parseTestResults_multipleEvents_returnsAllResults() throws Exception {
+    var label1 = "//java/com/google:Test1";
+    var label2 = "//java/com/google:Test2";
     BuildEvent.Builder test1 =
         testResultEvent(
-            "//java/com/google:Test1",
+            label1,
             BuildEventStreamProtos.TestStatus.PASSED,
             ImmutableList.of("/usr/local/tmp/_cache/test_result.xml"));
     BuildEvent.Builder test2 =
         testResultEvent(
-            "//java/com/google:Test2",
+            label2,
             BuildEventStreamProtos.TestStatus.INCOMPLETE,
             ImmutableList.of("/usr/local/tmp/_cache/second_result.xml"));
 
@@ -575,17 +600,17 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     BlazeTestResult result1 =
         results.perTargetResults.get(Label.create("//java/com/google:Test1")).iterator().next();
     assertThat(result1.getTestStatus()).isEqualTo(TestStatus.PASSED);
-    assertThat(getOutputXmlFiles(result1))
+    assertThat(getOutputXmlFiles(Label.create(label1), result1, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
     BlazeTestResult result2 =
         results.perTargetResults.get(Label.create("//java/com/google:Test2")).iterator().next();
     assertThat(result2.getTestStatus()).isEqualTo(TestStatus.INCOMPLETE);
-    assertThat(getOutputXmlFiles(result2))
+    assertThat(getOutputXmlFiles(Label.create(label2), result2, context, getProject()))
         .containsExactly(new File("/usr/local/tmp/_cache/second_result.xml"));
   }
 
-  private static ImmutableList<File> getOutputXmlFiles(BlazeTestResult result) {
-    return LocalFileArtifact.getLocalFiles(result.getOutputXmlFiles());
+  private static ImmutableList<File> getOutputXmlFiles(Label label, BlazeTestResult result, BlazeContext context, Project project) {
+    return LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label.toString()), result.getOutputXmlFiles(), context, project);
   }
 
   private static InputStream asInputStream(BuildEvent.Builder... events) throws Exception {
