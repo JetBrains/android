@@ -297,7 +297,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          GradleExecutionHelper.prepare(connection, operation, id, executionSettings, listener)
+          val buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource.token(), executionSettings)
+          GradleExecutionHelper.prepareForExecution(operation, cancellationTokenSource.token(), id, executionSettings, listener, buildEnvironment)
           if (enableBuildAttribution) {
             buildAttributionManager = project.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
