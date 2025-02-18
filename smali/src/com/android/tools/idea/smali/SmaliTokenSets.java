@@ -59,21 +59,21 @@ public final class SmaliTokenSets {
   private SmaliTokenSets() {
   }
 
-  static final TokenSet KEYWORD_TOKENS = TokenSet.create(DOT_CLASS, DOT_SOURCE, DOT_SUPER, DOT_FIELD, DOT_METHOD, DOT_METHOD_END,
+  public static final TokenSet KEYWORD_TOKENS = TokenSet.create(DOT_CLASS, DOT_SOURCE, DOT_SUPER, DOT_FIELD, DOT_METHOD, DOT_METHOD_END,
                                                          DOT_ANNOTATION, DOT_ANNOTATION_END, DOT_IMPLEMENTS, DOT_LINE, DOT_PARAM,
                                                          DOT_PROLOGUE, DOT_REGISTERS, TRUE, FALSE);
 
-  static final TokenSet ACCESS_MODIFIER_TOKENS = TokenSet.create(AM_ABSTRACT, AM_FINAL, AM_INTERFACE, AM_NATIVE, AM_PRIVATE, AM_PROTECTED,
+  public static final TokenSet ACCESS_MODIFIER_TOKENS = TokenSet.create(AM_ABSTRACT, AM_FINAL, AM_INTERFACE, AM_NATIVE, AM_PRIVATE, AM_PROTECTED,
                                                                  AM_PUBLIC, AM_STATIC, AM_SYNCHRONIZED, AM_TRANSIENT, AM_VOLATILE,
                                                                  AM_BRIDGE, AM_SYNTHETIC);
 
-  static final TokenSet COMMENT_TOKENS = TokenSet.create(COMMENT);
+  public static final TokenSet COMMENT_TOKENS = TokenSet.create(COMMENT);
 
-  static final TokenSet STRING_TOKENS = TokenSet.create(DOUBLE_QUOTED_STRING, CHAR);
+  public static final TokenSet STRING_TOKENS = TokenSet.create(DOUBLE_QUOTED_STRING, CHAR);
 
-  static final TokenSet NUMBER_TOKENS = TokenSet.create(REGULAR_NUMBER, HEX_NUMBER);
+  public static final TokenSet NUMBER_TOKENS = TokenSet.create(REGULAR_NUMBER, HEX_NUMBER);
 
-  static final TokenSet BRACES_TOKENS = TokenSet.create(L_CURLY, R_CURLY);
+  public static final TokenSet BRACES_TOKENS = TokenSet.create(L_CURLY, R_CURLY);
 
-  static final TokenSet PARENTHESES_TOKENS = TokenSet.create(L_PARENTHESIS, R_PARENTHESIS);
+  public static final TokenSet PARENTHESES_TOKENS = TokenSet.create(L_PARENTHESIS, R_PARENTHESIS);
 }

@@ -39,23 +39,21 @@ import org.jetbrains.annotations.NotNull;
 
 public class SmaliSyntaxHighlighter extends SyntaxHighlighterBase {
   static final TextAttributesKey[] COMMENT_ATTR_KEYS = new TextAttributesKey[]{COMMENT_ATTR_KEY};
-  static final TextAttributesKey[] JAVA_IDENTIFIER_ATTR_KEYS = new TextAttributesKey[]{JAVA_IDENTIFIER_ATTR_KEY};
-  static final TextAttributesKey[] KEYWORD_ATTR_KEYS = new TextAttributesKey[]{KEYWORD_ATTR_KEY};
-  static final TextAttributesKey[] STRING_ATTR_KEYS = new TextAttributesKey[]{STRING_ATTR_KEY};
-  static final TextAttributesKey[] NUMBER_ATTR_KEYS = new TextAttributesKey[]{NUMBER_ATTR_KEY};
-  static final TextAttributesKey[] BRACES_ATTR_KEYS = new TextAttributesKey[]{BRACES_ATTR_KEY};
-  static final TextAttributesKey[] PARENTHESES_ATTR_KEYS = new TextAttributesKey[]{PARENTHESES_ATTR_KEY};
-  static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
+  public static final TextAttributesKey[] JAVA_IDENTIFIER_ATTR_KEYS = new TextAttributesKey[]{JAVA_IDENTIFIER_ATTR_KEY};
+  public static final TextAttributesKey[] KEYWORD_ATTR_KEYS = new TextAttributesKey[]{KEYWORD_ATTR_KEY};
+  public static final TextAttributesKey[] STRING_ATTR_KEYS = new TextAttributesKey[]{STRING_ATTR_KEY};
+  public static final TextAttributesKey[] NUMBER_ATTR_KEYS = new TextAttributesKey[]{NUMBER_ATTR_KEY};
+  public static final TextAttributesKey[] BRACES_ATTR_KEYS = new TextAttributesKey[]{BRACES_ATTR_KEY};
+  public static final TextAttributesKey[] PARENTHESES_ATTR_KEYS = new TextAttributesKey[]{PARENTHESES_ATTR_KEY};
+  public static final TextAttributesKey[] EMPTY_KEYS = TextAttributesKey.EMPTY_ARRAY;
 
   @Override
-  @NotNull
-  public Lexer getHighlightingLexer() {
+  public @NotNull Lexer getHighlightingLexer() {
     return new SmaliLexerAdapter();
   }
 
   @Override
-  @NotNull
-  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (KEYWORD_TOKENS.contains(tokenType) || ACCESS_MODIFIER_TOKENS.contains(tokenType)) {
       return KEYWORD_ATTR_KEYS;
     }
