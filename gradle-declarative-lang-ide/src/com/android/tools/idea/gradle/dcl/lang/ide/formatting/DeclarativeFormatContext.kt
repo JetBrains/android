@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_COMMA
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_DOT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_TO
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LPAREN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RBRACE
@@ -64,6 +65,8 @@ data class DeclarativeFormatContext(
         .before(SEMI).spacing(0, 0, 0, false, 0)
         // =
         .around(OP_EQ).spacing(1, 1, 0, false, 0)
+        // to
+        .around(OP_TO).spacing(1, 1, 0, false, 0)
         // block
         .before(BLOCK_GROUP).spacing(1, 1, 0, false, 0)
         .after(OP_LBRACE).lineBreakInCode()

@@ -241,6 +241,19 @@ false    )
       """.trimIndent())
   }
 
+  @Test
+  fun testMapCreation() {
+    doTest("""
+      map  += "a"
+      to     "b"
+      map2 = mapOf (   "first" to    "value1", 
+      "second"    to  factory("file")  )
+      """, """
+      map  += "a" to "b"
+      map2 = mapOf("first" to "value1", "second" to factory("file"))
+      """.trimIndent())
+  }
+
   private fun doTest(before: String, after: String) {
     myFixture.loadNewFile(
       "build.gradle.dcl",
