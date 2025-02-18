@@ -126,23 +126,12 @@ iml_module(
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
-            "additional_jvm_args": ["-Didea.skip.indices.initialization=true"],
             "tags": ["cpu:4"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
-        "errors.integration": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.errors.integration",
-            "tags": ["cpu:4"],
-            "data": [
-                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
-                "//tools/base/build-system:android_gradle_plugin.zip",
-                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-                "//tools/base/build-system:gradle-distrib",
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-            ],
-        },
         "providers.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": ["cpu:4"],
             "shard_count": 5,
             "data": [
@@ -168,6 +157,21 @@ iml_module(
             "test_filter": ".runsGradle",
             "tags": ["cpu:4"],
             "shard_count": 4,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+            ],
+        },
+        "runs_indexing_with_gradle": {
+            "test_filter": ".runsIndexingWithGradle",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -206,6 +210,20 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_indexing_with_gradle_VersionCatalogAndDeclarative": {
+            "test_filter": ".runsIndexingWithGradleVersionCatalogAndDeclarative",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": ["cpu:4"],
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "runs_gradle_build": {
             "test_filter": ".runsGradleBuild",
             "tags": ["cpu:4"],
@@ -221,6 +239,19 @@ iml_module(
         },
         "runs_gradle_errors": {
             "test_filter": ".runsGradleErrors",
+            "tags": ["cpu:4"],
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
+        "runs_indexing_with_gradle_errors": {
+            "test_filter": ".runsIndexingWithGradleErrors",
             "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
@@ -258,10 +289,25 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_indexing_with_gradle_snapshots": {
+            "test_filter": ".runsIndexingWithGradleSnapshots",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": ["cpu:4"],
+            "shard_count": 5,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "runs_gradle_snapshots": {
             "test_filter": ".runsGradleSnapshots",
             "tags": ["cpu:4"],
-            "shard_count": 5,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -312,10 +358,23 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
-        "rendering": {
-            "test_filter": ".rendering",
+        "runs_gradle_rendering": {
+            "test_filter": ".runsGradleRendering",
             "tags": ["cpu:4"],
-            "shard_count": 1,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
+        "runs_indexing_with_gradle_rendering": {
+            "test_filter": ".runsIndexingWithGradleRendering",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -327,6 +386,7 @@ iml_module(
             ],
         },
         "other": {
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             # Note: we do not include AGP/Gradle artifacts in this test target, to enforce the separation between tests which require Gradle
             # to run (in split targets above) and this catch-all target.
             "data": [],
@@ -349,6 +409,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle/testData",
         "//tools/external/gradle:gradle-8.12-20241105002153+0000",
     ],
+    test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testSrc/resources"],
     test_srcs = ["testSrc"],
     test_tags = [

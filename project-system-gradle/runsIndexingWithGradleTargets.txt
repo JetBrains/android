@@ -1,0 +1,5 @@
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_indexing_with_gradle
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_indexing_with_gradle_errors
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_indexing_with_gradle_rendering
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_indexing_with_gradle_snapshots
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_indexing_with_gradle_VersionCatalogAndDeclarative
