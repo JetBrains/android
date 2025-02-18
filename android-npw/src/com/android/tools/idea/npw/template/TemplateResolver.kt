@@ -37,6 +37,9 @@ class TemplateResolver {
             "Gemini API Starter" -> StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get()
             "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
             "Navigation UI Activity" -> StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
+            "Bottom Navigation Views Activity",
+            "Navigation Drawer Views Activity",
+             -> !StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
             else -> true
           }
         }
