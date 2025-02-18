@@ -15,9 +15,10 @@
  */
 package com.google.idea.blaze.qsync.artifacts;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.lang.Math.min;
 
-import com.google.common.base.Supplier;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -32,22 +33,22 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact;
-import com.google.idea.blaze.qsync.query.PackageSet;
 import com.google.protobuf.ExtensionRegistryLite;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -57,6 +58,7 @@ import javax.annotation.Nullable;
  * listed in there.
  */
 public class ArtifactDirectoryUpdate {
+  private final static Logger LOG = Logger.getLogger(ArtifactDirectoryUpdate.class.getSimpleName());
 
   private final BuildArtifactCache artifactCache;
   private final Path workspaceRoot;
@@ -255,39 +257,61 @@ public class ArtifactDirectoryUpdate {
   }
 
   private void deleteUnnecessaryFiles() throws IOException {
-    PackageSet wanted =
-        new PackageSet(
-            contents.getContentsMap().keySet().stream().map(Path::of).collect(toImmutableSet()));
-    Set<Path> toDelete = Sets.newHashSet();
-    Files.walkFileTree(
-        root,
-        new SimpleFileVisitor<>() {
-          @Override
-          public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            if (dir.equals(root)) {
-              return FileVisitResult.CONTINUE;
-            }
-            Path rel = root.relativize(dir);
-            if (wanted.contains(rel)) {
-              return FileVisitResult.SKIP_SUBTREE;
-            } else if (wanted.getSubpackages(rel).isEmpty()) {
-              toDelete.add(dir);
-              return FileVisitResult.SKIP_SUBTREE;
-            }
-            return FileVisitResult.CONTINUE;
-          }
-
-          @Override
-          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            Path rel = root.relativize(file);
-            if (!wanted.contains(rel)) {
-              toDelete.add(file);
-            }
-            return FileVisitResult.CONTINUE;
-          }
-        });
-    for (Path p : toDelete) {
-      MoreFiles.deleteRecursively(p, RecursiveDeleteOption.ALLOW_INSECURE);
+    final List<Path> toDelete;
+    if (!Files.exists(root)) {
+      return;
     }
+    try (final var fileStream = Files.walk(root)) {
+      final var dot = Path.of("."); // Path.of("abc").startsWith(Path.of("")) does not work but with "./abc" and "./" it does.
+      final var wanted = contents.getContentsMap().keySet().stream().map(dot::resolve);
+      final var present = fileStream.map(root::relativize).filter(it -> !root.equals(it)).map(dot::resolve);
+      toDelete = computeFilesToDelete(present, wanted);
+    }
+    for (Path p : Lists.reverse(toDelete)) {
+      Files.delete(root.resolve(p));
+    }
+  }
+
+  /**
+   * Returns the list of currently present files/directories that are neither parents nor children of wanted files/directories.
+   */
+  @VisibleForTesting
+  public static List<Path> computeFilesToDelete(Stream<Path> presentStream, Stream<Path> wantedStream) {
+    final var present = presentStream.sorted(ArtifactDirectoryUpdate::comparePathsByNames).collect(toImmutableList());
+    final var wanted = wantedStream.sorted(ArtifactDirectoryUpdate::comparePathsByNames).collect(toImmutableList());
+    final var toDelete = new ArrayList<Path>();
+    int wantedIndex = 0;
+    int presentIndex = 0;
+
+    while (presentIndex < present.size()) {
+      final var currentWanted = wantedIndex < wanted.size() ? wanted.get(wantedIndex) : (Path)null;
+      final var currentPresent = present.get(presentIndex);
+      final var cr = currentWanted != null ? comparePathsByNames(currentWanted, currentPresent) : 1;
+      if (cr < 0) {
+        if (currentPresent.startsWith(currentWanted)) {
+          presentIndex++;
+        } else {
+          wantedIndex++;
+        }
+      }
+      else {
+        if (currentWanted == null || !currentWanted.startsWith(currentPresent)) {
+          toDelete.add(currentPresent);
+        }
+        presentIndex++;
+      }
+    }
+    return toDelete;
+  }
+
+  private static int comparePathsByNames(Path p1, Path p2) {
+    final var nc = min(p1.getNameCount(), p2.getNameCount());
+    for (int i = 0; i < nc; i++) {
+      final var c = p1.getName(i).compareTo(p2.getName(i));
+      if (c != 0) {
+        return c;
+      }
+    }
+    return Integer.compare(p1.getNameCount(), p2.getNameCount());
   }
 }
