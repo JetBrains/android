@@ -58,6 +58,12 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
 
   @Override
   @Nullable
+  public DeclarativePair getPair() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativePair.class);
+  }
+
+  @Override
+  @Nullable
   public DeclarativeProperty getProperty() {
     return PsiTreeUtil.getChildOfType(this, DeclarativeProperty.class);
   }

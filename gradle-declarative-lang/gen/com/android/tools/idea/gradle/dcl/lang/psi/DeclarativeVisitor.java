@@ -93,6 +93,10 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitValue(o);
   }
 
+  public void visitPair(@NotNull DeclarativePair o) {
+    visitValue(o);
+  }
+
   public void visitProperty(@NotNull DeclarativeProperty o) {
     visitValue(o);
     // visitContributedReferenceHost(o);

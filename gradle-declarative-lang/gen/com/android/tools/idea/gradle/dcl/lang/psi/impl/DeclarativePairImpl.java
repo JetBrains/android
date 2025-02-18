@@ -28,14 +28,14 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeLiteralImpl extends CompositePsiElement implements DeclarativeLiteral {
+public class DeclarativePairImpl extends CompositePsiElement implements DeclarativePair {
 
-  public DeclarativeLiteralImpl(@NotNull IElementType type) {
+  public DeclarativePairImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitLiteral(this);
+    visitor.visitPair(this);
   }
 
   @Override
@@ -100,8 +100,14 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
 
   @Override
   @Nullable
-  public Object getValue() {
+  public DeclarativeValue getValue() {
     return PsiImplUtil.getValue(this);
+  }
+
+  @Override
+  @Nullable
+  public DeclarativeValue getKey() {
+    return PsiImplUtil.getKey(this);
   }
 
 }

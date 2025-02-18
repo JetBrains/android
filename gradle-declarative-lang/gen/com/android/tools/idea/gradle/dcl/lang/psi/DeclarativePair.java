@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeLiteral extends DeclarativeValue {
+public interface DeclarativePair extends DeclarativeValue {
 
   @Nullable
   DeclarativePair getPair();
@@ -51,6 +51,9 @@ public interface DeclarativeLiteral extends DeclarativeValue {
   PsiElement getUnsignedLong();
 
   @Nullable
-  Object getValue();
+  DeclarativeValue getValue();
+
+  @Nullable
+  DeclarativeValue getKey();
 
 }

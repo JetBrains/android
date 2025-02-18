@@ -41,6 +41,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType FACTORY_RECEIVER = new DeclarativeElementType("FACTORY_RECEIVER");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
+  IElementType PAIR = new DeclarativeElementType("PAIR");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
@@ -65,6 +66,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType OP_PLUS_EQ = new DeclarativeTokenType("+=");
   IElementType OP_RBRACE = new DeclarativeTokenType("}");
   IElementType OP_RPAREN = new DeclarativeTokenType(")");
+  IElementType OP_TO = new DeclarativeTokenType("to");
   IElementType SEMI = new DeclarativeTokenType(";");
   IElementType TOKEN = new DeclarativeTokenType("token");
   IElementType UNSIGNED_INTEGER = new DeclarativeTokenType("unsigned_integer");
@@ -110,6 +112,9 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == LITERAL) {
         return new DeclarativeLiteralImpl(type);
+      }
+      else if (type == PAIR) {
+        return new DeclarativePairImpl(type);
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);

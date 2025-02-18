@@ -178,6 +178,10 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
+  fun testPair() {
+    doTest(true, true)
+  }
+
   fun testPropertyDotNewlineFunction() {
     doTest(true, false)
     val entries = getDeclarativeEntries()

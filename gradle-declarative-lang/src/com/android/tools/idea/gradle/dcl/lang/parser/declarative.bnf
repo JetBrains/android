@@ -37,6 +37,7 @@
     // to these token names).
     OP_EQ = "="
     OP_PLUS_EQ = "+="
+    OP_TO = "to"
     OP_DOT = "."
     OP_LBRACE = "{"
     OP_RBRACE = "}"
@@ -70,7 +71,7 @@
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
      "com.intellij.psi.NavigatablePsiElement"
   ]
-  implements("property|literal")=[
+  implements("property|literal|pair")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
   implements("embedded_factory")=[
@@ -99,7 +100,7 @@ entries ::= one_line_entries*
 private one_line_entries::=<<atNewLine (entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?)>>
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
 private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN|SEMI)
-assignment ::= lvalue (OP_EQ | OP_PLUS_EQ) rvalue {
+assignment ::= lvalue (OP_EQ | OP_PLUS_EQ) expression {
    pin=2
    methods=[
       getValue
@@ -123,10 +124,14 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null {
-  methods=[getValue]
+private atomic_literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
+
+private compound_literal ::= pair
+literal ::= atomic_literal | compound_literal{ methods=[getValue] }
+private expression::= factory | pair | property | literal
+pair ::= atomic_literal OP_TO expression {
+  methods=[getValue  getKey literal="" property="" factory_receiver="" factory_property_receiver=""]
 }
-private rvalue ::= factory | property | literal
 
 property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }
 qualified ::= property OP_DOT identifier {extends=property pin=2}
@@ -189,6 +194,6 @@ simple_factory ::= private_factory {
 argumentsList ::= (argument (OP_COMMA argument)*)? {
    methods=[getArguments]
 }
-argument ::= (identifier OP_EQ)? rvalue {
-   methods=[getValue literal="" property="" factory_receiver="" factory_property_receiver=""]
+argument ::= (identifier OP_EQ)? expression {
+   methods=[getValue literal="" property="" factory_receiver="" factory_property_receiver="" pair=""]
 }

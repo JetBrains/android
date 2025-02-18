@@ -120,6 +120,17 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getValue(assignment: DeclarativePair): DeclarativeValue? {
+      // need to get second DeclarativeValueElement as first is the key
+      return assignment.children.map { child -> (child as? DeclarativeValue).takeIf { it != null } }.getOrNull(1)
+    }
+
+    @JvmStatic
+    fun getKey(assignment: DeclarativePair): DeclarativeValue? {
+      return assignment.children.firstNotNullOfOrNull { child -> (child as? DeclarativeLiteral).takeIf { it != null } }
+    }
+
+    @JvmStatic
     fun getBlockEntriesStart(block: DeclarativeBlock): PsiElement? {
       return block.childLeafs().find { it.text == "{" }
     }
@@ -164,6 +175,7 @@ class PsiImplUtil {
 
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
+      literal.pair !=null -> literal.pair!!.value
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
       literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()

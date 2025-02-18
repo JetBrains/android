@@ -72,6 +72,7 @@ UNI_CHARACTER_LITERAL=\\u {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT}
 
   "="                        { return OP_EQ; }
   "+="                       { return OP_PLUS_EQ; }
+  "to"                       { return OP_TO; }
   "."                        { return OP_DOT; }
   "{"                        { return OP_LBRACE; }
   "}"                        { return OP_RBRACE; }
