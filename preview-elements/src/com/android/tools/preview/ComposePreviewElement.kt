@@ -96,6 +96,10 @@ abstract class ComposePreviewElementInstance<T> :
    */
   override var hasAnimations = false
 
+  var mutableBackPressDispatcher: Any? = null
+  override val backPressedDispatcher: Any?
+    get() = mutableBackPressDispatcher
+
   override fun resolve(): Sequence<ComposePreviewElementInstance<T>> = sequenceOf(this)
 
   abstract override fun createDerivedInstance(

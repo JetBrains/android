@@ -196,6 +196,20 @@ fun AnAction.visibleOnlyInFocus(): AnAction =
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.presentation.isVisible =
-        e.presentation.isVisible && e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
+        e.presentation.isVisible &&
+          e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
+    }
+  }
+
+/**
+ * Makes the given action only visible when the preview is in the [PreviewMode.Interactive] mode.
+ */
+fun AnAction.visibleOnlyInInteractive(): AnAction =
+  object : AnActionWrapper(this) {
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isVisible =
+        e.presentation.isVisible &&
+          e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Interactive
     }
   }

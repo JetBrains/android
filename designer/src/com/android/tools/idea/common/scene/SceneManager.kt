@@ -130,7 +130,7 @@ abstract class SceneManager(
    * object properties that are not in the XML.
    */
   val viewObject: Any?
-    get() = scene.root?.nlComponent?.viewInfo?.viewObject
+    get() = root?.viewInfo?.viewObject
 
   init {
     Disposer.register(model, this)

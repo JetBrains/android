@@ -9,6 +9,7 @@ import com.android.tools.idea.common.util.ShowUnderConditionWrapper
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
+import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
 import com.android.tools.idea.preview.actions.ViewInFocusModeAction
@@ -55,8 +56,9 @@ import org.mockito.kotlin.whenever
 // DeployToDeviceAction(),
 // TransformPreviewAction(),
 // FixVisualLintIssuesAction(),
+// BackNavigationAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 9
+private const val EXPECTED_NUMBER_OF_ACTIONS = 10
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -130,14 +132,20 @@ class PreviewSurfaceActionManagerTest {
     assertThat(sceneViewContextActions[3]).isInstanceOf(EnableInteractiveAction::class.java)
     assertThat(sceneViewContextActions[4]).isInstanceOf(DeployToDeviceAction::class.java)
 
+    // The back navigation action is wrapped into the EnableUnderConditionWrapper and then into
+    // the visibleOnlyInInteractive wrapper.
+    val backNavigationAction =
+      ((actions[7] as AnActionWrapper).delegate as AnActionWrapper).delegate
+    assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
+
     // Transform Preview action.
     val transformPreviewAction =
-      (actions[7] as ShowGroupUnderConditionWrapper).getChildren(null).single()
+      (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(transformPreviewAction.templatePresentation.text).isEqualTo("transformPreview")
 
     // Fix Visual Lint Issues action.
     val fixVisualLintIssuesAction =
-      (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
+      (actions[9] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(fixVisualLintIssuesAction.templatePresentation.text).isEqualTo("fixVisualLintIssues")
   }
 

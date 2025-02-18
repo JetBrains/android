@@ -68,6 +68,13 @@ interface PreviewElement<T> : PreviewNode {
    */
   val hasAnimations: Boolean
 
+  /**
+   * Dispatcher that can be used for navigating back within the preview. It should be handled via
+   * reflection.
+   */
+  val backPressedDispatcher: Any?
+    get() = null
+
   /** Settings that affect how the [PreviewElement] is presented in the preview surface */
   val displaySettings: PreviewDisplaySettings
 

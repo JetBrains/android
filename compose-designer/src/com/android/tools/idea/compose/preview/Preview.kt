@@ -41,6 +41,7 @@ import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
+import com.android.tools.idea.compose.preview.scene.InteractivePreviewBackNavigationUpdater
 import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
@@ -1063,6 +1064,7 @@ class ComposePreviewRepresentation(
       ComposeAnimationToolbarUpdater.update(this, it) {
         AnimationToolingUsageTracker.getInstance(surface)
       }
+      InteractivePreviewBackNavigationUpdater.update(this, it)
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
