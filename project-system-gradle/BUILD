@@ -126,6 +126,7 @@ iml_module(
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=true"],
             "tags": ["cpu:4"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
