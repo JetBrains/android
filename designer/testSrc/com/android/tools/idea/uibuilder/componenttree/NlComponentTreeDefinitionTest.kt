@@ -556,7 +556,7 @@ class NlComponentTreeDefinitionTest {
     assertThat(dialogMessage)
       .isEqualTo(
         """
-        This operation requires the library com.google.android.gms:play-services-maps:+.
+        This operation requires the library com.google.android.gms:play-services-maps.
 
         Would you like to add this now?"""
           .trimIndent()

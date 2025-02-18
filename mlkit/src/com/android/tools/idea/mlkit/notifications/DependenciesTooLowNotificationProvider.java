@@ -62,6 +62,7 @@ class DependenciesTooLowNotificationProvider implements EditorNotificationProvid
       }
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
       panel.setText("ML Model Binding requires updated dependencies");
+      //TODO(b/149224613): use GradleDependencyManager#updateDependencies here
       panel.createActionLabel("View dependencies", () -> {
         String existingDepString = depPairList.stream()
           .map(it -> it.getFirst())

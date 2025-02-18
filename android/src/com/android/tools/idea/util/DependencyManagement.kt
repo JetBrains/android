@@ -36,6 +36,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.OK
+import com.intellij.openapi.ui.Messages.getErrorIcon
+import com.intellij.openapi.ui.Messages.showOkCancelDialog
 import com.intellij.openapi.util.text.StringUtil
 
 typealias DependencyAnalysis = Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
@@ -180,19 +183,12 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
   return (incompatibleDependencies + coordinatesToExceptions.map { it.first }).mapNotNull { coordinateMap[it] }.toSet()
 }
 
-@Deprecated("use the method with Set<GoogleMavenArtifactId> argument instead")
-fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>, warning: String = ""): Boolean {
-  return Messages.OK == Messages.showOkCancelDialog(
-    project, createAddDependencyMessage(coordinates, warning), "Add Project Dependency", Messages.getErrorIcon())
-}
-
 fun userWantsToAdd(project: Project, ids: Set<GoogleMavenArtifactId>, warning: String = ""): Boolean {
-  @Suppress("DEPRECATION")
-  return userWantsToAdd(project, ids.map { it.getCoordinate("+") }, warning)
+  return OK == showOkCancelDialog(project, createAddDependencyMessage(ids, warning), "Add Project Dependency", getErrorIcon())
 }
 
 @VisibleForTesting
-fun createAddDependencyMessage(coordinates: List<GradleCoordinate>, warning: String = ""): String {
+fun createAddDependencyMessage(coordinates: Set<GoogleMavenArtifactId>, warning: String = ""): String {
   val libraryNames = coordinates.joinToString(", ") { it.toString() }
   val these = StringUtil.pluralize("this", coordinates.size)
   val libraries = StringUtil.pluralize("library", coordinates.size)
