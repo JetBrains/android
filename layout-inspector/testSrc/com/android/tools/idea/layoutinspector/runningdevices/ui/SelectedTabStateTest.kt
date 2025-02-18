@@ -47,8 +47,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.awt.Rectangle
 import javax.swing.JPanel
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -229,36 +227,6 @@ class SelectedTabStateTest {
       UiConfig.VERTICAL,
       tabsComponents2.tabContentPanel,
       tabsComponents2.tabContentPanelContainer,
-      emulatorView,
-    )
-  }
-
-  @Test
-  @RunsInEdt
-  fun testChangingConfigurationClearsSelection() {
-    val selectedTabState = createSelectedTabState()
-
-    selectedTabState.enableLayoutInspector(UiConfig.HORIZONTAL)
-
-    layoutInspector.renderModel.selectView(1.0, 1.0)
-    assertNotNull(layoutInspector.inspectorModel.selection)
-
-    verifyUiInjected(
-      UiConfig.HORIZONTAL,
-      selectedTabState.tabComponents.tabContentPanel,
-      selectedTabState.tabComponents.tabContentPanelContainer,
-      emulatorView,
-    )
-
-    selectedTabState.updateUi(UiConfig.VERTICAL)
-
-    assertNull(layoutInspector.inspectorModel.selection)
-
-    Disposer.dispose(selectedTabState.tabComponents)
-
-    verifyUiRemoved(
-      selectedTabState.tabComponents.tabContentPanel,
-      selectedTabState.tabComponents.tabContentPanelContainer,
       emulatorView,
     )
   }

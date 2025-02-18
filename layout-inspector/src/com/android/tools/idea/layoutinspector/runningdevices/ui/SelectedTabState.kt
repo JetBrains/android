@@ -288,9 +288,6 @@ data class SelectedTabState(
       this.uiConfig = uiConfig
       // Unwrap the UI using the old ui config.
       unwrapUi()
-      // Clear the selection in the rendering, since recreating the panels will clear the selection
-      // in the tree.
-      layoutInspectorRenderer.clearSelection()
       // Re-wrap using the new ui config.
       wrapUi(uiConfig)
     }
