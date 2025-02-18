@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -95,7 +96,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * An additional patch to be applied on top of an already prepared project.
    */
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit get() = {}
+  val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit get() = {}
 
 
   /**
@@ -141,7 +142,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   override fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?
   ): PreparedTestProject {
     val resolvedAgpVersion = agpVersion.resolve()

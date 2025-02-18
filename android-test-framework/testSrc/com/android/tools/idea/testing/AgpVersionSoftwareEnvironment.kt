@@ -54,6 +54,24 @@ interface AgpVersionSoftwareEnvironment {
 
   /** Builder model version to query. */
   val modelVersion: ModelVersion
+
+  /**
+   * Comparator for the interface rather than only the Descriptor enum, because some tests depend on
+   * compatibility with various AGP versions
+   */
+  operator fun compareTo(other: AgpVersionSoftwareEnvironment): Int {
+    // Consider null to be the newest version, because null is used in AGP_LATEST
+    if (agpVersion == null && other.agpVersion == null) {
+      return 0
+    }
+    if (agpVersion == null) {
+      return 1
+    }
+    if (other.agpVersion == null) {
+      return -1
+    }
+    return agpVersion!!.compareTo(other.agpVersion!!)
+  }
 }
 
 /** [AgpVersionSoftwareEnvironment] with all versions resolved. */

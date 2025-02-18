@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectIdeaConfigFilesUtils
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.FileSubject
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
@@ -141,7 +140,7 @@ internal fun patchMppProject(
   }
 }
 
-internal fun AgpVersionSoftwareEnvironmentDescriptor.updateProjectJdk(projectRoot: File) {
+internal fun updateProjectJdk(projectRoot: File) {
   val jdk = IdeSdks.getInstance().jdk ?: error("${SyncedProjectTest::class} requires a valid JDK")
   val miscXml = projectRoot.resolve(".idea").resolve("misc.xml")
   miscXml.writeText(miscXml.readText().replace("""project-jdk-name="1.8"""", """project-jdk-name="${jdk.name}""""))

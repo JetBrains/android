@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -27,7 +28,7 @@ enum class InsightsTestProject(
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
-  override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  override val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
