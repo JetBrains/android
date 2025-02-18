@@ -37,9 +37,11 @@ import java.awt.Robot
 import java.awt.Toolkit
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.lang.management.ThreadInfo
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
@@ -57,7 +59,7 @@ fun actAndWaitFor(
       buildString {
         appendLine("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendLine("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-        appendLine("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
+        appendLine("EDT: ${dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
     catch (t: Throwable) {
@@ -69,6 +71,15 @@ fun actAndWaitFor(
   }
   catch (e: WaitTimedOutError) {
     throw WaitTimedOutError("${e.message}\n${getDetails()}")
+  }
+}
+
+fun dumpEdtStackTrace(threadInfos: Array<ThreadInfo>): String? {
+  val edtInfo = threadInfos.firstOrNull() ?: return null
+  return buildString {
+    for (element in edtInfo.stackTrace) {
+      append("\tat $element\n")
+    }
   }
 }
 
