@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.editors.AndroidDeclarativeWatchFaceConfigurationEditor
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
+import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.android.util.AndroidBundle.message
 
 /**
  * Represents a run configuration for Declarative Watch Faces. Declarative Watch Faces use the
@@ -36,7 +41,7 @@ class AndroidDeclarativeWatchFaceConfiguration(project: Project, factory: Config
   AndroidRunConfigurationBase(project, factory, false) {
 
   override fun supportsRunningLibraryProjects(facet: AndroidFacet) =
-    Pair(false, AndroidBundle.message("android.cannot.run.library.project.error"))
+    Pair(false, message("android.cannot.run.library.project.error"))
 
   override fun checkConfiguration(facet: AndroidFacet) = emptyList<ValidationError>()
 
@@ -50,4 +55,31 @@ class AndroidDeclarativeWatchFaceConfiguration(project: Project, factory: Config
   ) = null
 
   override fun getConfigurationEditor() = AndroidDeclarativeWatchFaceConfigurationEditor(project)
+}
+
+class AndroidDeclarativeWatchFaceConfigurationType :
+  ConfigurationTypeBase(
+    ID,
+    message("android.declarative.watchface.configuration.type.name"),
+    message("android.declarative.watchface.configuration.type.description"),
+    StudioIcons.Wear.WATCH_FACE_RUN_CONFIG,
+  ),
+  DumbAware {
+  companion object {
+    const val ID = "AndroidDeclarativeWatchFaceConfigurationType"
+  }
+
+  init {
+    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.get()) {
+      throw ExtensionNotApplicableException.create()
+    }
+    addFactory(
+      object : ConfigurationFactory(this) {
+        override fun getId() = "AndroidDeclarativeWatchFaceConfigurationFactory"
+
+        override fun createTemplateConfiguration(project: Project) =
+          AndroidDeclarativeWatchFaceConfiguration(project, this)
+      }
+    )
+  }
 }
