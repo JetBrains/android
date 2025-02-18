@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.navigation;
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 import static com.android.SdkConstants.TAG_INCLUDE;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.ACTIVITY;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
@@ -25,6 +26,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.annotations.VisibleForTesting;
@@ -67,6 +69,7 @@ import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
 import com.intellij.util.containers.ContainerUtil;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -422,16 +425,25 @@ public class NavigationSchema implements Disposable {
    */
   public static synchronized void createIfNecessary(@NotNull Module module) throws ClassNotFoundException {
     NavigationSchema result = ourSchemas.get(module);
-    if (result == null) {
-      result = new NavigationSchema(module);
-      result.init();
-      ourSchemas.put(module, result);
-      try {
-        Disposer.register(module, result);
-      }
-      catch (IncorrectOperationException ignore) {
-        result.dispose();
-      }
+    if (result != null) {
+      return;
+    }
+    result = new NavigationSchema(module);
+    result.init();
+    ourSchemas.put(module, result);
+    if (Disposer.tryRegister(module, result)) {
+      WeakReference<NavigationSchema> navigationSchemaWeakReference = new WeakReference<>(result);
+      // b/397154986
+      // After a sync, we found cases where the PsiClass cached in myTypeCache would point to a valid class
+      // (i.e. androidx.fragment.app.Fragment) but in an old aar breaking the inheritance resolution.
+      // This ensures that, after a sync we clear the type cache sync the libraries might have changed.
+      module.getProject().getMessageBus().connect(result)
+        .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, (ProjectSystemSyncManager.SyncResultListener)syncResult -> {
+          if (syncResult.isSuccessful()) {
+            NavigationSchema schema = navigationSchemaWeakReference.get();
+            if (schema != null) Disposer.dispose(schema);
+          }
+        });
     }
   }
 
@@ -453,8 +465,8 @@ public class NavigationSchema implements Disposable {
    * TODO: re-initialize when libraries or Navigator subclasses are added or removed.
    */
   private void init() throws ClassNotFoundException {
-    // Get the root Navigator class
     Project project = myModule.getProject();
+    // Get the root Navigator class
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope =  ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, scope);

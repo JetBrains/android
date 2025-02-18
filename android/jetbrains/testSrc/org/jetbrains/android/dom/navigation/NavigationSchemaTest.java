@@ -18,15 +18,18 @@ package org.jetbrains.android.dom.navigation;
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 import static com.android.SdkConstants.TAG_INCLUDE;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.AndroidProjectTypes;
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.testing.Dependencies;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -36,6 +39,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.JavaPsiFacade;
@@ -43,6 +47,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.DumbModeTestUtils;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -54,6 +59,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
@@ -578,5 +584,23 @@ public class NavigationSchemaTest extends AndroidTestCase {
     NavigationSchema schema = NavigationSchema.get(module);
     NavigationSchema empty = new NavigationSchema(module);
     assertEquals(schema, empty);
+  }
+
+  public void testSuccessfulSyncInvalidatesSchema() {
+    AtomicBoolean isDisposed = new AtomicBoolean(false);
+    NavigationSchema schemaBeforeSync = NavigationSchema.get(myModule);
+    Disposer.register(schemaBeforeSync, () -> {
+     isDisposed.set(true);
+    });
+    assertThat(NavigationSchema.get(myModule)).isEqualTo(schemaBeforeSync);
+    assertThat(isDisposed.get()).isFalse();
+
+    myModule.getProject().getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(
+      ProjectSystemSyncManager.SyncResult.SUCCESS
+    );
+    assertThat(isDisposed.get()).isTrue();
+    // Part of dispose relies on running in the EDT
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertThat(NavigationSchema.get(myModule)).isNotEqualTo(schemaBeforeSync);
   }
 }
