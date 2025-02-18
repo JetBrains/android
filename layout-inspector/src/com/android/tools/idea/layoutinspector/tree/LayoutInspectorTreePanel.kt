@@ -49,6 +49,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.Gray
@@ -646,7 +647,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
-    componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+    invokeAndWaitIfNeeded {
+      // TreeTableSelectionModelImpl requires updating the state from the ui thread.
+      componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+    }
   }
 
   @Suppress("UNUSED_PARAMETER")
