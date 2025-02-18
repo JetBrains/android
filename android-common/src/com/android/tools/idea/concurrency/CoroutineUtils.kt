@@ -85,6 +85,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.uiThreadExecutor
    */
+  @Deprecated("Prefer using Dispatchers.EDT")
   val uiThread: CoroutineDispatcher get() = uiThread(ModalityState.defaultModalityState())
 
   /**
@@ -101,6 +102,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.workerThreadExecutor
    */
+  @Deprecated("Prefer using Dispatchers.Default")
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
@@ -110,6 +112,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.diskIoThreadExecutor
    */
+  @Deprecated("Prefer using Dispatchers.IO")
   val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
@@ -243,6 +246,8 @@ private class ApplicationCoroutineScopeDisposable : Disposable {
  * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped.
  * This method also accepts an optional [CoroutineContext].
  */
+@Deprecated("Prefer using withBackgroundProgress or withModalProgress from package " +
+            "com.intellij.platform.ide.progress")
 fun CoroutineScope.launchWithProgress(
   progressIndicator: ProgressIndicator,
   context: CoroutineContext = EmptyCoroutineContext,
