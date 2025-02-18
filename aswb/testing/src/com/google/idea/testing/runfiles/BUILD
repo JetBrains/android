@@ -11,4 +11,5 @@ java_library(
     name = "runfiles",
     testonly = 1,
     srcs = glob(["*.java"]),
+    deps = ["@bazel_tools//tools/java/runfiles"],
 )
