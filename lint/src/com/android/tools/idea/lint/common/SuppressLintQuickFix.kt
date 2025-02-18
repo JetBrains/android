@@ -69,7 +69,7 @@ import org.toml.lang.TomlLanguage
 
 @Suppress("UnstableApiUsage")
 class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) :
-  ModCommandQuickFix(), SuppressQuickFix, PriorityAction {
+  ModCommandQuickFix(), SuppressQuickFix {
   private val label = displayName(element, id)
 
   override fun isAvailable(project: Project, context: PsiElement): Boolean = true
@@ -257,8 +257,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
   }
-
-  override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
 
   companion object {
     private const val NO_INSPECTION_PREFIX = SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " "
