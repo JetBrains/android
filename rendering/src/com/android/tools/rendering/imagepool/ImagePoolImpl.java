@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
  * Once the {@link Image} is not being referenced anymore, it will be automatically returned to the pool.
  */
 @SuppressWarnings("ALL")
-class ImagePoolImpl implements ImagePool {
+public class ImagePoolImpl implements ImagePool {
   private static final Logger LOG = Logger.getInstance(ImagePoolImpl.class);
 
   private static final Bucket NULL_BUCKET = new Bucket();
