@@ -58,14 +58,6 @@ public abstract class FakeBuildSystem implements BuildSystem {
   public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker();
   }
-
-  abstract Optional<BuildInvoker> getParallelBuildInvoker();
-
-  @Override
-  public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
-    return getParallelBuildInvoker();
-  }
-
   @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return getSyncStrategy();
@@ -101,10 +93,8 @@ public abstract class FakeBuildSystem implements BuildSystem {
 
     public abstract Builder setBuildInvoker(BuildInvoker value);
 
-    public abstract Builder setParallelBuildInvoker(Optional<BuildInvoker> value);
+    public abstract Builder setSyncStrategy(SyncStrategy value);
 
     public abstract Builder setBazelVersionString(Optional<String> value);
-
-    public abstract Builder setSyncStrategy(SyncStrategy value);
   }
 }

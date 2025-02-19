@@ -62,11 +62,6 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
-    return Optional.empty();
-  }
-
-  @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return SyncStrategy.SERIAL;
   }

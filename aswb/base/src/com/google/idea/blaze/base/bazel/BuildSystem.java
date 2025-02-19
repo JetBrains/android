@@ -185,13 +185,6 @@ public interface BuildSystem {
   }
 
   /**
-   * Get a Blaze invoker that supports multiple calls in parallel, if this build system supports it.
-   *
-   * @return An invoker, or {@code Optional.EMPTY} if parallelism is not supported.
-   */
-  Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context);
-
-  /**
    * Return the strategy for remote syncs to be used with this build system.
    */
   SyncStrategy getSyncStrategy(Project project);
@@ -214,11 +207,9 @@ public interface BuildSystem {
   default BuildInvoker getDefaultInvoker(Project project, BlazeContext context) {
     if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
         && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
-      return getParallelBuildInvoker(project, context).orElse(getBuildInvoker(project, context));
+      return getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM));
     }
-    else {
       return getBuildInvoker(project, context);
-    }
   }
 
   /**

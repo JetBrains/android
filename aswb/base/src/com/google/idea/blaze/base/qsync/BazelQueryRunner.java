@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
@@ -68,8 +69,7 @@ public class BazelQueryRunner implements QueryRunner {
       // become much easier.
       invoker =
           buildSystem
-              .getParallelBuildInvoker(project, context)
-              .orElse(buildSystem.getDefaultInvoker(project, context));
+              .getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM));
     } else {
       invoker = buildSystem.getDefaultInvoker(project, context);
     }

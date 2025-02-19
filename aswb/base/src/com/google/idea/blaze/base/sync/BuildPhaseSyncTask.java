@@ -233,7 +233,7 @@ public final class BuildPhaseSyncTask {
 
     BuildInvoker syncBuildInvoker =
         parallel
-            ? buildSystem.getParallelBuildInvoker(project, context).orElse(defaultInvoker)
+            ? buildSystem.getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM))
             : defaultInvoker;
     final BlazercMigrator blazercMigrator = new BlazercMigrator(project);
     if (!syncBuildInvoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_CLI)
