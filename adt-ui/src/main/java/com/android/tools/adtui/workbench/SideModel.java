@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
-class SideModel<T> {
+public class SideModel<T> {
   private final List<AttachedToolWindow<T>> myAllTools;
   private final VisiblePair<T> myLeftVisibleTools;
   private final VisiblePair<T> myRightVisibleTools;

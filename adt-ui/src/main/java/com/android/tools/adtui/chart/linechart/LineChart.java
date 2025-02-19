@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LineChart extends AnimatedComponent {
 
-  static final float EPSILON = 1e-4f;
+  public static final float EPSILON = 1e-4f;
 
   // Helper structure to cache dash-related info used in a previous frame, so we can compensate for where the dash starts in the next frame.
   private static class DashInfo {

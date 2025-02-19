@@ -73,6 +73,7 @@ import javax.swing.JToggleButton;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -84,8 +85,8 @@ import org.jetbrains.annotations.TestOnly;
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
 public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
-  static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
-  static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
+  public static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
+  public static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
   static final String SEARCH_HEADER = "SEARCH";
 
@@ -509,7 +510,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  static class DragEvent {
+  public static final class DragEvent {
     private final MouseEvent myMouseEvent;
     private final Component myDragImage;
     private final Point myDragPoint;
@@ -536,7 +537,8 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  interface ButtonDragListener<T> {
+  @ApiStatus.Internal
+  public interface ButtonDragListener<T> {
     void buttonDragged(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
     void buttonDropped(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
   }
@@ -979,7 +981,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
    * This class is here to help find the currently focused tool window.
    * @see WorkBenchManager#findActiveToolWindow
    */
-  final static class AttachedToolWindowPanel extends JPanel {
+  public final static class AttachedToolWindowPanel extends JPanel {
     private final AttachedToolWindow<?> myToolWindow;
 
     @VisibleForTesting

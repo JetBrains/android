@@ -815,14 +815,14 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @VisibleForTesting
-  static class InitParams<T> {
+  public static class InitParams<T> {
     private final SideModel<T> myModel;
     private final ThreeComponentsSplitter mySplitter;
     private final MinimizedPanel<T> myLeftMinimizePanel;
     private final MinimizedPanel<T> myRightMinimizePanel;
 
     @VisibleForTesting
-    InitParams(@NotNull SideModel<T> model,
+    public InitParams(@NotNull SideModel<T> model,
                @NotNull ThreeComponentsSplitter splitter,
                @NotNull MinimizedPanel<T> leftMinimizePanel,
                @NotNull MinimizedPanel<T> rightMinimizePanel) {

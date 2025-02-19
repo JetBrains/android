@@ -61,7 +61,7 @@ import org.jetbrains.annotations.TestOnly;
 public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
-  static final JBColor NO_MATCHES_COLOR = new JBColor(new Color(0xffffcccc), new Color(0xff743a3a));
+  public static final JBColor NO_MATCHES_COLOR = new JBColor(new Color(0xffffcccc), new Color(0xff743a3a));
 
   private static final String REGEX = "Regex";
   private static final String MATCH_CASE = "Match Case";

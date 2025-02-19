@@ -400,7 +400,7 @@ public class LegendComponent extends AnimatedComponent {
 
     @VisibleForTesting
     @NotNull
-    final LegendConfig.IconType myType;
+    public final LegendConfig.IconType myType;
     @NotNull private final Color myColor;
 
     public LegendIconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
