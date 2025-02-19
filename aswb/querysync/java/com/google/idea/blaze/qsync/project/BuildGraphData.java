@@ -572,11 +572,11 @@ public abstract class BuildGraphData {
   /**
    * Calculates the {@link RequestedTargets} for a project target.
    *
-   * @return Requested targets. The {@link RequestedTargets#buildTargets} will match the parameter
-   *     given; the {@link RequestedTargets#expectedDependencyTargets} will be determined by the
+   * @return Requested targets. The {@link RequestedTargets#buildTargets()} will match the parameter
+   *     given; the {@link RequestedTargets#expectedDependencyTargets()} will be determined by the
    *     {@link #getDependencyTrackingBehaviors(Label)} of the targets given.
    */
-  public Optional<RequestedTargets> computeRequestedTargets(Collection<Label> projectTargets) {
+  public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
     final var externalDeps = new LinkedHashSet<Label>();
     final var seen = new HashSet<>(projectTargets);
     final var queue = new ArrayDeque<Label>(projectTargets);
@@ -593,6 +593,6 @@ public abstract class BuildGraphData {
         queue.addAll(targetInfo.deps().stream().filter(seen::add).toList());
       }
     }
-    return Optional.of(new RequestedTargets(ImmutableSet.copyOf(projectTargets), ImmutableSet.copyOf(externalDeps)));
+    return new RequestedTargets(ImmutableSet.copyOf(projectTargets), ImmutableSet.copyOf(externalDeps));
   }
 }

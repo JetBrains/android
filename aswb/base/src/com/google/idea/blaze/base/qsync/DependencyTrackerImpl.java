@@ -35,7 +35,6 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.RequestedTargets;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * A file that tracks what files in the project can be analyzed and what is the status of their
@@ -76,16 +75,12 @@ public class DependencyTrackerImpl implements DependencyTracker {
         .ifPresent(stats -> stats.setRequestedTargets(request.targets));
     QuerySyncProjectSnapshot snapshot = getCurrentSnapshot();
 
-    Optional<RequestedTargets> maybeRequestedTargets = getRequestedTargets(snapshot, request);
-    if (maybeRequestedTargets.isEmpty()) {
-      return false;
-    }
-
-    buildDependencies(context, snapshot, maybeRequestedTargets.get());
+    RequestedTargets maybeRequestedTargets = getRequestedTargets(snapshot, request);
+    buildDependencies(context, snapshot, maybeRequestedTargets);
     return true;
   }
 
-  private Optional<RequestedTargets> getRequestedTargets(
+  private RequestedTargets getRequestedTargets(
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     switch (request.requestType) {
       case MULTIPLE_TARGETS:
@@ -100,15 +95,15 @@ public class DependencyTrackerImpl implements DependencyTracker {
       BlazeContext context, QuerySyncProjectSnapshot snapshot, RequestedTargets requestedTargets)
       throws IOException, BuildException {
     BuildDepsStatsScope.fromContext(context)
-        .ifPresent(stats -> stats.setBuildTargets(requestedTargets.buildTargets));
+        .ifPresent(stats -> stats.setBuildTargets(requestedTargets.buildTargets()));
     OutputInfo outputInfo =
         builder.build(
             context,
-            requestedTargets.buildTargets,
-            snapshot.graph().getTargetLanguages(requestedTargets.buildTargets));
+            requestedTargets.buildTargets(),
+            snapshot.graph().getTargetLanguages(requestedTargets.buildTargets()));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
-    artifactTracker.update(requestedTargets.expectedDependencyTargets, outputInfo, context);
+    artifactTracker.update(requestedTargets.expectedDependencyTargets(), outputInfo, context);
   }
 
   private void reportErrorsAndWarnings(

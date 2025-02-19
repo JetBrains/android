@@ -434,7 +434,7 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-    Optional<RequestedTargets> targets =
+    RequestedTargets targets =
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
@@ -444,10 +444,9 @@ public class BuildGraphDataTest {
                         .resolve(Path.of("TestClassExternalDep.java")))
                 .getUnambiguousTargets()
                 .orElseThrow());
-    assertThat(targets).isPresent();
-    assertThat(targets.get().buildTargets)
+    assertThat(targets.buildTargets())
         .containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
-    assertThat(targets.get().expectedDependencyTargets)
+    assertThat(targets.expectedDependencyTargets())
         .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
@@ -459,7 +458,7 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-    Optional<RequestedTargets> targets =
+    RequestedTargets targets =
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
@@ -469,8 +468,7 @@ public class BuildGraphDataTest {
                         .resolve(Path.of("BUILD")))
                 .getUnambiguousTargets()
                 .orElseThrow());
-    assertThat(targets).isPresent();
-    assertThat(targets.get().buildTargets)
+    assertThat(targets.buildTargets())
         .containsExactly(
             TestData.JAVA_LIBRARY_MULTI_TARGETS
                 .getAssumedOnlyLabel()
@@ -478,7 +476,7 @@ public class BuildGraphDataTest {
             TestData.JAVA_LIBRARY_MULTI_TARGETS.getAssumedOnlyLabel().siblingWithName("nodeps"));
     String expected = "@@maven//:com.google.guava.guava";
     expected = "@@maven//:com.google.guava.guava";
-    assertThat(targets.get().expectedDependencyTargets).containsExactly(Label.of(expected));
+    assertThat(targets.expectedDependencyTargets()).containsExactly(Label.of(expected));
   }
 
   @Test
@@ -489,7 +487,7 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-    Optional<RequestedTargets> targets =
+    RequestedTargets targets =
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
@@ -499,10 +497,9 @@ public class BuildGraphDataTest {
                         .resolve(Path.of("BUILD")))
                 .getUnambiguousTargets()
                 .orElseThrow());
-    assertThat(targets).isPresent();
-    assertThat(targets.get().buildTargets)
+    assertThat(targets.buildTargets())
         .containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel());
-    assertThat(targets.get().expectedDependencyTargets)
+    assertThat(targets.expectedDependencyTargets())
         .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
   }
 
@@ -514,21 +511,20 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-    Optional<RequestedTargets> targets =
+    RequestedTargets targets =
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
                     NOOP_CONTEXT, TestData.JAVA_LIBRARY_NESTED_PACKAGE.getOnlySourcePath())
                 .getUnambiguousTargets()
                 .orElseThrow());
-    assertThat(targets).isPresent();
-    assertThat(targets.get().buildTargets)
+    assertThat(targets.buildTargets())
         .containsExactly(
             TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel(),
             TestData.JAVA_LIBRARY_NESTED_PACKAGE
                 .getAssumedOnlyLabel()
                 .siblingWithPathAndName("inner:inner"));
-    assertThat(targets.get().expectedDependencyTargets)
+    assertThat(targets.expectedDependencyTargets())
         .containsExactly(
             Label.of("@@maven//:com.google.guava.guava"),
             Label.of("@@maven//:com.google.code.gson.gson"));
@@ -540,7 +536,7 @@ public class BuildGraphDataTest {
         new BlazeQueryParser(
                 getQuerySummary(TestData.CC_EXTERNAL_DEP_QUERY), NOOP_CONTEXT, ImmutableSet.of())
             .parse();
-    Optional<RequestedTargets> targets =
+    RequestedTargets targets =
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
@@ -548,10 +544,9 @@ public class BuildGraphDataTest {
                     TestData.CC_EXTERNAL_DEP_QUERY.getOnlySourcePath().resolve("TestClass.cc"))
                 .getUnambiguousTargets()
                 .orElseThrow());
-    assertThat(targets).isPresent();
-    assertThat(targets.get().buildTargets)
+    assertThat(targets.buildTargets())
         .containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
-    assertThat(targets.get().expectedDependencyTargets).isEmpty();
+    assertThat(targets.expectedDependencyTargets()).isEmpty();
   }
 
   @Test
