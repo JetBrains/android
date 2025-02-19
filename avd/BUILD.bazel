@@ -43,7 +43,8 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"]
+  runtime_deps = [":avd_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -90,7 +91,8 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"]
+  runtime_deps = [":avd_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(

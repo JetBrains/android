@@ -91,7 +91,8 @@ jvm_library(
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"]
+  runtime_deps = [":designer_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -200,7 +201,8 @@ jvm_library(
     "//platform/platform-impl/designer:ide-designer",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"]
+  runtime_deps = [":designer_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(
@@ -337,7 +339,8 @@ jvm_library(
     "@lib//:jsoup",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:jewel-ide-laf-bridge",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(

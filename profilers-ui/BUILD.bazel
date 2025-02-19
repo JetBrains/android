@@ -52,7 +52,8 @@ jvm_library(
     "//android/artwork-compose",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":profilers-ui_resources"]
+  runtime_deps = [":profilers-ui_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -115,7 +116,8 @@ jvm_library(
     "//android/artwork-compose",
     "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":profilers-ui_resources"]
+  runtime_deps = [":profilers-ui_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(

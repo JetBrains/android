@@ -35,7 +35,8 @@ jvm_library(
     "//platform/core-api:core",
     "//android/artwork-compose",
     "@lib//:jewel-ide-laf-bridge",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(
