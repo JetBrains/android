@@ -24,16 +24,9 @@ import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.times
-
-/**
- * Replaces the [from] string in the [VirtualFile] with the [to] string.
- */
-private fun VirtualFile.replace(from: String, to: String) =
-  setBinaryContent(String(contentsToByteArray(false)).replace(from, to).toByteArray())
 
 /**
  * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
