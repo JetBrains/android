@@ -140,4 +140,5 @@ public final class TestProjectPaths {
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT = "projects/withErrors/simpleApplicationMissingExport";
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS = "projects/withErrors/simpleApplicationMultipleErrors";
   public static final String WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE = "projects/wearWithTileComplicationAndWatchFace";
+  public static final String WEAR_DECLARATIVE_WATCHFACE = "projects/wearDeclarativeWatchFace";
 }
