@@ -36,6 +36,7 @@ class ModulesPerspectiveConfigurable(context: PsContext)
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when {
       module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
+      module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module)
       else -> ModuleUnsupportedConfigurable(context, this, module)
     }
 

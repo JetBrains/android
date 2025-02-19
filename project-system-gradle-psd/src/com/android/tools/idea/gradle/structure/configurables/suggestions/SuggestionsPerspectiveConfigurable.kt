@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
+import com.android.tools.idea.gradle.structure.configurables.KmpModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
@@ -54,6 +55,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *> =
       when {
         module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
+        module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module)
         module is PsJavaModule -> createConfigurable(module)
         module is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
         else -> ModuleUnsupportedConfigurable(context, this, module)

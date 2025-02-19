@@ -45,7 +45,7 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
     when {
       module is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
       module is PsAndroidModule && module.isKmpModule.not() -> AndroidModuleDependenciesConfigurable(module, context, this)
-      module is PsAndroidModule && module.isKmpModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
+      module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module, "Viewing and managing dependencies of a KMP shared module is not currently supported in the Project Structure dialog.")
       module is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
       module is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
       else -> throw IllegalStateException()
