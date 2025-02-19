@@ -87,16 +87,6 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   @Override
-  public boolean supportsHomeBlazerc() {
-    return true;
-  }
-
-  @Override
-  public boolean supportsParallelism() {
-    return false;
-  }
-
-  @Override
   public ImmutableSet<Capability> getCapabilities() {
     return ImmutableSet.of(Capability.IS_LOCAL, Capability.SUPPORTS_CLI);
   }

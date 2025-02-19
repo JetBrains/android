@@ -53,7 +53,6 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   private final BlazeContext blazeContext;
   private final BuildBinaryType binaryType;
   private final String binaryPath;
-  private final boolean supportsParallelism;
   private final BuildSystem buildSystem;
   private final BlazeCommandRunner commandRunner;
 
@@ -64,14 +63,12 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
       BlazeContext blazeContext,
       BuildBinaryType binaryType,
       String binaryPath,
-      boolean supportsParallelism,
       BuildSystem buildSystem,
       BlazeCommandRunner commandRunner) {
     this.project = project;
     this.blazeContext = blazeContext;
     this.binaryType = binaryType;
     this.binaryPath = binaryPath;
-    this.supportsParallelism = supportsParallelism;
     this.buildSystem = buildSystem;
     this.commandRunner = commandRunner;
   }
@@ -84,15 +81,6 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   @Override
   public String getBinaryPath() {
     return binaryPath;
-  }
-
-  protected String getBinaryPathForBlazeInfo() {
-    return getBinaryPath();
-  }
-
-  @Override
-  public boolean supportsParallelism() {
-    return supportsParallelism;
   }
 
   @Override

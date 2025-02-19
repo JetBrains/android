@@ -20,19 +20,14 @@ import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 class BazelBuildSystem implements BuildSystem {
 
@@ -43,7 +38,7 @@ class BazelBuildSystem implements BuildSystem {
 
   @Override
   public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
-    return getBuildInvoker(project, context);
+    return new LocalInvoker(project, context, this, BuildBinaryType.BAZEL);
   }
 
   @Override
@@ -57,22 +52,8 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
-    return new LocalInvoker(project, context, this, BuildBinaryType.BAZEL);
-  }
-
-  @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return SyncStrategy.SERIAL;
-  }
-
-  @Nullable
-  static File getProjectSpecificBazelBinary(Project project) {
-    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
-    if (projectView == null) {
-      return null;
-    }
-    return projectView.getScalarValue(BazelBinarySection.KEY).orElse(null);
   }
 
   @Override

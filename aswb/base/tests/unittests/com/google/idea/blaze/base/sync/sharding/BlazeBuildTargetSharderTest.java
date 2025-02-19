@@ -444,11 +444,6 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
     }
 
     @Override
-    public boolean getSupportsParallelism() {
-      return false;
-    }
-
-    @Override
     protected Supplier<BuildResultHelper> getBuildResultHelperSupplier() {
       return null;
     }
@@ -456,11 +451,6 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
     @Override
     public FakeBlazeCommandRunner getCommandRunner() {
       throw new UnsupportedOperationException(String.format("%s does not support getCommandRunner()", this.getClass().getName()));
-    }
-
-    @Override
-    public boolean supportsHomeBlazerc() {
-      return super.supportsHomeBlazerc();
     }
 
     @Override

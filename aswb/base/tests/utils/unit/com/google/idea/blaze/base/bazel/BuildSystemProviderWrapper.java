@@ -236,11 +236,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public boolean supportsParallelism() {
-      return inner.supportsParallelism();
-    }
-
-    @Override
     public BlazeInfo getBlazeInfo() throws SyncFailedException {
       if (throwExceptionOnGetBlazeInfo) {
         throw new SyncFailedException();

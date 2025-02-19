@@ -114,11 +114,6 @@ public interface BuildSystem {
      */
     String getBinaryPath();
 
-    /**
-     * Indicates if multiple invocations can be made at once.
-     */
-    boolean supportsParallelism();
-
     BlazeInfo getBlazeInfo() throws SyncFailedException;
 
     /**
@@ -132,13 +127,6 @@ public interface BuildSystem {
      * Returns a {@link BlazeCommandRunner} to be used to invoke the build.
      */
     BlazeCommandRunner getCommandRunner();
-
-    /**
-     * Indicates whether the invoker supports user .blazerc from home directories.
-     */
-    default boolean supportsHomeBlazerc() {
-      return true;
-    }
 
     /**
      * Returns the BuildSystem object.
@@ -159,7 +147,9 @@ public interface BuildSystem {
   /**
    * Get a Blaze invoker.
    */
-  BuildInvoker getBuildInvoker(Project project, BlazeContext context);
+  default BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
+    return getBuildInvoker(project, context, ImmutableSet.of());
+  }
 
   /**
    * Get a Blaze invoker specific to executor type and run config.

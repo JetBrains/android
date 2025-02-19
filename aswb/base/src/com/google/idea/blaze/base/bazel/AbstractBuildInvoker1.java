@@ -112,34 +112,7 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
   }
 
   @Override
-  public boolean supportsHomeBlazerc() {
-    throw new UnsupportedOperationException("This method should not be called, this invoker does not support this method.");
-  }
-
-  @Override
   public BuildSystem getBuildSystem() {
     return this.buildSystem;
-  }
-
-  @Override
-  public boolean supportsParallelism() {
-    throw new UnsupportedOperationException("This method should not be called, this invoker does not support this method.");
-  }
-
-  private static ImmutableMap<String, String> parseBlazeInfoResult(String blazeInfoString) {
-    ImmutableMap.Builder<String, String> blazeInfoMapBuilder = ImmutableMap.builder();
-    String[] blazeInfoLines = blazeInfoString.split("\n");
-    for (String blazeInfoLine : blazeInfoLines) {
-      // Just split on the first ":".
-      String[] keyValue = blazeInfoLine.split(":", 2);
-      if (keyValue.length != 2) {
-        // ignore any extraneous stdout
-        continue;
-      }
-      String key = keyValue[0].trim();
-      String value = keyValue[1].trim();
-      blazeInfoMapBuilder.put(key, value);
-    }
-    return blazeInfoMapBuilder.build();
   }
 }
