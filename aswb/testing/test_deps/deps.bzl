@@ -11,8 +11,8 @@ def _exec(repository_ctx, working_directory, args):
         fail("Failed executing '%s' with %d:\n%s" % (args, execute_result.return_code, execute_result.stderr))
     return execute_result.stdout.splitlines()
 
-def _exec_zip(repository_ctx, source_path, zip_file):
-    return _exec(repository_ctx, source_path, ["zip", str(zip_file), "./", "-r0"])
+def _exec_zip(repository_ctx, source_path, zip_file, flags):
+    return _exec(repository_ctx, source_path, ["zip", str(zip_file), "./", "-r0"] + flags)
 
 def _aswb_test_projects_repository_impl(repository_ctx):
     workspace_root_path = str(repository_ctx.workspace_root) + "/"
@@ -21,7 +21,7 @@ def _aswb_test_projects_repository_impl(repository_ctx):
     path = repository_ctx.path(workspace_root_path + repository_ctx.attr.path)
     repository_ctx.watch_tree(path)
 
-    _exec_zip(repository_ctx, str(path), str(repo_root) + "/" + "all_sources.zip")
+    _exec_zip(repository_ctx, str(path), str(repo_root) + "/" + "all_sources.zip", ["-x", "bazel-*"])
     repository_ctx.template(
         "BUILD.bazel",
         workspace_root_path + "tools/adt/idea/aswb/testing/test_deps/aswb_test_projects.BUILD",
