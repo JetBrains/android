@@ -33,7 +33,6 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -48,6 +47,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -276,7 +276,7 @@ public class StringResourceViewPanel implements Disposable {
 
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
 
-    myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myDefaultValueTextField.setButtonIcon(StudioIcons.Common.EDIT);
     myDefaultValueTextField.setName("defaultValueTextField");
   }
 
@@ -286,7 +286,7 @@ public class StringResourceViewPanel implements Disposable {
 
     myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
 
-    myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myTranslationTextField.setButtonIcon(StudioIcons.Common.EDIT);
     myTranslationTextField.setEnabled(false);
     myTranslationTextField.setName("translationTextField");
   }
