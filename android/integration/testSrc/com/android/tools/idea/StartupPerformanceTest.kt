@@ -75,5 +75,8 @@ class StartupPerformanceTest {
     stats.get("STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE").findFirst().get().let {
       benchmark.log("startup_performance_frame_became_visible", it.startupPerformanceFrameBecameVisibleEvent.durationMs.toLong())
     }
+    system.installation.indexingMetrics.get(project).forEach {
+      benchmark.log(it.metricLabel, it.metricValue)
+    }
   }
 }

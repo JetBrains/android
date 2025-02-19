@@ -22,6 +22,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
+import com.android.tools.asdriver.tests.metric.IndexingMetrics;
 import com.android.tools.asdriver.tests.metric.StudioEvents;
 import com.android.tools.asdriver.tests.metric.Telemetry;
 import com.android.utils.FileUtils;
@@ -52,6 +53,7 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
   private final LogFile memoryReportFile;
   private final StudioEvents studioEvents;
   private final Telemetry telemetry;
+  private final IndexingMetrics indexingMetrics;
 
   private boolean forceSafeMode = false;
 
@@ -127,6 +129,8 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     Path telemetryJsonFile = logsDir.resolve("opentelemetry.json");
     telemetry = new Telemetry(telemetryJsonFile);
     this.addVmOption(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
+
+    indexingMetrics = new IndexingMetrics(logsDir.resolve("indexing-diagnostic"));
 
     setConsentGranted(true);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
@@ -421,6 +425,10 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
   public StudioEvents getStudioEvents() {
     return studioEvents;
+  }
+
+  public IndexingMetrics getIndexingMetrics() {
+    return indexingMetrics;
   }
 
   public Path getAndroidStudioProjectsDir() {
