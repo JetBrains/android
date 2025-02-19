@@ -201,10 +201,7 @@ iml_test(
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
-    tags_windows = [
-        "block-network",
-        "noci:studio-win",
-    ],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.LanguageHighlightingTest",
 )
 

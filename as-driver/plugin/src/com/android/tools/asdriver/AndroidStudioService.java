@@ -26,6 +26,7 @@ import com.android.tools.idea.io.grpc.ServerBuilder;
 import com.android.tools.idea.io.grpc.netty.NettyServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.google.common.base.Objects;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
@@ -52,6 +53,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -63,6 +65,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.platform.backend.observation.Observation;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.performancePlugin.CommandLogger;
@@ -413,8 +416,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     String fileNameOnly = request.getFile();
     Project project = getSingleProject();
 
-    AtomicReference<Document> document = new AtomicReference<>();
     AtomicReference<File> filePath = new AtomicReference<>();
+    AtomicReference<Editor> editor = new AtomicReference<>();
+    AtomicReference<VirtualFile> virtualFile = new AtomicReference<>();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       File localFilePath;
       try {
@@ -425,19 +429,18 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
 
       filePath.set(localFilePath);
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(localFilePath);
-      if (virtualFile == null) {
+      virtualFile.set(LocalFileSystem.getInstance().findFileByIoFile(localFilePath));
+      if (virtualFile.get() == null) {
         System.err.println("File does not exist on filesystem with path: " + localFilePath);
         return;
       }
 
       FileEditorManager manager = FileEditorManager.getInstance(project);
-      Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
-      if (editor == null) {
+      editor.set(manager.openTextEditor(new OpenFileDescriptor(project, virtualFile.get()), true));
+      if (editor.get() == null) {
         System.err.println("Could not open an editor with file: " + localFilePath);
         return;
       }
-      document.set(editor.getDocument());
     });
 
     // TODO(b/312735732): Requiring smart mode might be able to be removed if `waitForIndex` can ensure all indexing has completed.
@@ -445,10 +448,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     DumbService.getInstance(project).runWhenSmart(() -> {
       try {
         System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath.get());
-        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document.get());
+        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, virtualFile.get(), editor.get());
 
         System.out.printf("Found %d analysis result(s)%n", highlightInfoList.size());
-        processHighlightInfo(builder, document.get(), highlightInfoList);
+        processHighlightInfo(builder, editor.get().getDocument(), highlightInfoList);
 
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.OK);
       }
@@ -477,9 +480,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
    * {@code HighlightInfo} can be informational as well; it's up to the caller to determine which
    * ones they're interested in.
    */
-  private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, Document document)
+  private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, VirtualFile virtualFile, Editor editor)
     throws ExecutionException, InterruptedException {
     ExecutorService appExecService = AppExecutorUtil.getAppExecutorService();
+    Document document = editor.getDocument();
     TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(appExecService).get();
     while (true) {
       TrafficLightRenderer.DaemonCodeAnalyzerStatus status =
@@ -497,6 +501,17 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
       UIUtil.dispatchAllInvocationEvents();
     }
+    UIUtil.dispatchAllInvocationEvents();
+
+    TextEditor textEditor = TextEditorProvider.getInstance().getTextEditor(editor);
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+    DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzer.getInstance(project);
+    try {
+      codeAnalyzer.runPasses(psiFile, document, textEditor, new int[]{}, false, null);
+    } catch (Exception e) {
+      System.err.println("DaemonCodeAnalyzerImpl.runPasses failed: " + e);
+    }
+
     UIUtil.dispatchAllInvocationEvents();
     List<HighlightInfo> highlightInfoList = DaemonCodeAnalyzerImpl.getHighlights(document, null, project);
     renderer.dispose();
