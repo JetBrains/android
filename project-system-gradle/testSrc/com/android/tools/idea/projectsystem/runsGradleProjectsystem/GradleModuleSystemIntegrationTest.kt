@@ -217,7 +217,6 @@ class GradleModuleSystemIntegrationTest {
   }
 
   @Test
-  @Ignore("b/136028658")
   fun testGetResolvedNonMatchingDependencies() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
