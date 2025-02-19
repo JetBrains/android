@@ -22,21 +22,17 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.onSubscription
 import java.nio.file.Files
-import kotlinx.coroutines.flow.take
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
 
 internal class NotificationManagerTest {
   @get:Rule
@@ -79,7 +75,8 @@ internal class NotificationManagerTest {
       ModuleClassLoaderOverlays.NotificationManager.getInstance(projectRule.project)
         .modificationFlow
         .onSubscription {
-          // Only do the modifications once we know the subscription has started to avoid flaky tests.
+          // Only do the modifications once we know the subscription has started to avoid flaky
+          // tests.
           launch {
             ModuleClassLoaderOverlays.getInstance(app).pushOverlayPath(tempOverlayPath)
             ModuleClassLoaderOverlays.getInstance(lib).pushOverlayPath(tempOverlayPath)
@@ -89,7 +86,13 @@ internal class NotificationManagerTest {
         .collect {}
     }
 
-    assertEquals(1, ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount)
-    assertEquals(1, ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount)
+    assertEquals(
+      1,
+      ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount,
+    )
+    assertEquals(
+      1,
+      ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount,
+    )
   }
 }

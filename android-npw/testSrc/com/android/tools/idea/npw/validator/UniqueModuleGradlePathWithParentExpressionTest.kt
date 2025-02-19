@@ -21,19 +21,20 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class UniqueModuleGradlePathWithParentExpressionTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    JavaModuleModelBuilder.rootModuleBuilder,
-    AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
-    JavaModuleModelBuilder(":libs", buildable = false),
-    AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
-    AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder())
-  )
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
+      JavaModuleModelBuilder(":libs", buildable = false),
+      AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
+      AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder()),
+    )
 
   @Test
   fun testFindUniqueName() {
@@ -51,6 +52,11 @@ class UniqueModuleGradlePathWithParentExpressionTest {
     assertEquals(":libs:invalid'", getValidatorValue("Invalid '", ":libs"))
   }
 
-  private fun getValidatorValue(applicationName: String, moduleParent: String) : String =
-    UniqueModuleGradlePathWithParentExpression(projectRule.project, StringValueProperty(applicationName), moduleParent).get()
+  private fun getValidatorValue(applicationName: String, moduleParent: String): String =
+    UniqueModuleGradlePathWithParentExpression(
+        projectRule.project,
+        StringValueProperty(applicationName),
+        moduleParent,
+      )
+      .get()
 }

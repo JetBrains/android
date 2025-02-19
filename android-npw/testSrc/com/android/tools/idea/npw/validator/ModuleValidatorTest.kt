@@ -28,13 +28,14 @@ import org.junit.Test
 
 class ModuleValidatorTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    JavaModuleModelBuilder.rootModuleBuilder,
-    AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
-    JavaModuleModelBuilder(":libs", buildable = false),
-    AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
-    AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder())
-  )
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
+      JavaModuleModelBuilder(":libs", buildable = false),
+      AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
+      AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder()),
+    )
   private lateinit var moduleValidator: ModuleValidator
 
   @Before

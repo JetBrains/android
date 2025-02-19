@@ -82,8 +82,9 @@ class ConfigureAndroidModuleStepTest {
   }
 
   /**
-   * When adding two libraries to a project, the second library package name should have a distinct value from the first one
-   * (com.example.mylib vs com.example.mylib2). See http://b/68177735 for more details.
+   * When adding two libraries to a project, the second library package name should have a distinct
+   * value from the first one (com.example.mylib vs com.example.mylib2). See http://b/68177735 for
+   * more details.
    */
   @Test
   fun packageNameDependsOnModuleName() {
@@ -91,14 +92,16 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val basePackage = "com.example"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity
-    )
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val newModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+      )
+    val configureAndroidModuleStep =
+      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -107,14 +110,18 @@ class ConfigureAndroidModuleStepTest {
     fun assertPackageNameIsCorrectAfterSettingModuleName(moduleName: String) {
       newModuleModel.moduleName.set(moduleName)
       myInvokeStrategy.updateAllSteps()
-      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.${moduleName.lowercase()}")
+      assertThat(newModuleModel.packageName.get())
+        .isEqualTo("$basePackage.${moduleName.lowercase()}")
     }
 
-    listOf("myLib1", "somewhatLongerLibName", "lib").forEach { assertPackageNameIsCorrectAfterSettingModuleName(it) }
+    listOf("myLib1", "somewhatLongerLibName", "lib").forEach {
+      assertPackageNameIsCorrectAfterSettingModuleName(it)
+    }
   }
 
   /**
-   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore
+   * the parent, but the module name don't.
    */
   @Test
   fun moduleNamesWithParent() {
@@ -123,14 +130,16 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ":libs"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = parentName,
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity
-    )
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val newModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = parentName,
+        projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+      )
+    val configureAndroidModuleStep =
+      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -144,13 +153,18 @@ class ConfigureAndroidModuleStepTest {
     }
 
     verify("My Application", "com.example.myapplication", ":libs:myapplication")
-    verify("Some what Longer LibName", "com.example.somewhatlongerlibname", ":libs:somewhatlongerlibname")
+    verify(
+      "Some what Longer LibName",
+      "com.example.somewhatlongerlibname",
+      ":libs:somewhatlongerlibname",
+    )
     // Verify unique name generation.
     verify("lib", "com.example.lib3", ":libs:lib3")
   }
 
   /**
-   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore
+   * the parent, but the module name don't.
    */
   @Test
   fun moduleNamesWithoutParent() {
@@ -159,14 +173,16 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ""
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = parentName,
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity
-    )
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val newModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = parentName,
+        projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+      )
+    val configureAndroidModuleStep =
+      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -186,22 +202,24 @@ class ConfigureAndroidModuleStepTest {
   }
 
   /**
-   * This tests assumes Project without androidx configuration.
-   * Selecting API <28 should allow the use of "Go Forward", and API >=28 should stop the user from "Go Forward"
+   * This tests assumes Project without androidx configuration. Selecting API <28 should allow the
+   * use of "Go Forward", and API >=28 should stop the user from "Go Forward"
    */
   @Test
   fun selectAndroid_Q_onNonAndroidxProjects() {
     val disposable = projectRule.fixture.projectDisposable
     val project = projectRule.project
 
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity
-    )
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
+    val newModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+      )
+    val configureAndroidModuleStep =
+      ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
