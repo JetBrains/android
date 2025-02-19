@@ -19,7 +19,7 @@ package com.android.tools.rendering.imagepool;
  * Interface for images that allow manual disposing. This does not need to be implemented by all
  * {@link ImagePool.Image} implementations.
  */
-interface DisposableImage {
+public interface DisposableImage {
   /**
    * Manually disposes the current image. After calling this method, the image can not be used anymore.
    * <p>
