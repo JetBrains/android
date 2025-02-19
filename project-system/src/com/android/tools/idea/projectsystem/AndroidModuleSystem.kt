@@ -27,6 +27,7 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -105,7 +106,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * <p>
    * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
    */
-  fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+  fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
 
   /**
@@ -150,8 +151,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResolvedDependency(id: GoogleMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
     getResolvedDependency(id.getCoordinate("+"), scope)
 
+  fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
+    this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
+
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
-  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
+  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION) =
+    if (getRegisteringModuleSystem() == null) CapabilityNotSupported() else CapabilitySupported()
 
   /**
    * Register a requested dependency of the given type with the build system.  Note that the requested dependency
@@ -465,3 +470,19 @@ fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem()
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
+
+interface RegisteredDependencyQueryId
+interface RegisteredDependencyId
+interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
+  fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): T?
+  fun getRegisteredDependencyId(id: GoogleMavenArtifactId): U?
+  fun getRegisteredDependency(id: GoogleMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  fun getRegisteredDependency(id: T): U?
+  fun registerDependency(dependency: U, type: DependencyType)
+  fun analyzeDependencyCompatibility(dependencies: List<U>): ListenableFuture<RegisteredDependencyCompatibilityResult<U>>
+}
+data class RegisteredDependencyCompatibilityResult<U: RegisteredDependencyId>(
+  val compatible: List<U>,
+  val incompatible: List<U>,
+  val warning: String
+)

@@ -128,7 +128,7 @@ class TestProjectSystem @JvmOverloads constructor(
   fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
-   * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeDependencyCompatibility]
+   * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeCoordinateCompatibility]
    * will return them as incompatible dependencies.
    */
   fun addIncompatibleDependencyPair(dep1: GradleCoordinate, dep2: GradleCoordinate) {
@@ -143,27 +143,34 @@ class TestProjectSystem @JvmOverloads constructor(
     coordinateToFakeRegisterDependencyError[coordinate] = errorMessage
   }
 
+  data class TestRegisteredDependencyQueryId(val coordinate: GradleCoordinate): RegisteredDependencyQueryId {
+    override fun toString(): String = coordinate.toString()
+  }
+  data class TestRegisteredDependencyId(val coordinate: GradleCoordinate): RegisteredDependencyId {
+    override fun toString(): String = coordinate.toString()
+  }
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    class TestAndroidModuleSystemImpl : AndroidModuleSystem {
+    class TestAndroidModuleSystemImpl : AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId> {
       override val module = module
 
       override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
         override fun findClassFile(fqcn: String): ClassContent? = null
       }
 
-      override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
-        : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-        val found = mutableListOf<GradleCoordinate>()
-        val missing = mutableListOf<GradleCoordinate>()
+      override fun analyzeDependencyCompatibility(dependencies: List<TestRegisteredDependencyId>): ListenableFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>> {
+        val found = mutableListOf<TestRegisteredDependencyId>()
+        val missing = mutableListOf<TestRegisteredDependencyId>()
         var compatibilityWarningMessage = ""
-        for (dependency in dependenciesToAdd) {
-          val wildcardCoordinate = GradleCoordinate(dependency.groupId!!, dependency.artifactId!!, "+")
+        for (dependency in dependencies) {
+          val wildcardCoordinate = dependency.coordinate.let { GradleCoordinate(it.groupId, it.artifactId, "+") }
           val lookup = availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
                        ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
           if (lookup != null) {
-            found.add(lookup)
-            if (incompatibleDependencyPairs[lookup]?.let { dependenciesToAdd.contains(it) } == true) {
-              compatibilityWarningMessage += "$lookup is not compatible with ${incompatibleDependencyPairs[lookup]}\n"
+            found.add(TestRegisteredDependencyId(lookup))
+            incompatibleDependencyPairs[lookup]?.let { value ->
+              if (value.let { dependencies.map { it.coordinate }.contains(it) } == true) {
+                compatibilityWarningMessage += "$lookup is not compatible with ${value}\n"
+              }
             }
           }
           else {
@@ -171,15 +178,19 @@ class TestProjectSystem @JvmOverloads constructor(
             compatibilityWarningMessage += "Can't find $dependency\n"
           }
         }
-        return Triple(found, missing, compatibilityWarningMessage)
+        return Futures.immediateFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>>(
+          RegisteredDependencyCompatibilityResult(found, missing, compatibilityWarningMessage)
+        )
       }
+
+      override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+        : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
+        analyzeDependencyCompatibility(dependenciesToAdd.mapNotNull { getRegisteredDependencyId(it) })
+          .get()
+          .let { Triple(it.compatible.map { it.coordinate }, it.incompatible.map { it.coordinate }, it.warning) }
 
       override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
         return androidLibraryDependencies
-      }
-
-      override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
-        return CapabilitySupported()
       }
 
       override fun getResourceModuleDependencies() = emptyList<Module>()
@@ -193,8 +204,34 @@ class TestProjectSystem @JvmOverloads constructor(
         dependenciesByModule.put(module, Dependency(type, coordinate))
       }
 
+      override fun registerDependency(dependency: TestRegisteredDependencyId, type: DependencyType) {
+        coordinateToFakeRegisterDependencyError[dependency.coordinate]?.let {
+          throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
+        }
+        dependenciesByModule.put(module, Dependency(type, dependency.coordinate))
+      }
+
+      override fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): TestRegisteredDependencyQueryId? =
+        TestRegisteredDependencyQueryId(id.getCoordinate("+"))
+
+      private fun getRegisteredDependencyQueryId(coordinate: GradleCoordinate): TestRegisteredDependencyQueryId? =
+        TestRegisteredDependencyQueryId(coordinate)
+
+      override fun getRegisteredDependencyId(id: GoogleMavenArtifactId): TestRegisteredDependencyId? =
+        TestRegisteredDependencyId(id.getCoordinate("+"))
+
+      private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId? =
+        TestRegisteredDependencyId(coordinate)
+
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
+        getRegisteredDependencyQueryId(coordinate)?.let(::getRegisteredDependency)?.coordinate
+
+      override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
+        dependenciesByModule[module].firstOrNull { it.coordinate.matches(id.coordinate) }?.let {
+          TestRegisteredDependencyId(it.coordinate)
+        }
+
+
 
       override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
         dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }

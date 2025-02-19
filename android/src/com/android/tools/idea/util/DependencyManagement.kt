@@ -19,7 +19,6 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -27,8 +26,11 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult
+import com.android.tools.idea.projectsystem.RegisteredDependencyId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.utils.associateByNotNull
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -40,8 +42,6 @@ import com.intellij.openapi.ui.Messages.OK
 import com.intellij.openapi.ui.Messages.getErrorIcon
 import com.intellij.openapi.ui.Messages.showOkCancelDialog
 import com.intellij.openapi.util.text.StringUtil
-
-typealias DependencyAnalysis = Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this module.
@@ -103,7 +103,7 @@ fun Module.dependsOnAppCompat(): Boolean =
  * method will show the appropriate messages with details on the errors.
  *
  * If compatibility issues are detected such that no dependencies can be added, this method will show a warning message dialog with an
- * explanation of the issue returned from [AndroidModuleSystem.analyzeDependencyCompatibility].
+ * explanation of the issue returned from [AndroidModuleSystem.analyzeCoordinateCompatibility].
  *
  * If there were errors adding any of the dependencies, this method will show an error message dialog with the dependencies that couldn't
  * be added as well as the reasons why they couldn't be added. A sync will still be performed as long as there were some dependencies added
@@ -125,51 +125,54 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
     return setOf()
   }
 
-  val moduleSystem = getModuleSystem()
-  val coordinateMap = artifacts.associate { it.getCoordinate("+") to it }
-  val coordinates = coordinateMap.keys.toList()
+  val moduleSystem = getModuleSystem().getRegisteringModuleSystem() ?: return artifacts
+  val unnamed = artifacts.filter { moduleSystem.getRegisteredDependencyId(it) == null }
+  val dependencyMap = artifacts.associateByNotNull { moduleSystem.getRegisteredDependencyId(it) }
+  val dependencies = dependencyMap.keys.toList()
 
-  val (compatibleDependencies, incompatibleDependencies, warning) = ProgressManager.getInstance().runProcessWithProgressSynchronously<DependencyAnalysis, Exception>(
-    { moduleSystem.analyzeDependencyCompatibility(coordinates) },
-    "Analyzing Dependency Compatibility",
-    false,
-    moduleSystem.module.project)
+  val (compatibleDependencies, incompatibleDependencies, warning) = ProgressManager.getInstance()
+    .runProcessWithProgressSynchronously<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>,Exception>(
+      { moduleSystem.analyzeDependencyCompatibility(dependencies).get() },
+      "Analyzing Dependency Compatibility",
+      false,
+      project)
 
   // If [promptUserBeforeAdding] is false then we need to inform the user of any compatibility errors in a separate message window.
   if (promptUserBeforeAdding) {
     if (!userWantsToAdd(project, artifacts, warning)) {
-      return coordinates.mapNotNull { coordinateMap[it] }.toSet()
+      return artifacts
     }
   }
   else if (incompatibleDependencies.isNotEmpty()) {
     Messages.showErrorDialog(warning, "Compatibility Issues Detected")
     if (compatibleDependencies.isEmpty()) {
-      return incompatibleDependencies.mapNotNull { coordinateMap[it] }.toSet()
+      return (unnamed + incompatibleDependencies.mapNotNull { dependencyMap[it] }).toSet()
     }
   }
 
-  val coordinatesToExceptions = ProgressManager.getInstance().runProcessWithProgressSynchronously<List<Pair<GradleCoordinate, DependencyManagementException>>, Exception>(
-    {
-      val coordinatesToExceptions: ArrayList<Pair<GradleCoordinate, DependencyManagementException>> = ArrayList()
-      for (coordinate in compatibleDependencies) {
-        try {
-          moduleSystem.registerDependency(coordinate, dependencyType)
+  val idsToExceptions = ProgressManager.getInstance()
+    .runProcessWithProgressSynchronously<List<Pair<RegisteredDependencyId, DependencyManagementException>>, Exception>(
+      {
+        val idsToExceptions: ArrayList<Pair<RegisteredDependencyId, DependencyManagementException>> = ArrayList()
+        for (coordinate in compatibleDependencies) {
+          try {
+            moduleSystem.registerDependency(coordinate, dependencyType)
+          }
+          catch (e: DependencyManagementException) {
+            idsToExceptions.add(Pair(coordinate, e))
+          }
         }
-        catch (e: DependencyManagementException) {
-          coordinatesToExceptions.add(Pair(coordinate, e))
-        }
-      }
-      coordinatesToExceptions
-    },
-    "Adding Dependencies",
-    false,
-    moduleSystem.module.project)
+        idsToExceptions
+      },
+      "Adding Dependencies",
+      false,
+      project)
 
-  val shouldSync = coordinatesToExceptions.size < compatibleDependencies.size && requestSync
-  if (coordinatesToExceptions.isNotEmpty()) {
+  val shouldSync = idsToExceptions.size < compatibleDependencies.size && requestSync
+  if (idsToExceptions.isNotEmpty()) {
     var errorMessage = "The following dependencies could not be added:\n"
-    for (coordinateToException in coordinatesToExceptions) {
-      errorMessage += "${coordinateToException.first} Reason: ${coordinateToException.second.message}\n"
+    for (idToException in idsToExceptions) {
+      errorMessage += "${idToException.first} Reason: ${idToException.second.message}\n"
     }
     if (shouldSync) {
       errorMessage += "\nA sync will be still be performed to resolve the dependencies that were added successfully."
@@ -180,7 +183,7 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
     project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
-  return (incompatibleDependencies + coordinatesToExceptions.map { it.first }).mapNotNull { coordinateMap[it] }.toSet()
+  return (unnamed + (incompatibleDependencies + idsToExceptions.map { it.first }).mapNotNull { dependencyMap[it] }).toSet()
 }
 
 fun userWantsToAdd(project: Project, ids: Set<GoogleMavenArtifactId>, warning: String = ""): Boolean {

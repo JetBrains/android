@@ -95,10 +95,6 @@ class DefaultModuleSystem(override val module: Module) :
 
   override val moduleClassFileFinder: ClassFileFinder = ProductionModuleClassFileFinder(module)
 
-  override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
-    return CapabilityNotSupported()
-  }
-
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     registeredDependencies.add(coordinate)
   }
@@ -150,7 +146,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
-  override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+  override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
     return Triple(emptyList(), dependenciesToAdd, "")
   }

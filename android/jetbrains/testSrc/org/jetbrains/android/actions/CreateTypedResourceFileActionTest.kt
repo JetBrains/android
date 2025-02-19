@@ -18,6 +18,7 @@ package org.jetbrains.android.actions
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -67,14 +68,18 @@ class CreateTypedResourceFileActionTest {
 
   @Test
   fun addPreferencesScreenAndroidxPreferenceLibraryHandling() {
+    TestProjectSystem(project).useInTests()
     // First check without having androidx.preference as a library
     assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))
       .isEqualTo("PreferenceScreen")
 
+
     module
       .getModuleSystem()
-      .registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE.getCoordinate("+"), DependencyType.IMPLEMENTATION)
-
+      .getRegisteringModuleSystem()?.let { s ->
+        val id = s.getRegisteredDependencyId(GoogleMavenArtifactId.ANDROIDX_PREFERENCE) ?: return@let
+        s.registerDependency(id, DependencyType.IMPLEMENTATION)
+      }
     // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
     assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))
       .isEqualTo("androidx.preference.PreferenceScreen")

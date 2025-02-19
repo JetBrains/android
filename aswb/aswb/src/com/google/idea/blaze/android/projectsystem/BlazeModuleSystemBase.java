@@ -166,11 +166,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public CapabilityStatus canRegisterDependency(DependencyType type) {
-    return new CapabilityNotSupported();
-  }
-
-  @Override
   public void registerDependency(GradleCoordinate coordinate, DependencyType type) {
     if (type != DependencyType.IMPLEMENTATION) {
       throw new UnsupportedOperationException("Unsupported dependency type in Blaze: " + type);
@@ -397,7 +392,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
 
   @Override
   public Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
-      analyzeDependencyCompatibility(List<GradleCoordinate> dependenciesToAdd) {
+      analyzeCoordinateCompatibility(List<GradleCoordinate> dependenciesToAdd) {
     return new Triple<>(ImmutableList.of(), dependenciesToAdd, "");
   }
 

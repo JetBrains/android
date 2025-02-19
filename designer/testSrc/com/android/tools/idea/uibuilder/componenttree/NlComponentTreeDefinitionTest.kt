@@ -22,7 +22,6 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.MAP_VIEW
 import com.android.SdkConstants.TOOLS_URI
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -54,10 +53,8 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.GOOGLE_PLAY_SERVICES
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
@@ -69,7 +66,6 @@ import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
@@ -533,7 +529,9 @@ class NlComponentTreeDefinitionTest {
     val data =
       ItemTransferable(DnDTransferItem(DnDTransferComponent(MAP_VIEW, mapViewXml, 300, 300)))
     assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
-    acceptAnyNewDependency()
+    val projectSystem =
+      TestProjectSystem(projectRule.project, availableDependencies = GOOGLE_PLAY_SERVICES)
+    projectSystem.useInTests()
 
     // Check dialog appearances:
     var dialogCount = 0
@@ -711,27 +709,6 @@ class NlComponentTreeDefinitionTest {
       }
     }
     return builder.toString().trim()
-  }
-
-  private fun acceptAnyNewDependency() {
-    val project = projectRule.project
-    val projectSystem = project.getProjectSystem()
-    val moduleSystem = projectSystem.getModuleSystem(projectRule.module)
-
-    ProjectSystemService.getInstance(project)
-      .replaceProjectSystemForTests(
-        object : AndroidProjectSystem by projectSystem {
-          override fun getModuleSystem(module: Module): AndroidModuleSystem {
-            return object : AndroidModuleSystem by moduleSystem {
-              override fun analyzeDependencyCompatibility(
-                dependenciesToAdd: List<GradleCoordinate>
-              ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-                return Triple(dependenciesToAdd, emptyList(), "")
-              }
-            }
-          }
-        }
-      )
   }
 
   private fun createFlowModel(): SyncNlModel {

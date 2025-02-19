@@ -89,10 +89,10 @@ class GradleDependencyCompatibilityAnalyzer(
    *       Give a warning and choose the newest available version.</li>
    * </ul>
    *
-   * See the documentation on [AndroidModuleSystem.analyzeDependencyCompatibility]
+   * See the documentation on [AndroidModuleSystem.analyzeCoordinateCompatibility]
    * for information on the return value.
    */
-  fun analyzeDependencyCompatibility(
+  fun analyzeCoordinateCompatibility(
     coordinatesToAdd: List<GradleCoordinate>
   ): ListenableFuture<Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>> =
     coordinatesToAdd.associateBy { it.dependency() }.let { dependenciesToCoordinates ->
@@ -106,6 +106,14 @@ class GradleDependencyCompatibilityAnalyzer(
         }
       }
     }
+
+  fun analyzeDependencyCompatibility(
+    dependencies: List<Dependency>
+  ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
+    return findVersions(dependencies).transform(MoreExecutors.directExecutor()) { results ->
+      analyzeCompatibility(dependencies, results)
+    }
+  }
 
   @Suppress("UnstableApiUsage") // Futures.allAsList
   private fun findVersions(dependencies: List<Dependency>): ListenableFuture<List<SearchResult>> =
