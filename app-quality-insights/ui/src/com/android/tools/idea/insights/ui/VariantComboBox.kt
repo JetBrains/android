@@ -18,23 +18,24 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 import javax.swing.JPanel
 import kotlin.math.max
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -54,7 +55,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
   Disposable {
   private var isDisabledIndex = false
   private var currentVariantSelection: Selection<IssueVariant>? = null
-  private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val scope = AndroidCoroutineScope(this, Dispatchers.EDT)
 
   override fun getMinimumPopupWidth(): Int {
     var popupWidth = 100
@@ -81,7 +82,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
             if (variants?.items.isNullOrEmpty()) {
               setDisableText(EMPTY_COMBOBOX_MESSAGE)
             } else {
-              val variantSize = variants!!.items.size
+              val variantSize = variants.items.size
               if (currentVariantSelection?.items != variants.items) {
                 model.removeAllElements()
                 val allItem = issue.toVariantRow(variantSize)
@@ -125,17 +126,19 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
         ): Component {
           // index == -1 means it's trying to render the title of the combo box
           if (index == -1 && value is VariantRow) {
-            return JPanel(BorderLayout()).apply {
+            return JPanel(HorizontalLayout(5)).apply {
               add(
                 JBLabel("Variant: ").apply { font = font.deriveFont(JBFont.ITALIC) },
-                BorderLayout.WEST,
+                HorizontalLayout.LEFT,
               )
               add(
-                JBLabel(value.name).apply { font = font.deriveFont(JBFont.BOLD or JBFont.ITALIC) },
-                BorderLayout.CENTER,
+                JBLabel(value.name).apply {
+                  font = font.deriveFont(JBFont.BOLD or JBFont.ITALIC)
+                  border = JBUI.Borders.emptyRight(2)
+                },
+                HorizontalLayout.RIGHT,
               )
               border = JBUI.Borders.empty()
-              verticalTextPosition = CENTER
             }
           }
           return when (value) {

@@ -17,14 +17,13 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.IssueVariant
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
-import javax.swing.Box
-import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -64,15 +63,11 @@ data class VariantRow(
     private val eventCountLabel = JBLabel()
     private val userCountLabel = JBLabel()
     private val rendererComponent =
-      JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
+      JPanel(HorizontalLayout(5)).apply {
         isOpaque = false
-        add(textLabel)
-        add(Box.createHorizontalStrut(10))
-        add(Box.createHorizontalGlue())
-        add(eventCountLabel)
-        add(Box.createHorizontalStrut(4))
-        add(userCountLabel)
+        add(textLabel, HorizontalLayout.LEFT)
+        add(eventCountLabel, HorizontalLayout.RIGHT)
+        add(userCountLabel, HorizontalLayout.RIGHT)
       }
 
     private fun JBLabel.update(value: String, icon: Icon?) {

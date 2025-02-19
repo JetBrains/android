@@ -23,12 +23,15 @@ import com.intellij.openapi.ui.putUserData
 import com.intellij.openapi.util.Key
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.ItemEvent
@@ -76,7 +79,7 @@ data class DetailsPanelHeaderModel(
 class DetailsPanelHeader(
   private val variantComboBox: VariantComboBox? = null,
   onVariantSelected: (IssueVariant?) -> Unit = {},
-) : JPanel(BorderLayout()) {
+) : JPanel(GridBagLayout()) {
   @VisibleForTesting val titleLabel = JBLabel()
 
   // User, event counts
@@ -132,17 +135,30 @@ class DetailsPanelHeader(
       titleVariantSeparatorPanel.isVisible = false
     }
 
-    val contentPanel =
-      transparentPanel().apply {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
-        add(titleLabel)
-        add(Box.createHorizontalStrut(5))
-        add(titleVariantSeparatorPanel)
-        add(variantPanel)
-      }
+    val titlePanel = transparentPanel(HorizontalLayout(5))
+    titlePanel.add(titleLabel, HorizontalLayout.LEFT)
+    titlePanel.add(titleVariantSeparatorPanel, HorizontalLayout.LEFT)
+    titlePanel.add(variantPanel, HorizontalLayout.LEFT)
 
-    add(contentPanel, BorderLayout.WEST)
-    add(countsPanel, BorderLayout.EAST)
+    val gbc = GridBagConstraints()
+    gbc.fill = GridBagConstraints.NONE
+    gbc.anchor = GridBagConstraints.WEST
+    gbc.weighty = 1.0
+    gbc.gridx = 0
+    gbc.gridy = 0
+    gbc.weightx = 0.0
+    add(titlePanel, gbc)
+
+    gbc.gridx = 1
+    gbc.weightx = 1.0
+    gbc.fill = GridBagConstraints.HORIZONTAL
+    add(transparentPanel(), gbc)
+
+    gbc.gridx = 2
+    gbc.weightx = 0.0
+    gbc.fill = GridBagConstraints.NONE
+    gbc.anchor = GridBagConstraints.WEST
+    add(countsPanel, gbc)
     border =
       CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.emptyLeft(8))
 
