@@ -34,7 +34,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidLowMemoryNotifier implements Disposable {
-  static final String NOTIFICATION_DISPLAY_ID = "android.low.memory.notification";
+  public static final String NOTIFICATION_DISPLAY_ID = "android.low.memory.notification";
   private LowMemoryWatcher myWatcher;
   private final AtomicBoolean myNotificationShown = new AtomicBoolean();
 

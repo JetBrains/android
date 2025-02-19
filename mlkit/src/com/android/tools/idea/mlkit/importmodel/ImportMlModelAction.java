@@ -41,9 +41,12 @@ import org.jetbrains.annotations.NotNull;
  * Action to import machine learning model to Android project.
  */
 public class ImportMlModelAction extends AnAction {
-  @VisibleForTesting static final String MIN_AGP_VERSION = "4.1.0-alpha04";
-  @VisibleForTesting static final String TITLE = "TensorFlow Lite Model";
-  @VisibleForTesting static final int MIN_SDK_VERSION = 19;
+  @VisibleForTesting
+  public static final String MIN_AGP_VERSION = "4.1.0-alpha04";
+  @VisibleForTesting
+  public static final String TITLE = "TensorFlow Lite Model";
+  @VisibleForTesting
+  public static final int MIN_SDK_VERSION = 19;
 
   public ImportMlModelAction() {
     super(TITLE, null, StudioIcons.Shell.Filetree.ANDROID_FILE);

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * Special {@link JScrollPane} used in CPU profiler panels that have a {@link JList} as the main viewport.
  * It needs to make sure the vertical scrollbar overlaps the viewport instead of shifting it to the left.
  */
-class CpuListScrollPane extends JBScrollPane {
+public class CpuListScrollPane extends JBScrollPane {
 
   CpuListScrollPane(@NotNull JList viewportView, @NotNull JComponent dispatchComponent) {
     super();

@@ -37,9 +37,9 @@ public abstract class CaptureDetailsView {
   protected static final String CARD_CONTENT = "Content";
 
   @VisibleForTesting
-  static final String NO_DATA_FOR_THREAD_MESSAGE = "No data available for the selected thread.";
+  public static final String NO_DATA_FOR_THREAD_MESSAGE = "No data available for the selected thread.";
   @VisibleForTesting
-  static final String NO_DATA_FOR_RANGE_MESSAGE = "No data available for the selected time frame.";
+  public static final String NO_DATA_FOR_RANGE_MESSAGE = "No data available for the selected time frame.";
 
   @NotNull protected final StudioProfilersView myProfilersView;
 

@@ -44,7 +44,7 @@ import org.w3c.dom.Node;
 /**
  * Lint parser which reads in a DOM from a given file, by mapping to the underlying XML PSI structure
  */
-class DomPsiParser extends XmlParser {
+public class DomPsiParser extends XmlParser {
   private final LintIdeClient myClient;
 
   DomPsiParser(LintIdeClient client) {

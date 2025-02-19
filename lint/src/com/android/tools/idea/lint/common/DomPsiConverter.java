@@ -371,7 +371,7 @@ public class DomPsiConverter {
     }
   };
 
-  private static class DomNodeList implements NodeList {
+  public static class DomNodeList implements NodeList {
     protected final List<DomNode> myChildren = new ArrayList<>();
 
     @NotNull
@@ -490,7 +490,7 @@ public class DomPsiConverter {
   }
 
   @SuppressWarnings({"UnusedParameters", "UnusedDeclaration"}) // Specifies methods shared by children
-  private static abstract class DomNode implements Node {
+  public static abstract class DomNode implements Node {
     @Nullable protected final Document myOwner;
     @Nullable protected final DomNode myParent;
     @NotNull protected final XmlElement myElement;
