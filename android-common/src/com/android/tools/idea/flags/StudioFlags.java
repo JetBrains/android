@@ -1425,6 +1425,13 @@ public final class StudioFlags {
     "Add preview image to AI request for code generation",
     "If enabled, adds current preview image to an AI request for code generation.",
     true);
+
+  public static final Flag<Boolean> FIND_PREVIEWS_FROM_PREVIEW_SOURCESET = new BooleanFlag(
+    PREVIEW_COMMON, "find.previews.from.sourceset",
+    "Find previews from a file and also from preview-sourceset",
+    "If enabled, the process to find previews for a file will also search in its associated files from the preview-sourceset",
+    false
+  );
   //endregion
 
   //region Compose
