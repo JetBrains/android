@@ -18,7 +18,7 @@ package com.android.tools.idea.projectsystem
 import kotlinx.collections.immutable.toImmutableMap
 
 class SourceProvidersImpl(
-  override val mainIdeaSourceProvider: NamedIdeaSourceProvider,
+  override val mainIdeaSourceProvider: NamedIdeaSourceProvider?,
   override val currentSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>,
   override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>,

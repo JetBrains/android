@@ -26,6 +26,7 @@ import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.module.AndroidModuleInfo;
@@ -149,7 +150,11 @@ public class ConvertToWebpAction extends DumbAwareAction {
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      for (VirtualFile dir : SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getAssetsDirectories()) {
+      NamedIdeaSourceProvider mainIdeaSourceProvider = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider();
+      if (mainIdeaSourceProvider == null) {
+        return false;
+      }
+      for (VirtualFile dir : mainIdeaSourceProvider.getAssetsDirectories()) {
         if (file.equals(dir)) {
           return true;
         }

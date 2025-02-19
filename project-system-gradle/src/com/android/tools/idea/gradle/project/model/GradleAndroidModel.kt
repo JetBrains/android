@@ -155,7 +155,7 @@ class GradleAndroidModel(
     selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
-  val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
+  val defaultSourceProvider: IdeSourceProvider? get() = androidProject.defaultSourceProvider.sourceProvider
   val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
   val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
   val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders

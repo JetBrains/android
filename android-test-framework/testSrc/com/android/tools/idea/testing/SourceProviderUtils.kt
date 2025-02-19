@@ -156,7 +156,7 @@ fun Project.dumpSourceProviders(): String {
         nest {
           nest("by Facet:") {
             val sourceProviderManager = SourceProviderManager.getInstance(facet)
-            sourceProviderManager.mainIdeaSourceProvider.dump()
+            sourceProviderManager.mainIdeaSourceProvider?.dump()
           }
           val model = GradleAndroidModel.get(facet)
 
@@ -168,7 +168,7 @@ fun Project.dumpSourceProviders(): String {
 
           if (model != null) {
             nest("by AndroidModel:") {
-              model.defaultSourceProvider.dump()
+              model.defaultSourceProvider?.dump()
               nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
               nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
               nest("HostTest:") {

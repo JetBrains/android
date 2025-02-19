@@ -416,7 +416,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   return SourceProvidersImpl(
-    mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
+    mainIdeaSourceProvider = model.defaultSourceProvider?.toIdeaSourceProvider(),
     currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
     currentHostTestSourceProviders = model.hostTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
@@ -429,7 +429,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    listOf(model.defaultSourceProvider.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
+    listOfNotNull(model.defaultSourceProvider?.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
       val flavorNames = model.selectedVariant.productFlavors.toSet()
       multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }

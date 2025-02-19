@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -259,9 +260,11 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     WriteAction.run(() -> {
       VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
       if (manifestFile == null) {
-        String manifestUrl = Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrls());
+        NamedIdeaSourceProvider mainIdeaSourceProvider = sourceProviderManager.getMainIdeaSourceProvider();
+        assertThat(mainIdeaSourceProvider).isNotNull();
+        String manifestUrl = Iterables.getOnlyElement(mainIdeaSourceProvider.getManifestFileUrls());
         VirtualFile manifestDirectory =
-          Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectories());
+          Iterables.getOnlyElement(mainIdeaSourceProvider.getManifestDirectories());
         manifestFile = manifestDirectory.createChildData(this, Objects.requireNonNull(VfsUtil.extractFileName(manifestUrl)));
       }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();

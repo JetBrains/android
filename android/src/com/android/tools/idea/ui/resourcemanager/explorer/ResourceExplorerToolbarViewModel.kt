@@ -211,11 +211,11 @@ class ResourceExplorerToolbarViewModel(
    * Needed for AssetStudio.
    */
   override fun getDirectories(): Array<PsiDirectory> =
-    SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.mapNotNull {
+    SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories?.mapNotNull {
       runReadAction<PsiDirectory?> {
         PsiManager.getInstance(facet.module.project).findDirectory(it)
       }
-    }.toTypedArray()
+    }?.toTypedArray() ?: emptyArray()
 
   override fun getOrChooseDirectory() = DirectoryChooserUtil.getOrChooseDirectory(this)
 
@@ -237,7 +237,7 @@ class ResourceExplorerToolbarViewModel(
    * Needed for AssetStudio.
    */
   private fun getPsiDirForResourceType(): PsiDirectory? {
-    val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
+    val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories ?: emptyList()
     val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
       getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
     }

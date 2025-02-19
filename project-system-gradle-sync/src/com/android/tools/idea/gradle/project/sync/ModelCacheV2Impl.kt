@@ -1301,14 +1301,14 @@ internal fun modelCacheV2Impl(
       androidDsl.buildTypes,
       basicProject.buildTypeSourceSets,
       { it.name },
-      { it.sourceProvider.name },
+      { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       ::buildTypeContainerFrom
     )
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = zip(
       androidDsl.productFlavors,
       basicProject.productFlavorSourceSets,
       { it.name },
-      { it.sourceProvider.name },
+      { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       ::productFlavorContainerFrom
     )
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { variant ->

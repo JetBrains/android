@@ -61,8 +61,9 @@ class SourceSetItemTest {
 
   @Before
   fun setup() {
-    module = rule.project.gradleModule(":app")!!
+    module = rule.project.gradleModule(":app") ?: error("Unable to find gradle module ':app'")
     sourceProvider = module.androidFacet!!.sourceProviders.mainIdeaSourceProvider
+                     ?: error("mainIdeaSourceProvider expected not to be null.")
   }
 
   @Test
