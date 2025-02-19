@@ -47,7 +47,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   @NonNls private static final String PROPERTY_APK_PATH = "ExportApk.ApkPath";
   @NonNls private static final String PROPERTY_BUNDLE_PATH = "ExportBundle.BundlePath";
   @VisibleForTesting
-  @NonNls static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
+  public @NonNls static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
 
   private JPanel myContentPanel;
   private TextFieldWithBrowseButton myApkPathField;
@@ -74,7 +74,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   }
 
   @VisibleForTesting
-  void _init(GradleAndroidModel androidModel) {
+  public void _init(GradleAndroidModel androidModel) {
     myAndroidModel = androidModel;
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
@@ -148,7 +148,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   }
 
   @VisibleForTesting
-  String getInitialPath(@NotNull PropertiesComponent properties, @NotNull String moduleName, @NotNull TargetType targetType) {
+  public String getInitialPath(@NotNull PropertiesComponent properties, @NotNull String moduleName, @NotNull TargetType targetType) {
     String lastApkFolderPath = properties.getValue(getApkPathPropertyName(moduleName, targetType));
     if (!isNullOrEmpty(lastApkFolderPath)) {
       return lastApkFolderPath;
@@ -162,7 +162,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   }
 
   @VisibleForTesting
-  String getApkPathPropertyName(String moduleName, TargetType targetType) {
+  public String getApkPathPropertyName(String moduleName, TargetType targetType) {
     return (targetType.equals(ExportSignedPackageWizard.APK) ? PROPERTY_APK_PATH : PROPERTY_BUNDLE_PATH) +
            (isNullOrEmpty(moduleName) ? "" : "For" + moduleName);
   }

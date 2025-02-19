@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Resolve a CDep multipackage component.
  */
-class CDepMultipackageIncludeResolver extends IncludeResolver {
+public class CDepMultipackageIncludeResolver extends IncludeResolver {
   @NotNull private final static Pattern PATTERN = Pattern.compile("^(.*/.*?/exploded)(/(.*?)/(.*?)/(.*?)/(.*?)/.*?\\.zip(/.*))$");
 
   @Override

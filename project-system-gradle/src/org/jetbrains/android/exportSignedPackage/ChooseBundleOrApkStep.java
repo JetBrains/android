@@ -27,9 +27,9 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   private final ExportSignedPackageWizard myWizard;
   private JPanel myContentPanel;
   @VisibleForTesting
-  JRadioButton myBundleButton;
+  public JRadioButton myBundleButton;
   @VisibleForTesting
-  JRadioButton myApkButton;
+  public JRadioButton myApkButton;
   private JPanel myBundlePanel;
   private JPanel myApkPanel;
   private HyperlinkLabel myLearnMoreLink;

@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package org.jetbrains.android.exportSignedPackage;
 
@@ -54,10 +54,10 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
+public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
   public static final String MODULE_PROPERTY = "ExportedModule";
-  @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
-  @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+  public @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
+  public @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
@@ -68,7 +68,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
   @VisibleForTesting
-  JComboBox<AndroidFacet> myModuleCombo;
+  public JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
   private JBLabel myGradleWarning;
   private JBLabel myKeyStorePathLabel;
@@ -80,7 +80,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private boolean myIsBundle;
   @VisibleForTesting
   AndroidFacet mySelection;
-  @VisibleForTesting final List<AndroidFacet> myFacets;
+  public @VisibleForTesting final List<AndroidFacet> myFacets;
 
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       boolean useGradleForSigning,
@@ -277,7 +277,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   }
 
   @VisibleForTesting
-  static void trySavePasswords(@NotNull String keyStoreLocation,
+  public static void trySavePasswords(@NotNull String keyStoreLocation,
                                char[] keyStorePassword,
                                @NotNull String keyAlias,
                                char[] keyPassword,
@@ -348,7 +348,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   }
 
   @VisibleForTesting
-  static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
+  public static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
     return prefix + "__" + keyStorePath + (keyAlias != null ? "__" + keyAlias : "");
   }
 

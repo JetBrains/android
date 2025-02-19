@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-class DexFileStructure {
+public class DexFileStructure {
   // All dex files represented by this node.
   @NotNull private final Future<List<DexBackedDexFile>> myDexFilesFuture;
 
@@ -97,10 +97,10 @@ class DexFileStructure {
   }
 
   @VisibleForTesting
-  static class ApkPackages {
+  public static class ApkPackages {
     @NotNull private final Map<String, ApkPackage> myPackagesByName = new HashMap<>();
 
-    void add(@NotNull String classFqn) {
+    public void add(@NotNull String classFqn) {
       Pair<String, String> packageAndClassNames = splitName(classFqn);
 
       String packageName = packageAndClassNames.getFirst();
@@ -174,12 +174,12 @@ class DexFileStructure {
     }
 
     @NotNull
-    Collection<ApkPackage> values() {
+    public Collection<ApkPackage> values() {
       return myPackagesByName.values();
     }
 
     @Nullable
-    ApkPackage findPackage(@NotNull String name) {
+    public ApkPackage findPackage(@NotNull String name) {
       return myPackagesByName.get(name);
     }
   }
