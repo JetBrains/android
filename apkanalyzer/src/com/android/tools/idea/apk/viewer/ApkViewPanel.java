@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED;
+import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED;
+
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.util.HumanReadableUtil;
@@ -28,6 +31,7 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
+import com.android.tools.idea.ndk.PageAlignConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -74,9 +78,6 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import com.android.tools.idea.ndk.PageAlignConfig;
-import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED;
-import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -276,25 +277,25 @@ public class ApkViewPanel implements TreeSelectionListener {
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("File")
-                   .setPreferredWidth(600)
+                   .setPreferredWidth(JBUI.scale(600))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(myApkParser, treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
-                   .setPreferredWidth(150)
+                   .setPreferredWidth(JBUI.scale(150))
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Download Size")
-                   .setPreferredWidth(150)
+                   .setPreferredWidth(JBUI.scale(150))
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("% of Total Download Size")
-                   .setPreferredWidth(150)
+                   .setPreferredWidth(JBUI.scale(150))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new PercentRenderer(percentProvider)));
@@ -302,13 +303,13 @@ public class ApkViewPanel implements TreeSelectionListener {
         builder
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Zip Alignment")
-                   .setPreferredWidth(50)
+                   .setPreferredWidth(JBUI.scale(50))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new ZipAlignmentRenderer()))
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                        .setName("Native Alignment")
-                       .setPreferredWidth(50)
+                       .setPreferredWidth(JBUI.scale(150))
                        .setHeaderAlignment(SwingConstants.LEADING)
                        .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                        .setRenderer(new ElfMinimumLoadAlignmentRenderer()));
@@ -316,14 +317,14 @@ public class ApkViewPanel implements TreeSelectionListener {
         builder
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                        .setName("Alignment")
-                       .setPreferredWidth(50)
+                       .setPreferredWidth(JBUI.scale(150))
                        .setHeaderAlignment(SwingConstants.LEADING)
                        .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                        .setRenderer(new ZipAlignmentRenderer()));
       }
      builder.addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Compression")
-                   .setPreferredWidth(50)
+                   .setPreferredWidth(JBUI.scale(200))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new CompressionRenderer()));
