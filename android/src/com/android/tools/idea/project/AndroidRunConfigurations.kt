@@ -17,17 +17,24 @@ package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants.VALUE_TRUE
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.TargetSelectionMode
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfiguration
+import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
@@ -38,6 +45,7 @@ import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -61,8 +69,9 @@ class AndroidRunConfigurations {
 
   suspend fun createRunConfigurations(project: Project) {
     createAndroidRunConfigurations(project)
-    // create the Android run configurations first as we limit the number of wear configurations
-    // based on the existing number of configurations.
+    createDeclarativeWatchFaceConfigurations(project)
+    // create the Android run and declarative watch face configurations first as
+    // we limit the number of wear configurations based on the existing number of configurations.
     createWearConfigurations(project)
   }
 
@@ -90,6 +99,114 @@ class AndroidRunConfigurations {
     addAndroidRunConfiguration(facet)
   }
 
+  private fun createDeclarativeWatchFaceConfigurations(project: Project) {
+    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.get()) {
+      return
+    }
+    project
+      .getAndroidFacets()
+      .filter { it.configuration.isAppProject }
+      .forEach { facet -> createDeclarativeWatchFaceConfiguration(facet) }
+  }
+
+  /**
+   * Creates an [AndroidDeclarativeWatchFaceConfiguration] run configuration if the module is a
+   * Declarative Watch Face module. The module must have a `res/xml/watch_face_info.xml` file and
+   * shouldn't have any activities or services.
+   *
+   * The run configuration is only added if there are no existing run configurations based on
+   * the [facet]'s module. If an existing declarative watch face run configuration already exists
+   * for the module, we don't want to create duplicates.
+   */
+  private fun createDeclarativeWatchFaceConfiguration(facet: AndroidFacet) {
+    val hasActivitiesOrServices = runReadAction {
+      val application = Manifest.getMainManifest(facet)?.application
+      application?.activities?.isNotEmpty() == true ||
+      application?.activityAliases?.isNotEmpty() == true ||
+      application?.services?.isNotEmpty() == true
+    }
+    if (!LaunchUtils.isWatchFeatureRequired(facet) || hasActivitiesOrServices) {
+      return
+    }
+    val module = facet.module
+    val configurations = RunManager.getInstance(module.project)
+      .getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+    for (configuration in configurations) {
+      if (
+        configuration is AndroidDeclarativeWatchFaceConfiguration &&
+        configuration.configurationModule.module == module
+      ) {
+        // There is already a run configuration for this module.
+        return
+      }
+    }
+
+    val watchFaceInfo =
+      StudioResourceRepositoryManager.getInstance(module)
+        ?.appResources
+        ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.XML, "watch_face_info")
+
+    if (watchFaceInfo.isNullOrEmpty()) {
+      return
+    }
+
+    addDeclarativeWatchFaceConfiguration(facet)
+  }
+
+  private fun addDeclarativeWatchFaceConfiguration(facet: AndroidFacet) {
+    val module = facet.module
+    val project = module.project
+    val runManager =
+      runReadAction {
+        if (project.isDisposed) return@runReadAction null
+        RunManager.getInstance(project)
+      } ?: return
+
+    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
+    val moduleName = module.getModuleSystem().getDisplayNameForModuleGroup()
+    val configurationName =
+      resolveWatchFaceName(facet) ?: moduleName.removePrefix("$projectNameInExternalSystemStyle.")
+    val settings =
+      runReadAction {
+        if (project.isDisposed) return@runReadAction null
+        runManager.createConfiguration(
+          configurationName,
+          AndroidDeclarativeWatchFaceConfigurationType::class.java,
+        )
+      } ?: return
+
+    val configuration = settings.configuration as AndroidDeclarativeWatchFaceConfiguration
+    configuration.setModule(module)
+
+    runReadAction {
+      if (!project.isDisposed) {
+        runManager.addConfiguration(settings)
+        runManager.selectedConfiguration = settings
+      }
+    }
+  }
+
+  private fun resolveWatchFaceName(facet: AndroidFacet): String? {
+    return runReadAction {
+      if (facet.isDisposed) {
+        return@runReadAction null
+      }
+      val manifest = Manifest.getMainManifest(facet) ?: return@runReadAction null
+      val label = manifest.application.label
+      val labelPsiFile = label.xmlElement?.containingFile ?: return@runReadAction null
+      val resourceName = runReadAction { label.value?.resourceName } ?: return@runReadAction null
+      val resourceReference = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, resourceName)
+      val resolver = ConfigurationManager.getOrCreateInstance(facet.module)
+        .getConfiguration(labelPsiFile.virtualFile)
+        .resourceResolver
+      resolver.getResolvedResource(resourceReference)?.value
+    }
+  }
+
+  /**
+   * Creates component-based [AndroidWearConfiguration]s. Components are Wear Tiles, Complications
+   * and WatchFace Services.
+   */
   private suspend fun createWearConfigurations(project: Project) {
     if (!StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.get()) {
       return

@@ -25,11 +25,14 @@ import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
+import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfiguration
+import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
@@ -37,12 +40,17 @@ import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.PsiClass
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
+import java.io.File
 
 class AndroidRunConfigurationsTest {
 
@@ -53,6 +61,7 @@ class AndroidRunConfigurationsTest {
   fun tearDown() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.clearOverride()
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.clearOverride()
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.clearOverride()
   }
 
   @Test
@@ -241,6 +250,132 @@ class AndroidRunConfigurationsTest {
       runManager.removeExistingRunConfigurations()
 
       assertThat(runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is added`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+      val declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+
+      assertThat(declarativeWatchFaceConfigurations).hasSize(1)
+      val declarativeWatchFaceConfiguration = declarativeWatchFaceConfigurations.single()
+      assertThat(declarativeWatchFaceConfiguration.name).isEqualTo("My Declarative WatchFace")
+      assertThat(declarativeWatchFaceConfiguration).isInstanceOf(AndroidDeclarativeWatchFaceConfiguration::class.java)
+      val configurationModule = (declarativeWatchFaceConfiguration as AndroidDeclarativeWatchFaceConfiguration).configurationModule.module
+      assertThat(configurationModule).isEqualTo(project.findAppModule().getHolderModule())
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is not added when the flag is disabled`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(false)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+      assertThat(runManager.allConfigurationsList).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is not added when there are activities`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      runWriteCommandAction(project) {
+        project.getAndroidFacets().forEach { facet ->
+          val activity = Manifest.getMainManifest(facet)?.application?.addActivity()
+          activity?.activityClass?.value = mock<PsiClass>().also {
+            Mockito.`when`(it.name).thenReturn("ActivityName")
+          }
+        }
+      }
+      val runManager = RunManager.getInstance(project)
+      runManager.removeExistingRunConfigurations()
+
+      // request sync to attempt to re-import the run configurations
+      project.requestSyncAndWait()
+
+      val declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is not added when there are services`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      runWriteCommandAction(project) {
+        project.getAndroidFacets().forEach { facet ->
+          Manifest.getMainManifest(facet)?.application?.addService()
+        }
+      }
+      val runManager = RunManager.getInstance(project)
+      runManager.removeExistingRunConfigurations()
+
+      // request sync to attempt to re-import the run configurations
+      project.requestSyncAndWait()
+
+      val declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is not added when there is no watch feature requirement`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      removeWatchFeatureRequirement(project)
+      val runManager = RunManager.getInstance(project)
+      runManager.removeExistingRunConfigurations()
+
+      // request sync to attempt to re-import the run configurations
+      project.requestSyncAndWait()
+
+      val declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is not added when there is no watch_face_info file`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    FileUtil.delete(File(preparedProject.root, "app/src/main/res/xml/watch_face_info.xml"))
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+
+      val declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).isEmpty()
+    }
+  }
+
+  @Test
+  fun `a declarative watch face configuration is only added once`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+      var declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).hasSize(1)
+
+      // request sync to attempt to re-import the run configurations
+      project.requestSyncAndWait()
+
+      declarativeWatchFaceConfigurations = runManager.getConfigurationsList(AndroidDeclarativeWatchFaceConfigurationType())
+      assertThat(declarativeWatchFaceConfigurations).hasSize(1)
     }
   }
 
