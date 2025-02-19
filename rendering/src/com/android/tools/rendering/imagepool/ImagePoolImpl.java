@@ -462,7 +462,8 @@ public class ImagePoolImpl implements ImagePool {
     myPool.clear();
   }
 
-  static class ImageImpl implements ImagePool.Image, DisposableImage {
+  @VisibleForTesting
+  public static class ImageImpl implements ImagePool.Image, DisposableImage {
     // Track dispose call when assertions are enabled
     private static final boolean ourTrackDisposeCall = ImageImpl.class.desiredAssertionStatus();
 
@@ -475,7 +476,7 @@ public class ImagePoolImpl implements ImagePool {
 
     @VisibleForTesting
     @Nullable
-    BufferedImage myBuffer;
+    public BufferedImage myBuffer;
 
     final int myWidth;
     final int myHeight;
