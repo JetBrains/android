@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtif
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.run.BlazeBeforeRunCommandHelper;
@@ -118,11 +119,9 @@ public class ClassFileManifestBuilder {
     if (progress != null) {
       progress.setCancelWorker(() -> streamProviderFuture.cancel(true));
     }
-    try {
-      BuildResult result =
-          BuildResult.fromExitCode(
-              BuildResultParser.getBuildOutput(streamProviderFuture.get(), Interners.STRING)
-                  .buildResult());
+    try (BuildEventStreamProvider streamProvider = streamProviderFuture.get()) {
+      ParsedBepOutput parsedBepOutput = BuildResultParser.getBuildOutput(streamProvider, Interners.STRING);
+      BuildResult result = BuildResult.fromExitCode(parsedBepOutput.buildResult());
       if (result.status != BuildResult.Status.SUCCESS) {
         throw new ExecutionException("Blaze failure building debug binary");
       }
@@ -130,9 +129,7 @@ public class ClassFileManifestBuilder {
       ImmutableList<File> jars =
           LocalFileArtifact.getLocalFiles(
                   Label.of(Objects.requireNonNull(configuration.getSingleTarget().toString())),
-                  BlazeBuildOutputs.fromParsedBepOutput(
-                          BuildResultParser.getBuildOutput(
-                              streamProviderFuture.get(), Interners.STRING))
+                  BlazeBuildOutputs.fromParsedBepOutput(parsedBepOutput)
                       .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP),
                   BlazeContext.create(),
                   project)

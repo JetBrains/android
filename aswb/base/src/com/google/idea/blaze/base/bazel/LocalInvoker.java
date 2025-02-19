@@ -228,6 +228,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
         ExternalTask.builder(workspaceRoot)
             .addBlazeCommand(blazeCommandBuilder.build())
             .context(context)
+            .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
             .stderr(
                 LineProcessingOutputStream.of(
                     BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
