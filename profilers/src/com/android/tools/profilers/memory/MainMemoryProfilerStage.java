@@ -33,12 +33,12 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
-import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
@@ -50,7 +50,6 @@ import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
 import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -88,7 +87,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myNativeAllocationDurations;
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
 
-  @VisibleForTesting boolean myNativeAllocationTracking = false;
+  @VisibleForTesting
+  public boolean myNativeAllocationTracking = false;
 
   private final RecordingOptionsModel myRecordingOptionsModel;
 

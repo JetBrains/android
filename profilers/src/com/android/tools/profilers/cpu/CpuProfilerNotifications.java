@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * CPU related notification constants.
  */
-final class CpuProfilerNotifications {
+public final class CpuProfilerNotifications {
   @NotNull
   static final Notification CAPTURE_START_FAILURE = createError(
     "Recording failed to start",
