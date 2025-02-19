@@ -39,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImportApkAction extends DumbAwareAction {
   @VisibleForTesting
-  @NonNls static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
+  @NonNls
+  public static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
 
   @NotNull private final PropertiesComponent myPropertiesComponent;
   @NotNull private final CustomProjectTypeImporter.MainImporter myProjectTypeImporter;
@@ -53,7 +54,7 @@ public class ImportApkAction extends DumbAwareAction {
   }
 
   @VisibleForTesting
-  ImportApkAction(@NotNull PropertiesComponent propertiesComponent,
+  public ImportApkAction(@NotNull PropertiesComponent propertiesComponent,
                   @NotNull CustomProjectTypeImporter.MainImporter projectTypeImporter,
                   @NotNull FileChooserDialogFactory fileChooserDialogFactory,
                   @NotNull RecentProjectsManager recentProjectsManager,

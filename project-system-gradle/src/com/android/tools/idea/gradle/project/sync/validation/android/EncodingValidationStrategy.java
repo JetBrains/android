@@ -31,7 +31,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
+public class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final EncodingProjectManager myEncodings;
   @NotNull private final Charset myProjectEncoding;
   @NotNull private final AgpVersion myOneDotTwoPluginVersion;
@@ -43,7 +43,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   }
 
   @VisibleForTesting
-  EncodingValidationStrategy(@NotNull Project project, @NotNull EncodingProjectManager encodings) {
+  public EncodingValidationStrategy(@NotNull Project project, @NotNull EncodingProjectManager encodings) {
     super(project);
     myEncodings = encodings;
     myProjectEncoding = myEncodings.getDefaultCharset();
@@ -74,7 +74,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   }
 
   @Override
-  void fixAndReportFoundIssues() {
+  public void fixAndReportFoundIssues() {
     if (myMismatchingEncoding != null) {
       Project project = getProject();
 
@@ -94,12 +94,12 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
 
   @VisibleForTesting
   @Nullable
-  String getMismatchingEncoding() {
+  public String getMismatchingEncoding() {
     return myMismatchingEncoding;
   }
 
   @VisibleForTesting
-  void setMismatchingEncoding(@Nullable String mismatchingEncoding) {
+  public void setMismatchingEncoding(@Nullable String mismatchingEncoding) {
     myMismatchingEncoding = mismatchingEncoding;
   }
 }

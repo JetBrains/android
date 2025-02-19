@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
+public class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
   @Override
   int getSupportedIssueType() {

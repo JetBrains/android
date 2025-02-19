@@ -65,7 +65,8 @@ public class NativeLibrary {
   // Cached list of all the source folders in this library. This list is calculated from the debug symbols in every .so file in this
   // library.
   @VisibleForTesting
-  @Transient @Nullable List<String> sourceFolderPaths;
+  @Transient @Nullable
+  public List<String> sourceFolderPaths;
 
   public boolean hasDebugSymbols;
 

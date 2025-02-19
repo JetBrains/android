@@ -34,7 +34,7 @@ public abstract class AndroidModuleValidator {
   }
 
   @VisibleForTesting
-  static class AndroidModuleValidatorImpl extends AndroidModuleValidator {
+  public static class AndroidModuleValidatorImpl extends AndroidModuleValidator {
     @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
 
     AndroidModuleValidatorImpl(@NotNull Project project) {
@@ -42,7 +42,7 @@ public abstract class AndroidModuleValidator {
     }
 
     @VisibleForTesting
-    AndroidModuleValidatorImpl(@NotNull AndroidProjectValidationStrategy... strategies) {
+    public AndroidModuleValidatorImpl(@NotNull AndroidProjectValidationStrategy... strategies) {
       myStrategies = strategies;
     }
 
@@ -62,7 +62,7 @@ public abstract class AndroidModuleValidator {
 
     @VisibleForTesting
     @NotNull
-    AndroidProjectValidationStrategy[] getStrategies() {
+    public AndroidProjectValidationStrategy[] getStrategies() {
       return myStrategies;
     }
   }

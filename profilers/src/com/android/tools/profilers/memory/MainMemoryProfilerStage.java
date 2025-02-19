@@ -68,8 +68,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
   private static final String RECORD_JAVA_TOOLTIP = "View how each Java / Kotlin object was allocated over a period of time";
-  @VisibleForTesting static final String RECORD_NATIVE_TEXT = "Record native allocations";
-  @VisibleForTesting static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
+  @VisibleForTesting
+  public static final String RECORD_NATIVE_TEXT = "Record native allocations";
+  @VisibleForTesting
+  public static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
   private static final String RECORD_NATIVE_DESC = "View how each C / C++ object was allocated over a period of time";
 
 

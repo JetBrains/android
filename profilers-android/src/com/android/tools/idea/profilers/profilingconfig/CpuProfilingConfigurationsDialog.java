@@ -66,8 +66,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.swing.Action;
 import java.util.stream.Collectors;
+import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -156,7 +156,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
   }
 
   @VisibleForTesting
-  static class ProfilingConfigurable implements Configurable {
+  public static class ProfilingConfigurable implements Configurable {
 
     private static final String ADD = "Add";
 
@@ -188,7 +188,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     private final DefaultListModel<ProfilingConfiguration> myConfigurationsModel;
 
     @VisibleForTesting
-    DefaultListModel<ProfilingConfiguration> getConfigurationModel() {
+    public DefaultListModel<ProfilingConfiguration> getConfigurationModel() {
       return this.myConfigurationsModel;
     }
 
