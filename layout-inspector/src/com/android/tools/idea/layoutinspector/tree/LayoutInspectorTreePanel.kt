@@ -546,17 +546,18 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     // enabled/disabled)
     invokeLater { toolWindowCallback?.updateActions() }
 
-    if (
-      componentTreeSelectionModel.currentSelection.isEmpty() &&
-        inspectorModel?.selection?.treeNode != null
-    ) {
-      // The selection in the tree panel has gone out of sync with the inspector model, put them
-      // back in sync. This can happen for example if the tree panel is recreated while the
-      // inspector model already has a selection. When the new instance of the tree panel is
-      // created, the listeners are added back. If the selection listener is executed before the
-      // modification listener, restoring the selection in the tree will fail, because at that point
-      // the tree is still empty.
-      invokeLater {
+    invokeLater {
+      if (
+        componentTreeSelectionModel.currentSelection.isEmpty() &&
+          inspectorModel?.selection?.treeNode != null
+      ) {
+        // The selection in the tree panel has gone out of sync with the inspector model, put them
+        // back in sync. This can happen for example if the tree panel is recreated while the
+        // inspector model already has a selection. When the new instance of the tree panel is
+        // created, the listeners are added back. If the selection listener is executed before the
+        // modification listener, restoring the selection in the tree will fail, because at that
+        // point
+        // the tree is still empty.
         componentTreeSelectionModel.currentSelection =
           listOfNotNull(inspectorModel?.selection?.treeNode)
       }
