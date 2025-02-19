@@ -163,7 +163,7 @@ public class UsageTrackerUtil {
   }
 
   @VisibleForTesting
-  static class NamespaceAndLibraryNamePair {
+  public static class NamespaceAndLibraryNamePair {
     private final AndroidAttribute.AttributeNamespace myNamespace;
     private final String myLibraryName;
 

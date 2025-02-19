@@ -27,15 +27,15 @@ import javax.swing.JPanel;
  */
 @VisibleForTesting
 public class AddActionDialogUI {
-  JComboBox<NlComponent> myFromComboBox;
-  JComboBox<AddActionDialog.DestinationListEntry> myDestinationComboBox;
-  JComboBox<ValueWithDisplayString> myEnterComboBox;
-  JComboBox<ValueWithDisplayString> myExitComboBox;
-  JComboBox<AddActionDialog.DestinationListEntry> myPopToComboBox;
-  JCheckBox myInclusiveCheckBox;
-  JComboBox<ValueWithDisplayString> myPopEnterComboBox;
-  JComboBox<ValueWithDisplayString> myPopExitComboBox;
-  JCheckBox mySingleTopCheckBox;
+  public JComboBox<NlComponent> myFromComboBox;
+  public JComboBox<AddActionDialog.DestinationListEntry> myDestinationComboBox;
+  public JComboBox<ValueWithDisplayString> myEnterComboBox;
+  public JComboBox<ValueWithDisplayString> myExitComboBox;
+  public JComboBox<AddActionDialog.DestinationListEntry> myPopToComboBox;
+  public JCheckBox myInclusiveCheckBox;
+  public JComboBox<ValueWithDisplayString> myPopEnterComboBox;
+  public JComboBox<ValueWithDisplayString> myPopExitComboBox;
+  public JCheckBox mySingleTopCheckBox;
   JPanel myContentPanel;
-  JBTextField myIdTextField;
+  public JBTextField myIdTextField;
 }

@@ -25,7 +25,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ActionBar {
+public final class ActionBar {
   private final List<SceneComponent> myItems;
   private final List<SceneComponent> myOverflowItems;
 
