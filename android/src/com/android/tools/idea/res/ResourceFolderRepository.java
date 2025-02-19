@@ -65,8 +65,8 @@ import com.android.resources.base.ResourceSerializationUtil;
 import com.android.resources.base.ResourceSourceFile;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.module.ModuleKeyManager;
+import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.Base128InputStream;
@@ -2636,7 +2636,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
    * callers already hold the read lock.
    */
   @VisibleForTesting
-  static class RunOnceWithReadLockInitializer implements Runnable {
+  public static class RunOnceWithReadLockInitializer implements Runnable {
     private final Supplier<Void> myInitializer;
 
     private volatile boolean myIsInitialized = false;

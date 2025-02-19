@@ -62,7 +62,7 @@ public class GradleDependencyManager {
     return project.getService(GradleDependencyManager.class);
   }
 
-  static class CatalogDependenciesInfo {
+  public static class CatalogDependenciesInfo {
     public List<Dependency> missingLibraries = new ArrayList<>();
     public List<Pair<String, Dependency>> matchedCoordinates = new ArrayList<>();
   }
