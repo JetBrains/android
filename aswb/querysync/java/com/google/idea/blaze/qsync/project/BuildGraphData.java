@@ -396,8 +396,10 @@ public abstract class BuildGraphData {
         .collect(toImmutableSetMultimap(e -> e.getKey(), e -> e.getValue()));
   }
 
-  public ImmutableSet<Label> getTransitiveExternalDependencies(Label target) {
-    return transitiveExternalDeps().get(target);
+  // TODO: solodkyy - Delete this method. This is used in tests only to preserve some useful test code which will be used to test
+  // getExternalDependencies (non-transitive).
+  public ImmutableSet<Label> getTransitiveExternalDependencies(Collection<Label> targets) {
+    return targets.stream().flatMap(it -> transitiveExternalDeps().get(it).stream()).collect(toImmutableSet());
   }
 
   public ImmutableSet<Label> getSourceFileOwners(Path path) {
@@ -419,19 +421,6 @@ public abstract class BuildGraphData {
     return candidates.stream()
         .min(Comparator.comparingInt(label -> targetMap().get(label).deps().size()))
         .orElse(null);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  Set<Label> getFileDependencies(Path path) {
-    ImmutableSet<Label> targets = getSourceFileOwners(path);
-    if (targets == null) {
-      return null;
-    }
-    return targets.stream()
-        .map(this::getTransitiveExternalDependencies)
-        .flatMap(Set::stream)
-        .collect(toImmutableSet());
   }
 
   /** A set of all the targets that show up in java rules 'src' attributes */
