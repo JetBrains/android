@@ -160,12 +160,12 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  boolean isShowFilePathActionSupported() {
+  public boolean isShowFilePathActionSupported() {
     return RevealFileAction.isSupported();
   }
 
   @VisibleForTesting
-  static class FileOrDirOpener {
+  public static class FileOrDirOpener {
     @NotNull private final Consumer<File> myOpenFile;
     @NotNull private final Consumer<File> myOpenDir;
 
@@ -173,7 +173,7 @@ public class GoToApkLocationTask {
       this(RevealFileAction::openFile, RevealFileAction::openDirectory);
     }
 
-    FileOrDirOpener(@NotNull Consumer<File> openFile, @NotNull Consumer<File> openDir) {
+    public FileOrDirOpener(@NotNull Consumer<File> openFile, @NotNull Consumer<File> openDir) {
       myOpenFile = openFile;
       myOpenDir = openDir;
     }
@@ -188,17 +188,17 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenFolderNotificationListener extends NotificationListener.Adapter {
+  public static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Map<String, File> myApkPathsPerModule;
     @NotNull private final Project myProject;
     @NotNull private final FileOrDirOpener myLocationOpener;
 
-    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
+    public OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
       this(apkPathsPerModule, project, new FileOrDirOpener());
     }
 
     @VisibleForTesting
-    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule,
+    public OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule,
                                    @NotNull Project project,
                                    @NotNull FileOrDirOpener fileOpener) {
       myApkPathsPerModule = apkPathsPerModule;
@@ -252,8 +252,8 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenEventLogHyperlink extends NotificationHyperlink {
-    OpenEventLogHyperlink() {
+  public static class OpenEventLogHyperlink extends NotificationHyperlink {
+    public OpenEventLogHyperlink() {
       super("open.event.log", "Show APK path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 

@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * All the CDep resolvers collected.
  */
-class CDepIncludeResolver extends IncludeResolver {
+public class CDepIncludeResolver extends IncludeResolver {
   @NotNull private final IncludeResolver[] myResolvers;
 
-  CDepIncludeResolver() {
+  public CDepIncludeResolver() {
     myResolvers = new IncludeResolver[]{new CDepMultipackageIncludeResolver(), new CDepSimplePackageIncludeResolver()};
   }
 

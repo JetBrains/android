@@ -56,12 +56,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StudioDownloader implements Downloader {
   @VisibleForTesting
-  static final String DOWNLOAD_SUFFIX_FN = ".asdownload";
+  public static final String DOWNLOAD_SUFFIX_FN = ".asdownload";
 
   @Nullable Path mDownloadIntermediatesLocation;
 
   @VisibleForTesting
-  static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
+  public static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
     private final String mTargetName;
     private final long mContentLength;
     private final String mTotalDisplaySize;
@@ -126,7 +126,7 @@ public class StudioDownloader implements Downloader {
   }
 
   @VisibleForTesting
-  StudioDownloader(@NotNull SettingsController settingsController) {
+  public StudioDownloader(@NotNull SettingsController settingsController) {
     mySettingsController = settingsController;
   }
 
@@ -306,7 +306,7 @@ public class StudioDownloader implements Downloader {
    * where "[xxx]" is an integer smaller than or equal to {@link #getMaximumVersionAllowed()}
    */
   @VisibleForTesting
-  static abstract class RepositoryAddonsListVersionUrlFilter {
+  public static abstract class RepositoryAddonsListVersionUrlFilter {
 
     /**
      * The official URL is "{@code https://dl.google.com/android/repository/addons_list-6.xml}", but
@@ -346,7 +346,7 @@ public class StudioDownloader implements Downloader {
    * (if {@link StudioFlags#RISC_V} is disabled).
    */
   @VisibleForTesting
-  static class RiscVUrlFilter extends RepositoryAddonsListVersionUrlFilter {
+  public static class RiscVUrlFilter extends RepositoryAddonsListVersionUrlFilter {
 
     @Override
     protected int getMaximumVersionAllowed() {

@@ -423,7 +423,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
   }
 
-  enum MyScope {
+  public enum MyScope {
     PROJECT, MODULE, FILE
   }
 }

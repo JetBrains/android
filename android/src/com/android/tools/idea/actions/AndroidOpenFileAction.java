@@ -24,8 +24,8 @@ import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpene
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
@@ -130,7 +130,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    */
   @VisibleForTesting
   @NotNull
-  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
+  public static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
     for (VirtualFile file : files) {
       if (!descriptor.isFileSelectable(file)) {
         Validator.Result result =
@@ -198,8 +198,8 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    * Returned by validateFiles after validating a project if there is an issue.
    */
   @VisibleForTesting
-  static final class ValidationIssue {
-    @NotNull Validator.Result result;
+  public static final class ValidationIssue {
+    public @NotNull Validator.Result result;
     @Nullable VirtualFile file;
 
     ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {

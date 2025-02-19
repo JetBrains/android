@@ -217,7 +217,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
   }
 
   @VisibleForTesting
-  static class StaleGradleModelNotificationPanel extends NotificationPanel {
+  public static class StaleGradleModelNotificationPanel extends NotificationPanel {
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull String text) {
       super(text);
       createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance()
@@ -230,7 +230,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
   }
 
   @VisibleForTesting
-  static class SyncProblemNotificationPanel extends NotificationPanel {
+  public static class SyncProblemNotificationPanel extends NotificationPanel {
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull String text) {
       super(text);
 
@@ -252,7 +252,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
   }
 
   @VisibleForTesting
-  static class ProjectStructureNotificationPanel extends NotificationPanel {
+  public static class ProjectStructureNotificationPanel extends NotificationPanel {
     private static final String TEXT = "You can use the Project Structure dialog to view and edit your project configuration";
     private static final long RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 

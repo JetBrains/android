@@ -47,8 +47,8 @@ public final class ComponentsSet {
 
   private static final String INTEGRATION_TEST_CONFIG_RESOURCE_NAME = "/diagnostics/integration_test_memory_usage_config.textproto";
 
-  static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
-  static final String UNCATEGORIZED_COMPONENT_LABEL = "uncategorized_main";
+  public static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
+  public static final String UNCATEGORIZED_COMPONENT_LABEL = "uncategorized_main";
 
   @NotNull
   private final Component uncategorizedComponent;

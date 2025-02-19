@@ -21,7 +21,7 @@ import javax.swing.RowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class FrozenColumnTableRowSorter<M> {
+public final class FrozenColumnTableRowSorter<M> {
   @NotNull
   private final DefaultRowSorter<M, Integer> myDelegate;
 
@@ -31,7 +31,7 @@ final class FrozenColumnTableRowSorter<M> {
   @NotNull
   private final RowSorter<SubTableModel> myScrollableTableRowSorter;
 
-  FrozenColumnTableRowSorter(@NotNull DefaultRowSorter<M, Integer> delegate, @NotNull FrozenColumnTable table) {
+  public FrozenColumnTableRowSorter(@NotNull DefaultRowSorter<M, Integer> delegate, @NotNull FrozenColumnTable table) {
     delegate.setMaxSortKeys(1);
 
     myDelegate = delegate;
@@ -40,17 +40,17 @@ final class FrozenColumnTableRowSorter<M> {
   }
 
   @NotNull
-  RowSorter<SubTableModel> getFrozenTableRowSorter() {
+  public RowSorter<SubTableModel> getFrozenTableRowSorter() {
     return myFrozenTableRowSorter;
   }
 
   @NotNull
-  RowSorter<SubTableModel> getScrollableTableRowSorter() {
+  public RowSorter<SubTableModel> getScrollableTableRowSorter() {
     return myScrollableTableRowSorter;
   }
 
   @Nullable
-  Object getRowFilter() {
+  public Object getRowFilter() {
     return myDelegate.getRowFilter();
   }
 

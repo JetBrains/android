@@ -34,12 +34,12 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PathTrees {
+public final class PathTrees {
   private PathTrees() {
   }
 
   @NotNull
-  static List<PsiDirectory> findSourceFolders(@NotNull PathTree tree, @NotNull String basePath, @NotNull Project project) {
+  public static List<PsiDirectory> findSourceFolders(@NotNull PathTree tree, @NotNull String basePath, @NotNull Project project) {
     List<PsiDirectory> children = new ArrayList<>();
 
     List<PathNode> nodes = new ArrayList<>();
@@ -67,7 +67,7 @@ final class PathTrees {
   }
 
   @NotNull
-  static List<AbstractTreeNode<?>> getSourceFolderNodes(@NotNull PathTree tree,
+  public static List<AbstractTreeNode<?>> getSourceFolderNodes(@NotNull PathTree tree,
                                                      @NotNull SourceCodeFilter filter,
                                                      @NotNull Project project,
                                                      @NotNull ViewSettings settings) {

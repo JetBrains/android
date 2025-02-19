@@ -24,7 +24,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.kotlin.config.SourceKotlinRootType;
 import org.jetbrains.kotlin.config.TestSourceKotlinRootType;
 
-enum NonAndroidSourceType {
+public enum NonAndroidSourceType {
   JAVA(JavaSourceRootType.SOURCE, "java", AllIcons.Modules.SourceRoot),
   JAVA_TESTS(JavaSourceRootType.TEST_SOURCE, "tests", AllIcons.Modules.SourceRoot),
   KOTLIN(SourceKotlinRootType.INSTANCE, "kotlin", AllIcons.Modules.SourceRoot),

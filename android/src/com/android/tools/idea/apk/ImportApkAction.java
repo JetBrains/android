@@ -105,7 +105,7 @@ public class ImportApkAction extends DumbAwareAction {
   }
 
   @VisibleForTesting
-  static class FileChooserDialogFactory {
+  public static class FileChooserDialogFactory {
     @NotNull
     FileChooserDialog create(@NotNull ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
       return new FileChooserDialogImpl(externalSystemManager.getExternalProjectDescriptor(), (Project)null);

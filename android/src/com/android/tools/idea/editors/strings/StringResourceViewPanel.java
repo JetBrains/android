@@ -79,13 +79,13 @@ public class StringResourceViewPanel implements Disposable {
   private @Nullable Component myToolbarComponent;
   private @Nullable Component myScrollPane;
   private final @NotNull JComponent myXmlLabel;
-  @VisibleForTesting final JTextComponent myXmlTextField;
+  public @VisibleForTesting final JTextComponent myXmlTextField;
   private final @NotNull Component myKeyLabel;
   private JTextComponent myKeyTextField;
   private final @NotNull Component myDefaultValueLabel;
 
   @VisibleForTesting
-  TextFieldWithBrowseButton myDefaultValueTextField;
+  public TextFieldWithBrowseButton myDefaultValueTextField;
 
   private final @NotNull Component myTranslationLabel;
   private TextFieldWithBrowseButton myTranslationTextField;
@@ -99,7 +99,7 @@ public class StringResourceViewPanel implements Disposable {
   private final Supplier<StringResourceWriter> myStringResourceWriterFactory;
 
   @VisibleForTesting
-  StringResourceViewPanel(
+  public StringResourceViewPanel(
     @NotNull AndroidFacet facet,
     @NotNull Disposable parentDisposable,
     @NotNull Supplier<StringResourceWriter> stringResourceWriterFactory

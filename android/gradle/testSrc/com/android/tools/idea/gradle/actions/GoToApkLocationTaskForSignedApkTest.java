@@ -76,7 +76,7 @@ public class GoToApkLocationTaskForSignedApkTest extends HeavyPlatformTestCase {
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(buildsToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants) {
       @Override
-      boolean isShowFilePathActionSupported() {
+      public boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
       }
     };

@@ -81,8 +81,8 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
     return extendedActions;
   }
 
-  static class AndroidReRunSyncFilter extends GradleReRunBuildFilter {
-    AndroidReRunSyncFilter(@NotNull String projectPath) {
+  public static class AndroidReRunSyncFilter extends GradleReRunBuildFilter {
+    public AndroidReRunSyncFilter(@NotNull String projectPath) {
       super(projectPath);
     }
 
