@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-final class DeviceSupplier {
+public final class DeviceSupplier {
   @NotNull
   private final Supplier<DeviceManagerConnection> myGetDefaultDeviceManagerConnection;
 
@@ -37,7 +37,7 @@ final class DeviceSupplier {
   }
 
   @VisibleForTesting
-  DeviceSupplier(@NotNull Supplier<DeviceManagerConnection> getDefaultDeviceManagerConnection) {
+  public DeviceSupplier(@NotNull Supplier<DeviceManagerConnection> getDefaultDeviceManagerConnection) {
     myGetDefaultDeviceManagerConnection = getDefaultDeviceManagerConnection;
   }
 

@@ -463,7 +463,7 @@ public class ChooseSystemImagePanel extends JPanel
   }
 
   @VisibleForTesting
-  enum SystemImageClassification {
+  public enum SystemImageClassification {
     RECOMMENDED,
     PERFORMANT,
     OTHER,
