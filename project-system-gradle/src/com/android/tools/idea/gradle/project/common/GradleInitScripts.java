@@ -70,7 +70,7 @@ public class GradleInitScripts {
 
   @NonInjectable
   @VisibleForTesting
-  GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
+  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;
   }
@@ -179,7 +179,7 @@ public class GradleInitScripts {
   }
 
   @VisibleForTesting
-  static class ContentCreator {
+  public static class ContentCreator {
     @NotNull private final AndroidStudioToolingPluginJars myAndroidStudioToolingPluginJars;
 
     ContentCreator() {
@@ -297,7 +297,7 @@ public class GradleInitScripts {
   }
 
   @VisibleForTesting
-  static class AndroidStudioToolingPluginJars {
+  public static class AndroidStudioToolingPluginJars {
     @NotNull
     List<String> getJarPaths() {
       return Stream.of(

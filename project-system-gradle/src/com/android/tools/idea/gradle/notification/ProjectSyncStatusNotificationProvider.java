@@ -95,7 +95,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
 
   @VisibleForTesting
   @NotNull
-  NotificationPanel.Type notificationPanelType() {
+  public NotificationPanel.Type notificationPanelType() {
     if (!(myProjectSystem instanceof GradleProjectSystem) || shouldHideBanner()) {
       return NotificationPanel.Type.NONE;
     }
@@ -125,8 +125,8 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
   }
 
   @VisibleForTesting
-  static class NotificationPanel extends EditorNotificationPanel {
-    enum Type {
+  public static class NotificationPanel extends EditorNotificationPanel {
+    public enum Type {
       NONE() {
         @Override
         @Nullable

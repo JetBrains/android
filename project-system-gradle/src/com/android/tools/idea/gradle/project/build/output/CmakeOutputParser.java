@@ -190,7 +190,7 @@ public class CmakeOutputParser implements BuildOutputParser {
   }
 
   @VisibleForTesting
-  static ErrorFields matchErrorFileAndLineNumberErrorParts(
+  public static ErrorFields matchErrorFileAndLineNumberErrorParts(
     @NonNull Matcher matcher, @NonNull String line) {
     ErrorFields
       fields = new ErrorFields();
@@ -217,7 +217,7 @@ public class CmakeOutputParser implements BuildOutputParser {
     return fields;
   }
 
-  static class ErrorFields {
+  public static class ErrorFields {
     MessageEvent.Kind kind;
     int lineNumber;
     int columnNumber;

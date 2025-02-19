@@ -1378,4 +1378,4 @@ internal class DeviceClientRegistry : Disposable {
   }
 }
 
-private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
+private fun <K  : Any, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }

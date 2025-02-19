@@ -25,9 +25,9 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.sdk.AndroidSdkPath;
 import com.android.tools.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -44,9 +44,9 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -284,7 +284,7 @@ public class SdkSyncImpl implements SdkSync {
   }
 
   @VisibleForTesting
-  static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
+  public static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
     @Nullable
     File selectValidSdkPath(@Nullable Project project) {
       Ref<File> pathRef = new Ref<>();

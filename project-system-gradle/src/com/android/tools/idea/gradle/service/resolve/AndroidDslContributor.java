@@ -481,7 +481,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
    * such as {@code Action<NamedDomainObject<X>>}.
    */
   @VisibleForTesting
-  static class ParametrizedTypeExtractor {
+  public static class ParametrizedTypeExtractor {
     private static final String GRADLE_ACTION = "org.gradle.api.Action";
     private static final Pattern GRADLE_ACTION_PATTERN = Pattern.compile(Pattern.quote(GRADLE_ACTION) + "<([^<>]+)(?:<([^<>]+)>)?>");
     private static final String KOTLIN_FUNCTION1 = "kotlin.jvm.functions.Function1";
