@@ -30,7 +30,6 @@ import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -524,15 +523,6 @@ public class QuerySyncProject {
     return snapshotPath.map(path -> !path.resolve(workspaceRelative).toFile().exists());
   }
 
-  /** Returns all external dependencies of a given label */
-  public ImmutableSet<Label> externalDependenciesFor(Label label) {
-    return snapshotHolder
-        .getCurrent()
-        .map(QuerySyncProjectSnapshot::graph)
-        .map(graph -> graph.getTransitiveExternalDependencies(label))
-        .orElse(ImmutableSet.of());
-  }
-
   private void writeToDisk(QuerySyncProjectSnapshot snapshot) throws IOException {
     try (AtomicFileWriter writer = AtomicFileWriter.create(snapshotFilePath)) {
       try (OutputStream zip = new GZIPOutputStream(writer.getOutputStream())) {
@@ -583,5 +573,14 @@ public class QuerySyncProject {
         .putAll(artifactStore.getBugreportFiles())
         .putAll(buildArtifactCache.getBugreportFiles())
         .build();
+  }
+
+  // TODO: b/397649793 - Remove this method when fixed.
+  public boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label target, ImmutableSet<Label> deps) {
+    return snapshotHolder
+      .getCurrent()
+      .map(QuerySyncProjectSnapshot::graph)
+      .map(graph -> graph.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps))
+      .orElse(false);
   }
 }

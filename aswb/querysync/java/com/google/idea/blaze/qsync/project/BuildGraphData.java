@@ -289,6 +289,25 @@ public abstract class BuildGraphData {
     return false;
   }
 
+  // TODO: b/397649793 - Remove this method when fixed.
+  public boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label projectTarget, ImmutableSet<Label> deps) {
+    ImmutableList<Label> projectTargetSingleton = ImmutableList.of(projectTarget);
+    final var queue = new ArrayDeque<Label>(projectTargetSingleton);
+    final var seen = new HashSet<>(projectTargetSingleton);
+    while (!queue.isEmpty()) {
+      final var target = queue.remove();
+      if (deps.contains(target)) {
+        return true;
+      }
+      final var targetInfo = targetMap().get(target);
+      if (targetInfo == null) {
+        continue;
+      }
+      queue.addAll(targetInfo.deps().stream().filter(seen::add).toList());
+    }
+    return false;
+  }
+
   private record TargetSearchNode(Label targetLabel, boolean hasDesiredRule) {}
 
   public ImmutableSet<Path> getTargetSources(Label target, SourceType... types) {
