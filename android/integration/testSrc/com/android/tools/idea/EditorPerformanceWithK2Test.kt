@@ -32,7 +32,6 @@ class EditorPerformanceWithK2Test {
 
   @Test
   fun testCompletionAndGotoDeclarationK2() {
-    system.installation.addVmOption("-Didea.kotlin.plugin.use.k2=true")
     doTestCompletionAndGotoDeclaration(system, watcher)
   }
 }
