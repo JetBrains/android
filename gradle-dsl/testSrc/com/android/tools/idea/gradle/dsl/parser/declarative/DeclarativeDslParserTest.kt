@@ -187,10 +187,12 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
   fun testListOfFunction() {
     val file = """
     androidApp {
-      installOptions = listOf("ab", "cd")
+      adbOptions{
+        installOptions = listOf("ab", "cd")
+      }
     }
     """.trimIndent()
-    val expected = mapOf("androidApp" to mapOf("installOptions" to listOf("ab", "cd")))
+    val expected = mapOf("androidApp" to mapOf("adbOptions" to mapOf("mInstallOptions" to listOf("ab", "cd"))))
     doTest(file, expected)
   }
 
@@ -200,7 +202,7 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
       dynamicFeatures = setOf(":f1", ":f2")
     }
     """.trimIndent()
-    val expected = mapOf("androidApp" to mapOf("dynamicFeatures" to listOf(":f1", ":f2")))
+    val expected = mapOf("androidApp" to mapOf("mDynamicFeatures" to listOf(":f1", ":f2")))
     doTest(file, expected)
   }
 

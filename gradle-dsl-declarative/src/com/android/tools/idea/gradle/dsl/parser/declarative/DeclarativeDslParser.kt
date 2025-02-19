@@ -29,12 +29,10 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -47,7 +45,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.dsl.parser.isDomainObjectConfiguratorMethodName
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 
@@ -133,7 +130,7 @@ class DeclarativeDslParser(
                 if (name != null && arg != null && arg is DeclarativeLiteral)
                   arg.value?.let {
                     GradleDslLiteral(context, factoryElement, GradleNameElement.from(factoryElement.identifier, this@DeclarativeDslParser), arg, LITERAL).also {
-                      it.externalSyntax = ExternalNameInfo.ExternalNameSyntax.METHOD
+                      it.externalSyntax = ExternalNameSyntax.METHOD
                       it.setElementType(PropertyType.REGULAR)
                       expression.addParsedElement(it)
                     }
@@ -145,7 +142,7 @@ class DeclarativeDslParser(
         }
         override fun visitLiteral(psi: DeclarativeLiteral) {
           val newLiteral = GradleDslLiteral(context, psi.parent, nameElement, psi, LITERAL).also {
-            it.externalSyntax = ASSIGNMENT
+            if(!nameElement.isEmpty) it.externalSyntax = ASSIGNMENT
           }
           context.addParsedElement(newLiteral)
         }
@@ -230,6 +227,7 @@ class DeclarativeDslParser(
                            currentNameElement: GradleNameElement): GradleDslExpression? {
     val name = psi.identifier.name ?: return null
 
+    val externalSyntax = if (!currentNameElement.isEmpty) ASSIGNMENT else null
     val nameElement = if (currentNameElement.isEmpty)
       GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)
     else
@@ -240,7 +238,7 @@ class DeclarativeDslParser(
       getMethodCall(context, psi, nameElement, name, null)
     }
     else {
-      getCallExpression(context, psi, nameElement, argumentList, name)
+      getCallExpression(context, psi, nameElement, argumentList, name, externalSyntax)
     }
   }
 
@@ -268,10 +266,15 @@ class DeclarativeDslParser(
     psiElement : PsiElement,
     name : GradleNameElement,
     argumentsList : DeclarativeArgumentsList,
-    methodName : String
+    methodName : String,
+    externalsSyntax: ExternalNameSyntax?
   ) : GradleDslExpression {
     return when (methodName) {
-      "listOf", "mutableListOf", "setOf", "mutableSetOf" -> getExpressionList(context, psiElement, name, argumentsList.arguments)
+      "listOf", "mutableListOf", "setOf", "mutableSetOf" -> {
+        val expression = getExpressionList(context, psiElement, name, argumentsList.arguments)
+        if (externalsSyntax != null) expression.externalSyntax = externalsSyntax
+        expression
+      }
       else -> getMethodCall(context, psiElement, name, methodName, argumentsList)
     }
   }

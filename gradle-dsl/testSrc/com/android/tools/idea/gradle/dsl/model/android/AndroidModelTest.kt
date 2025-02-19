@@ -105,7 +105,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
-    if(!isGradleDeclarative) assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
