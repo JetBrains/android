@@ -291,9 +291,9 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class SetTargetAction extends ConfigurationAction {
+  public static class SetTargetAction extends ConfigurationAction {
     @VisibleForTesting
-    final IAndroidTarget myTarget;
+    public final IAndroidTarget myTarget;
     private final String myTitle;
     private final boolean myDefaultSelectable;
 

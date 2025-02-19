@@ -274,7 +274,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
   }
 
-  static abstract class StudioCommandLink implements CommandLink {
+  public static abstract class StudioCommandLink implements CommandLink {
     private final String myCommandName;
     private final PsiFile myFile;
 

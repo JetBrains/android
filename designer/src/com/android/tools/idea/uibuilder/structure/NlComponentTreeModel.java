@@ -28,14 +28,14 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class NlComponentTreeModel implements TreeModel {
+public final class NlComponentTreeModel implements TreeModel {
   private final NlComponent myRoot;
 
   NlComponentTreeModel() {
     myRoot = null;
   }
 
-  NlComponentTreeModel(@NotNull NlModel model) {
+  public NlComponentTreeModel(@NotNull NlModel model) {
     List<NlComponent> components = model.getTreeReader().getComponents();
     myRoot = components.isEmpty() ? null : components.get(0);
   }

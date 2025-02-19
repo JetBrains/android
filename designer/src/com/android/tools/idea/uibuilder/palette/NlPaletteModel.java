@@ -79,7 +79,7 @@ public class NlPaletteModel implements Disposable {
   private boolean myDisposed;
 
   @VisibleForTesting
-  static final String PROJECT_GROUP = "Project";
+  public static final String PROJECT_GROUP = "Project";
 
   /**
    * {@link Function} that returns all the classes within the project scope that inherit from android.view.View

@@ -2612,7 +2612,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
    * running will block until the first call is complete.
    */
   @VisibleForTesting
-  static class RunOnceInitializer implements Runnable {
+  public static class RunOnceInitializer implements Runnable {
     private final Supplier<Void> myInitializer;
 
     public RunOnceInitializer(Runnable initializer) {

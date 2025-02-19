@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import com.google.common.annotations.VisibleForTesting;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Enumeration;
 import java.util.List;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Finds at after which row of a JTree the component being dragged will be inserted.
  */
-class NlDropInsertionPicker {
+public class NlDropInsertionPicker {
 
   private final JTree myTree;
 
@@ -42,7 +42,7 @@ class NlDropInsertionPicker {
   }
 
   @VisibleForTesting
-  NlDropInsertionPicker(@NotNull JTree tree) {
+  public NlDropInsertionPicker(@NotNull JTree tree) {
     myTree = tree;
   }
 
@@ -259,12 +259,12 @@ class NlDropInsertionPicker {
     /**
      * Receiver of the dragged element
      */
-    NlComponent receiver;
+    public NlComponent receiver;
 
     /**
      * Next sibling of the dragged element
      */
-    NlComponent nextComponent;
+    public NlComponent nextComponent;
 
     /**
      * The depth relative the path represented by the first int.
@@ -274,12 +274,12 @@ class NlDropInsertionPicker {
      * <li>if the depth < 0, the insertion point will in one of the parent's ancestor. The level of the ancestor is defined by depth.</li>
      * <ul>
      */
-    int depth;
+    public int depth;
 
     /**
      * The row after which the new element will be inserted
      */
-    int row;
+    public int row;
 
     /**
      * If true, that means the insertion should be delegated to a {@link DelegatedTreeEventHandler}

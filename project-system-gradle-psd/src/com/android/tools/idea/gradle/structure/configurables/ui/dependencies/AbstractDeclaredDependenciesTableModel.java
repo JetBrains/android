@@ -114,7 +114,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
     return myContext;
   }
 
-  static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsBaseDependency> {
+  public static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsBaseDependency> {
     @NotNull private final PsBaseDependency myDependency;
     @NotNull private final PsContext myContext;
 

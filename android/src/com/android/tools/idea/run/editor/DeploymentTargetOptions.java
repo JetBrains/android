@@ -36,7 +36,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-final class DeploymentTargetOptions {
+public final class DeploymentTargetOptions {
   @NotNull
   private final List<DeployTargetProvider> myProviders;
 
