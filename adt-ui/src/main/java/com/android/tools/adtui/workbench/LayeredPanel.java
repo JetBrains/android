@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
-class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
+public class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
   private final String myBenchName;
   private final PropertiesComponent myPropertiesComponent;
   private final ThreeComponentsSplitter mySplitter;
