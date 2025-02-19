@@ -76,7 +76,7 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
   }
 
   @VisibleForTesting
-  static final class Merge implements FutureCallback<Collection<Skin>> {
+  public static final class Merge implements FutureCallback<Collection<Skin>> {
     @NotNull
     private final SkinComboBoxModel myModel;
 

@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class SkinComboBoxProperty extends OptionalProperty<Path> {
+public final class SkinComboBoxProperty extends OptionalProperty<Path> {
   @NotNull
   private final SkinComboBox myComboBox;
 
