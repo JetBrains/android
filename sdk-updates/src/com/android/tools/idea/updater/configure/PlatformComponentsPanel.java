@@ -62,9 +62,9 @@ public class PlatformComponentsPanel {
   private boolean myModified;
 
   @VisibleForTesting
-  UpdaterTreeNode myPlatformDetailsRootNode;
+  public UpdaterTreeNode myPlatformDetailsRootNode;
   @VisibleForTesting
-  UpdaterTreeNode myPlatformSummaryRootNode;
+  public UpdaterTreeNode myPlatformSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 

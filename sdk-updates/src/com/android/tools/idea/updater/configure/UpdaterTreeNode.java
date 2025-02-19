@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A tree node with a checkbox that can have three states.
  */
-abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode>, SdkUpdaterConfigPanel.MultiStateRow {
+public abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode>, SdkUpdaterConfigPanel.MultiStateRow {
   /**
    * @return The initial state of this node (representing the current state of the SDK).
    */
