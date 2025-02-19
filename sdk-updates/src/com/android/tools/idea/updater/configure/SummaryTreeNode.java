@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * checking/unchecking this node is taken from and applies to children where {@code includeInSummary()} is true. The revision
  * number will be taken from a child where {@code isPrimary()} is true.
  */
-class SummaryTreeNode extends UpdaterTreeNode {
+public class SummaryTreeNode extends UpdaterTreeNode {
   private AndroidVersion myVersion;
   private Set<UpdaterTreeNode> myAllChildren;
   private Set<UpdaterTreeNode> myIncludedChildren = Sets.newHashSet();

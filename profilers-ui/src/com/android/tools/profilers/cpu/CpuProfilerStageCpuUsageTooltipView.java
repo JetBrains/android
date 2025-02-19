@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
  */
-class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
+public class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
   @NotNull private final CpuProfilerStageCpuUsageTooltip myTooltip;
   @NotNull private final JLabel mySelectionLabel;
 

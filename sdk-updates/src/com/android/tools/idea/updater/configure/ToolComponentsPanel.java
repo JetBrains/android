@@ -84,9 +84,9 @@ public class ToolComponentsPanel {
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
 
   @VisibleForTesting
-  UpdaterTreeNode myToolsDetailsRootNode;
+  public UpdaterTreeNode myToolsDetailsRootNode;
   @VisibleForTesting
-  UpdaterTreeNode myToolsSummaryRootNode;
+  public UpdaterTreeNode myToolsSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
@@ -100,7 +100,7 @@ public class ToolComponentsPanel {
   }
 
   @VisibleForTesting
-  ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+  public ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());

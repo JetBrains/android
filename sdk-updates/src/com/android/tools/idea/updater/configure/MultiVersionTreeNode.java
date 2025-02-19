@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * is installed, updatable if only non-latest versions are installed, or not installed if no versions are installed. Selecting it to be
  * installed will install the most recent version.
  */
-class MultiVersionTreeNode extends UpdaterTreeNode {
+public class MultiVersionTreeNode extends UpdaterTreeNode {
   private final DetailsTreeNode myMaxVersionNode;
   private final Collection<DetailsTreeNode> myVersionNodes;
 

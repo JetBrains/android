@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A tree node used in {@link SdkUpdaterConfigurable}. Represents a summary view of several packages.
  */
-class ParentTreeNode extends UpdaterTreeNode {
+public class ParentTreeNode extends UpdaterTreeNode {
   private final AndroidVersion myVersion;
   private final String myTitle;
   private PackageNodeModel.SelectedState myInitialState;

@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a row in a table in {@link SdkUpdaterConfigurable} associated with a single package.
  * Can have three state: not installed, installed but with update available, and installed.
  */
-class DetailsTreeNode extends UpdaterTreeNode {
+public class DetailsTreeNode extends UpdaterTreeNode {
   private PackageNodeModel myModel;
   private final ChangeListener myChangeListener;
   private SdkUpdaterConfigurable myConfigurable;

@@ -52,7 +52,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
  * corresponding {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are the thread state changes.
  */
-final class CpuThreadsView {
+public final class CpuThreadsView {
   @NotNull
   private final HideablePanel myPanel;
   @NotNull

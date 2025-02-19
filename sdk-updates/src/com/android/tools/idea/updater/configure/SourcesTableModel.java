@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Table model representing the currently available {@link RepositorySource}s. Sources can be added, deleted, enabled, and disabled.
  */
-class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements EditableModel {
+public class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements EditableModel {
   /**
    * Sources originally loaded. Used to check whether any have been added or deleted.
    */
@@ -401,8 +401,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    * A row in our table.
    */
   @VisibleForTesting
-  class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
-    RepositorySource mySource;
+  public class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
+    public RepositorySource mySource;
     boolean myOriginalEnabled;
     String myOriginalName;
 
