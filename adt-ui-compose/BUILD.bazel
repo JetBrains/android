@@ -29,7 +29,8 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-242",
     "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
   ],
-  runtime_deps = ["@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-9"]
+  runtime_deps = ["@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-9"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -55,7 +56,8 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
     "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
     "@lib//:jewel-ide-laf-bridge",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(
