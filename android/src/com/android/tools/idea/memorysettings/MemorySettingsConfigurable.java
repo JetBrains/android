@@ -116,7 +116,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     myComponent = null;
   }
 
-  static class MyComponent {
+  public static class MyComponent {
     private static final int MIN_IDE_XMX = 1024;
     private static final int DEFAULT_IDE_XMX = 2048;
     private static final int SIZE_INCREMENT = 1024;

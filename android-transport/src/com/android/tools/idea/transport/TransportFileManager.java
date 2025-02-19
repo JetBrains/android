@@ -37,7 +37,6 @@ import com.android.tools.profiler.proto.Transport;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -127,7 +126,8 @@ public final class TransportFileManager implements TransportFileCopier {
     return Logger.getInstance(TransportFileManager.class);
   }
 
-  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  @VisibleForTesting
+  public static final String DEVICE_DIR = "/data/local/tmp/perfd/";
   private static final String CODE_CACHE_DIR = "code_cache";
   private static final String DAEMON_CONFIG_FILE = "daemon.config";
   private static final String AGENT_CONFIG_FILE = "agent.config";
