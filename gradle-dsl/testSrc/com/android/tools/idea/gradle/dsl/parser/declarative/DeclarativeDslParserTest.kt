@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -183,6 +184,26 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     doSettingsTest(file, expected)
   }
 
+  fun testListOfFunction() {
+    val file = """
+    androidApp {
+      installOptions = listOf("ab", "cd")
+    }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("installOptions" to listOf("ab", "cd")))
+    doTest(file, expected)
+  }
+
+  fun testSetOfFunction() {
+    val file = """
+    androidApp {
+      dynamicFeatures = setOf(":f1", ":f2")
+    }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("dynamicFeatures" to listOf(":f1", ":f2")))
+    doTest(file, expected)
+  }
+
   fun testAssignment(){
     val file = """
       rootProject.name = "someName"
@@ -221,13 +242,16 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
           element.currentElements.forEach { list.add(populate(it)) }
           list
         }
-
+        is GradleDslExpressionList -> {
+          val list = LinkedList<Any>()
+          element.currentElements.forEach { list.add(populate(it)) }
+          list
+        }
         is GradlePropertiesDslElement -> {
           val newMap = LinkedHashMap<String, Any>()
           element.currentElements.forEach { newMap[it.name] = populate(element.getElement(it.name)) }
           newMap
         }
-
         is GradleDslMethodCall -> {
           val newList = LinkedList<Any>()
           element.arguments.forEach {

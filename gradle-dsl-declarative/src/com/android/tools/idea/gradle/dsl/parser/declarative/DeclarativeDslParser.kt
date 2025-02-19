@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
@@ -24,14 +25,18 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -42,6 +47,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.isDomainObjectConfiguratorMethodName
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 
@@ -221,22 +227,65 @@ class DeclarativeDslParser(
 
   private fun parseFactory(psi: DeclarativeFactoryReceiver,
                            context: GradlePropertiesDslElement,
-                           currentNameElement: GradleNameElement): GradleDslMethodCall? {
+                           currentNameElement: GradleNameElement): GradleDslExpression? {
     val name = psi.identifier.name ?: return null
 
     val nameElement = if (currentNameElement.isEmpty)
       GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)
     else
       currentNameElement
-    val methodCall = GradleDslMethodCall(context, psi, nameElement, name, false)
 
-    val argumentList = psi.argumentsList ?: return null
+    val argumentList = psi.argumentsList
+    return if (argumentList == null) {
+      getMethodCall(context, psi, nameElement, name, null)
+    }
+    else {
+      getCallExpression(context, psi, nameElement, argumentList, name)
+    }
+  }
+
+  private fun getMethodCall(
+    context: GradlePropertiesDslElement,
+    psiElement: PsiElement,
+    name: GradleNameElement,
+    methodName: String,
+    argumentList: DeclarativeArgumentsList?,
+  ): GradleDslMethodCall {
+    val methodCall = GradleDslMethodCall(context, psiElement, name, methodName, false)
+    if (argumentList == null) return methodCall
+
     val arguments = GradleDslExpressionList(methodCall, argumentList, false, GradleNameElement.empty())
     argumentList.arguments.forEach {
       it.accept(getFunctionParametersVisitor(arguments, context))
     }
-
     methodCall.setParsedArgumentList(arguments)
+
     return methodCall
+  }
+
+  private fun getCallExpression(
+    context: GradlePropertiesDslElement,
+    psiElement : PsiElement,
+    name : GradleNameElement,
+    argumentsList : DeclarativeArgumentsList,
+    methodName : String
+  ) : GradleDslExpression {
+    return when (methodName) {
+      "listOf", "mutableListOf", "setOf", "mutableSetOf" -> getExpressionList(context, psiElement, name, argumentsList.arguments)
+      else -> getMethodCall(context, psiElement, name, methodName, argumentsList)
+    }
+  }
+
+  private fun getExpressionList(
+    context: GradlePropertiesDslElement,
+    listPsiElement: PsiElement,
+    propertyName: GradleNameElement,
+    valueArguments: List<DeclarativeValue>
+  ): GradleDslExpressionList {
+    val expressionList = GradleDslExpressionList(context, listPsiElement, false, propertyName)
+    valueArguments.forEach {
+      it.accept(getFunctionParametersVisitor(expressionList, context))
+    }
+    return expressionList
   }
 }
