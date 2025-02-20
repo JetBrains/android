@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_PLUS_EQ
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.intellij.openapi.util.text.StringUtil
@@ -89,14 +91,16 @@ class PsiImplUtil {
       assignment.assignableProperty.field
 
     @JvmStatic
-    fun getAssignmentType(assignment: DeclarativeAssignment): AssignmentType =
-      assignment.children.getOrNull(1)?.let{
-         when (it.text){
-          "=" -> AssignmentType.ASSIGNMENT
-          "+=" -> AssignmentType.APPEND
-           else -> throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
-        }
-      } ?: throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
+    fun getAssignmentType(assignment: DeclarativeAssignment): AssignmentType {
+      val children = assignment.children
+      return if (children.find { it.elementType == OP_PLUS_EQ } != null)
+        AssignmentType.APPEND
+      else if (children.find { it.elementType == OP_EQ } != null)
+        AssignmentType.ASSIGNMENT
+      else {
+        throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
+      }
+    }
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =

@@ -195,6 +195,15 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(assignment).isNotNull()
     assertThat(assignment).isInstanceOf(DeclarativeAssignment::class.java)
     assertThat(assignment.text).isEqualTo("key = \"value\"")
+    assertThat(assignment.assignmentType).isEqualTo(AssignmentType.ASSIGNMENT)
+  }
+
+  fun testAppendAssignment() {
+    val assignment = DeclarativePsiFactory(project).createAppendAssignment("key", "\"value\"")
+    assertThat(assignment).isNotNull()
+    assertThat(assignment).isInstanceOf(DeclarativeAssignment::class.java)
+    assertThat(assignment.text).isEqualTo("key += \"value\"")
+    assertThat(assignment.assignmentType).isEqualTo(AssignmentType.APPEND)
   }
 
   fun testEscapeAssignment() {

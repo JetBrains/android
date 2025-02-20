@@ -115,6 +115,11 @@ class DeclarativePsiFactory(private val project: Project) {
     return createFromText("$id = $value") ?: error("Failed to create DeclarativeAssignment `$id = $value`")
   }
 
+  fun createAppendAssignment(key: String, value: Any): DeclarativeAssignment {
+    val id = key.maybeAddBackticks()
+    return createFromText("$id += $value") ?: error("Failed to create DeclarativeAssignment `$id = $value`")
+  }
+
   fun createArgumentList(): DeclarativeArgumentsList {
     val list: DeclarativeArgumentsList = createFromText("function(placeholder)") ?: error("Failed to create DeclarativeArgumentsList")
     list.argumentList.clear()
