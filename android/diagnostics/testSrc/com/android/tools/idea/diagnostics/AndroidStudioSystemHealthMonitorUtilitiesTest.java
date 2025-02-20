@@ -18,12 +18,15 @@ package com.android.tools.idea.diagnostics;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
-import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.DefaultIdeaErrorLogger;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.testFramework.LightPlatformTestCase;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidStudioSystemHealthMonitorUtilitiesTest extends LightPlatformTestCase {
@@ -45,15 +48,16 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends LightPlatform
   }
 
   // Regression test for b/130834409.
+  @SuppressWarnings("UnstableApiUsage")
   public void testAndroidErrorSubmitter() {
     // Our error submitter should be registered.
-    assertThat(IdeErrorsDialog.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class)).isNotNull();
+    assertThat(ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class)).isNotNull();
     // Platform exceptions should be handled by our error submitter.
     RuntimeException exception = new RuntimeException();
-    assertThat(IdeErrorsDialog.getSubmitter(exception, /*pluginId*/ null)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+    assertThat(DefaultIdeaErrorLogger.findSubmitter(exception, /*pluginId*/ null)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
     // Ditto for plugin exceptions (at least for our own plugins).
-    PluginId androidPlugin = PluginId.getId("org.jetbrains.android");
-    assertThat(IdeErrorsDialog.getSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+    var androidPlugin = Objects.requireNonNull(PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android")));
+    assertThat(DefaultIdeaErrorLogger.findSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
   }
 }
 
