@@ -26,7 +26,10 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
@@ -46,6 +49,9 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
@@ -66,15 +72,23 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val psiElementOfParent = parent.create() ?: return null
     val parentPsiElement = when (psiElementOfParent) {
       is DeclarativeBlock -> psiElementOfParent.blockGroup
+      is DeclarativeSimpleFactory -> psiElementOfParent.argumentsList ?: psiElementOfParent
       else -> psiElementOfParent
     }
-
     val project = parentPsiElement.project
     val factory = DeclarativePsiFactory(project)
     val name = getNameTrimmedForParent(element)
     val externalNameInfo = maybeTrimForParent(element, this)
+    val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
+    element.externalSyntax = syntax
     val psiElement = when (element) {
       is GradleDslInfixExpression -> factory.createPrefixedFactory()
+      is GradleDslExpressionList ->
+        when (syntax) {
+          ASSIGNMENT -> factory.createAssignment(name, "\"placeholder\"")
+          AUGMENTED_ASSIGNMENT -> factory.createAppendAssignment(name, "\"placeholder\"")
+          else -> null
+        }
       is GradleDslLiteral ->
         if (parentPsiElement is DeclarativeArgumentsList)
           factory.createArgument(factory.createLiteral(element.value))
@@ -84,6 +98,9 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
           // this is only for id("").value("") with restriction to one parameter function call chain
           val literal = factory.createLiteral(element.value)
           factory.createOneParameterFactory(element.name, literal.text)
+        } else if (parent is GradleDslExpressionList && parentPsiElement is DeclarativeSimpleFactory) {
+          // when listOf("argument") argument is being created
+          factory.createArgument(factory.createLiteral(element.value))
         } else // default syntax
           factory.createAssignment(name, "\"placeholder\"")
       is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
@@ -200,7 +217,30 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     methodCall.argumentsElement.applyChanges()
   }
 
-  override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
+  override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? {
+    val element = expressionList.psiElement
+    if (element != null) return element
+
+    val psiElement = createDslElement(expressionList) ?: return null
+    val factoryName = getExpressionListFactoryName(expressionList)
+    val parent = psiElement.parent
+    if (parent is DeclarativeAssignment) {
+      val emptyList = DeclarativePsiFactory(psiElement.project).createFactory(factoryName)
+      val insertedElement = psiElement.replace(emptyList)
+      expressionList.psiElement = insertedElement
+    }
+    expressionList.expressions.forEach { it.create() }
+    return expressionList.psiElement
+  }
+
+  private fun getExpressionListFactoryName(expressionList: GradleDslExpressionList) =
+    when (expressionList.modelProperty?.type) {
+      MUTABLE_LIST -> "listOf"
+      MUTABLE_MAP -> "mapOf"
+      MUTABLE_SET -> "setOf"
+      else -> "listOf"
+    }
+
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
 
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = maybeUpdateName(expressionMap)

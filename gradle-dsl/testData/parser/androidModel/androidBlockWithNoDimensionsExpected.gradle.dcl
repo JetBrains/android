@@ -1,0 +1,3 @@
+androidApp {
+  flavorDimensions += listOf("strawberry")
+}

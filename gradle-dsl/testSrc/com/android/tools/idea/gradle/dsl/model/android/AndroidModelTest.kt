@@ -365,8 +365,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithNoDimensions() {
-    // TODO fix for declarative as soon as got collection properties
-    isIrrelevantForDeclarative("no flavorDimensions in declarative do far")
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
