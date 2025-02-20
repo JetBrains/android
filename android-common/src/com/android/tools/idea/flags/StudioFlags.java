@@ -2134,13 +2134,13 @@ public final class StudioFlags {
     new MendelFlag(STUDIOBOT, "current.file.context", 97694800,
                    "Use the current file as context",
                    "Attach the current file's path, contents, and selection with chat queries.",
-                   enabledUpTo(DEV));
+                   enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_OPEN_FILES_CONTEXT =
+  public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
-                    "Use the currently open files as context",
-                    "Attach the currently open files' paths and contents with chat queries.",
-                    false);
+                    "Use the most recently opened files as context",
+                    "Attach the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
