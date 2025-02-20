@@ -579,6 +579,19 @@ public class AndroidStudio extends Ide {
   }
 
   /**
+   * Command types text with some delay between typing.
+   *
+   * @param project optional project name
+   * @param delayMs delay between typing characters in milliseconds
+   * @param text text to type
+   */
+  public void delayType(@Nullable String project,
+                        int delayMs,
+                        @NotNull final String text) {
+    executeCommand(String.format("%%delayType %d|%s|false|false", delayMs, text), project);
+  }
+
+  /**
    * Triggers find usages action with the popup and asserts that the usage from the specific file and line is presented.
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.FindUsagesCommand
    * @param isWarmup should the metric entries describing this call be marked as warmup
