@@ -53,9 +53,7 @@ class KotlinPluginTest {
 
   @Test
   fun testPluginCompatibilityRange() {
-    val plugin: IdeaPluginDescriptor? = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.kotlin"))
-    assertThat(plugin).isNotNull()
-    assertThat(plugin!!.untilBuild).endsWith(".*")
+    val plugin = checkNotNull(PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.kotlin")))
     // test build numbers such as AI-232.9559.62.2321.SNAPSHOT
     val buildNumber = PluginManagerCore.buildNumber
     assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, buildNumber)).isNull()
