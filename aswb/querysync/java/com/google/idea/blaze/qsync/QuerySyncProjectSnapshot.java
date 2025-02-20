@@ -15,11 +15,14 @@
  */
 package com.google.idea.blaze.qsync;
 
-import autovalue.shaded.com.google.common.collect.Sets;
+import static com.google.common.base.Predicates.or;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.BuildTarget;
@@ -27,7 +30,6 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.deps.ArtifactIndex;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
-import com.google.idea.blaze.qsync.project.PendingExternalDeps;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
@@ -36,6 +38,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /**
@@ -72,14 +75,6 @@ public abstract class QuerySyncProjectSnapshot {
   public abstract ProjectProto.Project project();
 
   public abstract ImmutableSet<Label> incompleteTargets();
-
-  @Memoized
-  public PendingExternalDeps<Label> pendingExternalDeps() {
-    return new PendingExternalDeps<>(
-        graph().transitiveExternalDeps(),
-        Sets.difference(artifactState().deprecatedSyncedTargetKeys(), incompleteTargets()),
-        graph()::getDependencyTrackingBehaviors);
-  }
 
   public static Builder builder() {
     return new AutoValue_QuerySyncProjectSnapshot.Builder().incompleteTargets(ImmutableSet.of());
@@ -140,10 +135,25 @@ public abstract class QuerySyncProjectSnapshot {
    * @param projectTargets The set of project targets which include a given source file.
    */
   public Set<Label> getPendingExternalDeps(Set<Label> projectTargets) {
-    return projectTargets.stream()
-        .map(pendingExternalDeps()::get)
+    Set<Label> syncedTargets = artifactState().deprecatedSyncedTargetKeys();
+    Set<Label> incompleteTargets = incompleteTargets();
+    ImmutableMap<Label, ImmutableSet<Label>> byTarget = projectTargets.stream()
+      .collect(
+        toImmutableMap(
+          Function.identity(),
+          it ->
+          {
+            BuildGraphData buildGraphData = graph();
+            return buildGraphData
+              .getExternalDependencies(ImmutableList.of(it))
+              .stream()
+              .filter(target -> !syncedTargets.contains(target) || incompleteTargets.contains(target))
+              .collect(toImmutableSet());
+          }
+        )
+      );
+    return byTarget.values().stream()
         .min(Comparator.comparingInt(Collection::size))
-        .map(Set.class::cast)
         .orElse(ImmutableSet.of());
   }
 
@@ -152,11 +162,6 @@ public abstract class QuerySyncProjectSnapshot {
     Preconditions.checkState(!workspaceRelativePath.isAbsolute(), workspaceRelativePath);
 
     return getPendingExternalDeps(getTargetOwners(workspaceRelativePath));
-  }
-
-  @VisibleForTesting
-  public QuerySyncProjectSnapshot withArtifactState(ArtifactTracker.State state) {
-    return toBuilder().artifactState(state).build();
   }
 
   /** Builder for {@link QuerySyncProjectSnapshot}. */

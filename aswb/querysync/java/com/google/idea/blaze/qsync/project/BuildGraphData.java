@@ -154,11 +154,6 @@ public abstract class BuildGraphData {
     return builder.build();
   }
 
-  @Memoized
-  public ExternalTransitiveClosure<Label> transitiveExternalDeps() {
-    return new ExternalTransitiveClosure(depsGraph(), projectDeps());
-  }
-
   /**
    * Calculates the set of direct reverse dependencies for a set of targets (including the targets
    * themselves).
@@ -320,12 +315,6 @@ public abstract class BuildGraphData {
         .collect(toImmutableSet());
   }
 
-  public ImmutableSet<ProjectTarget> targetsForKind(String kind) {
-    return targetMap().values().stream()
-        .filter(t -> t.kind().equals(kind))
-        .collect(toImmutableSet());
-  }
-
   @Override
   public final String toString() {
     // The default autovalue toString() implementation can result in a very large string which
@@ -394,12 +383,6 @@ public abstract class BuildGraphData {
         .flatMap(
             t -> t.sourceLabels().values().stream().map(src -> new SimpleEntry<>(src, t.label())))
         .collect(toImmutableSetMultimap(e -> e.getKey(), e -> e.getValue()));
-  }
-
-  // TODO: solodkyy - Delete this method. This is used in tests only to preserve some useful test code which will be used to test
-  // getExternalDependencies (non-transitive).
-  public ImmutableSet<Label> getTransitiveExternalDependencies(Collection<Label> targets) {
-    return targets.stream().flatMap(it -> transitiveExternalDeps().get(it).stream()).collect(toImmutableSet());
   }
 
   public ImmutableSet<Label> getSourceFileOwners(Path path) {
@@ -487,20 +470,6 @@ public abstract class BuildGraphData {
         .collect(toImmutableSet());
   }
 
-  public ImmutableSet<DependencyTrackingBehavior> getDependencyTrackingBehaviors(Label target) {
-    final var targetInfo = targetMap().get(target);
-    if (targetInfo == null) {
-      return ImmutableSet.of();
-    }
-    return getDependencyTrackingBehaviors(targetInfo);
-  }
-
-  private ImmutableSet<DependencyTrackingBehavior> getDependencyTrackingBehaviors(ProjectTarget target) {
-    return target.languages().stream()
-      .map(l -> l.dependencyTrackingBehavior)
-      .collect(toImmutableSet());
-  }
-
   private boolean getDependencyTrackingIncludeExternalDependencies(ProjectTarget target) {
     return target.languages().stream()
       .map(l -> l.dependencyTrackingBehavior)
@@ -559,20 +528,17 @@ public abstract class BuildGraphData {
   }
 
   /**
-   * Calculates the {@link RequestedTargets} for a project target.
-   *
-   * @return Requested targets. The {@link RequestedTargets#buildTargets()} will match the parameter
-   *     given; the {@link RequestedTargets#expectedDependencyTargets()} will be determined by the
-   *     {@link #getDependencyTrackingBehaviors(Label)} of the targets given.
+   * Traversed the dependency graph starting from {@code projectTargets} and returns the first level of dependencies which are either not in
+   * the project scope or must be built as they are not directly supported by the IDE.
    */
-  public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
+  public Set<Label> getExternalDependencies(Collection<Label> projectTargets) {
     final var externalDeps = new LinkedHashSet<Label>();
     final var seen = new HashSet<>(projectTargets);
     final var queue = new ArrayDeque<Label>(projectTargets);
     while (!queue.isEmpty()) {
       final var target = queue.remove();
       final var targetInfo = targetMap().get(target);
-      if (targetInfo == null) {
+      if (targetInfo == null || projectDeps().contains(target)) {
         // External dependency.
         externalDeps.add(target);
         continue;
@@ -582,6 +548,18 @@ public abstract class BuildGraphData {
         queue.addAll(targetInfo.deps().stream().filter(seen::add).toList());
       }
     }
+    return externalDeps;
+  }
+
+ /**
+   * Calculates the {@link RequestedTargets} for a project target.
+   *
+   * @return Requested targets. The {@link RequestedTargets#buildTargets()} will match the parameter
+   *     given; the {@link RequestedTargets#expectedDependencyTargets()} will be determined by the
+   *     {@link #getDependencyTrackingIncludeExternalDependencies(ProjectTarget)} of the targets given.
+   */
+  public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
+    final var externalDeps = getExternalDependencies(projectTargets);
     return new RequestedTargets(ImmutableSet.copyOf(projectTargets), ImmutableSet.copyOf(externalDeps));
   }
 }

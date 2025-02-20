@@ -80,27 +80,3 @@ java_test(
         "@maven//:com.google.guava.guava",
     ],
 )
-
-java_test(
-    name = "ExternalTransitiveClosureTest",
-    size = "small",
-    srcs = ["ExternalTransitiveClosureTest.java"],
-    deps = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/adt/idea/aswb/third_party/java/truth",
-        "@maven//:com.google.guava.guava",
-    ],
-)
-
-java_test(
-    name = "PendingExternalDepsTest",
-    size = "small",
-    srcs = ["PendingExternalDepsTest.java"],
-    deps = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/adt/idea/aswb/third_party/java/truth",
-        "@maven//:com.google.guava.guava",
-    ],
-)
