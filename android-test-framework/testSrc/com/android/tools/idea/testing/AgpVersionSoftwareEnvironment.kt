@@ -24,17 +24,14 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
 
-/**
- * An AGP Version definition to be used in AGP integration tests.
- */
+/** An AGP Version definition to be used in AGP integration tests. */
 interface AgpVersionSoftwareEnvironment {
-  /**
-   * The version of the AGP. `null` means the current `-dev` version.
-   */
+  /** The version of the AGP. `null` means the current `-dev` version. */
   val agpVersion: String?
 
   /**
-   * The version of Gradle to be used in integration tests for this AGP version. `null` means the latest/default version.
+   * The version of Gradle to be used in integration tests for this AGP version. `null` means the
+   * latest/default version.
    */
   val gradleVersion: String?
 
@@ -44,44 +41,30 @@ interface AgpVersionSoftwareEnvironment {
   val jdkVersion: JavaSdkVersion?
 
   /**
-   * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version. `null` means the default version used by
-   * Android Studio.
+   * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version.
+   * `null` means the default version used by Android Studio.
    */
   val kotlinVersion: String?
 
-  /**
-   * The compileSdk to use in this test. `null` means the project default.
-   */
+  /** The compileSdk to use in this test. `null` means the project default. */
   val compileSdk: String
 
-  /**
-   * The target sdk version to use in this test.
-   */
+  /** The target sdk version to use in this test. */
   val targetSdk: String?
 
-  /**
-   * Builder model version to query.
-   */
+  /** Builder model version to query. */
   val modelVersion: ModelVersion
 }
 
-/**
- * [AgpVersionSoftwareEnvironment] with all versions resolved.
- */
+/** [AgpVersionSoftwareEnvironment] with all versions resolved. */
 interface ResolvedAgpVersionSoftwareEnvironment : AgpVersionSoftwareEnvironment {
-  /**
-   * The version of the JDK to launch Gradle with.
-   */
+  /** The version of the JDK to launch Gradle with. */
   override val jdkVersion: JavaSdkVersion
 
-  /**
-   * The version of the AGP.
-   */
+  /** The version of the AGP. */
   override val agpVersion: String
 
-  /**
-   * The version of Gradle to be used in integration tests for this AGP version.
-   */
+  /** The version of Gradle to be used in integration tests for this AGP version. */
   override val gradleVersion: String
 
   /**
@@ -89,42 +72,87 @@ interface ResolvedAgpVersionSoftwareEnvironment : AgpVersionSoftwareEnvironment 
    */
   override val kotlinVersion: String
 
-  /**
-   * The compileSdk to use in this test. `null` means the project default.
-   */
+  /** The compileSdk to use in this test. `null` means the project default. */
   override val compileSdk: String
 
-  /**
-   * The target sdk version to use in this test.
-   */
+  /** The target sdk version to use in this test. */
   override val targetSdk: String
-
 }
 
-data class CustomAgpVersionSoftwareEnvironment constructor(
+data class CustomAgpVersionSoftwareEnvironment(
   override val agpVersion: String?,
   override val gradleVersion: String?,
   override val jdkVersion: JavaSdkVersion? = null,
   override val kotlinVersion: String? = null,
   override val compileSdk: String,
   override val targetSdk: String? = null,
-  override val modelVersion: ModelVersion = ModelVersion.V2
+  override val modelVersion: ModelVersion = ModelVersion.V2,
 ) : AgpVersionSoftwareEnvironment
 
-fun AgpVersionSoftwareEnvironment.withJdk(jdkVersion: JavaSdkVersion?): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+fun AgpVersionSoftwareEnvironment.withJdk(
+  jdkVersion: JavaSdkVersion?
+): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(
+    agpVersion,
+    gradleVersion,
+    jdkVersion,
+    kotlinVersion,
+    compileSdk,
+    targetSdk,
+    modelVersion,
+  )
 
-fun AgpVersionSoftwareEnvironment.withGradle(gradleVersion: String?): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+fun AgpVersionSoftwareEnvironment.withGradle(
+  gradleVersion: String?
+): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(
+    agpVersion,
+    gradleVersion,
+    jdkVersion,
+    kotlinVersion,
+    compileSdk,
+    targetSdk,
+    modelVersion,
+  )
 
-fun AgpVersionSoftwareEnvironment.withKotlin(kotlinVersion: String?): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+fun AgpVersionSoftwareEnvironment.withKotlin(
+  kotlinVersion: String?
+): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(
+    agpVersion,
+    gradleVersion,
+    jdkVersion,
+    kotlinVersion,
+    compileSdk,
+    targetSdk,
+    modelVersion,
+  )
 
-fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: String): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+fun AgpVersionSoftwareEnvironment.withCompileSdk(
+  compileSdk: String
+): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(
+    agpVersion,
+    gradleVersion,
+    jdkVersion,
+    kotlinVersion,
+    compileSdk,
+    targetSdk,
+    modelVersion,
+  )
 
-fun AgpVersionSoftwareEnvironment.withTargetSdk(targetSdk: String): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+fun AgpVersionSoftwareEnvironment.withTargetSdk(
+  targetSdk: String
+): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(
+    agpVersion,
+    gradleVersion,
+    jdkVersion,
+    kotlinVersion,
+    compileSdk,
+    targetSdk,
+    modelVersion,
+  )
 
 @JvmName("resolveAgpVersionSoftwareEnvironment")
 fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironment {
@@ -139,8 +167,10 @@ fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironme
   val modelVersion: ModelVersion = modelVersion
 
   val ideSdksJdk = IdeSdks.getInstance().jdk ?: error("IdeSdks.jdk is null")
-  val resolvedJdkVersion = jdkVersion
-    ?: ideSdksJdk.getJdkVersion() ?: error("Cannot obtain the JDK version of $ideSdksJdk")
+  val resolvedJdkVersion =
+    jdkVersion
+      ?: ideSdksJdk.getJdkVersion()
+      ?: error("Cannot obtain the JDK version of $ideSdksJdk")
 
   return object : ResolvedAgpVersionSoftwareEnvironment {
     override val agpVersion: String = gradlePluginVersion ?: buildEnvironment.gradlePluginVersion
