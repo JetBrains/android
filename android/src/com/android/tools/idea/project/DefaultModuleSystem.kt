@@ -21,7 +21,6 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
@@ -31,8 +30,6 @@ import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.CapabilityNotSupported
-import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyScopeType
@@ -42,7 +39,6 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -65,8 +61,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Computable
@@ -91,58 +85,13 @@ class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
-  private val registeredDependencies = mutableListOf<GradleCoordinate>()
-
   override val moduleClassFileFinder: ClassFileFinder = ProductionModuleClassFileFinder(module)
 
-  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
-    registeredDependencies.add(coordinate)
-  }
+  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) = Unit
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
-    // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
-    // The following if / else if chain maintains previous support for supportlib and appcompat until
-    // we can determine it's safe to take away.
-    if (SdkConstants.SUPPORT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
-      val entries = ModuleRootManager.getInstance(module).orderEntries
-      for (orderEntry in entries) {
-        if (orderEntry is LibraryOrderEntry) {
-          val classes = orderEntry.getRootFiles(OrderRootType.CLASSES)
-          for (file in classes) {
-            if (file.name == "android-support-v4.jar") {
-              return GoogleMavenArtifactId.SUPPORT_V4.getCoordinate("+")
-            }
-          }
-        }
-      }
-    }
-    else if (SdkConstants.APPCOMPAT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
-      val entries = ModuleRootManager.getInstance(module).orderEntries
-      for (orderEntry in entries) {
-        if (orderEntry is ModuleOrderEntry) {
-          val moduleForEntry = orderEntry.module
-          if (moduleForEntry == null || moduleForEntry == module) {
-            continue
-          }
-          AndroidFacet.getInstance(moduleForEntry) ?: continue
-          val packageName = moduleForEntry.getModuleSystem().getPackageName()
-          if ("android.support.v7.appcompat" == packageName) {
-            return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-          }
-        }
-      }
-    }
-
-    for (dependency in registeredDependencies) {
-      if (dependency.isSameArtifact(coordinate)) {
-        return dependency
-      }
-    }
-
-    return null
-  }
+  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
 
   override fun getResourceModuleDependencies() = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
