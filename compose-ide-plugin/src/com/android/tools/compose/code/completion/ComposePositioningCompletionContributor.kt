@@ -170,8 +170,8 @@ private data class ClassWithDeclarationsToSuggest(
 
   companion object {
     /**
-     * Gets a list of this class's properties grouped by their fully-qualified type name. This
-     * result is cached for fast retrieval.
+     * Gets a list of this class's properties grouped by their fully-qualified type name string.
+     * This result is cached for fast retrieval.
      */
     private fun KtClassOrObject.getPropertiesByType(
       project: Project
@@ -180,9 +180,7 @@ private data class ClassWithDeclarationsToSuggest(
         val result =
           declarations
             .filterIsInstance<KtProperty>()
-            .mapNotNull { property ->
-              property.returnTypeFqName()?.asString()?.let { Pair(it, property) }
-            }
+            .mapNotNull { property -> property.returnTypeFqName()?.let { Pair(it, property) } }
             .groupBy({ it.first }, { it.second })
         CachedValueProvider.Result.create(result, this)
       }
@@ -274,7 +272,7 @@ private data class PositioningInterface(
   fun getWeight(lookupElement: LookupElement): Int {
     val psiElement = lookupElement.psiElement ?: return 0
 
-    val lookupElementTypeName = (psiElement as? KtDeclaration)?.returnTypeFqName()?.asString()
+    val lookupElementTypeName = (psiElement as? KtDeclaration)?.returnTypeFqName()
     val typeWeight = lookupElementTypeName?.let { weightsByFullyQualifiedType[it] } ?: 0
 
     val lookupElementParentClassName =
@@ -298,7 +296,7 @@ private data class PositioningInterface(
     private val PsiElement.propertyTypeFqName: String?
       get() {
         val property = contextOfType<KtProperty>() ?: return null
-        return property.returnTypeFqName()?.asString()
+        return property.returnTypeFqName()
       }
 
     private val PsiElement.argumentTypeFqName: String?
@@ -311,9 +309,7 @@ private data class PositioningInterface(
           callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
             ?: return null
 
-        val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
-
-        return argumentTypeFqName?.asString()
+        return argument.matchingParamTypeFqName(callee)
       }
 
     private const val ALIGNMENT_PACKAGE = "androidx.compose.ui"

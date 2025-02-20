@@ -16,7 +16,7 @@
 package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
-import com.android.tools.compose.asFqName
+import com.android.tools.compose.asFqNameString
 import com.android.tools.compose.callReturnTypeFqName
 import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.matchingParamTypeFqName
@@ -122,9 +122,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     ProgressManager.checkCanceled()
     val (returnsModifier, others) =
-      extensionFunctionSymbols.partition {
-        asFqName(it.returnType)?.asString() == COMPOSE_MODIFIER_FQN
-      }
+      extensionFunctionSymbols.partition { asFqNameString(it.returnType) == COMPOSE_MODIFIER_FQN }
     val importStrategyDetector =
       ImportStrategyDetector(
         originalKtFile = nameExpression.containingKtFile,
@@ -477,7 +475,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     get() {
       // Case val myModifier:Modifier = <caret>
       val property = parent?.parent as? KtProperty ?: return false
-      return property.returnTypeFqName()?.asString() == COMPOSE_MODIFIER_FQN
+      return property.returnTypeFqName() == COMPOSE_MODIFIER_FQN
     }
 
   private val PsiElement.isModifierArgument: Boolean
@@ -490,9 +488,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
           ?: return false
 
-      val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
-
-      return argumentTypeFqName?.asString() == COMPOSE_MODIFIER_FQN
+      return argument.matchingParamTypeFqName(callee) == COMPOSE_MODIFIER_FQN
     }
 
   /**
@@ -508,8 +504,10 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       elementOnWhichMethodCalled.callReturnTypeFqName()
         ?:
         // Case Modifier.%this%
-        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
-    return fqName?.asString() == COMPOSE_MODIFIER_FQN
+        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)
+          ?.fqName
+          ?.asString()
+    return fqName == COMPOSE_MODIFIER_FQN
   }
 
   /**

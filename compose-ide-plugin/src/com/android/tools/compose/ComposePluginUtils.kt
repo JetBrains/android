@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
@@ -59,6 +60,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
@@ -80,15 +82,14 @@ fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.
 
 fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
   if (element.getChildrenOfType<KtDotQualifiedExpression>().isNotEmpty()) {
-    val fqName = element.callReturnTypeFqName()?.asString()
-    if (fqName == COMPOSE_MODIFIER_FQN) {
+    if (element.callReturnTypeFqName() == COMPOSE_MODIFIER_FQN) {
       return true
     }
   }
   return false
 }
 
-internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): FqName? {
+internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): String? {
   return if (isNamed()) {
     val argumentName = getArgumentName()!!.asName.asString()
     val matchingParam = callee.valueParameters.find { it.name == argumentName } ?: return null
@@ -100,12 +101,12 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
   }
 }
 
-internal fun KtDeclaration.returnTypeFqName(): FqName? =
+internal fun KtDeclaration.returnTypeFqName(): String? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     if (this !is KtCallableDeclaration) null
-    else analyze(this) { asFqName(this@returnTypeFqName.returnType) }
+    else analyze(this) { asFqNameString(this@returnTypeFqName.returnType) }
   } else {
-    (resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType?.fqName
+    (resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType?.fqName?.asString()
   }
 
 @OptIn(KaAllowAnalysisOnEdt::class)
@@ -116,16 +117,16 @@ internal fun KtElement.callReturnTypeFqName() =
         val call =
           this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull()
             as? KaCallableMemberCall<*, *>
-        call?.let { asFqName(it.symbol.returnType) }
+        call?.let { asFqNameString(it.symbol.returnType) }
       }
     }
   } else {
-    resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
+    resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName?.asString()
   }
 
-// TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
-// and `KtTypeRenderer`.
-internal fun KaSession.asFqName(type: KaType) = type.expandedSymbol?.classId?.asSingleFqName()
+@OptIn(KaExperimentalApi::class)
+internal fun KaSession.asFqNameString(type: KaType) =
+  type.fullyExpandedType.render(position = Variance.INVARIANT)
 
 internal fun KtFunction.hasComposableAnnotation() =
   if (KotlinPluginModeProvider.isK2Mode()) {
