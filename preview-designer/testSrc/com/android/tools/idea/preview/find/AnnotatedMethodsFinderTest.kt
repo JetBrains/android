@@ -19,13 +19,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.testFramework.DumbModeTestUtils
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -43,117 +41,6 @@ class AnnotatedMethodsFinderTest {
 
   private val fixture
     get() = projectRule.fixture
-
-  @Test
-  fun `test hasAnnotations`() = runBlocking {
-    fixture.addFileToProjectAndInvalidate(
-      "com/android/annotations/MyAnnotation.kt",
-      // language=kotlin
-      """
-        package com.android.annotations
-
-        annotation class MyAnnotation
-        """
-        .trimIndent(),
-    )
-    val sourceFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import com.android.annotations.MyAnnotation
-
-        @MyAnnotation
-        fun Foo1() { }
-
-        fun Foo2() { }
-        """
-          .trimIndent(),
-      )
-
-    assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertTrue(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotation",
-        "MyAnnotation",
-      )
-    )
-    assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertTrue(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotation",
-        "MyAnnotation",
-      )
-    )
-    // Check that call with the same args combination does not create a new key and reuses the
-    // cache:
-    assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertFalse(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.IDoNotExist",
-        "IDoNotExist",
-      )
-    )
-    assertEquals(2, CacheKeysManager.getInstance(project).map().size)
-  }
-
-  @Test
-  fun `test hasAnnotations dumb mode`() = runBlocking {
-    fixture.addFileToProjectAndInvalidate(
-      "com/android/annotations/MyAnnotation.kt",
-      // language=kotlin
-      """
-        package com.android.annotations
-
-        annotation class MyAnnotation
-        """
-        .trimIndent(),
-    )
-    val sourceFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import com.android.annotations.MyAnnotation
-
-        @MyAnnotation
-        fun Foo1() { }
-        """
-          .trimIndent(),
-      )
-
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      assertFalse(
-        runBlocking {
-          hasAnnotation(
-            project,
-            sourceFile.virtualFile,
-            "com.android.annotations.MyAnnotation",
-            "MyAnnotation",
-          )
-        }
-      )
-    }
-
-    assertTrue(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotation",
-        "MyAnnotation",
-      )
-    )
-  }
 
   @Test
   fun `test findAnnotations`() {
@@ -294,55 +181,6 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test hasAppliedAnnotations with filter`() = runBlocking {
-    fixture.addFileToProjectAndInvalidate(
-      "com/android/annotations/MyAnnotationA.kt",
-      // language=kotlin
-      """
-        package com.android.annotations
-
-        object Surfaces {
-          const val SURFACE1 = "foo"
-          const val SURFACE2 = "bar"
-        }
-
-        annotation class MyAnnotationA(param1: String)
-        """
-        .trimIndent(),
-    )
-
-    val sourceFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import com.android.annotations.MyAnnotationA
-        import com.android.annotations.Surfaces
-
-        @MyAnnotationA(Surfaces.SURFACE1)
-        fun abcde() { }
-        """
-          .trimIndent(),
-      )
-
-    val res =
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotationA",
-        "MyAnnotationA",
-      ) {
-        ReadAction.compute<Boolean, Throwable> {
-          it.findAttributeValue("param1")?.evaluate() == "foo"
-        }
-      }
-
-    assertTrue(res)
-  }
-
-  @Test
   fun `test findAnnotatedMethodsValues with filter`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotationA.kt",
@@ -419,68 +257,6 @@ class AnnotatedMethodsFinderTest {
     )
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
-  }
-
-  @Test
-  fun `test hasAnnotations supports java files`() = runBlocking {
-    fixture.addFileToProjectAndInvalidate(
-      "com/android/annotations/MyAnnotation.kt",
-      // language=kotlin
-      """
-        package com.android.annotations
-
-        annotation class MyAnnotation
-        """
-        .trimIndent(),
-    )
-    val sourceFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFile.java",
-        // language=java
-        """
-        package com.android.test;
-
-        import com.android.annotations.MyAnnotation;
-
-        class SourceFile {
-          @MyAnnotation
-          private void foo1() {}
-
-          private void foo2() {}
-        }
-        """
-          .trimIndent(),
-      )
-
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      assertFalse(
-        runBlocking {
-          hasAnnotation(
-            project,
-            sourceFile.virtualFile,
-            "com.android.annotations.MyAnnotation",
-            "MyAnnotation",
-          )
-        }
-      )
-    }
-
-    assertTrue(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotation",
-        "MyAnnotation",
-      )
-    )
-    assertFalse(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.IDoNotExist",
-        "IDoNotExist",
-      )
-    )
   }
 
   @Test

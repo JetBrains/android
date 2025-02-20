@@ -30,12 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolder
-import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiImportStatement
-import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -43,92 +38,25 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
-
-/**
- * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
- * [shortAnnotationName] with the properties enforced by the [filter].
- */
-@RequiresReadLock
-private fun hasAnnotationsUncached(
-  project: Project,
-  vFile: VirtualFile,
-  annotationFqn: String,
-  shortAnnotationName: String,
-  filter: (UAnnotation) -> Boolean,
-): Boolean {
-  if (DumbService.isDumb(project)) {
-    return false
-  }
-
-  // This method can not call any methods that require smart mode.
-  fun isFullNameAnnotation(annotation: PsiElement) =
-    // We use text() to avoid obtaining the FQN as that requires smart mode
-    // In brackets annotations don't start with '@', but typical annotations do. Normalize them by
-    // removing it
-    annotation.text.removePrefix("@").startsWith(annotationFqn)
-
-  val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return false
-  val isKotlinFile = psiFile.language == KotlinLanguage.INSTANCE
-
-  // Look into the imports first to avoid resolving the class name into all methods.
-  val hasAnnotationImport =
-    if (isKotlinFile) {
-      PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java).any {
-        annotationFqn == it.importedFqName?.asString()
-      }
-    } else {
-      PsiTreeUtil.findChildrenOfType(psiFile, PsiImportStatement::class.java).any {
-        annotationFqn == it.qualifiedName
-      }
-    }
-
-  val annotationPsiElements =
-    PsiTreeUtil.findChildrenOfType(
-      psiFile,
-      if (isKotlinFile) KtAnnotationEntry::class.java else PsiAnnotation::class.java,
-    )
-
-  return annotationPsiElements.any { psiElement ->
-    val uAnnotation = psiElement.toUElementOfType<UAnnotation>() ?: return@any false
-    val qualifiedName =
-      try {
-        uAnnotation.qualifiedName
-      } catch (t: Throwable) {
-        // KotlinUAnnotationBase.qualifiedName might throw an InconsistencyIndexException if we
-        // try to get the qualified name before the index is ready.
-        return false
-      } ?: return@any false
-    val shortName = StringUtilRt.getShortName(qualifiedName)
-
-    ((shortName == shortAnnotationName && hasAnnotationImport) ||
-      isFullNameAnnotation(psiElement)) && filter(uAnnotation)
-  }
-}
 
 /**
  * A mapping to keep track of the cache [Key]s for the annotation combinations. Each [Key] instance
@@ -153,54 +81,11 @@ class CacheKeysManager {
   @VisibleForTesting fun map() = annotationCacheKeys
 }
 
-private data class HasFilteredAnnotationsKey(
-  val annotationFqn: String,
-  val shortAnnotationName: String,
-  val filter: (UAnnotation) -> Boolean,
-)
-
 fun <T> CachedValuesManager.getCachedValue(
   dataHolder: UserDataHolder,
   key: Key<CachedValue<T>>,
   provider: CachedValueProvider<T>,
 ): T = this.getCachedValue(dataHolder, key, provider, false)
-
-/**
- * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
- * [shortAnnotationName]. To benefit from caching make sure the same parameters are passed to the
- * function call as all the parameters constitute the key.
- */
-suspend fun hasAnnotation(
-  project: Project,
-  vFile: VirtualFile,
-  annotationFqn: String,
-  shortAnnotationName: String,
-  filter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
-): Boolean {
-  val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
-  if (DumbService.isDumb(project)) {
-    return false
-  }
-
-  return suspendCancellableCoroutine { cont ->
-    ReadAction.nonBlocking<Boolean> {
-        CachedValuesManager.getManager(project).getCachedValue(
-          psiFile,
-          CacheKeysManager.getInstance(project)
-            .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter)),
-        ) {
-          return@getCachedValue CachedValueProvider.Result.create(
-            hasAnnotationsUncached(project, vFile, annotationFqn, shortAnnotationName, filter),
-            psiFile,
-            DumbService.getInstance(project).modificationTracker,
-          )
-        }
-      }
-      .submit(AppExecutorUtil.getAppExecutorService())
-      .onSuccess { cont.resume(it) }
-      .onError { cont.resumeWithException(it) }
-  }
-}
 
 /** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
 @RequiresReadLock
