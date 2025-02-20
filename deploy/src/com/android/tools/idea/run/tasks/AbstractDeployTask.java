@@ -36,6 +36,7 @@ import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.model.BaselineProfile;
+import com.android.tools.deployer.model.component.ApkParserException;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.adblib.AdbLibService;
 import com.android.tools.idea.flags.StudioFlags;
@@ -260,10 +261,15 @@ public abstract class AbstractDeployTask {
     return myPackages;
   }
 
-  public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
+  public static App getAppToInstall(@NotNull ApkInfo apkInfo) throws DeployerException {
     List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
     List<BaselineProfile> baselineProfiles = convertBaseLinesProfiles(apkInfo.getBaselineProfiles());
-    return App.fromPaths(apkInfo.getApplicationId(),paths, baselineProfiles);
+    try {
+      return App.fromPaths(apkInfo.getApplicationId(), paths, baselineProfiles);
+    }
+    catch (ApkParserException e) {
+      throw DeployerException.parseFailed(e.getMessage());
+    }
   }
 
   private static List<BaselineProfile> convertBaseLinesProfiles(List<BaselineProfileDetails> profiles) {

@@ -34,17 +34,17 @@ public class DeployTasksHelper {
     return launchContext -> {
       try {
         List unused =
-            new DeployTask(
-                    project,
-                    packages,
-                    deployOptions.getPmInstallFlags(),
-                    deployOptions.getInstallOnAllUsers(),
-                    deployOptions.getAlwaysInstallWithPm(),
-                    deployOptions.getAllowAssumeVerified(),
-                    true /* TODO: Assume blaze always build for now.  */)
-                .run(launchContext.getDevice(), launchContext.getProgressIndicator());
-      } catch (DeployerException e) {
-        throw new AndroidExecutionException(e.getId(), e.getMessage());
+          new DeployTask(
+            project,
+            packages,
+            deployOptions.getPmInstallFlags(),
+            deployOptions.getInstallOnAllUsers(),
+            deployOptions.getAlwaysInstallWithPm(),
+            deployOptions.getAllowAssumeVerified(),
+            true /* TODO: Assume blaze always build for now.  */)
+            .run(launchContext.getDevice(), launchContext.getProgressIndicator());
+      } catch (DeployerException de) {
+        throw new AndroidExecutionException(de.getId(), de.getMessage() + "\n" + de.getDetails());
       }
     };
   }
