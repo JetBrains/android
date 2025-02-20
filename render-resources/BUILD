@@ -64,6 +64,7 @@ iml_module(
         "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
+    test_friends = ["//tools/adt/idea/render-resources:intellij.android.render-resources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -96,6 +97,7 @@ kotlin_test(
         "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
+    friends = [":tools.render-resources"],
     jvm_flags = ["-Dtest.suite.jar=tools.render-resources.tests.jar"],
     lint_baseline = "lint_baseline_tests.xml",
     test_class = "com.android.testutils.JarTestSuite",

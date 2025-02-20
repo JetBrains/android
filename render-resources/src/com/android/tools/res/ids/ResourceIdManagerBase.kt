@@ -21,8 +21,12 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ResourceNamespacing
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+import org.jetbrains.annotations.TestOnly
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
@@ -235,13 +239,78 @@ private fun loadIdsFromResourceClass(
 }
 
 /**
+ * Provider class that loads the framework resources.
+ */
+internal interface FrameworkResourceIdsProvider : ModificationTracker {
+
+  /**
+   * Loads the framework resources. If [useRBytecodeParsing] is true, the framework R class will be parsed using bytecode parsing.
+   * Otherwise, the framework R class will be parsed using reflection.
+   *
+   * The interface also implements [ModificationTracker] to indicate whether the resources might have been reloaded.
+   */
+  fun loadFrameworkIds(useRBytecodeParsing: Boolean = true): SingleNamespaceIdMapping
+
+  companion object {
+    private val _instance: FrameworkResourceIdsProvider = FrameworkResourceIds()
+
+    fun getInstance(): FrameworkResourceIdsProvider = _instance
+
+    /**
+     * Method that allows creating new instances of a [FrameworkResourceIdsProvider]. Typically, we want to re-use the same instance via
+     * [getInstance] since the framework resource ids are immutable for a given Layoutlib, and they are expensive to create.
+     * This method allows to have different instances just for testing purposes.
+     */
+    @TestOnly
+    fun createInstanceForTests(): FrameworkResourceIdsProvider = FrameworkResourceIds()
+  }
+}
+
+/**
  * Singleton containing the resource ids for the current framework used in Layoutlib. There are
  * immutable and only change when a new layoutlib is added.
  */
-private object FrameworkResourceIds {
+private class FrameworkResourceIds: FrameworkResourceIdsProvider {
+  sealed class LoadedState {
+    /**
+     * The framework ids have not been initialized yet.
+     */
+    object NotLoaded : LoadedState()
+
+    /**
+     * The framework ids have been loaded from the given [rClass].
+     */
+    data class Loaded(val useRBytecodeParsing: Boolean, val rClass: Class<*>) : LoadedState()
+  }
+
+  /**
+   * Number of times that the resources have been re-loaded.
+   */
+  val loadedCount = SimpleModificationTracker()
+
+  private val loadFrameworkIdsLock = Any()
+  private var loadedState: LoadedState = LoadedState.NotLoaded
   private val frameworkIds: SingleNamespaceIdMapping = SingleNamespaceIdMapping(ResourceNamespace.ANDROID)
 
-  fun loadFrameworkIds(useRBytecodeParsing: Boolean = true): SingleNamespaceIdMapping {
+  override fun loadFrameworkIds(useRBytecodeParsing: Boolean): SingleNamespaceIdMapping =
+    synchronized(loadFrameworkIdsLock) {
+      val rClass =
+        LayoutLibraryLoader.getLayoutLibraryProvider()
+          .map { provider -> provider.frameworkRClass }
+          .orElse(null)
+
+      if (rClass == null) {
+        thisLogger().warn("Framework R class not found")
+        return frameworkIds
+      }
+
+      // If the rClass or the useRBytecodeParsing value change, we will allow the class to be reloaded.
+      // Otherwise, we only allow one initialization.
+      val targetState = LoadedState.Loaded(useRBytecodeParsing, rClass)
+      if (loadedState == targetState) return frameworkIds
+      loadedState = targetState
+      loadedCount.incModificationCount()
+
       frameworkIds.apply {
         // These are the counts around the S time frame, to allocate roughly the right amount of
         // space upfront.
@@ -262,11 +331,7 @@ private object FrameworkResourceIds {
         fromIdMap.clear()
       }
 
-    val rClass =
-      LayoutLibraryLoader.getLayoutLibraryProvider()
-        .map { provider -> provider.frameworkRClass }
-        .orElse(null)
-    if (rClass != null) {
+
       if (useRBytecodeParsing) {
         loadIdsFromResourceClassFromBytecode(
           rClass,
@@ -277,18 +342,25 @@ private object FrameworkResourceIds {
       else {
         loadIdsFromResourceClass(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
       }
+
+      return frameworkIds
     }
 
-    return frameworkIds
-  }
+  override fun getModificationCount(): Long = loadedCount.modificationCount
 }
 
 /** Studio agnostic implementation of [ResourceIdManager]. */
-open class ResourceIdManagerBase(
+open class ResourceIdManagerBase internal constructor(
   private val module: ResourceIdManagerModelModule,
-  private val searchFrameworkIds: Boolean = false,
+  private val searchFrameworkIds: Boolean,
+  frameworkResourceIdsProvider: FrameworkResourceIdsProvider
 ) : ResourceIdManager {
   private var generationCounter = 1L
+
+  constructor(
+    module: ResourceIdManagerModelModule,
+    searchFrameworkIds: Boolean = false
+  ): this(module, searchFrameworkIds, FrameworkResourceIdsProvider.createInstanceForTests())
 
   /**
    * Class for generating dynamic ids with the given byte as the "package id" part of the 32-bit
@@ -351,7 +423,7 @@ open class ResourceIdManagerBase(
    * Ids from the framework `R.class`. It is initialized here so the loading of the resources
    * happens at a predictable point during the initialization of the class.
    */
-  private val frameworkIds: SingleNamespaceIdMapping = FrameworkResourceIds.loadFrameworkIds(module.useRBytecodeParsing)
+  private val frameworkIds: SingleNamespaceIdMapping = frameworkResourceIdsProvider.loadFrameworkIds(module.useRBytecodeParsing)
 
   override val finalIdsUsed: Boolean
     get() {

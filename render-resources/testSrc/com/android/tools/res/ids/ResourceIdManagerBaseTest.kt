@@ -15,9 +15,12 @@
  */
 package com.android.tools.res.ids
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
@@ -141,6 +144,57 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
     assertEquals(0x7f02ffff, buildResourceId(0x7f.toByte(), 0x02.toByte(), 0xffff.toShort()))
     assertEquals(0x02020001, buildResourceId(0x02.toByte(), 0x02.toByte(), 0x0001.toShort()))
   }
+
+  /**
+   * Regression test for b/397431390.
+   *
+   * When multiple [ResourceIdManagerBase] initialize in parallel, several framework ids initialization could
+   * happen concurrently and cause a crash (since the collections used are not thread safe).
+   * A fix was put in place to avoid the parallel initializations happening in parallel.
+   */
+  @Test
+  fun testParallelInitialization() {
+    val frameworkResourceIdsProviderInstance = FrameworkResourceIdsProvider.createInstanceForTests()
+
+    runBlocking {
+      val startLatch = CountDownLatch(1)
+      // Verify that multiple parallel resource id managers do not crash and do not cause
+      // multiple initializations of the framework ids.
+      repeat(1000) {
+        launch {
+          startLatch.await()
+          val idManager = StubbedResourceIdManager(useRBytecodeParsing, frameworkResourceIdsProviderInstance)
+
+          repeat(100) {
+            assertEquals(
+              0x1030005,
+              idManager.getOrGenerateId(
+                ResourceReference.style(ResourceNamespace.ANDROID, "Theme")
+              )
+            )
+          }
+        }
+      }
+
+      startLatch.countDown()
+    }
+
+    assertEquals("The framework resources should have been loaded only once", 1, frameworkResourceIdsProviderInstance.modificationCount)
+  }
+
+  @Test
+  fun testFrameworkResourceIdsInvalidationWhenSwitchingRClassParsingMode() {
+    val frameworkResourceIdsProviderInstance = FrameworkResourceIdsProvider.createInstanceForTests()
+    StubbedResourceIdManager(useRBytecodeParsing, frameworkResourceIdsProviderInstance)
+    StubbedResourceIdManager(useRBytecodeParsing, frameworkResourceIdsProviderInstance)
+    StubbedResourceIdManager(useRBytecodeParsing, frameworkResourceIdsProviderInstance)
+
+    assertEquals("The framework resources should have been loaded only once", 1, frameworkResourceIdsProviderInstance.modificationCount)
+    StubbedResourceIdManager(!useRBytecodeParsing, frameworkResourceIdsProviderInstance)
+    assertEquals("The framework resources should have been invalidated after the change in R class parsing mode", 2,
+                 frameworkResourceIdsProviderInstance.modificationCount)
+  }
+
 
   class R {
     class string {
