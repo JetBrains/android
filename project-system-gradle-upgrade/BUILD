@@ -31,6 +31,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
     ],
+    test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_srcs = ["testSrc"],
     test_tags = [],
     test_timeout = "long",
@@ -75,6 +76,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.upgrade.iml"],
     lint_baseline = "lint_baseline.xml",
+    test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -169,6 +171,7 @@ tests_list = [
         ] + AGP_DATA[AGP_4_0],
         gradle_version = "6.1.1",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -194,6 +197,7 @@ tests_list = [
         ] + AGP_DATA[AGP_4_1],
         gradle_version = "6.5",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -219,6 +223,7 @@ tests_list = [
         ] + AGP_DATA[AGP_4_2],
         gradle_version = "6.7.1",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -245,6 +250,7 @@ tests_list = [
         ] + AGP_DATA[AGP_7_0],
         gradle_version = "7.0.2",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -270,6 +276,7 @@ tests_list = [
         ] + AGP_DATA[AGP_7_1],
         gradle_version = "7.2",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -295,6 +302,7 @@ tests_list = [
         ] + AGP_DATA[AGP_7_2],
         gradle_version = "7.3.3",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -319,6 +327,7 @@ tests_list = [
         ] + AGP_DATA[AGP_7_3],
         gradle_version = "7.4",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
@@ -344,6 +353,7 @@ tests_list = [
         ],
         gradle_version = "LATEST",
         ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
         maven_deps = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",

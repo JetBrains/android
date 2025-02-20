@@ -45,6 +45,7 @@ iml_test(
     name = "SdkIndexLintTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -57,6 +58,7 @@ iml_test(
     name = "SdkIndexLintWithoutNotesTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -69,6 +71,7 @@ iml_test(
     name = "SdkIndexLintWithoutVersionsTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -81,6 +84,7 @@ iml_test(
     name = "SdkIndexPsdTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -93,6 +97,7 @@ iml_test(
     name = "SdkIndexPsdWithoutNotesTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -105,6 +110,7 @@ iml_test(
     name = "SdkIndexPsdWithoutVersionsTest",
     timeout = "long",
     data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -117,6 +123,7 @@ iml_test(
     name = "OldProjectAppTest",
     timeout = "long",
     data = old_project_app_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
@@ -128,6 +135,7 @@ iml_test(
 iml_test(
     name = "GradleTokensTest",
     timeout = "long",
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags_linux = ["block-network"],
     # Commented out due to b/242358149

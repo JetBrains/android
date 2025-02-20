@@ -505,6 +505,7 @@ generate_old_agp_tests_from_list(
             ],
             gradle_version = "7.5",
             ignore_other_tests = True,
+            jvm_flags = ["-Didea.skip.indices.initialization=true"],
             maven_deps = [
                 "//tools/base/build-system/previous-versions:7.4.1",
                 "//tools/base/build-system/previous-versions:kgp1.3.72",
