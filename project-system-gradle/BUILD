@@ -28,6 +28,7 @@ iml_module(
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
         "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
+        "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
@@ -44,7 +45,6 @@ iml_module(
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
-        "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
     ],
     # NOTE: If you are tempted to add to the above module_visibility list, please
     # first read  go/as-project-system-cleanup, and discuss with and get agreement

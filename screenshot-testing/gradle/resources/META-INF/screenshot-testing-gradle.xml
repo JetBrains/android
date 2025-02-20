@@ -14,11 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.screenshottest.ScreenshotTestResultEditorProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.screenshottest">
-    <screenshotTestResultListenerToken implementation="com.android.screenshottest.ScreenshotTestResultListenerGradleToken"/>
+  <extensions defaultExtensionNs="com.android.screenshottest">
+    <screenshotTestResultListenerToken implementation="com.android.screenshottest.gradle.ScreenshotTestResultListenerGradleToken"/>
   </extensions>
 </idea-plugin>

@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest
+package com.android.screenshottest.ui
 
-import com.intellij.ide.plugins.CountIcon
 import com.intellij.openapi.fileTypes.FileType
-import javax.swing.Icon
+import com.intellij.testFramework.LightVirtualFile
 
 /**
- * Custom FileType for screenshot test results in memory virtual file.
+ * Custom implementation of in memory virtual file to customize editor tab.
  */
-class ScreenshotTestResultFileType private constructor() : FileType {
-  override fun getName(): String = "Screenshot Test Result"
-
-  override fun getDescription(): String = "Screenshot test results details view"
-
-  override fun getDefaultExtension(): String = ""
-
-  // TODO(b/393431825) Design a new icon for screenshot test result
-  override fun getIcon(): Icon = CountIcon()
-
-  override fun isBinary(): Boolean = false
-
-  companion object {
-    val INSTANCE = ScreenshotTestResultFileType()
-  }
+class ScreenshotTestResultVirtualFile(fileName: String) : LightVirtualFile(fileName) {
+  override fun getFileType(): FileType = ScreenshotTestResultFileType.INSTANCE
 }

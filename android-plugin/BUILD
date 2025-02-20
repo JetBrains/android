@@ -78,6 +78,7 @@ iml_module(
         "//tools/adt/idea/android/editing/metrics:intellij.android.core.editing.metrics",
         "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
         "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
+        "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
         "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest
+package com.android.screenshottest.ui
 
+import com.android.screenshottest.ScreenshotTestSuite
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestSuite
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.ui.getPreferredFocusedComponent
@@ -55,8 +55,8 @@ object ScreenshotTestResultEditorSingleton : UserDataHolderBase(), FileEditor {
   @NotNull
   @Throws(RuntimeException::class)
   override fun getFile(): VirtualFile {
-    return if (::inMemoryTestResultVirtualFile.isInitialized) {
-      this.inMemoryTestResultVirtualFile
+    return if (ScreenshotTestResultEditorSingleton::inMemoryTestResultVirtualFile.isInitialized) {
+      inMemoryTestResultVirtualFile
     }
     else {
       throw RuntimeException("Should give this a non-null virtual file")

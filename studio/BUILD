@@ -154,6 +154,7 @@ studio_plugin(
         ],
         "android-screenshot-testing.jar": [
             "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
+            "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
         ],
         "android-rt.jar": [
             "//tools/adt/idea/rt:intellij.android.rt",

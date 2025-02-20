@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.screenshottest
+package com.android.screenshottest
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -28,7 +28,7 @@ interface ScreenshotTestResultListenerToken<P : AndroidProjectSystem> : Token {
   companion object {
     @JvmField
     val EP_NAME = ExtensionPointName<ScreenshotTestResultListenerToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.testartifacts.screenshottest.screenshotTestResultListenerToken")
+      "com.android.screenshottest.screenshotTestResultListenerToken")
   }
 
   /**

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest
+package com.android.screenshottest.ui
 
-import com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestSuite
+import com.android.screenshottest.ScreenshotTestSuite
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorProvider

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest
+package com.android.screenshottest.gradle
 
+import com.android.screenshottest.ScreenshotTestResultListenerToken
+import com.android.screenshottest.ScreenshotTestSuite
+import com.android.screenshottest.ui.ScreenshotTestDetailsViewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestResultListenerToken
-import com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestSuite
 import com.intellij.openapi.project.Project
-import com.intellij.ui.AppUIUtil
 
 /**
  * Displays screenshot test execution and result in tool window view and editor view
@@ -30,15 +30,11 @@ import com.intellij.ui.AppUIUtil
 class ScreenshotTestResultListenerGradleToken : ScreenshotTestResultListenerToken<GradleProjectSystem>, GradleToken {
 
   override fun onTestSuiteScheduled(project: Project, testSuite: ScreenshotTestSuite) {
-    AppUIUtil.invokeOnEdt {
       ScreenshotTestDetailsViewManager.showTestResultInEditorTab(project, testSuite)
-    }
   }
 
   override fun onTestCaseStarted(project: Project, testSuite: ScreenshotTestSuite) {
-    AppUIUtil.invokeOnEdt {
       ScreenshotTestDetailsViewManager.updateTestResultWithoutFocus(testSuite)
-    }
   }
 
   override fun onTestSuiteFinished(project: Project, testSuite: ScreenshotTestSuite) {
