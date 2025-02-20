@@ -23,6 +23,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "@intellij//:com.intellij.modules.json[test]",
+        "@intellij//:intellij.json.split[test]",
     ],
 )

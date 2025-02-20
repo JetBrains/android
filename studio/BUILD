@@ -423,7 +423,7 @@ studio_plugin(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
-        "@intellij//:com.intellij.modules.json",
+        "@intellij//:intellij.json.split",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
         "@intellij//:intellij.libraries.grpc",
@@ -525,7 +525,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
-        "@intellij//:com.intellij.modules.json",
+        "@intellij//:intellij.json.split",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
@@ -1350,6 +1350,7 @@ iml_module(
         "@intellij//:intellij.java.unscramble",
         "@intellij//:intellij.java.vcs",
         "@intellij//:intellij.json.split",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:intellij.jvm.analysis.impl",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",

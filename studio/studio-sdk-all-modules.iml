@@ -13,6 +13,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.unscramble" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.vcs" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.split" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.modules.json" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />

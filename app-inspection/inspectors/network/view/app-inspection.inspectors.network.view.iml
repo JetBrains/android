@@ -24,6 +24,6 @@
     <orderEntry type="module" module-name="codenavigation" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.modules.json" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.json.split" level="project" />
   </component>
 </module>

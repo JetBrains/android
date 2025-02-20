@@ -22,6 +22,6 @@
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.android-material" />
     <orderEntry type="module" module-name="intellij.android.completion" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.modules.json" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.json.split" level="project" />
   </component>
 </module>

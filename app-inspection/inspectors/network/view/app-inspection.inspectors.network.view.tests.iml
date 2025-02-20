@@ -32,7 +32,7 @@
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.modules.json" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.json.split" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="app-inspection.inspectors.network.view" />
 </module>

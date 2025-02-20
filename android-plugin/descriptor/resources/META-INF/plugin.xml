@@ -13,6 +13,7 @@
     <plugin id="com.intellij.platform.images"/>
     <plugin id="com.intellij.modules.java"/>
     <plugin id="com.intellij.java"/>
+    <module name="intellij.json.split"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl"/>

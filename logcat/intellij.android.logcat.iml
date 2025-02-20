@@ -44,6 +44,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="studio-plugin-com.intellij.modules.json" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.json.split" level="project" />
   </component>
 </module>
