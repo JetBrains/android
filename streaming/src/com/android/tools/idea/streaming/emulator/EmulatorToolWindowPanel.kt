@@ -148,7 +148,10 @@ internal class EmulatorToolWindowPanel(
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
+
+      showContextMenuAdvertisementIfNecessary(contentDisposable!!)
     }
+
     ActivityTracker.getInstance().inc()
   }
 

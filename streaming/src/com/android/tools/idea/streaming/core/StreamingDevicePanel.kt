@@ -45,6 +45,7 @@ import com.intellij.util.ui.PositionTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.EventQueue
 import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
@@ -137,10 +138,23 @@ abstract class StreamingDevicePanel(
   }
 
   /**
+   * Shows a context menu advertisement if the context menu is enabled and the advertisement has not been shown yet.
+   */
+  protected fun showContextMenuAdvertisementIfNecessary(disposableParent: Disposable) {
+    if (StudioFlags.RUNNING_DEVICES_CONTEXT_MENU.get() && !EmulatorSettings.getInstance().contextMenuAdvertisementShown) {
+      EventQueue.invokeLater {
+        if (hasContent) {
+          showContextMenuAdvertisement(disposableParent, mainToolbar.component)
+        }
+      }
+    }
+  }
+
+  /**
    * Shows a balloon advertising moving of some toolbar actions into the context menu.
    * The balloon is shown below the main toolbar.
    */
-  protected fun showContextMenuAdvertisement(disposableParent: Disposable, toolbarComponent: JComponent) {
+  private fun showContextMenuAdvertisement(disposableParent: Disposable, toolbarComponent: JComponent) {
     val disposable = Disposer.newDisposable(disposableParent)
     val advertisementCloser = StreamingContextMenuAdvertisementCloser {
       Disposer.dispose(disposable)

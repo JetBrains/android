@@ -22,8 +22,6 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -170,6 +168,8 @@ internal class DeviceToolWindowPanel(
               displayConfigurator.initialize()
               addDeviceStateListener(deviceStateListener)
             }
+
+            showContextMenuAdvertisementIfNecessary(disposable)
           }
           ConnectionState.DISCONNECTED -> {
             deviceClient.deviceController?.apply {
@@ -182,11 +182,6 @@ internal class DeviceToolWindowPanel(
         }
 
         ActivityTracker.getInstance().inc()
-        if (StudioFlags.RUNNING_DEVICES_CONTEXT_MENU.get() && !EmulatorSettings.getInstance().contextMenuAdvertisementShown) {
-          EventQueue.invokeLater {
-            contentDisposable?.let { showContextMenuAdvertisement(it, mainToolbar.component) }
-          }
-        }
       }
     })
 
