@@ -308,7 +308,11 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
    */
   @UiThread
   fun mouseMoved(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    return false
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    event.consume()
+    return true
   }
 
   /**
