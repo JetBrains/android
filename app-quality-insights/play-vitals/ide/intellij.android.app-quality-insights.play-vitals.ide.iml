@@ -24,5 +24,7 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
+    <orderEntry type="module" module-name="intellij.android.artwork-compose" />
   </component>
 </module>

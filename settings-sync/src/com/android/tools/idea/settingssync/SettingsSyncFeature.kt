@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.settingssync
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
 import com.google.gct.login2.LoginFeature
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.settingsSync.core.SettingsSyncBundle
+import icons.StudioIllustrations
+import icons.StudioIllustrationsCompose
+import javax.swing.Icon
+import org.jetbrains.jewel.ui.icon.IconKey
 
 class SettingsSyncFeature : LoginFeature {
   override val name: String = NAME
@@ -47,13 +55,19 @@ class SettingsSyncFeature : LoginFeature {
   override val isAvailable: Boolean = StudioFlags.SETTINGS_SYNC_ENABLED.get()
 
   override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry =
-    LoginFeature.OnboardingWizardEntry(
-      icon = AllIcons.Providers.GoogleCloudSpanner, // TODO: update this once we have it.
-      name = "<b>Google Drive:</b> Enable Synced Settings", // TODO: update wording
-      description =
+    object : LoginFeature.OnboardingWizardEntry {
+      override val icon: Icon = StudioIllustrations.Common.GOOGLE_LOGO
+      override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.GoogleLogo
+      override val name: String =
+        "<b>Google Drive:</b> Enable Backup & Sync" // TODO: update wording
+      override val annotatedTitle: AnnotatedString = buildAnnotatedString {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Drive:") }
+        append(" Enable Backup & Sync")
+      }
+      override val description: String =
         "Settings Sync backs up your IDE settings to Google Drives and restores them " +
-          "across your workstations so that your Android Studio experience is just the way you like it.", // TODO: update wording
-    )
+          "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
+    }
 
   companion object {
     internal const val NAME = "Google Backup & Sync"
