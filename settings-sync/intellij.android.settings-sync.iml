@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="library" name="studio-plugin-intellij.settingsSync.core" level="project" />
   </component>
 </module>

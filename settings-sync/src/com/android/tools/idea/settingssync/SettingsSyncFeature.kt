@@ -20,6 +20,8 @@ import com.google.gct.login2.LoginFeature
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.settingsSync.core.SettingsSyncBundle
 
 class SettingsSyncFeature : LoginFeature {
   override val name: String = NAME
@@ -34,9 +36,8 @@ class SettingsSyncFeature : LoginFeature {
   override val settingsAction: AnAction =
     object : AnAction("Go to Backup and Sync") {
       override fun actionPerformed(e: AnActionEvent) {
-        // TODO: uncomment below once we have it.
-        // ShowSettingsUtil.getInstance().showSettingsDialog(e.project,
-        // SettingsSyncBundle.message("title.settings.sync"))
+        ShowSettingsUtil.getInstance()
+          .showSettingsDialog(e.project, SettingsSyncBundle.message("title.settings.sync"))
       }
     }
 
@@ -55,6 +56,6 @@ class SettingsSyncFeature : LoginFeature {
     )
 
   companion object {
-    internal const val NAME = "Google Settings Sync"
+    internal const val NAME = "Google Backup & Sync"
   }
 }

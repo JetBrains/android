@@ -20,6 +20,7 @@
     <module name="intellij.platform.vcs.log.impl"/>
     <module name="intellij.libraries.grpc"/>
     <module name="intellij.libraries.grpc.netty.shaded"/>
+    <module name="intellij.settingsSync.core"/>
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->

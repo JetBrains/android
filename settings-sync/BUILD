@@ -14,5 +14,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "@intellij//:intellij.settingsSync.core",
     ],
 )

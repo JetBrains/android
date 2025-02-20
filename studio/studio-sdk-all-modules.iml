@@ -3,6 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Git4Idea" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.core.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.csv.core.impl" level="project" />
