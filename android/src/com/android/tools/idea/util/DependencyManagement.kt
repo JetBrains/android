@@ -21,13 +21,13 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult
 import com.android.tools.idea.projectsystem.RegisteredDependencyId
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.utils.associateByNotNull
@@ -103,7 +103,7 @@ fun Module.dependsOnAppCompat(): Boolean =
  * method will show the appropriate messages with details on the errors.
  *
  * If compatibility issues are detected such that no dependencies can be added, this method will show a warning message dialog with an
- * explanation of the issue returned from [AndroidModuleSystem.analyzeCoordinateCompatibility].
+ * explanation of the issue returned from [RegisteringModuleSystem.analyzeDependencyCompatibility].
  *
  * If there were errors adding any of the dependencies, this method will show an error message dialog with the dependencies that couldn't
  * be added as well as the reasons why they couldn't be added. A sync will still be performed as long as there were some dependencies added

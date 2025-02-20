@@ -128,7 +128,7 @@ class TestProjectSystem @JvmOverloads constructor(
   fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
-   * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeCoordinateCompatibility]
+   * Mark a pair of dependencies as incompatible so that [RegisteringModuleSystem.analyzeDependencyCompatibility]
    * will return them as incompatible dependencies.
    */
   fun addIncompatibleDependencyPair(dep1: GradleCoordinate, dep2: GradleCoordinate) {
@@ -182,12 +182,6 @@ class TestProjectSystem @JvmOverloads constructor(
           RegisteredDependencyCompatibilityResult(found, missing, compatibilityWarningMessage)
         )
       }
-
-      override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
-        : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-        analyzeDependencyCompatibility(dependenciesToAdd.mapNotNull { getRegisteredDependencyId(it) })
-          .get()
-          .let { Triple(it.compatible.map { it.coordinate }, it.incompatible.map { it.coordinate }, it.warning) }
 
       override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
         return androidLibraryDependencies

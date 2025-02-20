@@ -144,13 +144,6 @@ class DefaultModuleSystem(override val module: Module) :
     return null
   }
 
-  // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
-  // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
-  override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
-    : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-    return Triple(emptyList(), dependenciesToAdd, "")
-  }
-
   override fun getResourceModuleDependencies() = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)

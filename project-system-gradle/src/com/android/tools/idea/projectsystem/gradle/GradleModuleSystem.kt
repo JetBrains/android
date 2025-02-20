@@ -370,9 +370,26 @@ class GradleModuleSystem(
   }
 
   /**
-   * See the documentation on [AndroidModuleSystem.analyzeCoordinateCompatibility]
+   * Analyzes the compatibility of the [dependenciesToAdd] with the existing artifacts in the project.
+   *
+   * The version component of each of the coordinates in [dependenciesToAdd] are disregarded.
+   * The result is a triplet consisting of:
+   * <ul>
+   *   <li>A list of coordinates including a valid version found in the repository</li>
+   *   <li>A list of coordinates that were missing from the repository</li>
+   *   <li>A warning string describing the compatibility issues that could not be resolved if any</li>
+   * </ul>
+   *
+   * An incompatibility warning is either a compatibility with problem among the already existing artifacts,
+   * or a compatibility problem with one of the [dependenciesToAdd]. In the latter case the coordinates in
+   * the found coordinates are simply the latest version of the libraries, which may or may not cause build
+   * errors if they are added to the project.
+   * <p>
+   * An empty warning value and an empty missing list of coordinates indicates a successful result.
+   * <p>
+   * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
    */
-  override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+  fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
     //TODO(b/369433182): Change the API to return a ListenableFuture instead of calling get with a timeout here...
     dependencyCompatibility.analyzeCoordinateCompatibility(dependenciesToAdd).get(60, TimeUnit.SECONDS)

@@ -40,9 +40,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
     delegate.getModuleTemplates(targetDirectory)
 
-  override fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-    delegate.analyzeCoordinateCompatibility(dependenciesToAdd)
-
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
     delegate.getRegisteredDependency(coordinate)
 

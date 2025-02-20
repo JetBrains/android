@@ -391,12 +391,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
-      analyzeCoordinateCompatibility(List<GradleCoordinate> dependenciesToAdd) {
-    return new Triple<>(ImmutableList.of(), dependenciesToAdd, "");
-  }
-
-  @Override
   @Nullable
   public String getPackageName() {
     return PackageNameUtils.getPackageName(module);

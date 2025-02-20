@@ -89,7 +89,7 @@ class GradleDependencyCompatibilityAnalyzer(
    *       Give a warning and choose the newest available version.</li>
    * </ul>
    *
-   * See the documentation on [AndroidModuleSystem.analyzeCoordinateCompatibility]
+   * See the documentation on [GradleModuleSystem.analyzeCoordinateCompatibility]
    * for information on the return value.
    */
   fun analyzeCoordinateCompatibility(

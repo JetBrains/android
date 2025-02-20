@@ -87,29 +87,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Analyzes the compatibility of the [dependenciesToAdd] with the existing artifacts in the project.
-   *
-   * The version component of each of the coordinates in [dependenciesToAdd] are disregarded.
-   * The result is a triplet consisting of:
-   * <ul>
-   *   <li>A list of coordinates including a valid version found in the repository</li>
-   *   <li>A list of coordinates that were missing from the repository</li>
-   *   <li>A warning string describing the compatibility issues that could not be resolved if any</li>
-   * </ul>
-   *
-   * An incompatibility warning is either a compatibility with problem among the already existing artifacts,
-   * or a compatibility problem with one of the [dependenciesToAdd]. In the latter case the coordinates in
-   * the found coordinates are simply the latest version of the libraries, which may or may not cause build
-   * errors if they are added to the project.
-   * <p>
-   * An empty warning value and an empty missing list of coordinates indicates a successful result.
-   * <p>
-   * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
-   */
-  fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
-    : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
-
-  /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
    * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
    * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
