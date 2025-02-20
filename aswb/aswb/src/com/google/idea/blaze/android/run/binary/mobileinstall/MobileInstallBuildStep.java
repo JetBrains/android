@@ -70,8 +70,6 @@ import org.jetbrains.annotations.TestOnly;
 
 /** Builds and installs the APK using mobile-install. */
 public class MobileInstallBuildStep implements ApkBuildStep {
-  private static final BoolExperiment passAdbArgWithSerialToMi =
-      new BoolExperiment("aswb.mi.adb.arg.device.serial", false);
 
   private static final Logger log = Logger.getInstance(MobileInstallBuildStep.class);
   private final Project project;
@@ -154,13 +152,6 @@ public class MobileInstallBuildStep implements ApkBuildStep {
             .getBuildSystem()
             .getBuildInvoker(project, context, BlazeCommandName.MOBILE_INSTALL);
     BlazeCommand.Builder command = BlazeCommand.builder(invoker, BlazeCommandName.MOBILE_INSTALL);
-
-    if (passAdbArgWithSerialToMi.getValue()) {
-      // Redundant, but we need this to get around bug in bazel.
-      // https://github.com/bazelbuild/bazel/issues/4922
-      command.addBlazeFlags(
-          BlazeFlags.ADB_ARG + "-s ", BlazeFlags.ADB_ARG + device.getSerialNumber());
-    }
 
     if (!StudioDeployerExperiment.isEnabled()) {
       MobileInstallAdbLocationProvider.getAdbLocationForMobileInstall(project)
