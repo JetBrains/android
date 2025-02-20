@@ -127,10 +127,10 @@ identifier ::= token {
 private atomic_literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
 
 private compound_literal ::= pair
-literal ::= atomic_literal | compound_literal{ methods=[getValue] }
+literal ::= atomic_literal | compound_literal { methods=[getValue] }
 private expression::= factory | pair | property | literal
 pair ::= atomic_literal OP_TO expression {
-  methods=[getValue  getKey literal="" property="" factory_receiver="" factory_property_receiver=""]
+  methods=[getFirst  getSecond literal="" property="" factory_receiver="" factory_property_receiver=""]
 }
 
 property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }

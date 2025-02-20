@@ -51,9 +51,9 @@ public interface DeclarativePair extends DeclarativeValue {
   PsiElement getUnsignedLong();
 
   @Nullable
-  DeclarativeValue getValue();
+  Object getFirst();
 
-  @Nullable
-  DeclarativeValue getKey();
+  @NotNull
+  DeclarativeValue getSecond();
 
 }

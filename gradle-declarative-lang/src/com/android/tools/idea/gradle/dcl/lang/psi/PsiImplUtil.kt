@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BOOLEAN
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.DOUBLE_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.INTEGER_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -120,14 +128,26 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getValue(assignment: DeclarativePair): DeclarativeValue? {
+    fun getFirst(pair: DeclarativePair): Any? {
       // need to get second DeclarativeValueElement as first is the key
-      return assignment.children.map { child -> (child as? DeclarativeValue).takeIf { it != null } }.getOrNull(1)
+      val text = pair.firstChild.text
+      return when (pair.firstChild.elementType) {
+        BOOLEAN -> text == "true"
+        MULTILINE_STRING_LITERAL -> text.unTripleQuote().unescape()
+        ONE_LINE_STRING_LITERAL -> text.unquote().unescape()
+        LONG_LITERAL -> text?.toIntegerOrNull()
+        DOUBLE_LITERAL -> text?.toDoubleOrNull()
+        INTEGER_LITERAL -> text?.toIntegerOrNull()
+        UNSIGNED_LONG -> text?.toIntegerOrNull()
+        UNSIGNED_INTEGER -> text?.toIntegerOrNull()
+        NULL -> null
+        else -> null
+      }
     }
 
     @JvmStatic
-    fun getKey(assignment: DeclarativePair): DeclarativeValue? {
-      return assignment.children.firstNotNullOfOrNull { child -> (child as? DeclarativeLiteral).takeIf { it != null } }
+    fun getSecond(pair: DeclarativePair): DeclarativeValue {
+      return pair.children.filterIsInstance<DeclarativeValue>().first()
     }
 
     @JvmStatic
@@ -175,7 +195,7 @@ class PsiImplUtil {
 
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
-      literal.pair !=null -> literal.pair!!.value
+      literal.pair !=null -> literal.pair!!.second
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
       literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()

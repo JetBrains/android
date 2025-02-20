@@ -100,14 +100,14 @@ public class DeclarativePairImpl extends CompositePsiElement implements Declarat
 
   @Override
   @Nullable
-  public DeclarativeValue getValue() {
-    return PsiImplUtil.getValue(this);
+  public Object getFirst() {
+    return PsiImplUtil.getFirst(this);
   }
 
   @Override
-  @Nullable
-  public DeclarativeValue getKey() {
-    return PsiImplUtil.getKey(this);
+  @NotNull
+  public DeclarativeValue getSecond() {
+    return PsiImplUtil.getSecond(this);
   }
 
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePair
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
@@ -195,18 +197,19 @@ class DeclarativeDslParser(
     }
   }
 
-  private fun getFunctionParametersVisitor(list: GradleDslExpressionList,
-                                           context: GradlePropertiesDslElement): DeclarativeRecursiveVisitor =
+  private fun getExpressionVisitor(list: GradlePropertiesDslElement,
+                                   context: GradlePropertiesDslElement,
+                                   nameElement: GradleNameElement): DeclarativeRecursiveVisitor =
     object : DeclarativeRecursiveVisitor() {
       override fun visitLiteral(psi: DeclarativeLiteral) {
-        val literal = GradleDslLiteral(list, psi, GradleNameElement.empty(), psi, LITERAL)
+        val literal = GradleDslLiteral(list, psi, nameElement, psi, LITERAL)
         literal.setElementType(PropertyType.REGULAR)
-        list.addParsedExpression(literal)
+        list.addParsedElement(literal)
       }
 
       override fun visitFactoryReceiver(psi: DeclarativeFactoryReceiver) {
-        val methodCall = parseFactory(psi, context, GradleNameElement.empty()) ?: return
-        list.addParsedExpression(methodCall)
+        val methodCall = parseFactory(psi, context, nameElement) ?: return
+        list.addParsedElement(methodCall)
       }
     }
 
@@ -254,7 +257,7 @@ class DeclarativeDslParser(
 
     val arguments = GradleDslExpressionList(methodCall, argumentList, false, GradleNameElement.empty())
     argumentList.arguments.forEach {
-      it.accept(getFunctionParametersVisitor(arguments, context))
+      it.accept(getExpressionVisitor(arguments, context, GradleNameElement.empty()))
     }
     methodCall.setParsedArgumentList(arguments)
 
@@ -275,8 +278,24 @@ class DeclarativeDslParser(
         if (externalsSyntax != null) expression.externalSyntax = externalsSyntax
         expression
       }
+      "mapOf", "mutableMapOf" -> {
+        val mapExpression = getExpressionMap(context, psiElement, name, argumentsList.arguments)
+        if (externalsSyntax != null) mapExpression.externalSyntax = externalsSyntax
+        mapExpression
+      }
       else -> getMethodCall(context, psiElement, name, methodName, argumentsList)
     }
+  }
+
+  private fun getExpressionMap(parentElement: GradleDslElement,
+                               mapPsiElement: PsiElement,
+                               propertyName: GradleNameElement,
+                               argumentsList: List<DeclarativeValue>): GradleDslExpressionMap {
+    val expressionMap = GradleDslExpressionMap(parentElement, mapPsiElement, propertyName, false)
+    argumentsList.filterIsInstance<DeclarativePair>().map { argument ->
+      argument.second.accept(getExpressionVisitor(expressionMap, expressionMap, GradleNameElement.from(argument, this)))
+    }
+    return expressionMap
   }
 
   private fun getExpressionList(
@@ -287,7 +306,7 @@ class DeclarativeDslParser(
   ): GradleDslExpressionList {
     val expressionList = GradleDslExpressionList(context, listPsiElement, false, propertyName)
     valueArguments.forEach {
-      it.accept(getFunctionParametersVisitor(expressionList, context))
+      it.accept(getExpressionVisitor(expressionList, context, GradleNameElement.empty()))
     }
     return expressionList
   }

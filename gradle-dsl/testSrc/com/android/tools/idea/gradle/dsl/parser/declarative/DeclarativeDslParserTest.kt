@@ -214,6 +214,23 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     doSettingsTest(file, expected)
   }
 
+  fun testMap() {
+    val file = """
+      androidApp {
+        defaultConfig {
+           manifestPlaceholders = mapOf(
+               "activityLabel1" to "newName1",
+               "activityLabel2" to "newName2"
+           )
+        }
+      }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("defaultConfig" to mapOf("mManifestPlaceholders" to mapOf(
+      "activityLabel1" to "newName1", "activityLabel2" to "newName2"
+    ))))
+    doTest(file, expected)
+  }
+
   private fun doSettingsTest(text: String, expected: Map<String, Any>) {
     val declarativeFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
