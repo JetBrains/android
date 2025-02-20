@@ -60,6 +60,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -516,11 +518,20 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
-  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
-    if (loadedProject == null) {
-      return false;
+  public boolean isReadyForAnalysis(PsiFile psiFile) {
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    if (virtualFile == null) {
+      return true;
     }
-    return loadedProject.isReadyForAnalysis(virtualFile);
+    return CachedValuesManager.getCachedValue(psiFile, () -> {
+      boolean result;
+      if (loadedProject == null) {
+        result = false;
+      } else {
+        result = loadedProject.isReadyForAnalysis(virtualFile.toNioPath());
+      }
+      return CachedValueProvider.Result.create(result, getProjectModificationTracker());
+    });
   }
 
   /**

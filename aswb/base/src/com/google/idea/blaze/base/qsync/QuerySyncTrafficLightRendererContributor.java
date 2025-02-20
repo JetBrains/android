@@ -55,7 +55,7 @@ public class QuerySyncTrafficLightRendererContributor implements TrafficLightRen
         if (virtualFile == null) {
           return super.getStatus();
         }
-        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(virtualFile)) {
+        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(psiFile)) {
           return super.getStatus();
         }
         return new AnalyzerStatus(

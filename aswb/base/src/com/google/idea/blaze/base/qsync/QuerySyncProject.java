@@ -428,9 +428,8 @@ public class QuerySyncProject {
     }
   }
 
-  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
-    Path p = virtualFile.getFileSystem().getNioPath(virtualFile);
-    if (p == null || !p.startsWith(workspaceRoot.path())) {
+  public boolean isReadyForAnalysis(Path path) {
+    if (path == null || !path.startsWith(workspaceRoot.path())) {
       // Not in the workspace.
       // p == null can occur if the file is a zip entry.
       return true;
@@ -439,7 +438,7 @@ public class QuerySyncProject {
     Set<Label> pendingTargets =
         snapshotHolder
             .getCurrent()
-            .map(s -> s.getPendingTargets(workspaceRoot.relativize(virtualFile)))
+            .map(s -> s.getPendingTargets(workspaceRoot.relativize(path)))
             .orElse(ImmutableSet.of());
     return pendingTargets.isEmpty();
   }
