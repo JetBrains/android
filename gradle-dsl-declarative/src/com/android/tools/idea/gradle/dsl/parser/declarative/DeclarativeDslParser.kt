@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
+import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -88,7 +90,7 @@ class DeclarativeDslParser(
 
   override fun getContext(): BuildModelContext = context
   override fun parse() {
-    fun getVisitor(context: GradlePropertiesDslElement, nameElement: GradleNameElement): DeclarativeRecursiveVisitor =
+    fun getVisitor(context: GradlePropertiesDslElement, nameElement: GradleNameElement, parentSyntax: ExternalNameSyntax?): DeclarativeRecursiveVisitor =
       object : DeclarativeRecursiveVisitor() {
         override fun visitBlock(psi: DeclarativeBlock) {
           val name = psi.identifier.name ?: return
@@ -106,16 +108,20 @@ class DeclarativeDslParser(
               getOrCreateElement(description, context, identifier, psi)
             }
           if (block != null) {
-            psi.blockGroup.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
+            psi.blockGroup.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty(), null)) }
           }
         }
 
         override fun visitAssignment(psi: DeclarativeAssignment) {
-          psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.assignableProperty, this@DeclarativeDslParser)))
+          val syntax = when (psi.assignmentType) {
+            AssignmentType.ASSIGNMENT -> ASSIGNMENT
+            AssignmentType.APPEND -> AUGMENTED_ASSIGNMENT
+          }
+          psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.assignableProperty, this@DeclarativeDslParser), syntax))
         }
 
         override fun visitSimpleFactory(psi: DeclarativeSimpleFactory) {
-          val dslElement = maybeCreateBlock(psi, context) ?: parseFactory(psi, context, nameElement) ?: return
+          val dslElement = maybeCreateBlock(psi, context) ?: parseFactory(psi, context, nameElement, parentSyntax) ?: return
           context.addParsedElement(dslElement)
         }
 
@@ -144,12 +150,12 @@ class DeclarativeDslParser(
         }
         override fun visitLiteral(psi: DeclarativeLiteral) {
           val newLiteral = GradleDslLiteral(context, psi.parent, nameElement, psi, LITERAL).also {
-            if(!nameElement.isEmpty) it.externalSyntax = ASSIGNMENT
+            if (parentSyntax != null) it.externalSyntax = parentSyntax
           }
           context.addParsedElement(newLiteral)
         }
       }
-    psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
+    psiFile.accept(getVisitor(dslFile, GradleNameElement.empty(), null))
   }
 
   private fun getDomainNameDslElement(
@@ -208,7 +214,7 @@ class DeclarativeDslParser(
       }
 
       override fun visitFactoryReceiver(psi: DeclarativeFactoryReceiver) {
-        val methodCall = parseFactory(psi, context, nameElement) ?: return
+        val methodCall = parseFactory(psi, context, nameElement, null) ?: return
         list.addParsedElement(methodCall)
       }
     }
@@ -227,10 +233,10 @@ class DeclarativeDslParser(
 
   private fun parseFactory(psi: DeclarativeFactoryReceiver,
                            context: GradlePropertiesDslElement,
-                           currentNameElement: GradleNameElement): GradleDslExpression? {
+                           currentNameElement: GradleNameElement,
+                           parentSyntax: ExternalNameSyntax?): GradleDslExpression? {
     val name = psi.identifier.name ?: return null
 
-    val externalSyntax = if (!currentNameElement.isEmpty) ASSIGNMENT else null
     val nameElement = if (currentNameElement.isEmpty)
       GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)
     else
@@ -241,7 +247,7 @@ class DeclarativeDslParser(
       getMethodCall(context, psi, nameElement, name, null)
     }
     else {
-      getCallExpression(context, psi, nameElement, argumentList, name, externalSyntax)
+      getCallExpression(context, psi, nameElement, argumentList, name, parentSyntax)
     }
   }
 
@@ -270,17 +276,17 @@ class DeclarativeDslParser(
     name : GradleNameElement,
     argumentsList : DeclarativeArgumentsList,
     methodName : String,
-    externalsSyntax: ExternalNameSyntax?
+    parentSyntax: ExternalNameSyntax?
   ) : GradleDslExpression {
     return when (methodName) {
       "listOf", "mutableListOf", "setOf", "mutableSetOf" -> {
         val expression = getExpressionList(context, psiElement, name, argumentsList.arguments)
-        if (externalsSyntax != null) expression.externalSyntax = externalsSyntax
+        if (parentSyntax != null) expression.externalSyntax = parentSyntax
         expression
       }
       "mapOf", "mutableMapOf" -> {
         val mapExpression = getExpressionMap(context, psiElement, name, argumentsList.arguments)
-        if (externalsSyntax != null) mapExpression.externalSyntax = externalsSyntax
+        if (parentSyntax != null) mapExpression.externalSyntax = parentSyntax
         mapExpression
       }
       else -> getMethodCall(context, psiElement, name, methodName, argumentsList)
