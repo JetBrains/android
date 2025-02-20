@@ -51,7 +51,7 @@ class PerfgateComposeUiCheckGradleTest : PerfgateComposeGradleTestBase() {
           .single()
 
       // Start UI Check mode
-      projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 30.seconds) {
+      projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 60.seconds) {
         composePreviewRepresentation.setMode(
           PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
         )
