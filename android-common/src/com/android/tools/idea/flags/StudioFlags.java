@@ -1649,7 +1649,7 @@ public final class StudioFlags {
   // region Wear Declarative Watch Face
   private static final FlagGroup WEAR_DECLARATIVE_WATCH_FACE = new FlagGroup(FLAGS, "wear.dwf", "Declarative Watch Face");
 
-  public static final Flag<Boolean> WEAR_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
+  public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "run.configuration.enabled", "Enable run configuration for Declarative Watch Faces",
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
     enabledUpTo(DEV)
