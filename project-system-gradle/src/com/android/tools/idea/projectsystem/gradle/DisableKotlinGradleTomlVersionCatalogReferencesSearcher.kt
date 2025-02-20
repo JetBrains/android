@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.navigation.GradleKtsVersionCatalogReferencesSearcher
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.psi.search.searches.ReferencesSearch
-import org.jetbrains.kotlin.idea.gradle.versionCatalog.toml.KotlinGradleTomlVersionCatalogReferencesSearcher
 
 /**
  * Disable [KotlinGradleTomlVersionCatalogReferencesSearcher] since studio has its own implementation for
@@ -26,6 +25,8 @@ import org.jetbrains.kotlin.idea.gradle.versionCatalog.toml.KotlinGradleTomlVers
  */
 class DisableKotlinGradleTomlVersionCatalogReferencesSearcher : ApplicationInitializedListener {
   override suspend fun execute() {
-    ReferencesSearch.EP_NAME.point.unregisterExtension(KotlinGradleTomlVersionCatalogReferencesSearcher::class.java)
+    @Suppress("INVISIBLE_REFERENCE") // KotlinGradleTomlVersionCatalogReferencesSearcher is marked internal in IntelliJ 2025.1+.
+    val extension = org.jetbrains.kotlin.idea.gradle.versionCatalog.toml.KotlinGradleTomlVersionCatalogReferencesSearcher::class.java
+    ReferencesSearch.EP_NAME.point.unregisterExtension(extension)
   }
 }
