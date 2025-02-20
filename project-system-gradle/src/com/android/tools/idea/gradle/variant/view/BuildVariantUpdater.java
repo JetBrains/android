@@ -198,7 +198,9 @@ public class BuildVariantUpdater {
     };
 
     if (application.isUnitTestMode()) {
-      task.run(new EmptyProgressIndicator());
+      // Synchronous in unit test mode.
+      Runnable runnable = () -> task.run(new EmptyProgressIndicator());
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(runnable, task.getTitle(), task.isCancellable(), project);
     }
     else {
       ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, new BackgroundableProcessIndicator(task));
