@@ -23,7 +23,6 @@ import com.android.prefs.AndroidLocationsException
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
@@ -33,6 +32,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -40,6 +40,7 @@ import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Dimension
@@ -79,9 +80,10 @@ class ScreenRecorderAction : DumbAwareAction(
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
     val isEmulator = params.serialNumber.isEmulator()
-    val dialog = ScreenRecorderOptionsDialog(ScreenRecorderPersistentOptions.getInstance(), project, isEmulator, params.featureLevel)
+    val options = ScreenRecorderPersistentOptions.getInstance()
+    val dialog = ScreenRecorderOptionsDialog(options, project, isEmulator, params.featureLevel)
     if (dialog.showAndGet()) {
-      startRecordingAsync(params, isEmulator && ScreenRecorderPersistentOptions.getInstance().useEmulatorRecording, project)
+      startRecordingAsync(options, params, isEmulator && options.useEmulatorRecording, project)
     }
   }
 
@@ -91,7 +93,12 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   @UiThread
-  private fun startRecordingAsync(params: Parameters, useEmulatorRecording: Boolean, project: Project) {
+  private fun startRecordingAsync(
+      options: ScreenRecorderPersistentOptions,
+      params: Parameters,
+      useEmulatorRecording: Boolean,
+      project: Project,
+  ) {
     val adbSession: AdbSession = AdbLibApplicationService.instance.session
     val manager: AvdManager? = getVirtualDeviceManager()
     val serialNumber = params.serialNumber
@@ -107,9 +114,9 @@ class ScreenRecorderAction : DumbAwareAction(
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
       val size = getDeviceScreenSize(adbSession, serialNumber)
       val timeLimitSec = if (emulatorRecordingFile != null || params.featureLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
-      val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
-      if (options.showTouches != showTouchEnabled) {
-        setShowTouch(adbSession, serialNumber, options.showTouches)
+      val recorderOptions = options.toScreenRecorderOptions(size, timeLimitSec)
+      if (recorderOptions.showTouches != showTouchEnabled) {
+        setShowTouch(adbSession, serialNumber, recorderOptions.showTouches)
       }
       try {
         val recodingProvider = when (emulatorRecordingFile) {
@@ -117,14 +124,14 @@ class ScreenRecorderAction : DumbAwareAction(
             disposableParent,
             serialNumber,
             REMOTE_PATH.format(System.currentTimeMillis()),
-            options,
+            recorderOptions,
             adbSession)
 
           else -> EmulatorConsoleRecordingProvider(
             disposableParent,
             serialNumber,
             emulatorRecordingFile,
-            options,
+            recorderOptions,
             adbSession)
         }
         val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
@@ -132,10 +139,10 @@ class ScreenRecorderAction : DumbAwareAction(
         recorder.recordScreen(timeLimit)
       }
       finally {
-        if (options.showTouches != showTouchEnabled) {
+        if (recorderOptions.showTouches != showTouchEnabled) {
           setShowTouch(adbSession, serialNumber, showTouchEnabled)
         }
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           recordingInProgress.remove(serialNumber)
           ActivityTracker.getInstance().inc()
         }
@@ -199,7 +206,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   private fun coroutineExceptionHandler(project: Project, coroutineScope: CoroutineScope) = CoroutineExceptionHandler { _, throwable ->
     logger.warn("Failed to record screen", throwable)
-    coroutineScope.launch(uiThread) {
+    coroutineScope.launch(Dispatchers.EDT) {
       Messages.showErrorDialog(
         project,
         AndroidAdbUiBundle.message("screenrecord.error.exception", throwable.toString()),
