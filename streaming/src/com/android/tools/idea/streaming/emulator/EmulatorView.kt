@@ -118,6 +118,7 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
+import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
@@ -269,6 +270,7 @@ class EmulatorView(
       }
     }
 
+  @Volatile private var isDisposed = false
   private val isConnected
     get() = emulator.connectionState == ConnectionState.CONNECTED
   private val emulatorConfig
@@ -460,13 +462,18 @@ class EmulatorView(
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, this)
 
     if (displayId != PRIMARY_DISPLAY_ID && displaySize != null) {
-      // Three bytes per pixel plus some overhead.
-      emulator.connectGrpcOrIncreaseMaxInboundMessageSize(displaySize.width * displaySize.height * 3 + 100)
+      getAppExecutorService().submit {
+        if (!isDisposed) {
+          // Three bytes per pixel plus some overhead.
+          emulator.connectGrpcOrIncreaseMaxInboundMessageSize(displaySize.width * displaySize.height * 3 + 100)
+        }
+      }
     }
     updateConnectionState()
   }
 
   override fun dispose() {
+    isDisposed = true
     cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
