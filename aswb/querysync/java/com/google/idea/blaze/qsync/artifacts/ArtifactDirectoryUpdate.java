@@ -264,7 +264,7 @@ public class ArtifactDirectoryUpdate {
     try (final var fileStream = Files.walk(root)) {
       final var dot = Path.of("."); // Path.of("abc").startsWith(Path.of("")) does not work but with "./abc" and "./" it does.
       final var wanted = contents.getContentsMap().keySet().stream().map(dot::resolve);
-      final var present = fileStream.map(root::relativize).filter(it -> !root.equals(it)).map(dot::resolve);
+      final var present = fileStream.map(root::relativize).map(dot::resolve).filter(it -> !dot.equals(it));
       toDelete = computeFilesToDelete(present, wanted);
     }
     for (Path p : Lists.reverse(toDelete)) {
