@@ -73,7 +73,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
