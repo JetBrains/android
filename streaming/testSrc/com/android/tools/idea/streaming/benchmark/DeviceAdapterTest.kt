@@ -425,7 +425,11 @@ class DeviceAdapterTest {
     frameRendered(frameNumber++, displayRectangle, 0, bufferedImage)
   }
 
-  inner class TestDisplayView(project: Project, override val deviceDisplaySize: Dimension) : AbstractDisplayView(project, 0) {
+  private inner class TestDisplayView(
+    project: Project,
+    override val deviceDisplaySize: Dimension
+  ) : AbstractDisplayView(project, 0, "StreamingContextMenuVirtualDevice") {
+
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
       val mouseListener =

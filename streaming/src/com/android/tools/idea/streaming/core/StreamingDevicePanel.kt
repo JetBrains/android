@@ -21,7 +21,9 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -30,14 +32,27 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
+import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.ui.PositionTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Point
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
+import java.awt.event.ContainerEvent
+import java.awt.event.ContainerListener
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 
 private const val IS_TOOLBAR_HORIZONTAL = true
 
@@ -119,6 +134,83 @@ abstract class StreamingDevicePanel(
 
   override fun dispose() {
     destroyContent()
+  }
+
+  /**
+   * Shows a balloon advertising moving of some toolbar actions into the context menu.
+   * The balloon is shown below the main toolbar.
+   */
+  protected fun showContextMenuAdvertisement(disposableParent: Disposable, toolbarComponent: JComponent) {
+    val disposable = Disposer.newDisposable(disposableParent)
+    val advertisementCloser = StreamingContextMenuAdvertisementCloser {
+      Disposer.dispose(disposable)
+      EmulatorSettings.getInstance().contextMenuAdvertisementShown = true
+    }
+
+    val balloon = JBPopupFactory.getInstance()
+      .createBalloonBuilder(JLabel("Some toolbar buttons have been moved to a context menu. Use right-click to access."))
+      .setDisposable(disposable)
+      .setClickHandler({ advertisementCloser.closeContextMenuAdvertisement() }, true)
+      .setShadow(true)
+      .setHideOnAction(false)
+      .setHideOnClickOutside(false)
+      .setBlockClicksThroughBalloon(true)
+      //.setAnimationCycle(200)
+      .setFillColor(HintUtil.getWarningColor())
+      .setBorderColor(HintUtil.getWarningColor())
+      .createBalloon()
+
+    val positionTracker = object : PositionTracker<Balloon>(toolbarComponent), ComponentListener, ContainerListener {
+      private var lastToolbarButton: Component? = null
+
+      init {
+        toolbarComponent.addContainerListener(this)
+        Disposer.register(this) {
+          lastToolbarButton?.removeComponentListener(this)
+          toolbarComponent.removeContainerListener(this)
+        }
+      }
+
+      override fun recalculateLocation(balloon: Balloon): RelativePoint? {
+        val button = toolbarComponent.components.findLast { it.isVisible && it.width != 0 }
+        if (button !== lastToolbarButton) {
+          lastToolbarButton?.removeComponentListener(this)
+          button?.addComponentListener(this)
+          lastToolbarButton = button
+        }
+        val p = button?.let { Point(it.x + it.width, it.y + it.height) } ?: Point()
+        return RelativePoint(component, p)
+      }
+
+      override fun componentResized(e: ComponentEvent) {
+        revalidate()
+      }
+
+      override fun componentMoved(e: ComponentEvent) {
+        revalidate()
+      }
+
+      override fun componentShown(e: ComponentEvent) {
+        revalidate()
+      }
+
+      override fun componentHidden(e: ComponentEvent) {
+        revalidate()
+      }
+
+      override fun componentAdded(event: ContainerEvent) {
+        revalidate()
+      }
+
+      override fun componentRemoved(event: ContainerEvent) {
+        revalidate()
+      }
+    }
+
+    balloon.show(positionTracker, Balloon.Position.below)
+
+    val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(disposable)
+    messageBusConnection.subscribe(StreamingContextMenuAdvertisementCloser.TOPIC, advertisementCloser)
   }
 
   @Suppress("SameParameterValue")

@@ -200,7 +200,8 @@ class EmulatorView(
   displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean,
-) : AbstractDisplayView(project, displayId), ConnectionStateListener, EmulatorSettingsListener, EmulatorLogListener {
+) : AbstractDisplayView(project, displayId, "StreamingContextMenuVirtualDevice"),
+    ConnectionStateListener, EmulatorSettingsListener, EmulatorLogListener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
@@ -1103,7 +1104,11 @@ class EmulatorView(
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      if (isInsideDisplay(event)) {
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
+        return
+      }
+      if (insideDisplay) {
         lastTouchCoordinates = Point(event.x, event.y)
         updateMultiTouchMode(event)
         sendMouseEvent(event.x, event.y, buttons)
@@ -1117,6 +1122,10 @@ class EmulatorView(
       buttons = buttons and getButtonBit(event.button).inv()
       mouseCoordinates = event.point
       if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
         return
       }
       if (event.button == BUTTON1) {

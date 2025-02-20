@@ -243,6 +243,40 @@
     <!-- Placeholder group for placing the Backup App button registered in a separate module. -->
     <group id="android.streaming.backup" class="com.android.tools.idea.streaming.actions.BackupActionGroup"/>
 
+    <!-- Placeholder group for placing the Wear Health Services action registered in a separate module. -->
+    <group id="android.emulator.wear.health.services"/>
+
+    <group id="ContextMenuVirtualDevice">
+      <reference ref="android.streaming.ui.settings"/>
+      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
+      <reference ref="android.emulator.wear.health.services"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="android.streaming.backup"/>
+      <separator/>
+      <reference ref="android.emulator.snapshots"/>
+      <reference ref="android.emulator.extended.controls"/>
+    </group>
+
+    <group id="ContextMenuPhysicalDevice">
+      <reference ref="android.streaming.ui.settings"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="android.streaming.backup"/>
+    </group>
+
+    <group id="StreamingContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
+      <reference ref="ContextMenuVirtualDevice"/>
+    </group>
+
+    <group id="StreamingContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
+      <reference ref="ContextMenuPhysicalDevice"/>
+    </group>
+
     <group id="StreamingToolbarVirtualDevice">
       <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
              text="Display Mode" description="Select display mode" popup="true">
@@ -289,17 +323,9 @@
       <group id="android.emulator.xr.passthrough.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
         <reference ref="android.emulator.xr.passthrough"/>
       </group>
-      <reference ref="android.streaming.ui.settings"/>
-      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
-      <group id="android.emulator.wear.health.services"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
-      <reference ref="android.streaming.backup"/>
-      <separator/>
-      <reference ref="android.emulator.snapshots"/>
-      <reference ref="android.emulator.extended.controls"/>
+    <group id="InToolbarContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
+      <reference ref="ContextMenuVirtualDevice"/>
+    </group>
     </group>
 
     <group id="StreamingToolbarPhysicalDevice">
@@ -320,12 +346,9 @@
       <separator/>
       <reference ref="android.streaming.hardware.input"/>
       <separator/>
-      <reference ref="android.streaming.ui.settings"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
-      <reference ref="android.streaming.backup"/>
+      <group id="InToolbarContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
+        <reference ref="ContextMenuPhysicalDevice"/>
+      </group>
       <separator/>
       <reference ref="android.device.reservation.extend"/>
     </group>

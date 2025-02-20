@@ -38,6 +38,14 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   var cameraVelocityControls: CameraVelocityControls by ChangeNotifyingProperty(DEFAULT_CAMERA_VELOCITY_CONTROLS)
   var snapshotAutoDeletionPolicy: SnapshotAutoDeletionPolicy by ChangeNotifyingProperty(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY)
 
+  /**
+   * This property indicates whether the balloon advertising moving of some toolbar actions
+   * into the context menu has already been shown and dismissed by the user.
+   *
+   * It is not reflected in `EmulatorSettingsPage`.
+   */
+  var contextMenuAdvertisementShown: Boolean = false
+
   private var initialized = false
 
   override fun getState(): EmulatorSettings {

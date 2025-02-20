@@ -1169,6 +1169,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "wrap.toolbar", "Enable Toolbar Wrapping",
     "Wraps the toolbar when all buttons don't fit into the available width",
     true);
+  public static final Flag<Boolean> RUNNING_DEVICES_CONTEXT_MENU = new BooleanFlag(
+    EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
+    "Enables context menu in the Running Devices tool window",
+    false);
   //endregion
 
   //region Device Mirroring
