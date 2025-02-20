@@ -68,7 +68,6 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -570,15 +569,19 @@ class GradleSyncStateHolder constructor(private val project: Project) {
                                      operation: LongRunningOperation,
                                      gradleExecutionSettings: GradleExecutionSettings,
                                      buildEnvironment: BuildEnvironment?) {
-      val project = id.findProject() ?: return
-      val gradleVersion = buildEnvironment?.gradle?.gradleVersion ?: return
-
-      getInstance(project).recordGradleVersion(GradleVersion.version(gradleVersion))
+      val project = id.findProject()
+      if (project != null) {
+        if (id.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
+          prepareForSync(operation, project)
+        }
+        val gradleVersion = buildEnvironment?.gradle?.gradleVersion
+        if (gradleVersion != null) {
+          getInstance(project).recordGradleVersion(GradleVersion.version(gradleVersion))
+        }
+      }
     }
 
-    override fun prepareForSync(operation: LongRunningOperation, resolverCtx: ProjectResolverContext) {
-      val project = resolverCtx.externalSystemTaskId.findProject() ?: return
-
+    private fun prepareForSync(operation: LongRunningOperation, project: Project) {
       operation.addProgressListener(ProgressListener {
         if (project.isDisposed) return@ProgressListener
         when (it) {

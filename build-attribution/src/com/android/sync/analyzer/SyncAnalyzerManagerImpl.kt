@@ -39,7 +39,6 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 
@@ -127,6 +126,4 @@ class SyncAnalyzerExecutionHelperExtension : GradleExecutionHelperExtension {
       operation.addProgressListener(ProgressListener(downloadEventsProcessor::receiveEvent), OperationType.FILE_DOWNLOAD)
     }
   }
-
-  override fun prepareForSync(operation: LongRunningOperation, resolverCtx: ProjectResolverContext) = Unit
 }
