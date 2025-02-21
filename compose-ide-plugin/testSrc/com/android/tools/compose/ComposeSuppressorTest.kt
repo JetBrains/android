@@ -25,11 +25,11 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeInsight.inspections.shared.TestFunctionNameInspection
-import org.jetbrains.kotlin.idea.k1.codeinsight.inspections.FunctionNameInspection as FunctionNameInspectionForK1
 import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.FunctionNameInspection
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.jetbrains.kotlin.idea.k1.codeinsight.inspections.FunctionNameInspection as FunctionNameInspectionForK1
 
 class ComposeSuppressorTest {
 
