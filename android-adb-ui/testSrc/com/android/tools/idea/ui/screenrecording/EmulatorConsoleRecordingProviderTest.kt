@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -24,7 +25,8 @@ import org.junit.Test
 class EmulatorConsoleRecordingProviderTest {
   @Test
   fun getRecorderOptions() {
-    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 300)
+    val options = ScreenRecorderOptions(
+        displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 300)
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 
@@ -40,7 +42,8 @@ class EmulatorConsoleRecordingProviderTest {
 
   @Test
   fun getRecorderOptionsDefaultTimeLimit() {
-    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 0)
+    val options = ScreenRecorderOptions(
+        displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 0)
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 

@@ -574,7 +574,14 @@ internal class DeviceView(
   override fun uiDataSnapshot(sink: DataSink) {
     sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = if (isConnected) createScreenshotOptions() else null
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let {
-      ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, displayId, it)
+      ScreenRecorderAction.Parameters(
+        deviceClient.deviceName,
+        deviceSerialNumber,
+        deviceConfig.featureLevel,
+        null,
+        displayId,
+        ::deviceDisplaySize,
+        it)
     }
   }
 

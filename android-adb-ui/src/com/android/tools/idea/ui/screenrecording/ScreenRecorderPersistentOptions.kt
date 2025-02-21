@@ -54,7 +54,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  fun toScreenRecorderOptions(size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
+  fun toScreenRecorderOptions(displayId: Int, size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
     val width: Int
     val height: Int
     if (size != null && resolutionPercent != 100) {
@@ -67,7 +67,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
       height = 0
     }
 
-    return ScreenRecorderOptions(width, height, bitRateMbps, showTaps, timeLimitSec)
+    return ScreenRecorderOptions(displayId, width, height, bitRateMbps, showTaps, timeLimitSec)
   }
 }
 

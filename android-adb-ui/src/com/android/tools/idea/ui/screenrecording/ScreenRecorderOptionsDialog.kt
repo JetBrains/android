@@ -39,7 +39,7 @@ import javax.swing.JEditorPane
 internal class ScreenRecorderOptionsDialog(
   private val options: ScreenRecorderPersistentOptions,
   private val project: Project,
-  private val isEmulator: Boolean,
+  private val canUseEmulatorRecording: Boolean,
   private val apiLevel: Int,
 ) : DialogWrapper(project, true) {
 
@@ -53,7 +53,7 @@ internal class ScreenRecorderOptionsDialog(
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        text(getMaxRecordingLengthText(isEmulator && options.useEmulatorRecording))
+        text(getMaxRecordingLengthText(canUseEmulatorRecording && options.useEmulatorRecording))
           .applyToComponent { recordingLengthField = this }
       }
       row(message("screenrecord.options.bit.rate")) {
@@ -73,7 +73,7 @@ internal class ScreenRecorderOptionsDialog(
           .bindSelected(options::showTaps)
       }.contextHelp(message("screenrecord.options.show.taps.tooltip"))
 
-      if (isEmulator) {
+      if (canUseEmulatorRecording) {
         row {
           checkBox(message("screenrecord.options.use.emulator.recording"))
             .bindSelected(options::useEmulatorRecording)
@@ -104,12 +104,12 @@ internal class ScreenRecorderOptionsDialog(
 
   private fun configureSave() {
     val dialog = SaveConfigurationDialog(
-        project,
-        options.saveLocation,
-        options.filenameTemplate,
-        options.postSaveAction,
-        if (isEmulator && options.useEmulatorRecording) "webm" else "mp4",
-        Instant.now(),
+      project,
+      options.saveLocation,
+      options.filenameTemplate,
+      options.postSaveAction,
+      if (canUseEmulatorRecording && options.useEmulatorRecording) "webm" else "mp4",
+      Instant.now(),
         options.recordingCount + 1)
     if (dialog.createWrapper(null, rootPane).showAndGet()) {
       options.filenameTemplate = dialog.filenameTemplate

@@ -854,7 +854,14 @@ class EmulatorView(
 
   private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
     return if (emulator.connectionState == ConnectionState.CONNECTED) {
-      ScreenRecorderAction.Parameters(emulatorId.avdName, deviceSerialNumber, emulatorConfig.api, emulatorId.avdId, displayId, emulator)
+      ScreenRecorderAction.Parameters(
+        emulatorId.avdName,
+        deviceSerialNumber,
+        emulatorConfig.api,
+        emulatorId.avdId,
+        displayId,
+        ::deviceDisplaySize,
+        emulator)
     }
     else {
       null
