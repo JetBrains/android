@@ -44,6 +44,7 @@ iml_module(
         "AndroidJavaDebuggerTest": {
             "test_filter": "AndroidJavaDebuggerTest",
         },
+        "other": {},
     },
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",
     # keep sorted

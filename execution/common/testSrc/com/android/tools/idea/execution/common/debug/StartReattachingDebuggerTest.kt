@@ -29,12 +29,13 @@ import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebug
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
-import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.xdebugger.XDebuggerManager
 import kotlinx.coroutines.test.runTest
@@ -58,7 +59,14 @@ class StartReattachingDebuggerTest {
   private val MASTER_PROCESS_NAME = "com.master.test"
 
   @get:Rule(order = 0)
-  val projectRule = ProjectRule()
+  val projectRule = AndroidProjectRule.withAndroidModels(
+    AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      AndroidProjectBuilder(
+        applicationIdFor = { "com.test.integration.ddmlib" }
+      ))
+  )
 
   @get:Rule(order = 1)
   val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
@@ -145,8 +153,6 @@ class StartReattachingDebuggerTest {
     val runContentManagerImplMock = mock<RunContentManager>()
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
-    val projectSystem = TestProjectSystem(project)
-    projectSystem.useInTests()
 
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
 
