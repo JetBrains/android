@@ -448,14 +448,43 @@ fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem()
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
 
+/** An identifier for querying a [RegisteringModuleSystem] about the existence or otherwise of a dependency. */
 interface RegisteredDependencyQueryId
+/**
+ * An identifier for a registered dependency, either currently existent or whose registration might be
+ * requested of a [RegisteringModuleSystem].
+ */
 interface RegisteredDependencyId
+
+/**
+ * Contains methods for interacting with "registered" (explicitly declared) dependencies in an [AndroidModuleSystem].
+ *
+ * Not all [AndroidModuleSystem]s can introspect or (particularly) modify the project's definition to include new dependencies.  Those
+ * that can will return a [RegisteringModuleSystem] (usually themselves) from [AndroidModuleSystem.getRegisteringModuleSystem], giving
+ * access to these methods.  The common entry points for the functionality involve getting ids from a well-known [GoogleMavenArtifactId],
+ * but a particular [RegisteringModuleSystem] implementation might provide other entry points (for example, [String] notation applicable
+ * to that particular [AndroidModuleSystem].
+ *
+ * This interface must not be implemented by anything other than an [AndroidModuleSystem].  (If all [AndroidModuleSystem] implementations
+ * also implement this interface, it can be folded in and removed.)
+ */
 interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
+  /** return an id suitable for querying for a corresponding existing registered dependency. */
   fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): T?
+  /** return an id suitable for registering the corresponding dependency with the project. */
   fun getRegisteredDependencyId(id: GoogleMavenArtifactId): U?
+  /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: GoogleMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: T): U?
+  /** register the [dependency] as a dependency of type [type] in this module. */
   fun registerDependency(dependency: U, type: DependencyType)
+  /**
+   * For a list (really a set) of [dependencies], compute (for this module in its current state) whether registering those dependencies
+   * would cause any incompatibilities (for example by introducing versions of libraries with known incompatibilities between
+   * themselves or with existing dependencies in the project.  Return (as a data class) the list of compatible dependencies, the list
+   * of incompatible dependencies, and a [String] warning suitable for displaying to the user.
+   */
   fun analyzeDependencyCompatibility(dependencies: List<U>): ListenableFuture<RegisteredDependencyCompatibilityResult<U>>
 }
 data class RegisteredDependencyCompatibilityResult<U: RegisteredDependencyId>(
