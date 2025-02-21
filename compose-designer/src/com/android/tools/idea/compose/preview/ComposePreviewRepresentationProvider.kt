@@ -16,7 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
@@ -33,6 +35,7 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.GroupSwitchAction
@@ -56,6 +59,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -74,9 +79,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.psi.search.GlobalSearchScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
@@ -176,12 +186,42 @@ class ComposePreviewRepresentationProvider(
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the
    * `PreviewRepresentation` of them.
    */
-  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
-    psiFile.virtualFile.isKotlinFileType() &&
+  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+    project.coroutineScope.launch { logFileIfComposable(project, psiFile) }
+    return psiFile.virtualFile.isKotlinFileType() &&
       (readAction {
         (psiFile.getModuleSystem()?.usesCompose == true ||
           isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
       })
+  }
+
+  private suspend fun logFileIfComposable(project: Project, psiFile: PsiFile) {
+    // We need to be in smart mode to be able to access the index for the annotations.
+    if (DumbService.getInstance(project).isDumb) return
+
+    val foundComposableAnnotations = readAction {
+      KotlinAnnotationsIndex[
+        COMPOSABLE_ANNOTATION_NAME,
+        project,
+        GlobalSearchScope.fileScope(psiFile),
+      ]
+    }
+
+    withContext(Dispatchers.Default) {
+      // If the file has methods annotated with @Composable methods, log it as a Compose file.
+      if (foundComposableAnnotations.isNotEmpty()) {
+        val studioEvent =
+          AndroidStudioEvent.newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+            .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+            .setLayoutEditorEvent(
+              LayoutEditorEvent.newBuilder()
+                .setType(LayoutEditorEvent.LayoutEditorEventType.COMPOSE_FILE_OPEN)
+            )
+        UsageTracker.log(studioEvent)
+      }
+    }
+  }
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
