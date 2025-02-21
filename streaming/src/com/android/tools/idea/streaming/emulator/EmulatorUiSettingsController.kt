@@ -74,9 +74,9 @@ internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
   "cmd uimode night; " +
   "echo $GESTURES_DIVIDER; " +
-  "cmd overlay list android | grep $GESTURES_OVERLAY\$; " +
+  "cmd overlay list android | grep $GESTURES_OVERLAY$; " +
   "echo $LIST_PACKAGES_DIVIDER; " +
-  "pm list packages | grep package:$TALKBACK_PACKAGE_NAME\$; " +
+  "pm list packages | grep package:$TALKBACK_PACKAGE_NAME$; " +
   "echo $ACCESSIBILITY_SERVICES_DIVIDER; " +
   "settings get secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "echo $ACCESSIBILITY_BUTTON_TARGETS_DIVIDER; " +
