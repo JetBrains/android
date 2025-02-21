@@ -66,11 +66,13 @@ class NlDependencyManager private constructor() {
     promptUserBeforeAdding: Boolean,
     dependenciesPresentCallback: Runnable? = null,
   ): Boolean {
-    val moduleSystem = facet.module.getModuleSystem()
+
     val missingDependencies =
-      collectDependencies(components)
-        .filter { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) == null }
-        .toSet()
+      collectDependencies(components).let { ids ->
+        facet.module.getModuleSystem().getRegisteringModuleSystem()?.let { moduleSystem ->
+          ids.filter { moduleSystem.getRegisteredDependency(it) == null }.toSet()
+        } ?: ids.toSet()
+      }
     if (missingDependencies.isEmpty()) {
       // We don't have any missing dependencies, therefore they're all present.
       dependenciesPresentCallback?.run()
@@ -126,11 +128,10 @@ class NlDependencyManager private constructor() {
    */
   fun checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>, facet: AndroidFacet): Boolean {
     val dependencies = collectDependencies(toAdd)
-    val moduleSystem = facet.module.getModuleSystem()
     val missing =
-      dependencies
-        .filter { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) == null }
-        .toSet()
+      facet.module.getModuleSystem().getRegisteringModuleSystem()?.let { moduleSystem ->
+        dependencies.filter { moduleSystem.getRegisteredDependency(it) == null }.toSet()
+      } ?: emptySet()
     if (missing.none()) {
       return true
     }

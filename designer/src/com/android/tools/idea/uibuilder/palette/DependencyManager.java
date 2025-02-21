@@ -23,6 +23,8 @@ import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
@@ -153,10 +155,14 @@ public class DependencyManager implements Disposable {
     Set<GoogleMavenArtifactId> missing = Collections.emptySet();
 
     if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
-      AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
-      missing = myPalette.getGoogleMavenArtifactIds().stream()
-        .filter(id -> moduleSystem.getRegisteredDependency(id.getCoordinate("+")) == null)
-        .collect(ImmutableSet.toImmutableSet());
+      RegisteringModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule).getRegisteringModuleSystem();
+      if (moduleSystem != null) {
+        missing = myPalette.getGoogleMavenArtifactIds().stream()
+          .filter(id -> moduleSystem.getRegisteredDependency(id) == null)
+          .collect(ImmutableSet.toImmutableSet());
+      } else {
+        missing = ImmutableSet.copyOf(myPalette.getGoogleMavenArtifactIds());
+      }
 
       if (myMissingLibraries.get().equals(missing)) {
         return false;
