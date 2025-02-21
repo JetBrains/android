@@ -218,7 +218,7 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     val file = """
       androidApp {
         defaultConfig {
-           manifestPlaceholders = mapOf(
+           manifestPlaceholders += mapOf(
                "activityLabel1" to "newName1",
                "activityLabel2" to "newName2"
            )

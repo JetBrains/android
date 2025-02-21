@@ -1,0 +1,4 @@
+androidApp {
+  defaultConfig {
+  }
+}
