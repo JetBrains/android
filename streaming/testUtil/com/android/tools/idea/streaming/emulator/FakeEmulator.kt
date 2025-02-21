@@ -348,7 +348,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   fun resumeGrpc() {
-    grpcSemaphore.release(Int.MAX_VALUE)
+    val delta = Int.MAX_VALUE - grpcSemaphore.availablePermits()
+    if (delta > 0) {
+      grpcSemaphore.release(delta)
+    }
   }
 
   private fun createGrpcServer(): Server {
