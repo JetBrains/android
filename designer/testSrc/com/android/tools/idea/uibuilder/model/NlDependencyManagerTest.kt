@@ -68,7 +68,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     TestCase.assertNull(
       projectSystem
         .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7)
     )
   }
 
@@ -81,7 +81,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     TestCase.assertNotNull(
       projectSystem
         .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7)
     )
   }
 

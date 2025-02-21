@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.runsGradleProjectsystem
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.truth.PathSubject.assertThat
@@ -91,26 +92,24 @@ class GradleModuleSystemIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       verifyProjectDependsOnWildcardAppCompat(project)
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that getRegisteredDependency gets a existing dependency correctly.
-      val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-      val foundDependency = moduleSystem.getRegisteredDependency(appCompat)!!
-
-      assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
-      assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
+      val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+      val foundDependency = moduleSystem.getRegisteredDependency(appCompat)
+      assertThat(foundDependency).isNotNull()
+      assertThat(foundDependency?.dependency?.module).isEqualTo(appCompat.getModule())
 
       // TODO: b/129297171
       @Suppress("ConstantConditionIf")
       if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
         // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
-        assertThat(foundDependency.revision).isEqualTo("+")
-        assertThat(foundDependency.acceptsGreaterRevisions()).isTrue()
+        assertThat(foundDependency?.dependency?.version).isEqualTo(RichVersion.parse("+"))
       } else {
         // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
-        assertThat(foundDependency.lowerBoundVersion!!.major).isEqualTo(28)
-        assertThat(foundDependency.lowerBoundVersion!!.minor).isLessThan(Integer.MAX_VALUE)
-        assertThat(foundDependency.lowerBoundVersion!!.micro).isLessThan(Integer.MAX_VALUE)
+        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.major).isEqualTo(28)
+        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.minor).isLessThan(Integer.MAX_VALUE)
+        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.micro).isLessThan(Integer.MAX_VALUE)
       }
     }
   }

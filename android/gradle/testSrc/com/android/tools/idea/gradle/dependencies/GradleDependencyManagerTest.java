@@ -40,6 +40,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
@@ -233,8 +235,8 @@ public class GradleDependencyManagerTest {
   }
 
   private boolean isRecyclerViewRegistered(@NotNull Project project) {
-    return getModuleSystem(TestModuleUtil.findAppModule(project))
-             .getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
+    GradleModuleSystem moduleSystem = (GradleModuleSystem)getModuleSystem(TestModuleUtil.findAppModule(project));
+    return moduleSystem.getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
   }
 
   private boolean isRecyclerViewResolved(@NotNull Project project) {

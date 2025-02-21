@@ -168,6 +168,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).isEmpty()
@@ -179,7 +180,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).isEmpty()
@@ -191,6 +194,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServices), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
@@ -203,7 +207,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServicesMaps, playServices), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServicesMaps.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServicesMaps)?.coordinate).isNull()
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices, playServicesMaps)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -219,7 +225,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(appCompat, playServices), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
@@ -230,6 +238,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false, false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).isEmpty()
@@ -242,6 +251,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), true, false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -258,7 +268,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -276,7 +288,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, constraintLayout)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
     Truth.assertThat(dialogMessages).containsExactly("""
@@ -295,8 +309,11 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat, playServices), false)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly(
@@ -315,7 +332,9 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), true)
 
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
+    Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
     Truth.assertThat(dialogMessages).containsExactly("""

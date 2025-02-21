@@ -70,6 +70,8 @@ class TestProjectSystem @JvmOverloads constructor(
 
   data class Dependency(val type: DependencyType, val coordinate: GradleCoordinate)
 
+  interface TestModuleSystem: AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
+
   override fun isAndroidProject(): Boolean {
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
@@ -149,8 +151,8 @@ class TestProjectSystem @JvmOverloads constructor(
   data class TestRegisteredDependencyId(val coordinate: GradleCoordinate): RegisteredDependencyId {
     override fun toString(): String = coordinate.toString()
   }
-  override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    class TestAndroidModuleSystemImpl : AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId> {
+  override fun getModuleSystem(module: Module): TestModuleSystem {
+    class TestAndroidModuleSystemImpl : TestModuleSystem {
       override val module = module
 
       override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
