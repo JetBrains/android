@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -37,11 +38,14 @@ class LogcatEditorRule(private val projectRule: ProjectRule) : ExternalResource(
    */
   private val markers = mutableListOf<RangeMarker>()
 
+  private val disposable = Disposer.newDisposable("LogcatEditorRule")
+
   override fun before() {
-    editor = runInEdtAndGet { createLogcatEditor(projectRule.project) }
+    editor = runInEdtAndGet { createLogcatEditor(projectRule.project, disposable) }
   }
 
   override fun after() {
+    Disposer.dispose(disposable)
     runInEdtAndWait { EditorFactory.getInstance().releaseEditor(editor) }
   }
 

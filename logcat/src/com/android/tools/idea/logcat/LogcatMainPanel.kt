@@ -283,7 +283,7 @@ constructor(
 
   private var caretLine = 0
 
-  @VisibleForTesting internal val editor: EditorEx = createLogcatEditor(project)
+  @VisibleForTesting internal val editor: EditorEx = createLogcatEditor(project, this)
   private val pausedBanner = WarningNotificationPanel()
   private val noApplicationIdsBanner = WarningNotificationPanel()
   private val noLogsBanner = WarningNotificationPanel()

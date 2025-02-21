@@ -189,10 +189,12 @@ internal class LogcatFormatDialog(
   private var processShowDuplicates =
     observableProperty(!initialFormatting.formattingOptions.processNameFormat.hideDuplicates)
 
+  private val disposable = Disposer.newDisposable("LogcatFormatDialog")
+
   // Preview area
   @VisibleForTesting
   var previewEditor =
-    createLogcatEditor(project).apply {
+    createLogcatEditor(project, disposable).apply {
       scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
       scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
     }
@@ -211,6 +213,7 @@ internal class LogcatFormatDialog(
   }
 
   init {
+    Disposer.register(dialogWrapper.disposable, disposable)
     formattingStyle.afterChange {
       val (previousOptions, currentOptions) =
         when (it) {
