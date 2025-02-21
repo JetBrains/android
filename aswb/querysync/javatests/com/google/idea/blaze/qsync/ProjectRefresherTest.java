@@ -29,7 +29,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QuerySpec;
-import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import com.google.idea.blaze.qsync.query.QuerySummaryTestUtil;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -63,7 +63,7 @@ public class ProjectRefresherTest {
         PostQuerySyncData.EMPTY.toBuilder()
             .setVcsState(
                 Optional.of(new VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())))
-            .setQuerySummary(QuerySummary.create(Query.Summary.newBuilder().setVersion(-1).build()))
+            .setQuerySummary(QuerySummaryImpl.create(Query.Summary.newBuilder().setVersion(-1).build()))
             .build();
 
     RefreshOperation update =
@@ -89,7 +89,7 @@ public class ProjectRefresherTest {
     PostQuerySyncData project =
         PostQuerySyncData.EMPTY.toBuilder()
             .setVcsState(Optional.of(vcsState))
-            .setQuerySummary(QuerySummary.EMPTY)
+            .setQuerySummary(QuerySummaryImpl.EMPTY)
             .build();
     QuerySyncProjectSnapshot existingProject = QuerySyncProjectSnapshot.EMPTY;
     RefreshOperation update =
@@ -101,7 +101,7 @@ public class ProjectRefresherTest {
                 project.bazelVersion(),
                 project.projectDefinition());
     assertThat(update).isInstanceOf(NoopProjectRefresh.class);
-    assertThat(update.createPostQuerySyncData(QuerySummary.EMPTY))
+    assertThat(update.createPostQuerySyncData(QuerySummaryImpl.EMPTY))
         .isEqualTo(
             existingProject.queryData().toBuilder().setVcsState(Optional.of(vcsState)).build());
   }
@@ -118,7 +118,7 @@ public class ProjectRefresherTest {
                         "1",
                         ImmutableSet.of(),
                         Optional.of(Path.of("/my/workspace/.snapshot/1")))))
-            .setQuerySummary(QuerySummary.EMPTY)
+            .setQuerySummary(QuerySummaryImpl.EMPTY)
             .build();
     RefreshOperation update =
         createRefresher(Optional.empty())

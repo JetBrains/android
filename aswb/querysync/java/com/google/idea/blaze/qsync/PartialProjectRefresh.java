@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +120,7 @@ class PartialProjectRefresh implements RefreshOperation {
     // now add all rules / source files from the delta
     newSourceFiles.putAll(partialQuery.getSourceFilesMap());
     newRules.putAll(partialQuery.getRulesMap());
-    return QuerySummary.newBuilder()
+    return QuerySummaryImpl.newBuilder()
         .putAllSourceFiles(newSourceFiles)
         .putAllRules(newRules.values())
         .putAllPackagesWithErrors(partialQuery.getPackagesWithErrors())

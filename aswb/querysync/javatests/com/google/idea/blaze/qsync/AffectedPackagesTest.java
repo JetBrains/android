@@ -25,6 +25,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import com.google.idea.blaze.qsync.query.QuerySummaryTestBuilder;
 import java.nio.file.Path;
 import org.junit.Rule;
@@ -40,7 +41,7 @@ public class AffectedPackagesTest {
   @Test
   public void testModifyBuildFile() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages("//my/build/package1:rule", "//my/build/package2:rule"));
 
     AffectedPackages affected =
@@ -62,7 +63,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testAddBuildFile_siblingPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package1:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
 
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -82,7 +83,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testAddBuildFile_childPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package1:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
 
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -107,7 +108,7 @@ public class AffectedPackagesTest {
   @Test
   public void testAddBuildFile_andDeleteParent() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages(
                 "//my/build/package1:rule1", "//my/build/package1/subpackage:subrule"));
 
@@ -139,7 +140,7 @@ public class AffectedPackagesTest {
   @Test
   public void testDeleteBuildFile_siblingPackage() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages("//my/build/package1:rule1", "//my/build/package2:rule2"));
 
     AffectedPackages affected =
@@ -162,7 +163,7 @@ public class AffectedPackagesTest {
   @Test
   public void testDeleteBuildFile_childPackage() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages(
                 "//my/build/package1:rule1", "//my/build/package1/subpackage:subrule"));
 
@@ -189,7 +190,7 @@ public class AffectedPackagesTest {
   @Test
   public void testDeleteBuildFile_childPackage_nested() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages(
                 "//my/build/package1:rule1",
                 "//my/build/package1/subpackage:subrule",
@@ -221,7 +222,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testModifyBuildFile_outsideProject() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package1:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
 
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -241,7 +242,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testModifyBuildFile_excluded() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package1:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
 
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -263,7 +264,7 @@ public class AffectedPackagesTest {
   @Test
   public void testModifyBzlFile_included() {
     QuerySummary summary =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package1:rule", "//my/build/package2:rule")
                 .addSubincludes(
@@ -293,7 +294,7 @@ public class AffectedPackagesTest {
   @Test
   public void testModifyBzlFile_excluded() {
     QuerySummary summary =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package:rule")
                 .addSubincludes(
@@ -320,7 +321,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testModifySourceFile_included() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -339,7 +340,7 @@ public class AffectedPackagesTest {
   @Test
   public void testAddSourceFile_included() {
     QuerySummary query =
-        QuerySummary.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
+        QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -358,7 +359,7 @@ public class AffectedPackagesTest {
   @Test
   public void testAddSourceFile_included_packageSubdirectory() {
     QuerySummary query =
-        QuerySummary.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
+        QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -376,7 +377,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testAddSourceFile_noPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -394,7 +395,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testAddSourceFile_withNewSiblingPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -414,7 +415,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testAddSourceFile_withNewChildPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -437,7 +438,7 @@ public class AffectedPackagesTest {
   @Test
   public void testDeleteSourceFile() {
     QuerySummary query =
-        QuerySummary.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
+        QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule", "//my/build:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -455,7 +456,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testDeleteSourceFileAndPackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -477,7 +478,7 @@ public class AffectedPackagesTest {
   @Test
   public void testDeleteBuildFileAndAddSourceInSamePackage() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages("//my/build/package/lib:rule", "//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -500,7 +501,7 @@ public class AffectedPackagesTest {
 
   @Test
   public void testDeleteBuildFileAndAddUnownedSourceInSamePackage() {
-    QuerySummary query = QuerySummary.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
             .context(NOOP_CONTEXT)
@@ -524,7 +525,7 @@ public class AffectedPackagesTest {
   @Test
   public void testPackagesWithErrorsAreAffected() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package:rule", "//my/build/package/lib:rule")
                 .addBuildFileLabelsWithErrors("//my/build/package:BUILD")
@@ -544,7 +545,7 @@ public class AffectedPackagesTest {
   @Test
   public void testPackagesWithErrorsThenDeleted() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package/lib1:rule", "//my/build/package/lib2:rule")
                 .addBuildFileLabelsWithErrors("//my/build/package/lib1:BUILD")
@@ -568,7 +569,7 @@ public class AffectedPackagesTest {
   @Test
   public void testAllDirectoriesIncluded_modifyBuildFile() {
     QuerySummary query =
-        QuerySummary.create(
+        QuerySummaryImpl.create(
             createProtoForPackages(
                 "//my/build/package1:rule",
                 "//my/build/package2:rule",

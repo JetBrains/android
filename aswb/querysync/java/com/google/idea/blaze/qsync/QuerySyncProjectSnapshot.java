@@ -83,15 +83,6 @@ public abstract class QuerySyncProjectSnapshot {
   public abstract Builder toBuilder();
 
   /**
-   * Returns the set of build packages in the query output.
-   *
-   * <p>The packages are workspace relative paths that contain a BUILD file.
-   */
-  public PackageSet getPackages() {
-    return queryData().querySummary().getPackages();
-  }
-
-  /**
    * Given a path to a file it returns the targets that own the file.
    *
    * @param path a workspace relative path.

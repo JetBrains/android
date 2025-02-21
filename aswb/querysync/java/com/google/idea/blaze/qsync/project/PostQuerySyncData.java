@@ -17,11 +17,11 @@ package com.google.idea.blaze.qsync.project;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.util.Optional;
 
 /**
@@ -76,7 +76,7 @@ public abstract class PostQuerySyncData {
 
     @CanIgnoreReturnValue
     public Builder setQuerySummary(Query.Summary value) {
-      return setQuerySummary(QuerySummary.create(value));
+      return setQuerySummary(QuerySummaryImpl.create(value));
     }
 
     public abstract PostQuerySyncData build();

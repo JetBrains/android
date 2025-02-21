@@ -19,6 +19,7 @@ import com.google.idea.blaze.qsync.project.SnapshotProto;
 import com.google.idea.blaze.qsync.project.SnapshotProto.Snapshot;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class QuerySummarizer {
             + " ("
             + queryOutputFile.length()
             + " bytes)");
-    QuerySummary summary = QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, queryOutputFile);
+    QuerySummary summary = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, queryOutputFile);
     File f = new File(queryOutputFile.getParent(), queryOutputFile.getName() + "_qsyncdata.gz");
     System.err.println("Writing qsyncdata to " + f.getAbsolutePath());
     try (OutputStream out = new GZIPOutputStream(new FileOutputStream(f))) {
