@@ -190,6 +190,59 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(psi.text).isEqualTo("\n")
   }
 
+  fun testPair() {
+    val pair = DeclarativePsiFactory(project).createPair("key", "value")
+    assertThat(pair).isNotNull()
+    assertThat(pair).isInstanceOf(DeclarativePair::class.java)
+    assertThat(pair.text).isEqualTo("\"key\" to \"value\"")
+    assertThat(pair.first).isEqualTo("key")
+    assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
+    assertThat((pair.second as DeclarativeLiteral).value).isEqualTo("value")
+
+  }
+
+  fun testPairMultiString() {
+    val pair = DeclarativePsiFactory(project).createPair("key\nkey", "value\nvalue")
+    assertThat(pair).isNotNull()
+    assertThat(pair).isInstanceOf(DeclarativePair::class.java)
+    assertThat(pair.text).isEqualTo("\"\"\"key\nkey\"\"\" to \"\"\"value\nvalue\"\"\"")
+    assertThat(pair.first).isEqualTo("key\nkey")
+    assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
+    assertThat((pair.second as DeclarativeLiteral).value).isEqualTo("value\nvalue")
+  }
+
+  fun testPairNonStringLiteral() {
+    val pair = DeclarativePsiFactory(project).createPair("number", 8)
+    assertThat(pair).isNotNull()
+    assertThat(pair).isInstanceOf(DeclarativePair::class.java)
+    assertThat(pair.text).isEqualTo("\"number\" to 8")
+    assertThat(pair.first).isEqualTo("number")
+    assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
+    assertThat((pair.second as DeclarativeLiteral).value).isEqualTo(8)
+  }
+
+  fun testPairOfPair() {
+    val pair1 = DeclarativePsiFactory(project).createPair("a", "b")
+    val pair2 = DeclarativePsiFactory(project).createPair("root", pair1)
+    assertThat(pair2).isNotNull()
+    assertThat(pair2).isInstanceOf(DeclarativePair::class.java)
+    assertThat(pair2.text).isEqualTo("\"root\" to \"a\" to \"b\"")
+    assertThat(pair2.first).isEqualTo("root")
+    assertThat(pair2.second).isInstanceOf(DeclarativePair::class.java)
+    assertThat((pair2.second as DeclarativePair).text).isEqualTo("\"a\" to \"b\"" )
+  }
+
+  fun testPairOfList() {
+    val list = DeclarativePsiFactory(project).createFactory("listOf")
+    val pair = DeclarativePsiFactory(project).createPair("root", list)
+    assertThat(pair).isNotNull()
+    assertThat(pair).isInstanceOf(DeclarativePair::class.java)
+    assertThat(pair.text).isEqualTo("\"root\" to listOf()")
+    assertThat(pair.first).isEqualTo("root")
+    assertThat(pair.second).isInstanceOf(DeclarativeSimpleFactory::class.java)
+    assertThat((pair.second as DeclarativeSimpleFactory).text).isEqualTo("listOf()" )
+  }
+
   fun testAssignment() {
     val assignment = DeclarativePsiFactory(project).createAssignment("key", "\"value\"")
     assertThat(assignment).isNotNull()

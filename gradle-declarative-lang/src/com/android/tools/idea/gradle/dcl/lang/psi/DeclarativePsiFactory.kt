@@ -42,6 +42,17 @@ class DeclarativePsiFactory(private val project: Project) {
   fun createLiteralFromText(value: String): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative literal from text \"$value\"")
 
+  // second should be a scalar value
+  fun createPair(first: String, second: Any?): DeclarativePair {
+    return createFromText("placeholder = ${createLiteral(first).text} to ${createLiteral(second).text}") ?: error(
+      "Failed to create Declarative pair from `$first to $second`")
+  }
+
+  fun createPair(first: String, second: DeclarativeElement): DeclarativePair {
+    return createFromText("placeholder = ${createLiteral(first).text} to ${second.text}") ?: error(
+      "Failed to create Declarative pair from `$first to $second`")
+  }
+
   fun createLiteral(value: Any?): DeclarativeLiteral =
     when (value) {
       is String -> if (value.contains('\n')) createMultiStringLiteral(value) else createStringLiteral(value)
