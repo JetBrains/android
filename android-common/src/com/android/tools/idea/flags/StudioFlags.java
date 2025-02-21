@@ -2047,13 +2047,13 @@ public final class StudioFlags {
                     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
-    new MendelFlag(STUDIOBOT, "compiler.error.context.enabled", 97695187,
+    new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
                 "Enable sending context with compiler error queries.",
                 "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
                     enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_PROJECT_FACTS_CONTEXT_ENABLED =
-    new MendelFlag(STUDIOBOT, "project.facts.context.enabled", 97715007,
+    new BooleanFlag(STUDIOBOT, "project.facts.context.enabled",
                     "Enable sending project facts with chat queries.",
                     "When enabled, chat queries will attach summarized facts about the project.",
                     enabledUpTo(DEV));
@@ -2131,7 +2131,7 @@ public final class StudioFlags {
                     false);
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
-    new MendelFlag(STUDIOBOT, "current.file.context", 97694800,
+    new BooleanFlag(STUDIOBOT, "current.file.context",
                    "Use the current file as context",
                    "Attach the current file's path, contents, and selection with chat queries.",
                    enabledUpTo(CANARY));
