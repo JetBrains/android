@@ -586,7 +586,7 @@ internal class DeviceView(
   }
 
   private fun createScreenshotOptions() =
-    ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, displayId, screenshotOrientationProvider)
+      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceConfig.deviceType, displayId, screenshotOrientationProvider)
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 

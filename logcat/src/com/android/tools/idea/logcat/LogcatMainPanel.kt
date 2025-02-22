@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -907,7 +908,15 @@ constructor(
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
     sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
-      device?.let { ScreenshotOptions(it.serialNumber, it.model, PRIMARY_DISPLAY_ID, null) }
+      device?.let {
+        ScreenshotOptions(
+          it.serialNumber,
+          it.model,
+          it.type ?: DeviceType.HANDHELD,
+          PRIMARY_DISPLAY_ID,
+          null,
+        )
+      }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
         ScreenRecorderAction.Parameters(

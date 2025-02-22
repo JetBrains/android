@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
@@ -42,6 +43,7 @@ private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 class ScreenshotOptions(
   val serialNumber: String,
   private val deviceModel: String?,
+  val deviceType: DeviceType,
   val displayId: Int,
   private val orientationProvider: (() -> ScreenshotAction.ScreenshotRotation)?,
 ) {
@@ -54,7 +56,10 @@ class ScreenshotOptions(
   private var defaultFrameIndex: Int = 0
   private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
 
-  fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
+  /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
+  constructor(serialNumber: String) : this(serialNumber, null, DeviceType.HANDHELD, PRIMARY_DISPLAY_ID, null)
+
+  fun createScreenshotImage(image: BufferedImage, displayInfo: String): ScreenshotImage {
     val rotation = orientationProvider?.invoke()
     val rotatedImage = ImageUtils.rotateByQuadrants(image, rotation?.imageRotationQuadrants ?: 0)
     return ScreenshotImage(rotatedImage, rotation?.orientationQuadrants ?: 0, deviceType, displayInfo)
