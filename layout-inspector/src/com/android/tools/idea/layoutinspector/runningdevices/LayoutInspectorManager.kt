@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RootPanelRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
@@ -367,7 +368,12 @@ private fun createRendererPanel(
         disposable = parentDisposable,
         scope = layoutInspector.coroutineScope,
         client = viewInspector.onDeviceRendering,
-        renderModel = layoutInspector.renderModel,
+        renderModel =
+          OnDeviceRendererModel(
+            parentDisposable,
+            layoutInspector.inspectorModel,
+            layoutInspector.treeSettings,
+          ),
       )
     },
     studioRendererProvider = { parentDisposable ->

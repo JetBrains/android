@@ -22,17 +22,13 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import java.awt.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -42,31 +38,29 @@ import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 class OnDeviceRendererPanelTest {
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var inspectorModel: InspectorModel
-  private lateinit var renderModel: RenderModel
+  private lateinit var renderModel: OnDeviceRendererModel
 
   @Before
   fun setUp() {
     inspectorModel =
       model(disposableRule.disposable) {
         view(ROOT, 0, 0, 100, 100) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
+          view(VIEW1, 10, 15, 25, 25) {}
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
         }
       }
 
     renderModel =
-      RenderModel(
-        model = inspectorModel,
-        notificationModel = mock(),
-        treeSettings = FakeTreeSettings(showRecompositions = false),
-        currentClientProvider = { DisconnectedClient },
+      OnDeviceRendererModel(
+        parentDisposable = disposableRule.disposable,
+        inspectorModel = inspectorModel,
+        FakeTreeSettings(),
       )
   }
 
@@ -94,12 +88,12 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
-    assertThat(receivedMessages).hasSize(1)
+    assertThat(receivedMessages).hasSize(5)
     assertThat(receivedMessages[0]).isEqualTo(enableOnDeviceRenderingCommand)
   }
 
   @Test
-  fun testInterceptTouchEvents() = runTest {
+  fun testInterceptClicksEvents() = runTest {
     val receivedMessages = mutableListOf<ByteArray>()
     val messenger =
       object : AppInspectorMessenger {
@@ -127,15 +121,15 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
-    assertThat(receivedMessages).hasSize(2)
-    assertThat(receivedMessages[1]).isEqualTo(enableInterceptTouchEventsCommand)
+    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages[5]).isEqualTo(enableInterceptTouchEventsCommand)
 
     onDeviceRenderer.interceptClicks = true
 
     yield()
 
     // Verify that setting the state to true again does not send another message.
-    assertThat(receivedMessages).hasSize(2)
+    assertThat(receivedMessages).hasSize(6)
   }
 
   @Test
@@ -166,13 +160,98 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
-    assertThat(receivedMessages).hasSize(2)
-    assertThat(receivedMessages[1])
-      .isEqualTo(buildSelectNodeCommand(ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = ROOT,
+          bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+        )
+        .toByteArray()
+    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages[5]).isEqualTo(expectedCommand)
   }
 
   @Test
-  fun testTouchEventReceived() = runTest {
+  fun testModelHoverChange() = runTest {
+    val receivedMessages = mutableListOf<ByteArray>()
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+          receivedMessages.add(rawData)
+          return ByteArray(0)
+        }
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    OnDeviceRendererPanel(
+      disposable = disposableRule.disposable,
+      scope = backgroundScope,
+      client = onDeviceRenderingClient,
+      renderModel = renderModel,
+    )
+
+    yield()
+
+    inspectorModel.hoveredNode = inspectorModel[VIEW1]
+
+    yield()
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = ROOT,
+          bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
+        )
+        .toByteArray()
+    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages[5]).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testModelVisibleNodesChange() = runTest {
+    val receivedMessages = mutableListOf<ByteArray>()
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+          receivedMessages.add(rawData)
+          return ByteArray(0)
+        }
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    OnDeviceRendererPanel(
+      disposable = disposableRule.disposable,
+      scope = backgroundScope,
+      client = onDeviceRenderingClient,
+      renderModel = renderModel,
+    )
+
+    yield()
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = ROOT,
+          bounds =
+            listOf(
+              inspectorModel[VIEW1]!!.layoutBounds,
+              inspectorModel[COMPOSE1]!!.layoutBounds,
+              inspectorModel[ROOT]!!.layoutBounds,
+            ),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
+        )
+        .toByteArray()
+    assertThat(receivedMessages).hasSize(5)
+    assertThat(receivedMessages[4]).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testSelectedNodeReceived() = runTest {
     val receivedMessages = mutableListOf<ByteArray>()
     val messenger =
       object : AppInspectorMessenger {
@@ -197,17 +276,12 @@ class OnDeviceRendererPanelTest {
     yield()
 
     val touchEvent =
-      LayoutInspectorViewProtocol.Event.newBuilder()
-        .setTouchEvent(
-          LayoutInspectorViewProtocol.TouchEvent.newBuilder()
-            .apply {
-              x = 15f
-              y = 55f
-            }
-            .build()
-        )
-        .build()
-
+      buildUserInputEventProto(
+        rootId = ROOT,
+        x = 15f,
+        y = 55f,
+        type = LayoutInspectorViewProtocol.UserInputEvent.Type.SELECTION,
+      )
     onDeviceRenderer.interceptClicks = true
     onDeviceRenderingClient.handleEvent(touchEvent)
 
@@ -217,7 +291,47 @@ class OnDeviceRendererPanelTest {
   }
 
   @Test
-  fun testDisposeRemoveListenersAndCancelsScope() = runTest {
+  fun testHoverNodeReceived() = runTest {
+    val receivedMessages = mutableListOf<ByteArray>()
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+          receivedMessages.add(rawData)
+          return ByteArray(0)
+        }
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val onDeviceRenderer =
+      OnDeviceRendererPanel(
+        disposable = disposableRule.disposable,
+        scope = backgroundScope,
+        client = onDeviceRenderingClient,
+        renderModel = renderModel,
+      )
+
+    yield()
+
+    val touchEvent =
+      buildUserInputEventProto(
+        rootId = ROOT,
+        x = 15f,
+        y = 55f,
+        type = LayoutInspectorViewProtocol.UserInputEvent.Type.HOVER,
+      )
+    onDeviceRenderer.interceptClicks = true
+    onDeviceRenderingClient.handleEvent(touchEvent)
+
+    yield()
+
+    assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[COMPOSE1])
+  }
+
+  @Test
+  fun testDisposeCancelsScope() = runTest {
     val messenger =
       object : AppInspectorMessenger {
         override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
@@ -239,62 +353,6 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
-    assertThat(inspectorModel.selectionListeners.size()).isEqualTo(1)
-
     Disposer.dispose(onDeviceRenderer)
-
-    assertThat(inspectorModel.selectionListeners.size()).isEqualTo(0)
   }
-}
-
-private val enableOnDeviceRenderingCommand =
-  Command.newBuilder()
-    .apply {
-      enableOnDeviceRenderingCommand =
-        LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder()
-          .setEnable(true)
-          .build()
-    }
-    .build()
-    .toByteArray()
-
-private val enableInterceptTouchEventsCommand =
-  Command.newBuilder()
-    .apply {
-      interceptTouchEventsCommand =
-        LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder()
-          .setIntercept(true)
-          .build()
-    }
-    .build()
-    .toByteArray()
-
-private fun buildSelectNodeCommand(rootId: Long, bounds: Rectangle): ByteArray {
-  val boundsRect =
-    LayoutInspectorViewProtocol.Rect.newBuilder()
-      .apply {
-        x = bounds.x
-        y = bounds.y
-        w = bounds.width
-        h = bounds.height
-      }
-      .build()
-
-  return Command.newBuilder()
-    .apply {
-      selectNodeCommand =
-        LayoutInspectorViewProtocol.SelectNodeCommand.newBuilder()
-          .apply {
-            drawInstructions =
-              LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
-                .apply {
-                  this.rootId = rootId
-                  this.bounds = boundsRect
-                }
-                .build()
-          }
-          .build()
-    }
-    .build()
-    .toByteArray()
 }

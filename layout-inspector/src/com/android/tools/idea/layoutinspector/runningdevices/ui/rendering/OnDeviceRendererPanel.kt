@@ -16,12 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.adblib.utils.createChildScope
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DrawInstruction
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
@@ -37,35 +32,14 @@ class OnDeviceRendererPanel(
   disposable: Disposable,
   scope: CoroutineScope,
   private val client: OnDeviceRenderingClient,
-  private val renderModel: RenderModel,
+  private val renderModel: OnDeviceRendererModel,
 ) : LayoutInspectorRenderer() {
 
   private val childScope = scope.createChildScope()
 
-  override var interceptClicks = false
-    set(value) {
-      if (field == value) {
-        return
-      }
-
-      field = value
-      childScope.launch { client.interceptTouchEvents(value) }
-    }
-
-  private val selectionListener =
-    object : InspectorModel.SelectionListener {
-      override fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin) {
-        val drawInstruction =
-          newNode?.let {
-            val rootView =
-              renderModel.model.rootFor(newNode)
-                ?: throw IllegalStateException("No root view found for view node ${newNode.viewId}")
-            DrawInstruction(rootViewId = rootView.drawId, bounds = newNode.layoutBounds)
-          }
-
-        childScope.launch { client.drawSelectedNode(drawInstruction) }
-      }
-    }
+  override var interceptClicks
+    get() = renderModel.interceptClicks.value
+    set(value) = renderModel.setInterceptClicks(value)
 
   init {
     Disposer.register(disposable, this)
@@ -74,18 +48,41 @@ class OnDeviceRendererPanel(
     childScope.launch { client.enableOnDeviceRendering(true) }
 
     childScope.launch {
-      client.touchEvents.filterNotNull().collect { touchEvent ->
+      renderModel.interceptClicks.collect { interceptClicks ->
+        client.interceptTouchEvents(interceptClicks)
+      }
+    }
+
+    childScope.launch {
+      renderModel.selectedNode.collect { selectedNode -> client.drawSelectedNode(selectedNode) }
+    }
+
+    childScope.launch {
+      renderModel.hoveredNode.collect { hoveredNode -> client.drawHoveredNode(hoveredNode) }
+    }
+
+    childScope.launch {
+      renderModel.visibleNodes.collect { visibleNodes -> client.drawVisibleNodes(visibleNodes) }
+    }
+
+    childScope.launch {
+      client.selectionEvents.filterNotNull().collect { event ->
         if (interceptClicks) {
-          renderModel.selectView(touchEvent.x.toDouble(), touchEvent.y.toDouble())
+          renderModel.selectNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
         }
       }
     }
 
-    renderModel.model.addSelectionListener(selectionListener)
+    childScope.launch {
+      client.hoverEvents.filterNotNull().collect { event ->
+        if (interceptClicks) {
+          renderModel.hoverNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
+        }
+      }
+    }
   }
 
   override fun dispose() {
-    renderModel.model.removeSelectionListener(selectionListener)
     childScope.cancel()
   }
 }

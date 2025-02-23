@@ -16,11 +16,15 @@
 package com.android.tools.idea.layoutinspector.pipeline.view
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DrawInstruction
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.InputEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.TouchEvent
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.DrawInstruction
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.buildDrawNodeCommand
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.buildUserInputEventProto
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.enableOnDeviceRenderingCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.UserInputEvent
 import com.google.common.truth.Truth.assertThat
 import java.awt.Rectangle
 import kotlin.test.fail
@@ -58,55 +62,76 @@ class OnDeviceRenderingClientTest {
   }
 
   @Test
-  fun testHandleEvent() = runTest {
-    val touchEvent =
-      LayoutInspectorViewProtocol.Event.newBuilder()
-        .setTouchEvent(
-          LayoutInspectorViewProtocol.TouchEvent.newBuilder()
-            .apply {
-              x = 1f
-              y = 1f
-            }
-            .build()
-        )
-        .build()
+  fun testHandleSelectionEvent() = runTest {
+    val selectionEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
 
     // Launch collector coroutine
     val job = launch {
-      val receivedEvent = onDeviceRenderingClient.touchEvents.first()
-      assertThat(receivedEvent).isEqualTo(TouchEvent(1f, 1f))
+      val receivedEvent = onDeviceRenderingClient.selectionEvents.first()
+      assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
     }
 
     // Give the collector coroutine a chance to start collecting, so we don't emit too early.
     yield()
 
-    onDeviceRenderingClient.handleEvent(touchEvent)
+    onDeviceRenderingClient.handleEvent(selectionEventProto)
 
     // Wait for the collector coroutine to finish
     job.join()
   }
 
   @Test
-  fun testOldTouchEventsAreNotReceived() = runTest {
-    val touchEvent =
-      LayoutInspectorViewProtocol.Event.newBuilder()
-        .setTouchEvent(
-          LayoutInspectorViewProtocol.TouchEvent.newBuilder()
-            .apply {
-              x = 1f
-              y = 1f
-            }
-            .build()
-        )
-        .build()
+  fun testHandleHoverEvent() = runTest {
+    val touchEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
+
+    // Launch collector coroutine
+    val job = launch {
+      val receivedEvent = onDeviceRenderingClient.hoverEvents.first()
+      assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
+    }
+
+    // Give the collector coroutine a chance to start collecting, so we don't emit too early.
+    yield()
+
+    onDeviceRenderingClient.handleEvent(touchEventProto)
+
+    // Wait for the collector coroutine to finish
+    job.join()
+  }
+
+  @Test
+  fun testOldSelectionEventsAreNotReceived() = runTest {
+    val selectionEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
 
     // Send event before the collector is started.
-    onDeviceRenderingClient.handleEvent(touchEvent)
+    onDeviceRenderingClient.handleEvent(selectionEventProto)
 
     // Launch collector coroutine.
     val job = launch {
       withTimeout(100) {
-        onDeviceRenderingClient.touchEvents.first()
+        onDeviceRenderingClient.selectionEvents.first()
+        fail("No event should be received.")
+      }
+    }
+
+    job.join()
+  }
+
+  @Test
+  fun testOldHoverEventsAreNotReceived() = runTest {
+    val hoverEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
+
+    // Send event before the collector is started.
+    onDeviceRenderingClient.handleEvent(hoverEventProto)
+
+    // Launch collector coroutine.
+    val job = launch {
+      withTimeout(100) {
+        onDeviceRenderingClient.hoverEvents.first()
         fail("No event should be received.")
       }
     }
@@ -118,16 +143,7 @@ class OnDeviceRenderingClientTest {
   fun testEnableOnDeviceRendering(): Unit = runTest {
     onDeviceRenderingClient.enableOnDeviceRendering(true)
 
-    val expectedCommand =
-      Command.newBuilder()
-        .apply {
-          enableOnDeviceRenderingCommand =
-            LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder()
-              .setEnable(true)
-              .build()
-        }
-        .build()
-        .toByteArray()
+    val expectedCommand = enableOnDeviceRenderingCommand
 
     assertThat(receivedCommands.size).isEqualTo(1)
     assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
@@ -135,18 +151,49 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testDrawSelectedNode(): Unit = runTest {
-    val drawInstructions = DrawInstruction(1, Rectangle())
+    val drawInstructions = DrawInstruction(1L, Rectangle())
     onDeviceRenderingClient.drawSelectedNode(drawInstructions)
 
     val expectedCommand =
-      Command.newBuilder()
-        .apply {
-          selectNodeCommand =
-            LayoutInspectorViewProtocol.SelectNodeCommand.newBuilder()
-              .setDrawInstructions(drawInstructions.toProto())
-              .build()
-        }
-        .build()
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = listOf(Rectangle()),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testDrawHoveredNode(): Unit = runTest {
+    val drawInstructions = DrawInstruction(1L, Rectangle())
+    onDeviceRenderingClient.drawHoveredNode(drawInstructions)
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = listOf(Rectangle()),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testDrawVisibleNodes(): Unit = runTest {
+    val drawInstructions = DrawInstruction(1L, Rectangle())
+    onDeviceRenderingClient.drawVisibleNodes(listOf(drawInstructions))
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = listOf(Rectangle()),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
+        )
         .toByteArray()
 
     assertThat(receivedCommands.size).isEqualTo(1)
@@ -159,11 +206,44 @@ class OnDeviceRenderingClientTest {
     onDeviceRenderingClient.drawSelectedNode(drawInstructions)
 
     val expectedCommand =
-      Command.newBuilder()
-        .apply {
-          selectNodeCommand = LayoutInspectorViewProtocol.SelectNodeCommand.newBuilder().build()
-        }
-        .build()
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = emptyList(),
+          LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testDrawHoveredNodeNull(): Unit = runTest {
+    val drawInstructions = null
+    onDeviceRenderingClient.drawHoveredNode(drawInstructions)
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = emptyList(),
+          LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testDrawVisibleNodesEmpty(): Unit = runTest {
+    onDeviceRenderingClient.drawVisibleNodes(emptyList())
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = emptyList(),
+          LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
+        )
         .toByteArray()
 
     assertThat(receivedCommands.size).isEqualTo(1)
@@ -188,21 +268,4 @@ class OnDeviceRenderingClientTest {
     assertThat(receivedCommands.size).isEqualTo(1)
     assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
   }
-}
-
-private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstruction {
-  val boundsRect =
-    LayoutInspectorViewProtocol.Rect.newBuilder()
-      .apply {
-        x = bounds.x
-        y = bounds.y
-        w = bounds.width
-        h = bounds.height
-      }
-      .build()
-
-  return LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
-    .setRootId(rootViewId)
-    .setBounds(boundsRect)
-    .build()
 }

@@ -56,6 +56,7 @@ class RootRendererPanelTest {
 
   private lateinit var inspectorModel: InspectorModel
   private lateinit var renderModel: RenderModel
+  private lateinit var onDeviceRenderModel: OnDeviceRendererModel
   private lateinit var onDeviceRendererPanel: OnDeviceRendererPanel
   private lateinit var studioRendererPanel: StudioRendererPanel
 
@@ -69,6 +70,9 @@ class RootRendererPanelTest {
         }
       }
 
+    onDeviceRenderModel =
+      OnDeviceRendererModel(disposableRule.disposable, inspectorModel, FakeTreeSettings())
+
     renderModel =
       RenderModel(
         model = inspectorModel,
@@ -80,7 +84,8 @@ class RootRendererPanelTest {
 
     val scope = CoroutineScope(Job())
 
-    onDeviceRendererPanel = createOnDeviceRenderer(disposableRule.disposable, scope, renderModel)
+    onDeviceRendererPanel =
+      createOnDeviceRenderer(disposableRule.disposable, scope, onDeviceRenderModel)
     studioRendererPanel =
       createStudioRenderer(disposableRule.disposable, scope, renderLogic, renderModel)
   }
@@ -201,7 +206,7 @@ class RootRendererPanelTest {
 private fun createOnDeviceRenderer(
   disposable: Disposable,
   scope: CoroutineScope,
-  renderModel: RenderModel,
+  renderModel: OnDeviceRendererModel,
 ): OnDeviceRendererPanel {
   val messenger =
     object : AppInspectorMessenger {
