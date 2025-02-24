@@ -16,6 +16,8 @@
 package com.android.tools.idea.preview.find
 
 import com.android.tools.preview.AnnotationAttributesProvider
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.text.nullize
 import org.jetbrains.uast.UAnnotation
@@ -28,10 +30,15 @@ class UastAnnotationAttributesProvider(
   private val defaultValues: Map<String, String?>,
 ) : AnnotationAttributesProvider {
 
-  override fun <T> getAttributeValue(attributeName: String): T? {
-    val expression = annotation.findAttributeValue(attributeName)
-    return expression?.getValueOfType()
-  }
+  override fun <T> getAttributeValue(attributeName: String): T? =
+    try {
+      val expression = annotation.findAttributeValue(attributeName)
+      expression?.getValueOfType()
+    } catch (e: IndexNotReadyException) {
+      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
+      thisLogger().warn("Resolution of $attributeName attempted while index not ready", e)
+      null
+    }
 
   override fun getIntAttribute(attributeName: String): Int? {
     return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
@@ -49,13 +56,25 @@ class UastAnnotationAttributesProvider(
     return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
   }
 
-  override fun <T> getDeclaredAttributeValue(attributeName: String): T? {
-    val expression = annotation.findDeclaredAttributeValue(attributeName)
-    return expression?.getValueOfType() as T?
-  }
+  override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
+    try {
+      val expression = annotation.findDeclaredAttributeValue(attributeName)
+      expression?.getValueOfType() as T?
+    } catch (e: IndexNotReadyException) {
+      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
+      thisLogger()
+        .warn("Resolution of declared attribute $attributeName attempted while index not ready", e)
+      null
+    }
 
   override fun findClassNameValue(name: String): String? =
-    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
+    try {
+      (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
+    } catch (e: IndexNotReadyException) {
+      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
+      thisLogger().warn("Resolution of class name $name attempted while index not ready", e)
+      null
+    }
 }
 
 private inline fun <T> UExpression.getValueOfType(): T? {
