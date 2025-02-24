@@ -87,8 +87,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -334,11 +338,28 @@ class GradleModuleSystem(
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val dependencies = Collections.singletonList(coordinate.toDependency())
-    registerDependencies(dependencies, type)
+    if (module.isMultiPlatformModule) {
+      getGradleSourceSetName(module)?.let { registerDependencies(dependencies, type, it) }
+    } else {
+      registerDependencies(dependencies, type)
+    }
+  }
+
+  @RequiresBackgroundThread
+  private fun getGradleSourceSetName(module: Module): String? {
+    val moduleNode = CachedModuleDataFinder.findModuleData(module) ?: return null
+    val sourceSetData = moduleNode.data as? GradleSourceSetData ?: return null
+    return sourceSetData.moduleName
+  }
+
+  private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType, sourceSet: String) {
+    val manager = GradleDependencyManager.getInstance(module.project)
+    manager.addDependencies(module, dependencies, sourceSet)
   }
 
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
+
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation

@@ -591,8 +591,9 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         testProject = AndroidCoreTestProject.ANDROID_KOTLIN_MULTIPLATFORM,
-        forbiddenGradleText = listOf(),
+        forbiddenGradleText = listOf("androidx.recyclerview:recyclerview:"),
         filePath = "kmpFirstLib/src/commonMain/kotlin/com/example/kmpfirstlib/NewCommonClass",
+        buildFilePath = "kmpFirstLib/build.gradle.kts",
         fileContents =
           """
           package test.pkg.imports
@@ -610,8 +611,9 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         testProject = AndroidCoreTestProject.ANDROID_KOTLIN_MULTIPLATFORM,
-        forbiddenGradleText = listOf(),
+        forbiddenGradleText = listOf("androidx.recyclerview:recyclerview:"),
         filePath = "kmpFirstLib/src/androidMain/kotlin/com/example/kmpfirstlib/NewAndroidClass",
+        buildFilePath = "kmpFirstLib/build.gradle.kts",
         fileContents =
           """
           package test.pkg.imports
@@ -621,6 +623,7 @@ class AndroidMavenImportIntentionActionTest {
         caretPlacement = "RecyclerView|",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         available = true,
+        addedGradleText = listOf("implementation(\"androidx.recyclerview:recyclerview:1.1.0\")"),
         addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
       )
       .run()
@@ -642,6 +645,7 @@ class AndroidMavenImportIntentionActionTest {
     val addedImports: Collection<String> = listOf(),
     val mavenClassRegistryManager: MavenClassRegistryManager = fakeMavenClassRegistryManager,
     val filePath: String? = null,
+    val buildFilePath: String = "app/build.gradle",
   ) {
     private fun <T> openTestProject(
       testProject: TestProjectDefinition,
@@ -666,7 +670,7 @@ class AndroidMavenImportIntentionActionTest {
     ) {
       openTestProject(testProject) {
         for (forbidden in forbiddenGradleText) {
-          assertBuildGradle(project) { !it.contains(forbidden) }
+          assertBuildGradle(project, buildFilePath) { !it.contains(forbidden) }
         }
         if (fileContents.isNotEmpty()) {
           fixture.loadNewFile(
@@ -712,7 +716,7 @@ class AndroidMavenImportIntentionActionTest {
             )
         }
         for (added in addedGradleText) {
-          assertBuildGradle(project) { it.contains(added) }
+          assertBuildGradle(project, buildFilePath) { it.contains(added) }
         }
 
         val newSource = fixture.editor.document.text

@@ -199,7 +199,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Undo.
     UndoManager.getInstance(myFixture.project).undo(myFixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
-      checkBuildGradle(project) {
+      checkBuildGradle(project, "app/build.gradle") {
         !it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
       }
     }
@@ -241,10 +241,9 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     val undoManager = UndoManager.getInstance(myFixture.project)
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(
-      myFixture.project,
-      Runnable { action.invoke(myFixture.project, myFixture.editor, myFixture.file) },
-    )
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
 
     // Undo.
     waitForCondition(1, TimeUnit.SECONDS) { undoManager.isUndoAvailable(myFixture.fileEditor) }
@@ -260,7 +259,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Redo.
     undoManager.redo(myFixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
-      checkBuildGradle(project) {
+      checkBuildGradle(project, "app/build.gradle") {
         it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
       }
     }

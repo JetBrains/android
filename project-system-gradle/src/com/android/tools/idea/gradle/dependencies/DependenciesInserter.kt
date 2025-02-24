@@ -108,4 +108,11 @@ open class DependenciesInserter {
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency))
 
+  /**
+   * This is short version of addDependency function with additional sourceSet parameter.
+   * Assuming there is no excludes and algorithm will search exact dependency declaration in catalog if exists.
+   */
+  fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel, sourceSet: String) =
+    addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency), sourceSet)
+
 }

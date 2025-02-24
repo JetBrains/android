@@ -49,15 +49,15 @@ fun PreparedTestProject.Context.performAndWaitForSyncEnd(invoke: () -> Unit) {
     .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
-fun checkBuildGradle(project: Project, check: (String) -> Boolean): Boolean {
-  val buildGradle = project.guessProjectDir()!!.findFileByRelativePath("app/build.gradle")
+fun checkBuildGradle(project: Project, buildFilePath: String, check: (String) -> Boolean): Boolean {
+  val buildGradle = project.guessProjectDir()!!.findFileByRelativePath(buildFilePath)
   val buildGradlePsi = PsiManager.getInstance(project).findFile(buildGradle!!)
 
   return check(buildGradlePsi!!.text)
 }
 
-fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
-  assertThat(checkBuildGradle(project, check)).isEqualTo(true)
+fun assertBuildGradle(project: Project, buildFilePath: String = "app/build.gradle", check: (String) -> Boolean) {
+  assertThat(checkBuildGradle(project, buildFilePath, check)).isEqualTo(true)
 }
 
 val fakeMavenClassRegistryManager: MavenClassRegistryManager

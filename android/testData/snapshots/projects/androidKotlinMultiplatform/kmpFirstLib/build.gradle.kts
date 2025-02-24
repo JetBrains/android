@@ -28,23 +28,6 @@ kotlin {
       }
     }
 
-    sourceSets.getByName("androidMain") {
-      dependencies {
-        api(project(":androidLib"))
-        implementation(project(":kmpSecondLib"))
-        implementation(project(":kmpJvmOnly"))
-      }
-    }
-
-    sourceSets.getByName("androidInstrumentedTest") {
-      dependencies {
-        implementation("androidx.appcompat:appcompat:1.4.1")
-        implementation("androidx.test:runner:1.4.0-alpha06")
-        implementation("androidx.test:core:1.4.0-alpha06")
-        implementation("androidx.test.ext:junit:1.1.2")
-      }
-    }
-
     namespace = "com.example.kmpfirstlib"
     compileSdk = 33
     minSdk = 22
@@ -58,9 +41,26 @@ kotlin {
     aarMetadata.minAgpVersion = "7.2.0"
   }
 
-   sourceSets.getByName("commonTest") {
-     dependencies {
-       implementation(kotlin("test"))
-     }
-   }
+  sourceSets.getByName("androidMain") {
+    dependencies {
+      api(project(":androidLib"))
+      implementation(project(":kmpSecondLib"))
+      implementation(project(":kmpJvmOnly"))
+    }
+  }
+
+  sourceSets.getByName("androidInstrumentedTest") {
+    dependencies {
+      implementation("androidx.appcompat:appcompat:1.4.1")
+      implementation("androidx.test:runner:1.4.0-alpha06")
+      implementation("androidx.test:core:1.4.0-alpha06")
+      implementation("androidx.test.ext:junit:1.1.2")
+    }
+  }
+
+  sourceSets.getByName("commonTest") {
+    dependencies {
+      implementation(kotlin("test"))
+    }
+  }
 }

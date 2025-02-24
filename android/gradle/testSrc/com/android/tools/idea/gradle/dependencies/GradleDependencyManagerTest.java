@@ -201,7 +201,7 @@ public class GradleDependencyManagerTest {
       requestProjectSync(project);
       assertThat(result).isEqualTo(true);
 
-      assertBuildGradle(project, str -> str.contains("com.android.support:recyclerview-v7:25.4.0"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("com.android.support:recyclerview-v7:25.4.0"));
       assertFalse(isRecyclerInCatalog(project));
       return null;
     });
@@ -256,8 +256,8 @@ public class GradleDependencyManagerTest {
       assertNotNull(versionRef);
       assertTrue(isInCatalog(project, versionRef + "=+"));
 
-      assertBuildGradle(project, str -> !str.contains("com.android.support:libs.recyclerview-v7"));
-      assertBuildGradle(project, str -> str.contains("implementation libs.recyclerview.v7"));
+      assertBuildGradle(project, "app/build.gradle", str -> !str.contains("com.android.support:libs.recyclerview-v7"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("implementation libs.recyclerview.v7"));
       return null;
     });
   }
@@ -278,8 +278,8 @@ public class GradleDependencyManagerTest {
       assertTrue(result);
 
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
-      assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5.0"));
-      assertBuildGradle(project, str -> str.contains("implementation libs.androidx.room.ktx"));
+      assertBuildGradle(project, "app/build.gradle", str -> !str.contains("androidx.room:room-ktx:2.5.0"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("implementation libs.androidx.room.ktx"));
       return null;
     });
   }
@@ -305,8 +305,8 @@ public class GradleDependencyManagerTest {
       assertNotNull(versionRef);
       assertTrue(isInCatalog(project, versionRef + "=2.5.1"));
 
-      assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5"));
-      assertBuildGradle(project, str -> str.contains("implementation libs.room.ktx"));
+      assertBuildGradle(project, "app/build.gradle", str -> !str.contains("androidx.room:room-ktx:2.5"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("implementation libs.room.ktx"));
       return null;
     });
   }
@@ -335,7 +335,7 @@ public class GradleDependencyManagerTest {
       assertNotNull(versionRef);
       assertTrue(isInCatalog(project, versionRef + "=4.13"));
       assertEquals(buildFileContent, module.getPsiFile().getText());
-      assertBuildGradle(project, str -> str.contains("testImplementation libs.junit"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("testImplementation libs.junit"));
       return null;
     });
   }
@@ -350,14 +350,14 @@ public class GradleDependencyManagerTest {
       List<Dependency> dependencies = Collections.singletonList(Dependency.parse("junit:junit:4.13"));
       dependencyManager.updateLibrariesToVersion(appModule, dependencies);
 
-      assertBuildGradle(project, str -> str.contains("testImplementation 'junit:junit:4.13'"));
+      assertBuildGradle(project, "app/build.gradle", str -> str.contains("testImplementation 'junit:junit:4.13'"));
       return null;
     });
   }
 
   private boolean isRecyclerInCatalog(Project project){
     String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-Z-]+)");
-    if(versionRef==null) return false;
+    if(versionRef == null) return false;
     return isInCatalog(project, versionRef + "=+");
 
   }
@@ -402,5 +402,4 @@ public class GradleDependencyManagerTest {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_GRADLEDEPENDENCY_ADDED);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
-
 }

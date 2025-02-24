@@ -143,7 +143,7 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
-    return addDependenciesInTransaction(module, dependencies, null);
+    return addDependenciesInTransaction(module, dependencies, null, null);
   }
 
   /**
@@ -159,7 +159,23 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<Dependency> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    return addDependenciesInTransaction(module, dependencies, nameMapper);
+    return addDependenciesInTransaction(module, dependencies, nameMapper, null);
+  }
+
+  /**
+   * Like {@link #addDependencies(Module, Iterable)} but allows you to customize the configuration
+   * name of the inserted dependencies.
+   *
+   * @param module       the module to add dependencies to
+   * @param dependencies the dependencies of interest
+   * @param nameMapper   a factory to produce configuration names and artifact specs
+   * @return true if the dependencies were successfully added or were already present in the module.
+   */
+  public boolean addDependencies(
+    @NotNull Module module,
+    @NotNull Iterable<Dependency> dependencies,
+    @NotNull String sourceSet) {
+    return addDependenciesInTransaction(module, dependencies, null, sourceSet);
   }
 
   /**
@@ -181,7 +197,8 @@ public class GradleDependencyManager {
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<Dependency> dependencies,
-                                               @Nullable ConfigurationNameMapper nameMapper) {
+                                               @Nullable ConfigurationNameMapper nameMapper,
+                                               @Nullable String sourceSet) {
 
     Project project = module.getProject();
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
@@ -204,9 +221,9 @@ public class GradleDependencyManager {
         Dependency finalDependency = resolvedCoordinate.orElse(dependency);
         String depString = finalDependency.toIdentifier();
         if (depString == null) return;
-        helper.addDependency(name,
-                             depString,
-                             buildModel);
+
+        if (sourceSet != null) helper.addDependency(name, depString, buildModel, sourceSet);
+        else helper.addDependency(name, depString, buildModel);
       }
       projectBuildModel.applyChanges();
     });
