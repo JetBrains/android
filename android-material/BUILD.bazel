@@ -25,7 +25,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.android-material.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-material-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
 
 jvm_test(
   name = "android-material-tests_test",
@@ -52,6 +58,7 @@ jvm_test(
     "//platform/util-ex",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
-  ]
+  ],
+  runtime_deps = [":android-material-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.android-material.tests` end

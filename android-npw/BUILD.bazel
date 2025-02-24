@@ -87,7 +87,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.newProjectWizard.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "newProjectWizard-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
 
 jvm_test(
   name = "newProjectWizard-tests_test",
@@ -154,6 +160,7 @@ jvm_test(
     "//xml/dom-openapi:dom",
   ],
   runtime_deps = [
+    ":newProjectWizard-tests_test_resources",
     "//android/gradle-dsl-kotlin",
     "//android/gradle-dsl-toml",
     "//android/gradle-dsl-declarative",

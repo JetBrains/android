@@ -66,7 +66,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.mlkit.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "mlkit-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
 
 jvm_test(
   name = "mlkit-tests_test",
@@ -114,6 +120,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
-  ]
+  ],
+  runtime_deps = [":mlkit-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.mlkit.tests` end

@@ -318,7 +318,13 @@ jvm_test(
 
 ### auto-generated section `build intellij.android.core.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "core-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
 
 java_library(
   name = "core-tests",
@@ -459,7 +465,10 @@ jvm_library(
     "@lib//:kotlinc-compose-compiler-plugin",
     "@lib//:kotlinc-kotlin-compiler-fir",
   ],
-  runtime_deps = ["//android/gradle-dsl-kotlin"]
+  runtime_deps = [
+    ":core-tests_test_resources",
+    "//android/gradle-dsl-kotlin",
+  ]
 )
 
 jvm_test(

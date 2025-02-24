@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "android-app-inspection-ide_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
 jvm_library(
   name = "android-app-inspection-ide",
   module_name = "intellij.android.app-inspection.ide",
@@ -56,7 +62,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-app-inspection-ide-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
 
 jvm_test(
   name = "android-app-inspection-ide-tests_test",
@@ -113,6 +125,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util/jdom",
-  ]
+  ],
+  runtime_deps = [":android-app-inspection-ide-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` end

@@ -1,6 +1,12 @@
 ### auto-generated section `build intellij.android.androidx-integration-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "androidx-integration-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
 
 jvm_test(
   name = "androidx-integration-tests_test",
@@ -18,6 +24,7 @@ jvm_test(
     "//android/android:core-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":androidx-integration-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.androidx-integration-tests` end

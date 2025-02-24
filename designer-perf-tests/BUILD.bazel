@@ -1,6 +1,12 @@
 ### auto-generated section `build intellij.android.designer-perf-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "designer-perf-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
 
 jvm_test(
   name = "designer-perf-tests_test",
@@ -55,6 +61,7 @@ jvm_test(
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
     "//android/preview-fast-compile",
-  ]
+  ],
+  runtime_deps = [":designer-perf-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.designer-perf-tests` end

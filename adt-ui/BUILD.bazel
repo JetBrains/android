@@ -20,6 +20,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "adt-ui_test_resources",
+  files = glob(["src/test/resources/**/*"]),
+  strip_prefix = "src/test/resources"
+)
+
 jvm_library(
   name = "adt-ui",
   module_name = "intellij.android.adt.ui",
@@ -130,7 +136,10 @@ jvm_library(
     "//platform/testFramework/junit5:junit5_test_lib",
     "//platform/platform-impl/ui:ide-ui",
   ],
-  runtime_deps = [":adt-ui_resources"]
+  runtime_deps = [
+    ":adt-ui_resources",
+    ":adt-ui_test_resources",
+  ]
 )
 
 jvm_test(

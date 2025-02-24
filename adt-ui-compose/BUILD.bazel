@@ -1,10 +1,16 @@
 ### auto-generated section `build intellij.android.adt.ui.compose` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
   context_receivers = True
+)
+
+jvm_resources(
+  name = "adt-ui-compose_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
 )
 
 jvm_library(
@@ -57,6 +63,7 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
     "@lib//:jewel-ide-laf-bridge",
   ],
+  runtime_deps = [":adt-ui-compose_test_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 

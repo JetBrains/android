@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "databinding_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
 jvm_library(
   name = "databinding",
   module_name = "intellij.android.databinding",
@@ -63,7 +69,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.databinding.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "databinding-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
 
 jvm_test(
   name = "databinding-tests_test",
@@ -130,6 +142,7 @@ jvm_test(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//android/databinding/gradle:android-databinding-gradle",
-  ]
+  ],
+  runtime_deps = [":databinding-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.databinding.tests` end

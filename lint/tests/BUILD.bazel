@@ -1,6 +1,12 @@
 ### auto-generated section `build intellij.android.lint.common.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-lint-common-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
 
 jvm_test(
   name = "android-lint-common-tests_test",
@@ -44,6 +50,7 @@ jvm_test(
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
-  ]
+  ],
+  runtime_deps = [":android-lint-common-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.lint.common.tests` end

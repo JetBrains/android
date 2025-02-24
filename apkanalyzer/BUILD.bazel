@@ -1,5 +1,11 @@
 ### auto-generated section `build intellij.android.apkanalyzer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "apkanalyzer_test_resources",
+  files = glob(["testSrc/resources/**/*"]),
+  strip_prefix = "testSrc/resources"
+)
 
 jvm_library(
   name = "apkanalyzer",
@@ -103,7 +109,8 @@ jvm_library(
     "//android/adt-ui-model:adt-ui-model_test_lib",
     "//java/java-psi-api:psi",
     "//platform/lang-impl",
-  ]
+  ],
+  runtime_deps = [":apkanalyzer_test_resources"]
 )
 
 jvm_test(

@@ -53,7 +53,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.designer.customview.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-designer-customview-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
 
 jvm_test(
   name = "android-designer-customview-tests_test",
@@ -88,6 +94,7 @@ jvm_test(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
-  ]
+  ],
+  runtime_deps = [":android-designer-customview-tests_test_resources"]
 )
 ### auto-generated section `build intellij.android.designer.customview.tests` end
