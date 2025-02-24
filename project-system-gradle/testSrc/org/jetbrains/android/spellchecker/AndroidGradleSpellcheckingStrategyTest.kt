@@ -28,7 +28,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
       //language=Groovy
       """
         dependencies {
-          implementation 'com.example:xyzzy:1.0'
+          implementation 'com.example:xyzy:1.0'
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
@@ -43,7 +43,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
       //language=Groovy
       """
         dependencies {
-          implementation('com.example:xyzzy:1.0')
+          implementation('com.example:xyzy:1.0')
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
@@ -58,13 +58,13 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
       //language=Groovy
       """
         dependencies {
-          print 'com.example:xyzzy:1.0'
+          print 'com.example:xyzy:1.0'
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).hasSize(1)
-    assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzzy'")
+    assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzy'")
   }
 
   fun testTypoInPrintCallExpression() {
@@ -74,12 +74,12 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
       //language=Groovy
       """
         dependencies {
-          print('com.example:xyzzy:1.0')
+          print('com.example:xyzy:1.0')
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).hasSize(1)
-    assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzzy'")
+    assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzy'")
   }
 }
