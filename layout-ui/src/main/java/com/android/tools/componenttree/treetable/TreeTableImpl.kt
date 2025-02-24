@@ -51,6 +51,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.JTable
+import javax.swing.JTree
 import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
 import javax.swing.event.TreeExpansionEvent
@@ -65,6 +66,7 @@ import javax.swing.tree.TreeSelectionModel
 import org.jetbrains.annotations.TestOnly
 
 private const val HOVER_CELL = "component.tree.hover.cell"
+const val TREE_OFFSET = "tree.offset"
 
 internal class Cell(val row: Int, val column: Int) {
   fun equalTo(otherRow: Int, otherColumn: Int) = otherRow == row && otherColumn == column
@@ -74,6 +76,18 @@ internal var JTable.hoverCell: Cell?
   get() = getClientProperty(HOVER_CELL) as? Cell
   set(value) {
     putClientProperty(HOVER_CELL, value)
+  }
+
+/**
+ * How much of the tree column is off-screen (how much it is offset from the beginning of the
+ * column).
+ */
+internal var JTree.treeOffset: Int
+  get() {
+    return getClientProperty(TREE_OFFSET) as? Int ?: 0
+  }
+  set(value) {
+    putClientProperty(TREE_OFFSET, value)
   }
 
 class TreeTableImpl(
@@ -334,7 +348,7 @@ class TreeTableImpl(
 
   /** Compute the max render width which is the width of the tree minus indents. */
   fun computeMaxRenderWidth(nodeDepth: Int): Int =
-    tree.width - tree.insets.right - computeLeftOffset(nodeDepth)
+    tree.width - tree.insets.right - computeLeftOffset(nodeDepth) + tree.treeOffset
 
   /** Return the depth of a given pixel distance from the left edge of the table tree. */
   fun findDepthFromOffset(x: Int): Int {

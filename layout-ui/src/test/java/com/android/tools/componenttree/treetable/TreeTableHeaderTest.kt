@@ -198,7 +198,7 @@ class TreeTableHeaderTest {
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())
     result.interactions.setHeaderVisibility(true)
-    return result.component as JScrollPane
+    return result.vScrollPane as JScrollPane
   }
 
   private class ColumnDefinition {
@@ -214,7 +214,7 @@ class TreeTableHeaderTest {
     val renderer = TableCellRenderer { _, _, _, _, _, _ -> panel }
   }
 
-  private class LabelWithMouseListener : JBLabel {
+  class LabelWithMouseListener : JBLabel {
     constructor(text: String) {
       this.text = text
     }

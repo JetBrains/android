@@ -81,7 +81,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.treeIcon = type.iconOf(node)
     renderer.enabledValue = type.isEnabled(node)
     renderer.deEmphasized = type.isDeEmphasized(node)
-
+    renderer.isOpaque = false
     renderer.generate()
     return renderer
   }

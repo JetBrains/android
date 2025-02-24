@@ -433,10 +433,9 @@ class TreeTableImplTest {
   fun testHideHeader() {
     val result = createTree()
     val table = result.focusComponent as TreeTableImpl
-    val scrollPane = getScrollPane(table)
 
     // This will cause addNotify() to be called on the table:
-    FakeUi(scrollPane, createFakeWindow = true)
+    FakeUi(result.component, createFakeWindow = true)
     assertThat(table.tableHeader.isShowing).isFalse()
 
     // show the header

@@ -460,7 +460,7 @@ class TreeTableDropTargetHandlerTest {
 
   private fun createTreeTable(): TreeTableImpl {
     val result = createTreeWithScrollPane()
-    val table = (result.component as JScrollPane).viewport.view as TreeTableImpl
+    val table = (result.vScrollPane as JScrollPane).viewport.view as TreeTableImpl
     result.model.treeRoot = item1
 
     table.setUI(HeadlessTableUI())

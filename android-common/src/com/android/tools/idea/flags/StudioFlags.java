@@ -1117,6 +1117,12 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.on.device.rendering", "Always use on-device rendering",
     "Force using on-device rendering, even when the device is not XR. Used for development only.",
     false);
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.horizontal.scrollable.component.tree",
+    "Horizontal scroll for layout inspector component tree",
+    "When this flag is enabled, we enable horizontal scrolling for the Layout Inspector's component tree.",
+    enabledUpTo(DEV));
   //endregion
 
   //region Embedded Emulator
