@@ -382,6 +382,7 @@
       <module fileurl="file://$PROJECT_DIR$/safemode/intellij.android.safemode.integration.tests.iml" filepath="$PROJECT_DIR$/safemode/intellij.android.safemode.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.iml" filepath="$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/screenshot-testing/gradle/intellij.android.screenshot-test.gradle.iml" filepath="$PROJECT_DIR$/screenshot-testing/gradle/intellij.android.screenshot-test.gradle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.tests.iml" filepath="$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" filepath="$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" />
