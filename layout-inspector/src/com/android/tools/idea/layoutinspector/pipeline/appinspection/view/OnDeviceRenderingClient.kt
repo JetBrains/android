@@ -114,6 +114,11 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
     sendDrawCommand(instructions, LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES)
   }
 
+  /** Send a command to the agent to draw the recomposition highlights. */
+  suspend fun drawRecomposingNodes(instructions: List<DrawInstruction>) {
+    sendDrawCommand(instructions, LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES)
+  }
+
   private suspend fun sendDrawCommand(
     instructions: List<DrawInstruction>,
     type: LayoutInspectorViewProtocol.DrawCommand.Type,

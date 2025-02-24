@@ -66,6 +66,12 @@ class OnDeviceRendererPanel(
     }
 
     childScope.launch {
+      renderModel.recomposingNodes.collect { recomposingNodes ->
+        client.drawRecomposingNodes(recomposingNodes)
+      }
+    }
+
+    childScope.launch {
       client.selectionEvents.filterNotNull().collect { event ->
         if (interceptClicks) {
           renderModel.selectNode(event.x.toDouble(), event.y.toDouble(), event.rootId)

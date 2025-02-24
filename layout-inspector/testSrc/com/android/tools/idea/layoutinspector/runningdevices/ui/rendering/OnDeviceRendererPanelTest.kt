@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -25,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -45,6 +47,7 @@ class OnDeviceRendererPanelTest {
 
   private lateinit var inspectorModel: InspectorModel
   private lateinit var renderModel: OnDeviceRendererModel
+  private lateinit var treeSettings: FakeTreeSettings
 
   @Before
   fun setUp() {
@@ -56,11 +59,13 @@ class OnDeviceRendererPanelTest {
         }
       }
 
+    treeSettings = FakeTreeSettings()
+
     renderModel =
       OnDeviceRendererModel(
         parentDisposable = disposableRule.disposable,
         inspectorModel = inspectorModel,
-        FakeTreeSettings(),
+        treeSettings = treeSettings,
       )
   }
 
@@ -88,7 +93,7 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
-    assertThat(receivedMessages).hasSize(5)
+    assertThat(receivedMessages).hasSize(6)
     assertThat(receivedMessages[0]).isEqualTo(enableOnDeviceRenderingCommand)
   }
 
@@ -117,19 +122,20 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
+    receivedMessages.clear()
     onDeviceRenderer.interceptClicks = true
 
     yield()
 
-    assertThat(receivedMessages).hasSize(6)
-    assertThat(receivedMessages[5]).isEqualTo(enableInterceptTouchEventsCommand)
+    assertThat(receivedMessages).hasSize(1)
+    assertThat(receivedMessages.first()).isEqualTo(enableInterceptTouchEventsCommand)
 
     onDeviceRenderer.interceptClicks = true
 
     yield()
 
     // Verify that setting the state to true again does not send another message.
-    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages).hasSize(1)
   }
 
   @Test
@@ -156,6 +162,7 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
+    receivedMessages.clear()
     inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
 
     yield()
@@ -167,8 +174,8 @@ class OnDeviceRendererPanelTest {
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
         )
         .toByteArray()
-    assertThat(receivedMessages).hasSize(6)
-    assertThat(receivedMessages[5]).isEqualTo(expectedCommand)
+    assertThat(receivedMessages).hasSize(1)
+    assertThat(receivedMessages.first()).isEqualTo(expectedCommand)
   }
 
   @Test
@@ -195,6 +202,7 @@ class OnDeviceRendererPanelTest {
 
     yield()
 
+    receivedMessages.clear()
     inspectorModel.hoveredNode = inspectorModel[VIEW1]
 
     yield()
@@ -206,8 +214,8 @@ class OnDeviceRendererPanelTest {
           type = LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
         )
         .toByteArray()
-    assertThat(receivedMessages).hasSize(6)
-    assertThat(receivedMessages[5]).isEqualTo(expectedCommand)
+    assertThat(receivedMessages).hasSize(1)
+    assertThat(receivedMessages.first()).isEqualTo(expectedCommand)
   }
 
   @Test
@@ -246,8 +254,55 @@ class OnDeviceRendererPanelTest {
           type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
         )
         .toByteArray()
-    assertThat(receivedMessages).hasSize(5)
+    assertThat(receivedMessages).hasSize(6)
     assertThat(receivedMessages[4]).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testModelRecomposingNodesChange() = runTest {
+    val receivedMessages = mutableListOf<ByteArray>()
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+          receivedMessages.add(rawData)
+          return ByteArray(0)
+        }
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    OnDeviceRendererPanel(
+      disposable = disposableRule.disposable,
+      scope = backgroundScope,
+      client = onDeviceRenderingClient,
+      renderModel = renderModel,
+    )
+
+    yield()
+
+    treeSettings.showRecompositions = true
+
+    val newWindow =
+      viewWindow(ROOT, 0, 0, 100, 200) {
+        compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {}
+      }
+    var composeNode2 = newWindow.root.flattenedList().find { it.drawId == COMPOSE2 }!!
+    composeNode2.recompositions.highlightCount = 100f
+    inspectorModel.update(newWindow, listOf(ROOT), 0)
+
+    yield()
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = ROOT,
+          bounds = listOf(inspectorModel[COMPOSE2]!!.layoutBounds),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
+        )
+        .toByteArray()
+    assertThat(receivedMessages).hasSize(8)
+    assertThat(receivedMessages[7]).isEqualTo(expectedCommand)
   }
 
   @Test

@@ -69,6 +69,10 @@ class OnDeviceRendererModel(
   private val _hoveredNode = MutableStateFlow<DrawInstruction?>(null)
   val hoveredNode = _hoveredNode.asStateFlow()
 
+  private val _recomposingNodes = MutableStateFlow<List<DrawInstruction>>(emptyList())
+  /** All the nodes that had a recent recomposition count change. */
+  val recomposingNodes = _recomposingNodes.asStateFlow()
+
   private val modificationListener =
     object : InspectorModel.ModificationListener {
       override fun onModification(
@@ -82,6 +86,14 @@ class OnDeviceRendererModel(
         // stale (for example if the position has changed).
         _selectedNode.value = newNodes.find { it == inspectorModel.selection }?.toDrawInstruction()
         _hoveredNode.value = newNodes.find { it == inspectorModel.hoveredNode }?.toDrawInstruction()
+
+        if (treeSettings.showRecompositions) {
+          // TODO(next CL): add support for custom color
+          _recomposingNodes.value =
+            newNodes.filter { it.recompositions.hasHighlight }.mapNotNull { it.toDrawInstruction() }
+        } else {
+          _recomposingNodes.value = emptyList<DrawInstruction>()
+        }
       }
     }
 

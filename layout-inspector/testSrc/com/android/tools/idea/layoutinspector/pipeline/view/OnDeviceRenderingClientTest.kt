@@ -201,6 +201,23 @@ class OnDeviceRenderingClientTest {
   }
 
   @Test
+  fun testDrawRecomposingNodes(): Unit = runTest {
+    val drawInstructions = DrawInstruction(1L, Rectangle())
+    onDeviceRenderingClient.drawRecomposingNodes(listOf(drawInstructions))
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = listOf(Rectangle()),
+          type = LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
   fun testDrawSelectedNodeNull(): Unit = runTest {
     val drawInstructions = null
     onDeviceRenderingClient.drawSelectedNode(drawInstructions)
@@ -243,6 +260,22 @@ class OnDeviceRenderingClientTest {
           rootId = 1L,
           bounds = emptyList(),
           LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
+        )
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testDrawRecomposingNodesEmpty(): Unit = runTest {
+    onDeviceRenderingClient.drawRecomposingNodes(emptyList())
+
+    val expectedCommand =
+      buildDrawNodeCommand(
+          rootId = 1L,
+          bounds = emptyList(),
+          LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
         )
         .toByteArray()
 

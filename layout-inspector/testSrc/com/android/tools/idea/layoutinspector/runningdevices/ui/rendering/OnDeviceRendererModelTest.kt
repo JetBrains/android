@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -119,6 +121,45 @@ class OnDeviceRendererModelTest {
       listOf(DrawInstruction(rootViewId = ROOT, Rectangle(25, 30, 50, 50)))
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
+  }
+
+  @Test
+  fun testRecomposingNodesChangeOnModelUpdates() = runTest {
+    testScheduler.advanceUntilIdle()
+
+    val instructions1 = onDeviceRendererModel.recomposingNodes.first()
+    assertThat(instructions1).isEqualTo(emptyList<DrawInstruction>())
+
+    treeSettings.showRecompositions = true
+
+    val newWindow =
+      viewWindow(ROOT, 0, 0, 100, 200) {
+        compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {}
+      }
+    var composeNode2 = newWindow.root.flattenedList().find { it.drawId == COMPOSE2 }!!
+    composeNode2.recompositions.highlightCount = 100f
+    inspectorModel.update(newWindow, listOf(ROOT), 0)
+    testScheduler.advanceUntilIdle()
+
+    val expectedInstructions2 = listOf(DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 50, 50)))
+    val instructions2 = onDeviceRendererModel.recomposingNodes.first()
+    assertThat(instructions2).isEqualTo(expectedInstructions2)
+
+    // Disable recomposition counts
+    inspectorModel.resetRecompositionCounts()
+    treeSettings.showRecompositions = false
+
+    val newWindow2 =
+      viewWindow(ROOT, 0, 0, 100, 200) {
+        compose(COMPOSE3, name = "compose-node", x = 0, y = 0, width = 20, height = 20) {}
+      }
+    var composeNode3 = newWindow2.root.flattenedList().find { it.drawId == COMPOSE3 }!!
+    composeNode3.recompositions.highlightCount = 100f
+    inspectorModel.update(newWindow2, listOf(ROOT), 0)
+    testScheduler.advanceUntilIdle()
+
+    val instructions3 = onDeviceRendererModel.recomposingNodes.first()
+    assertThat(instructions3).isEqualTo(emptyList<DrawInstruction>())
   }
 
   @Test
