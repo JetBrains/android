@@ -586,6 +586,46 @@ class AndroidMavenImportIntentionActionTest {
       .run()
   }
 
+  @Test
+  fun doNotSuggestMavenImportActionMultiplatform_nonJvmPlatform() {
+    AndroidMavenImportIntentionActionTestConfig(
+        projectRule = projectRule,
+        testProject = AndroidCoreTestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        forbiddenGradleText = listOf(),
+        filePath = "kmpFirstLib/src/commonMain/kotlin/com/example/kmpfirstlib/NewCommonClass",
+        fileContents =
+          """
+          package test.pkg.imports
+          val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
+          """
+            .trimIndent(),
+        caretPlacement = "RecyclerView|",
+        available = false,
+      )
+      .run()
+  }
+
+  @Test
+  fun suggestMavenImportActionMultiplatform_jvmPlatform() {
+    AndroidMavenImportIntentionActionTestConfig(
+        projectRule = projectRule,
+        testProject = AndroidCoreTestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        forbiddenGradleText = listOf(),
+        filePath = "kmpFirstLib/src/androidMain/kotlin/com/example/kmpfirstlib/NewAndroidClass",
+        fileContents =
+          """
+          package test.pkg.imports
+          val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
+          """
+            .trimIndent(),
+        caretPlacement = "RecyclerView|",
+        actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
+        available = true,
+        addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
+      )
+      .run()
+  }
+
   data class AndroidMavenImportIntentionActionTestConfig
   @CheckReturnValue
   constructor(
@@ -601,6 +641,7 @@ class AndroidMavenImportIntentionActionTest {
     val addedGradleText: Collection<String> = listOf(),
     val addedImports: Collection<String> = listOf(),
     val mavenClassRegistryManager: MavenClassRegistryManager = fakeMavenClassRegistryManager,
+    val filePath: String? = null,
   ) {
     private fun <T> openTestProject(
       testProject: TestProjectDefinition,
@@ -629,7 +670,8 @@ class AndroidMavenImportIntentionActionTest {
         }
         if (fileContents.isNotEmpty()) {
           fixture.loadNewFile(
-            "app/src/main/java/test/pkg/imports/MainActivity2.$fileExtension",
+            filePath?.let { "$it.$fileExtension" }
+              ?: "app/src/main/java/test/pkg/imports/MainActivity2.$fileExtension",
             fileContents,
           )
         }

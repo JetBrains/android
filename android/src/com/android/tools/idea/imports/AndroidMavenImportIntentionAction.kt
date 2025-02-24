@@ -57,12 +57,17 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.facet.implementedModules
+import org.jetbrains.kotlin.idea.base.facet.implementingModules
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
+import org.jetbrains.kotlin.idea.base.facet.platform.platform
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -121,6 +126,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
     val moduleSystem = module.getModuleSystem()
     if (!moduleSystem.canRegisterDependency().isSupported()) return false
+
+    // TODO: b/398839232 for non-jvm modules, we currently don't support import suggestions
+    if (module.multiplatformNonJvm()) {
+      return false
+    }
 
     val registry =
       MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry() ?: return false
@@ -595,3 +605,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
   }
 }
+
+private fun Module.isCommon() = implementingModules.isNotEmpty() && implementedModules.isEmpty()
+
+private fun Module.multiplatformNonJvm() =
+  isMultiPlatformModule && (isCommon() || !platform.isJvm())

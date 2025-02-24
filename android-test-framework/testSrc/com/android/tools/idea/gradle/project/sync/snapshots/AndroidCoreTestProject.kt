@@ -42,6 +42,7 @@ enum class AndroidCoreTestProject(
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null
 ) : TemplateBasedTestProject {
+  ANDROID_KOTLIN_MULTIPLATFORM(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM),
   ANDROID_LIBRARY_AS_TEST_DEPENDENCY(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY),
   ANDROIDX_SIMPLE(TestProjectPaths.ANDROIDX_SIMPLE),
   APP_WITH_BUILDSRC(TestProjectPaths.APP_WITH_BUILDSRC),
