@@ -16,13 +16,20 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.adblib.utils.createChildScope
+import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
+import java.awt.Point
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Renderer that delegates the actual rendering to the device. Sends rendering instructions to the
@@ -33,17 +40,32 @@ class OnDeviceRendererPanel(
   scope: CoroutineScope,
   private val client: OnDeviceRenderingClient,
   private val renderModel: OnDeviceRendererModel,
+  private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
 ) : LayoutInspectorRenderer() {
 
   private val childScope = scope.createChildScope()
 
   override var interceptClicks
     get() = renderModel.interceptClicks.value
-    set(value) = renderModel.setInterceptClicks(value)
+    set(value) {
+      enableSendRightClicksToDevice(value)
+      return renderModel.setInterceptClicks(value)
+    }
+
+  private var lastMousePosition: Point? = null
 
   init {
     Disposer.register(disposable, this)
     isOpaque = false
+
+    // Events are not dispatched to the parent if the child has a mouse listener. So we need to
+    // manually forward them.
+    ForwardingMouseListener(componentProvider = { parent }, shouldForward = { true }).also {
+      addMouseListener(it)
+      addMouseMotionListener(it)
+      addMouseWheelListener(it)
+    }
+    MouseListener().also { addMouseMotionListener(it) }
 
     childScope.launch { client.enableOnDeviceRendering(true) }
 
@@ -86,9 +108,37 @@ class OnDeviceRendererPanel(
         }
       }
     }
+
+    childScope.launch {
+      client.rightClickEvents.filterNotNull().collect { event ->
+        if (!interceptClicks) {
+          return@collect
+        }
+        val views = renderModel.findNodesAt(event.x.toDouble(), event.y.toDouble(), event.rootId)
+        // There should always be a lastMousePosition available, if for some reason it's missing,
+        // show the popup in them middle of the panel.
+        val rightClickCoordinates = lastMousePosition ?: Point(width / 2, height / 2)
+        withContext(Dispatchers.EDT) {
+          showViewContextMenu(
+            views = views.toList(),
+            inspectorModel = renderModel.inspectorModel,
+            source = this@OnDeviceRendererPanel,
+            x = rightClickCoordinates.x,
+            y = rightClickCoordinates.y,
+          )
+        }
+      }
+    }
   }
 
   override fun dispose() {
     childScope.cancel()
+  }
+
+  private inner class MouseListener : MouseAdapter() {
+    override fun mouseMoved(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
+      lastMousePosition = Point(e.x, e.y)
+    }
   }
 }

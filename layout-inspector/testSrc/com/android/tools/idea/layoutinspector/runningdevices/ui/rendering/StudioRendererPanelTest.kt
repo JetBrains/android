@@ -17,12 +17,10 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -46,9 +44,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPopupMenu
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -63,10 +58,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
-import java.util.function.Supplier
 import javax.imageio.ImageIO
-import javax.swing.JComponent
-import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import org.junit.Before
 import org.junit.Rule
@@ -696,32 +688,5 @@ private class FakeMouseListener : MouseAdapter() {
 
   override fun mousePressed(e: MouseEvent) {
     mousePressedCount += 1
-  }
-}
-
-private class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
-  val popup: JPopupMenu = mock()
-
-  override fun getComponent(): JPopupMenu = popup
-
-  override fun getActionGroup(): ActionGroup = group
-
-  override fun getPlace(): String = error("Not implemented")
-
-  override fun setTargetComponent(component: JComponent) = error("Not implemented")
-
-  override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
-
-  fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {
-    val event: AnActionEvent = mock()
-    whenever(event.actionManager).thenReturn(ActionManager.getInstance())
-    val actions = group.getChildren(event)
-    assertThat(actions.size).isEqualTo(2)
-    assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
-    val selectActions = (actions[0] as DropDownAction).getChildren(event)
-    val selectedViewsIds =
-      selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId }
-    assertThat(selectedViewsIds).containsExactlyElementsIn(expected.toList())
-    assertThat(actions[1]).isEqualTo(GotoDeclarationAction)
   }
 }

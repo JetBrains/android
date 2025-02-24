@@ -102,6 +102,26 @@ class OnDeviceRenderingClientTest {
   }
 
   @Test
+  fun testHandleRightClickEvent() = runTest {
+    val rightClickEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
+
+    // Launch collector coroutine
+    val job = launch {
+      val receivedEvent = onDeviceRenderingClient.rightClickEvents.first()
+      assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
+    }
+
+    // Give the collector coroutine a chance to start collecting, so we don't emit too early.
+    yield()
+
+    onDeviceRenderingClient.handleEvent(rightClickEventProto)
+
+    // Wait for the collector coroutine to finish
+    job.join()
+  }
+
+  @Test
   fun testOldSelectionEventsAreNotReceived() = runTest {
     val selectionEventProto =
       buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
@@ -132,6 +152,25 @@ class OnDeviceRenderingClientTest {
     val job = launch {
       withTimeout(100) {
         onDeviceRenderingClient.hoverEvents.first()
+        fail("No event should be received.")
+      }
+    }
+
+    job.join()
+  }
+
+  @Test
+  fun testOldRightClickEventsAreNotReceived() = runTest {
+    val rightClickEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
+
+    // Send event before the collector is started.
+    onDeviceRenderingClient.handleEvent(rightClickEventProto)
+
+    // Launch collector coroutine.
+    val job = launch {
+      withTimeout(100) {
+        onDeviceRenderingClient.rightClickEvents.first()
         fail("No event should be received.")
       }
     }

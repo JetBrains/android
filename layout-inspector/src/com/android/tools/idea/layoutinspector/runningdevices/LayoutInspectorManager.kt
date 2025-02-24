@@ -374,6 +374,9 @@ private fun createRendererPanel(
             layoutInspector.inspectorModel,
             layoutInspector.treeSettings,
           ),
+        enableSendRightClicksToDevice = { enable ->
+          tabComponents.displayView.rightClicksAreSentToDevice = enable
+        },
       )
     },
     studioRendererProvider = { parentDisposable ->

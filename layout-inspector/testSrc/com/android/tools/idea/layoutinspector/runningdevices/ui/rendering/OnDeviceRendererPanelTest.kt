@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -28,9 +29,16 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.replaceService
+import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +48,12 @@ import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class OnDeviceRendererPanelTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -89,6 +103,7 @@ class OnDeviceRendererPanelTest {
       scope = backgroundScope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
     )
 
     yield()
@@ -118,6 +133,7 @@ class OnDeviceRendererPanelTest {
         scope = backgroundScope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
       )
 
     yield()
@@ -136,6 +152,34 @@ class OnDeviceRendererPanelTest {
 
     // Verify that setting the state to true again does not send another message.
     assertThat(receivedMessages).hasSize(1)
+  }
+
+  @Test
+  fun testInterceptClicksTriggersRightClickToDevice() = runTest {
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val enableSendRightClicksToDeviceInvocations = mutableListOf<Boolean>()
+
+    val onDeviceRenderer =
+      OnDeviceRendererPanel(
+        disposable = disposableRule.disposable,
+        scope = backgroundScope,
+        client = onDeviceRenderingClient,
+        renderModel = renderModel,
+        enableSendRightClicksToDevice = { enableSendRightClicksToDeviceInvocations += it },
+      )
+
+    onDeviceRenderer.interceptClicks = true
+    onDeviceRenderer.interceptClicks = false
+
+    assertThat(enableSendRightClicksToDeviceInvocations).containsExactly(true, false)
   }
 
   @Test
@@ -158,6 +202,7 @@ class OnDeviceRendererPanelTest {
       scope = backgroundScope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
     )
 
     yield()
@@ -198,6 +243,7 @@ class OnDeviceRendererPanelTest {
       scope = backgroundScope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
     )
 
     yield()
@@ -238,6 +284,7 @@ class OnDeviceRendererPanelTest {
       scope = backgroundScope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
     )
 
     yield()
@@ -278,6 +325,7 @@ class OnDeviceRendererPanelTest {
       scope = backgroundScope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
     )
 
     yield()
@@ -326,6 +374,7 @@ class OnDeviceRendererPanelTest {
         scope = backgroundScope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
       )
 
     yield()
@@ -366,6 +415,7 @@ class OnDeviceRendererPanelTest {
         scope = backgroundScope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
       )
 
     yield()
@@ -383,6 +433,71 @@ class OnDeviceRendererPanelTest {
     yield()
 
     assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[COMPOSE1])
+  }
+
+  @Test
+  fun testRightClickShowsPopup() = runTest {
+    val messenger =
+      object : AppInspectorMessenger {
+        override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
+
+        override val eventFlow: Flow<ByteArray> = emptyFlow()
+        override val scope: CoroutineScope = CoroutineScope(Job())
+      }
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val onDeviceRenderer =
+      OnDeviceRendererPanel(
+        disposable = disposableRule.disposable,
+        scope = backgroundScope,
+        client = onDeviceRenderingClient,
+        renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
+      )
+
+    onDeviceRenderer.interceptClicks = true
+
+    yield()
+
+    val popupLatch = CountDownLatch(1)
+    var lastPopup: FakeActionPopupMenu? = null
+    ApplicationManager.getApplication()
+      .replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
+    doAnswer { invocation ->
+        lastPopup = FakeActionPopupMenu(invocation.getArgument(1))
+        popupLatch.countDown()
+        lastPopup
+      }
+      .whenever(ActionManager.getInstance())
+      .createActionPopupMenu(anyString(), any<ActionGroup>())
+
+    val parent = BorderLayoutPanel()
+    parent.add(onDeviceRenderer)
+    parent.size = Dimension(100, 100)
+    onDeviceRenderer.size = Dimension(100, 100)
+    val fakeUi = FakeUi(parent)
+    fakeUi.render()
+
+    // move the cursor
+    fakeUi.mouse.moveTo(42, 42)
+
+    val rightClickEvent =
+      buildUserInputEventProto(
+        rootId = ROOT,
+        x = 15f,
+        y = 55f,
+        type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK,
+      )
+    // send right click from the device
+    onDeviceRenderingClient.handleEvent(rightClickEvent)
+
+    yield()
+
+    // wait for the popup to be shown.
+    popupLatch.await()
+
+    lastPopup!!.assertSelectViewActionAndGotoDeclaration(COMPOSE1, ROOT)
+    verify(lastPopup.popup).show(onDeviceRenderer, 42, 42)
   }
 
   @Test
@@ -404,6 +519,7 @@ class OnDeviceRendererPanelTest {
         scope = this,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
       )
 
     yield()

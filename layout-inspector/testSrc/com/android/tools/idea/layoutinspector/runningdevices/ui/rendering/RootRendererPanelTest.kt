@@ -222,6 +222,7 @@ private fun createOnDeviceRenderer(
     scope = scope,
     client = onDeviceRenderingClient,
     renderModel = renderModel,
+    enableSendRightClicksToDevice = {},
   )
 }
 

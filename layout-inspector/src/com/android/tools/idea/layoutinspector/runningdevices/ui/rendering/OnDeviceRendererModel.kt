@@ -51,7 +51,7 @@ data class DrawInstruction(val rootViewId: Long, val bounds: Rectangle)
  */
 class OnDeviceRendererModel(
   parentDisposable: Disposable,
-  private val inspectorModel: InspectorModel,
+  val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,
 ) : Disposable {
 
@@ -124,17 +124,17 @@ class OnDeviceRendererModel(
   }
 
   fun selectNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
-    val node = findViewNodesAt(rootId, x, y).firstOrNull()
+    val node = findNodesAt(x, y, rootId).firstOrNull()
     inspectorModel.setSelection(node, SelectionOrigin.INTERNAL)
   }
 
   fun hoverNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
-    val node = findViewNodesAt(rootId, x, y).firstOrNull()
+    val node = findNodesAt(x, y, rootId).firstOrNull()
     inspectorModel.hoveredNode = node
   }
 
   /** Returns the list of visible nodes belonging to [rootId], at the provided coordinates. */
-  private fun findViewNodesAt(rootId: Long, x: Double, y: Double): List<ViewNode> {
+  fun findNodesAt(x: Double, y: Double, rootId: Long): List<ViewNode> {
     return getNodes(rootId).filter { it.layoutBounds.contains(x, y) }
   }
 

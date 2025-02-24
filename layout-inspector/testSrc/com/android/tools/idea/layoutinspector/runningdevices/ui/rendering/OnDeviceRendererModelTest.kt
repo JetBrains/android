@@ -68,6 +68,15 @@ class OnDeviceRendererModelTest {
   }
 
   @Test
+  fun testFindNodesAt() = runTest {
+    val nodes1 = onDeviceRendererModel.findNodesAt(15.0, 55.0, ROOT)
+    assertThat(nodes1).containsExactly(inspectorModel[COMPOSE1], inspectorModel[ROOT])
+
+    val nodes2 = onDeviceRendererModel.findNodesAt(0.0, 0.0, ROOT)
+    assertThat(nodes2).containsExactly(inspectorModel[ROOT])
+  }
+
+  @Test
   fun testSelectedNode() = runTest {
     onDeviceRendererModel.selectNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()

@@ -34,25 +34,14 @@ data class InputEvent(val rootId: Long, val x: Float, val y: Float)
  *   [ViewLayoutInspectorClient] messenger.
  */
 class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
-  private val _selectionEvents =
-    MutableSharedFlow<InputEvent?>(
-      // When a new collector starts, it only sees future events.
-      replay = 0,
-      // Store only one event at a time.
-      extraBufferCapacity = 1,
-      onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+  private val _selectionEvents = ephemeralFlow<InputEvent?>()
   val selectionEvents = _selectionEvents.asSharedFlow()
 
-  private val _hoverEvents =
-    MutableSharedFlow<InputEvent?>(
-      // When a new collector starts, it only sees future events.
-      replay = 0,
-      // Store only one event at a time.
-      extraBufferCapacity = 1,
-      onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+  private val _hoverEvents = ephemeralFlow<InputEvent?>()
   val hoverEvents = _hoverEvents.asSharedFlow()
+
+  private val _rightClickEvents = ephemeralFlow<InputEvent?>()
+  val rightClickEvents = _rightClickEvents.asSharedFlow()
 
   fun handleEvent(event: Event): Boolean {
     return when (event.specializedCase) {
@@ -69,6 +58,7 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
     when (inputEvent.type) {
       UserInputEvent.Type.SELECTION -> _selectionEvents.tryEmit(point)
       UserInputEvent.Type.HOVER -> _hoverEvents.tryEmit(point)
+      UserInputEvent.Type.RIGHT_CLICK -> _rightClickEvents.tryEmit(point)
       else -> throw IllegalArgumentException("Unknown user input type ${inputEvent.type}")
     }
   }
@@ -154,4 +144,22 @@ private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstructi
     .setRootId(rootViewId)
     .setBounds(boundsRect)
     .build()
+}
+
+/**
+ * Creates a [MutableSharedFlow] that emits only the most recent value published after a subscriber
+ * starts collecting. This ensures that new collectors receive only future emissions and do not
+ * retain past values.
+ *
+ * @return A [MutableSharedFlow] that buffers only the latest emitted value, dropping older values
+ *   if a new one arrives before being collected.
+ */
+private fun <T> ephemeralFlow(): MutableSharedFlow<T?> {
+  return MutableSharedFlow<T?>(
+    // When a new collector starts, it only sees future events.
+    replay = 0,
+    // Store only one event at a time.
+    extraBufferCapacity = 1,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST,
+  )
 }
