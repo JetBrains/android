@@ -2088,6 +2088,12 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_MULTIFILE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.multifile.enabled",
+                    "Enable the transform to be able to output multiple files.",
+                    "When enabled, returns all files modified by models.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_COMPONENT_POP_UP = new BooleanFlag(
     COMPOSE, "preview.popup", "Enable the opening pop up when holding the option key while clicking a preview",
     "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
