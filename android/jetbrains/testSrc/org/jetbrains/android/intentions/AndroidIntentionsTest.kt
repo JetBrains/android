@@ -15,10 +15,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 private const val BASE_PATH = "intentions"
+private const val REPLACE_SWITCH_WITH_IF = "Replace 'switch' with 'if'"
 
 @RunWith(JUnit4::class)
 class AndroidIntentionsTest {
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
 
   private val fixture by lazy {
     projectRule.fixture.apply {
@@ -50,21 +52,21 @@ class AndroidIntentionsTest {
   fun switchOnResourceId() {
     facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, true, "SwitchOnResourceId.java", "SwitchOnResourceId_after.java")
+    doTest(inspection, true, REPLACE_SWITCH_WITH_IF, "SwitchOnResourceId.java", "SwitchOnResourceId_after.java")
   }
 
   @Test
   fun switchOnResourceId1() {
     facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, false, "SwitchOnResourceId1.java")
+    doTest(inspection, false, REPLACE_SWITCH_WITH_IF, "SwitchOnResourceId1.java")
   }
 
   @Test
   fun switchOnResourceId2() {
     facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, false, "SwitchOnResourceId2.java")
+    doTest(inspection, false, REPLACE_SWITCH_WITH_IF, "SwitchOnResourceId2.java")
   }
 
   @Test
@@ -72,29 +74,37 @@ class AndroidIntentionsTest {
     // Validate case statement with multiple value
     facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, true, "SwitchOnResourceId3.java", "SwitchOnResourceId3_after.java")
+    doTest(inspection, true, REPLACE_SWITCH_WITH_IF, "SwitchOnResourceId3.java", "SwitchOnResourceId3_after.java")
+  }
+
+  @Test
+  fun creatingUnresolvedMethod() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
+    doTest(null, true, "Create method 'someMethod' in 'MainActivity'", "CannotResolveMethod.java", "CannotResolveMethod_after.java")
   }
 
   private fun doTest(
-    inspection: LocalInspectionTool,
+    inspection: LocalInspectionTool?,
     available: Boolean,
+    intentionName: String,
     inputFileName: String,
     afterFileName: String? = null,
   ) {
-    fixture.enableInspections(inspection)
+    inspection?.let { fixture.enableInspections(it) }
 
     val file = fixture.copyFileToProject("$BASE_PATH/$inputFileName", "src/p1/p2/Class.java")
     fixture.configureFromExistingVirtualFile(file)
     fixture.checkHighlighting(true, false, false)
 
-    val quickFix = fixture.getAvailableIntention("Replace 'switch' with 'if'")
+    val quickFix = fixture.getAvailableIntention(intentionName)
     if (available) {
       requireNotNull(quickFix) { "Quick fix should have been found." }
       if (afterFileName != null) {
         fixture.launchAction(quickFix)
         fixture.checkResultByFile("$BASE_PATH/$afterFileName")
       }
-    } else {
+    }
+    else {
       assertThat(quickFix).isNull()
     }
   }
