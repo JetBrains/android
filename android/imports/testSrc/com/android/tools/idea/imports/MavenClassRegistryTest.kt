@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +26,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.utils.mapToSetOrEmpty
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -570,6 +572,23 @@ class MavenClassRegistryTest {
         )
       assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
     }
+  }
+
+  @Test
+  fun googleMavenArtifactIdConsistencyWithOfflineFile() {
+    val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
+    val repository =
+      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(repository::loadIndexFromDisk)
+    val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
+
+    // Check if we have a valid built-in index file.
+    Json.parseToJsonElement(data)
+
+    val ids =
+      mavenClassRegistry.lookup.coordinateList.mapToSetOrEmpty { "${it.groupId}:${it.artifactId}" }
+    assertThat(ids).containsAllIn(GoogleMavenArtifactId.entries.mapToSetOrEmpty { it.toString() })
   }
 
   @Test

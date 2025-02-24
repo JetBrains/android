@@ -21,6 +21,7 @@ import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.concurrency.transform
@@ -186,10 +187,10 @@ class GradleModuleSystem(
       ?.second?.toPath()
   }
 
-  override fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): GradleRegisteredDependencyQueryId? =
+  override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyQueryId? =
     GradleRegisteredDependencyQueryId(id.getModule())
 
-  override fun getRegisteredDependencyId(id: GoogleMavenArtifactId): GradleRegisteredDependencyId? =
+  override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyId? =
     GradleRegisteredDependencyId(id.getDependency("+"))
 
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =

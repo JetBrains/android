@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -207,13 +208,13 @@ class TestProjectSystem @JvmOverloads constructor(
         dependenciesByModule.put(module, Dependency(type, dependency.coordinate))
       }
 
-      override fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): TestRegisteredDependencyQueryId? =
+      override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId? =
         TestRegisteredDependencyQueryId(id.getCoordinate("+"))
 
       private fun getRegisteredDependencyQueryId(coordinate: GradleCoordinate): TestRegisteredDependencyQueryId? =
         TestRegisteredDependencyQueryId(coordinate)
 
-      override fun getRegisteredDependencyId(id: GoogleMavenArtifactId): TestRegisteredDependencyId? =
+      override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId? =
         TestRegisteredDependencyId(id.getCoordinate("+"))
 
       private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId? =

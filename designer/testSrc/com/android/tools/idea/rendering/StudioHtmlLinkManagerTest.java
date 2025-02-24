@@ -69,7 +69,7 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
-    StudioHtmlLinkManager.handleAddDependency("addDebugDependency:com.google.android:flexbox", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDebugDependency:com.google.android.flexbox:flexbox", myModule);
     assertThat(
       testProjectSystem.getAddedDependencies(myModule).stream()
         .map(dependency ->
@@ -81,7 +81,7 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
       .containsExactly("IMPLEMENTATION(com.android.support:palette-v7)",
                        "IMPLEMENTATION(com.google.android.gms:play-services)",
                        "IMPLEMENTATION(com.android.support.constraint:constraint-layout)",
-                       "DEBUG_IMPLEMENTATION(com.google.android:flexbox)");
+                       "DEBUG_IMPLEMENTATION(com.google.android.flexbox:flexbox)");
   }
 
   // Regression test for b/315080316. It should fail when reverting ag/25616101 or regressing in any other way.

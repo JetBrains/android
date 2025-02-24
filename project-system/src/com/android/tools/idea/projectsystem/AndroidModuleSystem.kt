@@ -20,6 +20,7 @@ package com.android.tools.idea.projectsystem
 import com.android.AndroidProjectTypes
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.AndroidModel
@@ -122,10 +123,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
 
   @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(id: GoogleMavenArtifactId): GradleCoordinate? = getResolvedDependency(id.getCoordinate("+"))
+  fun getResolvedDependency(id: WellKnownMavenArtifactId): GradleCoordinate? = getResolvedDependency(id.getCoordinate("+"))
 
   @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(id: GoogleMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
+  fun getResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
     getResolvedDependency(id.getCoordinate("+"), scope)
 
   fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
@@ -470,11 +471,11 @@ interface RegisteredDependencyId
  */
 interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
   /** return an id suitable for querying for a corresponding existing registered dependency. */
-  fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): T?
+  fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T?
   /** return an id suitable for registering the corresponding dependency with the project. */
-  fun getRegisteredDependencyId(id: GoogleMavenArtifactId): U?
+  fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U?
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
-  fun getRegisteredDependency(id: GoogleMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: T): U?
   /** register the [dependency] as a dependency of type [type] in this module. */
