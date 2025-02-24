@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
 import com.android.tools.idea.insights.ui.InsightDeprecatedPanel
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
+import com.intellij.util.ui.JBDimension
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -94,6 +95,7 @@ private class InsightToolWindowContent(
       }
 
     component.add(comp, BorderLayout.CENTER)
+    component.minimumSize = JBDimension(450, 0)
   }
 
   override fun dispose() = Unit
