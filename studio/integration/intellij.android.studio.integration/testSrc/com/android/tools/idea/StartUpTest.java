@@ -41,7 +41,6 @@ public class StartUpTest {
   public void startUpTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
     AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
-    install.addVmOption("-Didea.is.internal=true"); // Allows executing internal actions in the test.
     if (SystemInfo.isMac) {
       install.addVmOption("-Djava.awt.headless=true");
     }
@@ -66,8 +65,6 @@ public class StartUpTest {
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
-
-      studio.executeAction("Android.ValidatePluginConfiguration");
 
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",

@@ -1160,6 +1160,14 @@ iml_test(
 )
 
 iml_test(
+    name = "EssentialPluginsTest",
+    module = ":intellij.android.studio.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.EssentialPluginsTest",
+)
+
+iml_test(
     name = "UpdateTest",
     data = [
         ":updater",

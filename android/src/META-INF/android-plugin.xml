@@ -84,9 +84,13 @@
     </group>
 
     <action internal="true"
-            text="Validate Plugin Configuration"
-            id="Android.ValidatePluginConfiguration"
-            class="com.android.tools.idea.actions.ValidatePluginConfigurationAction"/>
+            text="Validate Essential Plugins"
+            id="Android.ValidateEssentialPlugins"
+            class="com.android.tools.idea.actions.ValidateEssentialPluginsAction"/>
+    <action internal="true"
+            text="Disable All Plugins"
+            id="Android.DisableAllPlugins"
+            class="com.android.tools.idea.actions.DisableAllPluginsAction"/>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />

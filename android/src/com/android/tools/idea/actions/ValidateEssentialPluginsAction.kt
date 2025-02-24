@@ -24,9 +24,9 @@ import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.extensions.PluginId
 
-/** Validates IDE plugins and their dependencies (for use in E2E tests). */
+/** Validates essential plugins and their dependencies (for use in E2E tests). */
 @Suppress("UnstableApiUsage")
-class ValidatePluginConfigurationAction : AnAction() {
+class ValidateEssentialPluginsAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     validateEssentialPlugins()
