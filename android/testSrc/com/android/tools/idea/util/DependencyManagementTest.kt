@@ -27,7 +27,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.LightPlatformTestCase
-import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  * Tests for [DependencyManagement].
@@ -72,19 +71,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     Truth.assertThat(module.dependsOnAndroidx()).isFalse()
     projectSystem.useAndroidX = true
     Truth.assertThat(module.dependsOnAndroidx()).isTrue()
-  }
-
-  fun testDependsOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
-
-    Truth.assertThat(module.dependsOnOldSupportLib()).isTrue()
-  }
-
-  fun testDoesNotDependOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
-
-    Truth.assertThat(module.dependsOnOldSupportLib()).isFalse()
   }
 
   fun testUserConfirmationMultipleArtifactsMessage() {

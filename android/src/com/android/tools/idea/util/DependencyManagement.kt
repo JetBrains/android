@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.util
 
-import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
@@ -71,14 +70,6 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
  * Returns whether this module depends on the new support library artifacts (androidx).
  */
 fun Module.dependsOnAndroidx(): Boolean = getModuleSystem().useAndroidX
-
-/**
- * Returns whether this module depends on the old support library artifacts (com.android.support).
- */
-fun Module.dependsOnOldSupportLib(): Boolean =
-  GoogleMavenArtifactId.values()
-    .filter { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
-    .any { dependsOn(it) }
 
 fun Module?.mapAndroidxName(name: AndroidxName): String {
   val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()

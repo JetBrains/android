@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.assistant
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
-import com.android.tools.idea.util.dependsOnOldSupportLib
 import com.intellij.openapi.module.Module
 import com.intellij.util.io.DigestUtil
 import java.io.InputStream
@@ -35,8 +34,7 @@ internal enum class TemplateTag {
   },
   /** This template only supports the old version of the support library (not androidx) */
   SUPPORT_LIBRARY {
-    override fun availableFor(module: Module) =
-      module.dependsOnOldSupportLib() && !module.dependsOnAndroidx()
+    override fun availableFor(module: Module) = !module.dependsOnAndroidx()
   },
   /** This template has a constraint layout */
   CONSTRAINT_LAYOUT {
