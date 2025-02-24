@@ -31,6 +31,7 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
@@ -103,7 +104,7 @@ abstract class BuildOutputIntegrationTestBase {
   }
   fun BuildEvent.toFullPathWithMessage(): String {
     val parentPath = when (val parentId = parentId) {
-      null -> "root"
+      null, is ExternalSystemTaskId -> "root"
       else -> "root > ${parentId.toString().substringAfter(" > ")}"
     }
     val kind = if (this is MessageEvent) "$kind:" else ""

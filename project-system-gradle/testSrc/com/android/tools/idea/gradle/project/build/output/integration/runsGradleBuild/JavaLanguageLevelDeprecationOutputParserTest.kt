@@ -26,15 +26,16 @@ import com.android.tools.idea.testing.JdkUtils.getEmbeddedJdkPathWithVersion
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.JAVA_COMPILER
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,6 +58,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
 
     assertThat(buildEvents.printEvents()).isEqualTo("""
 root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Java compiler has removed support for compiling with source/target compatibility version 6.'
+root > ERROR:'Target option 6 is no longer supported. Use 7 or later.'
 root > 'failed'
 """.trimIndent())
 
@@ -83,7 +85,7 @@ root > 'failed'
       }
     }
 
-    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
+    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL, JAVA_COMPILER)
   }
 
   /**
@@ -213,9 +215,12 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
     preparedProject.root.resolve(SdkConstants.FN_SETTINGS_GRADLE).appendText("\ninclude ':lib'")
 
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
+    // Fix non-consistent MessageEvent.parentId for compiler error due to IDEA-368488 issue
+    (buildEvents[1] as MessageEventImpl).parentId = "[Task :app:compileDebugJavaWithJavac]"
 
     assertThat(buildEvents.printEvents()).isEqualTo("""
 root > [Task :lib:compileJava] > ERROR:'Java compiler has removed support for compiling with source/target compatibility version 7.'
+root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Target option 7 is no longer supported. Use 8 or later.'
 root > 'failed'
 """.trimIndent())
     sequenceOf(
@@ -242,7 +247,7 @@ root > 'failed'
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
 
-    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
+    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL, JAVA_COMPILER)
   }
 
   @Test
