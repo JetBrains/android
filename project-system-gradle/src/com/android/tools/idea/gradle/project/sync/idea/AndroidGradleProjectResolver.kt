@@ -613,6 +613,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     resolverCtx.getProjectModel(gradleProject, IdeAndroidModels::class.java)
       ?: // Not an android module
       return
+
+    // if kmp project then return (it may contain other source sets such as jvmMain, jvmTest)
+    resolverCtx.getProjectModel(gradleProject, KotlinMPPGradleModel::class.java)?.let {
+      return
+    }
+
     val sourceSetModel = resolverCtx.getProjectModel(gradleProject, GradleSourceSetModel::class.java)
     if (sourceSetModel == null || sourceSetModel.sourceSets.isEmpty()) {
       // No create source sets exist
@@ -1091,4 +1097,3 @@ private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
     projectIdentifier.buildIdentifier.rootDir.path,
     projectIdentifier.projectPath)
 }
-
