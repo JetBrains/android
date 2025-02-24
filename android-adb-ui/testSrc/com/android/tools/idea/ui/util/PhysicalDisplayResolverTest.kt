@@ -19,12 +19,12 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
-import com.jetbrains.rd.generator.nova.fail
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 /** Test for functions defined in PhysicalDisplayIdResolver.kt. */
 internal class PhysicalDisplayIdResolverTest {
+
   @Test
   fun testPhysicalDisplayIdLookup() = runTest {
     val adbSession = FakeAdbSession()
@@ -33,13 +33,17 @@ internal class PhysicalDisplayIdResolverTest {
     assertThat(adbSession.getPhysicalDisplayId(device, 0)).isEqualTo(4619827259835644672)
     assertThat(adbSession.getPhysicalDisplayId(device, 2)).isEqualTo(4619827551948147201)
     assertThat(adbSession.getPhysicalDisplayId(device, 3)).isEqualTo(4619827124781842690)
-    try {
-      adbSession.getPhysicalDisplayId(device, 1)
-      fail("Expected an exception")
-    }
-    catch (_: Exception) {
-    }
     adbSession.closeAndJoin()
+  }
+
+  @Test
+  fun testGetPhysicalDisplayIdFromDumpsysOutput() {
+    assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 0)).isEqualTo(4619827259835644672)
+    assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 2)).isEqualTo(4619827551948147201)
+    assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 3)).isEqualTo(4619827124781842690)
+    assertThrows(RuntimeException::class.java) {
+      getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 1)
+    }
   }
 }
 
