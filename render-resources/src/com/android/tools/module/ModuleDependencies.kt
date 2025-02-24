@@ -22,9 +22,7 @@ import com.android.ide.common.repository.GoogleMavenArtifactId
 interface ModuleDependencies {
   fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean
 
-  fun dependsOnAndroidx(): Boolean = GoogleMavenArtifactId.values()
-    .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
-    .any { dependsOn(it) }
+  fun dependsOnAndroidx(): Boolean
 
   /** Returns a list of `R` class package names (resource package names) from the module and all of its dependencies. */
   fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String>

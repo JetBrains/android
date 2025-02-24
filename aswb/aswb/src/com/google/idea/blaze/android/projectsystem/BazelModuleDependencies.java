@@ -45,6 +45,13 @@ public class BazelModuleDependencies implements ModuleDependencies {
 
   @Override
   public boolean dependsOn(@NotNull GoogleMavenArtifactId googleMavenArtifactId) {
+    // TODO(b/399632865): is this right?
+    return false;
+  }
+
+  @Override
+  public boolean dependsOnAndroidx() {
+    // TODO(b/399632865): is this right?
     return false;
   }
 

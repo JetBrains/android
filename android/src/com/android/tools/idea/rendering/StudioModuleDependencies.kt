@@ -33,6 +33,8 @@ import java.io.IOException
 class StudioModuleDependencies(private val module: Module) : ModuleDependencies {
   override fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean = module.dependsOn(artifactId)
 
+  override fun dependsOnAndroidx(): Boolean = module.getModuleSystem().useAndroidX
+
   override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> =
     (
       (
