@@ -494,6 +494,10 @@ public class RenderTask {
     return this;
   }
 
+  public boolean isRenderSizeOverridden() {
+    return myHardwareConfigHelper.isRenderSizeOverridden();
+  }
+
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.

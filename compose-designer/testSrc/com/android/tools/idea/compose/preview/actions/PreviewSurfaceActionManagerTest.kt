@@ -6,6 +6,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -18,12 +19,13 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
+// SavePreviewInNewSize()
 // EnableUiCheckAction(),
 // AnimationInspectorAction(),
 // EnableInteractiveAction(),
 // DeployToDeviceAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 4
+private const val EXPECTED_NUMBER_OF_ACTIONS = 5
 
 class PreviewSurfaceActionManagerTest {
 
@@ -63,7 +65,16 @@ class PreviewSurfaceActionManagerTest {
 
       assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
-      actions.forEach { action ->
+      val visibleActions =
+        actions.filter {
+          it.update(testEvent)
+          testEvent.presentation.isVisible
+        }
+
+      // All actions are visible except SaveSizeAction and AnimationInspectorAction
+      assertThat(visibleActions).hasSize(EXPECTED_NUMBER_OF_ACTIONS - 2)
+
+      visibleActions.forEach { action ->
         action.update(testEvent)
         assertEquals(
           isEnabled,
@@ -111,7 +122,9 @@ class PreviewSurfaceActionManagerTest {
 
       actions.forEach { action ->
         action.update(testEvent)
-        assertEquals(false, testEvent.presentation.isEnabled)
+        if (testEvent.presentation.isVisible) {
+          assertEquals(false, testEvent.presentation.isEnabled)
+        }
         assertEquals("Project needs build", testEvent.presentation.description)
       }
     }
@@ -126,7 +139,16 @@ class PreviewSurfaceActionManagerTest {
           )
         )
 
-      actions.forEach { action ->
+      val visibleActions =
+        actions.filter {
+          it.update(testEvent)
+          testEvent.presentation.isVisible
+        }
+
+      // All actions are visible except SaveSizeAction and AnimationInspectorAction
+      assertThat(visibleActions).hasSize(EXPECTED_NUMBER_OF_ACTIONS - 2)
+
+      visibleActions.forEach { action ->
         action.update(testEvent)
         assertEquals(true, testEvent.presentation.isEnabled)
         assertNotEquals("Project needs build", testEvent.presentation.description)

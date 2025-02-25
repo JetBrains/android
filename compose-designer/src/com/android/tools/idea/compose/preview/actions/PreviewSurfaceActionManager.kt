@@ -105,6 +105,7 @@ internal class PreviewSurfaceActionManager(
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
+          SavePreviewInNewSizeAction(),
           EnableUiCheckAction(),
           AnimationInspectorAction(
             defaultModeDescription = message("action.animation.inspector.description")

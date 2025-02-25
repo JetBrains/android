@@ -183,8 +183,8 @@ class RenderErrorTest {
       assertFalse(visibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithErrors.getToolbarActions()
-      // 4 actions expected: ui check, animation, interactive and deploy to device
-      assertEquals(4, actions.size)
+      // 5 actions expected: save size, ui check, animation, interactive and deploy to device
+      assertEquals(5, actions.size)
 
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
@@ -213,8 +213,8 @@ class RenderErrorTest {
       assertTrue(visibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithErrors.getToolbarActions()
-      // 4 actions expected: ui check, animation, interactive and deploy to device
-      assertEquals(4, actions.size)
+      // 5 actions expected: save size, ui check, animation, interactive and deploy to device
+      assertEquals(5, actions.size)
 
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
@@ -244,8 +244,8 @@ class RenderErrorTest {
       assertFalse(invisibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithoutErrors.getToolbarActions()
-      // 4 actions expected: ui check mode, animation, interactive and deploy to device
-      assertEquals(4, actions.size)
+      // 5 actions expected: save size, ui check mode, animation, interactive and deploy to device
+      assertEquals(5, actions.size)
 
       // The animation preview action shouldn't be visible because the preview being used doesn't
       // contain animations, but the interactive, ui check and deploy to device actions should be

@@ -109,6 +109,13 @@ open class LayoutlibSceneManager(
       layoutScannerConfig,
     )
 
+  /**
+   * Returns true if the current preview was resized and currently shown in a different size from
+   * one specified in the file.
+   */
+  val isResized: Boolean
+    get() = layoutlibSceneRenderer.renderTask?.isRenderSizeOverridden == true
+
   /** The configuration to use when inflating and rendering. */
   val sceneRenderConfiguration: LayoutlibSceneRenderConfiguration
     get() = layoutlibSceneRenderer.sceneRenderConfiguration
