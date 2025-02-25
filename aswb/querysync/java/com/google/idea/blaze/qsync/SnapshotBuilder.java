@@ -39,22 +39,16 @@ public class SnapshotBuilder {
   private final PackageReader workspaceRelativePackageReader;
   private final Path workspaceRoot;
   private final ImmutableSet<String> handledRuleKinds;
-  private final Supplier<Boolean> useNewResDirLogic;
-  private final Supplier<Boolean> guessAndroidResPackages;
 
   public SnapshotBuilder(
       ListeningExecutorService executor,
       PackageReader workspaceRelativePackageReader,
       Path workspaceRoot,
-      ImmutableSet<String> handledRuleKinds,
-      Supplier<Boolean> useNewResDirLogic,
-      Supplier<Boolean> guessAndroidResPackages) {
+      ImmutableSet<String> handledRuleKinds) {
     this.executor = executor;
     this.workspaceRelativePackageReader = workspaceRelativePackageReader;
     this.workspaceRoot = workspaceRoot;
     this.handledRuleKinds = handledRuleKinds;
-    this.useNewResDirLogic = useNewResDirLogic;
-    this.guessAndroidResPackages = guessAndroidResPackages;
   }
 
   /**
@@ -78,9 +72,7 @@ public class SnapshotBuilder {
             effectiveWorkspaceRoot,
             context,
             postQuerySyncData.projectDefinition(),
-            executor,
-            useNewResDirLogic,
-            guessAndroidResPackages);
+            executor);
     QuerySummary querySummary = postQuerySyncData.querySummary();
     BuildGraphData graph = new BlazeQueryParser(querySummary, context, handledRuleKinds).parse();
     Project project =

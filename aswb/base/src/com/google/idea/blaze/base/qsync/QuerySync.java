@@ -17,19 +17,11 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.common.experiments.FeatureRolloutExperiment;
-import java.util.function.Supplier;
 
 /** Holder class for basic information about querysync, e.g. is it enabled? */
 public class QuerySync {
 
   public static final String BUILD_DEPENDENCIES_ACTION_NAME = "Enable analysis";
-
-  public static final BoolExperiment USE_NEW_RES_DIR_LOGIC =
-      new BoolExperiment("query.sync.new.resdir.logic", true);
-
-  public static final BoolExperiment EXTRACT_RES_PACKAGES_AT_BUILD_TIME =
-      new BoolExperiment("query.sync.respackages.at.build.time", true);
 
   public static final BoolExperiment ATTACH_DEP_SRCJARS =
       new BoolExperiment("querysync.attach.dep.srcjars", true);

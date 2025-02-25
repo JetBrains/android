@@ -23,7 +23,6 @@ import static java.util.Comparator.comparingInt;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -48,7 +47,6 @@ import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto;
-import com.google.idea.blaze.qsync.project.ProjectProto.LibraryOrBuilder;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
@@ -57,7 +55,6 @@ import com.google.idea.blaze.qsync.query.PackageSet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,24 +84,18 @@ public class GraphToProjectConverter {
 
   private final ProjectDefinition projectDefinition;
   private final ListeningExecutorService executor;
-  private final Supplier<Boolean> useNewResDirLogic;
-  private final Supplier<Boolean> guessAndroidResPackages;
 
   public GraphToProjectConverter(
       PackageReader packageReader,
       Path workspaceRoot,
       Context<?> context,
       ProjectDefinition projectDefinition,
-      ListeningExecutorService executor,
-      Supplier<Boolean> useNewResDirLogic,
-      Supplier<Boolean> guessAndroidResPackages) {
+      ListeningExecutorService executor) {
     this.packageReader = packageReader;
     this.fileExistenceCheck = p -> Files.isRegularFile(workspaceRoot.resolve(p));
     this.context = context;
     this.projectDefinition = projectDefinition;
     this.executor = executor;
-    this.useNewResDirLogic = useNewResDirLogic;
-    this.guessAndroidResPackages = guessAndroidResPackages;
   }
 
   @VisibleForTesting
@@ -119,8 +110,6 @@ public class GraphToProjectConverter {
     this.context = context;
     this.projectDefinition = projectDefinition;
     this.executor = executor;
-    this.useNewResDirLogic = Suppliers.ofInstance(true);
-    this.guessAndroidResPackages = Suppliers.ofInstance(false);
   }
 
   /**
@@ -502,36 +491,23 @@ public class GraphToProjectConverter {
         nonJavaSourceFolders(
             graph.getSourceFilesByRuleKindAndType(not(RuleKinds::isJava), SourceType.all()));
     ImmutableSet<Path> androidResDirs;
-    if (useNewResDirLogic.get()) {
-      // Note: according to:
-      //  https://developer.android.com/guide/topics/resources/providing-resources
-      // "Never save resource files directly inside the res/ directory. It causes a compiler error."
-      // This implies that we can safely take the grandparent of each resource file to find the
-      // top level res dir:
-      List<Path> resList = graph.getAndroidResourceFiles();
-      androidResDirs =
-          resList.stream()
-              .map(Path::getParent)
-              .distinct()
-              .map(Path::getParent)
-              .distinct()
-              .collect(toImmutableSet());
-    } else {
-      // TODO(mathewi) Remove this and the corresponding experiment once the logic has been proven.
-      androidResDirs = computeAndroidResourceDirectories(graph.sourceFileLabels());
-    }
+    // Note: according to:
+    //  https://developer.android.com/guide/topics/resources/providing-resources
+    // "Never save resource files directly inside the res/ directory. It causes a compiler error."
+    // This implies that we can safely take the grandparent of each resource file to find the
+    // top level res dir:
+    List<Path> resList = graph.getAndroidResourceFiles();
+    androidResDirs =
+        resList.stream()
+            .map(Path::getParent)
+            .distinct()
+            .map(Path::getParent)
+            .distinct()
+            .collect(toImmutableSet());
     ImmutableSet<String> androidResPackages;
-    if (guessAndroidResPackages.get()) {
-      androidResPackages =
-          computeAndroidSourcePackages(graph.getAndroidSourceFiles(), javaSourceRoots);
-    } else {
-      androidResPackages = ImmutableSet.of();
-    }
+    androidResPackages = ImmutableSet.of();
 
     context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size()));
-    if (guessAndroidResPackages.get()) {
-      context.output(PrintOutput.log("%-10d Android resource packages", androidResPackages.size()));
-    }
 
     ProjectProto.Module.Builder workspaceModule =
         ProjectProto.Module.newBuilder()
