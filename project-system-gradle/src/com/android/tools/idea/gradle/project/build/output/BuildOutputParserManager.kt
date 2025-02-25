@@ -48,6 +48,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       KotlincWithQuickFixesParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
+                                                      DeclarativeErrorParser(),
                                                       GradleBuildScriptErrorParser()))
 
   fun getBuildOutputParsers(taskId: ExternalSystemTaskId): List<BuildOutputParser> =
