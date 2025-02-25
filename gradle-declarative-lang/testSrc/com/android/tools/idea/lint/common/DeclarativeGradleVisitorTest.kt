@@ -141,7 +141,7 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       """,
       """
       checkDslPropertyAssignment(property="deviceTargetingConfig", value="layout.projectDirectory.file("myfile")", parent="")
-      checkMethodCall(statement="file", unnamedArguments=""myfile"")
+      checkMethodCall(statement="file", parent="projectDirectory", parentParent="layout", unnamedArguments=""myfile"")
       """,
     )
   }

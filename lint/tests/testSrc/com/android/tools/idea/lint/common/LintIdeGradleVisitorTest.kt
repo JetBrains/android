@@ -269,6 +269,20 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testMethodCallReceiver() {
+    check(
+      """
+      tasks.withType(Test.class) {
+        enabled = false
+      }
+      """,
+      """
+      checkDslPropertyAssignment(property="enabled", value="false", parent="withType", parentParent="tasks")
+      checkMethodCall(statement="withType", parent="tasks", unnamedArguments="Test.class, { enabled = false }")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("groovy") gradleSource: String, expected: String) {
