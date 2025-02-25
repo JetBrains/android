@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginC
 
 internal val MINIMUM_SUPPORTED_AGP_VERSION = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
 
-internal val MODEL_CONSUMER_VERSION = ModelConsumerVersion(73, 1, "Android Studio Meerkat Feature Drop")
-
 internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVersion?, agpVersion: AgpVersion, flags: GradleSyncStudioFlags) {
   val latestKnown = AgpVersion.parse(flags.studioLatestKnownAgpVersion)
 
@@ -35,7 +33,7 @@ internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVer
      return when {
       // TODO(b/272491108): Include the human readable minimum model consumer version (i.e the version of Studio to update to) in this error message
       agpVersion < MINIMUM_SUPPORTED_AGP_VERSION -> throw AgpVersionTooOld(agpVersion)
-      (minimumModelConsumer > MODEL_CONSUMER_VERSION) -> throw AgpVersionTooNew(agpVersion, latestKnown)
+      (minimumModelConsumer > flags.modelConsumerVersion) -> throw AgpVersionTooNew(agpVersion, latestKnown)
       else -> Unit // Compatible
     }
   }

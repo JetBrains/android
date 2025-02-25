@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsA
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
+import com.android.tools.idea.gradle.project.sync.ModelConsumerVersion
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -56,7 +58,10 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     GradleExperimentalSettings.getInstance().USE_MULTI_VARIANT_EXTRA_ARTIFACTS &&
     StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
 
+  val modelConsumerVersion = ModelConsumerVersion(73, 1, ApplicationInfo.getInstance().fullApplicationName)
+
   val studioFlags = GradleSyncStudioFlags(
+    modelConsumerVersion = modelConsumerVersion,
     studioLatestKnownAgpVersion = AgpVersions.latestKnown.toString(),
     studioFlagParallelSyncEnabled = parallelSync,
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
