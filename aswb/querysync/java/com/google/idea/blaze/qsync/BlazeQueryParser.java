@@ -50,19 +50,18 @@ public class BlazeQueryParser {
   // Rules that will need to be built, whether or not the target is included in the
   // project.
   public static final ImmutableSet<String> ALWAYS_BUILD_RULE_KINDS =
-      ImmutableSet.of(
-          "java_proto_library",
-          "java_lite_proto_library",
-          "java_mutable_proto_library",
-          // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
-          "kt_proto_library_helper",
-          "_java_grpc_library",
-          "_java_lite_grpc_library",
-          "kt_grpc_library_helper",
-          "java_stubby_library",
-          "kt_stubby_library_helper",
-          "aar_import",
-          "java_import");
+    ImmutableSet.of(
+      "_java_grpc_library",
+      "_java_lite_grpc_library",
+      "aar_import",
+      "java_import",
+      "java_lite_proto_library",
+      "java_mutable_proto_library",
+      "java_proto_library",
+      "java_stubby_library",
+      "kt_grpc_library_helper",
+      "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
+      "kt_stubby_library_helper");
 
   private final Context<?> context;
   private final SetView<String> alwaysBuildRuleKinds;
