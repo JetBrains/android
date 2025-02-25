@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.flags;
 
+import static com.android.tools.idea.IdeChannel.Channel.CANARY;
+import static com.android.tools.idea.IdeChannel.Channel.DEV;
+import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
+import static com.android.tools.idea.IdeChannel.Channel.STABLE;
+import static com.android.tools.idea.flags.ChannelDefault.enabledUpTo;
+
 import com.android.flags.BooleanFlag;
 import com.android.flags.EnumFlag;
 import com.android.flags.Flag;
@@ -38,12 +44,6 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.android.tools.idea.IdeChannel.Channel.CANARY;
-import static com.android.tools.idea.IdeChannel.Channel.DEV;
-import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
-import static com.android.tools.idea.IdeChannel.Channel.STABLE;
-import static com.android.tools.idea.flags.ChannelDefault.enabledUpTo;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -2327,7 +2327,7 @@ public final class StudioFlags {
       "gmscore.min.version",
       "Minimum version of the GmsCore Backup module that is supported",
       "Minimum version of the GmsCore Backup module that is supported",
-      250231000);
+      250632000);
 
   public static final Flag<Boolean> BACKUP_ACTION_IN_RUNNING_DEVICES =
     new BooleanFlag(
