@@ -36,6 +36,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
   private val gradleDslPluginModules = listOf(
     "intellij.android.gradle.declarative.lang",
     "intellij.android.gradle.declarative.lang.ide",
+    "intellij.android.gradle.declarative.lang.ide.sync",
     "intellij.android.gradle.dsl",
     "intellij.android.gradle.dsl.declarative",
     "intellij.android.gradle.dsl.kotlin",
