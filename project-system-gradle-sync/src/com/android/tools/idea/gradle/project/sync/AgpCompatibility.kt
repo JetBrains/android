@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginC
 
 internal val MINIMUM_SUPPORTED_AGP_VERSION = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
 
-internal val MODEL_CONSUMER_VERSION = ModelConsumerVersion(68, 1, "Android Studio Koala.1")
+internal val MODEL_CONSUMER_VERSION = ModelConsumerVersion(73, 1, "Android Studio Meerkat Feature Drop")
 
 internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVersion?, agpVersion: AgpVersion, flags: GradleSyncStudioFlags) {
   val latestKnown = AgpVersion.parse(flags.studioLatestKnownAgpVersion)
