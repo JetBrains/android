@@ -54,6 +54,7 @@ public class BlazeQueryParser {
       "_java_grpc_library",
       "_java_lite_grpc_library",
       "aar_import",
+      "af_internal_soyinfo_generator",
       "java_import",
       "java_lite_proto_library",
       "java_mutable_proto_library",
