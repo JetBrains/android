@@ -2246,6 +2246,12 @@ public final class StudioFlags {
                     "Use AI to fix simple compiler errors",
                     "Editor action to provide quick fixes for errors", enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_APPLY_CHANGES_ACTION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "studiobot.apply.changes.action",
+                    "Enable the apply changes action",
+                    "When enabled, applies the code block from the chat to the open editor",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
