@@ -107,8 +107,9 @@ public abstract class QuerySyncProjectSnapshot {
   }
 
   /** Returns mapping of targets to {@link BuildTarget} */
-  public ImmutableMap<Label, ProjectTarget> getTargetMap() {
-    return graph().targetMap();
+  @Nullable
+  public Collection<Label> getAllTargets() {
+    return graph().allTargets();
   }
 
   @Memoized

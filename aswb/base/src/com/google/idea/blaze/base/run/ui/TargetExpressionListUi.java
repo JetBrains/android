@@ -232,7 +232,6 @@ public class TargetExpressionListUi extends JPanel {
 
       if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
         return projectData.targets().stream()
-            .map(TargetInfo::getLabel)
             .filter(importRoots::importAsSource)
             .map(TargetExpression::toString)
             .collect(toImmutableList());
