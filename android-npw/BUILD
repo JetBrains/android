@@ -52,15 +52,21 @@ iml_module(
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
         },
-        "AddNewModulesToAppTest": {
+        "GroovyAddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
-            # b/192102820 flaky on windows, taking longer than 15 minutes
-            # b/376923937 flaky on linux, taking longer than 15 minutes
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-            ],
+            "test_filter": "com.android.tools.idea.npw.module.GroovyAddNewModulesToAppTest",
+        },
+        "GroovyVersionCatalogAddNewModulesToAppTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.GroovyVersionCatalogAddNewModulesToAppTest",
+        },
+        "KtsAddNewModulesToAppTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.KtsAddNewModulesToAppTest",
+        },
+        "KtsVersionCatalogAddNewModulesToAppTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.KtsVersionCatalogAddNewModulesToAppTest",
         },
         "BenchmarkModuleTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
@@ -196,7 +202,9 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",  # AddNewModulesToAppTest
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.24",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_2.0.21",  # AddNewModulesToAppTest
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_2.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-native-prebuilt_" + KGP_VERSION_FOR_TESTS,  # Used by AddKotlinMultiplatformLibraryModuleTest
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.24",
