@@ -362,6 +362,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       if (trimmedName.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, "Icon name must be set");
       }
+      else if (!myIconExists.isPresent().get()) {
+        return new Validator.Result(Validator.Severity.LOADING, "Checking for existing icons...");
+      }
       else if (myIconExists.getValueOr(false)) {
         return new Validator.Result(Validator.Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
       }
@@ -409,12 +412,20 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   /**
+   * A boolean property which will be true when there are no serious validation issues
+   */
+  @NotNull
+  public ObservableBool canProceed() {
+    return hasErrors().not().and(myIconExists.isPresent());
+  }
+
+  /**
    * A boolean property which will be true if validation logic catches any problems with any of the
    * current icon settings, particularly the output name / path. You should probably not generate
    * icons if there are any errors.
    */
   @NotNull
-  public ObservableBool hasErrors() {
+  private ObservableBool hasErrors() {
     return myValidatorPanel.hasErrors();
   }
 
