@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.common.WrappedFlowLayout;
@@ -38,6 +40,7 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
@@ -59,6 +62,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.LoadingDecorator;
+import com.intellij.openapi.util.CheckedDisposable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -69,6 +73,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.AnimatedIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -83,7 +88,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -150,6 +157,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
   @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
   @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
+  @NotNull private final CheckedDisposable myDisposable = Disposer.newCheckedDisposable();
+  @NotNull private final OptionalValueProperty<Boolean> myIconExists = new OptionalValueProperty<>();
+  @Nullable private Future<?> myCheckingExistingIconFilesFuture;
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -270,6 +280,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     Disposer.register(disposableParent, this);
     Disposer.register(this, myValidatorPanel);
+    Disposer.register(this, myDisposable);
     add(myValidatorPanel);
   }
 
@@ -294,6 +305,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myListeners.listenAndFire(myShowGridProperty, selected -> updatePreview.run());
     myListeners.listenAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
     myListeners.listenAndFire(myPreviewDensityProperty, value -> updatePreview.run());
+
+    myListeners.listenAndFire(myOutputName, name -> checkForExistingIconFiles());
 
     // Show interactive preview components only if creating adaptive icons.
     Expression<Boolean> isAdaptiveIconOutput = Expression.create(() -> isAdaptiveIconType(myOutputIconType.get()), myOutputIconType);
@@ -349,13 +362,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       if (trimmedName.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, "Icon name must be set");
       }
-      else if (iconExists()) {
+      else if (myIconExists.getValueOr(false)) {
         return new Validator.Result(Validator.Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
       }
       else {
         return Validator.Result.OK;
       }
-    });
+    }, myIconExists);
     myValidatorPanel.registerValidator(
         myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
 
@@ -405,6 +418,42 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     return myValidatorPanel.hasErrors();
   }
 
+  private void checkForExistingIconFiles() {
+    myIconExists.set(Optional.empty());
+
+    // Cancel any existing checks
+    if (myCheckingExistingIconFilesFuture != null && !myCheckingExistingIconFilesFuture.isDone()) {
+      myCheckingExistingIconFilesFuture.cancel(true);
+    }
+
+    String currentOutputName = myOutputName.get();
+    if (currentOutputName.isEmpty()) {
+      return;
+    }
+
+    myCheckingExistingIconFilesFuture = ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      boolean iconExists = iconExists();
+
+      ModalityUiUtil.invokeLaterIfNeeded(
+        ModalityState.any(),
+        () -> {
+          if (this.myDisposable.isDisposed()) {
+            return;
+          }
+
+          if (!currentOutputName.equals(myOutputName.get())) {
+            // The name has been updated in the meantime, so drop this result
+            return;
+          }
+
+          myIconExists.set(Optional.of(iconExists));
+        }
+      );
+    });
+  }
+
+  @Slow
+  @WorkerThread
   private boolean iconExists() {
     Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths, myResFolder);
     for (File path : pathImageMap.keySet()) {

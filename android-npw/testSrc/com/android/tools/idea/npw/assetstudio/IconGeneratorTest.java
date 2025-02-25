@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
@@ -24,13 +23,11 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +45,9 @@ public final class IconGeneratorTest {
   public final AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
 
   @Test
-  public void generateIconsIsCancelledWhenDisposed() {
-    CountDownLatch latch = new CountDownLatch(1);
+  public void generateIconsIsCancelledWhenDisposed() throws InterruptedException {
+    CountDownLatch taskGenerationStartedLatch = new CountDownLatch(1);
+    CountDownLatch taskGenerationCancelledLatch = new CountDownLatch(1);
 
     IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
       @NotNull
@@ -70,12 +68,15 @@ public final class IconGeneratorTest {
                                                                         @NotNull IconOptions options,
                                                                         @NotNull String name) {
         List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
+        CountDownLatch waitForDisposal = new CountDownLatch(1);
         tasks.add(() -> {
-          latch.countDown(); // Broadcast that we are now starting to execute a task
+          taskGenerationStartedLatch.countDown(); // Broadcast that we are now starting to execute a task
           try {
-            sleep(1_000); // Simulate a slow task
+            waitForDisposal.await();
           }
-          catch (InterruptedException ignored) {
+          catch (InterruptedException interruptedException) {
+            taskGenerationCancelledLatch.countDown();
+            throw interruptedException;
           }
           return new GeneratedXmlResource("name", new PathString(""), IconCategory.REGULAR, "xmlText");
         });
@@ -88,18 +89,18 @@ public final class IconGeneratorTest {
 
     new Thread(() -> {
       try {
-        latch.await(1, TimeUnit.SECONDS); // Wait for the task to start.
+        boolean taskGenerationStarted = taskGenerationStartedLatch.await(1, TimeUnit.SECONDS); // Wait for the task to start.
+        assertThat(taskGenerationStarted).isTrue();
+        Disposer.dispose(iconGenerator);
       }
       catch (InterruptedException ignored) {
       }
-      assertThat(latch.getCount()).isEqualTo(0);
-      Disposer.dispose(iconGenerator);
     }).start();
 
-    assertThrows(
-      CancellationException.class,
-      (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconOptions(true))
-    );
+    iconGenerator.generateIcons(new IconOptions(true));
+
+    boolean wasCancelled = taskGenerationCancelledLatch.await(1, TimeUnit.SECONDS); // Wait for the task to be cancelled.
+    assertThat(wasCancelled).isTrue();
   }
 
   @Test
