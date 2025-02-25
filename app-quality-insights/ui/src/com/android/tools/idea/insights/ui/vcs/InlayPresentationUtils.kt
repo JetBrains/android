@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui.vcs
 
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.codeInsight.hints.presentation.LineCenteredInset
 import com.intellij.codeInsight.hints.presentation.MouseButton
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.WithCursorOnHoverPresentation
@@ -29,10 +28,6 @@ import java.awt.event.MouseEvent
 import java.util.EnumSet
 import javax.swing.JPanel
 import org.jetbrains.annotations.VisibleForTesting
-
-internal fun InlayPresentation.withLineCentered(editor: Editor): InlayPresentation {
-  return LineCenteredInset(this, editor)
-}
 
 internal fun InlayPresentation.withOnClick(
   factory: PresentationFactory,
