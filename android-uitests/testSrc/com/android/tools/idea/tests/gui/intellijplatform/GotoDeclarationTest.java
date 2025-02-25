@@ -91,6 +91,7 @@ public class GotoDeclarationTest {
     //Test go to declarations using keyboard shortcuts.
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
       .select(String.format("(setContentView)"))
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
@@ -104,6 +105,7 @@ public class GotoDeclarationTest {
 
     Wait.seconds(10).expecting("File is opened for navigating to definition")
       .until(() -> COMPAT_ACTIVITY_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.close();
 
     // TODO: The cursor is not auto point to setContentView.
     // When manually test it, it works well.
@@ -112,24 +114,29 @@ public class GotoDeclarationTest {
 
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
       .moveBetween("import ", "")
       .select(String.format("(AppCompatActivity)"))
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
     Wait.seconds(10).expecting("File is opened for navigating to definition")
       .until(() -> COMPAT_ACTIVITY_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.close();
 
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
       .select(String.format("(R.layout.activity_main)"))
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
     Wait.seconds(30).expecting("XML file is opened for navigating to definition")
       .until(() -> "activity_main.xml".equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.close();
 
     //Test goto declarations using control + mouse click
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
       .moveBetween("setCont", "entView");
 
     pointerLocation = MouseInfo.getPointerInfo().getLocation();
@@ -137,9 +144,11 @@ public class GotoDeclarationTest {
 
     Wait.seconds(20).expecting("File is opened for navigating to definition")
       .until(() -> COMPAT_ACTIVITY_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.close();
 
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
       .moveBetween("import ", "")
       .moveBetween("AppCompat", "Activity");
 
@@ -148,9 +157,13 @@ public class GotoDeclarationTest {
 
     Wait.seconds(10).expecting("File is opened for navigating to definition")
       .until(() -> COMPAT_ACTIVITY_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.close();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     editorFixture
       .open(ACTIVITY_FILE_PATH)
+      .waitUntilErrorAnalysisFinishes()
+      .moveBetween("activi", "ty_main")
       .moveBetween("activi", "ty_main");
 
     pointerLocation = MouseInfo.getPointerInfo().getLocation();

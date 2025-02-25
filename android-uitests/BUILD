@@ -2113,7 +2113,9 @@ java_test(
 java_test(
     name = "GotoDeclarationTest",
     size = "large",
-    data = COMMON_DATA + glob([
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
         "testData/CodeGeneration/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
