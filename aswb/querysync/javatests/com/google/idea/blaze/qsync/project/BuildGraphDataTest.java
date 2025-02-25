@@ -48,7 +48,7 @@ public class BuildGraphDataTest {
 
   @Test
   public void pathToLabel() {
-    BuildGraphData.Builder builder = BuildGraphData.builder();
+    BuildGraphDataImpl.Builder builder = BuildGraphDataImpl.builder();
     builder.sourceFileLabelsBuilder()
       .add(Label.of("//:BUILD"))
       .add(Label.of("//nested:BUILD"))
@@ -79,7 +79,7 @@ public class BuildGraphDataTest {
 
   @Test
   public void sourceFileToLabel() {
-    BuildGraphData.Builder builder = BuildGraphData.builder();
+    BuildGraphDataImpl.Builder builder = BuildGraphDataImpl.builder();
     builder.sourceFileLabelsBuilder()
       .add(Label.of("//:BUILD"))
       .add(Label.of("//nested:BUILD"))

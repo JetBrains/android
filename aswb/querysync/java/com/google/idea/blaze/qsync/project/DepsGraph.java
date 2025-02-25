@@ -23,7 +23,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.Set;
 
 /**
- * A graph of dependencies optimized for use with {@link BuildGraphData}.
+ * A graph of dependencies optimized for use with {@link BuildGraphDataImpl}.
  *
  * <p>This is a subset of guava's {@link com.google.common.graph.Graph} support, optimized for the
  * requirements of querysync.

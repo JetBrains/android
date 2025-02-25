@@ -30,10 +30,10 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.deps.ArtifactIndex;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
-import com.google.idea.blaze.qsync.query.PackageSet;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -118,7 +118,7 @@ public abstract class QuerySyncProjectSnapshot {
 
   /**
    * For given project targets, returns all dependency targets that are {@link
-   * BuildGraphData#projectDeps()} external} to the project, from which build artifacts are needed
+   * BuildGraphDataImpl#projectDeps()} external} to the project, from which build artifacts are needed
    * for the targets sources to be edited fully. This method returns the dependencies for the target
    * with fewest pending so that if dependencies have been built for one, the empty set will be
    * returned even if others have pending dependencies.

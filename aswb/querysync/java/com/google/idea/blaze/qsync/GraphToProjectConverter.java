@@ -44,6 +44,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto;
@@ -75,7 +76,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
-/** Converts a {@link BuildGraphData} instance into a project proto. */
+/** Converts a {@link BuildGraphDataImpl} instance into a project proto. */
 public class GraphToProjectConverter {
 
   private final PackageReader packageReader;
