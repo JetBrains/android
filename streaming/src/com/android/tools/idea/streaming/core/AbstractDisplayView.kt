@@ -61,6 +61,9 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON2_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
@@ -126,6 +129,9 @@ abstract class AbstractDisplayView(
 
   protected abstract val hardwareInput: HardwareInput
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+
+  /** Controls whether right clicks are sent to the device when the hardware input is disabled. */
+  var rightClicksAreSentToDevice: Boolean = false
 
   protected val contextMenuHandler: PopupHandler? = createContextMenuHandler(contextMenuActionGroupId)
 
@@ -330,15 +336,15 @@ abstract class AbstractDisplayView(
   }
 
   protected fun handlePopup(event: MouseEvent, insideDisplay: Boolean): Boolean {
-    if (event.isPopupTrigger && !(insideDisplay && isHardwareInputEnabled())) {
-      val handler = contextMenuHandler ?: return false
-      handler.invokePopup(event.component, event.x, event.y)
-      // Dismiss the balloon advertising the context menu.
-      val messageBus = ApplicationManager.getApplication().messageBus
-      messageBus.syncPublisher(StreamingContextMenuAdvertisementCloser.TOPIC).closeContextMenuAdvertisement()
-      return true
+    if (!event.isPopupTrigger || insideDisplay && (isHardwareInputEnabled() || rightClicksAreSentToDevice)) {
+      return false
     }
-    return false
+    val handler = contextMenuHandler ?: return false
+    handler.invokePopup(event.component, event.x, event.y)
+    // Dismiss the balloon advertising the context menu.
+    val messageBus = ApplicationManager.getApplication().messageBus
+    messageBus.syncPublisher(StreamingContextMenuAdvertisementCloser.TOPIC).closeContextMenuAdvertisement()
+    return true
   }
 
   /** Given a graphics context for drawing in logical pixels returns a context for drawing in physical pixels. */
@@ -532,3 +538,14 @@ internal class ContextMenuHandler(
     popupMenu.component.show(comp, x, y)
   }
 }
+
+internal fun buttonToMask(button: Int): Int {
+  return when (button) {
+    MouseEvent.BUTTON1 -> BUTTON1_DOWN_MASK
+    MouseEvent.BUTTON2 -> BUTTON2_DOWN_MASK
+    MouseEvent.BUTTON3 -> BUTTON3_DOWN_MASK
+    else -> 0
+  }
+}
+
+internal const val BUTTON_MASK = BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK

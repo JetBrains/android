@@ -345,6 +345,22 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testRightClick() {
+    createDeviceView(200, 300, 2.0)
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+
+    view.rightClicksAreSentToDevice = true
+    fakeUi.mouse.press(40, 30, button = FakeMouse.Button.RIGHT)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(76, 235, 0)), MotionEventMessage.ACTION_DOWN, 2, 2, 0))
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(76, 235, 0)), MotionEventMessage.ACTION_UP, 0, 2, 0))
+  }
+
+  @Test
   fun testRoundWatch() {
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), roundDisplay = true, abi = "armeabi-v7a",
                                      additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))

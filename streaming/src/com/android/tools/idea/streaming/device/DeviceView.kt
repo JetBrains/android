@@ -25,7 +25,9 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.BUTTON_MASK
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.buttonToMask
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
 import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener
@@ -514,30 +516,27 @@ internal class DeviceView(
   }
 
   private fun sendMotionEventDisplayCoordinates(
-    point: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
+      point: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
     if (!isConnected) {
       return
     }
     val buttonState =
-      (if (modifiers and BUTTON1_DOWN_MASK != 0) MotionEventMessage.BUTTON_PRIMARY else 0) or
+        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
         (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
     val androidActionButton = when (button) {
-      MouseEvent.BUTTON1 -> MotionEventMessage.BUTTON_PRIMARY
+      MouseEvent.BUTTON1 -> if (isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0
       MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
       MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
       else -> 0
     }
     val message = when {
-      action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-        MotionEventMessage(originalAndMirroredPointer(point), action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0,
-                           displayId)
-
-      isHardwareInputEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
-        MotionEventMessage(originalPointer(point, axisValues), action, buttonState, androidActionButton, displayId)
-
-      isHardwareInputEnabled() -> MotionEventMessage(originalPointer(point, axisValues), action, buttonState, 0, displayId)
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId)
+      action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
+          MotionEventMessage(originalAndMirroredPointer(point), action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0,
+                              displayId)
+      action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP || action == MotionEventMessage.ACTION_MOVE ->
+          MotionEventMessage(originalPointer(point, axisValues), action, buttonState, androidActionButton, displayId)
       else -> MotionEventMessage(originalPointer(point, axisValues), action, 0, 0, displayId)
     }
     deviceController?.sendControlMessage(message)
@@ -769,18 +768,23 @@ internal class DeviceView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
+    private var currentModifiers: Int = 0
+
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       val insideDisplay = isInsideDisplay(event)
       if (handlePopup(event, insideDisplay)) {
         return
       }
-      if (!insideDisplay) return
-      terminateHovering(event)
-      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
-      lastTouchCoordinates = event.location
-      updateMultiTouchMode(event)
-      sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, event.modifiersEx, button = event.button)
+      if (insideDisplay && (currentModifiers and buttonToMask(event.button)) == 0) {
+        terminateHovering(event)
+        if (event.button == MouseEvent.BUTTON1) {
+          lastTouchCoordinates = event.location
+        }
+        updateMultiTouchMode(event)
+        currentModifiers = event.modifiersEx
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, currentModifiers, button = event.button)
+      }
     }
 
     override fun mouseReleased(event: MouseEvent) {
@@ -788,10 +792,14 @@ internal class DeviceView(
       if (handlePopup(event, insideDisplay)) {
         return
       }
-      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
-      lastTouchCoordinates = null
-      updateMultiTouchMode(event)
-      sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, event.modifiersEx, button = event.button)
+      if (insideDisplay && (currentModifiers and buttonToMask(event.button)) != 0) {
+        if (event.button == MouseEvent.BUTTON1) {
+          lastTouchCoordinates = null
+        }
+        updateMultiTouchMode(event)
+        currentModifiers = event.modifiersEx
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, currentModifiers, button = event.button)
+      }
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -799,9 +807,10 @@ internal class DeviceView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
+      if ((currentModifiers and BUTTON_MASK) != 0) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
+        currentModifiers = currentModifiers and BUTTON_MASK.inv()
       }
       lastTouchCoordinates = null
       updateMultiTouchMode(event)
@@ -809,15 +818,18 @@ internal class DeviceView(
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
+      if ((currentModifiers and BUTTON_MASK) != 0) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
+        if (!isInsideDisplay(event)) {
+          currentModifiers = currentModifiers and BUTTON_MASK.inv()
+        }
       }
     }
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if (!multiTouchMode) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.modifiersEx)
+      if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
         mouseHovering = true
       }
     }
@@ -842,7 +854,7 @@ internal class DeviceView(
         val scrollAmount = remainingRotation.coerceAtMost(1.0) * direction
         val axisValues = Int2FloatOpenHashMap(1)
         axisValues.put(axis, scrollAmount.toFloat())
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues = axisValues)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.adjustedModifiers, axisValues = axisValues)
         remainingRotation -= 1
       }
     }
@@ -856,6 +868,9 @@ internal class DeviceView(
         mouseHovering = false
       }
     }
+
+    private val MouseEvent.adjustedModifiers: Int
+      get() = modifiersEx and BUTTON_MASK.inv() or currentModifiers and BUTTON_MASK
 
     /** Converts true to 1 and false to -1. */
     private fun Boolean.toSign(): Int = if (this) 1 else -1
