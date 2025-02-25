@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.listeners
 
 import com.android.tools.idea.flags.StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -32,6 +31,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
@@ -68,7 +68,7 @@ class MigrateJdkConfigToGradleJavaHomeListener : GradleSyncListenerWithRoot {
     projectMigrations: ProjectMigrationsPersistentState,
     gradleSettings: GradleProjectSettings?
   ) {
-    AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, rootProjectPath)?.let { gradleJdkPath ->
+    GradleInstallationManager.getInstance().getGradleJvmPath(project, rootProjectPath)?.let { gradleJdkPath ->
       GradleConfigProperties(File(rootProjectPath)).apply {
         javaHome = File(gradleJdkPath)
         save()
