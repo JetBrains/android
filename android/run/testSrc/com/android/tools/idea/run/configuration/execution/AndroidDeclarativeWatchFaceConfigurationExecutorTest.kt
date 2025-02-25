@@ -19,13 +19,16 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.idea.run.AndroidDeclarativeWatchFaceProgramRunner
 import com.android.tools.idea.run.FakeAndroidDevice
+import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import java.nio.file.Path
 import org.junit.Test
 
 class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
@@ -94,6 +97,25 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
         appInstaller,
       )
 
+    var shownLogcatDeviceInfo: ShowLogcatListener.DeviceInfo? = null
+    var shownLogcatAppId: String? = null
+    projectRule.project.messageBus
+      .connect(projectRule.disposable)
+      .subscribe(
+        ShowLogcatListener.TOPIC,
+        object : ShowLogcatListener {
+          override fun showLogcat(
+            deviceInfo: ShowLogcatListener.DeviceInfo,
+            applicationId: String?,
+          ) {
+            shownLogcatDeviceInfo = deviceInfo
+            shownLogcatAppId = applicationId
+          }
+
+          override fun showLogcatFile(path: Path, displayName: String?) {}
+        },
+      )
+
     getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
@@ -103,6 +125,10 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
     assertThat(receivedAmCommands[1]).isEqualTo(setWatchFace)
     // Showing WatchFace.
     assertThat(receivedAmCommands[2]).isEqualTo(showWatchFace)
+
+    // Verify that a logcat window for the watch face runtime application is shown
+    assertThat(shownLogcatDeviceInfo?.serialNumber).isEqualTo(device.serialNumber)
+    assertThat(shownLogcatAppId).isEqualTo("com.google.wear.watchface.runtime")
   }
 
   @Test

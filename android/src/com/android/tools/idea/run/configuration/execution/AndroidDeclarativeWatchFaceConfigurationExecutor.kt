@@ -30,6 +30,7 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -40,9 +41,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
+import java.util.concurrent.TimeUnit
 
 /**
  * The minimum version required for the `com.google.android.wearable.app.DEBUG_SURFACE` broadcast receiver
@@ -56,6 +57,8 @@ private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 4
  */
 private const val SET_DECLARATIVE_WATCH_FACE =
   "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --es watchFaceId" // + appId
+
+private const val WATCH_FACE_RUNTIME_APPLICATION_ID = "com.google.wear.watchface.runtime"
 
 private val LOG = Logger.getInstance(AndroidDeclarativeWatchFaceConfigurationExecutor::class.java)
 
@@ -110,6 +113,12 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
         }
       launch(device, result.app, console, indicator)
       processHandler.addTargetDevice(device)
+
+      // Declarative Watch Faces are run by WATCH_FACE_RUNTIME_APPLICATION_ID, so that's where the
+      // user can see if there are any errors or warnings at runtime
+      environment.project.messageBus
+        .syncPublisher(ShowLogcatListener.TOPIC)
+        .showLogcat(device, WATCH_FACE_RUNTIME_APPLICATION_ID)
     }
 
     devices.map { async { onDevice(it) } }.joinAll()

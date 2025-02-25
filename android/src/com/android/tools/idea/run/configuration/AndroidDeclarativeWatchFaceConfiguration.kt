@@ -27,6 +27,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidDeclarativeWatc
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -102,6 +103,13 @@ class AndroidDeclarativeWatchFaceConfigurationType :
 
         override fun createTemplateConfiguration(project: Project) =
           AndroidDeclarativeWatchFaceConfiguration(project, this)
+
+        override fun configureDefaultSettings(settings: RunnerAndConfigurationSettings) {
+          // We want this to be disabled by default so that the logcat window for the
+          // watch face runtime can show instead. The user can still change the behaviour
+          // in the run configuration if they want to.
+          settings.isActivateToolWindowBeforeRun = false
+        }
       }
     )
   }
