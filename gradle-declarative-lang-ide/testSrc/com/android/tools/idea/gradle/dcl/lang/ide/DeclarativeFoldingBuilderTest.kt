@@ -35,17 +35,30 @@ class DeclarativeFoldingBuilderTest {
       some long
       comment
       */</fold>
-      plugins<fold text='{...}'> {
+      plugins <fold text='{...}'>{
           id("org.gradle.experimental.android-application")
       }</fold>
-      androidApplication<fold text='{...}'> {
+      androidApplication <fold text='{...}'>{
           namespace = "com.example.myapplication"
           compileSdk = 31
       }</fold>
-      declarativeDependencies<fold text='{...}'> {
+      declarativeDependencies <fold text='{...}'>{
           implementation("com.google.guava:guava:32.1.2-jre")
           implementation("org.apache.commons:commons-lang3:3.12.0")
           implementation("android.arch.core:common:1.1.1")
+      }</fold>
+    """.trimIndent()
+    )
+    myFixture.testFolding("${projectRule.project.basePath}/build.gradle.dcl")
+  }
+
+  @Test
+  fun testFactoryBlock() {
+    myFixture.addFileToProject(
+      "build.gradle.dcl",
+      """
+      factoryBlock("param") <fold text='{...}'>{
+          property = value
       }</fold>
     """.trimIndent()
     )
