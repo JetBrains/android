@@ -207,6 +207,20 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   }
 
   @Test
+  fun checkFactoryBlockNegative() {
+    val file = addDeclarativeBuildFile("""
+    androidApp {
+      buildTypes {
+        ${"buildTypes" highlightedAs HighlightSeverity.ERROR}("new"){ }
+      }
+    }
+    """)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkCorrectSettingsSyntax(){
     val file = fixture.addFileToProject("settings.gradle.dcl",
     """
