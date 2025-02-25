@@ -90,12 +90,6 @@ public final class FakeAvdDevice implements AndroidDevice {
     }
   }
 
-  @Override
-  public boolean supportsMultipleScreenFormats() {
-    return myAvdInfo.getAndroidVersion().isAtLeast(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
-           && "resizable".equals(myAvdInfo.getProperties().get(DEVICE_NAME));
-  }
-
   @NotNull
   @Override
   public List<Abi> getAbis() {

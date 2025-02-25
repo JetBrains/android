@@ -119,6 +119,9 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
       else -> false
     }
 
+  override fun supportsMultipleScreenFormats(): Boolean =
+    properties.isResizable == true
+
   override fun getName() = properties.title
 
   override fun isDebuggable() = properties.isDebuggable == true
