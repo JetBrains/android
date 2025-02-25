@@ -314,12 +314,9 @@ abstract class DesignSurface<T : SceneManager>(
   private val onHoverListener: AWTEventListener =
     if (zoomControlsLayerPane != null && zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
       createZoomControlAutoHiddenListener(
-          zoomControlPaneOwner = this,
-          zoomControlComponent = zoomControlsLayerPane,
-        )
-        .apply {
-          Toolkit.getDefaultToolkit().addAWTEventListener(this@apply, AWTEvent.MOUSE_EVENT_MASK)
-        }
+        zoomControlPaneOwner = this,
+        zoomControlComponent = zoomControlsLayerPane,
+      )
     } else AWTEventListener {}
 
   /**
