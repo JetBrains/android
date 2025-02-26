@@ -73,12 +73,11 @@ class UnexpectedElementHandler : TomlErrorHandler {
       }
 
       override fun getNavigatable(project: Project): Navigatable? {
-        //now it looks only in default catalog
-        //TODO look through all available catalogs
-        val file = project.findCatalogFile("libs") ?: return null
-        return runReadAction {
-          getNavigable(project, file)
+        for (file in project.findAllCatalogFiles()) {
+          val descriptor = runReadAction { getNavigable(project, file) }
+          if (descriptor.offset >= 0) return descriptor
         }
+        return null
       }
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)

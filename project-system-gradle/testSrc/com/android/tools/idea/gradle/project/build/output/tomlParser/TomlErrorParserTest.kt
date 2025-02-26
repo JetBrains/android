@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.dsl.model.EP_NAME
+import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,6 +49,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
 import org.jetbrains.annotations.SystemIndependent
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -61,6 +63,22 @@ class TomlErrorParserTest {
   val ruleChain = RuleChain(projectRule, edtRule)
 
   val project by lazy { projectRule.project }
+  private var catalogMap = mapOf<String, String>()
+
+  private val service = object: VersionCatalogFilesModel {
+    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
+      catalogMap.mapValues { project.basePath + "/" + it.value }
+    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
+      catalogMap.mapValues { project.basePath + "/" + it.value }
+  }
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerExtension(
+      EP_NAME, service, projectRule.fixture.testRootDisposable
+    )
+    catalogMap = mapOf("libs" to "gradle/libs.versions.toml", "libs2" to "gradle/libs2.versions.toml")
+  }
 
   @Test
   fun testTomlErrorParsed() {
@@ -155,6 +173,19 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlWrongReferenceMultiCatalog() {
+    doTest("libs2", 1, 0,
+           """
+           [libraries]
+           androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "reference" }
+           """.trimIndent(),
+           { getVersionCatalogReferenceIssueBuildOutput("libs2") },
+           { getVersionCatalogReferenceIssueDescription("libs2") }
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlWrongReferenceInPlugin() {
     doTest("libs", 1, 0,
            """
@@ -183,6 +214,21 @@ class TomlErrorParserTest {
   @RunsInEdt
   fun testTomlAliasIssue() {
     doTest("libs", 1, 0,
+           """
+        [plugins]
+        plugin = { version = "4.0" }
+      """.trimIndent(),
+           { getVersionCatalogAliasProblem() },
+           { getVersionCatalogAliasDescription() }
+    )
+  }
+
+
+  @Test
+  @RunsInEdt
+  fun testTomlAliasIssueMultiCatalog() {
+    createCatalog("libs", "[libraries]") //create empty default catalog
+    doTest("libs2", 1, 0,
            """
         [plugins]
         plugin = { version = "4.0" }
@@ -306,6 +352,7 @@ class TomlErrorParserTest {
   @Test
   @RunsInEdt
   fun testTomlErrorWithFileParsedAndNavigable() {
+    catalogMap = mapOf() // check that it fall back to 'gradle/' path if no mapping is available
     doTest("arbitraty", 10, 18, "",
            { path -> getVersionCatalogLibsBuildOutput(path) },
            { path -> getVersionCatalogLibsBuildIssueDescription(path) }
@@ -391,7 +438,7 @@ class TomlErrorParserTest {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
-      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
+      gradleDir = VfsUtil.createDirectoryIfMissing(getRootFolder(), "gradle")
       file = gradleDir?.findOrCreateChildData(this, tomlPrefix + ".versions.toml")
       file?.setBinaryContent(content.toByteArray(Charsets.UTF_8))
     }
@@ -588,12 +635,12 @@ Invalid catalog definition.
       """.trimIndent()
 
 
-  fun getVersionCatalogReferenceIssueBuildOutput(): String = """
+  fun getVersionCatalogReferenceIssueBuildOutput(catalog: String = "libs"): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
 org.gradle.api.InvalidUserDataException: Invalid catalog definition:
-  - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+  - Problem: In version catalog $catalog, version reference 'reference' doesn't exist.
     
     Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
     
@@ -601,7 +648,7 @@ org.gradle.api.InvalidUserDataException: Invalid catalog definition:
     
     For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_version_reference in the Gradle documentation.
 > Invalid catalog definition:
-    - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+    - Problem: In version catalog $catalog, version reference 'reference' doesn't exist.
       
       Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
       
@@ -615,9 +662,9 @@ org.gradle.api.InvalidUserDataException: Invalid catalog definition:
 > Get more help at https://help.gradle.org.
   """.trimIndent()
 
-  fun getVersionCatalogReferenceIssueDescription(): String = """
+  fun getVersionCatalogReferenceIssueDescription(catalog: String = "libs"): String = """
 Invalid catalog definition.
-  - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+  - Problem: In version catalog $catalog, version reference 'reference' doesn't exist.
     
     Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
     

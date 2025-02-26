@@ -53,12 +53,11 @@ class AliasInvalidHandler : TomlErrorHandler {
 
     val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
       override fun getNavigatable(project: Project): Navigatable? {
-        //now it looks only in default catalog
-        //TODO look through all available catalogs
-        val file = project.findCatalogFile("libs") ?: return null
-        return runReadAction {
-          findFirstElement(project, file, "*/$alias")
+        for (file in project.findAllCatalogFiles()) {
+          val descriptor = runReadAction { findFirstElement(project, file, "*/$alias") }
+          if (descriptor.offset >= 0) return descriptor
         }
+        return null
       }
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
