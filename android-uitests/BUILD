@@ -433,8 +433,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
     tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",
-        "noci:studio-linux",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
