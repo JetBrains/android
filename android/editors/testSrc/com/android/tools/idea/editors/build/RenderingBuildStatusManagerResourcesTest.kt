@@ -23,13 +23,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.Executor
 import kotlin.time.Duration.Companion.seconds
 
 class RenderingBuildStatusManagerResourcesTest {

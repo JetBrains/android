@@ -18,8 +18,10 @@ package org.jetbrains.android.uipreview
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.objectweb.asm.Type
@@ -75,12 +77,15 @@ internal class ModuleClassLoaderOverlaysTest {
 
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
-    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
-    assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+    moduleClassLoaderOverlay.pushOverlayPath(tempOverlayPath)
+    assertTrue(moduleClassLoaderOverlay.containsClass(testClassName))
+    assertNotNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
 
     // If deleted, the class should disappear
     Files.delete(classFilePath)
-    assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+    assertFalse(moduleClassLoaderOverlay.containsClass(testClassName))
+    assertNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
   }
 
   @Test
@@ -110,5 +115,31 @@ internal class ModuleClassLoaderOverlaysTest {
       """.trimIndent(),
       state2.paths.asPlatformIndependent().joinToString("\n")
     )
+  }
+
+  @Test
+  fun `find classes in multiple overlays`() {
+    val tempOverlayPath1 = Files.createTempDirectory("overlayTest1")
+    val tempOverlayPath2 = Files.createTempDirectory("overlayTest2")
+
+    // Create a few package directories in the overlays
+    Files.createDirectories(tempOverlayPath1.resolve("a/b/c"))
+    Files.createDirectories(tempOverlayPath2.resolve("d/e/f"))
+
+    // Create a few fake classes in the overlays
+    Files.write(tempOverlayPath1.resolve("a/b/c/TestClass.class"), ByteArray(0))
+    Files.write(tempOverlayPath1.resolve("a/TestClass.class"), ByteArray(0))
+    Files.write(tempOverlayPath2.resolve("d/e/OtherTestClass.class"), ByteArray(0))
+    Files.write(tempOverlayPath2.resolve("d/e/f/OtherTestClass.class"), ByteArray(0))
+    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+    moduleClassLoaderOverlays.pushOverlayPath(tempOverlayPath1)
+    assertTrue(moduleClassLoaderOverlays.containsClass("a.b.c.TestClass"))
+    assertTrue(moduleClassLoaderOverlays.containsClass("a.TestClass"))
+
+    moduleClassLoaderOverlays.pushOverlayPath(tempOverlayPath2)
+    assertTrue(moduleClassLoaderOverlays.containsClass("a.b.c.TestClass"))
+    assertTrue(moduleClassLoaderOverlays.containsClass("a.TestClass"))
+    assertTrue(moduleClassLoaderOverlays.containsClass("d.e.OtherTestClass"))
+    assertTrue(moduleClassLoaderOverlays.containsClass("d.e.f.OtherTestClass"))
   }
 }
