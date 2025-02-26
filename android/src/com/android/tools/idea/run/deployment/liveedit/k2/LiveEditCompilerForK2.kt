@@ -91,7 +91,8 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerCon
   ProgressManager.checkCanceled()
 
   analyze(file) {
-    val result = this@analyze.compile(file, configuration, KaCompilerTarget.Jvm(isTestMode = false)) {
+    val result = this@analyze.compile(file, configuration,
+                                      KaCompilerTarget.Jvm(isTestMode = false, compiledClassHandler = null, debuggerExtension = null)) {
       // This is a lambda for `allowedErrorFilter` parameter. `compiler` API internally filters diagnostic errors with
       // `allowedErrorFilter`. If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
       // Since we want to always report the diagnostic errors, we just return `false` here.
