@@ -38,7 +38,6 @@ public class LaunchMetrics {
   private static final String KEY_EXECUTOR_ID = "executorId";
   private static final String KEY_TARGET_LABEL = "targetLabel";
   private static final String KEY_NATIVE_DEBUGGING_ENABLED = "nativeDebuggingEnabled";
-  private static final String KEY_USES_STUDIO_DEPLOYER = "studioDeployerEnabled";
   private static final String KEY_BUILD_DURATION_MILLIS = "buildDurationMillis";
   private static final String KEY_BLAZE_EXIT_CODE = "blazeExitCode";
   private static final String KEY_DEPLOY_DURATION_MILLIS = "deployDurationMillis";
@@ -57,7 +56,6 @@ public class LaunchMetrics {
 
   public static void logBuildTime(
       String launchId,
-      boolean usesStudioDeployer,
       Duration buildDuration,
       int blazeExitCode,
       ImmutableMap<String, String> additionalMetrics) {
@@ -67,7 +65,6 @@ public class LaunchMetrics {
     ImmutableMap<String, String> metrics =
         ImmutableMap.<String, String>builder()
             .put(KEY_LAUNCH_ID, launchId)
-            .put(KEY_USES_STUDIO_DEPLOYER, Boolean.toString(usesStudioDeployer))
             .put(KEY_BUILD_DURATION_MILLIS, Long.toString(buildDuration.toMillis()))
             .put(KEY_BLAZE_EXIT_CODE, Integer.toString(blazeExitCode))
             .putAll(additionalMetrics)

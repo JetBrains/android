@@ -22,7 +22,6 @@ import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.idea.blaze.android.run.binary.mobileinstall.StudioDeployerExperiment;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
@@ -114,7 +113,6 @@ public class BlazeApkBuildStep implements ApkBuildStep {
               BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
       logBuildTime(
           launchId,
-          StudioDeployerExperiment.isEnabled(),
           stopwatch.elapsed(),
           buildOutputs.buildResult().exitCode,
           ImmutableMap.of());

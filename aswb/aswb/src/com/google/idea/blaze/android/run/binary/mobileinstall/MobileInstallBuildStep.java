@@ -153,34 +153,10 @@ public class MobileInstallBuildStep implements ApkBuildStep {
             .getBuildInvoker(project, context, BlazeCommandName.MOBILE_INSTALL);
     BlazeCommand.Builder command = BlazeCommand.builder(invoker, BlazeCommandName.MOBILE_INSTALL);
 
-    if (!StudioDeployerExperiment.isEnabled()) {
-      MobileInstallAdbLocationProvider.getAdbLocationForMobileInstall(project)
-          .ifPresent((location) -> command.addBlazeFlags(BlazeFlags.ADB, location));
-    }
-
     BuildSystemName buildSystemName = Blaze.getBuildSystemName(project);
     String deployInfoSuffix = getDeployInfoSuffix(buildSystemName);
     try (AdbTunnelConfigurator tunnelConfig = getTunnelConfigurator(context)) {
       tunnelConfig.setupConnection(context);
-
-      if (!StudioDeployerExperiment.isEnabled()) {
-        String deviceFlag = device.getSerialNumber();
-        if (tunnelConfig.isActive()) {
-          deviceFlag += ":tcp:" + tunnelConfig.getAdbServerPort();
-        } else {
-          InetSocketAddress adbAddr = AndroidDebugBridge.getSocketAddress();
-          if (adbAddr == null) {
-            IssueOutput.warn(
-                    "Can't get ADB server port, please ensure ADB server is running. Will fallback"
-                        + " to the default adb server.")
-                .submit(context);
-          } else {
-            command.addBlazeFlags(
-                BlazeFlags.ADB_ARG + "-P ", BlazeFlags.ADB_ARG + adbAddr.getPort());
-          }
-        }
-        command.addBlazeFlags(BlazeFlags.DEVICE, deviceFlag);
-      }
 
       command.addTargets(label);
       command.addBlazeFlags(blazeFlags);
@@ -190,10 +166,7 @@ public class MobileInstallBuildStep implements ApkBuildStep {
         // MI launches apps by default. Defer app launch to BlazeAndroidLaunchTasksProvider.
         command.addExeFlags("--nolaunch_app");
       }
-
-      if (StudioDeployerExperiment.isEnabled()) {
-        command.addExeFlags("--nodeploy");
-      }
+      command.addExeFlags("--nodeploy");
 
       SaveUtil.saveAllFiles();
       context.output(new StatusOutput("Invoking mobile-install..."));
@@ -202,8 +175,7 @@ public class MobileInstallBuildStep implements ApkBuildStep {
         Duration buildDuration = s.elapsed();
         BlazeBuildOutputs outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
         int exitCode = outputs.buildResult().exitCode;
-        logBuildTime(
-          launchId, StudioDeployerExperiment.isEnabled(), buildDuration, exitCode, ImmutableMap.of());
+        logBuildTime(launchId, buildDuration, exitCode, ImmutableMap.of());
         if (exitCode != 0) {
           IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);
           return;
@@ -229,13 +201,7 @@ public class MobileInstallBuildStep implements ApkBuildStep {
             deployInfoHelper.extractDeployInfoAndInvalidateManifests(
                 project, new File(executionRoot), deployInfoProto);
 
-        String msg;
-        if (StudioDeployerExperiment.isEnabled()) {
-          msg = "mobile-install build completed, deploying split apks...";
-        } else {
-          msg = "Done.";
-        }
-        context.output(new StatusOutput(msg));
+        context.output(new StatusOutput("mobile-install build completed, deploying split apks..."));
       } catch (BuildException e) {
         IssueOutput.error("Could not invoke mobile-install: " + e.getMessage()).submit(context);
       }
@@ -243,11 +209,6 @@ public class MobileInstallBuildStep implements ApkBuildStep {
       IssueOutput.error("Could not read apk deploy info from build: " + e.getMessage())
           .submit(context);
     }
-  }
-
-  @Override
-  public boolean needsIdeDeploy() {
-    return StudioDeployerExperiment.isEnabled();
   }
 
   @Override
