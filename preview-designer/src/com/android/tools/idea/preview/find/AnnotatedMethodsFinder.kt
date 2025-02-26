@@ -176,18 +176,16 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
 
 /**
  * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with
- * [annotationFqn] and [shortAnnotationName], with the properties enforced by the
- * [annotationFilter], from [vFile] of [project]. Technically, this function could just return a
- * collection of methods, but [toValues] might be slow to calculate so caching the values rather
- * than methods is more useful. To benefit from caching make sure the same parameters are passed to
- * the function call as all the parameters constitute the key.
+ * [annotationFqn] and [shortAnnotationName], from [vFile] of [project]. Technically, this function
+ * could just return a collection of methods, but [toValues] might be slow to calculate so caching
+ * the values rather than methods is more useful. To benefit from caching make sure the same
+ * parameters are passed to the function call as all the parameters constitute the key.
  */
 private fun <T> findAnnotatedMethodsCachedValues(
   project: Project,
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  annotationFilter: (UAnnotation) -> Boolean,
   toValues: (methods: List<UMethod>) -> Flow<T>,
 ): CachedValueProvider<CompletableDeferred<Collection<T>>> = CachedValueProvider {
   // This Deferred should not be needed, the promise could be returned directly. However, it seems
@@ -201,7 +199,6 @@ private fun <T> findAnnotatedMethodsCachedValues(
         Callable<Collection<T>> {
           val uMethods =
             findAnnotations(project, vFile, shortAnnotationName)
-              .filter(annotationFilter)
               .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
               .distinct() // avoid looking more than once per method
 
@@ -235,11 +232,8 @@ private fun <T> findAnnotatedMethodsCachedValues(
 private data class CachedValuesKey<T>(
   val annotationFqn: String,
   val shortAnnotationName: String,
-  val filter: (UAnnotation) -> Boolean,
   val toValues: (methods: List<UMethod>) -> Flow<T>,
 )
-
-private val ANY_U_ANNOTATION: (UAnnotation) -> Boolean = { true }
 
 /**
  * Finds all the values calculated by [toValues] associated with the methods annotated with
@@ -250,7 +244,6 @@ suspend fun <T> findAnnotatedMethodsValues(
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  annotationFilter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
   toValues: (methods: List<UMethod>) -> Flow<T>,
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
@@ -260,15 +253,12 @@ suspend fun <T> findAnnotatedMethodsValues(
         .getCachedValue(
           psiFile,
           CacheKeysManager.getInstance(project)
-            .getKey(
-              CachedValuesKey(annotationFqn, shortAnnotationName, annotationFilter, toValues)
-            ),
+            .getKey(CachedValuesKey(annotationFqn, shortAnnotationName, toValues)),
           findAnnotatedMethodsCachedValues(
             project,
             vFile,
             annotationFqn,
             shortAnnotationName,
-            annotationFilter,
             toValues,
           ),
         )

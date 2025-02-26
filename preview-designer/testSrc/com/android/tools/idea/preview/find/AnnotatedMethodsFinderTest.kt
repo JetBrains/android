@@ -17,11 +17,9 @@ package com.android.tools.idea.preview.find
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -178,85 +176,6 @@ class AnnotatedMethodsFinderTest {
         )
         .size,
     )
-  }
-
-  @Test
-  fun `test findAnnotatedMethodsValues with filter`() = runBlocking {
-    fixture.addFileToProjectAndInvalidate(
-      "com/android/annotations/MyAnnotationA.kt",
-      // language=kotlin
-      """
-        package com.android.annotations
-
-        object Surfaces {
-          const val SURFACE1 = "foo"
-          const val SURFACE2 = "bar"
-        }
-
-        annotation class MyAnnotationA(param1: String)
-        """
-        .trimIndent(),
-    )
-
-    val sourceFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import com.android.annotations.MyAnnotationA
-        import com.android.annotations.Surfaces
-
-        @MyAnnotationA(Surfaces.SURFACE2)
-        fun abcde() { }
-
-        fun FooC() { }
-
-        @MyAnnotationA(Surfaces.SURFACE1)
-        fun fghia() { }
-        """
-          .trimIndent(),
-      )
-
-    val fooFilter: (UAnnotation) -> Boolean = {
-      ReadAction.compute<Boolean, Throwable> {
-        it.findAttributeValue("param1")?.evaluate() == "foo"
-      }
-    }
-
-    assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      1,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          fooFilter,
-          ::identity,
-        )
-        .size,
-    )
-    assertTrue(
-      "Unexpectedly no new cache keys",
-      CacheKeysManager.getInstance(project).map().size > 0,
-    )
-    val cacheKeys = CacheKeysManager.getInstance(project).map().size
-    assertEquals(
-      1,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          fooFilter,
-          ::identity,
-        )
-        .size,
-    )
-    // Check that call with the same args combination does not create new keys and reuses the cache:
-    assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
   }
 
   @Test
