@@ -44,7 +44,7 @@ class UnexpectedElementHandler : TomlErrorHandler {
       val tomlTableName = TYPE_NAMING_PARSING[type] ?: return listOf()
       return extractAliasInformation(
         tomlTableName, alias, property, stopString, description, reader
-      )?.let { listOf(it) } ?: listOf()
+      ).let { listOf(it) }
     }
     return listOf()
   }
@@ -55,7 +55,7 @@ class UnexpectedElementHandler : TomlErrorHandler {
                                       stopString: String,
                                       description: StringBuilder,
                                       reader: BuildOutputInstantReader
-  ): BuildIssueEvent? {
+  ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, "> $stopString"))
 

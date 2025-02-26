@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
 class InvalidAliasHandler: TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
@@ -40,7 +40,7 @@ class InvalidAliasHandler: TomlErrorHandler {
         val tomlTableName = TYPE_NAMING_PARSING[type] ?: return listOf()
         return extractAliasInformation(
           catalog, tomlTableName, alias, description, reader
-        )?.let { listOf(it) } ?: listOf()
+        ).let { listOf(it) }
       }
     }
     return listOf()
@@ -51,7 +51,7 @@ class InvalidAliasHandler: TomlErrorHandler {
                                       alias: String,
                                       description: StringBuilder,
                                       reader: BuildOutputInstantReader
-  ): BuildIssueEvent? {
+  ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE))
 

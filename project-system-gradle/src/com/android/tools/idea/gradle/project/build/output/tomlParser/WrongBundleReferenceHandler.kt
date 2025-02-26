@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.output.tomlParser
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_START
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_STOP_LINE
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TITLE
-import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -36,7 +35,7 @@ import org.toml.lang.psi.TomlTable
 
 //- Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
 class WrongBundleReferenceHandler : TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\.".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\.".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {

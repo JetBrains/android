@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
 class AliasInvalidHandler : TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "  - Alias definition '([^ ]+)' is invalid".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Alias definition '([^ ]+)' is invalid".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
@@ -38,7 +38,7 @@ class AliasInvalidHandler : TomlErrorHandler {
         val (alias) = match.destructured
         return extractAliasInformation(
           alias, description, reader
-        )?.let { listOf(it) } ?: listOf()
+        ).let { listOf(it) }
       }
     }
     return listOf()
@@ -47,7 +47,7 @@ class AliasInvalidHandler : TomlErrorHandler {
   private fun extractAliasInformation(alias: String,
                                       description: StringBuilder,
                                       reader: BuildOutputInstantReader
-  ): BuildIssueEvent? {
+  ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE))
 
