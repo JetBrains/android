@@ -153,7 +153,7 @@ class ArtifactRepositorySearchForm(
     clearResults()
 
     val searchQuery = getQuery().also { currentSearchQuery = it }
-    val request = SearchRequest(searchQuery.toSearchQuery(), 50, 0)
+    val request = SearchRequest(searchQuery.toSearchQuery(), 200, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted().takeUnless { it.isEmpty() } ?: let {
