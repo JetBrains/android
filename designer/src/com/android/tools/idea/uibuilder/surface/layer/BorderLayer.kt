@@ -31,10 +31,8 @@ private val defaultBorderColor =
     "ScreenView.defaultBorderColor",
     JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80)),
   )
-private val selectedBorderColor =
+private val borderColor =
   JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
-private val hoveredBorderColor =
-  JBColor.namedColor("ScreenView.hoveredBorderColor", JBColor(0x3573f0, 0x548af7))
 
 enum class BorderColor(
   internal val colorInside: Color,
@@ -43,8 +41,8 @@ enum class BorderColor(
 ) {
   DEFAULT_WITH_SHADOW(defaultBorderColor, UIUtil.TRANSPARENT_COLOR, 4),
   DEFAULT_WITHOUT_SHADOW(defaultBorderColor, defaultBorderColor, 1),
-  SELECTED(selectedBorderColor, selectedBorderColor, 1),
-  HOVERED(hoveredBorderColor, hoveredBorderColor, 2),
+  SELECTED(borderColor, borderColor, 2),
+  HOVERED(borderColor, borderColor, 1),
 }
 
 class BorderLayer
