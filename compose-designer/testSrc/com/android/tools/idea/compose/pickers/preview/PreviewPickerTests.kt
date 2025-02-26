@@ -225,7 +225,7 @@ class PreviewPickerTests {
       model.properties["", "fontScale"].defaultValue,
     )
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
-    assertEquals("false", model.properties["", "showDecoration"].defaultValue)
+    assertEquals("false", model.properties["", "showSystemUi"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
     assertTrue(model.properties["", "apiLevel"].defaultValue!!.toInt() > 0)
 
@@ -242,6 +242,7 @@ class PreviewPickerTests {
     assertEquals("440", model.properties["", "Density"].defaultValue)
     assertEquals("false", model.properties["", "IsRound"].defaultValue)
     assertEquals("0", model.properties["", "ChinSize"].defaultValue)
+    assertEquals("None", model.properties["", "wallpaper"].defaultValue)
 
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)
@@ -355,11 +356,11 @@ class PreviewPickerTests {
     assertEquals("name", properties.next().name)
     assertEquals("group", properties.next().name)
     assertEquals("apiLevel", properties.next().name)
-    assertEquals("theme", properties.next().name)
     assertEquals("widthDp", properties.next().name)
     assertEquals("heightDp", properties.next().name)
     assertEquals("locale", properties.next().name)
     assertEquals("fontScale", properties.next().name)
+    assertEquals("showSystemUi", properties.next().name)
   }
 
   @RunsInEdt

@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.pickers.common.property.BooleanPsiCallPara
 import com.android.tools.idea.compose.pickers.common.property.ClassPsiCallParameter
 import com.android.tools.idea.compose.pickers.common.property.ColorPsiCallParameter
 import com.android.tools.idea.compose.pickers.common.property.FloatPsiCallParameter
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Device
 import com.android.tools.idea.compose.pickers.preview.enumsupport.PreviewPickerValuesProvider
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
@@ -170,11 +171,15 @@ private constructor(
             PARAMETER_BACKGROUND_COLOR ->
               null // We ignore background color, as the default value is set by Studio
             PARAMETER_UI_MODE ->
-              UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
-            PARAMETER_DEVICE -> entry.value ?: "Default"
-            PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+              UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: UiMode.UNDEFINED.display
+            PARAMETER_DEVICE ->
+              Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: Device.DEFAULT.display
+            PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
-              Wallpaper.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "None"
+              Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: Wallpaper.NONE.display
             PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }

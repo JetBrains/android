@@ -106,22 +106,35 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
         const val NEXUS_10 = "name:Nexus 10"
     }
 
+    object Wallpapers {
+        /** Default value, representing dynamic theming not enabled. */
+        const val NONE = -1
+        /** Example wallpaper whose dominant colour is red. */
+        const val RED_DOMINATED_EXAMPLE = 0
+        /** Example wallpaper whose dominant colour is green. */
+        const val GREEN_DOMINATED_EXAMPLE = 1
+        /** Example wallpaper whose dominant colour is blue. */
+        const val BLUE_DOMINATED_EXAMPLE = 2
+        /** Example wallpaper whose dominant colour is yellow. */
+        const val YELLOW_DOMINATED_EXAMPLE = 3
+    }
+
 
     @Repeatable
     annotation class Preview(
       val name: String = "",
       val group: String = "",
       val apiLevel: Int = -1,
-      val theme: String = "",
       val widthDp: Int = -1,
       val heightDp: Int = -1,
       val locale: String = "",
       val fontScale: Float = 1f,
-      val showDecoration: Boolean = false,
+      val showSystemUi: Boolean = false,
       val showBackground: Boolean = false,
       val backgroundColor: Long = 0,
       val uiMode: Int = 0,
-      val device: String = ""
+      val device: String = Devices.DEFAULT,
+      val wallpaper: Int = Wallpapers.NONE,
     )
 
     interface PreviewParameterProvider<T> {

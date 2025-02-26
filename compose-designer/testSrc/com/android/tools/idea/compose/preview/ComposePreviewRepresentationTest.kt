@@ -322,6 +322,13 @@ class ComposePreviewRepresentationTest {
     ) {
       it.asCollection().size > 2
     }
+    fun PsiComposePreviewElementInstance.print(): String {
+      val configurationDeviceSpecText =
+        configuration.deviceSpec
+          .takeIf { str -> str.isNotBlank() && str != "Devices.DEFAULT" }
+          ?.let { "$it\n" } ?: ""
+      return "${methodFqn}\n$configurationDeviceSpecText${displaySettings}\n"
+    }
     assertEquals(
       """
           TestKt.Preview1
@@ -394,9 +401,7 @@ class ComposePreviewRepresentationTest {
       preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
-        val configurationDeviceSpecText =
-          "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
-        "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
+        it.print()
       },
     )
 
@@ -430,17 +435,17 @@ class ComposePreviewRepresentationTest {
     assertEquals(
       """
           TestKt.Preview1
-
+          PreviewDisplaySettings(name=Preview1, baseName=Preview1, parameterName=null, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.Preview2
-
+          PreviewDisplaySettings(name=Preview2 - preview2, baseName=Preview2, parameterName=preview2, group=groupA, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
         .trimIndent(),
       preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
-        "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
+        it.print()
       },
     )
 

@@ -23,7 +23,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.compiled.ClsClassImpl
 import com.intellij.psi.impl.compiled.ClsMethodImpl
-import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
 import org.jetbrains.uast.UAnnotation
@@ -38,17 +37,11 @@ fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
     when (val resolvedImplementation = this.resolve()) {
       is ClsClassImpl ->
         resolvedImplementation.methods.associate { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize(),
-          )
+          Pair(psiMethod.name, (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"'))
         }
       is KtLightClass ->
         resolvedImplementation.methods.associate { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize(),
-          )
+          Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"'))
         }
       else -> mapOf()
     }
