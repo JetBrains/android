@@ -21,10 +21,11 @@ import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
 import com.android.mockito.kotlin.mockStatic
-import com.android.prefs.AndroidLocationsProvider
 import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
+import com.android.tools.sdk.DeviceManagers
 import com.google.api.services.testing.model.AndroidDeviceCatalog
 import com.google.api.services.testing.model.AndroidModel
 import com.google.api.services.testing.model.AndroidRuntimeConfiguration
@@ -126,9 +127,11 @@ fun managedVirtualDeviceCatalogTestHelper(
     mockStatic<AndroidSdks>().use {
       whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
       mockStatic<StudioSdkUtil>().use {
-        whenever(StudioSdkUtil.reloadRemoteSdk(false)).thenAnswer {}
-        whenever(DeviceManager.createInstance(any<AndroidLocationsProvider>(), any(), any())).thenReturn(deviceManager)
-        callback()
+        mockStatic<DeviceManagers>().use {
+          whenever(StudioSdkUtil.reloadRemoteSdk(false)).thenAnswer {}
+          whenever(DeviceManagers.getDeviceManager(any<AndroidSdkHandler>())).thenReturn(deviceManager)
+          callback()
+        }
       }
     }
   }

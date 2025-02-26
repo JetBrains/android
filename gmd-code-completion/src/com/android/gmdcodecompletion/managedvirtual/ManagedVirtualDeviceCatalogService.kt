@@ -18,13 +18,13 @@ package com.android.gmdcodecompletion.managedvirtual
 import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalogService
 import com.android.gmdcodecompletion.MANAGED_VIRTUAL_DEVICE_CATALOG_UPDATE_FREQUENCY
-import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.LoggerProgressIndicatorWrapper
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
+import com.android.tools.sdk.DeviceManagers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
@@ -73,8 +73,9 @@ class ManagedVirtualDeviceCatalogService
         val progress: LoggerProgressIndicatorWrapper = object : LoggerProgressIndicatorWrapper(iLogger) {
           override fun logVerbose(s: String) = iLogger.verbose(s)
         }
-        val repoManager = AndroidSdks.getInstance()?.tryToChooseSdkHandler()?.getSdkManager(progress)
-        val systemImages = repoManager?.packages?.consolidatedPkgs ?: emptyMap()
+        val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+        val repoManager = sdkHandler.getSdkManager(progress)
+        val systemImages = repoManager.packages.consolidatedPkgs
         systemImages.filter {
           it.key.contains("system-images") &&
           !it.key.contains(ANDROID_TV_IMAGE) &&
@@ -100,10 +101,8 @@ class ManagedVirtualDeviceCatalogService
         val availableApis = deviceCatalog.apiLevels.map { it.apiLevel }
 
         // Obtain all devices from Device Manager except custom managed devices
-        val allDevices =
-          DeviceManager.createInstance(AndroidLocationsSingleton, AndroidLocationsSingleton.prefsLocation, iLogger)
-            ?.getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
-        allDevices?.forEach { device ->
+        val categories = EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)
+        for (device in DeviceManagers.getDeviceManager(sdkHandler).getDevices(categories)) {
           if (!device.isDeprecated) {
             deviceCatalog.devices[device.displayName] = AndroidDeviceInfo(
               deviceName = "",
