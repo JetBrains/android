@@ -943,9 +943,6 @@ py_test(
     env = {
         "mkspec_files": "$(locations :mkspec_files)",
     },
-    tags = [
-        "noci:studio-win",
-    ],
     visibility = ["//visibility:public"],
 )
 

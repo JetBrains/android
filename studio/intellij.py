@@ -127,14 +127,14 @@ def _read_plugin_jars(idea_home: Path):
       continue
     plugin_id = _read_plugin_id(plugin_path)
     jars = plugin_path.glob("lib/*.jar")
-    jar_paths = ["/" + str(jar.relative_to(idea_home)) for jar in jars]
+    jar_paths = ["/" + str(jar.relative_to(idea_home).as_posix()) for jar in jars]
     assert plugin_id not in plugins, f"Duplicated plugin ID: {plugin_id}"
     plugins[plugin_id] = set(jar_paths)
   # We also model V2 modules as plugins---at least for now, until the V2 design solidifies upstream.
   # See b/349849955 and go/studio-v2-modules for details.
   for jar in [*idea_home.glob("lib/modules/*.jar"), *idea_home.glob("plugins/*/lib/modules/*.jar")]:
     module_id = jar.stem
-    jar_path = "/" + str(jar.relative_to(idea_home))
+    jar_path = "/" + str(jar.relative_to(idea_home).as_posix())
     assert module_id not in plugins, f"Duplicated plugin ID: {module_id}"
     plugins[module_id] = set([jar_path])
   return plugins

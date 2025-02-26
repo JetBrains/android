@@ -1,11 +1,21 @@
 import os
 import unittest
 import subprocess
+import sys
 import tempfile
 from tools.adt.idea.studio.tests import test_utils
 
-
 class MkSpecTest(unittest.TestCase):
+
+  def _run(self, script, path, out):
+    # A cross-platform way of running a python script.
+    ret = subprocess.run(
+        [sys.executable, script, "--path", path, "--out", out],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env = {"PYTHONPATH": os.path.dirname(script)}
+    )
+    return ret
 
   def test_mkspec(self):
     deploy_dir = test_utils.deploy_py("mkspec_files")
@@ -42,7 +52,7 @@ class MkSpecTest(unittest.TestCase):
     })
 
     bzl = os.path.join(download, "spec.bzl")
-    ret = subprocess.run(deploy_dir + "/tools/adt/idea/studio/mkspec.py --path " + download + " --out " + bzl, shell=True, env = {})
+    ret = self._run(deploy_dir + os.path.normpath("/tools/adt/idea/studio/mkspec.py"), download, bzl)
     ret.check_returncode()
 
 
@@ -109,7 +119,7 @@ SPEC = struct(
     })
 
     bzl = os.path.join(download, "spec.bzl")
-    ret = subprocess.run(deploy_dir + "/tools/adt/idea/studio/mkspec.py --path " + download + " --out " + bzl, shell=True, env = {})
+    ret = self._run(deploy_dir + os.path.normpath("/tools/adt/idea/studio/mkspec.py"), download, bzl)
     ret.check_returncode()
 
 
