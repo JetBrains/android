@@ -43,6 +43,14 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
       return facet.module.getService(ResourceFolderManager::class.java)
     }
 
+    /**
+     * Same as [TOPIC] but for listeners that require to be invoked earlier. This is used internally by resource repositories since they so
+     * they are notified early and the resources are up-to-date by the time that [TOPIC] is called.
+     */
+    @JvmField
+    internal val EARLY_TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java,
+                                            Topic.BroadcastDirection.NONE)
+
     @JvmField
     val TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java,
                              Topic.BroadcastDirection.NONE)
@@ -98,6 +106,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
 
     if (before != after) {
       generation++
+      module.project.messageBus.syncPublisher(EARLY_TOPIC).foldersChanged(facet, after)
       module.project.messageBus.syncPublisher(TOPIC).foldersChanged(facet, after)
     }
   }
