@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
@@ -63,8 +64,8 @@ import org.jetbrains.uast.toUElementOfType
  * is unique by implementation and [Key] declares [hashCode] and [equals] methods as final. Thus,
  * this mapping allows to reuse the same [Key] instance for the same [localKey].
  */
-@Service
-class CacheKeysManager {
+@Service(Level.PROJECT)
+class CacheKeysManager() {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): CacheKeysManager =
