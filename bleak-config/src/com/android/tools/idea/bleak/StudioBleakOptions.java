@@ -105,6 +105,8 @@ public class StudioBleakOptions {
     new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "capturedCoroutinesMap"),
     new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "callerInfoCache"),
     new IgnoredRef(-1, "kotlinx.coroutines.EventLoopImplBase$DelayedTaskQueue", "a"),
+    new IgnoredRef(-3, "com.intellij.internal.statistic.collectors.fus.actions.persistence.ActionsCollectorImpl", "myUpdateStats"),
+    new IgnoredRef(-1, "com.intellij.platform.diagnostic.telemetry.exporters.ScopeSpans", "spans"), // bounded, and cleared periodically
 
     // as-driver-specific:
     new IgnoredRef(2, "com.android.tools.idea.io.grpc.InternalChannelz", "perServerSockets"),
