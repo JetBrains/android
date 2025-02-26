@@ -105,10 +105,11 @@ class CommonFastPreviewSurface(
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
-    val previewFileAndroidModule = previewFileBuildTargetReference.module.findAndroidModule()
-                                   ?: return CompilationResult.RequestException(
-                                     IllegalStateException("Preview File does not have a valid Android module")
-                                   )
+    val previewFileAndroidModule =
+      previewFileBuildTargetReference.module.findAndroidModule()
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File does not have a valid Android module")
+        )
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
@@ -121,10 +122,7 @@ class CommonFastPreviewSurface(
           modifiedFileBuildTargetReference == previewFileBuildTargetReference ||
             // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
             ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(
-                previewFileAndroidModule,
-                modifiedFileBuildTargetReference.module,
-              )
+              .isModuleDependent(previewFileAndroidModule, modifiedFileBuildTargetReference.module)
         }
         .toSet()
 
@@ -138,7 +136,7 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
+      ModuleClassLoaderOverlays.getInstance(previewFileBuildTargetReference)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }

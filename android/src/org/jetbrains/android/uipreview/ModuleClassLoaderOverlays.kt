@@ -17,6 +17,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
@@ -174,20 +175,20 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
     private val logger = Logger.getInstance(ModuleClassLoaderOverlays::class.java)
 
     @JvmStatic
-    fun getInstance(module: Module): ModuleClassLoaderOverlays =
-      module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
+    fun getInstance(buildTargetReference: BuildTargetReference): ModuleClassLoaderOverlays =
+      buildTargetReference.module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
 
     /**
      * Same as [getInstance] but does not trigger the initialization unless the [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays]
-     * for the [module] already exists.
+     * for the [buildTargetReference] already exists.
      * The [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays] will exist if Fast Preview has triggered already a compilation for
-     * that module.
+     * that [buildTargetReference].
      *
      * Use this method if, for example you are only going to check the existence of a certain class in the overlays. If the overlays don't
      * exist already, you probably do not want to create them via [getInstance].
      */
     @JvmStatic
-    fun getInstanceIfCreated(module: Module): ModuleClassLoaderOverlays? =
-      module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
+    fun getInstanceIfCreated(buildTargetReference: BuildTargetReference): ModuleClassLoaderOverlays? =
+      buildTargetReference.module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
   }
 }

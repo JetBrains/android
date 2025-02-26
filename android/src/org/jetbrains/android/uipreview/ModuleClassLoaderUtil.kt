@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
@@ -97,7 +98,7 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
 
 /**
  * [DelegatingClassLoader.Loader] providing the implementation to load classes from a project. This loader can load user defined classes
- * from the given [Module] and classes from the libraries that the [Module] depends on.
+ * from the given [BuildTargetReference] and classes from the libraries that the [BuildTargetReference] depends on.
  *
  * The [projectSystemLoader] provides a [CachingClassLoaderLoader] responsible to load classes from the user defined classes.
  *
@@ -109,7 +110,7 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
  *
  * The passed [ModuleClassLoaderDiagnosticsWrite] will be used to report class rewrites.
  */
-internal class ModuleClassLoaderImpl(module: Module,
+internal class ModuleClassLoaderImpl(buildTargetReference: BuildTargetReference,
                                      private val projectSystemLoader: CachingClassLoaderLoader,
                                      private val parentClassLoader: ClassLoader?,
                                      val projectTransforms: ClassTransform,
@@ -127,7 +128,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * List of libraries used in this [ModuleClassLoaderImpl].
    */
-  val externalLibraries = module.externalLibraries
+  val externalLibraries = buildTargetReference.module.externalLibraries
 
   /**
    * Class loader for classes and resources contained in [externalLibraries].
@@ -147,7 +148,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
-  private val overlayManager: ClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
+  private val overlayManager: ClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
 
   /**
    * Modification count for the overlay when this [ModuleClassLoaderImpl] was created, used for out-of-date detection.
@@ -227,7 +228,7 @@ internal class ModuleClassLoaderImpl(module: Module,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
     // Project classes loading pipeline
-    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
+    val projectLoader = if (!FastPreviewManager.getInstance(buildTargetReference.project).isEnabled) {
       createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
     }
     else {
@@ -279,20 +280,20 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
    */
-  fun isUserCodeUpToDate(module: Module?): Boolean {
-    return if (module == null) {
+  fun isUserCodeUpToDate(buildTargetReference: BuildTargetReference?): Boolean {
+    return if (buildTargetReference == null) {
       true
     }
     // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
     else {
-      val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module).modificationTracker
+      val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(buildTargetReference).modificationTracker
       // Avoid the cached value holding "this"
       val thisReference = WeakReference(this)
       runBlocking {
         ChangeTrackerCachedValue.get(isUserCodeUpToDateCached, {
           thisReference.get()?.isUserCodeUpToDateNonCached() ?: false
         }, ChangeTracker(
-          ChangeTracker { PsiModificationTracker.getInstance(module.project).modificationCount },
+          ChangeTracker { PsiModificationTracker.getInstance(buildTargetReference.project).modificationCount },
           ChangeTracker { overlayModificationTracker.modificationCount }
         ))
       }

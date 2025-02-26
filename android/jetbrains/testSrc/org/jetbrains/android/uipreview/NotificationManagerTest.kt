@@ -17,6 +17,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -64,8 +65,8 @@ internal class NotificationManagerTest {
 
   @Test
   fun `flow is updated on every modification`() = runBlocking {
-    val app = projectRule.project.getModuleByGradlePath(":app") ?: fail("Could not find app")
-    val lib = projectRule.project.getModuleByGradlePath(":lib") ?: fail("Could not find lib")
+    val app = BuildTargetReference.gradleOnly(projectRule.project.getModuleByGradlePath(":app") ?: fail("Could not find app"))
+    val lib = BuildTargetReference.gradleOnly(projectRule.project.getModuleByGradlePath(":lib") ?: fail("Could not find lib"))
 
     // Copy the classes into a temp directory to use as overlay
     val tempOverlayPath = Files.createTempDirectory("overlayTest")

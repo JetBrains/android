@@ -53,6 +53,7 @@ import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -560,7 +561,8 @@ class ComposePreviewRepresentationTest {
         }
       }
 
-      val overlayClassLoader = ModuleClassLoaderOverlays.getInstance(fixture.module)
+      val overlayClassLoader =
+        ModuleClassLoaderOverlays.getInstance(BuildTargetReference.gradleOnly(fixture.module))
       assertTrue(overlayClassLoader.state.paths.isEmpty())
       overlayClassLoader.pushOverlayPath(Path.of("/tmp/test"))
       assertFalse(overlayClassLoader.state.paths.isEmpty())

@@ -242,7 +242,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
       parent,
       renderContext,
       new ModuleClassLoaderImpl(
-        renderContext.getBuildTargetReference().getModuleIfNotDisposed(),
+        renderContext.getBuildTargetReference(),
         renderContext.createInjectableClassLoaderLoader(),
         parent,
         projectTransformations,
@@ -304,7 +304,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    */
   @Override
   public boolean isUserCodeUpToDate() {
-    return myImpl.isUserCodeUpToDate(myBuildTargetReference.getModuleIfNotDisposed());
+    return myImpl.isUserCodeUpToDate(myBuildTargetReference);
   }
 
   @Override

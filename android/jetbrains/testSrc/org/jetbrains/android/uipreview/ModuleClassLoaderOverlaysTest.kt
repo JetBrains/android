@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
@@ -40,15 +41,18 @@ internal class ModuleClassLoaderOverlaysTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  private val buildTargetReference: BuildTargetReference
+    get() = BuildTargetReference.gradleOnly(projectRule.module)
+
   private val projectOverlayModificationCount: Long
     get() = ModuleClassLoaderOverlays.NotificationManager.getInstance(projectRule.project).modificationFlow.value
 
   private val moduleOverlayModificationCount: Long
-    get() = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
+    get() = ModuleClassLoaderOverlays.getInstance(buildTargetReference).modificationTracker.modificationCount
 
   @Test
   fun `empty overlay does not return classes`() {
-    assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+    assertNull(ModuleClassLoaderOverlays.getInstance(buildTargetReference).classLoaderLoader.loadClass(testClassName))
   }
 
   @Test
@@ -57,14 +61,16 @@ internal class ModuleClassLoaderOverlaysTest {
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
     val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
 
-    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
+    val moduleClassLoaderOverlay =
+      ModuleClassLoaderOverlays.getInstance(buildTargetReference)
+    moduleClassLoaderOverlay.pushOverlayPath(tempOverlayPath)
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
-    assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+    assertNotNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
 
     assertEquals(1, projectOverlayModificationCount)
     assertEquals(1, moduleOverlayModificationCount)
-    ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
+    moduleClassLoaderOverlay.invalidateOverlayPaths()
     assertEquals(2, projectOverlayModificationCount)
     assertEquals(2, moduleOverlayModificationCount)
   }
@@ -77,7 +83,8 @@ internal class ModuleClassLoaderOverlaysTest {
 
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
-    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(
+      buildTargetReference)
     moduleClassLoaderOverlay.pushOverlayPath(tempOverlayPath)
     assertTrue(moduleClassLoaderOverlay.containsClass(testClassName))
     assertNotNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
@@ -93,7 +100,8 @@ internal class ModuleClassLoaderOverlaysTest {
     fun List<String>.asPlatformIndependent(): List<String> =
       map { toSystemIndependentPath(it) }
 
-    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(
+      buildTargetReference)
 
     moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay2"))
     moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay1"))
@@ -131,7 +139,7 @@ internal class ModuleClassLoaderOverlaysTest {
     Files.write(tempOverlayPath1.resolve("a/TestClass.class"), ByteArray(0))
     Files.write(tempOverlayPath2.resolve("d/e/OtherTestClass.class"), ByteArray(0))
     Files.write(tempOverlayPath2.resolve("d/e/f/OtherTestClass.class"), ByteArray(0))
-    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
     moduleClassLoaderOverlays.pushOverlayPath(tempOverlayPath1)
     assertTrue(moduleClassLoaderOverlays.containsClass("a.b.c.TestClass"))
     assertTrue(moduleClassLoaderOverlays.containsClass("a.TestClass"))

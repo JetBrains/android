@@ -156,13 +156,10 @@ interface RenderingBuildStatusManagerForTests : RenderingBuildStatusManager {
 }
 
 /**
- * Returns true if the given [fqcn] exists in the [ModuleClassLoaderOverlays] for the given [module].
+ * Returns true if the given [fqcn] exists in the [ModuleClassLoaderOverlays] for the given [buildTargetReference].
  */
-private fun doesOverlayContainClass(module: Module?, fqcn: String): Boolean {
-  if (module == null) return false
-
-  return ModuleClassLoaderOverlays.getInstanceIfCreated(module)?.containsClass(fqcn) == true
-}
+private fun doesOverlayContainClass(buildTargetReference: BuildTargetReference, fqcn: String): Boolean =
+  ModuleClassLoaderOverlays.getInstanceIfCreated(buildTargetReference)?.containsClass(fqcn) == true
 
 /**
  * The default implementation for the class finder lookup. The returned function will be able to lookup if a class exists for a given
@@ -178,7 +175,7 @@ private fun defaultClassFinderFactory(buildTargetReference: BuildTargetReference
     buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
   }
   return { fqcn: String ->
-    readAction { (classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference.moduleIfNotDisposed, fqcn)) }
+    readAction { (classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
   }
 }
 

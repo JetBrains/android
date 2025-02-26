@@ -44,7 +44,6 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -206,13 +205,14 @@ class FastPreviewManagerGradleTest {
       appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val initialState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
 
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
+      val buildTargetReference = BuildTargetReference.from(psiMainFile)!!
       val (result, outputPath) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+        fastPreviewManager.compileRequest(psiMainFile, buildTargetReference)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
+      ModuleClassLoaderOverlays.getInstance(buildTargetReference)
+        .pushOverlayPath(File(outputPath).toPath())
     }
     val finalState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
     assertTrue(
