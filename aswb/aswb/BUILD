@@ -111,7 +111,12 @@ java_library(
             "src/com/google/idea/blaze/android/run/binary/tasks/*.java",
         ],
     ),
-    resources = glob(["resources/**/*"]),
+    resources = glob(
+        [
+            "resources/**/*",
+            "testres/*",
+        ],
+    ),
     visibility = combine_visibilities(
         ASWB_SUBPACKAGES_VISIBILITY,
         TEST_ASWB_SUBPACKAGES_VISIBILITY,
