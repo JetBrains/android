@@ -85,7 +85,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.uiThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.EDT")
+  @Deprecated("Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
   val uiThread: CoroutineDispatcher get() = uiThread(ModalityState.defaultModalityState())
 
   /**
@@ -102,7 +102,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.workerThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.Default")
+  @Deprecated("Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
@@ -112,7 +112,7 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.diskIoThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.IO")
+  @Deprecated("Prefer using Dispatchers.IO. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
   val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
@@ -247,7 +247,8 @@ private class ApplicationCoroutineScopeDisposable : Disposable {
  * This method also accepts an optional [CoroutineContext].
  */
 @Deprecated("Prefer using withBackgroundProgress or withModalProgress from package " +
-            "com.intellij.platform.ide.progress")
+            "com.intellij.platform.ide.progress. " +
+            "See https://plugins.jetbrains.com/docs/intellij/execution-contexts.html#progress-reporting")
 fun CoroutineScope.launchWithProgress(
   progressIndicator: ProgressIndicator,
   context: CoroutineContext = EmptyCoroutineContext,
