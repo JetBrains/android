@@ -75,10 +75,9 @@ fun List<ComposeViewInfo>.findDeepestHits(
  * live in the file.
  */
 fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<ComposeViewInfo> {
-  var leafHits = mutableListOf<ComposeViewInfo>()
-
-  if (!this.containsPoint(x, y)) return leafHits.toList()
-  var stack = mutableListOf(this)
+  if (!this.containsPoint(x, y)) return emptyList()
+  val leafHits = mutableListOf<ComposeViewInfo>()
+  val stack = mutableListOf(this)
 
   while (stack.isNotEmpty()) {
     var currentViewInfo: ComposeViewInfo = stack.pop()
@@ -93,6 +92,23 @@ fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<C
     }
   }
   return leafHits.toList()
+}
+
+/** This function will return all ComposeViewInfo objects recursively that are in the given file. */
+fun ComposeViewInfo.findAllHitsInFile(fileName: String): List<ComposeViewInfo> {
+  if (!this.doesFileExistInTree(fileName)) return emptyList()
+  val stack = mutableListOf(this)
+  val hits = mutableListOf<ComposeViewInfo>()
+
+  while (stack.isNotEmpty()) {
+    var currentViewInfo: ComposeViewInfo = stack.pop()
+    var childrenContainingPoint =
+      currentViewInfo.children.filter { it.doesFileExistInTree(fileName) }
+
+    if (currentViewInfo.sourceLocation.fileName == fileName) hits.push(currentViewInfo)
+    stack.addAll(childrenContainingPoint)
+  }
+  return hits.toList()
 }
 
 fun ComposeViewInfo.containsPoint(x: Int, y: Int): Boolean {
