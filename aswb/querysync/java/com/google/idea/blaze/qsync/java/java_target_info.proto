@@ -18,7 +18,7 @@ package bazel.intellij;
 
 option java_package = "com.google.idea.blaze.qsync.java";
 
-import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts/build_artifact.proto";
+import "build_artifact.proto";
 
 // The artifacts built for a given target
 message JavaTargetArtifacts {

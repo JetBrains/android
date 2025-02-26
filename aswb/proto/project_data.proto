@@ -20,9 +20,9 @@ syntax = "proto3";
 
 package blaze;
 
-import "tools/adt/idea/aswb/third_party/bazel/src/main/protobuf/build.proto";
-import "tools/adt/idea/aswb/proto/common.proto";
-import "tools/adt/idea/aswb/proto/intellij_ide_info.proto";
+import "build.proto";
+import "common.proto";
+import "intellij_ide_info.proto";
 
 // option java_api_version = 2;
 option java_package = "com.google.devtools.intellij.model";

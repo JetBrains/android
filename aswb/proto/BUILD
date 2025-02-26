@@ -12,70 +12,50 @@ load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "combine_visibilities",
 )
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 licenses(["notice"])
 
 create_proto_visibility_group()
 
-proto_library(
-    name = "common_proto",
-    srcs = ["common.proto"],
-    visibility = ["//visibility:private"],
-)
-
 java_proto_library(
     name = "common_java_proto",
+    srcs = ["common.proto"],
     visibility = combine_visibilities(
         ASPECT_PROTO_VISIBILITY,
         PLUGIN_PACKAGES_VISIBILITY,
     ),
-    deps = [":common_proto"],
-)
-
-proto_library(
-    name = "intellij_ide_info_proto",
-    srcs = ["intellij_ide_info.proto"],
-    visibility = combine_visibilities(
-        ASPECT_PROTO_VISIBILITY,
-        PLUGIN_PACKAGES_VISIBILITY,
-    ),
-    deps = [
-        ":common_proto",
-    ],
 )
 
 java_proto_library(
     name = "intellij_ide_info_java_proto",
+    srcs = ["intellij_ide_info.proto"],
+    java_deps = [":common_java_proto"],
+    proto_deps = [":common_java_proto_srcs"],
     visibility = combine_visibilities(
         ASPECT_PROTO_VISIBILITY,
         PLUGIN_PACKAGES_VISIBILITY,
     ),
-    deps = [":intellij_ide_info_proto"],
-)
-
-proto_library(
-    name = "project_data_proto",
-    srcs = ["project_data.proto"],
-    deps = [
-        ":common_proto",
-        ":intellij_ide_info_proto",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_proto",
-    ],
 )
 
 java_proto_library(
     name = "project_data_java_proto",
-    deps = [":project_data_proto"],
-)
-
-proto_library(
-    name = "intellij_plugin_target_deploy_info_proto",
-    srcs = ["intellij_plugin_target_deploy_info.proto"],
+    srcs = ["project_data.proto"],
+    java_deps = [
+        ":common_java_proto",
+        ":intellij_ide_info_java_proto",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto",
+    ],
+    proto_deps = [
+        ":common_java_proto_srcs",
+        ":intellij_ide_info_java_proto_srcs",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto_srcs",
+    ],
 )
 
 java_proto_library(
     name = "intellij_plugin_target_deploy_info_java_proto",
-    deps = [":intellij_plugin_target_deploy_info_proto"],
+    srcs = ["intellij_plugin_target_deploy_info.proto"],
 )
 
 # TODO delete this build rule. Dependants should use the proto targets they use

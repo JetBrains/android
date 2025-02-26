@@ -1,3 +1,5 @@
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+
 java_library(
     name = "deps",
     srcs = glob(["*.java"]),
@@ -23,19 +25,18 @@ java_library(
     ],
 )
 
-proto_library(
-    name = "artifact_tracker_state_proto",
-    srcs = ["artifact_tracker_state.proto"],
-    deps = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_proto",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:snapshot_proto",
-    ],
-)
-
 java_proto_library(
     name = "artifact_tracker_state_java_proto",
+    srcs = ["artifact_tracker_state.proto"],
+    java_deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:snapshot_java_proto",
+    ],
+    proto_deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto_srcs",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:snapshot_java_proto_srcs",
+    ],
     visibility = [
         "//tools/adt/idea/aswb/querysync:__subpackages__",
     ],
-    deps = [":artifact_tracker_state_proto"],
 )

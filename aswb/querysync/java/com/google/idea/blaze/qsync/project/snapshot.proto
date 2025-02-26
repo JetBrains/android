@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package ij.qsync;
 
-import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query/querysummary.proto";
-import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/language_class.proto";
+import "querysummary.proto";
+import "language_class.proto";
 
 // option java_api_version = 2;
 option java_outer_classname = "SnapshotProto";

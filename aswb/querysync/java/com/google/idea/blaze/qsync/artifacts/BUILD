@@ -1,3 +1,5 @@
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+
 java_library(
     name = "artifacts",
     srcs = glob(["*.java"]),
@@ -22,23 +24,13 @@ java_library(
     ],
 )
 
-proto_library(
-    name = "build_artifact_proto",
-    srcs = ["build_artifact.proto"],
-    visibility = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:__pkg__",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:__pkg__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
-    ],
-)
-
 java_proto_library(
     name = "build_artifact_java_proto",
+    srcs = ["build_artifact.proto"],
     visibility = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:__pkg__",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:__pkg__",
         "//tools/adt/idea/aswb/querysync/javatests:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
     ],
-    deps = [":build_artifact_proto"],
 )
