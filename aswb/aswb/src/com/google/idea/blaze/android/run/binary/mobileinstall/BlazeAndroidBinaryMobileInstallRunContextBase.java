@@ -87,7 +87,7 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   @Override
   public void augmentLaunchOptions(LaunchOptions.Builder options) {
     options
-        .setDeploy(buildStep.needsIdeDeploy())
+        .setDeploy(true)
         .setOpenLogcatAutomatically(configState.showLogcatAutomatically());
     // This is needed for compatibility with #api211
     options.addExtraOptions(
@@ -117,10 +117,6 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   @Override
   public ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
-    if (!buildStep.needsIdeDeploy()) {
-      return ImmutableList.of();
-    }
-
     BlazeAndroidDeployInfo deployInfo;
     try {
       deployInfo = buildStep.getDeployInfo();
