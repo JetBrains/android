@@ -161,8 +161,7 @@ private fun ByteArray.getFileType(): FileType? {
 
 private fun String.isJson(): Boolean {
   return try {
-    GSON.fromJson(this, JsonObject::class.java)
-    true
+    GSON.fromJson(this, JsonObject::class.java) != null
   } catch (e: Exception) {
     false
   }
