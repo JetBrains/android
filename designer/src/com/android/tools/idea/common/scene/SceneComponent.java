@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
- * SceneComponent gave us a a couple of extra compared to NlComponent:
+ * SceneComponent gave us a couple of extra compared to NlComponent:
  * <ul>
  * <li>expressed in Dp, not pixels</li>
  * <li>animate layout changes</li>
