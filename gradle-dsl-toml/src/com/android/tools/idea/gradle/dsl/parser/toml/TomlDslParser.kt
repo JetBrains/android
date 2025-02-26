@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleBundleRefLiteral
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
@@ -43,6 +45,8 @@ import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
 import java.math.BigDecimal
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.REFERENCE
 
 class TomlDslParser(
   private val psiFile: TomlFile,
@@ -94,6 +98,7 @@ class TomlDslParser(
       }
     }
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
+    postProcessing()
   }
 
   private fun GradlePropertiesDslElement.getOrCreateMap(segment: TomlKeySegment, psiElement: PsiElement): GradleDslExpressionMap {
@@ -148,5 +153,71 @@ class TomlDslParser(
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) = Unit
   override fun getContext(): BuildModelContext = context
+
+  private fun postProcessing() {
+    // versions and libraries (plugins) can be in any order so need to establish references once everything is parsed
+    replaceVersionRefsWithInjections()
+    replaceLibraryRefsInBundlesWithInjections()
+  }
+
+  private fun replaceVersionRefsWithInjections() {
+    val libraries: GradleDslExpressionMap? = dslFile.getPropertyElement("libraries", GradleDslExpressionMap::class.java)
+    val plugins: GradleDslExpressionMap? = dslFile.getPropertyElement("plugins", GradleDslExpressionMap::class.java)
+    val versions: GradleDslExpressionMap = dslFile.getPropertyElement("versions", GradleDslExpressionMap::class.java) ?: return
+
+    val versionRefReplacer: (GradleDslExpressionMap) -> Unit = { library ->
+      val versionProperty: GradleDslElement? = library.getPropertyElement("version")
+      if (versionProperty is GradleDslExpressionMap) {
+        val refProperty: GradleDslElement? = versionProperty.getPropertyElement("ref")
+        if (refProperty is GradleDslLiteral) {
+          val targetName = refProperty.getValue(String::class.java)
+          if (targetName != null) {
+            versions.getPropertyElement(targetName)?.let { targetProperty ->
+              refProperty.psiElement?.let { psi ->
+                val reference = GradleDslVersionLiteral(library, psi, versionProperty.getNameElement(), psi, REFERENCE)
+                val injection = GradleReferenceInjection(reference, targetProperty, psi, targetName)
+                targetProperty.registerDependent(injection)
+                reference.addDependency(injection)
+                library.substituteElement(versionProperty, reference)
+              }
+            }
+          }
+        }
+      }
+      else if (versionProperty is GradleDslLiteral) {
+        val literal: GradleDslLiteral =
+          GradleDslVersionLiteral(library, versionProperty.psiElement!!, versionProperty.nameElement, versionProperty.psiElement!!, LITERAL)
+        library.substituteElement(versionProperty, literal)
+      }
+    }
+
+    libraries?.getPropertyElements(GradleDslExpressionMap::class.java)?.forEach(versionRefReplacer)
+    plugins?.getPropertyElements(GradleDslExpressionMap::class.java)?.forEach(versionRefReplacer)
+  }
+
+  private fun replaceLibraryRefsInBundlesWithInjections() {
+    val libraries: GradleDslExpressionMap = dslFile.getPropertyElement("libraries", GradleDslExpressionMap::class.java) ?: return
+    val bundles: GradleDslExpressionMap = dslFile.getPropertyElement("bundles", GradleDslExpressionMap::class.java) ?: return
+
+    bundles.getPropertyElements(GradlePropertiesDslElement::class.java).forEach { bundle ->
+      val elements: List<GradleDslElement> = bundle.getCurrentElements()
+      elements.forEach { element: GradleDslElement? ->
+        if (element is GradleDslLiteral) {
+          val targetName = element.getValue(String::class.java)
+          if (targetName != null) {
+            libraries.getPropertyElement(targetName)?.let { targetProperty ->
+              element.psiElement?.let { psi ->
+                val reference = GradleBundleRefLiteral(bundle, psi, targetProperty.nameElement, psi, REFERENCE)
+                val injection = GradleReferenceInjection(reference, targetProperty, psi, targetName)
+                targetProperty.registerDependent(injection)
+                reference.addDependency(injection)
+                bundle.substituteElement(element, reference)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
 }
