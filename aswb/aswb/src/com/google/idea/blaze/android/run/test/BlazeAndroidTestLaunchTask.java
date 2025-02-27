@@ -150,7 +150,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                           BlazeCommand.builder(
                                   Blaze.getBuildSystemProvider(project)
                                       .getBuildSystem()
-                                      .getBuildInvoker(project, context),
+                                      .getBuildInvoker(project),
                                   BlazeCommandName.TEST)
                               .addTargets(target);
                       // Build flags must match BlazeBeforeRunTask.
@@ -179,7 +179,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                       BuildSystem.BuildInvoker invoker =
                           Blaze.getBuildSystemProvider(project)
                               .getBuildSystem()
-                              .getBuildInvoker(project, context);
+                              .getBuildInvoker(project);
                       try (BuildEventStreamProvider streamProvider =
                           invoker.invoke(commandBuilder, context)) {
                         ExecutionUtils.println(console, commandBuilder.build() + "\n");

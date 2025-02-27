@@ -90,7 +90,7 @@ public class BlazeInstrumentationTestApkBuildStep implements ApkBuildStep {
     BuildInvoker invoker =
         Blaze.getBuildSystemProvider(project)
             .getBuildSystem()
-            .getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.IS_LOCAL));
+            .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.IS_LOCAL));
     BlazeCommand.Builder command = BlazeCommand.builder(invoker, BlazeCommandName.BUILD);
     // TODO(mathewi) we implicitly rely here on the fact that the getBuildInvoker() call above
     //   will always return a local invoker (deployInfoHelper below required that the artifacts

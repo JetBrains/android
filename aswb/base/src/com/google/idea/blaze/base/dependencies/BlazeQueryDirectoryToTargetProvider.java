@@ -85,11 +85,11 @@ public class BlazeQueryDirectoryToTargetProvider implements DirectoryToTargetPro
     BuildSystem buildSystem = Blaze.getBuildSystemProvider(project).getBuildSystem();
     BlazeCommand.Builder command =
         BlazeCommand.builder(
-                buildSystem.getDefaultInvoker(project, context), BlazeCommandName.QUERY)
+                buildSystem.getDefaultInvoker(project), BlazeCommandName.QUERY)
             .addBlazeFlags("--output=label_kind")
             .addBlazeFlags("--keep_going")
             .addBlazeFlags(query);
-    BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
+    BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
     BlazeQueryLabelKindParser outputProcessor = new BlazeQueryLabelKindParser(t -> true);
     try (InputStream queryResultStream = invoker.invokeQuery(command, context)) {
       new BufferedReader(new InputStreamReader(queryResultStream, UTF_8))

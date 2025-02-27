@@ -69,10 +69,9 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
 
   public LocalInvoker(
       Project project,
-      BlazeContext blazeContext,
       BuildSystem buildSystem,
       BuildBinaryType binaryType) {
-    super(project, blazeContext, buildSystem, binaryPath(binaryType, project));
+    super(project, buildSystem, binaryPath(binaryType, project));
     this.buildBinaryType = binaryType;
   }
 

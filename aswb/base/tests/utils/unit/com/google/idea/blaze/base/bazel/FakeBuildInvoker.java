@@ -70,7 +70,9 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
 
   @Override
   @Nullable
-  public abstract BlazeInfo getBlazeInfo();
+  public BlazeInfo getBlazeInfo(BlazeContext blazeContext) {
+    return null;
+  }
 
   @Override
   @MustBeClosed
@@ -144,8 +146,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
-
-    public abstract Builder blazeInfo(BlazeInfo blazeInfo);
 
     public abstract Builder buildResultHelperSupplier(Supplier<BuildResultHelper> supplier);
 

@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.bazel;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.FutureUtil;
@@ -43,14 +42,12 @@ import javax.annotation.Nullable;
 // TODO(b/374906681): Replace @link{AbstractBuildInvoker} and its usages by this class
 public abstract class AbstractBuildInvoker1 implements BuildInvoker {
   protected final Project project;
-  protected final BlazeContext blazeContext;
   private final String binaryPath;
   private final BuildSystem buildSystem;
   private BlazeInfo blazeInfo;
 
-  public AbstractBuildInvoker1(Project project, BlazeContext blazeContext, BuildSystem buildSystem, String binaryPath) {
+  public AbstractBuildInvoker1(Project project, BuildSystem buildSystem, String binaryPath) {
     this.project = project;
-    this.blazeContext = blazeContext;
     this.buildSystem = buildSystem;
     this.binaryPath = binaryPath;
   }
@@ -62,15 +59,15 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
 
   @Override
   @Nullable
-  public synchronized BlazeInfo getBlazeInfo() throws SyncFailedException {
+  public synchronized BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException {
     if (blazeInfo == null) {
-      blazeInfo = getBlazeInfoResult();
+      blazeInfo = getBlazeInfoResult(blazeContext);
     }
     return blazeInfo;
   }
 
-  private BlazeInfo getBlazeInfoResult() throws SyncFailedException {
-    ListenableFuture<BlazeInfo> future = runBlazeInfo();
+  private BlazeInfo getBlazeInfoResult(BlazeContext blazeContext) throws SyncFailedException {
+    ListenableFuture<BlazeInfo> future = runBlazeInfo(blazeContext);
     FutureUtil.FutureResult<BlazeInfo> result =
       FutureUtil.waitForFuture(blazeContext, future)
         .timed(buildSystem.getName() + "Info", TimingScope.EventType.BlazeInvocation)
@@ -84,7 +81,7 @@ public abstract class AbstractBuildInvoker1 implements BuildInvoker {
       String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
   }
 
-  private ListenableFuture<BlazeInfo> runBlazeInfo() {
+  private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {
     ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     if (viewSet == null) {
       // defer the failure until later when it can be handled more easily:

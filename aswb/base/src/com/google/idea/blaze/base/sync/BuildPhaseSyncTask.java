@@ -187,7 +187,7 @@ public final class BuildPhaseSyncTask {
     buildStats.setTargets(targets);
     notifyBuildStarted(context, syncParams.addProjectViewTargets(), ImmutableList.copyOf(targets));
 
-    BuildInvoker defaultInvoker = buildSystem.getDefaultInvoker(project, context);
+    BuildInvoker defaultInvoker = buildSystem.getDefaultInvoker(project);
 
     ShardedTargetsResult shardedTargetsResult =
         BlazeBuildTargetSharder.expandAndShardTargets(
@@ -233,7 +233,7 @@ public final class BuildPhaseSyncTask {
 
     BuildInvoker syncBuildInvoker =
         parallel
-            ? buildSystem.getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM))
+            ? buildSystem.getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM))
             : defaultInvoker;
     final BlazercMigrator blazercMigrator = new BlazercMigrator(project);
     if (!syncBuildInvoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_CLI)
@@ -243,7 +243,7 @@ public final class BuildPhaseSyncTask {
       ApplicationManager.getApplication()
           .invokeAndWait(() -> blazercMigrator.promptAndMigrate(context));
     }
-    resultBuilder.setBlazeInfo(syncBuildInvoker.getBlazeInfo());
+    resultBuilder.setBlazeInfo(syncBuildInvoker.getBlazeInfo(context));
 
     buildStats
         .setSyncSharded(shardedTargets.shardCount() > 1)

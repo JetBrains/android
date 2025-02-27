@@ -66,9 +66,9 @@ public class BazelQueryRunner implements QueryRunner {
     if (PREFER_REMOTE_QUERIES.getValue()) {
       invoker =
           buildSystem
-              .getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_API));
+              .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_API));
     } else {
-      invoker = buildSystem.getDefaultInvoker(project, context);
+      invoker = buildSystem.getDefaultInvoker(project);
     }
     Optional<SyncQueryStats.Builder> syncQueryStatsBuilder =
         SyncQueryStatsScope.fromContext(context);

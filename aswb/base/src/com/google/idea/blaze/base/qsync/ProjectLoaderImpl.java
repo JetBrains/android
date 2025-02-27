@@ -289,7 +289,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             projectRefresher,
             queryRunner,
             vcsHandler,
-            new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project, context)));
+            new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(graph, workspaceRoot.path());
     return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,

@@ -75,7 +75,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
   @Override
   public RenderJarInfo buildRenderJar(BlazeContext context, Set<Label> buildTargets)
       throws IOException, BuildException {
-    BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
+    BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(

@@ -116,7 +116,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       Blaze.getBuildSystemProvider(project)
         .getBuildSystem()
         .getBuildInvoker(
-          project, context, getExecutorType(), getConfiguration().getTargetKind());
+          project, getExecutorType(), getConfiguration().getTargetKind());
     boolean debuggingLocalTest =
       TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
       && getExecutorType().isDebugType();

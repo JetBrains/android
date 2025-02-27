@@ -20,7 +20,6 @@ import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
@@ -50,7 +49,7 @@ public abstract class FakeBuildSystem implements BuildSystem {
   abstract BuildInvoker getBuildInvoker();
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
+  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker();
   }
   @Override

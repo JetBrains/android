@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.run.ExecutorType;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
@@ -37,18 +36,18 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
-    return new LocalInvoker(project, context, this, BuildBinaryType.BAZEL);
+  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
+    return new LocalInvoker(project, this, BuildBinaryType.BAZEL);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
-    return getBuildInvoker(project, context);
+  public BuildInvoker getBuildInvoker(Project project, ExecutorType executorType, Kind targetKind) {
+    return getBuildInvoker(project);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, BlazeCommandName command) {
-    return getBuildInvoker(project, context);
+  public BuildInvoker getBuildInvoker(Project project, BlazeCommandName command) {
+    return getBuildInvoker(project);
   }
 
   @Override

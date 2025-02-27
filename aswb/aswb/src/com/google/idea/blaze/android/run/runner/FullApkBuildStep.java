@@ -174,7 +174,7 @@ public class FullApkBuildStep implements ApkBuildStep {
     }
 
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project, context);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
     BlazeCommand.Builder command = BlazeCommand.builder(invoker, BlazeCommandName.BUILD);
 
     List<NativeSymbolFinder> nativeSymbolFinderList = getNativeSymbolFinderList();

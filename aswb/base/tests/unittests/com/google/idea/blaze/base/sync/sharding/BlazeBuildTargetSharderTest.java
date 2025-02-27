@@ -439,7 +439,7 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
 
     @Override
     @Nullable
-    public BlazeInfo getBlazeInfo() {
+    public BlazeInfo getBlazeInfo(BlazeContext blazeContext) {
       return null;
     }
 

@@ -236,11 +236,11 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public BlazeInfo getBlazeInfo() throws SyncFailedException {
+    public BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException {
       if (throwExceptionOnGetBlazeInfo) {
         throw new SyncFailedException();
       }
-      return inner.getBlazeInfo();
+      return inner.getBlazeInfo(blazeContext);
     }
 
     @Override
@@ -275,19 +275,19 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
 
     @Override
     public BuildInvoker getBuildInvoker(
-        Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project, context, requirements));
+        Project project, Set<BuildInvoker.Capability> requirements) {
+      return new BuildInvokerWrapper(inner.getBuildInvoker(project, requirements));
     }
 
     @Override
-    public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project, context));
+    public BuildInvoker getBuildInvoker(Project project) {
+      return new BuildInvokerWrapper(inner.getBuildInvoker(project));
     }
 
     @Override
     public BuildInvoker getBuildInvoker(
-        Project project, BlazeContext context, BlazeCommandName command) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project, context));
+        Project project, BlazeCommandName command) {
+      return new BuildInvokerWrapper(inner.getBuildInvoker(project));
     }
 
     @Override

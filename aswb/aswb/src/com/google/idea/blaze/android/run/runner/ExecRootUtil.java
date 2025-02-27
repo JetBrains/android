@@ -33,7 +33,7 @@ public final class ExecRootUtil {
   public static String getExecutionRoot(BuildInvoker invoker, BlazeContext context)
       throws GetArtifactsException {
     try {
-      return invoker.getBlazeInfo().getExecutionRoot().getAbsolutePath();
+      return invoker.getBlazeInfo(context).getExecutionRoot().getAbsolutePath();
     } catch (SyncFailedException e) {
       IssueOutput.error("Could not obtain exec root from blaze info: " + e.getMessage())
           .submit(context);

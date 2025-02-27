@@ -50,7 +50,6 @@ import javax.annotation.Nullable;
 public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   protected final Project project;
-  private final BlazeContext blazeContext;
   private final BuildBinaryType binaryType;
   private final String binaryPath;
   private final BuildSystem buildSystem;
@@ -60,13 +59,11 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   public AbstractBuildInvoker(
       Project project,
-      BlazeContext blazeContext,
       BuildBinaryType binaryType,
       String binaryPath,
       BuildSystem buildSystem,
       BlazeCommandRunner commandRunner) {
     this.project = project;
-    this.blazeContext = blazeContext;
     this.binaryType = binaryType;
     this.binaryPath = binaryPath;
     this.buildSystem = buildSystem;
@@ -122,15 +119,15 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   @Override
   @Nullable
-  public synchronized BlazeInfo getBlazeInfo() throws SyncFailedException {
+  public synchronized BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException {
     if (blazeInfo == null) {
-      blazeInfo = getBlazeInfoResult();
+      blazeInfo = getBlazeInfoResult(blazeContext);
     }
     return blazeInfo;
   }
 
-  private BlazeInfo getBlazeInfoResult() throws SyncFailedException {
-    ListenableFuture<BlazeInfo> future = runBlazeInfo();
+  private BlazeInfo getBlazeInfoResult(BlazeContext blazeContext) throws SyncFailedException {
+    ListenableFuture<BlazeInfo> future = runBlazeInfo(blazeContext);
     FutureResult<BlazeInfo> result =
         FutureUtil.waitForFuture(blazeContext, future)
             .timed(buildSystem.getName() + "Info", EventType.BlazeInvocation)
@@ -144,7 +141,7 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
         String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
   }
 
-  private ListenableFuture<BlazeInfo> runBlazeInfo() {
+  private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {
     ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     if (viewSet == null) {
       // defer the failure until later when it can be handled more easily:

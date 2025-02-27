@@ -43,7 +43,7 @@ public class CandidatePackageFinder {
 
   public static CandidatePackageFinder create(QuerySyncProject project, Project ideProject) {
     BlazeContext context = BlazeContext.create();
-    BuildInvoker invoker = project.getBuildSystem().getBuildInvoker(ideProject, context);
+    BuildInvoker invoker = project.getBuildSystem().getBuildInvoker(ideProject);
     Path workspacePath = WorkspaceRoot.fromProject(ideProject).path();
     return new CandidatePackageFinder(ideProject, invoker, workspacePath, context);
   }
