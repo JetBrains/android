@@ -64,13 +64,9 @@ public class BazelQueryRunner implements QueryRunner {
     Stopwatch timer = Stopwatch.createStarted();
     BuildInvoker invoker;
     if (PREFER_REMOTE_QUERIES.getValue()) {
-      // TODO(b/374906681) The "parallel" here is not really what we want: really we want to run the
-      // query remotely if that's supported. But we know that the parallel invoker is also a remote
-      // one so we use that for now. Once legacy sync code is deleted, cleaning all this up will
-      // become much easier.
       invoker =
           buildSystem
-              .getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM));
+              .getBuildInvoker(project, context, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_API));
     } else {
       invoker = buildSystem.getDefaultInvoker(project, context);
     }
