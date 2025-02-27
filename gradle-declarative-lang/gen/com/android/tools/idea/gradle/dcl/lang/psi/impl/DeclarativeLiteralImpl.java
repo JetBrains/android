@@ -26,6 +26,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
 import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 
 public class DeclarativeLiteralImpl extends CompositePsiElement implements DeclarativeLiteral {
@@ -99,9 +100,18 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
   }
 
   @Override
-  @Nullable
-  public Object getValue() {
+  public @Nullable Object getValue() {
     return PsiImplUtil.getValue(this);
+  }
+
+  @Override
+  public @Nullable PsiReference getReference() {
+    return PsiImplUtil.getReference(this);
+  }
+
+  @Override
+  public @NotNull PsiReference @NotNull [] getReferences() {
+    return PsiImplUtil.getReferences(this);
   }
 
 }

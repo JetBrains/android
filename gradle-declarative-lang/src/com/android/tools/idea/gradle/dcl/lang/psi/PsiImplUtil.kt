@@ -117,6 +117,13 @@ class PsiImplUtil {
     fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
+    @JvmStatic
+    fun getReference(literal: DeclarativeLiteral): PsiReference? = getReferences(literal).firstOrNull()
+
+    @JvmStatic
+    fun getReferences(literal: DeclarativeLiteral): Array<PsiReference> =
+      ReferenceProvidersRegistry.getReferencesFromProviders(literal)
+
     // Name should be nullable to agree with CompositePsiElement.getName() in PSI impl classes
     @JvmStatic
     fun getName(property: DeclarativeIdentifier): String? {

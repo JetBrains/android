@@ -185,6 +185,7 @@
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInDirectoryGradleConfigurationProducer"/>
     <psi.referenceContributor language="Groovy" implementation="com.android.tools.idea.gradle.service.resolve.GroovyNamespacePsiPackageReferenceContributor"/>
     <psi.referenceContributor language="kotlin" implementation="com.android.tools.idea.gradle.service.resolve.KotlinNamespacePsiPackageReferenceContributor"/>
+    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.service.resolve.DeclarativeNamespacePsiPackageReferenceContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.service.resolve.PsiPackageGradleUseScopeEnlarger"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">

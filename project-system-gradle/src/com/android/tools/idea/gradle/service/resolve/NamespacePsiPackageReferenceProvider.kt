@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.resolve
 
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
+import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.patterns.PlatformPatterns.psiFile
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.patterns.PlatformPatterns.virtualFile
 import com.intellij.patterns.PsiJavaPatterns.psiElement
 import com.intellij.patterns.StandardPatterns
@@ -28,6 +34,7 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.UseScopeEnlarger
 import com.intellij.util.ProcessingContext
@@ -38,8 +45,6 @@ import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.KtVisitor
-import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.isPlainWithEscapes
 import org.jetbrains.plugins.gradle.config.GradleBuildscriptSearchScope
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement
@@ -53,7 +58,15 @@ import org.jetbrains.plugins.groovy.lang.psi.patterns.groovyExpression
 class PsiPackageGradleUseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? =
     when {
-      element is PsiPackage -> GradleBuildscriptSearchScope(element.project)
+      element is PsiPackage -> GradleBuildscriptSearchScope(element.project).let {
+        if (!DeclarativeStudioSupport.isEnabled()) return@let it
+        return@let GlobalSearchScope.union(listOf(it, object : GlobalSearchScope(element.project) {
+          override fun contains(file: VirtualFile) = file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+          override fun isSearchInLibraries() = false
+          override fun isSearchInModuleContent(aModule: Module) = true
+          override fun getDisplayName() = "Gradle Declarative Configuration Files"
+        }))
+      }
       else -> null
     }
 }
@@ -113,3 +126,26 @@ private val KtStringTemplateExpression.stringValue: String
     })
     return sb.toString()
   }
+
+class DeclarativeNamespacePsiPackageReferenceContributor : PsiReferenceContributor() {
+  override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
+    if (DeclarativeStudioSupport.isEnabled()) {
+      registrar.registerReferenceProvider(dclPattern("namespace"), DeclarativeNamespacePsiPackageReferenceProvider(ScopeType.MAIN))
+      registrar.registerReferenceProvider(dclPattern("testNamespace"), DeclarativeNamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST))
+    }
+  }
+}
+
+class DeclarativeNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType): PsiReferenceProvider() {
+  override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
+    if (element !is DeclarativeLiteral) return emptyArray()
+    val scope = element.module?.getModuleSystem()?.getResolveScope(scopeType) ?: return emptyArray()
+    val references = (element.value as? String)?.let { PackageReferenceSet(it, element, 1, scope).psiReferences } ?: emptyArray()
+    return references
+  }
+}
+
+private fun dclPattern(text: String) =
+  psiElement(DeclarativeLiteral::class.java)
+    .withParent(psiElement(DeclarativeAssignment::class.java)
+                  .withFirstChild(psiElement(DeclarativeElement::class.java).withText(text)))

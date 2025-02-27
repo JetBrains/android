@@ -91,6 +91,7 @@ public class DeclarativeVisitor extends PsiElementVisitor {
 
   public void visitLiteral(@NotNull DeclarativeLiteral o) {
     visitValue(o);
+    // visitContributedReferenceHost(o);
   }
 
   public void visitPair(@NotNull DeclarativePair o) {
