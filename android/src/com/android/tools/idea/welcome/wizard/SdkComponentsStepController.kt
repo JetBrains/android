@@ -21,6 +21,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
@@ -33,14 +34,19 @@ import com.android.tools.idea.welcome.install.SdkComponentTreeNode.Companion.are
 import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.getTargetFilesystem
 import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.isExistingSdk
 import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.isNonEmptyNonSdk
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import java.nio.file.Paths
 import javax.swing.Icon
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 @UiThread
 abstract class SdkComponentsStepController(
@@ -48,11 +54,16 @@ abstract class SdkComponentsStepController(
   private val mode: FirstRunWizardMode,
   private val rootNode: SdkComponentTreeNode,
   private val localSdkHandlerProperty: ObjectValueProperty<AndroidSdkHandler>,
-) {
+) : Disposable {
+  private val coroutineScope = AndroidCoroutineScope(this)
+  private var loadingJob: Job? = null
+
   private var userEditedPath = false
   private var sdkDirectoryValidationResult = Validator.Result.OK
   private var wasForcedVisible = false
   private var loading = false
+
+  override fun dispose() {}
 
   fun startLoading() {
     loading = true
@@ -176,33 +187,37 @@ abstract class SdkComponentsStepController(
 
       val progress = StudioLoggerProgressIndicator(javaClass)
       startLoading()
-
-      ApplicationManager.getApplication().executeOnPooledThread {
-        localHandler
-          .getRepoManager(progress)
-          .loadSynchronously(
-            RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-            null,
-            listOf(
-              RepoLoadedListener {
-                rootNode.updateState(localHandler)
-                ApplicationManager.getApplication()
-                  .invokeLater({ this.stopLoading() }, modalityState)
-              }
-            ),
-            listOf(
-              Runnable {
-                ApplicationManager.getApplication()
-                  .invokeLater({ this.loadingError() }, modalityState)
-              }
-            ),
-            StudioProgressRunner(false, false, "Finding Available SDK Components", project),
-            StudioDownloader(),
-            StudioSettingsController.getInstance(),
-          )
-        ApplicationManager.getApplication()
-          .invokeLater({ this.reloadLicenseAgreementStep() }, modalityState)
-      }
+      loadingJob?.cancel()
+      loadingJob =
+        coroutineScope.launch(Dispatchers.Default) {
+          localHandler
+            .getRepoManager(progress)
+            .loadSynchronously(
+              RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+              null,
+              listOf(
+                RepoLoadedListener {
+                  rootNode.updateState(localHandler)
+                  coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
+                    stopLoading()
+                  }
+                }
+              ),
+              listOf(
+                Runnable {
+                  coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
+                    loadingError()
+                  }
+                }
+              ),
+              StudioProgressRunner(false, false, "Finding Available SDK Components", project),
+              StudioDownloader(),
+              StudioSettingsController.getInstance(),
+            )
+          coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
+            reloadLicenseAgreementStep()
+          }
+        }
 
       return true
     }
