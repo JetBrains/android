@@ -63,9 +63,13 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
 
       // Configure a channel provider to look for ADB from project settings
       val channelProvider =
-        AdbServerChannelProvider.createConnectAddresses(host) {
-          listOf(getAdbSocketAddress(project, host))
+        AdbLibApplicationService.instance.adbServerController?.let {
+          // TODO: use this project's adb file location in the channel provider
+          AdbLibApplicationService.instance.channelProvider
         }
+          ?: AdbServerChannelProvider.createConnectAddresses(host) {
+            listOf(getAdbSocketAddress(project, host))
+          }
 
       return AdbSession.createChildSession(
           parentSession = AdbLibApplicationService.instance.session,
