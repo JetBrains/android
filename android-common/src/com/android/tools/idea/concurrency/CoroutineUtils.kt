@@ -86,16 +86,10 @@ object AndroidDispatchers {
    * @see AndroidExecutors.uiThreadExecutor
    */
   @Deprecated("Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
-  val uiThread: CoroutineDispatcher get() = uiThread(ModalityState.defaultModalityState())
-
-  /**
-   * Creates a [CoroutineDispatcher] that uses the UI thread with the given [ModalityState].
-   *
-   * @see AndroidExecutors.uiThreadExecutor
-   */
-  fun uiThread(modalityState: ModalityState): CoroutineDispatcher {
-    return Executor { block -> AndroidExecutors.getInstance().uiThreadExecutor(modalityState, block) }.asCoroutineDispatcher()
-  }
+  val uiThread: CoroutineDispatcher get() =
+    Executor { block ->
+      AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block)
+    }.asCoroutineDispatcher()
 
   /**
    * [CoroutineDispatcher] that dispatches to a background worker thread.

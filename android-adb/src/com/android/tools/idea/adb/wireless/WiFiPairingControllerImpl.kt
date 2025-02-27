@@ -16,12 +16,14 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @UiThread
@@ -68,7 +70,7 @@ class WiFiPairingControllerImpl(
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    project.coroutineScope.launch(uiThread(ModalityState.any())) {
+    project.coroutineScope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       val supportState = pairingService.checkMdnsSupport()
       when (supportState) {
         MdnsSupportState.Supported -> {

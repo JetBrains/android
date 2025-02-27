@@ -27,7 +27,6 @@ import com.android.tools.adtui.validation.Validator.Severity.INFO
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -65,7 +64,9 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.ui.components.JBTextField
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -150,7 +151,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
           determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
 
         // ValueProperty's need to be set on the UI thread.
-        withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
+        withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
           versionCatalogUse.value = versionCatalogUseValue
           versionCatalogUseForNewModule.value = versionCatalogUseForNewModuleValue
         }

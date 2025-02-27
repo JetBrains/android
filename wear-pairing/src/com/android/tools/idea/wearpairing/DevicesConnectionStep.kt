@@ -33,7 +33,9 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
@@ -78,7 +80,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeoutOrNull
@@ -563,7 +564,7 @@ class DevicesConnectionStep(
     body: JComponent? = null,
     imagePath: String = "",
   ) =
-    withContext(uiThread(ModalityState.any())) {
+    withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       currentUiHeader = header
       currentUiDescription = description
 
@@ -951,7 +952,7 @@ class DevicesConnectionStep(
       }
 
     // Show ui on UI Thread
-    withContext(uiThread(ModalityState.any())) {
+    withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       mainPanel.apply {
         removeAll()
 

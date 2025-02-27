@@ -129,7 +129,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.EditorFactory
@@ -659,7 +661,7 @@ constructor(
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator, context: Any?) {
-    withContext(uiThread(ModalityState.any())) {
+    withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
       if (!isActive) {
         return@withContext

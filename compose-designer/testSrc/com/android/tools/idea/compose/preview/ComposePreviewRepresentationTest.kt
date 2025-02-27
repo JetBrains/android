@@ -74,7 +74,9 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
@@ -102,6 +104,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -502,7 +505,9 @@ class ComposePreviewRepresentationTest {
     // APIs from ProblemsViewToolWindowUtils, which use invokeLater when creating the components.
     // By setting the modality state to the problems view component, we'll make sure the runnable
     // below will execute only after the component is ready.
-    withContext(uiThread(ModalityState.stateForComponent(problemsView.component))) {
+    withContext(
+      Dispatchers.EDT + ModalityState.stateForComponent(problemsView.component).asContextElement()
+    ) {
       assertEquals(2, contentManager.contents.size)
       assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
     }

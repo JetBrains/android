@@ -36,12 +36,15 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getIconsSd
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.progress.getCancellable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -138,7 +141,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
       }
 
       // Invoke the ui-callback with the loaded icons and current status value.
-      withContext(uiThread(ModalityState.any())) {
+      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
         refreshUiCallback(icons, status)
       }
     }
@@ -161,7 +164,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
       }
     }
     if (iconsUpdated) {
-      withContext(uiThread(ModalityState.any())) {
+      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
         onNewIconsAvailable()
       }
     }

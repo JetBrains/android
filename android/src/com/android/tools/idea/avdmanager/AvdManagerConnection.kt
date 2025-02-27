@@ -73,7 +73,9 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
@@ -87,7 +89,6 @@ import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.runBlocking
@@ -102,6 +103,7 @@ import java.nio.file.StandardOpenOption
 import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -119,7 +121,8 @@ open class AvdManagerConnection
 constructor(
   private val sdkHandler: AndroidSdkHandler?,
   private val avdManager: AvdManager?,
-  private val uiDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread(ModalityState.any()),
+  private val uiContext: CoroutineContext =
+    Dispatchers.EDT + ModalityState.any().asContextElement(),
 ) {
   val emulator: EmulatorPackage?
     get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
@@ -448,7 +451,7 @@ constructor(
     code: AccelerationErrorCode,
     project: Project?,
   ): Int =
-    withContext(uiDispatcher) {
+    withContext(uiContext) {
       val message = "${code.problem}\n\n${code.solutionMessage}"
       Messages.showOkCancelDialog(
         project,
@@ -634,8 +637,9 @@ constructor(
     private val SDK_LOG: ILogger = LogWrapper(IJ_LOG)
     private val REPO_LOG: ProgressIndicator =
       StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
-    // The dispatcher on NULL_CONNECTION is unused. Pass Unconfined rather than the default uiThread(ModalityState.any()),
-    // because ModalityState.any() requires Application, which may not exist at class-init time in a test.
+    // The dispatcher on NULL_CONNECTION is unused. Pass Unconfined rather than the default
+    // Dispatchers.EDT + ModalityState.any().asContextElement(), because ModalityState.any()
+    // requires Application, which may not exist at class-init time in a test.
     private val NULL_CONNECTION = AvdManagerConnection(null, null, Dispatchers.Unconfined)
 
     private val ourAvdCache: MutableMap<Path?, AvdManagerConnection> = WeakHashMap()
