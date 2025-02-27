@@ -80,8 +80,8 @@ fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<C
   val stack = mutableListOf(this)
 
   while (stack.isNotEmpty()) {
-    var currentViewInfo: ComposeViewInfo = stack.pop()
-    var childrenContainingPoint =
+    val currentViewInfo: ComposeViewInfo = stack.pop()
+    val childrenContainingPoint =
       currentViewInfo.children.filter { it.containsPoint(x, y) && it.doesFileExistInTree(fileName) }
 
     // If no children contain point then it must be a leaf
@@ -101,8 +101,8 @@ fun ComposeViewInfo.findAllHitsInFile(fileName: String): List<ComposeViewInfo> {
   val hits = mutableListOf<ComposeViewInfo>()
 
   while (stack.isNotEmpty()) {
-    var currentViewInfo: ComposeViewInfo = stack.pop()
-    var childrenContainingPoint =
+    val currentViewInfo: ComposeViewInfo = stack.pop()
+    val childrenContainingPoint =
       currentViewInfo.children.filter { it.doesFileExistInTree(fileName) }
 
     if (currentViewInfo.sourceLocation.fileName == fileName) hits.push(currentViewInfo)
