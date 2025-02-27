@@ -149,8 +149,7 @@ public class SdkComponentSourceTest {
     String url = "http://example.com/repo";
     downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(Charsets.UTF_8));
 
-    final RepoManager mgr = new RepoManagerImpl();
-    mgr.setLocalPath(sdkRoot);
+    final RepoManager mgr = new RepoManagerImpl(sdkRoot);
     mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
     mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
     mgr.registerSourceProvider(new FakeRepositorySourceProvider(
