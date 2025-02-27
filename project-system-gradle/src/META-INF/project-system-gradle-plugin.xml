@@ -183,7 +183,8 @@
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestClassGradleConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInPackageGradleConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInDirectoryGradleConfigurationProducer"/>
-    <psi.referenceContributor language="Groovy" implementation="com.android.tools.idea.gradle.service.resolve.NamespacePsiPackageReferenceContributor"/>
+    <psi.referenceContributor language="Groovy" implementation="com.android.tools.idea.gradle.service.resolve.GroovyNamespacePsiPackageReferenceContributor"/>
+    <psi.referenceContributor language="kotlin" implementation="com.android.tools.idea.gradle.service.resolve.KotlinNamespacePsiPackageReferenceContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.service.resolve.PsiPackageGradleUseScopeEnlarger"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">

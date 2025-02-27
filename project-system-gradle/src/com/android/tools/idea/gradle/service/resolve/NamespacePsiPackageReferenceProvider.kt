@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.service.resolve
 
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.patterns.PlatformPatterns.psiFile
+import com.intellij.patterns.PlatformPatterns.virtualFile
 import com.intellij.patterns.PsiJavaPatterns.psiElement
 import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiElement
@@ -30,6 +32,15 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.UseScopeEnlarger
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtEscapeStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtVisitor
+import org.jetbrains.kotlin.psi.KtVisitorVoid
+import org.jetbrains.kotlin.psi.psiUtil.isPlainWithEscapes
 import org.jetbrains.plugins.gradle.config.GradleBuildscriptSearchScope
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression
@@ -47,14 +58,14 @@ class PsiPackageGradleUseScopeEnlarger : UseScopeEnlarger() {
     }
 }
 
-class NamespacePsiPackageReferenceContributor : PsiReferenceContributor() {
+class GroovyNamespacePsiPackageReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(groovyPattern("namespace"), NamespacePsiPackageReferenceProvider(ScopeType.MAIN))
-    registrar.registerReferenceProvider(groovyPattern("testNamespace"), NamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST))
+    registrar.registerReferenceProvider(groovyPattern("namespace"), GroovyNamespacePsiPackageReferenceProvider(ScopeType.MAIN))
+    registrar.registerReferenceProvider(groovyPattern("testNamespace"), GroovyNamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST))
   }
 }
 
-class NamespacePsiPackageReferenceProvider(private val scopeType: ScopeType) : PsiReferenceProvider() {
+class GroovyNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType) : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
     if (element !is GrLiteral) return emptyArray()
     val scope = element.module?.getModuleSystem()?.getResolveScope(scopeType) ?: return emptyArray()
@@ -70,3 +81,35 @@ private fun groovyPattern(text: String) =
         groovyExpression<GrAssignmentExpression>().withFirstChild(groovyExpression<GrReferenceExpression>().withText(text)),
         groovyElement<GrCommandArgumentList>().withParent(
           groovyExpression<GrApplicationStatement>().withFirstChild(groovyExpression<GrReferenceExpression>().withText(text)))))
+
+class KotlinNamespacePsiPackageReferenceContributor : PsiReferenceContributor() {
+  override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
+    registrar.registerReferenceProvider(kotlinPattern("namespace"), KotlinNamespacePsiPackageReferenceProvider(ScopeType.MAIN))
+    registrar.registerReferenceProvider(kotlinPattern("testNamespace"), KotlinNamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST))
+  }
+}
+
+class KotlinNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType): PsiReferenceProvider() {
+  override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
+    if (element !is KtStringTemplateExpression) return emptyArray()
+    if (!element.isPlainWithEscapes()) return emptyArray()
+    val scope = element.module?.getModuleSystem()?.getResolveScope(scopeType) ?: return emptyArray()
+    val references = (element.stringValue).let { PackageReferenceSet(it, element, 1, scope).psiReferences }
+    return references
+  }
+}
+
+private fun kotlinPattern(text: String) =
+  psiElement(KtStringTemplateExpression::class.java)
+    .withParent(psiElement(KtBinaryExpression::class.java).withFirstChild(psiElement(KtReferenceExpression::class.java).withText(text)))
+    .inVirtualFile(virtualFile().withExtension("kts"))
+
+private val KtStringTemplateExpression.stringValue: String
+  get() = run {
+    val sb = StringBuilder()
+    this.accept(object: KtTreeVisitorVoid() {
+      override fun visitEscapeStringTemplateEntry(entry: KtEscapeStringTemplateEntry) { sb.append(entry.unescapedValue) }
+      override fun visitLiteralStringTemplateEntry(entry: KtLiteralStringTemplateEntry) { sb.append(entry.text) }
+    })
+    return sb.toString()
+  }
