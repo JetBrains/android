@@ -107,7 +107,7 @@ import kotlin.math.roundToInt
  * @param screenshotImage the screenshot to display
  * @param backingFile the temporary file containing the screenshot, which is deleted when the viewer
  *     is closed
- * @param screenshotSupplier an optional supplier of additional screenshots. The *Recapture*
+ * @param screenshotProvider an optional provider of additional screenshots. The *Recapture*
  *     button is hidden if not provided
  * @param screenshotDecorator an optional postprocessor used for framing and clipping.
  *     The *Frame screenshot* checkbox and the framing options are hidden if not provided
@@ -121,7 +121,7 @@ class ScreenshotViewer(
   private val project: Project,
   screenshotImage: ScreenshotImage,
   private val backingFile: VirtualFile,
-  private val screenshotSupplier: ScreenshotSupplier,
+  private val screenshotProvider: ScreenshotProvider,
   private val screenshotDecorator: ScreenshotDecorator,
   framingOptions: List<FramingOption>,
   defaultFramingOption: Int,
@@ -222,7 +222,7 @@ class ScreenshotViewer(
         button(message("screenshot.dialog.recapture.button.text")) { doRefreshScreenshot() }
           .applyToComponent {
             icon = AllIcons.Actions.Refresh
-            runOnDisposalOfAnyOf(screenshotSupplier, disposable, runnable = { setEnabled(false) })
+            runOnDisposalOfAnyOf(screenshotProvider, disposable, runnable = { setEnabled(false) })
           }
 
         if (allowRotation) {
@@ -417,7 +417,7 @@ class ScreenshotViewer(
   }
 
   private fun doRefreshScreenshot() {
-    object : ScreenshotTask(project, screenshotSupplier) {
+    object : ScreenshotTask(project, screenshotProvider) {
 
       override fun run(indicator: ProgressIndicator) {
         Disposer.register(disposable) { indicator.cancel() }

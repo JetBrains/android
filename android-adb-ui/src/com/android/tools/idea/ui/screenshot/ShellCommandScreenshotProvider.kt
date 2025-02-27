@@ -35,13 +35,13 @@ import javax.imageio.ImageIO
 private val commandTimeout = INFINITE_DURATION
 
 /**
- * A [ScreenshotSupplier] that uses `adb shell screencap`
+ * A [ScreenshotProvider] that uses `adb shell screencap`
  */
-class AdbScreenCapScreenshotSupplier(
+class ShellCommandScreenshotProvider(
   project: Project,
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
-) : ScreenshotSupplier {
+) : ScreenshotProvider {
 
   private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)

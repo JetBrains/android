@@ -22,7 +22,7 @@ import com.intellij.openapi.Disposable
 /**
  * Used in conjunction with [ScreenshotViewer].
  */
-interface ScreenshotSupplier : Disposable {
+interface ScreenshotProvider : Disposable {
   /**
    * Captures and returns a new screenshot. Throws a [RuntimeException] in case of an error.
    */
