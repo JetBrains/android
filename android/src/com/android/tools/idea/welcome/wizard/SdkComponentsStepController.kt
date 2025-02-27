@@ -13,204 +13,202 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
+package com.android.tools.idea.welcome.wizard
 
-import com.android.annotations.concurrency.UiThread;
-import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.api.RepoManager;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.progress.StudioProgressRunner;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import java.io.File;
-import java.nio.file.Paths;
-import javax.swing.Icon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.concurrency.UiThread
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.repository.api.RepoManager
+import com.android.repository.api.RepoManager.RepoLoadedListener
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.tools.idea.ui.validation.validators.PathValidator.Companion.forAndroidSdkLocation
+import com.android.tools.idea.welcome.config.FirstRunWizardMode
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode.Companion.areAllRequiredComponentsAvailable
+import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.getTargetFilesystem
+import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.isExistingSdk
+import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils.isNonEmptyNonSdk
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.io.FileUtil
+import java.io.File
+import java.nio.file.Paths
+import javax.swing.Icon
 
 @UiThread
-public abstract class SdkComponentsStepController {
-  private final @Nullable Project myProject;
-  private final @NotNull FirstRunWizardMode myMode;
-  private final @NotNull SdkComponentTreeNode myRootNode;
-  private final @NotNull ObjectValueProperty<AndroidSdkHandler> myLocalSdkHandlerProperty;
+abstract class SdkComponentsStepController(
+  private val project: Project?,
+  private val mode: FirstRunWizardMode,
+  private val rootNode: SdkComponentTreeNode,
+  private val localSdkHandlerProperty: ObjectValueProperty<AndroidSdkHandler>,
+) {
+  private var userEditedPath = false
+  private var sdkDirectoryValidationResult = Validator.Result.OK
+  private var wasForcedVisible = false
+  private var loading = false
 
-  private boolean myUserEditedPath = false;
-  private PathValidator.Result mySdkDirectoryValidationResult;
-  private boolean myWasForcedVisible = false;
-  private boolean myLoading;
-
-  public SdkComponentsStepController(
-    @Nullable Project project,
-    @NotNull FirstRunWizardMode mode,
-    @NotNull SdkComponentTreeNode rootNode,
-    @NotNull ObjectValueProperty<AndroidSdkHandler> localHandlerProperty
-  ) {
-    myProject = project;
-    myMode = mode;
-    myRootNode = rootNode;
-    myLocalSdkHandlerProperty = localHandlerProperty;
+  fun startLoading() {
+    loading = true
+    onLoadingStarted()
   }
 
-  public void startLoading() {
-    myLoading = true;
-    onLoadingStarted();
+  fun stopLoading() {
+    loading = false
+    onLoadingFinished()
   }
 
-  public void stopLoading() {
-    myLoading = false;
-    onLoadingFinished();
+  fun loadingError() {
+    loading = false
+    onLoadingError()
   }
 
-  public void loadingError() {
-    myLoading = false;
-    onLoadingError();
-  }
+  abstract fun onLoadingStarted()
 
-  public abstract void onLoadingStarted();
-  public abstract void onLoadingFinished();
-  public abstract void onLoadingError();
+  abstract fun onLoadingFinished()
 
-  public boolean validate(@NotNull String path) {
-    if (!StringUtil.isEmpty(path)) {
-      myUserEditedPath = true;
+  abstract fun onLoadingError()
+
+  fun validate(path: String): Boolean {
+    if (!path.isEmpty()) {
+      userEditedPath = true
     }
 
-    mySdkDirectoryValidationResult = PathValidator.forAndroidSdkLocation().validate(Paths.get(path));
+    sdkDirectoryValidationResult = forAndroidSdkLocation().validate(Paths.get(path))
 
-    @NotNull Validator.Severity severity = mySdkDirectoryValidationResult.getSeverity();
-    boolean ok = severity == Validator.Severity.OK;
-    @Nullable String message = ok ? null : mySdkDirectoryValidationResult.getMessage();
+    var severity = sdkDirectoryValidationResult.severity
+    val ok = severity == Validator.Severity.OK
+    var message = sdkDirectoryValidationResult.message.takeUnless { ok }
 
     if (ok) {
-      File filesystem = SdkComponentsStepUtils.getTargetFilesystem(path);
+      val filesystem = getTargetFilesystem(path)
 
-      if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
-        severity = Validator.Severity.ERROR;
-        message = "Target drive does not have enough free space.";
-      }
-      else if (SdkComponentsStepUtils.isNonEmptyNonSdk(path)) {
-        severity = Validator.Severity.WARNING;
-        message = "Target folder is neither empty nor does it point to an existing SDK installation.";
-      }
-      else if (SdkComponentsStepUtils.isExistingSdk(path)) {
-        severity = Validator.Severity.WARNING;
-        message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
+      if (filesystem != null && filesystem.getFreeSpace() < this.componentsSize) {
+        severity = Validator.Severity.ERROR
+        message = "Target drive does not have enough free space."
+      } else if (isNonEmptyNonSdk(path)) {
+        severity = Validator.Severity.WARNING
+        message =
+          "Target folder is neither empty nor does it point to an existing SDK installation."
+      } else if (isExistingSdk(path)) {
+        severity = Validator.Severity.WARNING
+        message =
+          "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components."
       }
     }
 
-    setError(severity.getIcon(), myUserEditedPath ? message : null);
+    setError(severity.icon, message.takeIf { userEditedPath })
 
-    if (myLoading) {
-      return false;
+    if (loading) {
+      return false
     }
-    return mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.ERROR;
+    return sdkDirectoryValidationResult.severity != Validator.Severity.ERROR
   }
 
-  public long getComponentsSize() {
-    long size = 0;
-    for (InstallableSdkComponentTreeNode component : myRootNode.getChildrenToInstall()) {
-      size += component.getDownloadSize();
+  val componentsSize: Long
+    get() = rootNode.childrenToInstall.sumOf { it.downloadSize }
+
+  abstract fun setError(icon: Icon?, message: String?)
+
+  fun isStepVisible(isCustomInstall: Boolean, path: String): Boolean {
+    when {
+      // If we showed it once due to a validation error (e.g. if we had an invalid path on the
+      // standard setup path), we want to be sure it shows again (e.g. if we fix the path and then
+      // go backward and forward). Otherwise, the experience is confusing.
+      wasForcedVisible -> return true
+      mode.hasValidSdkLocation() -> return false
+      isCustomInstall -> return true
+      else -> {
+        validate(path)
+
+        wasForcedVisible = sdkDirectoryValidationResult.severity != Validator.Severity.OK
+        return wasForcedVisible
+      }
     }
-    return size;
   }
 
-  public abstract void setError(@Nullable Icon icon, @Nullable String message);
-
-  public boolean isStepVisible(boolean isCustomInstall, @NotNull String path) {
-    if (myWasForcedVisible) {
-      // If we showed it once due to a validation error (e.g. if we had a invalid path on the standard setup path),
-      // we want to be sure it shows again (e.g. if we fix the path and then go backward and forward). Otherwise the experience is
-      // confusing.
-      return true;
-    }
-    else if (myMode.hasValidSdkLocation()) {
-      return false;
-    }
-
-    if (isCustomInstall) {
-      return true;
-    }
-
-    validate(path);
-
-    myWasForcedVisible = mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.OK;
-    return myWasForcedVisible;
-  }
-
-  public void warnIfRequiredComponentsUnavailable() {
-    if (!SdkComponentTreeNode.areAllRequiredComponentsAvailable(myRootNode)) {
+  fun warnIfRequiredComponentsUnavailable() {
+    if (!areAllRequiredComponentsAvailable(rootNode)) {
       Messages.showWarningDialog(
         "Some required components are not available.\n" +
-        "You can continue, but some functionality may not work correctly until they are installed.",
-        "Required Component Missing");
+          "You can continue, but some functionality may not work correctly until they are installed.",
+        "Required Component Missing",
+      )
     }
   }
 
   /**
-   * Handles updates to the SDK path, triggering SDK component loading and refreshing the UI.  This method
-   * is called when the user selects a new SDK installation location. It updates the internal SDK handler,
-   * loads the SDK components available at the new location, and updates the UI to reflect the available
-   * components.  The loading process happens on a background thread to avoid blocking the UI.
+   * Handles updates to the SDK path, triggering SDK component loading and refreshing the UI. This
+   * method is called when the user selects a new SDK installation location. It updates the internal
+   * SDK handler, loads the SDK components available at the new location, and updates the UI to
+   * reflect the available components. The loading process happens on a background thread to avoid
+   * blocking the UI.
    *
-   * @param sdkPath The new SDK path selected by the user.  Should not be empty.
-   * @param modalityState The modality state to use when invoking UI updates.  This ensures that UI updates
-   *                      happen on the correct thread and with the appropriate modality.
-   * @return {@code true} if the SDK path was actually updated and processing started, {@code false} if the
-   *         provided path is the same as the current path and no update was necessary.
+   * @param sdkPath The new SDK path selected by the user. Should not be empty.
+   * @param modalityState The modality state to use when invoking UI updates. This ensures that UI
+   *   updates happen on the correct thread and with the appropriate modality.
+   * @return `true` if the SDK path was actually updated and processing started, `false` if the
+   *   provided path is the same as the current path and no update was necessary.
    */
-  public boolean onPathUpdated(@NotNull String sdkPath, @NotNull ModalityState modalityState) {
-    File sdkLocation = new File(sdkPath);
-    if (!FileUtil.filesEqual(myLocalSdkHandlerProperty.get().getLocation().toFile(), sdkLocation)) {
+  fun onPathUpdated(sdkPath: String, modalityState: ModalityState): Boolean {
+    val sdkLocation = File(sdkPath)
+    val currentSdkLocation = localSdkHandlerProperty.get().location?.toFile()
+    if (!FileUtil.filesEqual(currentSdkLocation, sdkLocation)) {
       if (sdkPath.isEmpty()) {
-        // When setting the SDK location in tests, it first triggers the state update with an empty string
-        // before triggering it with the updated value. If we try to load the SDK manager with an empty string,
-        // it hangs for a long time (40+ seconds), making the tests slow.
-        return false;
+        // When setting the SDK location in tests, it first triggers the state update with an empty
+        // string before triggering it with the updated value. If we try to load the SDK manager
+        // with an empty string, it hangs for a long time (40+ seconds), making the tests slow.
+        return false
       }
 
-      AndroidSdkHandler localHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, myLocalSdkHandlerProperty.get().toCompatiblePath(sdkLocation));
-      myLocalSdkHandlerProperty.set(localHandler);
+      val localHandler =
+        AndroidSdkHandler.getInstance(
+          AndroidLocationsSingleton,
+          localSdkHandlerProperty.get().toCompatiblePath(sdkLocation),
+        )
+      localSdkHandlerProperty.set(localHandler)
 
-      StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-      startLoading();
+      val progress = StudioLoggerProgressIndicator(javaClass)
+      startLoading()
 
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        localHandler.getRepoManager(progress)
+      ApplicationManager.getApplication().executeOnPooledThread {
+        localHandler
+          .getRepoManager(progress)
           .loadSynchronously(
             RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
             null,
-            ImmutableList.of(packages -> {
-              myRootNode.updateState(localHandler);
-              ApplicationManager.getApplication().invokeLater(this::stopLoading, modalityState);
-            }),
-            ImmutableList.of(() -> ApplicationManager.getApplication().invokeLater(this::loadingError, modalityState)),
-            new StudioProgressRunner(false, false, "Finding Available SDK Components", myProject),
-            new StudioDownloader(),
-            StudioSettingsController.getInstance()
-          );
-        ApplicationManager.getApplication().invokeLater(this::reloadLicenseAgreementStep, modalityState);
-      });
+            listOf(
+              RepoLoadedListener {
+                rootNode.updateState(localHandler)
+                ApplicationManager.getApplication()
+                  .invokeLater({ this.stopLoading() }, modalityState)
+              }
+            ),
+            listOf(
+              Runnable {
+                ApplicationManager.getApplication()
+                  .invokeLater({ this.loadingError() }, modalityState)
+              }
+            ),
+            StudioProgressRunner(false, false, "Finding Available SDK Components", project),
+            StudioDownloader(),
+            StudioSettingsController.getInstance(),
+          )
+        ApplicationManager.getApplication()
+          .invokeLater({ this.reloadLicenseAgreementStep() }, modalityState)
+      }
 
-      return true;
+      return true
     }
 
-    return false;
+    return false
   }
 
-  public abstract void reloadLicenseAgreementStep();
+  abstract fun reloadLicenseAgreementStep()
 }
