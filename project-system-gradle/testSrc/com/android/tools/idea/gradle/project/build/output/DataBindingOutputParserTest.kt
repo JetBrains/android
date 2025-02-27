@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.AssumeUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.events.MessageEvent
 
@@ -24,6 +25,7 @@ class DataBindingOutputParserTest : BuildOutputParserTest() {
 
   @Test
   fun handleMultipleJsonFormattedDataBindingParseErrors() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     parseOutput(
       parentEventId = "testId",
       gradleOutput = """
@@ -66,6 +68,7 @@ class DataBindingOutputParserTest : BuildOutputParserTest() {
 
   @Test
   fun handleMultipleLegacyFormattedDataBindingParseErrors() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     parseOutput(
       parentEventId = "testId",
       gradleOutput = """

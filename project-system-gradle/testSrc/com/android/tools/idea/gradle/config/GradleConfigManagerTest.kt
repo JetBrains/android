@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.config
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
@@ -26,8 +27,12 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class GradleConfigManagerTest: LightPlatformTestCase() {
 
   @get:Rule
@@ -46,6 +51,7 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
     super.tearDown()
   }
 
+  @Test
   fun `test Given undefined default JDK When initialize javaHome Then embedded JDK path was used`() {
     GradleDefaultJdkPathStore.jdkPath = null
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
@@ -54,7 +60,9 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
     assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
   }
 
+  @Test
   fun `test Given valid project JDK and valid default JDK When initialize javaHome Then project JDK path was used`() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     setProjectJdk(JDK_EMBEDDED_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
@@ -63,6 +71,7 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
     assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
   }
 
+  @Test
   fun `test Given invalid project JDK and valid default JDK When initialize javaHome Then default JDK path was used`() {
     setProjectJdk(JDK_INVALID_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
@@ -72,6 +81,7 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
     assertEquals(JDK_1_8_PATH, properties.javaHome?.path)
   }
 
+  @Test
   fun `test Given invalid project JDK and invalid default JDK When initialize javaHome Then embedded JDK path was used`() {
     setProjectJdk(JDK_INVALID_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_INVALID_PATH

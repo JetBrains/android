@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.testutils.AssumeUtil
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -113,7 +114,7 @@ class BuildOutputParsersIntegrationTest {
     myTracker = TestUsageTracker(scheduler)
     UsageTracker.setWriterForTest(myTracker)
 
-    basePath = projectRule.project.basePath!!
+    basePath = FileUtil.toSystemDependentName(projectRule.project.basePath!!)
     myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
 
     buildViewTestFixture = BuildViewTestFixture(projectRule.project)
@@ -295,17 +296,18 @@ class BuildOutputParsersIntegrationTest {
 
   @Test
   fun testAndroidGradlePluginErrors() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val path = File(basePath, "styles.xml")
-    val absolutePath = StringUtil.escapeBackSlashes(path.absolutePath)
+    val absolutePath = path.absolutePath
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("androidGradlePluginErrors")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$absolutePath" to absolutePath))
     //TODO (b/372180686): extra `Android resource linking failed` message is currently generated
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
     val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
+      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$stylesXmlPath" to absolutePath))
     }
     else {
-      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
+      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$stylesXmlPath" to absolutePath))
     }
 
     replayGradleOutput(

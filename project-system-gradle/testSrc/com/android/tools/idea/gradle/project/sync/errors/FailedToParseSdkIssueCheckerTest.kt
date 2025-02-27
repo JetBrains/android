@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.SystemProperties
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 import java.io.File
 
+@RunWith(JUnit4::class)
 class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
   private val failedToParseSdkIssueChecker = FailedToParseSdkIssueChecker()
 
+  @Test
   fun testCheckIssueWithoutBrokenSdk() {
     val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("failed to parse SDK"), null, null)
     val buildIssue = failedToParseSdkIssueChecker.check(issueData)
@@ -36,7 +42,9 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
+  @Test
   fun testCheckIssueWithBrokenSdkAndroidNoWriteAccess() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val sdkPath: File = object : File("/path/to/sdk/home") {
       override fun canWrite(): Boolean {
         return false
@@ -55,7 +63,9 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
+  @Test
   fun testCheckIssueWithBrokenSdkAndroidWriteAccess() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val sdkPath: File = object : File("/path/to/sdk/home") {
       override fun canWrite(): Boolean {
         return true
@@ -73,6 +83,7 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(

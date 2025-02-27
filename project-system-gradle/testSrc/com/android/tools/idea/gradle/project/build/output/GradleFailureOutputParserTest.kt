@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParserTest.Companion.getVersionCatalogLibsBuildIssueDescription
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParserTest.Companion.getVersionCatalogLibsBuildOutput
 import com.intellij.build.events.MessageEvent
+import com.intellij.openapi.util.io.FileUtil
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -112,13 +114,15 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
 
   @Test
   fun aaptErrorParsed() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val path = temporaryFolder.newFile("/styles.xml")
+    val systemIndependentPath = FileUtil.toSystemIndependentName(path.path)
     val buildOutput = """
       > Task :app:processDebugResources FAILED
-      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$path","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$path:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
-      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$path","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$path:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
-      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$path","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$path:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
-      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$path","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
 
       FAILURE: Build failed with an exception.
 

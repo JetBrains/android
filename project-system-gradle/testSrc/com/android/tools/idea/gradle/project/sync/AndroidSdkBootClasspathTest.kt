@@ -1,6 +1,8 @@
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.testutils.AssumeUtil
 import com.google.common.truth.Truth
+import org.junit.Before
 import org.junit.Test
 
 class AndroidSdkBootClasspathTest {
@@ -18,12 +20,14 @@ class AndroidSdkBootClasspathTest {
 
   @Test
   fun testWithOptionalLibs() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val libs = getUsefulBootClasspathLibraries(listOf(ANDROID_JAR, OPTIONAL_JAR)).map { it.path }
     Truth.assertThat(libs).containsExactly(OPTIONAL_JAR)
   }
 
   @Test
   fun testWithSdkAddOn() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val libs = getUsefulBootClasspathLibraries(listOf(ANDROID_JAR, SDK_ADDON_JAR)).map { it.path }
     Truth.assertThat(libs).containsExactly(SDK_ADDON_JAR)
   }

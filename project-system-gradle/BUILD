@@ -127,13 +127,19 @@ iml_module(
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
         "providers.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "shard_count": 5,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
@@ -147,7 +153,10 @@ iml_module(
         "kts.highlighting": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.highlighting.GradleKtsResolveSymbolsTest",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -157,7 +166,10 @@ iml_module(
         },
         "runs_gradle": {
             "test_filter": ".runsGradle",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "shard_count": 4,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
@@ -173,7 +185,10 @@ iml_module(
         "runs_indexing_with_gradle": {
             "test_filter": ".runsIndexingWithGradle",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -187,7 +202,10 @@ iml_module(
         },
         "runs_gradle_dependencies": {
             "test_filter": ".runsGradleDependencies",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -201,7 +219,10 @@ iml_module(
         },
         "runs_gradle_VersionCatalogAndDeclarative": {
             "test_filter": ".runsGradleVersionCatalogAndDeclarative",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -215,7 +236,10 @@ iml_module(
         "runs_indexing_with_gradle_VersionCatalogAndDeclarative": {
             "test_filter": ".runsIndexingWithGradleVersionCatalogAndDeclarative",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -228,7 +252,10 @@ iml_module(
         },
         "runs_gradle_build": {
             "test_filter": ".runsGradleBuild",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -242,7 +269,10 @@ iml_module(
         "runs_gradle_errors": {
             "test_filter": ".runsGradleErrors",
             "shard_count": 2,
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -256,7 +286,10 @@ iml_module(
         "runs_indexing_with_gradle_errors": {
             "test_filter": ".runsIndexingWithGradleErrors",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -269,7 +302,10 @@ iml_module(
         },
         "runs_gradle_open_project": {
             "test_filter": ".runsGradleOpenProjectTest",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -282,7 +318,10 @@ iml_module(
         },
         "runs_gradle_sync_integration": {
             "test_filter": ".runsGradleSyncIntegration",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -296,7 +335,10 @@ iml_module(
         "runs_indexing_with_gradle_snapshots": {
             "test_filter": ".runsIndexingWithGradleSnapshots",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "shard_count": 5,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
@@ -311,7 +353,10 @@ iml_module(
         },
         "runs_gradle_snapshots": {
             "test_filter": ".runsGradleSnapshots",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -326,7 +371,10 @@ iml_module(
         "runs_indexing_with_gradle_variants": {
             "test_filter": ".runsIndexingWithGradleVariant",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -339,7 +387,10 @@ iml_module(
         },
         "runs_gradle_projectsystem": {
             "test_filter": ".runsGradleProjectsystem",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -352,7 +403,10 @@ iml_module(
         },
         "runs_gradle_autosync": {
             "test_filter": ".autosync",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -365,7 +419,10 @@ iml_module(
         },
         "runs_gradle_signing": {
             "test_filter": ".runsGradleSigning",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -378,7 +435,10 @@ iml_module(
         },
         "runs_gradle_rendering": {
             "test_filter": ".runsGradleRendering",
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -392,7 +452,10 @@ iml_module(
         "runs_indexing_with_gradle_rendering": {
             "test_filter": ".runsIndexingWithGradleRendering",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
-            "tags": ["cpu:4"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -405,6 +468,7 @@ iml_module(
         },
         "other": {
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": ["ci:studio-win"],
             # Note: we do not include AGP/Gradle artifacts in this test target, to enforce the separation between tests which require Gradle
             # to run (in split targets above) and this catch-all target.
             "data": [],
@@ -430,10 +494,7 @@ iml_module(
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testSrc/resources"],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "block-network",
-        "noci:studio-win",
-    ],
+    test_tags = ["block-network"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

@@ -1,25 +1,25 @@
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
-$basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+$stylesXmlPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
-$basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
+$stylesXmlPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
-$basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
+$stylesXmlPath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
 ---
 Path: > failed > :app:processDebugResources > styles.xml > Android resource linking failed
 ERROR
-$basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
+$stylesXmlPath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
 ---
 Path: > failed > :app:processDebugResources > Android resource linking failed
 ERROR
 Execution failed for task ':app:processDebugResources'.
 > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
    > Android resource linking failed
-     $basePath/styles.xml:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+     $stylesXmlPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
 
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.

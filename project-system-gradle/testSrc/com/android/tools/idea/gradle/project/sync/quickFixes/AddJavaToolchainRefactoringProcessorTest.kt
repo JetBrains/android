@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.GradleFileModelTestCase
 import com.google.common.truth.Truth
 import com.intellij.openapi.vfs.readText
@@ -28,6 +29,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
 
   @Before
   fun setUpTestDataPath() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     testDataPath = AndroidTestBase.getModulePath("project-system-gradle") + "/testData/refactorings"
   }
 

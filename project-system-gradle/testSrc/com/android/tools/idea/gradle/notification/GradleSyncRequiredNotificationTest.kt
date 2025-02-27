@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.ui.EditorNotificationPanel
-import org.jetbrains.kotlin.konan.file.File
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -64,7 +63,7 @@ class GradleSyncRequiredNotificationTest {
 
   private fun openFileInEditor(filePath: String, editFile: Boolean = false) {
     WriteCommandAction.runWriteCommandAction(project) {
-      val path = filePath.split(File.separator).toTypedArray()
+      val path = filePath.split("/").toTypedArray()
       val buildGradleFile = VfsUtil.findRelativeFile(project.baseDir, *path)
       fixture.openFileInEditor(buildGradleFile!!)
       if (editFile) {

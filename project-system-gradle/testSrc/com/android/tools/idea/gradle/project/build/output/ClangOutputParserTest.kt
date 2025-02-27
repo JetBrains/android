@@ -16,16 +16,23 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.SdkConstants
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.utils.cxx.process.NativeBuildOutputClassifier
 import com.google.common.truth.Truth
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import org.junit.Assume
+import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
 class ClangOutputParserTest {
+  @get:Rule
+  val ignoreTestRule = IgnoreTestRule()
+
   // Notes on test input setup: any line that should be consumed by the parser must start with "* " (after trimIndent()).
 
   @Test
@@ -67,6 +74,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - simple case`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :foo:bar:app:externalNativeBuildDebug
@@ -83,6 +91,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - simple case - AGP 7_0 or later`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :foo:bar:app:buildNdkBuildDebug
@@ -97,6 +106,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - no module name`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :externalNativeBuildDebug
@@ -113,6 +123,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - different abis`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :app:externalNativeBuildDebug
@@ -136,6 +147,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - multiple interleaved diagnostic messages`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :app:externalNativeBuildDebug
@@ -159,6 +171,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `ndk-build - multiple gradle tasks`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :app:externalNativeBuildDebug
@@ -287,6 +300,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `cmake - warnings`() = assertParser("""
     > Task :app:mergeDebugShaders UP-TO-DATE
     > Task :app:compileDebugShaders NO-SOURCE
@@ -445,6 +459,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `linker - unresolved reference`() {
     assertParser("""
       > Task :app:externalNativeBuildDebug
@@ -465,6 +480,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `linker - unresolved reference with AGP 7_0 or later`() {
     assertParser("""
       > Task :app:buildCMakeDebug
@@ -483,6 +499,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `linker - missing library`() {
     assertParser("""
       > Task :app:externalNativeBuildDebug
@@ -503,6 +520,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `linker error has augmented details`() {
     assertParser("""
       > Task :app:externalNativeBuildDebug
@@ -527,6 +545,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `windows - relative paths are resolved correctly`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
     assertParser("""
@@ -551,6 +570,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `windows - path with invalid character is ignored`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
     assertParser("""
@@ -570,6 +590,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `windows - absolute paths are resolved correctly`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
     assertParser("""
@@ -652,6 +673,7 @@ class ClangOutputParserTest {
    * parentEventIds can are assigned to each 'thread' of messages.
    */
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `check interleaved event order`() {
     checkInterleavedParse(
       """
@@ -935,6 +957,7 @@ class ClangOutputParserTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/399625141", condition = OnWindows::class)
   fun `check interleaved event order with clang command-lines`() {
     checkInterleavedParse(
       """

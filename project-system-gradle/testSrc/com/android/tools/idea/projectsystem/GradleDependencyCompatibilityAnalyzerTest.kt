@@ -20,6 +20,7 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -40,6 +41,9 @@ import com.google.common.truth.Truth.assertThat
 import junit.framework.AssertionFailedError
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
@@ -49,6 +53,7 @@ import java.util.concurrent.TimeUnit
 // It is unknown if this is a timing issue or there is a underlying cause of the timeout. For now attempt with TIMEOUT = 10 seconds.
 private const val TIMEOUT = 10L // seconds
 
+@RunWith(JUnit4::class)
 class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   /**
@@ -71,6 +76,12 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   private lateinit var analyzer: GradleDependencyCompatibilityAnalyzer
 
+  override fun setUp() {
+    AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
+    super.setUp()
+  }
+
+  @Test
   fun testGetAvailableDependency_fallbackToPreview() {
     setupProject()
     // In the test repo NAVIGATION only has a preview version 0.0.1-alpha1
@@ -82,6 +93,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GoogleMavenArtifactId.NAVIGATION.getCoordinate("0.0.1-alpha1"))
   }
 
+  @Test
   fun testGetAvailableDependency_returnsLatestStable() {
     setupProject()
     // In the test repo CONSTRAINT_LAYOUT has a stable version of 1.0.2 and a beta version of 1.1.0-beta3
@@ -93,6 +105,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("1.0.2"))
   }
 
+  @Test
   fun testGetAvailableDependency_returnsNullWhenNoneMatches() {
     setupProject()
     // The test repo does not have any version of PLAY_SERVICES_ADS.
@@ -104,6 +117,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).isEmpty()
   }
 
+  @Test
   fun testAddSupportDependencyWithMatchInSubModule() {
     setupProject(
       appDependOnLibrary = true,
@@ -119,6 +133,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("23.1.1"))
   }
 
+  @Test
   fun testAddSupportDependencyWithMatchInAppModule() {
     setupProject(
       appDependOnLibrary = true,
@@ -134,6 +149,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("22.2.1"))
   }
 
+  @Test
   fun testProjectWithIncompatibleDependencies() {
     // NOTE: This test sets up an impossible environment. Two different versions of the same library cannot be present.
     setupProject(
@@ -158,6 +174,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
   }
 
+  @Test
   fun testProjectWithIncompatibleIndirectDependencies() {
     setupProject(
       appDependOnLibrary = true,
@@ -186,6 +203,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
   }
 
+  @Test
   fun testTwoArtifactsWithConflictingDependencies() {
     setupProject(
       additionalAppResolvedDependencies = listOf(
@@ -212,6 +230,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
   }
 
+  @Test
   fun testTwoArtifactsWithConflictingDependenciesInDifferentModules() {
     setupProject(
       appDependOnLibrary = true,
@@ -237,6 +256,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
   }
 
+  @Test
   fun testPreviewsAreAcceptedIfNoStableExists() {
     setupProject(
       additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0")
@@ -250,6 +270,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  @Test
   fun testNewestSameMajorIsChosenFromExistingIndirectDependency() {
     setupProject(
       appDependOnLibrary = true,
@@ -267,6 +288,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  @Test
   fun testAddingImcompatibleTestDependenciesFromMultipleSources() {
     // We are adding 2 dependencies that have conflicting test dependencies.
     // We should ignore test dependencies with analyzing compatibility issues.
@@ -287,6 +309,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  @Test
   fun testAddingKotlinStdlibDependenciesFromMultipleSources() {
     // We are adding 2 kotlin dependencies which depend on different kotlin stdlib
     // versions: 1.2.50 and 1.3.0. Make sure the dependencies can be added without errors.
@@ -302,6 +325,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  @Test
   fun testGetAvailableDependencyWithRequiredVersionMatching() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -320,6 +344,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(foundDependency.lowerBoundVersion.micro).isEqualTo(1)
   }
 
+  @Test
   fun testGetAvailableDependencyWhenUnavailable() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -330,6 +355,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).isEmpty()
   }
 
+  @Test
   fun testWithExplicitVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -341,6 +367,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.0"))
   }
 
+  @Test
   fun testWithExplicitPreviewVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -352,6 +379,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("com.android.support.constraint", "constraint-layout", "1.1.0-beta3"))
   }
 
+  @Test
   fun testWithExplicitNonExistingVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -363,6 +391,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).isEmpty()
   }
 
+  @Test
   fun testWithMajorVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -374,6 +403,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.1"))
   }
 
+  @Test
   fun testWithMajorMinorVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(

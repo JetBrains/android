@@ -16,16 +16,23 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Test
 
 class GradleBuildOutputParserTest : BuildOutputParserTest() {
 
   @Test
   fun parseErrorAndWarning() {
+    val filePath = when {
+      // Backslash should be double-escaped in json.
+      SystemInfo.isWindows -> "C:\\app\\src\\main\\res\\layout\\activity_main.xml"
+      else -> "/app/src/main/res/layout/activity_main.xml"
+    }
+    val filePathJson = filePath.replace("\\", "\\\\")
     parseOutput(
       parentEventId = "testId",
       gradleOutput = """
-        AGPBI: {"kind":"error","text":"Error message.","sources":[{"file":"/app/src/main/res/layout/activity_main.xml","position":{"startLine":10,"startColumn":31,"startOffset":456,"endColumn":44,"endOffset":469}}],"tool":"AAPT"}
+        AGPBI: {"kind":"error","text":"Error message.","sources":[{"file":"$filePathJson","position":{"startLine":10,"startColumn":31,"startOffset":456,"endColumn":44,"endOffset":469}}],"tool":"AAPT"}
         This is a detail line
         AGPBI: {"kind":"warning","text":"Warning message.","sources":[{}],"tool":"D8"}
       """.trimIndent(),
@@ -38,7 +45,7 @@ class GradleBuildOutputParserTest : BuildOutputParserTest() {
           group = "AAPT errors",
           kind = MessageEvent.Kind.ERROR,
           parentId = "testId",
-          filePosition = "/app/src/main/res/layout/activity_main.xml:11:32-11:45",
+          filePosition = "$filePath:11:32-11:45",
           description = "Error message.",
         ),
         ExpectedEvent(
