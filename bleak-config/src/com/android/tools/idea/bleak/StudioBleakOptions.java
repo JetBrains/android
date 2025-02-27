@@ -18,12 +18,18 @@ package com.android.tools.idea.bleak;
 import com.android.tools.idea.bleak.expander.Expander;
 import com.android.tools.idea.bleak.expander.SmartFMapExpander;
 import com.android.tools.idea.bleak.expander.SmartListExpander;
+import com.intellij.openapi.diagnostic.Logger;
+import java.lang.reflect.Field;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class StudioBleakOptions {
+
+  private static final Logger LOG = Logger.getInstance(StudioBleakOptions.class);
+
   private static final IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<>(Arrays.stream(new MainCheckIgnoreListEntry[] {
     new IgnoredRef(1, "com.intellij.openapi.util.Disposer", "ourTree"),
     new IgnoredClass("com.android.tools.idea.bleak.DisposerInfo"),
@@ -121,7 +127,21 @@ public class StudioBleakOptions {
 
   private static final Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
 
-  private static final List<Object> forbiddenObjects = List.of();
+  private static final List<Object> forbiddenObjects = new ArrayList<>();
+
+  static {
+    try {
+      Field f = ReflectionUtil.getField(Class.forName("android.util.SparseArray"), "DELETED");
+      Object deleted = f.get(null);
+      if (deleted != null) {
+        forbiddenObjects.add(deleted);
+      }
+    }
+    catch (ClassNotFoundException | IllegalAccessException e) {
+      LOG.warn("Could not reflectively access forbidden objects: " + e.getMessage());
+    }
+  }
+
 
   public static BleakOptions getDefaults() {
     return new BleakOptions().withCheck(new MainBleakCheck(globalIgnoreList, customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
