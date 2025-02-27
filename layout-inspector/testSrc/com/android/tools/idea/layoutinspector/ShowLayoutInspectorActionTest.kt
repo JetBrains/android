@@ -32,7 +32,9 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Before
@@ -44,11 +46,11 @@ import org.mockito.kotlin.whenever
 
 class ShowLayoutInspectorActionTest {
 
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+  private val applicationRule = ApplicationRule()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val applicationRule = ApplicationRule()
-
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val chain = RuleChain(applicationRule, projectRule, disposableRule)
 
   private lateinit var fakeToolWindowManager: FakeToolWindowManager
   private lateinit var fakeNotificationGroupManager: FakeNotificationGroupManager
@@ -69,6 +71,9 @@ class ShowLayoutInspectorActionTest {
         fakeNotificationGroupManager,
         disposableRule.disposable,
       )
+
+    // This line avoids the error: UnindexedFilesScannerExecutorImpl is initialized during dispose
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
 
   @Test
