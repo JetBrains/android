@@ -87,6 +87,8 @@
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer.gradle" scope="RUNTIME" />

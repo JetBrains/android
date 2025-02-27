@@ -81,9 +81,19 @@ class StudioEmbeddedRenderTarget {
           return rootFile.absolutePath + File.separator
         }
       }
-      if (!ApplicationManager.getApplication().isUnitTestMode) {
-        LOG.error("Unable to find embedded layoutlib in path: $path")
+      val notFoundPaths = mutableListOf<String>()
+      notFoundPaths.add(path)
+
+      AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace()
+      val dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/resources/layoutlib/")
+      if (dir.exists()) {
+        return dir.absolutePath + File.separator
       }
+      else {
+        notFoundPaths.add(dir.absolutePath)
+      }
+
+      LOG.error("Unable to find embedded layoutlib in paths:\n$notFoundPaths")
       return null
     }
   }
