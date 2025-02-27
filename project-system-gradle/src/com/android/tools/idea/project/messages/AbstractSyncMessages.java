@@ -165,12 +165,8 @@ public abstract class AbstractSyncMessages implements Disposable {
   private void showNotification(@NotNull NotificationData notification,
                                 @NotNull Object taskId,
                                 @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
-    String title = notification.getTitle();
     // Since the title of the notification data is the group, it is better to display the first line of the message
-    String[] lines = notification.getMessage().split(System.lineSeparator());
-    if (lines.length > 0) {
-      title = lines[0];
-    }
+    String title = notification.getMessage().lines().findFirst().orElse(notification.getTitle());
 
     AndroidSyncIssueEvent issueEvent;
     if (notification.getFilePath() != null) {
