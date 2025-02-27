@@ -2523,7 +2523,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     - resourceDirs                : <ROOT>/kmpFirstLib/src/androidMain/resources
                     - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidMain/kotlin
                     platform                      : JVM
-                archiveFile                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -2724,7 +2723,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     - resourceDirs                : <ROOT>/kmpJvmOnly/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmMain/kotlin
                     platform                      : JVM
-                archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3038,7 +3036,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     - resourceDirs                : <ROOT>/kmpSecondLib/src/androidMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/androidMain/kotlin
                     platform                      : JVM
-                archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3100,7 +3097,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     - resourceDirs                : <ROOT>/kmpSecondLib/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmMain/kotlin
                     platform                      : JVM
-                archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
