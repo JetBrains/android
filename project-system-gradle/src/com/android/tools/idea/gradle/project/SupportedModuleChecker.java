@@ -32,6 +32,8 @@ import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModulePointer;
+import com.intellij.openapi.module.ModulePointerManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
@@ -39,9 +41,12 @@ import com.intellij.platform.workspace.jps.entities.ModuleEntity;
 import com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeImpl;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jetbrains.kotlin.idea.core.script.KotlinScriptEntitySource;
 
 public class SupportedModuleChecker {
@@ -100,15 +105,23 @@ public class SupportedModuleChecker {
     String notificationTitle = AndroidBundle.message("project.sync.unsupported.modules.detected.title");
     String notificationMessage = AndroidBundle.message("project.sync.unsupported.modules.detected.message", moduleNames);
     String notificationButton = AndroidBundle.message("project.sync.unsupported.modules.detected.button");
-    UnsupportedModulesQuickFix unsupportedModulesQuickFix = new UnsupportedModulesQuickFix(notificationButton, unsupportedModules);
+    ModulePointerManager modulePointerManager = ModulePointerManager.getInstance(project);
+    List<ModulePointer> unsupportedModulePointers = unsupportedModules.stream().map(modulePointerManager::create).toList();
+    UnsupportedModulesQuickFix unsupportedModulesQuickFix = new UnsupportedModulesQuickFix(notificationButton, unsupportedModulePointers);
     AndroidNotification.getInstance(project).showBalloon(notificationTitle, notificationMessage, ERROR, unsupportedModulesQuickFix);
   }
 
-  private static class UnsupportedModulesQuickFix extends NotificationHyperlink {
+  @VisibleForTesting
+  static class UnsupportedModulesQuickFix extends NotificationHyperlink {
 
-    private final List<Module> unsupportedModules;
+    private final List<ModulePointer> unsupportedModules;
 
-    protected UnsupportedModulesQuickFix(String text, List<Module> unsupportedModules) {
+    @VisibleForTesting
+    public Stream<Module> getUnsupportedModules() {
+      return unsupportedModules.stream().map(ModulePointer::getModule).filter(Objects::nonNull);
+    }
+
+    protected UnsupportedModulesQuickFix(String text, List<ModulePointer> unsupportedModules) {
       super("unsupported.modules.quick.fix", text);
       this.unsupportedModules = unsupportedModules;
     }
@@ -124,7 +137,7 @@ public class SupportedModuleChecker {
       ApplicationManager.getApplication().runWriteAction(() -> {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         ModifiableModuleModel modifiableModule = moduleManager.getModifiableModel();
-        unsupportedModules.forEach(modifiableModule::disposeModule);
+        getUnsupportedModules().forEach(modifiableModule::disposeModule);
         modifiableModule.commit();
       });
       ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
