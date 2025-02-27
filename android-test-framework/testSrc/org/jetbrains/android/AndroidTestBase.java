@@ -40,6 +40,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
@@ -59,16 +60,15 @@ import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -111,23 +111,21 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   public static void unmaskKotlinHighlightVisitor(@NotNull CodeInsightTestFixture fixture) {
-    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(fixture.getProject()).stream()
-      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
+    var nonKotlinHighlighters = new ArrayList<HighlightVisitor>();
+    var extensionPoint = (ExtensionPointImpl<HighlightVisitor>)HighlightVisitor.EP_HIGHLIGHT_VISITOR.getPoint(fixture.getProject());
+    extensionPoint.processWithPluginDescriptor((extension, plugin) -> {
+      if (!plugin.getPluginId().getIdString().equals("org.jetbrains.kotlin")) {
+        nonKotlinHighlighters.add(extension);
+      }
+      return Unit.INSTANCE;
+    });
     ExtensionTestUtil.maskExtensions(
       HighlightVisitor.EP_HIGHLIGHT_VISITOR,
-      highlightVisitors,
+      nonKotlinHighlighters,
       fixture.getProjectDisposable(),
       false,
       fixture.getProject()
     );
-  }
-
-  private static boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
-    // K1: a subtype of [AbstractKotlinHighlightVisitor]
-    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
-    return visitor instanceof AbstractKotlinHighlightVisitor
-           || visitor instanceof KotlinDiagnosticHighlightVisitor
-           || visitor instanceof KotlinSemanticHighlightingVisitor;
   }
 
   public static void refreshProjectFiles() {
