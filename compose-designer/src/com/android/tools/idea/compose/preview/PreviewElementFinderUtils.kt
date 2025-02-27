@@ -42,6 +42,7 @@ import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -225,7 +226,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
     }
   // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
   // read lock
-  return readAction {
+  return smartReadAction(project = composableMethod.project) {
     previewAnnotationToPreviewElement(
       attributesProvider,
       annotatedMethod,
