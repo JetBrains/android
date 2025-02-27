@@ -31,6 +31,9 @@ enum class DeclarativeColor(humanName: Supplier<@AttributeDescriptor String>, de
   NUMBER(OptionsBundle.messagePointer("options.language.defaults.number"), DefaultLanguageHighlighterColors.NUMBER),
   NULL(messagePointer("color.settings.dcl.null"), DefaultLanguageHighlighterColors.KEYWORD),
   STRING(OptionsBundle.messagePointer("options.language.defaults.string"), DefaultLanguageHighlighterColors.STRING),
+
+  INVALID_STRING_ESCAPE(messagePointer("color.settings.dcl.invalid.escape"), DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE),
+  VALID_STRING_ESCAPE(messagePointer("color.settings.dcl.valid.escape"), DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE)
   ;
 
   val textAttributesKey: TextAttributesKey = TextAttributesKey.createTextAttributesKey("org.gradle.declarative.$name", default)

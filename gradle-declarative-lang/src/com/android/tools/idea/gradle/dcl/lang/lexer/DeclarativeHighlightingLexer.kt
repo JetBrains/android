@@ -15,6 +15,20 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.lexer
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
 import com.intellij.lexer.LayeredLexer
+import com.intellij.lexer.StringLiteralLexer
+import com.intellij.lexer.StringLiteralLexer.NO_QUOTE_CHAR
 
-class DeclarativeHighlightingLexer : LayeredLexer(DeclarativeLexer())
+class DeclarativeHighlightingLexer : LayeredLexer(DeclarativeLexer()) {
+  init {
+    registerLayer(
+      StringLiteralLexer(NO_QUOTE_CHAR, ONE_LINE_STRING_LITERAL, false, null, true, true),
+      ONE_LINE_STRING_LITERAL)
+
+    registerLayer(
+      StringLiteralLexer(NO_QUOTE_CHAR, MULTILINE_STRING_LITERAL, false, null, true, true),
+      MULTILINE_STRING_LITERAL)
+  }
+}

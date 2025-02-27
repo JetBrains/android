@@ -31,6 +31,9 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_CHARACTER_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_UNICODE_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.VALID_STRING_ESCAPE_TOKEN
 import com.intellij.psi.tree.IElementType
 
 class DeclarativeHighlighter : SyntaxHighlighterBase() {
@@ -55,6 +58,10 @@ class DeclarativeHighlighter : SyntaxHighlighterBase() {
     put(UNSIGNED_LONG, DeclarativeColor.NUMBER)
     put(UNSIGNED_INTEGER, DeclarativeColor.NUMBER)
     put(DOUBLE_LITERAL, DeclarativeColor.NUMBER)
+
+    put(INVALID_CHARACTER_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+    put(INVALID_UNICODE_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+    put(VALID_STRING_ESCAPE_TOKEN, DeclarativeColor.VALID_STRING_ESCAPE)
   }
 }
 
