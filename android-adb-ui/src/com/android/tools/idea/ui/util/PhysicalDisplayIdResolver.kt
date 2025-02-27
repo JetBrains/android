@@ -35,7 +35,7 @@ suspend fun AdbSession.getPhysicalDisplayId(device: DeviceSelector, displayId: I
  * Throws an exception if the given logical display ID is not fund in the dumpsys output.
  */
 fun getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput: String, displayId: Int): Long {
-  val regex = Regex("\\s+mCurrentLayerStack=$displayId[\\s\\S]*?\\s+mPhysicalDisplayId=(\\d+)\n", RegexOption.MULTILINE)
+  val regex = Regex("\\s+mCurrentLayerStack=$displayId\\W[\\s\\S]*?\\s+mPhysicalDisplayId=(\\d+)\n", RegexOption.MULTILINE)
   val match = regex.find(dumpsysOutput) ?: throw RuntimeException("Unable to find physical id for logical display $displayId")
   return match.groupValues[1].toLong()
 }
