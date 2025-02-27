@@ -335,21 +335,23 @@ open class CommonPluginsInserter(private val projectModel: ProjectBuildModel): P
                      matcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
 
-    // Inserting project level plugins in case
-    // - projectPlugins in project file
-    // - it's not single module project
-    val insertProjectPlugins = shouldInsertProjectPlugins() && !projectPlugins.hasPlugin(matcher)
-    // Insert plugins for module in case
-    // - buildModel is a separate module
-    // - buildModel is a single module project
-    val moduleInsertion = shouldInsertModulePlugins(projectPlugins, buildModel)
-
-    if (insertProjectPlugins) {
-      projectPlugins.applyPlugin(pluginId, version, apply)
+    if (isSingleModuleProject() && !projectPlugins.hasPlugin(matcher)) {
+      // need to have version here as it's a single module plugin
+      projectPlugins.applyPlugin(pluginId, version, null)
       changedFiles.addIfNotNull(projectPlugins.psiElement?.containingFile)
     }
-    if (moduleInsertion) {
-      addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
+    else {
+      // Insert plugins for module in case
+      // - buildModel is a separate module
+      val moduleInsertion = shouldInsertModulePlugins(projectPlugins, buildModel)
+
+      if (!projectPlugins.hasPlugin(matcher)) {
+        projectPlugins.applyPlugin(pluginId, version, apply)
+        changedFiles.addIfNotNull(projectPlugins.psiElement?.containingFile)
+      }
+      if (moduleInsertion) {
+        addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
+      }
     }
     return changedFiles
   }
@@ -457,7 +459,7 @@ open class CommonPluginsInserter(private val projectModel: ProjectBuildModel): P
 
 
   internal fun shouldInsertModulePlugins(projectPlugins: GradleBuildModel, buildModel: GradleBuildModel) =
-    projectPlugins.getPluginsPsiElement()?.containingFile != buildModel.psiFile || isSingleModuleProject()
+    projectPlugins.getPluginsPsiElement()?.containingFile != buildModel.psiFile
 
   internal fun shouldInsertProjectPlugins() = !isSingleModuleProject()
 

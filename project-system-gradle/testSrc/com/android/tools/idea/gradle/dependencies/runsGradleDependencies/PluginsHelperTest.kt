@@ -36,8 +36,11 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
+import com.android.tools.idea.testing.TestProjectPaths.SINGLE_MODULE_VERSION_CATALOG
+import com.android.tools.idea.testing.TestProjectPaths.SINGLE_MODULE_APPLICATION
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
+import com.android.tools.idea.testing.hasModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
@@ -99,6 +102,40 @@ class PluginsHelperTest : AndroidGradleTestCase() {
              assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.android)")
              assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.compose)")
              assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.multiplatform)")
+           })
+  }
+
+  @Test
+  fun testKotlinPluginsToSingleModuleNoCatalog() {
+    doTest(SINGLE_MODULE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel!!
+
+             val updates = helper.addPlugin("org.jetbrains.kotlin.jvm", "1.9.22", false, projectModel, moduleModel)
+             assertThat(updates.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("id 'org.jetbrains.kotlin.jvm' version '1.9.22'")
+           })
+  }
+
+  @Test
+  fun testKotlinPluginsToSingleModuleVersionCatalog() {
+    doTest(SINGLE_MODULE_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel!!
+
+             val updates = helper.addPlugin("org.jetbrains.kotlin.jvm", "1.9.22", false, projectModel, moduleModel)
+             assertThat(updates.size).isEqualTo(2)
+           },
+           {
+             val catalog = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalog).contains("jetbrains-kotlin-jvm = \"1.9.22\"")
+             assertThat(catalog).contains("jetbrains-kotlin-jvm = { id = \"org.jetbrains.kotlin.jvm\", version.ref = \"jetbrains-kotlin-jvm\" }")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.jetbrains.kotlin.jvm)")
            })
   }
 
@@ -973,7 +1010,12 @@ class PluginsHelperTest : AndroidGradleTestCase() {
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
     val projectBuildModel = ProjectBuildModel.get(project)
-    val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
+    val moduleModel: GradleBuildModel? =
+      if (project.hasModule("app"))
+        projectBuildModel.getModuleBuildModel(project.findModule("app"))
+      else
+        projectBuildModel.projectBuildModel
+    //val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(module)
     assertThat(moduleModel).isNotNull()
     val helper = PluginsHelper.withModel(projectBuildModel)
     change.invoke(projectBuildModel, moduleModel!!, (helper as CommonPluginsInserter))
