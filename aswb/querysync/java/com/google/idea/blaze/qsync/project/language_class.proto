@@ -8,8 +8,8 @@ option java_package = "com.google.idea.blaze.qsync.project";
 
 enum LanguageClass {
   LANGUAGE_CLASS_UNSPECIFIED = 0;
-  LANGUAGE_CLASS_JAVA = 1;
-  LANGUAGE_CLASS_KOTLIN = 2;
+  LANGUAGE_CLASS_JVM = 1;
+  reserved 2;
   LANGUAGE_CLASS_CC = 3;
 }
 

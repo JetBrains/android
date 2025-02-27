@@ -179,7 +179,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   private static final ImmutableMultimap<QuerySyncLanguage, OutputGroup> OUTPUT_GROUPS_BY_LANGUAGE =
       ImmutableMultimap.<QuerySyncLanguage, OutputGroup>builder()
           .putAll(
-              QuerySyncLanguage.JAVA,
+              QuerySyncLanguage.JVM,
               OutputGroup.JARS,
               OutputGroup.AARS,
               OutputGroup.GENSRCS,

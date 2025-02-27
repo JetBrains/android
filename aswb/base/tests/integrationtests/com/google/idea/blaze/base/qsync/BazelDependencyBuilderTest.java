@@ -153,7 +153,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var invocationInfo = dependencyBuilder.getInvocationInfo(
       BlazeContext.create(),
       ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2")),
-      ImmutableSet.of(QuerySyncLanguage.JAVA, QuerySyncLanguage.CC)
+      ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC)
     );
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();

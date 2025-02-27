@@ -24,8 +24,9 @@ import java.util.Optional;
 
 /** A language class that the query sync supports/needs to care about. */
 public enum QuerySyncLanguage {
-  JAVA(LanguageClass.LANGUAGE_CLASS_JAVA, DependencyTrackingBehavior.EXTERNAL_DEPENDENCIES),
-  KOTLIN(LanguageClass.LANGUAGE_CLASS_KOTLIN, DependencyTrackingBehavior.EXTERNAL_DEPENDENCIES),
+  /** Kotlin, Java and Android targets. */
+  JVM(LanguageClass.LANGUAGE_CLASS_JVM, DependencyTrackingBehavior.EXTERNAL_DEPENDENCIES),
+  /** C and C++ targets. */
   CC(LanguageClass.LANGUAGE_CLASS_CC, DependencyTrackingBehavior.SELF);
 
   QuerySyncLanguage(

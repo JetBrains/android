@@ -211,7 +211,7 @@ public class BlazeQueryParser {
   private void visitJavaRule(
       Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
     graphBuilder.allTargetsBuilder().add(label);
-    targetBuilder.languagesBuilder().add(QuerySyncLanguage.JAVA);
+    targetBuilder.languagesBuilder().add(QuerySyncLanguage.JVM);
     targetBuilder
         .sourceLabelsBuilder()
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))

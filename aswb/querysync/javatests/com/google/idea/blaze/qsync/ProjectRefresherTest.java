@@ -189,7 +189,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .setBazelVersion(Optional.of("1.0.0"))
             .build();
@@ -225,7 +225,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .build();
 
@@ -263,7 +263,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .build();
 
@@ -297,7 +297,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .build();
 
@@ -333,7 +333,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .build();
 
@@ -369,7 +369,7 @@ public class ProjectRefresherTest {
                     .setProjectExcludes(ImmutableSet.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
-                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .build())
             .build();
 

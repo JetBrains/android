@@ -567,7 +567,7 @@ public class GraphToProjectConverter {
 
     ImmutableSet.Builder<LanguageClass> activeLanguages = ImmutableSet.builder();
     if (graph.targetMap().values().stream().map(ProjectTarget::kind).anyMatch(RuleKinds::isJava)) {
-      activeLanguages.add(LanguageClass.LANGUAGE_CLASS_JAVA);
+      activeLanguages.add(LanguageClass.LANGUAGE_CLASS_JVM);
     }
     if (graph.targetMap().values().stream().map(ProjectTarget::kind).anyMatch(RuleKinds::isCc)) {
       activeLanguages.add(LanguageClass.LANGUAGE_CLASS_CC);
