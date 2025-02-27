@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +53,7 @@ public class StudioProgressRunner implements ProgressRunner {
 
   @VisibleForTesting
   public void runAsyncWithProgress(@NotNull final ProgressRunnable r, boolean overrideTestMode) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         Task.Backgroundable task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable, new PerformInBackgroundOption() {
@@ -95,7 +94,7 @@ public class StudioProgressRunner implements ProgressRunner {
 
   @Override
   public void runSyncWithProgress(@NotNull final ProgressRunnable progressRunnable) {
-    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
       Task task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
