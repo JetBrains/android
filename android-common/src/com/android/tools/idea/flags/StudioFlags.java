@@ -2177,7 +2177,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "prompt.library",
                     "Enable Prompt Library",
                     "When enabled, add prompt library settings screen.",
-                    enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
