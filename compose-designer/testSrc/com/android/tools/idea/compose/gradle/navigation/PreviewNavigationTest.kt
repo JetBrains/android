@@ -51,6 +51,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
@@ -85,6 +86,13 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
     expectedInvocationsCountDownLatch.countDown()
     return listOf()
+  }
+
+  override suspend fun findBoundsOfComponents(
+    sceneView: SceneView,
+    fileName: String,
+  ): Map<Int, Rectangle> {
+    return mapOf()
   }
 
   override suspend fun navigateTo(

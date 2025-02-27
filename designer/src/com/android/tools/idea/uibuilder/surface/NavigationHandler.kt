@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.openapi.Disposable
 import com.intellij.pom.Navigatable
+import java.awt.Rectangle
 
 /** Navigation helper for when the surface is clicked. */
 interface NavigationHandler : Disposable {
@@ -40,6 +41,18 @@ interface NavigationHandler : Disposable {
     requestFocus: Boolean,
     shouldFindAllNavigatables: Boolean,
   ): List<PreviewNavigatableWrapper>
+
+  /**
+   * Triggered when the caret is moved, this will return all bounds of the components in the preview
+   * and their line number to calculate whether the caret was moved to a line that has a preview.
+   *
+   * @param sceneView [SceneView] for which the navigation request is being issued
+   * @param fileName  [fileName] in which to look for components
+   */
+  suspend fun findBoundsOfComponents(
+    sceneView: SceneView,
+    fileName: String,
+  ): Map<Int, Rectangle>
 
   /**
    * Triggered when preview in the design surface is clicked, returns true if the navigation was

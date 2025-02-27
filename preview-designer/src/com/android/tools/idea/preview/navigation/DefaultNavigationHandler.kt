@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
+import java.awt.Rectangle
 import java.util.WeakHashMap
 import kotlinx.coroutines.withContext
 
@@ -75,6 +76,13 @@ open class DefaultNavigationHandler(
   ): List<PreviewNavigatableWrapper> {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
     return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
+  }
+
+  override suspend fun findBoundsOfComponents(
+    sceneView: SceneView,
+    fileName: String,
+  ): Map<Int, Rectangle> {
+    return emptyMap()
   }
 
   override suspend fun navigateTo(
