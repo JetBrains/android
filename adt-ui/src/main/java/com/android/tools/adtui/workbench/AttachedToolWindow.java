@@ -43,6 +43,7 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -455,7 +456,9 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (!content.supportsFiltering()) {
       return null;
     }
-    return ActionToolbarUtil.findActionButton(actionToolbar, actionToolbar.getActions().get(0));
+    AnAction action = ContainerUtil.getFirstItem(actionToolbar.getActions());
+    if (action == null) return null;
+    return ActionToolbarUtil.findActionButton(actionToolbar, action);
   }
 
   @Override
