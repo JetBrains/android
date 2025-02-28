@@ -21,6 +21,7 @@ import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.truth.Truth
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VfsUtil
@@ -43,7 +44,7 @@ class DeclarativeErrorParserTest {
   @Test
   @RunsInEdt
   fun testDeclarativeErrorParsed() {
-    val file = createFile("path","build.gradle.dcl", """
+    doTest("""
     androidApp {
       productFlavors {
         productFlavor("type1") {
@@ -51,59 +52,91 @@ class DeclarativeErrorParserTest {
         }
       }
     }
-    """.trimIndent())
-    val buildOutput = getDeclarativeBuildOutput(project.basePath + "/path/build.gradle.dcl")
-
-    val parser = DeclarativeErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
-
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isTrue()
-    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
-      Truth.assertThat(it.message).isEqualTo("Declarative project configure issue")
-      Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(geDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"))
-      Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
-      (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-        Truth.assertThat(ofd.line).isEqualTo(4)
-        Truth.assertThat(ofd.column).isEqualTo(9)
-        Truth.assertThat(ofd.file).isEqualTo(file)
-      }
+    """.trimIndent(), ::getDeclarativeBuildOutput) { file, iterator, reader ->
+      verifyIssue(iterator,
+                  reader.parentEventId,
+                  getDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"),
+                  4,
+                  9,
+                  file)
     }
   }
 
   @Test
   @RunsInEdt
   fun testDeclarativeTreeError() {
-    val file = createFile("path","build.gradle.dcl", """
+    doTest("""
     androidApp {
       produ{}ctFlavors {
       }
     }
-    """.trimIndent())
-    val buildOutput = getFailureBuildingLanguageTree(project.basePath + "/path/build.gradle.dcl")
+    """.trimIndent(), ::getFailureBuildingLanguageTree) { file, iterator, reader ->
+      verifyIssue(iterator,
+                  reader.parentEventId,
+                  getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"),
+                  2,
+                  10,
+                  file)
+    }
+  }
 
+  @Test
+  @RunsInEdt
+  fun testMultipleSubjectErrors() {
+    doTest("""
+    androidApp {
+      bui{}ldFeatures {
+      }
+      namespace = 1
+    }
+    """.trimIndent(), ::getMultipleSubject) { file, iterator, reader ->
+      verifyIssue(iterator, reader.parentEventId, getMultipleSubject1(file.path), 2, 10, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleSubject2(file.path), 4, 5, file)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testMultipleIssueErrors() {
+    doTest("""
+    androidApp {
+      namespace = 1
+      defaultConfig {
+        minSdk = "24"
+      }
+    }
+    """.trimIndent(), ::getMultipleIssueOutput) { file, iterator, reader ->
+      verifyIssue(iterator, reader.parentEventId, getMultipleIssue1(file.path), 2, 5, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleIssue2(file.path), 4, 9, file)
+    }
+  }
+
+  private fun doTest(content: String,
+                     buildOutput: (String) -> String,
+                     assert: (VirtualFile, Iterator<MessageEvent>, BuildOutputInstantReader) -> Unit) {
+    val file = createFile("path", "build.gradle.dcl", content)
     val parser = DeclarativeErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(file!!.path)).toList())
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!
     val parsed = parser.parse(line, reader, consumer)
 
     Truth.assertThat(parsed).isTrue()
-    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+    val iterator = consumer.messageEvents.filterIsInstance<MessageEvent>().listIterator()
+    assert(file, iterator, reader)
+  }
+
+  private fun verifyIssue(iterator: Iterator<MessageEvent>, parentId: Any, description: String, line: Int, column: Int, file: VirtualFile) {
+    iterator.next().let {
+      Truth.assertThat(it.parentId).isEqualTo(parentId)
       Truth.assertThat(it.message).isEqualTo("Declarative project configure issue")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"))
+      Truth.assertThat(it.description).isEqualTo(description)
       Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
       (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-        Truth.assertThat(ofd.line).isEqualTo(2)
-        Truth.assertThat(ofd.column).isEqualTo(10)
+        Truth.assertThat(ofd.line).isEqualTo(line)
+        Truth.assertThat(ofd.column).isEqualTo(column)
         Truth.assertThat(ofd.file).isEqualTo(file)
       }
     }
@@ -121,7 +154,7 @@ class DeclarativeErrorParserTest {
   }
 
   companion object {
-    fun getDeclarativeBuildOutput(absolutePath: String): String = """
+    private fun getDeclarativeBuildOutput(absolutePath: String): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -139,12 +172,12 @@ A problem occurred configuring project ':app'.
 * Exception is:
 """.trimIndent()
 
-    fun geDeclarativeBuildIssueDescription(absolutePath: String) = """
+    private fun getDeclarativeBuildIssueDescription(absolutePath: String) = """
     Failed to interpret declarative file '$absolutePath'
           4:9: unresolved reference 'matchingFallbacks'
     """.trimIndent()
 
-    fun getFailureBuildingLanguageTree(absolutePath: String): String = """
+    private fun getFailureBuildingLanguageTree(absolutePath: String): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -158,10 +191,70 @@ A problem occurred configuring project ':app'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
  """""".trimIndent()
-
-    fun getFailureBuildingLanguageTreeDescription(absolutePath: String) = """
+  private fun getFailureBuildingLanguageTreeDescription(absolutePath: String) = """
     Failed to interpret declarative file '$absolutePath'
           2:10: unsupported language feature: InfixFunctionCall
     """.trimIndent()
   }
+
+  private fun getMultipleSubject(absolutePath: String) =
+    """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring project ':app'.
+> Failed to interpret the declarative DSL file '$absolutePath':
+    Failures in building the language tree:
+      2:10: unsupported language feature: InfixFunctionCall
+    Failures in resolution:
+      4:5: assignment type mismatch, expected 'String', got 'Int'
+
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+    """.trimIndent()
+
+  private fun getMultipleSubject1(absolutePath: String) =
+    """
+      Failed to interpret declarative file '$absolutePath'
+            2:10: unsupported language feature: InfixFunctionCall
+    """.trimIndent()
+
+  private fun getMultipleSubject2(absolutePath: String) =
+    """
+      Failed to interpret declarative file '$absolutePath'
+            4:5: assignment type mismatch, expected 'String', got 'Int'
+    """.trimIndent()
+
+  private fun getMultipleIssueOutput(absolutePath: String) =
+    """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring project ':app'.
+> Failed to interpret the declarative DSL file '$absolutePath':
+    Failures in resolution:
+      2:5: assignment type mismatch, expected 'String', got 'Int'
+      4:9: assignment type mismatch, expected 'Int', got 'String'
+
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+    """.trimIndent()
+
+  private fun getMultipleIssue1(absolutePath: String) =
+    """
+      Failed to interpret declarative file '$absolutePath'
+            2:5: assignment type mismatch, expected 'String', got 'Int'
+    """.trimIndent()
+
+  private fun getMultipleIssue2(absolutePath: String) =
+    """
+      Failed to interpret declarative file '$absolutePath'
+            4:9: assignment type mismatch, expected 'Int', got 'String'
+    """.trimIndent()
 }
