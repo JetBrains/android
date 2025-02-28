@@ -182,6 +182,10 @@ Projects:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.ApplicationProductFlavor
                 Name                          : com.android.build.api.dsl.ApplicationProductFlavor
@@ -542,6 +546,10 @@ Projects:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.LibraryProductFlavor
                 Name                          : com.android.build.api.dsl.LibraryProductFlavor
@@ -701,6 +709,10 @@ Projects:
                 Name                          : com.android.build.api.dsl.TestedExtension
                 MemberFunctions
                 Properties
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.VariantDimension
                 Name                          : com.android.build.api.dsl.VariantDimension
@@ -1168,6 +1180,10 @@ Projects:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalBuildType
                 Name                          : com.android.build.gradle.internal.dsl.InternalBuildType
@@ -1249,6 +1265,10 @@ Projects:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalSigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.InternalSigningConfig
@@ -1280,6 +1300,10 @@ Projects:
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
@@ -2485,6 +2509,10 @@ Settings:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.ApplicationProductFlavor
                 Name                          : com.android.build.api.dsl.ApplicationProductFlavor
@@ -2845,6 +2873,10 @@ Settings:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.LibraryProductFlavor
                 Name                          : com.android.build.api.dsl.LibraryProductFlavor
@@ -3004,6 +3036,10 @@ Settings:
                 Name                          : com.android.build.api.dsl.TestedExtension
                 MemberFunctions
                 Properties
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.VariantDimension
                 Name                          : com.android.build.api.dsl.VariantDimension
@@ -3471,6 +3507,10 @@ Settings:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalBuildType
                 Name                          : com.android.build.gradle.internal.dsl.InternalBuildType
@@ -3552,6 +3592,10 @@ Settings:
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalSigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.InternalSigningConfig
@@ -3583,6 +3627,10 @@ Settings:
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
                     - PropertyName                  : namespace
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testBuildType
+                      Property SimpleType           : STRING
+                    - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
