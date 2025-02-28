@@ -29,6 +29,19 @@ class DeclarativeEscapeLexerTest: LexerTestCase() {
       """.trimIndent()
     )
   }
+
+  fun testInvalidUnicode() {
+    doTest(
+      "\"\\u002m\\uD7Fpppp\"",
+      """
+      DeclarativeTokenType.one_line_string_literal ('"')
+      INVALID_UNICODE_ESCAPE_TOKEN ('\u002m')
+      INVALID_UNICODE_ESCAPE_TOKEN ('\uD7Fp')
+      DeclarativeTokenType.one_line_string_literal ('ppp"')
+      """.trimIndent()
+    )
+  }
+
   fun testValidSymbols(){
     doTest(
       "\"\\b\\n\\r\\t\\\"\\\\\"",

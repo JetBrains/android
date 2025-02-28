@@ -24,11 +24,11 @@ import com.intellij.lexer.StringLiteralLexer.NO_QUOTE_CHAR
 class DeclarativeHighlightingLexer : LayeredLexer(DeclarativeLexer()) {
   init {
     registerLayer(
-      StringLiteralLexer(NO_QUOTE_CHAR, ONE_LINE_STRING_LITERAL, false, null, true, true),
+      StringLiteralLexer(NO_QUOTE_CHAR, ONE_LINE_STRING_LITERAL, false, null, false, false),
       ONE_LINE_STRING_LITERAL)
 
     registerLayer(
-      StringLiteralLexer(NO_QUOTE_CHAR, MULTILINE_STRING_LITERAL, false, null, true, true),
+      StringLiteralLexer(NO_QUOTE_CHAR, MULTILINE_STRING_LITERAL, false, null, false, false),
       MULTILINE_STRING_LITERAL)
   }
 }
