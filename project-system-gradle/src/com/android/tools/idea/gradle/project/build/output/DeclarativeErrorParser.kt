@@ -31,7 +31,8 @@ import java.util.function.Consumer
 
 class DeclarativeErrorParser : BuildOutputParser {
   private val FAILED_BUILD_FILE_PATTERN: Regex = "> Failed to interpret the declarative DSL file '([^']+.gradle.dcl)':".toRegex()
-  private val PROBLEM_LINE_PATTERN: Regex = "      (\\d)+:(\\d)+: unresolved .*".toRegex()
+  private val SUBJECT_PROBLEM_LINE_PATTERN: Regex = "[\\s]{4}[^\\s].*".toRegex()
+  private val PROBLEM_LINE_PATTERN: Regex = "      ([\\d]+):([\\d]+): .*".toRegex()
 
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
     if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
@@ -46,33 +47,35 @@ class DeclarativeErrorParser : BuildOutputParser {
         val (filename) = it.destructured
         val projectFile = java.io.File(filename)
         val description = StringBuilder().appendLine(buildIssueTitle(filename))
-        if (reader.readLine() != BUILD_ISSUE_RESOLUTION) return false
+        val subject = reader.readLine() ?: return false
+        SUBJECT_PROBLEM_LINE_PATTERN.matchEntire(subject)?.let {
 
-        val reasonLine = reader.readLine() ?: return false
-        description.appendLine(reasonLine)
+          val reasonLine = reader.readLine() ?: return false
+          description.appendLine(reasonLine)
 
-        PROBLEM_LINE_PATTERN.matchEntire(reasonLine)?.let {
-          val (lineNumber, columnNumber) = it.destructured
-          val buildIssue = object : ErrorMessageAwareBuildIssue {
-            override val description: String = description.toString().trimEnd()
-            override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-            override val title: String = BUILD_ISSUE_TITLE
-            override val buildErrorMessage: BuildErrorMessage
-              get() = BuildErrorMessage.newBuilder().apply {
-                errorShownType = BuildErrorMessage.ErrorType.INVALID_DECLARATIVE_DEFINITION
-                fileLocationIncluded = true
-                fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-                lineLocationIncluded = true
-              }.build()
+          PROBLEM_LINE_PATTERN.matchEntire(reasonLine)?.let { reason ->
+            val (lineNumber, columnNumber) = reason.destructured
+            val buildIssue = object : ErrorMessageAwareBuildIssue {
+              override val description: String = description.toString().trimEnd()
+              override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+              override val title: String = BUILD_ISSUE_TITLE
+              override val buildErrorMessage: BuildErrorMessage
+                get() = BuildErrorMessage.newBuilder().apply {
+                  errorShownType = BuildErrorMessage.ErrorType.INVALID_DECLARATIVE_DEFINITION
+                  fileLocationIncluded = true
+                  fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+                  lineLocationIncluded = true
+                }.build()
 
-            override fun getNavigatable(project: Project): Navigatable? {
-              val virtualFile = VfsUtil.findFileByIoFile(projectFile, false) ?: return null
-              return OpenFileDescriptor(project, virtualFile, lineNumber.toInt(), columnNumber.toInt())
+              override fun getNavigatable(project: Project): Navigatable? {
+                val virtualFile = VfsUtil.findFileByIoFile(projectFile, false) ?: return null
+                return OpenFileDescriptor(project, virtualFile, lineNumber.toInt(), columnNumber.toInt())
+              }
+
             }
-
+            messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR))
+            return true
           }
-          messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR))
-          return true
         }
       }
     }
@@ -83,7 +86,6 @@ class DeclarativeErrorParser : BuildOutputParser {
   companion object {
     const val BUILD_ISSUE_TITLE: String = "Declarative project configure issue"
     const val BUILD_ISSUE_START: String = "A problem occurred configuring project "
-    const val BUILD_ISSUE_RESOLUTION: String = "    Failures in resolution:"
     fun buildIssueTitle(fileName: String): String = "Failed to interpret declarative file '$fileName'"
   }
 

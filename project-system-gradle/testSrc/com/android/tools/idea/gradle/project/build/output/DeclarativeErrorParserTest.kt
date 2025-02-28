@@ -76,6 +76,39 @@ class DeclarativeErrorParserTest {
     }
   }
 
+  @Test
+  @RunsInEdt
+  fun testDeclarativeTreeError() {
+    val file = createFile("path","build.gradle.dcl", """
+    androidApp {
+      produ{}ctFlavors {
+      }
+    }
+    """.trimIndent())
+    val buildOutput = getFailureBuildingLanguageTree(project.basePath + "/path/build.gradle.dcl")
+
+    val parser = DeclarativeErrorParser()
+    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val consumer = TestMessageEventConsumer()
+
+    val line = reader.readLine()!!
+    val parsed = parser.parse(line, reader, consumer)
+
+    Truth.assertThat(parsed).isTrue()
+    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.message).isEqualTo("Declarative project configure issue")
+      Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+      Truth.assertThat(it.description).isEqualTo(getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"))
+      Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
+      (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+        Truth.assertThat(ofd.line).isEqualTo(2)
+        Truth.assertThat(ofd.column).isEqualTo(10)
+        Truth.assertThat(ofd.file).isEqualTo(file)
+      }
+    }
+  }
+
   private fun createFile(folder: String, fileName: String, content: String): VirtualFile? {
     var file: VirtualFile? = null
     var dir: VirtualFile? = null
@@ -98,18 +131,37 @@ A problem occurred configuring project ':app'.
       4:9: unresolved reference 'matchingFallbacks'
       4:9: unresolved assignment target
 
-
 * Try:
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
 * Exception is:
-      """.trimIndent()
+""".trimIndent()
 
     fun geDeclarativeBuildIssueDescription(absolutePath: String) = """
     Failed to interpret declarative file '$absolutePath'
           4:9: unresolved reference 'matchingFallbacks'
+    """.trimIndent()
+
+    fun getFailureBuildingLanguageTree(absolutePath: String): String = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring project ':app'.
+> Failed to interpret the declarative DSL file '$absolutePath':
+    Failures in building the language tree:
+      2:10: unsupported language feature: InfixFunctionCall
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+ """""".trimIndent()
+
+    fun getFailureBuildingLanguageTreeDescription(absolutePath: String) = """
+    Failed to interpret declarative file '$absolutePath'
+          2:10: unsupported language feature: InfixFunctionCall
     """.trimIndent()
   }
 }
