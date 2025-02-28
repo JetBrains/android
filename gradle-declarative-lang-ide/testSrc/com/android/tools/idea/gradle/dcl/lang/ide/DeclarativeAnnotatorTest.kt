@@ -114,6 +114,20 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   }
 
   @Test
+  fun checkInvalidUnicodeString() {
+    // Annotator should skip highlighting of this element
+    // as strings are parsed/highlighted by highlighting lexer
+    val file = addDeclarativeBuildFile("""
+      androidApp {
+        namespace = "org.gradle.experim\uental.android.app"
+      }
+    """)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   @Ignore("New schema does not have NDO")
   fun stopCheckingWithUnknownNamedDomainObjects() {
     val file = addDeclarativeBuildFile("""
