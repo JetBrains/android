@@ -543,7 +543,7 @@ class AndroidTestSuiteViewTest {
   }
 
   @Test
-  fun durationInStatusTextCanBeOverritten() {
+  fun durationInStatusTextCanBeOverwritten() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
     view.testExecutionDurationOverride = Duration.ofSeconds(10)
 
