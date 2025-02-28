@@ -386,8 +386,6 @@ public class GuiInputHandler implements Disposable {
     @Override
     public void mouseClicked(@NotNull MouseEvent event) {
       // TODO(b/142953949): send MouseClickEvent into myCurrentInteraction.
-      int x = event.getX();
-      int y = event.getY();
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
