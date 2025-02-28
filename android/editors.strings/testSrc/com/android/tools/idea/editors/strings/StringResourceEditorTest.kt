@@ -26,11 +26,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.scale.JBUIScale
 import icons.StudioIcons
-import java.awt.Font
-import kotlin.test.fail
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
@@ -48,6 +51,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.awt.Font
+import kotlin.test.fail
 
 /** Tests for the [StringResourceEditor] class. */
 @RunWith(JUnit4::class)
@@ -55,6 +60,8 @@ class StringResourceEditorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule val myFlagRule = FlagRule(StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION)
+
+  @get:Rule val edtRule = EdtRule()
 
   private val font = Font(Font.DIALOG, Font.PLAIN, 12)
   private val oldScale = JBUIScale.scale(1.0f)
@@ -69,6 +76,7 @@ class StringResourceEditorTest {
   private lateinit var resourceNotificationManager: ResourceNotificationManager
   private var reloadsStarted = 0
   private var reloadsFinished = 0
+  private val testScope = TestScope(UnconfinedTestDispatcher())
 
   @Before
   fun setUp() {
@@ -92,7 +100,7 @@ class StringResourceEditorTest {
 
     JBUIScale.setUserScaleFactor(2.0f)
     stringsVirtualFile = StringsVirtualFile.getStringsVirtualFile(projectRule.module)!!
-    editor = StringResourceEditor(stringsVirtualFile)
+    editor = StringResourceEditor.createForTests(stringsVirtualFile, testScope)
     verify(resourceNotificationManager).getCurrentVersion(eq(facet), isNull(), isNull())
     Disposer.register(projectRule.fixture.testRootDisposable, editor)
 
@@ -205,6 +213,7 @@ class StringResourceEditorTest {
 
     assertThat(listeners).hasSize(1)
 
+    verify(resourceNotificationManager, times(2)).getCurrentVersion(eq(facet), isNull(), isNull())
     verifyNoMoreInteractions(resourceNotificationManager)
 
     // Should not have reloaded the panel, since nothing has changed since we first loaded
@@ -228,19 +237,22 @@ class StringResourceEditorTest {
 
     assertThat(listeners).hasSize(0)
     verify(resourceNotificationManager).removeListener(eq(listener), eq(facet), isNull(), isNull())
-    verify(resourceNotificationManager, times(2)).getCurrentVersion(eq(facet), isNull(), isNull())
+    verify(resourceNotificationManager, times(3)).getCurrentVersion(eq(facet), isNull(), isNull())
 
     editor.deselectNotify() // Should do nothing
 
     verifyNoMoreInteractions(resourceNotificationManager)
   }
 
+  @RunsInEdt
   @Test
   fun panelRefreshedWhenOutOfDate() {
     StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true)
     currentResourceVersion = resourceVersion2
 
     editor.selectNotify() // Should add the listener and reload the panel
+
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(reloadsStarted).isEqualTo(1)
     assertThat(reloadsFinished).isEqualTo(1)
@@ -249,11 +261,15 @@ class StringResourceEditorTest {
 
     editor.selectNotify() // Should do nothing
 
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
     assertThat(reloadsStarted).isEqualTo(1)
     assertThat(reloadsFinished).isEqualTo(1)
 
     editor.deselectNotify() // Stores the version
     editor.selectNotify() // No updates because nothing changed since we were deselected
+
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(reloadsStarted).isEqualTo(1)
     assertThat(reloadsFinished).isEqualTo(1)
@@ -261,6 +277,8 @@ class StringResourceEditorTest {
     editor.deselectNotify() // Stores the version
     currentResourceVersion = resourceVersion1
     editor.selectNotify() // Now something has changed since we were deselected, so should reload
+
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(reloadsStarted).isEqualTo(2)
     assertThat(reloadsFinished).isEqualTo(2)

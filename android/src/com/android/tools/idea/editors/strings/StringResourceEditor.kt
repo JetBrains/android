@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.annotations.TestOnly
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -28,6 +32,10 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.beans.PropertyChangeListener
 import java.util.concurrent.atomic.AtomicBoolean
@@ -39,7 +47,9 @@ import javax.swing.JComponent
  *
  * This editor is mostly a wrapper around the [StringResourceViewPanel] which holds most of the functionality.
  */
-class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolderBase(), DataProvider, FileEditor {
+class StringResourceEditor private constructor(private val file: StringsVirtualFile, injectedScope: CoroutineScope?) : UserDataHolderBase(), DataProvider, FileEditor {
+  constructor(file: StringsVirtualFile) : this(file, null)
+
   // We sometimes get extra calls to `selectNotify`. This ensures that we know when
   // those calls represent a real transition.
   private val selected = AtomicBoolean()
@@ -57,9 +67,12 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
   lateinit var panel: StringResourceViewPanel
     private set
 
+  private val scope: CoroutineScope
+
   init {
     // Post-startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(Runnable { panel = StringResourceViewPanel(file.facet, this) })
+    scope = injectedScope ?: AndroidCoroutineScope(this)
   }
 
   override fun getFile() = file
@@ -112,9 +125,16 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
 
   private fun addListener() {
     val facet: AndroidFacet = file.facet
-    val latest = ResourceNotificationManager.getInstance(facet.module.project)
+    ResourceNotificationManager.getInstance(facet.module.project)
       .addListener(resourceChangeListener, facet, /* file = */ null, /* configuration = */ null)
-    if (resourceVersion != latest) panel.reloadData()
+
+    // We might need to trigger an update if the resourceVersion has changed but getCurrentVersion is a slow method so we launch the check
+    // asynchronously.
+    scope.launch {
+      val latest =
+        ResourceNotificationManager.getInstance(facet.module.project).getCurrentVersion(facet, null, null)
+      if (resourceVersion != latest) withContext(Dispatchers.EDT) { panel.reloadData() }
+    }
   }
 
   private fun removeListener() {
@@ -128,5 +148,8 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
     /** An [Icon] representing the editor. */
     @JvmField
     val ICON: Icon = StudioIcons.LayoutEditor.Toolbar.LANGUAGE
+
+    @TestOnly
+    fun createForTests(file: StringsVirtualFile, scope: CoroutineScope) = StringResourceEditor(file, scope)
   }
 }
