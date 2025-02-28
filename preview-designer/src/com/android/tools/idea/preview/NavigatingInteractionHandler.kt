@@ -53,7 +53,7 @@ import org.intellij.lang.annotations.JdkConstants
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
  * capabilities. When [isSelectionEnabled] is true, Preview selection capabilities are also added,
  * affecting the navigation logic. When [isPopUpEnabled] returns true, option clicking will open a
- * pop up with all componenets under click.
+ * pop up with all components under click.
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
@@ -334,7 +334,7 @@ class NavigatingInteractionHandler(
           isOptionDown,
         )
       if (isOptionDown && isPopUpEnabled()) {
-        // Open a pop up menu with all componenets under coordinates
+        // Open a pop up menu with all components under coordinates
         var actions = createActionGroup(sceneView, navigatables)
         withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }
         return@launch
@@ -356,12 +356,11 @@ class NavigatingInteractionHandler(
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         withContext(uiThread) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
-
       }
     }
   }
 
-  // Create an action group with actions to navigate to componenets. This will be called when Option
+  // Create an action group with actions to navigate to components. This will be called when Option
   // + clicking on component.
   private fun createActionGroup(
     sceneView: SceneView,
