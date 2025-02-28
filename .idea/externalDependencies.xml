@@ -3,6 +3,5 @@
   <component name="ExternalDependencies">
     <plugin id="AntSupport" />
     <plugin id="DevKit" />
-    <plugin id="com.intellij.uiDesigner" />
   </component>
 </project>
