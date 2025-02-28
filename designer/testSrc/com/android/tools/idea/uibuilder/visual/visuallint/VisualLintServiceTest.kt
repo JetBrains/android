@@ -28,10 +28,9 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.VisualLintErrorType
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -73,10 +72,17 @@ class VisualLintServiceTest {
   }
 
   @Test
-  fun runBackgroundVisualLintAnalysis() {
+  fun runBackgroundVisualLintAnalysis() = runTest {
     projectRule.load("projects/visualLintApplication")
 
-    val visualLintService = VisualLintService.getInstance(projectRule.project)
+    val visualLintService =
+      VisualLintService.getInstanceForTest(
+        project = projectRule.project,
+        parentDisposable = projectRule.fixture.testRootDisposable,
+        coroutineScope = this,
+        visualLintDispatcher = StandardTestDispatcher(testScheduler),
+        visualLintAnalyzerDispatcher = StandardTestDispatcher(testScheduler),
+      )
     val visualLintIssueModel = visualLintService.issueModel
 
     val module = projectRule.getModule("app")
@@ -92,15 +98,13 @@ class VisualLintServiceTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         dashboardLayout,
       )
-    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintService.runVisualLintAnalysis(
       projectRule.fixture.testRootDisposable,
       ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
       listOf(nlModel),
       emptyMap(),
-      visualLintExecutorService,
     )
-    visualLintExecutorService.waitForTasksToComplete()
+    testScheduler.advanceUntilIdle()
 
     val issues = visualLintIssueModel.issues
     assertEquals(2, issues.size)
@@ -115,15 +119,13 @@ class VisualLintServiceTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         atfLayout,
       )
-    VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(
-        projectRule.fixture.testRootDisposable,
-        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
-        listOf(atfModel),
-        emptyMap(),
-        visualLintExecutorService,
-      )
-    visualLintExecutorService.waitForTasksToComplete()
+    visualLintService.runVisualLintAnalysis(
+      projectRule.fixture.testRootDisposable,
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+      listOf(atfModel),
+      emptyMap(),
+    )
+    testScheduler.advanceUntilIdle()
 
     val atfIssues = visualLintIssueModel.issues
     assertEquals(1, atfIssues.size)
@@ -146,15 +148,13 @@ class VisualLintServiceTest {
         wearLayout,
         wearConfiguration,
       )
-    VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(
-        projectRule.fixture.testRootDisposable,
-        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
-        listOf(wearModel),
-        emptyMap(),
-        visualLintExecutorService,
-      )
-    visualLintExecutorService.waitForTasksToComplete()
+    visualLintService.runVisualLintAnalysis(
+      projectRule.fixture.testRootDisposable,
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+      listOf(wearModel),
+      emptyMap(),
+    )
+    testScheduler.advanceUntilIdle()
 
     val wearIssues = visualLintIssueModel.issues
     assertEquals(13, wearIssues.size)
@@ -167,15 +167,21 @@ class VisualLintServiceTest {
   }
 
   @Test
-  fun runOnPreviewVisualLintAnalysis() {
+  fun runOnPreviewVisualLintAnalysis() = runTest {
     projectRule.load("projects/visualLintApplication")
 
-    val visualLintService = VisualLintService.getInstance(projectRule.project)
+    val visualLintService =
+      VisualLintService.getInstanceForTest(
+        project = projectRule.project,
+        parentDisposable = projectRule.fixture.testRootDisposable,
+        coroutineScope = this,
+        visualLintDispatcher = StandardTestDispatcher(testScheduler),
+        visualLintAnalyzerDispatcher = StandardTestDispatcher(testScheduler),
+      )
     val visualLintIssueModel = visualLintService.issueModel
 
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
-    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     val notificationsLayout =
       projectRule.project.baseDir.findFileByRelativePath(
         "app/src/main/res/layout/fragment_notifications.xml"
@@ -205,9 +211,8 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to phoneModel),
-          visualLintExecutorService,
         )
-        visualLintExecutorService.waitForTasksToComplete()
+        testScheduler.advanceUntilIdle()
         val issues = visualLintIssueModel.issues
         assertEquals(0, issues.size)
       } catch (ex: Exception) {
@@ -239,9 +244,8 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to tabletModel),
-          visualLintExecutorService,
         )
-        visualLintExecutorService.waitForTasksToComplete()
+        testScheduler.advanceUntilIdle()
         val issues = visualLintIssueModel.issues
         assertEquals(1, issues.size)
         assertEquals("Visual Lint Issue", issues[0].category)
@@ -271,9 +275,8 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to atfModel),
-          visualLintExecutorService,
         )
-        visualLintExecutorService.waitForTasksToComplete()
+        testScheduler.advanceUntilIdle()
         val issues = visualLintIssueModel.issues
         assertEquals(3, issues.size)
         val clickIssue =
@@ -284,8 +287,4 @@ class VisualLintServiceTest {
       }
     }
   }
-}
-
-private fun ExecutorService.waitForTasksToComplete() {
-  submit {}?.get(30, TimeUnit.SECONDS)
 }

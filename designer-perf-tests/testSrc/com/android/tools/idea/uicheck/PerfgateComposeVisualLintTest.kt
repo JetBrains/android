@@ -46,9 +46,6 @@ import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
 import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.android.tools.rendering.RenderResult
-import com.google.common.util.concurrent.MoreExecutors
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Test
 
@@ -162,7 +159,6 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
       resultToModelMap[renderResult.result!!] = nlModel
     }
 
-    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     uiCheckBenchmark.measureOperation(
       measures =
         listOf(
@@ -181,14 +177,7 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
           visualLintIssueProvider,
           emptyList(),
           resultToModelMap,
-          visualLintExecutorService,
         )
-      // Wait for visual lint tasks to complete
-      visualLintExecutorService.waitForTasksToComplete()
     }
   }
-}
-
-private fun ExecutorService.waitForTasksToComplete() {
-  submit {}?.get(30, TimeUnit.SECONDS)
 }

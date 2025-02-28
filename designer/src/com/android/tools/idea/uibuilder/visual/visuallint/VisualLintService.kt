@@ -45,7 +45,6 @@ import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -54,22 +53,26 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.serviceContainer.AlreadyDisposedException
-import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import org.jetbrains.annotations.TestOnly
 
+/** Dispatcher to trigger background visual linting analysis using only 1 thread */
+@OptIn(ExperimentalCoroutinesApi::class)
+private val visualLintSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
 /**
- * Pool of 1 thread to trigger background visual linting analysis one at a time, and wait for its
- * completion
+ * Dispatcher to run all the visual linting analyzers triggered from one analysis using only 1
+ * thread
  */
-private val visualLintExecutorService =
-  AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Service", 1)
-/** Pool of 1 thread to run all the visual linting analyzers triggered from one analysis */
-private val visualLintAnalyzerExecutorService =
-  AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Analyzer", 1)
+@OptIn(ExperimentalCoroutinesApi::class)
+private val visualLintAnalyzerSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
 /**
  * Time out for visual lint analysis. Use a longer one for testing to ensure it always completes
  * then.
@@ -81,12 +84,45 @@ private val LOG = Logger.getInstance(VisualLintService::class.java)
 
 /** Service that runs visual lints. */
 @Service(Service.Level.PROJECT)
-class VisualLintService(val project: Project) : Disposable {
+class VisualLintService
+private constructor(
+  val project: Project,
+  val coroutineScope: CoroutineScope,
+  val visualLintDispatcher: CoroutineDispatcher,
+  val visualLintAnalyzerDispatcher: CoroutineDispatcher,
+) : Disposable {
+
+  constructor(
+    project: Project,
+    coroutineScope: CoroutineScope,
+  ) : this(
+    project = project,
+    coroutineScope = coroutineScope,
+    visualLintDispatcher = visualLintSingleThreadedDispatcher,
+    visualLintAnalyzerDispatcher = visualLintAnalyzerSingleThreadedDispatcher,
+  )
 
   companion object {
     @JvmStatic
     fun getInstance(project: Project): VisualLintService {
       return project.getService(VisualLintService::class.java)
+    }
+
+    @TestOnly
+    fun getInstanceForTest(
+      project: Project,
+      parentDisposable: Disposable,
+      coroutineScope: CoroutineScope,
+      visualLintDispatcher: CoroutineDispatcher,
+      visualLintAnalyzerDispatcher: CoroutineDispatcher,
+    ): VisualLintService {
+      return VisualLintService(
+          project = project,
+          coroutineScope = coroutineScope,
+          visualLintDispatcher = visualLintDispatcher,
+          visualLintAnalyzerDispatcher = visualLintAnalyzerDispatcher,
+        )
+        .apply { Disposer.register(parentDisposable, this) }
     }
   }
 
@@ -124,52 +160,27 @@ class VisualLintService(val project: Project) : Disposable {
     issueProvider: VisualLintIssueProvider,
     modelsForBackgroundRun: List<NlModel>,
     renderResultsForAnalysis: Map<RenderResult, NlModel>,
-  ) {
-    runVisualLintAnalysis(
-      parentDisposable,
-      issueProvider,
-      modelsForBackgroundRun,
-      renderResultsForAnalysis,
-      visualLintExecutorService,
-    )
-  }
+  ) =
+    coroutineScope.launch(visualLintDispatcher) {
+      removeAllIssueProviders()
+      issueProvider.clear()
+      val wasAdded = issueModel.addIssueProvider(issueProvider, true)
+      issueModel.uiCheckInstanceId = issueProvider.uiCheckInstanceId
+      if (wasAdded) {
+        listenerRemovalDisposable = Disposable { issueModel.removeIssueProvider(issueProvider) }
+        Disposer.register(parentDisposable, listenerRemovalDisposable!!)
+      }
 
-  @VisibleForTesting
-  fun runVisualLintAnalysis(
-    parentDisposable: Disposable,
-    issueProvider: VisualLintIssueProvider,
-    modelsForBackgroundRun: List<NlModel>,
-    renderResultsForAnalysis: Map<RenderResult, NlModel>,
-    executorService: ExecutorService,
-  ) {
-    CompletableFuture.runAsync(
-      {
-        removeAllIssueProviders()
-        issueProvider.clear()
-        val wasAdded = issueModel.addIssueProvider(issueProvider, true)
-        issueModel.uiCheckInstanceId = issueProvider.uiCheckInstanceId
-        if (wasAdded) {
-          listenerRemovalDisposable = Disposable { issueModel.removeIssueProvider(issueProvider) }
-          Disposer.register(parentDisposable, listenerRemovalDisposable!!)
-        }
+      val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
+      modelsForBackgroundRun.forEach {
+        runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues)
+      }
 
-        val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
-        modelsForBackgroundRun.forEach {
-          runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues)
-        }
-
-        runOnPreviewVisualLinting(
-          renderResultsForAnalysis,
-          issueProvider,
-          visualLintBaseConfigIssues,
-        )
-      },
-      executorService,
-    )
-  }
+      runOnPreviewVisualLinting(renderResultsForAnalysis, issueProvider, visualLintBaseConfigIssues)
+    }
 
   /** Creates configurations based on the [baseModel] and run Visual Lint analysis on those. */
-  private fun runBackgroundVisualLinting(
+  private suspend fun runBackgroundVisualLinting(
     baseModel: NlModel,
     issueProvider: VisualLintIssueProvider,
     visualLintBaseConfigIssues: VisualLintBaseConfigIssues,
@@ -193,33 +204,26 @@ class VisualLintService(val project: Project) : Disposable {
         } else {
           WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.buildTarget)
         }
-      val latch = CountDownLatch(modelsToAnalyze.size)
-      val hasTimedOut = AtomicBoolean(false)
-      for (model in modelsToAnalyze) {
-        val runAtfChecks = AtfAnalyzer.shouldRun(project, true)
-        createRenderResult(model, runAtfChecks)
-          .handleAsync(
-            { result, _ ->
-              try {
-                if (!hasTimedOut.get() && result != null) {
-                  updateHierarchy(result, model)
-                  analyzeAfterModelUpdate(
-                    issueProvider,
-                    result,
-                    model,
-                    visualLintBaseConfigIssues,
-                    true,
-                  )
-                }
-              } finally {
-                Disposer.dispose(model)
-                latch.countDown()
-              }
-            },
-            visualLintAnalyzerExecutorService,
-          )
+      withTimeout(visualLintTimeout.seconds) {
+        for (model in modelsToAnalyze) {
+          val runAtfChecks = AtfAnalyzer.shouldRun(project, true)
+          val result = createRenderResult(model, runAtfChecks).get()
+          withContext(visualLintAnalyzerDispatcher) {
+            try {
+              updateHierarchy(result, model)
+              analyzeAfterModelUpdate(
+                issueProvider,
+                result,
+                model,
+                visualLintBaseConfigIssues,
+                true,
+              )
+            } finally {
+              Disposer.dispose(model)
+            }
+          }
+        }
       }
-      hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
       issueModel.updateErrorsList(IssueProviderListener.TOPIC)
       LOG.debug(
         "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
@@ -230,25 +234,18 @@ class VisualLintService(val project: Project) : Disposable {
   }
 
   /** Runs Visual Lint analysis on the given [RenderResult]s */
-  private fun runOnPreviewVisualLinting(
+  private suspend fun runOnPreviewVisualLinting(
     renderResultsForAnalysis: Map<RenderResult, NlModel>,
     issueProvider: VisualLintIssueProvider,
     visualLintBaseConfigIssues: VisualLintBaseConfigIssues,
   ) {
-    val latch = CountDownLatch(renderResultsForAnalysis.size)
-    val hasTimedOut = AtomicBoolean(false)
-    renderResultsForAnalysis.forEach { (result, model) ->
-      CompletableFuture.runAsync(
-        {
-          if (!hasTimedOut.get()) {
-            analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
-          }
-          latch.countDown()
-        },
-        visualLintAnalyzerExecutorService,
-      )
+    withTimeout(visualLintTimeout.seconds) {
+      renderResultsForAnalysis.forEach { (result, model) ->
+        withContext(visualLintAnalyzerDispatcher) {
+          analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
+        }
+      }
     }
-    hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
     issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
     LOG.debug(
       "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"

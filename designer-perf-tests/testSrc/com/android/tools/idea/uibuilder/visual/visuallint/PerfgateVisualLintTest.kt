@@ -25,9 +25,6 @@ import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
-import com.google.common.util.concurrent.MoreExecutors
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Test
 
@@ -76,7 +73,6 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
         AndroidBuildTargetReference.gradleOnly(facet),
         dashboardLayout,
       )
-    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures =
         listOf(
@@ -93,10 +89,7 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
           visualLintIssueProvider,
           listOf(nlModel),
           emptyMap(),
-          visualLintExecutorService,
         )
-      // Wait for visual lint tasks to complete
-      visualLintExecutorService.waitForTasksToComplete()
     }
   }
 
@@ -122,7 +115,6 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
         wearLayout,
         wearConfiguration,
       )
-    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures =
         listOf(
@@ -139,14 +131,7 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
           visualLintIssueProvider,
           listOf(wearModel),
           emptyMap(),
-          visualLintExecutorService,
         )
-      // Wait for visual lint tasks to complete
-      visualLintExecutorService.waitForTasksToComplete()
     }
   }
-}
-
-private fun ExecutorService.waitForTasksToComplete() {
-  submit {}?.get(30, TimeUnit.SECONDS)
 }
