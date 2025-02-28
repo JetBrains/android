@@ -246,192 +246,187 @@ class WearTilePreviewElementFinderTest {
     assertThat(elementFinder.hasPreviewElements(project, otherFileTest.virtualFile)).isTrue()
     assertThat(elementFinder.hasPreviewElements(project, fileWithNoPreviews.virtualFile)).isFalse()
 
-    runBlocking {
-      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
-      assertThat(previewElements).hasSize(10)
+    val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
+    assertThat(previewElements).hasSize(10)
 
-      previewElements.elementAt(0).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreview",
-              baseName = "tilePreview",
-              parameterName = null,
-            )
+    previewElements.elementAt(0).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview",
+            baseName = "tilePreview",
+            parameterName = null,
           )
-        assertThat(it)
-          .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
-        assertThat(it).hasAnnotationDefinition("@Preview")
-      }
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@Preview")
+    }
 
-      previewElements.elementAt(1).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "largeRoundTilePreview",
-              baseName = "largeRoundTilePreview",
-              parameterName = null,
-            )
+    previewElements.elementAt(1).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "largeRoundTilePreview",
+            baseName = "largeRoundTilePreview",
+            parameterName = null,
           )
-        assertThat(it)
-          .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("largeRoundTilePreview"))
-        assertThat(it)
-          .hasAnnotationDefinition(
-            """
-            @Preview(
-              device = WearDevices.LARGE_ROUND
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("largeRoundTilePreview"))
+      assertThat(it)
+        .hasAnnotationDefinition(
           """
-              .trimIndent()
+          @Preview(
+            device = WearDevices.LARGE_ROUND
           )
-      }
+        """
+            .trimIndent()
+        )
+    }
 
-      previewElements.elementAt(2).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "namedTilePreview - some name",
-              baseName = "namedTilePreview",
-              parameterName = "some name",
-            )
+    previewElements.elementAt(2).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "namedTilePreview - some name",
+            baseName = "namedTilePreview",
+            parameterName = "some name",
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("namedTilePreview"))
-        assertThat(it)
-          .hasAnnotationDefinition(
-            """
-            @Preview(
-              name = "some name"
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("namedTilePreview"))
+      assertThat(it)
+        .hasAnnotationDefinition(
           """
-              .trimIndent()
+          @Preview(
+            name = "some name"
           )
-      }
+        """
+            .trimIndent()
+        )
+    }
 
-      previewElements.elementAt(3).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithGroup",
-              baseName = "tilePreviewWithGroup",
-              parameterName = null,
-              group = "some group",
-            )
+    previewElements.elementAt(3).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithGroup",
+            baseName = "tilePreviewWithGroup",
+            parameterName = null,
+            group = "some group",
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithGroup"))
-        assertThat(it)
-          .hasAnnotationDefinition(
-            """
-            @Preview(
-              group = "some group",
-              device = WearDevices.SQUARE
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithGroup"))
+      assertThat(it)
+        .hasAnnotationDefinition(
           """
-              .trimIndent()
+          @Preview(
+            group = "some group",
+            device = WearDevices.SQUARE
           )
-      }
-      previewElements.elementAt(4).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithLocale",
-              baseName = "tilePreviewWithLocale",
-              parameterName = null,
-            )
+        """
+            .trimIndent()
+        )
+    }
+    previewElements.elementAt(4).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithLocale",
+            baseName = "tilePreviewWithLocale",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = "fr"))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithLocale"))
-        assertThat(it)
-          .hasAnnotationDefinition(
-            """
-            @Preview(
-              locale = "fr"
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = "fr"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithLocale"))
+      assertThat(it)
+        .hasAnnotationDefinition(
           """
-              .trimIndent()
+          @Preview(
+            locale = "fr"
           )
-      }
-      previewElements.elementAt(5).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithFontScale",
-              baseName = "tilePreviewWithFontScale",
-              parameterName = null,
-            )
+        """
+            .trimIndent()
+        )
+    }
+    previewElements.elementAt(5).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithFontScale",
+            baseName = "tilePreviewWithFontScale",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration(fontScale = 1.2f))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithFontScale"))
-        assertThat(it)
-          .hasAnnotationDefinition(
-            """
-            @Preview(
-              fontScale = 1.2f
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(fontScale = 1.2f))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithFontScale"))
+      assertThat(it)
+        .hasAnnotationDefinition(
           """
-              .trimIndent()
+          @Preview(
+            fontScale = 1.2f
           )
-      }
-      previewElements.elementAt(6).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithContextParameter",
-              baseName = "tilePreviewWithContextParameter",
-              parameterName = null,
-            )
+        """
+            .trimIndent()
+        )
+    }
+    previewElements.elementAt(6).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithContextParameter",
+            baseName = "tilePreviewWithContextParameter",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it)
-          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithContextParameter"))
-        assertThat(it).hasAnnotationDefinition("@Preview")
-      }
-      previewElements.elementAt(7).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithMultipleAnnotations",
-              baseName = "tilePreviewWithMultipleAnnotations",
-              parameterName = null,
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it)
+        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithContextParameter"))
+      assertThat(it).hasAnnotationDefinition("@Preview")
+    }
+    previewElements.elementAt(7).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithMultipleAnnotations",
+            baseName = "tilePreviewWithMultipleAnnotations",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it)
-          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
-        assertThat(it).hasAnnotationDefinition("@Preview")
-      }
-      previewElements.elementAt(8).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithMultipleAnnotations",
-              baseName = "tilePreviewWithMultipleAnnotations",
-              parameterName = null,
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it)
+        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).hasAnnotationDefinition("@Preview")
+    }
+    previewElements.elementAt(8).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithMultipleAnnotations",
+            baseName = "tilePreviewWithMultipleAnnotations",
+            parameterName = null,
           )
-        assertThat(it)
-          .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
-        assertThat(it)
-          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
-        assertThat(it).hasAnnotationDefinition("@Preview(device = WearDevices.LARGE_ROUND)")
-      }
-      previewElements.elementAt(9).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewWithMultipleAnnotations - some name",
-              baseName = "tilePreviewWithMultipleAnnotations",
-              parameterName = "some name",
-            )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
+      assertThat(it)
+        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).hasAnnotationDefinition("@Preview(device = WearDevices.LARGE_ROUND)")
+    }
+    previewElements.elementAt(9).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewWithMultipleAnnotations - some name",
+            baseName = "tilePreviewWithMultipleAnnotations",
+            parameterName = "some name",
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it)
-          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
-        assertThat(it).hasAnnotationDefinition("@Preview(name = \"some name\")")
-      }
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it)
+        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).hasAnnotationDefinition("@Preview(name = \"some name\")")
     }
   }
 
@@ -460,23 +455,21 @@ class WearTilePreviewElementFinderTest {
 
     assertThat(elementFinder.hasPreviewElements(project, previewsTest.virtualFile)).isTrue()
 
-    runBlocking {
-      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
-      assertThat(previewElements).hasSize(1)
+    val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
+    assertThat(previewElements).hasSize(1)
 
-      previewElements.first().let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreview",
-              baseName = "tilePreview",
-              parameterName = null,
-            )
+    previewElements.first().let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview",
+            baseName = "tilePreview",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
-        assertThat(it).hasAnnotationDefinition("@PreviewAlias")
-      }
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@PreviewAlias")
     }
   }
 
@@ -504,23 +497,21 @@ class WearTilePreviewElementFinderTest {
 
     assertThat(elementFinder.hasPreviewElements(project, previewsTest.virtualFile)).isTrue()
 
-    runBlocking {
-      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
-      assertThat(previewElements).hasSize(1)
+    val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
+    assertThat(previewElements).hasSize(1)
 
-      previewElements.elementAt(0).let {
-        assertThat(it)
-          .hasDisplaySettings(
-            defaultDisplaySettings(
-              name = "tilePreviewInJavaFile",
-              baseName = "tilePreviewInJavaFile",
-              parameterName = null,
-            )
+    previewElements.elementAt(0).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreviewInJavaFile",
+            baseName = "tilePreviewInJavaFile",
+            parameterName = null,
           )
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewInJavaFile"))
-        assertThat(it).hasAnnotationDefinition("@Preview")
-      }
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewInJavaFile"))
+      assertThat(it).hasAnnotationDefinition("@Preview")
     }
   }
 
