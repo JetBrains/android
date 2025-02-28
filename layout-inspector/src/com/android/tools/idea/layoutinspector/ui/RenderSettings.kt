@@ -26,7 +26,20 @@ private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 private const val HIGHLIGHT_COLOR_KEY = "live.layout.inspector.highlight.color"
 
 interface RenderSettings {
-  val modificationListeners: MutableList<() -> Unit>
+  data class State(
+    val scalePercent: Int,
+    val drawBorders: Boolean,
+    val drawUntransformedBounds: Boolean,
+    val drawLabel: Boolean,
+    val drawFold: Boolean,
+    val highlightColor: Int,
+  )
+
+  fun interface Listener {
+    fun onChange(state: State)
+  }
+
+  val modificationListeners: MutableList<Listener>
 
   /** Scale of the view in percentage. Used to scale borders thickness, labels size etc. */
   var scalePercent: Int
@@ -44,24 +57,37 @@ interface RenderSettings {
   var drawFold: Boolean
 
   var highlightColor: Int
+
+  fun toState(): State {
+    return State(
+      scalePercent = scalePercent,
+      drawBorders = drawBorders,
+      drawUntransformedBounds = drawUntransformedBounds,
+      drawLabel = drawLabel,
+      drawFold = drawFold,
+      highlightColor = highlightColor,
+    )
+  }
+
+  fun invokeListeners() {
+    val state = toState()
+    modificationListeners.forEach { it.onChange(state) }
+  }
 }
 
 class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
-  override val modificationListeners = mutableListOf<() -> Unit>()
+  override val modificationListeners = mutableListOf<RenderSettings.Listener>()
   override var scalePercent: Int by
-    Delegates.observable(scalePercent) { _, _, _ -> modificationListeners.forEach { it() } }
+    Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
 
-  override var drawBorders: Boolean by
-    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
+  override var drawBorders: Boolean by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
   override var drawUntransformedBounds: Boolean by
-    Delegates.observable(false) { _, _, _ -> modificationListeners.forEach { it() } }
+    Delegates.observable(false) { _, _, _ -> invokeListeners() }
 
-  override var drawLabel by
-    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
+  override var drawLabel by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
-  override var drawFold by
-    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
+  override var drawFold by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
   override var highlightColor: Int
     get() = 0xFF0000
@@ -69,38 +95,38 @@ class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
 }
 
 class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
-  override val modificationListeners = mutableListOf<() -> Unit>()
+  override val modificationListeners = mutableListOf<RenderSettings.Listener>()
 
   /** Scale of the view in percentage: 100 = 100% */
   override var scalePercent: Int by
-    Delegates.observable(scalePercent) { _, _, _ -> modificationListeners.forEach { it() } }
+    Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
 
   override var drawBorders: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_BORDERS_KEY, value, true)
-      modificationListeners.forEach { it() }
+      invokeListeners()
     }
 
   override var drawUntransformedBounds: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(SHOW_LAYOUT_BOUNDS_KEY, false)
     set(value) {
       PropertiesComponent.getInstance().setValue(SHOW_LAYOUT_BOUNDS_KEY, value, false)
-      modificationListeners.forEach { it() }
+      invokeListeners()
     }
 
   override var drawLabel: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
-      modificationListeners.forEach { it() }
+      invokeListeners()
     }
 
   override var drawFold: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_FOLD_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_FOLD_KEY, value, true)
-      modificationListeners.forEach { it() }
+      invokeListeners()
     }
 
   override var highlightColor: Int
@@ -112,7 +138,7 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
       if (old != actual) {
         PropertiesComponent.getInstance()
           .setValue(HIGHLIGHT_COLOR_KEY, actual, HIGHLIGHT_DEFAULT_COLOR)
-        modificationListeners.forEach { it() }
+        invokeListeners()
       }
     }
 }

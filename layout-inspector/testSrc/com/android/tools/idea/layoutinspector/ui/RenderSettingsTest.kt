@@ -100,4 +100,19 @@ class RenderSettingsTest {
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isFalse()
   }
+
+  @Test
+  fun testStateUpdates() {
+    val settings = InspectorRenderSettings()
+    var observedState: RenderSettings.State = settings.toState()
+    settings.modificationListeners.add { observedState = it }
+
+    assertThat(observedState.drawBorders).isTrue()
+    settings.drawBorders = false
+    assertThat(observedState.drawBorders).isFalse()
+
+    assertThat(observedState.drawLabel).isTrue()
+    settings.drawLabel = false
+    assertThat(observedState.drawLabel).isFalse()
+  }
 }

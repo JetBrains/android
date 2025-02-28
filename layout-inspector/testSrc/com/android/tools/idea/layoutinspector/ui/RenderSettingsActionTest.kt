@@ -141,7 +141,7 @@ class RenderSettingsActionTest {
 }
 
 class FakeRenderSettings : RenderSettings {
-  override val modificationListeners = mutableListOf<() -> Unit>()
+  override val modificationListeners = mutableListOf<RenderSettings.Listener>()
   override var scalePercent = 100
   override var drawBorders = true
   override var drawUntransformedBounds = false

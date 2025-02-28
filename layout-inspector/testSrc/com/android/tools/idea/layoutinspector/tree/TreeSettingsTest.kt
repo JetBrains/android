@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -76,6 +77,7 @@ class InspectorTreeSettingsTest {
         model,
         mock(),
         settings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     doAnswer { capabilities }.whenever(client).capabilities

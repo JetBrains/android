@@ -624,6 +624,7 @@ class DeviceViewPanelTest {
         model,
         NotificationModel(projectRule.project),
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
@@ -682,6 +683,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = true
@@ -731,6 +733,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = true
@@ -781,6 +784,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = true
@@ -835,6 +839,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
@@ -886,6 +891,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
@@ -1018,6 +1024,7 @@ class DeviceViewPanelTest {
           model,
           notificationModel,
           treeSettings,
+          FakeRenderSettings(),
           MoreExecutors.directExecutor(),
         )
     }
