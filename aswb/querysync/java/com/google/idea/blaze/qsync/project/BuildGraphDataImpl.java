@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static java.util.Arrays.stream;
 
+import com.google.auto.value.AutoBuilder;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
@@ -67,15 +68,25 @@ import javax.annotation.Nullable;
  * <p>This class is immutable. A new instance of it will be created every time there is any change
  * to the project structure.
  */
-@AutoValue
-public abstract class BuildGraphDataImpl implements BuildGraphData {
+public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
+
+  @Override
+  @Nullable
+  public ProjectTarget getProjectTarget(Label label) {
+    return storage.targetMap().get(label);
+  }
+
+  @Override
+  public Collection<Label> allTargets() {
+    return storage.allTargets();
+  }
 
   /** A set of all the BUILD files */
   @Memoized
   @Override
   public PackageSet packages() {
     PackageSet.Builder packages = new PackageSet.Builder();
-    for (Label sourceFile : sourceFileLabels()) {
+    for (Label sourceFile : storage.sourceFileLabels()) {
       if (sourceFile.getName().equals(Path.of("BUILD")) || sourceFile.getName().equals(Path.of("BUILD.bazel"))) {
         // TODO: b/334110669 - support Bazel workspaces.
         packages.add(sourceFile.getPackage());
@@ -112,7 +123,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     if (sourceFileLabel.isEmpty()) {
       return Optional.empty();
     }
-    if (sourceFileLabels().contains(sourceFileLabel.get())) {
+    if (storage.sourceFileLabels().contains(sourceFileLabel.get())) {
       return sourceFileLabel;
     }
     return Optional.empty();
@@ -130,7 +141,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   @Override
   public DepsGraph<Label> depsGraph() {
     DepsGraph.Builder<Label> builder = new DepsGraph.Builder<>();
-    targetMap().values().stream().forEach(target -> builder.add(target.label(), target.deps()));
+    storage.targetMap().values().stream().forEach(target -> builder.add(target.label(), target.deps()));
     return builder.build();
   }
 
@@ -143,12 +154,12 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     ImmutableSet.Builder<Label> directRdeps = ImmutableSet.builder();
     directRdeps.addAll(targets);
     for (Label target : targets) {
-      ImmutableSet<QuerySyncLanguage> targetLanguages = targetMap().get(target).languages();
+      ImmutableSet<QuerySyncLanguage> targetLanguages = storage.targetMap().get(target).languages();
       // filter the rdeps based on the languages, removing those that don't have a common
       // language. This ensures we don't follow reverse deps of (e.g.) a java target depending on
       // a cc target.
       depsGraph().rdeps(target).stream()
-          .filter(d -> !Collections.disjoint(targetMap().get(d).languages(), targetLanguages))
+          .filter(d -> !Collections.disjoint(storage.targetMap().get(d).languages(), targetLanguages))
           .forEach(directRdeps::add);
     }
     return directRdeps.build();
@@ -175,7 +186,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     while (!toVisit.isEmpty()) {
       Label next = toVisit.remove();
       if (visited.add(next)) {
-        ProjectTarget target = targetMap().get(next);
+        ProjectTarget target = storage.targetMap().get(next);
         if (target != null && ruleKinds.contains(target.kind())) {
           result.add(target);
         } else {
@@ -204,7 +215,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     }
 
     return Streams.stream(Traverser.forGraph(depsGraph()::rdeps).breadthFirst(targetOwners))
-        .map(label -> targetMap().get(label))
+        .map(label -> storage.targetMap().get(label))
         .filter(Objects::nonNull)
         .collect(toImmutableSet());
   }
@@ -229,7 +240,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
       return false;
     }
 
-    ImmutableMap<Label, ProjectTarget> targetMap = targetMap();
+    ImmutableMap<Label, ProjectTarget> targetMap = storage.targetMap();
 
     // Do a BFS up the dependency graph, looking both at the labels and the set of rule kinds
     // we've found so far at any given point.
@@ -279,7 +290,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
       if (deps.contains(target)) {
         return true;
       }
-      final var targetInfo = targetMap().get(target);
+      final var targetInfo = storage.targetMap().get(target);
       if (targetInfo == null) {
         continue;
       }
@@ -292,11 +303,11 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
 
   @Override
   public ImmutableSet<Path> getTargetSources(Label target, SourceType... types) {
-    return Optional.ofNullable(targetMap().get(target)).stream()
+    return Optional.ofNullable(storage.targetMap().get(target)).stream()
         .map(ProjectTarget::sourceLabels)
         .flatMap(m -> stream(types).map(m::get))
         .flatMap(Set::stream)
-        .filter(sourceFileLabels()::contains) // filter out generated sources
+        .filter(storage.sourceFileLabels()::contains) // filter out generated sources
         .map(Label::toFilePath)
         .collect(toImmutableSet());
   }
@@ -308,30 +319,54 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     return getClass().getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(this));
   }
 
-  public static Builder builder() {
-    return new AutoValue_BuildGraphDataImpl.Builder();
-  }
+  /**
+   * Build graph data in one place.
+   */
+  public record Storage(ImmutableSet<Label> sourceFileLabels,
+                        ImmutableMap<Label, ProjectTarget> targetMap,
+                        ImmutableSet<Label> projectDeps,
+                        TargetTree allTargets) {
 
-  /** Builder for {@link BuildGraphDataImpl}. */
-  @AutoValue.Builder
-  public abstract static class Builder {
+    public Storage(ImmutableSet<Label> sourceFileLabels, ImmutableMap<Label, ProjectTarget> targetMap,
+                   ImmutableSet<Label> projectDeps, ImmutableSet<Label> allTargetLabels) {
+      this(sourceFileLabels, targetMap, projectDeps, getTargetTree(allTargetLabels));
+    }
 
-    public abstract ImmutableSet.Builder<Label> sourceFileLabelsBuilder();
+    private static TargetTree getTargetTree(ImmutableSet<Label> allTargets) {
+      TargetTree.Builder treeBuilder = TargetTree.builder();
+      for (Label target : allTargets) {
+        treeBuilder.add(target);
+      }
+      return treeBuilder.build();
+    }
 
-    public abstract ImmutableMap.Builder<Label, ProjectTarget> targetMapBuilder();
+    public static Builder builder() {
+      return new AutoBuilder_BuildGraphDataImpl_Storage_Builder();
+    }
 
-    public abstract Builder projectDeps(Set<Label> value);
+    /**
+     * Builder for {@link BuildGraphDataImpl}.
+     */
+    @AutoBuilder(ofClass = Storage.class)
+    public abstract static class Builder {
 
-    public abstract TargetTree.Builder allTargetsBuilder();
+      public abstract ImmutableSet.Builder<Label> sourceFileLabelsBuilder();
 
-    abstract BuildGraphDataImpl autoBuild();
+      public abstract ImmutableMap.Builder<Label, ProjectTarget> targetMapBuilder();
 
-    public final BuildGraphData build() {
-      BuildGraphData result = autoBuild();
-      // these are memoized, but we choose to pay the cost of building it now so that it's done at
-      // sync time rather than later on.
-      ImmutableSetMultimap<Label, Label> unused = result.sourceOwners();
-      return result;
+      public abstract Builder projectDeps(Set<Label> value);
+
+      public abstract ImmutableSet.Builder<Label> allTargetLabelsBuilder();
+
+      abstract Storage autoBuild();
+
+      public final BuildGraphDataImpl build() {
+        final var result = new BuildGraphDataImpl(autoBuild());
+        // these are memoized, but we choose to pay the cost of building it now so that it's done at
+        // sync time rather than later on.
+        ImmutableSetMultimap<Label, Label> unused = result.sourceOwners();
+        return result;
+      }
     }
   }
 
@@ -363,7 +398,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   @Memoized
   @Override
   public ImmutableSetMultimap<Label, Label> sourceOwners() {
-    return targetMap().values().stream()
+    return storage.targetMap().values().stream()
         .flatMap(
             t -> t.sourceLabels().values().stream().map(src -> new SimpleEntry<>(src, t.label())))
         .collect(toImmutableSetMultimap(e -> e.getKey(), e -> e.getValue()));
@@ -389,7 +424,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   @Override
   public Label selectLabelWithLeastDeps(Collection<Label> candidates) {
     return candidates.stream()
-        .min(Comparator.comparingInt(label -> targetMap().get(label).deps().size()))
+        .min(Comparator.comparingInt(label -> storage.targetMap().get(label).deps().size()))
         .orElse(null);
   }
 
@@ -430,7 +465,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
 
   private ImmutableSet<Label> sourcesByRuleKindAndType(
       Predicate<String> ruleKindPredicate, SourceType... sourceTypes) {
-    return targetMap().values().stream()
+    return storage.targetMap().values().stream()
         .filter(t -> ruleKindPredicate.test(t.kind()))
         .map(ProjectTarget::sourceLabels)
         .flatMap(srcs -> stream(sourceTypes).map(srcs::get))
@@ -439,7 +474,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   }
 
   private List<Path> pathListFromSourceFileLabelsOnly(Collection<Label> labels) {
-    return labels.stream().filter(sourceFileLabels()::contains).map(Label::toFilePath).collect(toImmutableList());
+    return labels.stream().filter(storage.sourceFileLabels()::contains).map(Label::toFilePath).collect(toImmutableList());
   }
 
   /**
@@ -459,7 +494,7 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   /** Returns a list of custom_package fields that used by current project. */
   @Override
   public ImmutableSet<String> getAllCustomPackages() {
-    return targetMap().values().stream()
+    return storage.targetMap().values().stream()
         .map(ProjectTarget::customPackage)
         .flatMap(Optional::stream)
         .collect(toImmutableSet());
@@ -485,9 +520,9 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   public TargetsToBuild getProjectTargets(Context<?> context, Path workspaceRelativePath) {
     if (workspaceRelativePath.endsWith("BUILD")) {
       Path packagePath = workspaceRelativePath.getParent();
-      return TargetsToBuild.targetGroup(allTargets().get(packagePath));
+      return TargetsToBuild.targetGroup(storage.allTargets().get(packagePath));
     } else {
-      TargetTree targets = allTargets().getSubpackages(workspaceRelativePath);
+      TargetTree targets = storage.allTargets().getSubpackages(workspaceRelativePath);
       if (!targets.isEmpty()) {
         // this will only be non-empty for directories
         return TargetsToBuild.targetGroup(targets);
@@ -518,14 +553,14 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
   @Override
   public ImmutableSet<QuerySyncLanguage> getTargetLanguages(ImmutableSet<Label> targets) {
     return targets.stream()
-        .map(targetMap()::get)
+        .map(storage.targetMap()::get)
         .map(ProjectTarget::languages)
         .reduce((a, b) -> Sets.union(a, b).immutableCopy())
         .orElse(ImmutableSet.of());
   }
 
   /**
-   * Traversed the dependency graph starting from {@code projectTargets} and returns the first level of dependencies which are either not in
+   * Traverses the dependency graph starting from {@code projectTargets} and returns the first level of dependencies which are either not in
    * the project scope or must be built as they are not directly supported by the IDE.
    */
   @Override
@@ -535,8 +570,8 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     final var queue = new ArrayDeque<Label>(projectTargets);
     while (!queue.isEmpty()) {
       final var target = queue.remove();
-      final var targetInfo = targetMap().get(target);
-      if (targetInfo == null || projectDeps().contains(target)) {
+      final var targetInfo = storage.targetMap().get(target);
+      if (targetInfo == null || storage().projectDeps().contains(target)) {
         // External dependency.
         externalDeps.add(target);
         continue;
@@ -549,7 +584,17 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
     return externalDeps;
   }
 
- /**
+  @Override
+  public int getExternalDependencyCount() {
+    return storage.projectDeps().size();
+  }
+
+  @Override
+  public int getTargetMapSizeForStatsOnly() {
+    return storage.targetMap().size();
+  }
+
+  /**
    * Calculates the {@link RequestedTargets} for a project target.
    *
    * @return Requested targets. The {@link RequestedTargets#buildTargets()} will match the parameter
@@ -560,5 +605,29 @@ public abstract class BuildGraphDataImpl implements BuildGraphData {
  public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
     final var externalDeps = getExternalDependencies(projectTargets);
     return new RequestedTargets(ImmutableSet.copyOf(projectTargets), ImmutableSet.copyOf(externalDeps));
+  }
+
+  @Override
+  public void outputStats(Context<?> context) {
+    context.output(PrintOutput.log("%-10d Source files", storage.sourceFileLabels().size()));
+    context.output(PrintOutput.log("%-10d Java sources", javaSources().size()));
+    context.output(PrintOutput.log("%-10d Packages", packages().size()));
+    context.output(PrintOutput.log("%-10d External dependencies", storage.projectDeps().size()));
+  }
+
+  @Override
+  public ImmutableSet<QuerySyncLanguage> getActiveLanguages() {
+    ImmutableSet.Builder<QuerySyncLanguage> activeLanguages = ImmutableSet.builder();
+    if (storage.targetMap().values().stream().map(ProjectTarget::kind).anyMatch(RuleKinds::isJava)) {
+      activeLanguages.add(QuerySyncLanguage.JVM);
+    }
+    if (storage.targetMap().values().stream().map(ProjectTarget::kind).anyMatch(RuleKinds::isCc)) {
+      activeLanguages.add(QuerySyncLanguage.CC);
+    }
+    return activeLanguages.build();
+  }
+
+  public static Storage.Builder builder() {
+    return Storage.builder();
   }
 }

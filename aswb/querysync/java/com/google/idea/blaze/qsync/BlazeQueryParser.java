@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
+import com.android.annotations.TestOnly;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -67,7 +68,7 @@ public class BlazeQueryParser {
 
   private final QuerySummary query;
 
-  private final BuildGraphDataImpl.Builder graphBuilder = BuildGraphDataImpl.builder();
+  private final BuildGraphDataImpl.Storage.Builder graphBuilder = BuildGraphDataImpl.builder();
 
   private final Set<Label> projectDeps = Sets.newHashSet();
   // All the project targets the aspect needs to build
@@ -128,6 +129,15 @@ public class BlazeQueryParser {
   }
 
   public BuildGraphData parse() {
+    return parseCore();
+  }
+
+  @TestOnly
+  public BuildGraphDataImpl parseForTesting() {
+    return parseCore();
+  }
+
+  private BuildGraphDataImpl parseCore() {
     context.output(PrintOutput.log("Analyzing project structure..."));
 
     long now = System.nanoTime();
@@ -188,13 +198,10 @@ public class BlazeQueryParser {
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphData graph = graphBuilder.projectDeps(projectDeps).build();
+    BuildGraphDataImpl graph = graphBuilder.projectDeps(projectDeps).build();
 
-    context.output(PrintOutput.log("%-10d Source files", graph.sourceFileLabels().size()));
-    context.output(PrintOutput.log("%-10d Java sources", graph.javaSources().size()));
-    context.output(PrintOutput.log("%-10d Packages", graph.packages().size()));
+    graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
-    context.output(PrintOutput.log("%-10d External dependencies", graph.projectDeps().size()));
 
     return graph;
   }
@@ -210,7 +217,7 @@ public class BlazeQueryParser {
 
   private void visitJavaRule(
       Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetsBuilder().add(label);
+    graphBuilder.allTargetLabelsBuilder().add(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.JVM);
     targetBuilder
         .sourceLabelsBuilder()
@@ -238,7 +245,7 @@ public class BlazeQueryParser {
   }
 
   private void visitCcRule(Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetsBuilder().add(label);
+    graphBuilder.allTargetLabelsBuilder().add(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.CC);
     targetBuilder.coptsBuilder().addAll(rule.copts());
     targetBuilder

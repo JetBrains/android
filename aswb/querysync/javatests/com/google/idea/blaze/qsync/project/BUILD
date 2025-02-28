@@ -3,8 +3,8 @@ load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
 java_test(
-    name = "BuildGraphDataTest",
-    srcs = ["BuildGraphDataTest.java"],
+    name = "BuildGraphDataImplTest",
+    srcs = ["BuildGraphDataImplTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",

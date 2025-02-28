@@ -29,7 +29,7 @@ public class BuildGraphs {
 
   private BuildGraphs() {}
 
-  public static BuildGraphData forTestProject(TestData project) throws IOException {
-    return new BlazeQueryParser(getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parse();
+  public static BuildGraphDataImpl forTestProject(TestData project) throws IOException {
+    return new BlazeQueryParser(getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parseForTesting();
   }
 }

@@ -17,12 +17,12 @@ package com.google.idea.blaze.qsync.project;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.graph.Graph;
+import com.google.common.graph.Graphs;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.common.TargetTree;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -35,9 +35,11 @@ public interface BuildGraphData {
   @VisibleForTesting BuildGraphData EMPTY = BuildGraphDataImpl.builder().projectDeps(ImmutableSet.of()).build();
 
   /**
-   * A map from target to file on disk for all source files
+   * The language classes supported by the query sync.
    */
-  ImmutableSet<Label> sourceFileLabels();
+  enum LanguageClass {
+    JVM, CC
+  }
 
   /** A set of all the BUILD files */
   PackageSet packages();
@@ -55,27 +57,24 @@ public interface BuildGraphData {
   Optional<Label> sourceFileToLabel(Path sourceFile);
 
   /**
-   * All dependencies external to this project.
-   *
-   * <p>This includes in-project targets that we must build, due to generated sources or being of a
-   * {@link com.google.idea.blaze.qsync.BlazeQueryParser#ALWAYS_BUILD_RULE_KINDS always build kind}.
-   */
-  ImmutableSet<Label> projectDeps();
-
-  /**
    * All supported targets.
-   *
-   * <p>This is a subset of the keys of {@link #targetMap()} containing only rules that we support
-   * enabling analysis for, i.e. that are for a language we support.
    */
-  TargetTree allTargets();
+  Collection<Label> allTargets();
 
   /**
-   * Mapping of in-project targets to {@link ProjectTarget}s. This includes all build targets,
-   * regardless of if they are supported by querysync.
+   * Returns the project target info for the given label, if it is supported and built (code analysis enabled).
    */
-  ImmutableMap<Label, ProjectTarget> targetMap();
+  @Nullable
+  ProjectTarget getProjectTarget(Label label);
 
+  /**
+   * An immutable directed graph of all project dependencies.
+   *
+   * <p>This graph include both in-project targets, and direct out-of-project dependencies.
+   *
+   * <p>To find the reverse dependencies of a target, you can use {@link Graph#predecessors} or
+   * {@link Graphs#transpose(Graph)} with this method.
+   */
   DepsGraph<Label> depsGraph();
 
   /**
@@ -131,6 +130,7 @@ public interface BuildGraphData {
   /** A set of all the targets that show up in java rules 'src' attributes */
   ImmutableSet<Label> javaSources();
 
+  /** Returns a list of all the java source files of the project, relative to the workspace root. */
   List<Path> getJavaSourceFiles();
 
   /**
@@ -183,4 +183,20 @@ public interface BuildGraphData {
    * Calculates the {@link RequestedTargets} for a project target.
    */
   RequestedTargets computeRequestedTargets(Collection<Label> projectTargets);
+
+  /** Output stats about the the project to the context (and thus normally to the console). */
+  void outputStats(Context<?> context);
+
+  /**
+   * Returns the number of external dependencies of the project for the purpose of stats reporting.
+   */
+  int getExternalDependencyCount();
+
+  /**
+   * Returns an approximate size of the project's target map for the purpose of stats reporting.
+   */
+  int getTargetMapSizeForStatsOnly();
+
+  /** Returns the language classes for which code analysis is currently enabled in this project. */
+  ImmutableSet<QuerySyncLanguage> getActiveLanguages();
 }

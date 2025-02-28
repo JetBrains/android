@@ -136,7 +136,7 @@ public class ConfigureCcCompilation {
   }
 
   private void visitTarget(CcCompilationInfo ccInfo, DependencyBuildContext buildContext) {
-    ProjectTarget projectTarget = update.buildGraph().targetMap().get(ccInfo.target());
+    ProjectTarget projectTarget = update.buildGraph().getProjectTarget(ccInfo.target());
     if (projectTarget == null) {
       // This target is no longer present in the project. Ignore it.
       // We should really clean up the dependency cache itself to remove any artifacts relating to
