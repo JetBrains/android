@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.ide.DataManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -129,7 +130,7 @@ class FastPreviewUtilTest {
     setUpComposeInProjectFixture(projectRule)
     TemplateManagerImpl.setTemplateTesting(projectRule.testRootDisposable)
 
-    withContext(Dispatchers.Main) {
+    withContext(Dispatchers.EDT) {
       fixture.configureFromExistingVirtualFile(testFile.virtualFile)
       fixture.moveCaret("test|A()")
       val fakeEvent =
