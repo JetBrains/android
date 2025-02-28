@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -11,7 +12,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
-        "//prebuilts/tools/common/m2:jewel-ide",
+        "//tools/adt/idea/adt-ui-compose:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
         "//prebuilts/tools/common/m2:jewel-standalone",
         "//prebuilts/tools/common/m2:compose-desktop-test",
@@ -19,11 +20,18 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//prebuilts/tools/common/m2:jewel-ide",
+        "//tools/adt/idea/adt-ui-compose:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//prebuilts/tools/common/m2:jewel-standalone[test]",
         "//prebuilts/tools/common/m2:compose-desktop-test[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "jewel-ide",
+    jars = ["//prebuilts/tools/common/m2:jewel-ide.jar"],
+    visibility = ["//visibility:public"],
 )

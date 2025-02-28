@@ -396,6 +396,7 @@ filegroup(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/adt-ui-compose:jewel-ide",
         "//tools/adt/idea/android-common:libandroid-core-proto",
         "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
         "//tools/adt/idea/android/gradle:libandroid-core-proto",
