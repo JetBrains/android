@@ -17,7 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
-import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
+import static java.lang.reflect.Modifier.isStatic;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,9 +32,11 @@ import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.util.ReflectionUtil;
-import com.intellij.util.containers.ContainerUtil;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +47,41 @@ public class AndroidRunConfigurationTest {
   public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private AndroidRunConfiguration myRunConfiguration;
 
+  /*
+   * WARNING:
+   *  This maps contains serialized fields from AndroidRunConfiguration and their corresponding types.
+   *
+   *  Modifying the types of these fields is highly dangerous and most likely NOT INTENDED as it
+   *  runs into the risk of the current version of Studio not able to read the run configuration
+   *  created by a previous version of Studio.
+   *
+   *  Furthermore, the compatibility does not raise any exceptions and can result in strange
+   *  behaviors such build steps missing.
+   */
+  private final Map<String, String> ANDROID_RUN_CONFIG_FIELDS = Map.ofEntries(
+    Map.entry("ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION", "int"),
+    Map.entry("DEPLOY", "boolean"),
+    Map.entry("DEPLOY_APK_FROM_BUNDLE", "boolean"),
+    Map.entry("DEPLOY_AS_INSTANT", "boolean"),
+    Map.entry("ARTIFACT_NAME", "class java.lang.String"),
+    Map.entry("PM_INSTALL_OPTIONS", "class java.lang.String"),
+    Map.entry("ALL_USERS", "boolean"),
+    Map.entry("ALWAYS_INSTALL_WITH_PM", "boolean"),
+    Map.entry("ALLOW_ASSUME_VERIFIED", "boolean"),
+    Map.entry("CLEAR_APP_STORAGE", "boolean"),
+    Map.entry("DYNAMIC_FEATURES_DISABLED_LIST", "class java.lang.String"),
+    Map.entry("ACTIVITY_EXTRA_FLAGS", "class java.lang.String"),
+    Map.entry("MODE", "class java.lang.String"),
+    Map.entry("RESTORE_ENABLED", "boolean"),
+    Map.entry("RESTORE_FILE", "class java.lang.String"),
+    Map.entry("RESTORE_FRESH_INSTALL_ONLY", "boolean")
+    );
+
+  private final Map<String, String> ANDROID_RUN_CONFIG_BASE_FIELDS = Map.ofEntries(
+    Map.entry("CLEAR_LOGCAT", "boolean"),
+    Map.entry("SHOW_LOGCAT_AUTOMATICALLY", "boolean")
+  );
+
   @Before
   public void setUp() throws Exception {
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
@@ -52,16 +89,37 @@ public class AndroidRunConfigurationTest {
   }
 
   /**
-   * Verifies that public fields, which are save in configuration files (workspace.xml) are
-   * not accidentally renamed during a code refactoring.
+   * Verifies that public fields, which are saved in configuration files (workspace.xml) are
+   * not accidentally renamed or changed type.
    */
   @Test
-  public void testPersistentFieldNames() {
-    assertContainsElements(
-      ContainerUtil.map(ReflectionUtil.collectFields(myRunConfiguration.getClass()), f -> f.getName()),
-      "CLEAR_LOGCAT", "SHOW_LOGCAT_AUTOMATICALLY",
-      "DEPLOY", "DEPLOY_APK_FROM_BUNDLE", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
-      "ACTIVITY_EXTRA_FLAGS", "MODE", "CLEAR_APP_STORAGE");
+  public void persistentFieldNamesAndTypes() {
+    matchFields(myRunConfiguration.getClass(), ANDROID_RUN_CONFIG_FIELDS);
+    matchFields(myRunConfiguration.getClass().getSuperclass(), ANDROID_RUN_CONFIG_BASE_FIELDS);
+  }
+
+  private static  <T> void matchFields(Class<T> target, Map<String, String> expectedFields) {
+    for (Field field : target.getDeclaredFields()) {
+      String name = field.getName();
+
+      if (isStatic(field.getModifiers())) {
+        continue;
+      }
+
+      if (!name.toUpperCase().equals(name)) {
+        continue;
+      }
+
+      String actualType = field.getType().toString();
+      String expectedType = expectedFields.get(field.getName());
+
+      Assert.assertEquals(name + " should have type of " + expectedType + " instead of " + actualType,
+                          expectedType, actualType);
+    }
+
+    for (String name : expectedFields.keySet()) {
+      Assert.assertTrue(Arrays.stream(target.getDeclaredFields()).anyMatch(field -> field.getName().equals(name)));
+    }
   }
 
   @Test
