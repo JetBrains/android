@@ -647,6 +647,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <indexedRootsProvider implementation="com.google.idea.blaze.base.project.indexing.WarmUpTriggeringIndexableSetContributor" />
+    <lang.jvm.bytecodeAnalysisSuppressor implementation="com.google.idea.blaze.base.project.analysis.ijar.IjarAnalysisSuppressor" />
   </extensions>
 
 </idea-plugin>
