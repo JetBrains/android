@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -89,7 +90,8 @@ class RootPanelRenderer(
       ) {
         // TODO(b/398195142) it would be good to refactor this class to have a ViewModel, and move
         // this logic inside the view model.
-        val isXr = renderModel.model.isXr
+        val isXr =
+          renderModel.model.isXr || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
         if (isXr) {
           when (currentRenderer) {
             is StudioRendererPanel,
