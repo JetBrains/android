@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction.EyeTracking
+import com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction.HandTracking
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.keymap.KeymapExtension
 import com.intellij.openapi.keymap.KeymapGroup
@@ -37,6 +40,10 @@ class StreamingKeymapExtension : KeymapExtension {
     val keymapGroup = KeymapGroupFactory.getInstance().createGroup(KEYMAP_SECTION_NAME)
 
     for (action in ActionsTreeUtil.getActions(ACTION_GROUP)) {
+      if (action is HandTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() ||
+          action is EyeTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()) {
+        continue
+      }
       ActionsTreeUtil.addAction(keymapGroup, action, filtered)
     }
 
