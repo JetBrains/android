@@ -104,7 +104,7 @@ class RenderSettingsActionTest {
     val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
     for ((color, text) in colors) {
-      fakeRenderSettings.highlightColor = color
+      fakeRenderSettings.recompositionColor = color
       for (action in highlightColorAction.getChildren(event)) {
         action.update(event)
         assertThat(Toggleable.isSelected(event.presentation)).isEqualTo(action.templateText == text)
@@ -112,11 +112,11 @@ class RenderSettingsActionTest {
     }
 
     for (action in highlightColorAction.getChildren(event)) {
-      fakeRenderSettings.highlightColor = 0
+      fakeRenderSettings.recompositionColor = 0
       action.update(event)
       (action as CheckboxAction).setSelected(event, true)
       val expected = colors.filter { it.value == action.templateText }.map { it.key }.single()
-      assertThat(fakeRenderSettings.highlightColor).isEqualTo(expected)
+      assertThat(fakeRenderSettings.recompositionColor).isEqualTo(expected)
     }
   }
 
@@ -173,7 +173,7 @@ class FakeRenderSettings : RenderSettings {
       invokeListeners()
     }
 
-  override var highlightColor = HIGHLIGHT_COLOR_RED
+  override var recompositionColor = HIGHLIGHT_COLOR_RED
     set(value) {
       field = value
       invokeListeners()

@@ -289,7 +289,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     highlightCount: Float,
     viewSettings: RenderSettings,
   ): Color {
-    val baseColor = Color(viewSettings.highlightColor)
+    val baseColor = Color(viewSettings.recompositionColor)
     val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }
@@ -299,7 +299,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     highlightCount: Float,
     viewSettings: RenderSettings,
   ): Color {
-    val baseColor = Color(viewSettings.highlightColor)
+    val baseColor = Color(viewSettings.recompositionColor)
     val alpha = ((highlightCount * 192f) / model.maxHighlight).toInt().coerceIn(8, 192)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }

@@ -32,7 +32,7 @@ interface RenderSettings {
     val drawUntransformedBounds: Boolean,
     val drawLabel: Boolean,
     val drawFold: Boolean,
-    val highlightColor: Int,
+    val recompositionColor: Int,
   )
 
   fun interface Listener {
@@ -56,7 +56,8 @@ interface RenderSettings {
 
   var drawFold: Boolean
 
-  var highlightColor: Int
+  /** The color used for recomposition highlights */
+  var recompositionColor: Int
 
   fun toState(): State {
     return State(
@@ -65,7 +66,7 @@ interface RenderSettings {
       drawUntransformedBounds = drawUntransformedBounds,
       drawLabel = drawLabel,
       drawFold = drawFold,
-      highlightColor = highlightColor,
+      recompositionColor = recompositionColor,
     )
   }
 
@@ -89,7 +90,7 @@ class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
 
   override var drawFold by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
-  override var highlightColor: Int
+  override var recompositionColor: Int
     get() = 0xFF0000
     set(_) {}
 }
@@ -129,7 +130,7 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
       invokeListeners()
     }
 
-  override var highlightColor: Int
+  override var recompositionColor: Int
     get() = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
     set(value) {
       val actual = value.and(0xFFFFFF)

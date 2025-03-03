@@ -54,29 +54,29 @@ class RenderSettingsTest {
     // Default values:
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isTrue()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_DEFAULT_COLOR)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_DEFAULT_COLOR)
 
     settings1.drawBorders = true
     settings1.drawLabel = false
-    settings1.highlightColor = HIGHLIGHT_COLOR_RED
+    settings1.recompositionColor = HIGHLIGHT_COLOR_RED
 
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     val settings2 = InspectorRenderSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
-    assertThat(settings2.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
+    assertThat(settings2.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     settings2.drawBorders = false
     settings2.drawLabel = true
-    settings2.highlightColor = HIGHLIGHT_COLOR_PURPLE
+    settings2.recompositionColor = HIGHLIGHT_COLOR_PURPLE
 
     // settings1 gets the new values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isTrue()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_PURPLE)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_PURPLE)
   }
 
   @Test

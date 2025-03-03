@@ -323,7 +323,7 @@ class DeviceViewContentPanelTest {
     )
 
     compose1.recompositions.highlightCount = 17f
-    renderSettings.highlightColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight3.png"),
