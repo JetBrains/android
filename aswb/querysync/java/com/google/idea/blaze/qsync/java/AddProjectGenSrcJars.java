@@ -85,12 +85,12 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
                 // a zip of generated sources
                 ProjectPath added =
                     update
-                        .artifactDirectory(ArtifactDirectories.DEFAULT)
+                        .artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC)
                         .addIfNewer(
-                            genSrc.artifactPath(),
+                            genSrc.artifactPath().resolve("src"),
                             genSrc,
                             target.buildContext(),
-                            ArtifactTransform.STRIP_SUPPORTED_GENERATED_SOURCES)
+                            ArtifactTransform.UNZIP)
                         .orElse(null);
                 if (added != null) {
                   ProjectProto.ContentEntry.Builder genSrcJarContentEntry =
@@ -105,7 +105,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
                     genSrcJarContentEntry.addSources(
                         ProjectProto.SourceFolder.newBuilder()
-                            .setProjectPath(added.withInnerJarPath(innerPath.path()).toProto())
+                            .setProjectPath(added.resolveChild(innerPath.path()).toProto())
                             .setIsGenerated(true)
                             .setIsTest(testSourceMatcher.matches(genSrc.target().getPackage()))
                             .setPackagePrefix(innerPath.packagePrefix())

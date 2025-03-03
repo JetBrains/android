@@ -123,18 +123,70 @@ public class AddProjectGenSrcJarsTest {
                 Joiner.on("\n")
                     .join(
                         "root {",
-                        "      path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
                         "      base: PROJECT",
                         "    }",
                         "    sources {",
                         "      is_generated: true",
                         "      project_path {",
-                        "        path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src/root\"",
                         "        base: PROJECT",
-                        "        inner_path: \"root\"",
                         "      }",
                         "    }"),
                 ContentEntry.class));
+  }
+
+  @Test
+  public void project_srcjar_added_java_package_mismatch() throws Exception {
+    TestData testData = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY;
+    QuerySyncProjectSnapshot original = syncer.sync(testData);
+
+    ArtifactTracker.State artifactState =
+      ArtifactTracker.State.forTargets(
+        TargetBuildInfo.forJavaTarget(
+          JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
+            .setGenSrcs(
+              ImmutableList.of(
+                BuildArtifact.create(
+                    "srcjardigest",
+                    Path.of("output/path/to/project.srcjar"),
+                    testData.getAssumedOnlyLabel())
+                  .withMetadata(
+                    new SrcJarPrefixedJavaPackageRoots(
+                      ImmutableSet.of(JarPath.create("root", "com.example"))))))
+            .build(),
+          DependencyBuildContext.NONE));
+
+    AddProjectGenSrcJars javaDeps =
+      new AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata);
+
+    ProjectProtoUpdate update =
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+    javaDeps.update(update, artifactState, new NoopContext());
+    ProjectProto.Project newProject = update.build();
+    assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
+    Module workspace = newProject.getModules(0);
+    // check our assumptions:
+    assertThat(workspace.getName()).isEqualTo(".workspace");
+
+    assertThat(workspace.getContentEntriesList())
+      .contains(
+        TextFormat.parse(
+          Joiner.on("\n")
+            .join(
+              "root {",
+              "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
+              "      base: PROJECT",
+              "    }",
+              "    sources {",
+              "      is_generated: true",
+              "      package_prefix: \"com.example\"",
+              "      project_path {",
+              "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src/root\"",
+              "        base: PROJECT",
+              "      }",
+              "    }"),
+          ContentEntry.class));
   }
 
   @Test
@@ -173,13 +225,13 @@ public class AddProjectGenSrcJarsTest {
                 Joiner.on("\n")
                     .join(
                         "root {",
-                        "      path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
                         "      base: PROJECT",
                         "    }",
                         "    sources {",
                         "      is_generated: true",
                         "      project_path {",
-                        "        path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
                         "        base: PROJECT",
                         "      }",
                         "    }"),

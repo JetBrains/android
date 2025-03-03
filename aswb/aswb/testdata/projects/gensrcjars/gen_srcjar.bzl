@@ -36,6 +36,7 @@ def gen_srcjar(name, src, package_dir):
         srcs = [
             ":src_copy",
         ],
+        package_dir = package_dir,
     )
 
     copy_file(

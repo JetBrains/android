@@ -2,6 +2,6 @@ package com.example.jar2;
 
 public class Jar2Class {
 
-  public static final String STRING = "jar1";
+  public static final String STRING = "jar2";
 
 }
