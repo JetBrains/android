@@ -15,9 +15,7 @@
   -->
 <idea-plugin>
   <extensionPoints>
-    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.screenshot.screenshotTestRunConfigurationToken"
-                  interface="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestRunConfigurationToken"/>
-  <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken"
-    interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken"
+      interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
   </extensionPoints>
 </idea-plugin>
