@@ -118,6 +118,25 @@ class StringResource(
     return Futures.immediateFuture(true)
   }
 
+  /**
+   * Change the value of the translatable attribute and update the default resource item to reflect this change in the model.
+   */
+  fun changeTranslatable(translatable: Boolean): Boolean {
+    val item = defaultValueAsResourceItem ?: return false
+    isTranslatable = translatable
+
+    if (!stringResourceWriter.setAttribute(
+        project = data.project,
+        attribute = SdkConstants.ATTR_TRANSLATABLE,
+        value = if (translatable) null else SdkConstants.VALUE_FALSE,
+        item = item)) {
+      return false
+    }
+
+    this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+    return true
+  }
+
   private fun createDefaultValue(value: String): ListenableFuture<ResourceItem?> {
     if (value.isEmpty()) return Futures.immediateFuture(null)
 

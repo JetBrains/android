@@ -65,6 +65,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -146,6 +148,26 @@ public class StringResourceViewPanel implements Disposable {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ResourceLoadingTask(this).queue();
     }
+  }
+
+  /**
+   * Add listeners to update the fixed fields.
+   */
+  public void addUpdateListenerToNewStringResourceModel() {
+    // Each of the listeners below will be converted to delegate listeners on the new StringResourceModel.
+    // There is no need to remove these listeners since we are throwing the model away on the next model update.
+    myTable.getFrozenTable().getModel().addTableModelListener(new TableModelListener() {
+      @Override
+      public void tableChanged(TableModelEvent e) {
+        updateViewPanel();
+      }
+    });
+    myTable.getScrollableTable().getModel().addTableModelListener(new TableModelListener() {
+      @Override
+      public void tableChanged(TableModelEvent e) {
+        updateViewPanel();
+      }
+    });
   }
 
   public Project getProject() {
@@ -375,52 +397,56 @@ public class StringResourceViewPanel implements Disposable {
   private final class CellSelectionListener implements FrozenColumnTableListener {
     @Override
     public void selectedCellChanged() {
-      if (!myTable.hasSelectedCell()) {
-        setTextAndEditable(myXmlTextField, "", false);
-        setTextAndEditable(myKeyTextField, "", false);
-        setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
-        setTextAndEditable(myTranslationTextField.getTextField(), "", false);
-        myDefaultValueTextField.setButtonEnabled(false);
-        myTranslationTextField.setButtonEnabled(false);
-        return;
-      }
-
-      myXmlTextField.setEnabled(true);
-      myKeyTextField.setEnabled(true);
-      myDefaultValueTextField.setEnabled(true);
-      myTranslationTextField.setEnabled(true);
-      StringResourceTableModel model = myTable.getModel();
-
-      int row = myTable.getSelectedModelRowIndex();
-      int column = myTable.getSelectedModelColumnIndex();
-      Locale locale = model.getLocale(column);
-
-      StringResourceKey key = model.getKey(row);
-      StringResourceData data = model.getData();
-      if (data == null) {
-        setTextAndEditable(myXmlTextField, "", false);
-      }
-      else {
-        setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
-      }
-      // TODO: Keys are not editable; we want them to be refactor operations
-      setTextAndEditable(myKeyTextField, key.getName(), false);
-
-      String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
-      boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
-      setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
-      myDefaultValueTextField.setButtonEnabled(true);
-
-      boolean translationEditable = false;
-      String translation = "";
-      if (locale != null) {
-        translation = (String)model.getValueAt(row, column);
-        translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
-      }
-      setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
-      myTranslationTextField.setEnabled(locale != null);
-      myTranslationTextField.setButtonEnabled(locale != null);
+      updateViewPanel();
     }
+  }
+
+  private void updateViewPanel() {
+    if (!myTable.hasSelectedCell()) {
+      setTextAndEditable(myXmlTextField, "", false);
+      setTextAndEditable(myKeyTextField, "", false);
+      setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
+      setTextAndEditable(myTranslationTextField.getTextField(), "", false);
+      myDefaultValueTextField.setButtonEnabled(false);
+      myTranslationTextField.setButtonEnabled(false);
+      return;
+    }
+
+    myXmlTextField.setEnabled(true);
+    myKeyTextField.setEnabled(true);
+    myDefaultValueTextField.setEnabled(true);
+    myTranslationTextField.setEnabled(true);
+    StringResourceTableModel model = myTable.getModel();
+
+    int row = myTable.getSelectedModelRowIndex();
+    int column = myTable.getSelectedModelColumnIndex();
+    Locale locale = model.getLocale(column);
+
+    StringResourceKey key = model.getKey(row);
+    StringResourceData data = model.getData();
+    if (data == null) {
+      setTextAndEditable(myXmlTextField, "", false);
+    }
+    else {
+      setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
+    }
+    // TODO: Keys are not editable; we want them to be refactor operations
+    setTextAndEditable(myKeyTextField, key.getName(), false);
+
+    String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
+    setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
+    myDefaultValueTextField.setButtonEnabled(true);
+
+    boolean translationEditable = false;
+    String translation = "";
+    if (locale != null) {
+      translation = (String)model.getValueAt(row, column);
+      translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
+    }
+    setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
+    myTranslationTextField.setEnabled(locale != null);
+    myTranslationTextField.setButtonEnabled(locale != null);
   }
 
   /**
