@@ -183,8 +183,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
     myZoomController = new NavDesignSurfaceZoomController(
-      getSize(),
-      getViewport(),
+      this::getSize,
+      this::getViewport,
       () -> {
         NlModel model = getModel();
         return model != null ? getSceneManager(model) : null;
