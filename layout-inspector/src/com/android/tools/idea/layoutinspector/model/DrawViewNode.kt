@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.Gray
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import java.awt.BasicStroke
@@ -46,10 +45,15 @@ fun getLabelFontSize(scale: Double) = 12f.scale(scale)
 
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
 
-private val HOVER_COLOR = Color(106, 161, 211)
-private val SELECTION_COLOR = Color(24, 134, 247)
-private val BASE_COLOR = Gray.get(128, 128)
-private val OUTLINE_COLOR = Color.white
+private const val HOVER_COLOR_ARGB = 0xFF6AA1D3.toInt()
+private const val SELECTION_COLOR_ARGB = 0xFF1886F7.toInt()
+private const val BASE_COLOR_ARGB = 0x80808080.toInt()
+private const val OUTLINE_COLOR_ARGB = 0xFFFFFFFF.toInt()
+
+private val HOVER_COLOR = Color(HOVER_COLOR_ARGB, true)
+private val SELECTION_COLOR = Color(SELECTION_COLOR_ARGB, true)
+private val BASE_COLOR = Color(BASE_COLOR_ARGB, true)
+private val OUTLINE_COLOR = Color(OUTLINE_COLOR_ARGB, true)
 
 fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
   BasicStroke(thickness(scale), CAP_BUTT, JOIN_MITER, 10.0f, getDash(scale), 0f)
