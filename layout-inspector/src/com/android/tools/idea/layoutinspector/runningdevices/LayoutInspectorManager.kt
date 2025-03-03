@@ -370,9 +370,10 @@ private fun createRendererPanel(
         client = viewInspector.onDeviceRendering,
         renderModel =
           OnDeviceRendererModel(
-            parentDisposable,
-            layoutInspector.inspectorModel,
-            layoutInspector.treeSettings,
+            parentDisposable = parentDisposable,
+            inspectorModel = layoutInspector.inspectorModel,
+            treeSettings = layoutInspector.treeSettings,
+            renderSettings = layoutInspector.renderSettings,
           ),
         enableSendRightClicksToDevice = { enable ->
           tabComponents.displayView.rightClicksAreSentToDevice = enable

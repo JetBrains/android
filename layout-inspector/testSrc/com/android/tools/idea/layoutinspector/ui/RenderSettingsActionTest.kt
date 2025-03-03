@@ -142,10 +142,40 @@ class RenderSettingsActionTest {
 
 class FakeRenderSettings : RenderSettings {
   override val modificationListeners = mutableListOf<RenderSettings.Listener>()
+
   override var scalePercent = 100
+    set(value) {
+      field = value
+      invokeListeners()
+    }
+
   override var drawBorders = true
+    set(value) {
+      field = value
+      invokeListeners()
+    }
+
   override var drawUntransformedBounds = false
+    set(value) {
+      field = value
+      invokeListeners()
+    }
+
   override var drawLabel = true
+    set(value) {
+      field = value
+      invokeListeners()
+    }
+
   override var drawFold = false
+    set(value) {
+      field = value
+      invokeListeners()
+    }
+
   override var highlightColor = HIGHLIGHT_COLOR_RED
+    set(value) {
+      field = value
+      invokeListeners()
+    }
 }

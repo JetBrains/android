@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
+import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.viewWindow
@@ -83,6 +84,7 @@ class OnDeviceRendererPanelTest {
         parentDisposable = disposableRule.disposable,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
+        renderSettings = FakeRenderSettings(),
       )
   }
 

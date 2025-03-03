@@ -24,8 +24,11 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
+import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
@@ -46,6 +49,7 @@ class OnDeviceRendererModelTest {
   private lateinit var inspectorModel: InspectorModel
   private lateinit var onDeviceRendererModel: OnDeviceRendererModel
   private lateinit var treeSettings: FakeTreeSettings
+  private lateinit var renderSettings: RenderSettings
 
   @Before
   fun setUp() {
@@ -58,12 +62,14 @@ class OnDeviceRendererModelTest {
       }
 
     treeSettings = FakeTreeSettings()
+    renderSettings = FakeRenderSettings()
 
     onDeviceRendererModel =
       OnDeviceRendererModel(
         parentDisposable = disposableRule.disposable,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
+        renderSettings = renderSettings,
       )
   }
 
@@ -404,5 +410,70 @@ class OnDeviceRendererModelTest {
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2)
       .isEqualTo(DrawInstruction(rootViewId = ROOT, bounds = Rectangle(0, 0, 10, 10)))
+  }
+
+  @Test
+  fun testRenderSettingsDrawBorders() = runTest {
+    inspectorModel.hoveredNode = inspectorModel[VIEW1]
+    inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
+    testScheduler.advanceUntilIdle()
+
+    val expectedVisibleNodes =
+      listOf(
+        DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds),
+        DrawInstruction(rootViewId = ROOT, inspectorModel[COMPOSE1]!!.layoutBounds),
+        DrawInstruction(rootViewId = ROOT, inspectorModel[ROOT]!!.layoutBounds),
+      )
+
+    val visibleNodes1 = onDeviceRendererModel.visibleNodes.first()
+    assertThat(visibleNodes1).isEqualTo(expectedVisibleNodes)
+
+    val hoveredNode1 = onDeviceRendererModel.hoveredNode.first()
+    assertThat(hoveredNode1)
+      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+
+    // Test borders are not drawn.
+    renderSettings.drawBorders = false
+
+    val visibleNodes2 = onDeviceRendererModel.visibleNodes.first()
+    assertThat(visibleNodes2).isEmpty()
+
+    val hoveredNode2 = onDeviceRendererModel.hoveredNode.first()
+    assertThat(hoveredNode2)
+      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+
+    // Verify selected node is not affected.
+    val selectedNode1 = onDeviceRendererModel.selectedNode.first()
+    assertThat(selectedNode1)
+      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+
+    // Test borders are re-drawn.
+    renderSettings.drawBorders = true
+
+    val visibleNodes3 = onDeviceRendererModel.visibleNodes.first()
+    assertThat(visibleNodes3).isEqualTo(expectedVisibleNodes)
+
+    val hoveredNode3 = onDeviceRendererModel.hoveredNode.first()
+    assertThat(hoveredNode3)
+      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+
+    // Test borders are not drawn during updates.
+    renderSettings.drawBorders = false
+
+    val xrWindow = viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) {} }
+    inspectorModel.update(xrWindow, listOf(ROOT), 0)
+    inspectorModel.hoveredNode = inspectorModel[VIEW1]
+    testScheduler.advanceUntilIdle()
+
+    val visibleNodes4 = onDeviceRendererModel.visibleNodes.first()
+    assertThat(visibleNodes4).isEmpty()
+
+    val hoveredNode4 = onDeviceRendererModel.hoveredNode.first()
+    assertThat(hoveredNode4)
+      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+
+    // Test listener is removed on dispose.
+    Disposer.dispose(onDeviceRendererModel)
+    assertThat(renderSettings.modificationListeners).isEmpty()
   }
 }

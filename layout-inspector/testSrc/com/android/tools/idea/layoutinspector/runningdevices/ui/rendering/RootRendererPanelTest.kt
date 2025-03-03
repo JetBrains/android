@@ -71,7 +71,12 @@ class RootRendererPanelTest {
       }
 
     onDeviceRenderModel =
-      OnDeviceRendererModel(disposableRule.disposable, inspectorModel, FakeTreeSettings())
+      OnDeviceRendererModel(
+        disposableRule.disposable,
+        inspectorModel,
+        FakeTreeSettings(),
+        FakeRenderSettings(),
+      )
 
     renderModel =
       RenderModel(
