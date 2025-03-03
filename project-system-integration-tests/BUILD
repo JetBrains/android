@@ -32,12 +32,12 @@ iml_module(
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
+        "//tools/base/common:studio.android.sdktools.common[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
-        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[test]",
+        "//tools/adt/idea/android:intellij.android.core[test]",
     ],
 )
 

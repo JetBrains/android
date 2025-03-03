@@ -15,11 +15,11 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
+        "//tools/adt/idea/android:intellij.android.core[test]",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",

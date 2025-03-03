@@ -11,8 +11,8 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.toml.lang",
-        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
     ],
 )

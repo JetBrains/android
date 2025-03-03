@@ -10,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services",
     ],
 )
 

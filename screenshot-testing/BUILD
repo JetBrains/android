@@ -12,8 +12,8 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )

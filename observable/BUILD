@@ -13,6 +13,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/common:studio.android.sdktools.common",
     ],
 )

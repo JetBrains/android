@@ -21,7 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

@@ -8,10 +8,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
     ],
 )

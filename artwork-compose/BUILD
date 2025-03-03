@@ -11,7 +11,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
-        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
 )

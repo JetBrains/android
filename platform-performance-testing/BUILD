@@ -11,7 +11,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/base/perf-logger:studio.perf-logger[module]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module]",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/as-driver:as-driver.utils",
     ],
 )

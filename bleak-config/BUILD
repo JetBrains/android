@@ -8,7 +8,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/bleak:intellij.android.bleak[module]",
+        "//tools/adt/idea/bleak:intellij.android.bleak",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
     ],

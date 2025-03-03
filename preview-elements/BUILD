@@ -11,12 +11,12 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
-        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
-        "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/rendering:intellij.android.rendering",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/base/environment-services:studio.intellij.android.environment-services",
     ],
 )
 
@@ -33,10 +33,10 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
-        "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[test]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[test]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[test]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[test]",
     ],
 )
 

@@ -10,11 +10,11 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
+        "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common",
     ],
 )
