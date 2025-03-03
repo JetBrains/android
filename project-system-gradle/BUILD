@@ -239,6 +239,7 @@ iml_module(
         },
         "runs_gradle_errors": {
             "test_filter": ".runsGradleErrors",
+            "shard_count": 2,
             "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
