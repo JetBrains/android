@@ -93,6 +93,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
         CompilerMessageSeverity.LOGGING,
         CompilerMessageSeverity.INFO -> logger.info(messageWithLocation)
         CompilerMessageSeverity.WARNING,
+        CompilerMessageSeverity.FIXED_WARNING,
         CompilerMessageSeverity.STRONG_WARNING -> logger.warn(messageWithLocation)
         CompilerMessageSeverity.EXCEPTION,
         CompilerMessageSeverity.ERROR -> {
