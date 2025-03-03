@@ -18,7 +18,11 @@ package com.example.external;
 /** ExternalJavaSource test class */
 public class ExternalJavaSource {
 
-  private ExternalJavaSource() {}
+  public ExternalJavaSource() {}
 
   public static final String STRING = "ExternalJavaSource";
+
+  public String copy(String s) {
+    return s;
+  }
 }
