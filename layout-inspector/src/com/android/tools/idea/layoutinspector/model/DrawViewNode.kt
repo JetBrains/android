@@ -46,11 +46,10 @@ fun getLabelFontSize(scale: Double) = 12f.scale(scale)
 
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
 
-private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
-private val SELECTED_LINE_COLOR = Color(24, 134, 247)
-private val NORMAL_LINE_COLOR = Gray.get(128, 128)
-private val FAINT_LINE_COLOR = Gray.get(212, 128)
-private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
+private val HOVER_COLOR = Color(106, 161, 211)
+private val SELECTION_COLOR = Color(24, 134, 247)
+private val BASE_COLOR = Gray.get(128, 128)
+private val OUTLINE_COLOR = Color.white
 
 fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
   BasicStroke(thickness(scale), CAP_BUTT, JOIN_MITER, 10.0f, getDash(scale), 0f)
@@ -138,7 +137,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     val owner = unfilteredOwner
     // Draw the outline of the border (the white border around the main view border) if necessary.
     if (isSelected || isHovered) {
-      g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
+      g2.color = OUTLINE_COLOR
       g2.stroke = getEmphasizedLineOutlineStroke(viewSettings.scaleFraction)
       if (viewSettings.drawBorders) {
         g2.draw(bounds)
@@ -206,7 +205,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         )
       }
 
-      g2.color = SELECTED_LINE_COLOR
+      g2.color = SELECTION_COLOR
       val emphasizedBorderThickness = getEmphasizedBorderThickness(viewSettings.scaleFraction)
       g2.fill(
         Rectangle2D.Float(
@@ -231,11 +230,11 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     // Draw the border
     when {
       isSelected -> {
-        g2.color = SELECTED_LINE_COLOR
+        g2.color = SELECTION_COLOR
         g2.stroke = getSelectedLineStroke(viewSettings.scaleFraction)
       }
       isHovered -> {
-        g2.color = EMPHASIZED_LINE_COLOR
+        g2.color = HOVER_COLOR
         g2.stroke = getEmphasizedLineStroke(viewSettings.scaleFraction)
       }
       showHighlight -> {
@@ -243,7 +242,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
       }
       else -> {
-        g2.color = if (treeSettings.showRecompositions) FAINT_LINE_COLOR else NORMAL_LINE_COLOR
+        g2.color = BASE_COLOR
         g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
       }
     }
@@ -397,21 +396,21 @@ class DrawViewImage(
     treeSettings: TreeSettings,
   ) {
     if (isSelected || isHovered) {
-      g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
+      g2.color = OUTLINE_COLOR
       g2.stroke = getEmphasizedImageLineOutlineStroke(viewSettings.scaleFraction)
       g2.draw(bounds)
     }
     when {
       isSelected -> {
-        g2.color = SELECTED_LINE_COLOR
+        g2.color = SELECTION_COLOR
         g2.stroke = getSelectedImageLineStroke(viewSettings.scaleFraction)
       }
       isHovered -> {
-        g2.color = EMPHASIZED_LINE_COLOR
+        g2.color = HOVER_COLOR
         g2.stroke = getEmphasizedImageLineStroke(viewSettings.scaleFraction)
       }
       else -> {
-        g2.color = NORMAL_LINE_COLOR
+        g2.color = BASE_COLOR
         g2.stroke = getNormalImageLineStroke(viewSettings.scaleFraction)
       }
     }
@@ -444,7 +443,7 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     treeSettings: TreeSettings,
   ) {
     if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {
-      g2.color = NORMAL_LINE_COLOR
+      g2.color = BASE_COLOR
       g2.stroke = getNormalImageLineStroke(viewSettings.scaleFraction)
       g2.drawRect(0, 0, root.layoutBounds.width, root.layoutBounds.height)
     }
