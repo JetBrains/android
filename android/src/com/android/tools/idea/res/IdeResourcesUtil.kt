@@ -500,6 +500,7 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
  * <li> Otherwise a null is returned. </li>
  * </ul>
  */
+@Slow
 fun RenderResources.resolveAsIcon(value: ResourceValue?, facet: AndroidFacet): Icon? =
   resolveAsColorIcon(value, RESOURCE_ICON_SIZE, facet.module.project)
     ?: resolveAsDrawable(value, facet)
@@ -524,6 +525,7 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
   return colors.maxByOrNull { ColorUtil.getColorDistance(it, color) } ?: colors.first()
 }
 
+@Slow
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, facet: AndroidFacet): Icon? {
   val project = facet.module.project
   val bitmap =

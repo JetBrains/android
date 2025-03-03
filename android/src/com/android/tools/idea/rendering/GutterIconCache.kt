@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.RenderResources
 import com.google.common.collect.Maps
 import com.intellij.openapi.components.Service
@@ -53,6 +54,7 @@ constructor(
    * Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be
    * rendered.
    */
+  @Slow
   fun getIcon(file: VirtualFile, resolver: RenderResources?, facet: AndroidFacet): Icon? =
     (getTimestampedIconFromCache(file) ?: renderAndCacheIcon(file, resolver, facet)).icon
 
@@ -62,6 +64,7 @@ constructor(
    */
   fun getIconIfCached(file: VirtualFile): Icon? = getTimestampedIconFromCache(file)?.icon
 
+  @Slow
   private fun renderAndCacheIcon(
     file: VirtualFile,
     resolver: RenderResources?,

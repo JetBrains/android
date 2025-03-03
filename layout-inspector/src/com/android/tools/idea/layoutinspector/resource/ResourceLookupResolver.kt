@@ -207,6 +207,7 @@ class ResourceLookupResolver(
   }
 
   /** Resolve this drawable property as an icon. */
+  @Slow
   fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
     val url = value?.let { ResourceUrl.parse(it) } ?: return null
     val tag = findViewTagInFile(view, view.layout) ?: return null

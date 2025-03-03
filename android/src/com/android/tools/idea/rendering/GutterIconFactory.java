@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.DOT_XML;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
@@ -71,6 +72,7 @@ class GutterIconFactory {
    * ?android:attr/bar}). If {@code resolver} is null, then it is assumed that the image resource is either not an XML resource, or
    * that the XML file does not contain any unresolved references (otherwise, this method returns null).
    */
+  @Slow
   @Nullable
   public static Icon createIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, @NotNull AndroidFacet facet, int maxWidth, int maxHeight) {
     String path = file.getPath();
@@ -96,6 +98,7 @@ class GutterIconFactory {
     return document.getText();
   }
 
+  @Slow
   @Nullable
   private static Icon createXmlIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver,
                                     @NotNull AndroidFacet facet,

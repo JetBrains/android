@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -130,6 +131,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     return new ColorRenderer(element.getPsiElement(), color, resolver, null, true, facet);
   }
 
+  @Slow
   @Nullable
   private static GutterIconRenderer getResourceGutterIconRenderer(@NotNull ResourceReference reference,
                                                                   @NotNull PsiElement element,
