@@ -2155,7 +2155,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
                     "Use the simplified AIDA onboarding flow.",
                     "When enabled, the AIDA model onboarding will use the new simplified flow. Only applied if the Compose Chat toolwindow is enabled.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
