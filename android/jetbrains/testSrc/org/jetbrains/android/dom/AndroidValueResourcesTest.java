@@ -30,6 +30,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.FoldingModel;
@@ -670,7 +671,16 @@ public class AndroidValueResourcesTest {
   @Test
   public void javaHighlighting() {
     copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
-    doTestJavaHighlighting("p1.p2");
+
+    String sourceFileName = "JavaHighlighting.java";
+    // TODO(b/400465855): Remove the "before 251" path after the 2025.1 merge completes.
+    if (ApplicationInfo.getInstance().getBuild().getBaselineVersion() < 251) {
+      sourceFileName = "JavaHighlighting.Before251.java";
+    }
+    VirtualFile fileToCheck = copyFileToProject(sourceFileName, "app/src/p1/p2/JavaHighlighting.java");
+    myFixture.configureFromExistingVirtualFile(fileToCheck);
+
+    myFixture.checkHighlighting(true, false, false);
   }
 
   @Test
@@ -1107,14 +1117,6 @@ public class AndroidValueResourcesTest {
    * described by an example, check the usages of the function to find out.
    */
   private void doTestHighlighting(@NotNull VirtualFile virtualFile) {
-    myFixture.configureFromExistingVirtualFile(virtualFile);
-    myFixture.checkHighlighting(true, false, false);
-  }
-
-  private void doTestJavaHighlighting(String aPackage) {
-    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
-    String fileName = getTestName(false) + ".java";
-    VirtualFile virtualFile = copyFileToProject(fileName, "app/src/" + aPackage.replace('.', '/') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
