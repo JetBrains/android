@@ -115,6 +115,12 @@ public final class FrozenColumnTableTest {
     assertThat(scrollableTable.getSelectedRow()).isEqualTo(1);
     assertThat(scrollableTable.getSelectedColumn()).isEqualTo(1);
 
+    // Move to the right is a noop:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(scrollableTable);
+    assertThat(scrollableTable.getSelectedRow()).isEqualTo(1);
+    assertThat(scrollableTable.getSelectedColumn()).isEqualTo(1);
+
     // Move to home jumps to frozen table:
     ui.keyboard.pressAndRelease(KeyEvent.VK_HOME);
     assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
