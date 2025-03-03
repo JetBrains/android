@@ -19,14 +19,16 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.composeRuntimePath
 import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.withComposeRuntime
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
@@ -38,12 +40,12 @@ import com.jetbrains.rd.util.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.idea.base.util.module
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -59,15 +61,24 @@ internal class EmbeddedCompilerClientImplTest {
         .withAndroidModuleDependencyList {
           listOf(AndroidModuleDependency(":lib", "debug"))
         }
-        .withComposeRuntime()
+        .withJavaLibraryDependencyList {
+          listOf(
+            JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib),
+            JavaLibraryDependency.forJar(File(composeRuntimePath))
+          )
+        }
     ),
     AndroidModuleModelBuilder(
       ":lib",
       "debug",
-      AndroidProjectBuilder().withComposeRuntime()
+      AndroidProjectBuilder().withJavaLibraryDependencyList {
+        listOf(
+          JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib),
+          JavaLibraryDependency.forJar(File(composeRuntimePath))
+        )
+      }
     )
   )
-    .withKotlin()
 
   private val compiler: EmbeddedCompilerClientImpl by lazy {
     EmbeddedCompilerClientImpl(

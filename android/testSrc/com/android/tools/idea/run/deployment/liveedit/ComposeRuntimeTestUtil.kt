@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import androidx.compose.compiler.plugins.kotlin.k2.ComposeFirExtensionRegistrar
 import com.android.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -30,9 +27,7 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import java.io.File
 
 /**
  * Path to the compose-runtime jar. Note that unlike all other dependencies, we
@@ -90,9 +85,3 @@ fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(
   val testProjectSystem = TestProjectSystem(projectRule.project).apply { usesCompose = true }
   runInEdtAndWait { testProjectSystem.useInTests() }
 }
-
-/**
- * Adds the Compose Runtime dependency to the given [AndroidProjectBuilder].
- */
-fun AndroidProjectBuilder.withComposeRuntime() =
-  withJavaLibraryDependencyList { _ -> listOf(JavaLibraryDependency.forJar(File(composeRuntimePath))) }
