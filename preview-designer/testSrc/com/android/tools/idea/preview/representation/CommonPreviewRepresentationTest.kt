@@ -723,6 +723,40 @@ class CommonPreviewRepresentationTest {
       restoredPreviewRepresentation.onDeactivateImmediately()
     }
 
+  @Test
+  fun `test animation preview is hidden if there is build error in the file`() = runBlocking {
+    val animationPreview =
+      mock<AnimationPreview<AnimationManager>>().also {
+        whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
+      }
+    val previewElement =
+      PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+    val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+    val previewRepresentation =
+      createPreviewRepresentation(previewElementProvider, animationPreview)
+    previewRepresentation.compileAndWaitForRefresh()
+
+    // start animation inspection
+    previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel != null
+    }
+    // Simulate out of date and failed build
+    whenever(previewViewModelMock.isOutOfDate).thenReturn(true)
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.FAILED)
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel == null
+    }
+
+    // build is successful, panel is shown again
+    whenever(previewViewModelMock.isOutOfDate).thenReturn(false)
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel != null
+    }
+    previewRepresentation.onDeactivateImmediately()
+  }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()

@@ -204,9 +204,7 @@ class WearTilePreviewRepresentationTest {
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
         preview.previewModeManager.setMode(PreviewMode.AnimationInspection(previewElement))
 
-        delayUntilCondition(250) { preview.previewView.bottomPanel != null }
-        assertThat(preview.previewView.bottomPanel?.components?.get(0)?.name)
-          .isEqualTo("Animation Preview")
+        delayUntilCondition(250) { preview.currentAnimationPreview != null }
       }
 
       preview.onDeactivate()
