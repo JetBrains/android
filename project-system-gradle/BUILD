@@ -145,6 +145,7 @@ iml_module(
         # indexing off elsewhere by masking the KotlinScriptWorkspaceFileIndexContributor extension, but it has to stay on here.
         "kts.highlighting": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.highlighting.GradleKtsResolveSymbolsTest",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
