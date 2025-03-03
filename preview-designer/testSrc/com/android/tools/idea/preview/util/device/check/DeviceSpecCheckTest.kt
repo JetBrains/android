@@ -419,6 +419,23 @@ internal class DeviceSpecCheckTest {
   }
 
   @Test
+  fun testDeviceKnownLegacySpecsAreValid() {
+    val result =
+      addKotlinFileAndCheckPreviewAnnotation(
+        """
+        package example
+        import test.Preview
+
+        // Legacy Phone spec
+        @Preview(device = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420")
+        fun myFun() {}
+"""
+          .trimIndent()
+      )
+    assertFalse(result.hasIssues)
+  }
+
+  @Test
   fun testParentIdCheck() {
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 

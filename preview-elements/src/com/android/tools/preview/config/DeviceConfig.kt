@@ -86,6 +86,14 @@ private val specPatchTable =
   )
 
 /**
+ * If the given string is a legacy device spec, try to match it to a post 1.8 spec. If this is not
+ * possible, return the string as is.
+ */
+fun String.asNewDeviceSpec(): String {
+  return specPatchTable[this] ?: this
+}
+
+/**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
  * [DeviceConfig.toDeviceConfigOrNull].
  *
@@ -269,7 +277,7 @@ open class DeviceConfig(
       availableDevices: Collection<Device>,
     ): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
-      val patchedSerialized = specPatchTable[serialized] ?: serialized
+      val patchedSerialized = serialized.asNewDeviceSpec()
       val configString = patchedSerialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       // Find if the given spec belongs to a reference device and if it does, use that as device id.
       val referenceDeviceId = referenceDeviceIds[patchedSerialized]
