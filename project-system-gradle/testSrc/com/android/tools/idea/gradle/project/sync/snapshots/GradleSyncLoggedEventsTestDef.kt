@@ -83,6 +83,7 @@ data class GradleSyncLoggedEventsTestDef(
               |  USER_REQUESTED_PARALLEL
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_PARALLEL
+              |  STUDIO_REQUESTD_$expectedMode
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode""".trim()
@@ -123,6 +124,7 @@ data class GradleSyncLoggedEventsTestDef(
               |  USER_REQUESTED_SEQUENTIAL
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_SEQUENTIAL
+              |  STUDIO_REQUESTD_SEQUENTIAL
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL""".trim()
