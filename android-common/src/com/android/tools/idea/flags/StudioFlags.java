@@ -1364,6 +1364,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> ENABLE_BACKUP_TESTING = new BooleanFlag(
+    TESTING, "backup.testing", "Run backup and restore tests",
+    "If enabled, backup and restore tests can be run from Studio and test results will be displayed in the test matrix",
+    false
+  );
+
   public static final Flag<Integer> ANDROID_PLATFORM_TO_AUTOCREATE = new IntFlag(
     TESTING,
     "android.platform.to.autocreate",
