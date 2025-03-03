@@ -29,10 +29,13 @@ import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.psi.util.parentOfType
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import com.sun.jdi.Location
 import com.sun.jdi.Method
+import com.sun.jdi.ReferenceType
 import java.util.LinkedList
 import kexter.Dex
 import kexter.DexBytecode
@@ -135,6 +138,14 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
   }
 }
 
+private class DexCache {
+  companion object {
+    val DEX_CACHE_KEY = Key.create<DexCache?>("DEX_CACHE_KEY")
+  }
+
+  val typeToDex = mutableMapOf<ReferenceType, Dex>()
+}
+
 private fun logSmartStepTargetFilteringEvent(status: DexSearchStatus, timeMs: Long) {
   val event =
     AndroidStudioEvent.newBuilder()
@@ -168,11 +179,11 @@ private suspend fun findDexWithLocationCacheAware(
   expression: KtElement,
   location: Location,
 ): Pair<Dex?, DexSearchStatus> {
-  val mapping =
-    DebugSessionCache.getInstance(debugProcess.project)
-      .getMapping(debugProcess, DebugSessionCache.DEX_CACHE_TOKEN)
-  mapping?.get(location.declaringType())?.let {
-    return it as Dex to DexSearchStatus.FOUND
+  val vmProxy = debugProcess.suspendManager.pausedContext.virtualMachineProxy
+  val cache = vmProxy.getOrCreateUserData<DexCache>(DexCache.DEX_CACHE_KEY) { DexCache() }
+
+  cache.typeToDex[location.declaringType()]?.let { dex ->
+    return dex to DexSearchStatus.FOUND
   }
 
   val configuration =
@@ -201,7 +212,7 @@ private suspend fun findDexWithLocationCacheAware(
 
   val dex = apks.firstNotNullOfOrNull { findDexWithLocation(it, location) }
   if (dex != null) {
-    mapping?.put(location.declaringType(), dex)
+    cache.typeToDex[location.declaringType()] = dex
     return dex to DexSearchStatus.FOUND
   }
   return null to DexSearchStatus.DEX_NOT_FOUND
