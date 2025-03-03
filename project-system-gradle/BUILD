@@ -253,6 +253,7 @@ iml_module(
         },
         "runs_indexing_with_gradle_errors": {
             "test_filter": ".runsIndexingWithGradleErrors",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
