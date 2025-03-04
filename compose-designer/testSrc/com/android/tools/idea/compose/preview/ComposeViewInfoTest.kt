@@ -33,70 +33,6 @@ class ComposeViewInfoTest {
   ) : SourceLocation
 
   @Test
-  fun checkBoundHits() {
-    val root =
-      ComposeViewInfo(
-        TestSourceLocation("root"),
-        PxBounds(0, 0, 1000, 300),
-        children =
-          listOf(
-            ComposeViewInfo(
-              TestSourceLocation("child1"),
-              PxBounds(0, 0, 0, 0),
-              children = listOf(),
-            ),
-            ComposeViewInfo(
-              TestSourceLocation("child2"),
-              PxBounds(100, 100, 500, 300),
-              children =
-                listOf(
-                  ComposeViewInfo(
-                    TestSourceLocation("child2.2"),
-                    PxBounds(250, 250, 500, 300),
-                    children = listOf(),
-                  )
-                ),
-            ),
-            ComposeViewInfo(
-              TestSourceLocation("child3"),
-              PxBounds(400, 200, 1000, 300),
-              children = listOf(),
-            ),
-          ),
-      )
-
-    assertTrue(
-      "2000, 2000 should not hit any components",
-      root.findHitWithDepth(2000, 2000).isEmpty(),
-    )
-    assertEquals("0: root".trimMargin(), root.serializeHits(0, 0))
-    assertEquals(
-      """0: root
-                   |1: child2"""
-        .trimMargin(),
-      root.serializeHits(125, 125),
-    )
-    assertEquals("child2", root.findDeepestHits(125, 125).single().sourceLocation.fileName)
-    assertEquals(
-      """0: root
-                   |1: child2
-                   |2: child2.2"""
-        .trimMargin(),
-      root.serializeHits(260, 260),
-    )
-    assertEquals("child2.2", root.findDeepestHits(260, 260).single().sourceLocation.fileName)
-    assertEquals(
-      """0: root
-                   |1: child2
-                   |1: child3
-                   |2: child2.2"""
-        .trimMargin(),
-      root.serializeHits(450, 260),
-    )
-    assertEquals("child2.2", root.findDeepestHits(450, 260).single().sourceLocation.fileName)
-  }
-
-  @Test
   fun checkLeafHits() {
     //              root
     //            /     \
@@ -162,7 +98,54 @@ class ComposeViewInfoTest {
   }
 
   @Test
-  fun checkAllHits() {
+  fun checkAllLeafHits() {
+    //                        root
+    //                      /     \
+    //            fileA (10,10)     fileB (20,20)
+    //                                \
+    //                                fileB (20,10)
+    //
+    // Given that all the components shown above contain the point x, y calling findAllHits will
+    // return both components in file B.
+    val root =
+      ComposeViewInfo(
+        TestSourceLocation("root"),
+        PxBounds(0, 0, 1000, 1000),
+        children =
+          listOf(
+            ComposeViewInfo(
+              TestSourceLocation("fileA"),
+              PxBounds(0, 0, 10, 10),
+              children = listOf(),
+            ),
+            ComposeViewInfo(
+              TestSourceLocation("fileB", lineNumber = 4),
+              PxBounds(0, 0, 20, 20),
+              children =
+                listOf(
+                  ComposeViewInfo(
+                    TestSourceLocation("fileB", lineNumber = 7),
+                    PxBounds(0, 0, 10, 20),
+                    children = listOf(),
+                  )
+                ),
+            ),
+          ),
+      )
+
+    assertTrue(root.findAllLeafHits(10000, 100000).isEmpty())
+    val allHits = root.findAllLeafHits(1, 1)
+    assertEquals(2, allHits.size)
+    assertEquals(allHits.first().sourceLocation.fileName, "fileB")
+    assertEquals(allHits.first().bounds.bottom, 20)
+    assertEquals(allHits.first().bounds.right, 10)
+    assertEquals(allHits.get(1).sourceLocation.fileName, "fileA")
+    assertEquals(allHits.get(1).bounds.bottom, 10)
+    assertEquals(allHits.get(1).bounds.right, 10)
+  }
+
+  @Test
+  fun checkAllHitsInFile() {
     //                      root
     //                  /          \
     //          fileA (line 1)      fileC

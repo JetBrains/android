@@ -65,7 +65,7 @@ class ComposePreviewInspector(
     @AndroidCoordinate val xPx = Coordinates.getAndroidX(sceneView, x)
     @AndroidCoordinate val yPx = Coordinates.getAndroidY(sceneView, y)
     for (composeViewInfo in composeViewInfoProvider(sceneView)) {
-      val hits = composeViewInfo.findDeepestHits(xPx, yPx)
+      val hits = composeViewInfo.findAllLeafHits(xPx, yPx)
       if (hits.isNotEmpty()) {
         return hits.toList()
       }

@@ -53,21 +53,18 @@ fun List<ComposeViewInfo>.findHitWithDepth(
   depth: Int = 0,
 ): Collection<Pair<Int, ComposeViewInfo>> = flatMap { it.findHitWithDepth(x, y, depth) }
 
-fun ComposeViewInfo.findDeepestHits(
+fun List<ComposeViewInfo>.findSmallestHit(
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
-): Collection<ComposeViewInfo> = listOf(this).findDeepestHits(x, y)
-
-fun List<ComposeViewInfo>.findDeepestHits(
-  @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int,
-): Collection<ComposeViewInfo> =
-  findHitWithDepth(x, y)
-    .groupBy { it.first }
-    .maxByOrNull { it.key }
-    ?.value
-    ?.map { it.second }
-    ?.toList() ?: emptyList()
+): Collection<ComposeViewInfo> {
+  val viewInfos = first().findAllLeafHits(x, y)
+  if (viewInfos.isEmpty()) return listOf()
+  return listOf(
+    viewInfos.minByOrNull {
+      (it.bounds.bottom - it.bounds.top) * (it.bounds.right - it.bounds.left)
+    }!!
+  )
+}
 
 /**
  * To be able to find every possible hit we need to find each leaf node of the tree within the file
@@ -75,14 +72,18 @@ fun List<ComposeViewInfo>.findDeepestHits(
  * live in the file.
  */
 fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<ComposeViewInfo> {
+  return this.findAllLeafHits(x, y).filter { it.sourceLocation.fileName == fileName }
+}
+
+/** This function will return all hits that have no children. */
+fun ComposeViewInfo.findAllLeafHits(x: Int, y: Int): List<ComposeViewInfo> {
   if (!this.containsPoint(x, y)) return emptyList()
   val leafHits = mutableListOf<ComposeViewInfo>()
   val stack = mutableListOf(this)
 
   while (stack.isNotEmpty()) {
-    val currentViewInfo: ComposeViewInfo = stack.pop()
-    val childrenContainingPoint =
-      currentViewInfo.children.filter { it.containsPoint(x, y) && it.doesFileExistInTree(fileName) }
+    var currentViewInfo: ComposeViewInfo = stack.pop()
+    var childrenContainingPoint = currentViewInfo.children.filter { it.containsPoint(x, y) }
 
     // If no children contain point then it must be a leaf
     if (childrenContainingPoint.isEmpty()) {

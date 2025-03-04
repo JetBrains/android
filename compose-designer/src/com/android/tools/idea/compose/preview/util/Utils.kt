@@ -25,7 +25,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.findDeepestHits
+import com.android.tools.idea.compose.preview.findSmallestHit
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -60,7 +60,7 @@ fun SceneView.getRootComponent(): NlComponent? {
   return root
 }
 
-fun SceneView.getDeepestViewInfos(x: Int, y: Int, logger: Logger): Collection<ComposeViewInfo>? {
+fun SceneView.getSmallestViewInfos(x: Int, y: Int, logger: Logger): Collection<ComposeViewInfo>? {
   val androidX = Coordinates.getAndroidX(this, x)
   val androidY = Coordinates.getAndroidY(this, y)
   val deepestViewInfos =
@@ -68,7 +68,7 @@ fun SceneView.getDeepestViewInfos(x: Int, y: Int, logger: Logger): Collection<Co
       ?.nlComponent
       ?.viewInfo
       ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
-      ?.findDeepestHits(androidX, androidY)
+      ?.findSmallestHit(androidX, androidY)
 
   return deepestViewInfos
 }
