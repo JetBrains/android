@@ -93,7 +93,7 @@ class FloatingToolbarContainerTest {
       addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
     }
     panel.add(toolbar, BorderLayout.EAST)
-    fakeUi.updateToolbars()
+    fakeUi.updateToolbarsIfNecessary()
     // Empty toolbar should not be visible.
     val image = fakeUi.render()
     for (y in 0 until image.height) {
