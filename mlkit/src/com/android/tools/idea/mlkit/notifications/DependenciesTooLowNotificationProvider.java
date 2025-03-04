@@ -17,9 +17,11 @@ package com.android.tools.idea.mlkit.notifications;
 
 import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Version;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -33,6 +35,7 @@ import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +56,7 @@ class DependenciesTooLowNotificationProvider implements EditorNotificationProvid
     if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlUtils.isModelFileInMlModelsFolder(module, file)) {
       return null;
     }
-    List<Pair<GradleCoordinate, GradleCoordinate>> depPairList = MlUtils.getDependenciesLowerThanRequiredVersion(module);
+    List<Pair<RegisteredDependencyId, Map.Entry<WellKnownMavenArtifactId,Version>>> depPairList = MlUtils.getDependenciesLowerThanRequiredVersion(module);
     if (depPairList.isEmpty()) return null;
 
     return (fileEditor) -> {
@@ -66,11 +69,11 @@ class DependenciesTooLowNotificationProvider implements EditorNotificationProvid
       panel.createActionLabel("View dependencies", () -> {
         String existingDepString = depPairList.stream()
           .map(it -> it.getFirst())
-          .map(it -> String.format(Locale.US, "    %s:%s:%s\n", it.getGroupId(), it.getArtifactId(), it.getRevision()))
+          .map(it -> String.format(Locale.US, "    %s\n", it))
           .collect(Collectors.joining(""));
         String requiredDepString = depPairList.stream()
           .map(it -> it.getSecond())
-          .map(it -> String.format(Locale.US, "    %s:%s:%s\n", it.getGroupId(), it.getArtifactId(), it.getRevision()))
+          .map(it -> String.format(Locale.US, "    %s\n", it.getKey().getComponent(it.getValue().toString())))
           .collect(Collectors.joining(""));
         Messages.showWarningDialog(
           String.format(Locale.US, "Existing:\n%s\nRequired:\n%s", existingDepString, requiredDepString),
