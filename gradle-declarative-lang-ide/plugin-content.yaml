@@ -3,3 +3,4 @@
   - name: intellij.android.gradle.declarative.lang.ide
   contentModules:
   - name: intellij.android.gradle.declarative.lang
+  - name: intellij.android.gradle.declarative.lang.sync
