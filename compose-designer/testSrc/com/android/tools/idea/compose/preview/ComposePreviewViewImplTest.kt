@@ -35,8 +35,6 @@ import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
@@ -59,6 +57,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
@@ -74,14 +73,15 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -188,7 +188,7 @@ class ComposePreviewViewImplTest {
       listOf(FakeStudioBotActionFactory()),
       projectRule.testRootDisposable,
     )
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Setup a fake manifest so rendering works correctly
       val manifest =
         fixture.addFileToProjectAndInvalidate(
@@ -315,7 +315,7 @@ class ComposePreviewViewImplTest {
         override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
           createTestPreviewElementDataContext(project, composePreviewManager, previewElement)
       }
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       surface.updatePreviewsAndRefresh(
         tryReusingModels = true,
         reinflate = true,
@@ -342,11 +342,17 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `empty preview state when generate all previews is disabled`() {
+  fun `empty preview state when generate all previews is disabled`() = runBlocking {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(false)
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
+
+    var instructionPanel: InstructionsPanel? = null
+    delayUntilCondition(250) {
+      instructionPanel = (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+      instructionPanel != null
+    }
 
     retryUntilPassing(2.seconds) {
       assertEquals(
@@ -356,7 +362,7 @@ class ComposePreviewViewImplTest {
         [Using the Compose preview]
       """
           .trimIndent(),
-        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+        instructionPanel?.toDisplayText(),
       )
     }
   }
@@ -371,13 +377,18 @@ class ComposePreviewViewImplTest {
     checkEmptyPreviewState(true)
   }
 
-  private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) {
+  private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) = runBlocking {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
     geminiPluginApi.contextAllowed = contextSharingEnabled
 
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
+    var instructionPanel: InstructionsPanel? = null
+    delayUntilCondition(250) {
+      instructionPanel = (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+      instructionPanel != null
+    }
 
     retryUntilPassing(2.seconds) {
       assertEquals(
@@ -389,25 +400,27 @@ class ComposePreviewViewImplTest {
       """
           .trimIndent()
           .trim(),
-        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+        instructionPanel?.toDisplayText(),
       )
     }
   }
 
   @Test
-  fun `test compilation error state`() {
+  fun `test compilation error state`() = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
     runBlocking { previewView.updateVisibilityAndNotifications() }
+    var instructionPanel: InstructionsPanel? = null
+    delayUntilCondition(250) {
+      instructionPanel = (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+      instructionPanel != null
+    }
 
     retryUntilPassing(2.seconds) {
       val shortcutRegEx = Regex("\\(.+.\\)")
-      val instructionsText =
-        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
-          ?.toDisplayText()
-          ?.replace(shortcutRegEx, "(shortcut)")
+      val instructionsText = instructionPanel?.toDisplayText()?.replace(shortcutRegEx, "(shortcut)")
       assertEquals(
         """
         A successful build is needed before the preview can be displayed
@@ -442,14 +455,13 @@ class ComposePreviewViewImplTest {
     }
     delayUntilCondition(100, 1.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 2 }
 
-    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
+    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
   }
 
-  @Ignore("b/387245555")
   @Test
-  fun `open and close bottom panel`() {
+  fun `open and close bottom panel`() = runBlocking {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
@@ -475,13 +487,30 @@ class ComposePreviewViewImplTest {
         }
       fakeUi.root.validate()
     }
-    assertTrue(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" }!!.isShowing)
+    var bottomPanel: JLabel? = null
 
+    // Find the bottom panel in fake ui
+    delayUntilCondition(250) {
+      bottomPanel = fakeUi.findComponent<JLabel> { it.text == "Bottom panel" }
+      bottomPanel != null
+    }
+    assertNotNull(bottomPanel)
+
+    // Wait until the bottom panel is shown
+    delayUntilCondition(250) { bottomPanel!!.isShowing }
+    assertTrue(bottomPanel!!.isShowing)
+
+    // Close the bottom panel
     ApplicationManager.getApplication().invokeAndWait {
       previewView.bottomPanel = null
       fakeUi.root.validate()
     }
-    assertNull(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" })
+
+    delayUntilCondition(250) {
+      bottomPanel = fakeUi.findComponent<JLabel> { it.text == "Bottom panel" }
+      bottomPanel == null
+    }
+    assertNull(bottomPanel)
   }
 
   @Test
