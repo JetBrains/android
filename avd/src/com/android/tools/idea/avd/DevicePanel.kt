@@ -30,7 +30,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -80,7 +79,6 @@ internal fun DevicePanel(
   imageState: SystemImageState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
-  deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
@@ -89,23 +87,19 @@ internal fun DevicePanel(
   Column(modifier) {
     Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
-    var nameError by remember { mutableStateOf<String?>(null) }
     val nameState = rememberTextFieldState(configureDevicePanelState.device.name)
     LaunchedEffect(Unit) {
       nameFocusRequester.requestFocus()
       snapshotFlow { nameState.text.toString() }
-        .collect {
-          configureDevicePanelState.setDeviceName(it)
-          nameError = deviceNameValidator.validate(it)
-          configureDevicePanelState.isDeviceNameValid = nameError == null
-        }
+        .collect { configureDevicePanelState.setDeviceName(it) }
     }
 
-    ErrorTooltip(nameError) {
+    ErrorTooltip(configureDevicePanelState.deviceNameError) {
       TextField(
         nameState,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE).focusRequester(nameFocusRequester),
-        outline = if (nameError == null) Outline.None else Outline.Error,
+        outline =
+          if (configureDevicePanelState.deviceNameError == null) Outline.None else Outline.Error,
       )
     }
 

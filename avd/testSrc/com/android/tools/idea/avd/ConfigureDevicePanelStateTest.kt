@@ -18,7 +18,12 @@ package com.android.tools.idea.avd
 import com.android.sdklib.ISystemImage
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
+import kotlin.math.max
+import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -39,10 +44,9 @@ class ConfigureDevicePanelStateTest {
     val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
-        mock(),
       )
 
     val path = device.skin.path()
@@ -61,10 +65,9 @@ class ConfigureDevicePanelStateTest {
     val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
-        mock(),
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -89,10 +92,9 @@ class ConfigureDevicePanelStateTest {
     val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
-        mock(),
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -116,7 +118,7 @@ class ConfigureDevicePanelStateTest {
     whenever(image.hasPlayStore()).thenReturn(true)
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
         image,
@@ -139,7 +141,7 @@ class ConfigureDevicePanelStateTest {
     val image = mock<ISystemImage>()
     whenever(image.hasPlayStore()).thenReturn(true)
 
-    val state = ConfigureDevicePanelState(device, listOf(NoSkin.INSTANCE).toImmutableList(), image)
+    val state = configureDevicePanelState(device, listOf(NoSkin.INSTANCE).toImmutableList(), image)
     state.initDeviceSkins(device.skin.path())
 
     // Act
@@ -156,10 +158,9 @@ class ConfigureDevicePanelStateTest {
     val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device.copy(skin = NoSkin.INSTANCE, defaultSkin = NoSkin.INSTANCE),
         skins,
-        mock(),
       )
 
     state.initDeviceSkins(device.skin.path())
@@ -180,7 +181,7 @@ class ConfigureDevicePanelStateTest {
     whenever(image.hasPlayStore()).thenReturn(true)
 
     val state =
-      ConfigureDevicePanelState(
+      configureDevicePanelState(
         device,
         listOf(NoSkin.INSTANCE, device.defaultSkin).toImmutableList(),
         image,
@@ -196,3 +197,13 @@ class ConfigureDevicePanelStateTest {
     assertEquals(NoSkin.INSTANCE, state.device.skin)
   }
 }
+
+private fun configureDevicePanelState(
+  device: VirtualDevice,
+  skins: ImmutableCollection<Skin> = emptyList<Skin>().toImmutableList(),
+  image: ISystemImage? = mock(),
+  deviceNameValidator: DeviceNameValidator = DeviceNameValidator(emptySet()),
+  fileSystem: FileSystem = FileSystems.getDefault(),
+  maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
+) =
+  ConfigureDevicePanelState(device, skins, image, deviceNameValidator, fileSystem, maxCpuCoreCount)

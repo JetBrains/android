@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,6 +37,7 @@ internal class ConfigureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
+  val deviceNameValidator: DeviceNameValidator,
   fileSystem: FileSystem = FileSystems.getDefault(),
   val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
@@ -45,13 +47,15 @@ internal class ConfigureDevicePanelState(
   val storageGroupState = StorageGroupState(device, fileSystem)
   val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 
-  var isDeviceNameValid by mutableStateOf(true)
   var isSystemImageTableSelectionValid by mutableStateOf(true)
   var isPreferredAbiValid by mutableStateOf(true)
 
   val isValid
     get() =
-      device.isValid && isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
+      device.isValid &&
+        deviceNameError == null &&
+        isSystemImageTableSelectionValid &&
+        isPreferredAbiValid
 
   fun hasPlayStore(): Boolean {
     val image = systemImageTableSelectionState.selection
@@ -61,6 +65,8 @@ internal class ConfigureDevicePanelState(
   fun setDeviceName(deviceName: String) {
     device = device.copy(name = deviceName)
   }
+
+  val deviceNameError by derivedStateOf { deviceNameValidator.validate(this.device.name) }
 
   fun setSystemImageSelection(systemImage: ISystemImage) {
     systemImageTableSelectionState.selection = systemImage

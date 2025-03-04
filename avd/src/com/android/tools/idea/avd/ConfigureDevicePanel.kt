@@ -51,7 +51,6 @@ internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
   images: SystemImageState,
-  deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
@@ -68,7 +67,6 @@ internal fun ConfigureDevicePanel(
         configureDevicePanelState,
         initialSystemImage,
         images,
-        deviceNameValidator,
         onDownloadButtonClick,
         onSystemImageTableRowClick,
       )
@@ -91,7 +89,6 @@ private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
   imageState: SystemImageState,
-  deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
@@ -145,7 +142,6 @@ private fun Tabs(
         imageState,
         androidVersions,
         servicesSet,
-        deviceNameValidator,
         onDownloadButtonClick,
         onSystemImageTableRowClick,
         Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),

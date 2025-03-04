@@ -132,6 +132,7 @@ internal fun WizardPageScope.ConfigurationPage(
             filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
               it.isSupported()
             },
+            deviceNameValidator,
             fileSystem,
           )
 
@@ -145,7 +146,7 @@ internal fun WizardPageScope.ConfigurationPage(
             device
           }
 
-        val state = ConfigureDevicePanelState(copy, skins, image, fileSystem)
+        val state = ConfigureDevicePanelState(copy, skins, image, deviceNameValidator, fileSystem)
         state.initDefaultSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
 
         state
@@ -169,7 +170,6 @@ internal fun WizardPageScope.ConfigurationPage(
       state,
       image,
       filteredImageState,
-      deviceNameValidator,
       onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
       onSystemImageTableRowClick = {
         state.setSystemImageSelection(it)
