@@ -100,7 +100,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   private val simpleHtmlPath by lazy { fixture.createFile("simple.html", SIMPLE_HTML).toNioPath() }
 
-  private val docUrl = TEXT_VIEW_DOC_URL + testConfig.urlSuffix
+  private val docUrl = UrlFileCache.UrlWithHeaders(TEXT_VIEW_DOC_URL + testConfig.urlSuffix)
 
   private val preFilteringPath by lazy {
     TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.html")

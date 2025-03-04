@@ -32,9 +32,12 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Clock
 import org.jetbrains.annotations.TestOnly
+import java.io.InputStream
+import kotlin.time.Duration
 
 private val CONNECT_TIMEOUT = 5.seconds
 private val READ_TIMEOUT = 2.minutes
@@ -48,26 +51,29 @@ constructor(
   ioDispatcher: CoroutineDispatcher,
   timeSource: TimeSource,
   clock: Clock,
-) : RemoteFileCache<String>(coroutineScope, ioDispatcher, timeSource, clock) {
+) : RemoteFileCache<UrlFileCache.UrlWithHeaders>(coroutineScope, ioDispatcher, timeSource, clock) {
   constructor(
     coroutineScope: CoroutineScope
   ) : this(coroutineScope, Dispatchers.IO, TimeSource.Monotonic, Clock.System)
 
-  private val lastModified = mutableMapOf<String, String>()
-  private val eTags = mutableMapOf<String, String>()
+  private val lastModified = mutableMapOf<UrlWithHeaders, String>()
+  private val eTags = mutableMapOf<UrlWithHeaders, String>()
 
   override fun fetchAndFilterLocked(
     existing: Path?,
-    identifier: String,
+    identifier: UrlWithHeaders,
     indicator: ProgressIndicator?,
     start: TimeMark,
   ): Path {
-    val url = URL(identifier) // Will throw if it doesn't parse
+    val url = URL(identifier.url) // Will throw if it doesn't parse
     indicator?.text = "Downloading from ${url.host}"
-    return HttpRequests.request(identifier)
+    return HttpRequests.request(identifier.url)
       .connectTimeout(CONNECT_TIMEOUT.inWholeMilliseconds.toInt())
       .readTimeout(READ_TIMEOUT.inWholeMilliseconds.toInt())
       .tuner { connection ->
+        for ((key, value) in identifier.headers) {
+          connection.setRequestProperty(key, value)
+        }
         lastModified[identifier]?.let { connection.setRequestProperty("If-Modified-Since", it) }
         eTags[identifier]?.let { connection.setRequestProperty("If-None-Match", it) }
       }
@@ -82,7 +88,7 @@ constructor(
             HttpRequests.HttpStatusException(
               "Received NOT_MODIFIED (304) but nothing in the cache.",
               304,
-              identifier,
+              identifier.url,
             ),
           )
         }
@@ -102,6 +108,8 @@ constructor(
         return@connect newFile
       }
   }
+
+  data class UrlWithHeaders(val url: String, val headers: Map<String, String> = emptyMap())
 
   companion object {
     @JvmStatic fun getInstance(project: Project): UrlFileCache = project.service()

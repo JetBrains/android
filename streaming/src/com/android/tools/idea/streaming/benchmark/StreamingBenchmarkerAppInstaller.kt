@@ -126,7 +126,8 @@ internal class StreamingBenchmarkerAppInstallerImpl(
     else {
       // Installed Studio.
       try {
-        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours, indicator) { Base64.getDecoder().wrap(it) }.await()
+        val urlWithHeaders = UrlFileCache.UrlWithHeaders(APK_URL)
+        apkFile = UrlFileCache.getInstance(project).get(urlWithHeaders, 12.hours, indicator) { Base64.getDecoder().wrap(it) }.await()
       }
       catch (e: Exception) {
         logger.error(e)

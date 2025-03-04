@@ -104,7 +104,7 @@ class UrlFileCacheTest {
   /** Tests that we properly enforce identifiers to be valid URLs. */
   @Test
   fun get_invalidUrl() = runTest {
-    val deferred = urlFileCache.get("hey, this isn't a valid URL?!")
+    val deferred = urlFileCache.get(urlWithHeaders("hey, this isn't a valid URL?!"))
     assertThat(deferred.isCompleted).isFalse()
 
     advanceUntilIdle()
@@ -121,7 +121,7 @@ class UrlFileCacheTest {
   fun get_fresh_basic() = runTest {
     serveTextFile(FILES[0])
 
-    val deferred = urlFileCache.get(url + FILES[0].first)
+    val deferred = urlFileCache.get(urlWithHeaders(url + FILES[0].first))
 
     assertThat(deferred.isCompleted).isFalse()
 
@@ -142,7 +142,7 @@ class UrlFileCacheTest {
   fun getWithStats_fresh_basic() = runTest {
     serveTextFile(FILES[0])
 
-    val deferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val deferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
 
     assertThat(deferred.isCompleted).isFalse()
 
@@ -168,7 +168,7 @@ class UrlFileCacheTest {
     serveTextFile(FILES[0])
 
     val deferred =
-      urlFileCache.getWithStats(url + FILES[0].first) {
+      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) {
         // "Transform" it into the other file.
         ByteArrayInputStream(FILES[1].second.reversed().toByteArray())
       }
@@ -202,7 +202,7 @@ class UrlFileCacheTest {
   fun getWithStats_fresh_multiple() = runTest {
     FILES.forEach { serveTextFile(it) }
 
-    val deferreds = FILES.map { urlFileCache.getWithStats(url + it.first) }
+    val deferreds = FILES.map { urlFileCache.getWithStats(urlWithHeaders(url + it.first)) }
 
     assertThat(deferreds.any { it.isCompleted }).isFalse()
 
@@ -238,7 +238,7 @@ class UrlFileCacheTest {
   fun getWithStats_repeated_noCaching() = runTest {
     serveTextFile(FILES[0])
 
-    val initialDeferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val initialDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(initialDeferred.isCompleted).isFalse()
     testTimeSource += FETCH_DURATION
     advanceUntilIdle()
@@ -248,7 +248,7 @@ class UrlFileCacheTest {
     assertThat(initialStats)
       .isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
 
-    val repeatedDeferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val repeatedDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(repeatedDeferred.isCompleted).isFalse()
     testTimeSource += SUBSEQUENT_FETCH_DURATION
     advanceUntilIdle()
@@ -272,7 +272,7 @@ class UrlFileCacheTest {
   fun getWithStats_repeated_withCaching() = runTest {
     serveTextFile(FILES[0])
 
-    val initialDeferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val initialDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(initialDeferred.isCompleted).isFalse()
     testTimeSource += FETCH_DURATION
     advanceUntilIdle()
@@ -286,7 +286,7 @@ class UrlFileCacheTest {
 
     testClock += 5.minutes
 
-    val repeatedDeferred = urlFileCache.getWithStats(url + FILES[0].first, Duration.INFINITE)
+    val repeatedDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first), Duration.INFINITE)
     // This happens instantly (no coroutine) because it is cached. No time to update the
     // testTimeSource.
     assertThat(repeatedDeferred.isCompleted).isTrue()
@@ -313,7 +313,7 @@ class UrlFileCacheTest {
 
     val e =
       assertFailsWith<RemoteFileCache.RemoteFileCacheException> {
-        val job = urlFileCache.getWithStats(url + FILES[0].first)
+        val job = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
         testTimeSource += FETCH_DURATION
         job.await()
       }
@@ -330,7 +330,7 @@ class UrlFileCacheTest {
     }
 
     assertFailsWith<HttpStatusException> {
-      val job = urlFileCache.get(url + FILES[0].first)
+      val job = urlFileCache.get(urlWithHeaders(url + FILES[0].first))
       testTimeSource += FETCH_DURATION
       job.await()
     }
@@ -340,7 +340,7 @@ class UrlFileCacheTest {
   fun getWithStats_repeated_notModifiedHeader_withCache() = runTest {
     // Load up the cache.
     serveTextFile(FILES[0])
-    val initialDeferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val initialDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(initialDeferred.isCompleted).isFalse()
     testTimeSource += FETCH_DURATION
     advanceUntilIdle()
@@ -360,7 +360,7 @@ class UrlFileCacheTest {
       it.close()
     }
 
-    val repeatedDeferred = urlFileCache.getWithStats(url + FILES[0].first)
+    val repeatedDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(repeatedDeferred.isCompleted).isFalse()
     testTimeSource += SUBSEQUENT_FETCH_DURATION
     advanceUntilIdle()
@@ -385,7 +385,7 @@ class UrlFileCacheTest {
     // Load up the cache.
     serveTextFile(FILES[0])
     val initialDeferred =
-      urlFileCache.getWithStats(url + FILES[0].first) {
+      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) {
         ByteArrayInputStream(FILES[1].second.reversed().toByteArray())
       }
     assertThat(initialDeferred.isCompleted).isFalse()
@@ -412,7 +412,7 @@ class UrlFileCacheTest {
 
     // The transform should not be repeated
     val repeatedDeferred =
-      urlFileCache.getWithStats(url + FILES[0].first) { fail("Should not even be called") }
+      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) { fail("Should not even be called") }
     assertThat(repeatedDeferred.isCompleted).isFalse()
     testTimeSource += SUBSEQUENT_FETCH_DURATION
     advanceUntilIdle()
@@ -438,7 +438,7 @@ class UrlFileCacheTest {
       responseHeaders = mapOf("Last-Modified" to LAST_MODIFIED, "ETag" to ETAG),
     )
 
-    urlFileCache.get(url + FILES[0].first)
+    urlFileCache.get(urlWithHeaders(url + FILES[0].first))
     advanceUntilIdle()
     server.removeContext(FILES[0].first)
 
@@ -451,22 +451,36 @@ class UrlFileCacheTest {
       it.close()
     }
 
-    urlFileCache.get(url + FILES[0].first)
+    urlFileCache.get(urlWithHeaders(url + FILES[0].first))
     advanceUntilIdle()
     assertThat(requestHeaders["If-Modified-Since"]).containsExactly(LAST_MODIFIED)
     assertThat(requestHeaders["If-None-Match"]).containsExactly(ETAG)
 
     // The last response didn't have the headers so we should not have those on the next request.
-    urlFileCache.get(url + FILES[0].first)
+    urlFileCache.get(urlWithHeaders(url + FILES[0].first))
     advanceUntilIdle()
     assertThat(requestHeaders["If-Modified-Since"]).isNull()
     assertThat(requestHeaders["If-None-Match"]).isNull()
   }
 
   @Test
+  fun getWithStats_setsPassedHeaders() = runTest {
+    var requestHeaders = Headers()
+    server.createContext(FILES[0].first) {
+      requestHeaders = it.requestHeaders
+      it.close()
+    }
+
+    urlFileCache.get(urlWithHeaders(url + FILES[0].first, "foo" to "bar", "baz" to "quux"))
+    advanceUntilIdle()
+    assertThat(requestHeaders["foo"]).containsExactly("bar")
+    assertThat(requestHeaders["baz"]).containsExactly("quux")
+  }
+
+  @Test
   fun dispose() = runTest {
     FILES.forEach { serveTextFile(it) }
-    val paths = FILES.map { urlFileCache.get(url + it.first).await() }
+    val paths = FILES.map { urlFileCache.get(urlWithHeaders(url + it.first)).await() }
     val parents = paths.map(Path::getParent).distinct()
 
     urlFileCache.dispose()
@@ -481,6 +495,9 @@ class UrlFileCacheTest {
   ) {
     serveFile(pathAndContent.first, pathAndContent.second.toByteArray(), responseHeaders)
   }
+
+  private fun urlWithHeaders(url: String, vararg headers: Pair<String, String>) =
+    UrlFileCache.UrlWithHeaders(url, headers.toMap())
 
   private fun serveFile(
     path: String,

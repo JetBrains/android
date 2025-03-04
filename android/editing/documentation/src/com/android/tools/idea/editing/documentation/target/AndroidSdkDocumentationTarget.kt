@@ -77,8 +77,12 @@ sealed class AndroidSdkDocumentationTarget<T>(
   }
 
   override fun computeDocumentation(): DocumentationResult {
+    val urlWithHeaders = UrlFileCache.UrlWithHeaders(url)
     val deferredPathAndStats =
-      UrlFileCache.getInstance(targetElement.project).getWithStats(url, maxFileAge = 1.days) {
+      UrlFileCache.getInstance(targetElement.project).getWithStats(
+        urlWithHeaders,
+        maxFileAge = 1.days,
+      ) {
         it.filterStream()
       }
     return if (deferredPathAndStats.isCompleted) {

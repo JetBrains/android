@@ -70,7 +70,7 @@ class StreamingBenchmarkerAppInstallerTest {
     val downloadPath = Paths.get("/help/i/am/trapped/in/a/unit/test/factory.apk")
     val relativePath = "common/streaming-benchmarker/streaming-benchmarker.apk"
     val basePrebuiltsUrl = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
-    val apkUrl = "$basePrebuiltsUrl$relativePath?format=TEXT"  // Base-64 encoded
+    val apkUrl = UrlFileCache.UrlWithHeaders("$basePrebuiltsUrl$relativePath?format=TEXT")  // Base-64 encoded
 
     val studioPathManager = mockStatic<StudioPathManager>(testRootDisposable)
     studioPathManager.whenever<Any?> { StudioPathManager.isRunningFromSources() }.thenReturn(false)
