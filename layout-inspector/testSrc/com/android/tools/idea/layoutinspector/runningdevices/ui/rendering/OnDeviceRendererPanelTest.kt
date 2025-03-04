@@ -46,9 +46,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,28 +90,20 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testInitEnablesOnDeviceRendering() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     OnDeviceRendererPanel(
       disposable = disposableRule.disposable,
-      scope = backgroundScope,
+      scope = scope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
       enableSendRightClicksToDevice = {},
     )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     assertThat(receivedMessages).hasSize(6)
     assertThat(receivedMessages[0]).isEqualTo(enableOnDeviceRenderingCommand)
@@ -119,41 +111,33 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testInterceptClicksEvents() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        scope = backgroundScope,
+        scope = scope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = {},
       )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     receivedMessages.clear()
     onDeviceRenderer.interceptClicks = true
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     assertThat(receivedMessages).hasSize(1)
     assertThat(receivedMessages.first()).isEqualTo(enableInterceptTouchEventsCommand)
 
     onDeviceRenderer.interceptClicks = true
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     // Verify that setting the state to true again does not send another message.
     assertThat(receivedMessages).hasSize(1)
@@ -161,21 +145,17 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testInterceptClicksTriggersRightClickToDevice() = runTest {
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
 
     val enableSendRightClicksToDeviceInvocations = mutableListOf<Boolean>()
 
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        scope = backgroundScope,
+        scope = scope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = { enableSendRightClicksToDeviceInvocations += it },
@@ -189,33 +169,25 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testModelSelectionChange() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     OnDeviceRendererPanel(
       disposable = disposableRule.disposable,
-      scope = backgroundScope,
+      scope = scope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
       enableSendRightClicksToDevice = {},
     )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     receivedMessages.clear()
     inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val expectedCommand =
       buildDrawNodeCommand(
@@ -230,33 +202,25 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testModelHoverChange() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     OnDeviceRendererPanel(
       disposable = disposableRule.disposable,
-      scope = backgroundScope,
+      scope = scope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
       enableSendRightClicksToDevice = {},
     )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     receivedMessages.clear()
     inspectorModel.hoveredNode = inspectorModel[VIEW1]
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val expectedCommand =
       buildDrawNodeCommand(
@@ -271,28 +235,20 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testModelVisibleNodesChange() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     OnDeviceRendererPanel(
       disposable = disposableRule.disposable,
-      scope = backgroundScope,
+      scope = scope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
       enableSendRightClicksToDevice = {},
     )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val expectedCommand =
       buildDrawNodeCommand(
@@ -312,28 +268,20 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testModelRecomposingNodesChange() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (receivedMessages, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     OnDeviceRendererPanel(
       disposable = disposableRule.disposable,
-      scope = backgroundScope,
+      scope = scope,
       client = onDeviceRenderingClient,
       renderModel = renderModel,
       enableSendRightClicksToDevice = {},
     )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     treeSettings.showRecompositions = true
 
@@ -345,7 +293,7 @@ class OnDeviceRendererPanelTest {
     composeNode2.recompositions.highlightCount = 100f
     inspectorModel.update(newWindow, listOf(ROOT), 0)
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val expectedCommand =
       buildDrawNodeCommand(
@@ -360,29 +308,21 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testSelectedNodeReceived() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        scope = backgroundScope,
+        scope = scope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = {},
       )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val touchEvent =
       buildUserInputEventProto(
@@ -394,36 +334,28 @@ class OnDeviceRendererPanelTest {
     onDeviceRenderer.interceptClicks = true
     onDeviceRenderingClient.handleEvent(touchEvent)
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
   }
 
   @Test
   fun testHoverNodeReceived() = runTest {
-    val receivedMessages = mutableListOf<ByteArray>()
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-          receivedMessages.add(rawData)
-          return ByteArray(0)
-        }
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        scope = backgroundScope,
+        scope = scope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = {},
       )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val touchEvent =
       buildUserInputEventProto(
@@ -435,26 +367,22 @@ class OnDeviceRendererPanelTest {
     onDeviceRenderer.interceptClicks = true
     onDeviceRenderingClient.handleEvent(touchEvent)
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[COMPOSE1])
   }
 
   @Test
   fun testRightClickShowsPopup() = runTest {
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        scope = backgroundScope,
+        scope = scope,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = {},
@@ -462,7 +390,7 @@ class OnDeviceRendererPanelTest {
 
     onDeviceRenderer.interceptClicks = true
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     val popupLatch = CountDownLatch(1)
     var lastPopup: FakeActionPopupMenu? = null
@@ -497,7 +425,7 @@ class OnDeviceRendererPanelTest {
     // send right click from the device
     onDeviceRenderingClient.handleEvent(rightClickEvent)
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     // wait for the popup to be shown.
     popupLatch.await()
@@ -508,28 +436,37 @@ class OnDeviceRendererPanelTest {
 
   @Test
   fun testDisposeCancelsScope() = runTest {
-    val messenger =
-      object : AppInspectorMessenger {
-        override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-
-        override val eventFlow: Flow<ByteArray> = emptyFlow()
-        override val scope: CoroutineScope = CoroutineScope(Job())
-      }
+    val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
 
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
-        // Use the testScope instead of backgroundScope to test that all the running coroutines are
-        // canceled by disposing.
+        // Use the testScope to test that all the running coroutines are canceled by disposing.
         scope = this,
         client = onDeviceRenderingClient,
         renderModel = renderModel,
         enableSendRightClicksToDevice = {},
       )
 
-    yield()
+    testScheduler.advanceUntilIdle()
 
     Disposer.dispose(onDeviceRenderer)
   }
+}
+
+private fun buildMessenger(): Pair<MutableList<ByteArray>, AppInspectorMessenger> {
+  val receivedMessages = mutableListOf<ByteArray>()
+  val messenger =
+    object : AppInspectorMessenger {
+      override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+        receivedMessages.add(rawData)
+        return ByteArray(0)
+      }
+
+      override val eventFlow: Flow<ByteArray> = emptyFlow()
+      override val scope: CoroutineScope = CoroutineScope(Job())
+    }
+
+  return receivedMessages to messenger
 }
