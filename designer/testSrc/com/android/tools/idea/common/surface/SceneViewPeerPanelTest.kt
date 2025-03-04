@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.Disposer
@@ -61,6 +62,25 @@ class SceneViewPeerPanelTest {
     val sceneViewPeerPanel =
       createSceneViewPeerPanel(disposableRule.disposable, "", isLabelPanelVisible = true)
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.isVisible)
+  }
+
+  @Test
+  fun `toolbar is not created when no actions`() {
+    val sceneViewPeerPanel =
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = emptyList())
+    println(sceneViewPeerPanel.sceneViewTopPanel.components)
+    assertFalse(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
+  }
+
+  @Test
+  fun `toolbar is created when actions are present`() {
+    val action =
+      object : AnAction() {
+        override fun actionPerformed(e: AnActionEvent) {}
+      }
+    val sceneViewPeerPanel =
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(action))
+    assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
   }
 }
 
