@@ -20,6 +20,7 @@ import com.android.tools.idea.common.editor.DesignerEditorProvider;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
@@ -31,19 +32,13 @@ import org.jetbrains.annotations.NotNull;
 public class NlEditorProvider extends DesignerEditorProvider {
 
   public NlEditorProvider() {
-    super(ImmutableList.of(LayoutFileType.INSTANCE, MenuFileType.INSTANCE, PreferenceScreenFileType.INSTANCE));
+    super(ImmutableList.of(LayoutFileType.INSTANCE, MenuFileType.INSTANCE, PreferenceScreenFileType.INSTANCE), NlEditorKt.NL_EDITOR_ID);
   }
 
   @NotNull
   @Override
-  public DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new NlEditor(file, project);
-  }
-
-  @NotNull
-  @Override
-  public String getEditorTypeId() {
-    return NlEditorKt.NL_EDITOR_ID;
+  public DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file, @NotNull DesignerEditorFileType fileType) {
+    return new NlEditor(file, project, fileType);
   }
 
   @Override

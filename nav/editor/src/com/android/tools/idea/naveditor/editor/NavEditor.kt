@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -43,10 +44,12 @@ private fun getDefaultSurfaceState(): DesignerEditorPanel.State =
     null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
 
-open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
+open class NavEditor(file: VirtualFile, project: Project) :
+  DesignerEditor(file, project, NavigationFileType) {
 
   override fun getEditorId() = NAV_EDITOR_ID
 
+  @UiThread
   override fun createEditorPanel() =
     DesignerEditorPanel(
       this,

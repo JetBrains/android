@@ -18,14 +18,15 @@ package com.android.tools.idea.uibuilder.type
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
-object AdaptiveIconFileType : DesignerEditorFileType {
+object AdaptiveIconFileType : XmlDesignerEditorFileType {
   private val ADAPTIVE_ICON_TAGS = setOf(SdkConstants.TAG_ADAPTIVE_ICON)
+  override val resourceFolderType: ResourceFolderType = ResourceFolderType.MIPMAP
 
   override fun isResourceTypeOf(file: PsiFile): Boolean {
     return file is XmlFile &&

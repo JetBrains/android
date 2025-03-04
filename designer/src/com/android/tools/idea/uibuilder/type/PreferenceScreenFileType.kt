@@ -18,12 +18,16 @@ package com.android.tools.idea.uibuilder.type
 import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
-object PreferenceScreenFileType : LayoutEditorFileType("preference_screen") {
+object PreferenceScreenFileType :
+  LayoutEditorFileType("preference_screen"), XmlDesignerEditorFileType {
+  override val resourceFolderType: ResourceFolderType = ResourceFolderType.XML
+
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.PREFERENCE_SCREEN
 
   override fun isResourceTypeOf(file: PsiFile) =

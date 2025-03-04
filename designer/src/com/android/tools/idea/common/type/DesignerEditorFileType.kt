@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.type
 
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -26,7 +27,6 @@ import com.intellij.psi.PsiFile
  * using the editor, implementers should override [isEditable] to make it return true.
  */
 interface DesignerEditorFileType {
-
   /** Whether a given file can be classified as this type. */
   fun isResourceTypeOf(file: PsiFile): Boolean
 
@@ -45,6 +45,15 @@ interface DesignerEditorFileType {
     surface: DesignSurface<*>,
     selection: List<NlComponent>,
   ): DefaultActionGroup = surface.actionManager.getToolbarActions(selection)
+}
+
+/** [DesignerEditorFileType] for files that are XML based. */
+interface XmlDesignerEditorFileType : DesignerEditorFileType {
+  /**
+   * The specific [ResourceFolderType] for this file type. This is used to quickly decide if a given
+   * file can be of this type by looking at the parent folder.
+   */
+  val resourceFolderType: ResourceFolderType
 }
 
 /**

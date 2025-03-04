@@ -18,14 +18,16 @@ package com.android.tools.idea.uibuilder.type
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.android.tools.idea.uibuilder.drawable.DrawableActionGroups
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
 /** Type of file that can be previewed in split editor or Layout Editor preview window. */
-abstract class DrawableFileType(private val allowedRootTags: Set<String>) : DesignerEditorFileType {
+abstract class DrawableFileType(private val allowedRootTags: Set<String>) :
+  XmlDesignerEditorFileType {
+  override val resourceFolderType: ResourceFolderType = ResourceFolderType.DRAWABLE
 
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile &&

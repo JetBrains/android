@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.tools.idea.common.editor.DesignerEditorProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedImageFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
@@ -45,12 +46,14 @@ val DESIGNER_PREVIEW_FILE_TYPES =
   )
 
 /** Register and accepts types supported by [DesignFilesPreviewEditor]. */
-class DesignFilesPreviewEditorProvider : DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES) {
+class DesignFilesPreviewEditorProvider :
+  DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES, DESIGN_FILES_PREVIEW_EDITOR_ID) {
 
-  override fun createDesignEditor(project: Project, file: VirtualFile) =
-    DesignFilesPreviewEditor(file, project)
-
-  override fun getEditorTypeId() = DESIGN_FILES_PREVIEW_EDITOR_ID
+  override fun createDesignEditor(
+    project: Project,
+    file: VirtualFile,
+    fileType: DesignerEditorFileType,
+  ) = DesignFilesPreviewEditor(file, project, fileType)
 
   override fun handleCaretChanged(sceneView: SceneView, views: ImmutableList<NlComponent>) {
     sceneView.selectionModel.setSelection(views)

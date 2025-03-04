@@ -16,12 +16,15 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
 
-object LayoutFileType : LayoutEditorFileType("layout") {
+object LayoutFileType : LayoutEditorFileType("layout"), XmlDesignerEditorFileType {
+  override val resourceFolderType: ResourceFolderType = ResourceFolderType.LAYOUT
+
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.LAYOUT
 
   override fun isResourceTypeOf(file: PsiFile) =

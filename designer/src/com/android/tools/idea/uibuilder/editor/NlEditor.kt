@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -23,6 +24,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.uibuilder.componenttree.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
@@ -51,10 +53,12 @@ private val LAYOUT_EDITOR_SUPPORTED_ACTIONS =
     NlSupportedActions.REFRESH,
   )
 
-class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
+class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFileType) :
+  DesignerEditor(file, project, fileType) {
 
   override fun getEditorId() = NL_EDITOR_ID
 
+  @UiThread
   override fun createEditorPanel() =
     DesignerEditorPanel(
       this,

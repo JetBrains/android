@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -37,21 +39,36 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
 
   protected final Project myProject;
   protected final VirtualFile myFile;
+  private final DesignerEditorFileType myFileType;
 
   private DesignerEditorPanel myEditorPanel;
   private BackgroundEditorHighlighter myBackgroundHighlighter;
 
-  public DesignerEditor(@NotNull VirtualFile file, @NotNull Project project) {
+  /**
+   * Creates a new {@link DesignerEditor} for the given file.
+   * @param file the file that this editor will work on.
+   * @param project the project that the file belongs to.
+   * @param fileType the calculated {@link DesignerEditorFileType} for the file.
+   */
+  public DesignerEditor(@NotNull VirtualFile file, @NotNull Project project, @NotNull DesignerEditorFileType fileType) {
     myProject = project;
     myFile = file;
+    myFileType = fileType;
+  }
+
+  @NotNull
+  public final DesignerEditorFileType getFileType() {
+    return myFileType;
   }
 
   @NotNull
   public abstract String getEditorId();
 
+  @UiThread
   @NotNull
   protected abstract DesignerEditorPanel createEditorPanel();
 
+  @UiThread
   @NotNull
   @Override
   public DesignerEditorPanel getComponent() {

@@ -25,13 +25,13 @@ import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.TimeUnit
-import junit.framework.Assert.assertFalse
+import junit.framework.TestCase.assertFalse
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Rule
@@ -75,16 +75,11 @@ class NavEditorProviderTest {
 }
 
 class NavEditorProviderWithNavEditorTest {
-  @get:Rule val edtRule = EdtRule()
-  private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val navEditorRule = NavEditorRule(projectRule)
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(projectRule).around(navEditorRule).around(disposableRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule)
 
-  @RunsInEdt
   @Test
   fun testCaretNotification() = runBlocking {
     @Language("XML")
@@ -104,35 +99,46 @@ class NavEditorProviderWithNavEditorTest {
           </activity>
       </navigation>
     """
-    val sampleFile = projectRule.fixture.addFileToProject("src/nav.xml", fileContents.trimIndent())
+    val sampleFile =
+      projectRule.fixture.addFileToProject("res/navigation/nav.xml", fileContents.trimIndent())
 
     projectRule.fixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     waitForResourceRepositoryUpdates(projectRule.module)
 
-    val editor = NavEditorProvider().createEditor(projectRule.project, sampleFile.virtualFile)
-    Disposer.register(disposableRule.disposable, editor)
-    waitForCondition(10, TimeUnit.SECONDS) {
-      (editor as DesignToolsSplitEditor).designerEditor.component.surface.models.isNotEmpty()
+    val editor =
+      NavEditorProvider()
+        .createFileEditor(
+          projectRule.project,
+          sampleFile.virtualFile,
+          null,
+          editorCoroutineScope = this,
+        )
+    Disposer.register(projectRule.testRootDisposable, editor)
+
+    withContext(Dispatchers.EDT) {
+      waitForCondition(10, TimeUnit.SECONDS) {
+        (editor as DesignToolsSplitEditor).designerEditor.component.surface.models.isNotEmpty()
+      }
+      val surface = (editor as DesignToolsSplitEditor).designerEditor.component.surface
+      val model = surface.models.first()
+      updateHierarchy(model, model)
+      editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertThat(surface.selectionModel.selection).isEqualTo(model.treeReader.components)
+      editor.editor.caretModel.moveCaretRelatively(10, 2, false, false, false)
+      assertThat(surface.selectionModel.selection)
+        .isEqualTo(listOf(model.treeReader.find("donutList")))
+      editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertThat(surface.selectionModel.selection)
+        .isEqualTo(listOf(model.treeReader.find("action_donutList_to_donutEntryDialogFragment")))
+      editor.editor.caretModel.moveCaretRelatively(0, 4, false, false, false)
+      assertThat(surface.selectionModel.selection)
+        .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
+      editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertThat(surface.selectionModel.selection)
+        .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
+      editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertThat(surface.selectionModel.selection)
+        .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
     }
-    val surface = (editor as DesignToolsSplitEditor).designerEditor.component.surface
-    val model = surface.models.first()
-    updateHierarchy(model, model)
-    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(model.treeReader.components)
-    editor.editor.caretModel.moveCaretRelatively(10, 2, false, false, false)
-    assertThat(surface.selectionModel.selection)
-      .isEqualTo(listOf(model.treeReader.find("donutList")))
-    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection)
-      .isEqualTo(listOf(model.treeReader.find("action_donutList_to_donutEntryDialogFragment")))
-    editor.editor.caretModel.moveCaretRelatively(0, 4, false, false, false)
-    assertThat(surface.selectionModel.selection)
-      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
-    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection)
-      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
-    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection)
-      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
   }
 }

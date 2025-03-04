@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.AndroidPsiUtils
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -24,22 +25,31 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
-import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Provider that accepts [XmlFile]s whose type belongs to [acceptedTypes].Subclasses are responsible
@@ -48,32 +58,61 @@ import com.intellij.util.ui.update.Update
  * types against [DesignerTypeRegistrar].
  */
 abstract class DesignerEditorProvider
-protected constructor(private val acceptedTypes: List<DesignerEditorFileType>) :
-  FileEditorProvider, QuickDefinitionProvider, DumbAware {
+protected constructor(
+  acceptedTypes: List<DesignerEditorFileType>,
+  private val editorTypeId: String,
+) : AsyncFileEditorProvider, QuickDefinitionProvider, DumbAware {
+  private val acceptedXmlTypes = acceptedTypes.filterIsInstance<XmlDesignerEditorFileType>()
+
   init {
     acceptedTypes.forEach { type -> DesignerTypeRegistrar.register(type) }
   }
 
   override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile)
-    if (psiFile is XmlFile) {
-      val xmlFile = psiFile
-      return acceptedTypes.any { type: DesignerEditorFileType -> type.isResourceTypeOf(xmlFile) }
-    }
-    return false
+    // accept must be quick so we do not load PSI objects here, we just look at the extension and
+    // directory structure.
+    if (virtualFile.extension != SdkConstants.EXT_XML) return false
+    val parentFolder = virtualFile.parent
+    val resourceFolderType = ResourceFolderType.getFolderType(parentFolder.name)
+
+    return acceptedXmlTypes.any { type -> type.resourceFolderType == resourceFolderType }
   }
 
-  override fun acceptRequiresReadAction(): Boolean = false
-
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
-    val designEditor = createDesignEditor(project, file)
-    val editorPanel = designEditor.getComponent()
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-    addCaretListener(textEditor, designEditor)
-    editorPanel.setFileEditorDelegate(textEditor)
-    val splitEditor = DesignToolsSplitEditor(textEditor, designEditor, project)
-    editorPanel.workBench.setFileEditor(splitEditor)
-    return splitEditor
+    throw UnsupportedOperationException()
+  }
+
+  @Suppress("UnstableApiUsage")
+  override suspend fun createFileEditor(
+    project: Project,
+    file: VirtualFile,
+    document: Document?,
+    editorCoroutineScope: CoroutineScope,
+  ): FileEditor {
+    // This is a suspendable method so we can spend the time here identifying which one of the
+    // supported file types this editor is going to use.
+    // If we can not detect the specific type, we return a generic TextEditor.
+    val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
+    val textEditor =
+      withContext(Dispatchers.EDT) {
+        TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+      }
+    if (psiFile !is XmlFile) return textEditor
+    val fileType = acceptedXmlTypes.find { type -> type.isResourceTypeOf(psiFile) }
+    if (fileType == null) {
+      thisLogger().warn("$file was accepted by the DesignerEditorProvider but is not supported")
+      return textEditor
+    }
+
+    return withContext(Dispatchers.EDT) {
+      val designEditor = createDesignEditor(project, file, fileType)
+      val editorPanel = designEditor.getComponent()
+      addCaretListener(textEditor, designEditor)
+      editorPanel.setFileEditorDelegate(textEditor)
+      val splitEditor = DesignToolsSplitEditor(textEditor, designEditor, project)
+      editorPanel.workBench.setFileEditor(splitEditor)
+      return@withContext splitEditor
+    }
   }
 
   private fun addCaretListener(editor: TextEditor, designEditor: DesignerEditor) {
@@ -148,9 +187,17 @@ protected constructor(private val acceptedTypes: List<DesignerEditorFileType>) :
 
   protected abstract fun handleCaretChanged(sceneView: SceneView, views: ImmutableList<NlComponent>)
 
-  abstract fun createDesignEditor(project: Project, file: VirtualFile): DesignerEditor
+  /**
+   * Creates a new [DesignerEditor] for the given file contained in the given [project]. [fileType]
+   * indicates which of the file types supported by this provider is the one that was selected.
+   */
+  abstract fun createDesignEditor(
+    project: Project,
+    file: VirtualFile,
+    fileType: DesignerEditorFileType,
+  ): DesignerEditor
 
-  abstract override fun getEditorTypeId(): String
+  final override fun getEditorTypeId(): String = editorTypeId
 
   override fun getPolicy(): FileEditorPolicy {
     // We hide the default one since the split editor already includes the text-only view.

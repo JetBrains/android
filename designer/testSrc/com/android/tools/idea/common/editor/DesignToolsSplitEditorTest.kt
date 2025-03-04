@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.openapi.editor.ex.EditorEx
@@ -73,11 +75,12 @@ class DesignToolsSplitEditorTest {
     val project = projectRule.project
     val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     designerEditor =
-      object : DesignerEditor(nlModel.file.virtualFile, project) {
+      object : DesignerEditor(nlModel.file.virtualFile, project, LayoutFileType) {
         override fun getName(): String = "Test Design Editor"
 
         override fun getEditorId(): String = "TestDesignEditor"
 
+        @UiThread
         override fun createEditorPanel(): DesignerEditorPanel =
           DesignerEditorPanel(
               this,

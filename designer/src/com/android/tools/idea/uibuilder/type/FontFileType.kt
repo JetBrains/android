@@ -19,12 +19,14 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.common.type.XmlDesignerEditorFileType
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
-object FontFileType : DesignerEditorFileType {
+object FontFileType : XmlDesignerEditorFileType {
+  override val resourceFolderType: ResourceFolderType = ResourceFolderType.FONT
+
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile &&
       FileDescriptionUtils.isResourceOfTypeWithRootTag(
