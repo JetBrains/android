@@ -390,7 +390,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // just whether the library is included at all.
       val coordinate = getCoordinate(artifact) ?: return false
       val moduleSystem = module.getModuleSystem()
-      return moduleSystem.getRegisteredDependency(coordinate) != null
+      // We don't care if the module is explicitly registered: a transitive dependency is fine.
+      return moduleSystem.getResolvedDependency(coordinate) != null
     }
 
     /**
