@@ -29,10 +29,6 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
-import com.intellij.util.io.URLUtil;
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -82,6 +78,19 @@ public final class BuildEventProtocolOutputReader {
                   labelToKind.get(label),
                   event.getTestResult(),
                   startTimeMillis));
+          continue;
+        case ACTION_COMPLETED:
+          label = event.getId().getActionCompleted().getLabel();
+          // If no test result is available after action_completed event,
+          // add a NO_STATUS test result.
+          if (results.build().isEmpty()) {
+            results.add(
+              parseTestResult(
+                label,
+                labelToKind.get(label),
+                event.getTestResult(),
+                startTimeMillis));
+          }
           continue;
         default: // continue
       }
