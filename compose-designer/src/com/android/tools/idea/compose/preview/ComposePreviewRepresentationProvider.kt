@@ -19,7 +19,6 @@ import com.android.flags.ifEnabled
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
@@ -48,7 +47,6 @@ import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -111,29 +109,9 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
             },
           )
           .visibleOnlyInDefaultPreview(),
-        ComposeViewControlAction(
-            layoutOptions = PREVIEW_LAYOUT_OPTIONS,
-            isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(
-                it.dataContext
-              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
-                !PreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
-            additionalActionProvider = ColorBlindModeAction(),
-          )
-          .visibleOnlyInStaticPreview(),
+        ComposeViewControlAction().visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
-        ComposeViewControlAction(
-            layoutOptions = emptyList(),
-            isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(
-                it.dataContext
-              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
-                !PreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
-          )
-          .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {

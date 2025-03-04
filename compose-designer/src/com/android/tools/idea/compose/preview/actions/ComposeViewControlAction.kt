@@ -15,61 +15,21 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.actions.ColorBlindModeAction
-import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
-import com.android.tools.idea.preview.actions.ViewControlAction
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.actions.CommonViewControlAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
-class ComposeViewControlAction(
-  val layoutOptions: List<SurfaceLayoutOption>,
-  isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  val additionalActionProvider: ColorBlindModeAction? = null,
-) :
-  ViewControlAction(
-    isEnabled = { !isPreviewRefreshing(it.dataContext) },
-    essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
-  ) {
+class ComposeViewControlAction() : CommonViewControlAction() {
   init {
+    // TODO(b/400717697): remove the filter action or move it into the CommonViewControlAction
     if (ComposeShowFilterAction.shouldBeEnabled()) {
+      addSeparator()
       add(ComposeShowFilterAction())
-      addSeparator()
-    }
-    if (layoutOptions.shouldBeEnabled()) {
-      add(
-        SwitchSurfaceLayoutManagerAction(layoutOptions, isSurfaceLayoutActionEnabled).apply {
-          isPopup = false
-          templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
-        }
-      )
-    }
-    additionalActionProvider?.let {
-      addSeparator()
-      add(it)
     }
   }
-
-  /**
-   * Action is visible if any of the following are enabled
-   * * [ComposeShowFilterAction]
-   * * [SwitchSurfaceLayoutManagerAction]
-   * * [additionalActionProvider]
-   */
-  private fun hasVisibleActions(e: AnActionEvent): Boolean {
-    return ComposeShowFilterAction.shouldBeEnabled() ||
-      layoutOptions.shouldBeEnabled() ||
-      additionalActionProvider?.shouldBeEnabled(e) == true
-  }
-
-  /** [SwitchSurfaceLayoutManagerAction] is enabled only if there is more than one option. */
-  private fun List<SurfaceLayoutOption>.shouldBeEnabled() = this.size > 1
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext) && hasVisibleActions(e)
+    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
   }
 }
