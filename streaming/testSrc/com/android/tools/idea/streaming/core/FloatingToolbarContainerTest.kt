@@ -75,13 +75,13 @@ class FloatingToolbarContainerTest {
     fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.7).apply { createTestToolbars(collapsible = false) }
     panel.add(toolbar, BorderLayout.SOUTH)
-    assertAppearance("NonCollapsibleVerticalInactive")
+    assertAppearance("NonCollapsibleHorizontalInactive")
 
     fakeUi.mouse.moveTo(toolbar.x + toolbar.width - toolbar.height / 2, toolbar.y + toolbar.height / 2)
-    assertAppearance("NonCollapsibleVerticalActive")
+    assertAppearance("NonCollapsibleHorizontalActive")
 
     fakeUi.mouse.moveTo(0, 0)
-    assertAppearance("NonCollapsibleVerticalInactive")
+    assertAppearance("NonCollapsibleHorizontalInactive")
   }
 
   @Test
