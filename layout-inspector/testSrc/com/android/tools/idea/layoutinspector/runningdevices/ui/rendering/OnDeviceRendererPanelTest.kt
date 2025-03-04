@@ -32,6 +32,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -40,10 +41,12 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
@@ -480,6 +483,7 @@ class OnDeviceRendererPanelTest {
 
     // move the cursor
     fakeUi.mouse.moveTo(42, 42)
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
 
     val rightClickEvent =
       buildUserInputEventProto(
