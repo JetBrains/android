@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
-import com.android.tools.idea.ui.save.SaveConfiguration
+import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.intellij.CommonBundle
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
@@ -123,10 +123,10 @@ internal class ScreenRecorder(
 
     val recordingFile = if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
       delay(200) // Wait for the video file to be finalized.
-      val saveConfig = project.service<SaveConfiguration>()
+      val saveConfigResolver = project.service<SaveConfigurationResolver>()
       val expandedFilename =
-          saveConfig.expandFilenamePattern(options.saveLocation, options.filenameTemplate, recordingProvider.fileExtension,
-                                           recordingTimestamp, options.recordingCount + 1)
+          saveConfigResolver.expandFilenamePattern(options.saveLocation, options.filenameTemplate, recordingProvider.fileExtension,
+                                                   recordingTimestamp, options.recordingCount + 1)
       Paths.get(expandedFilename)
     }
     else {

@@ -19,8 +19,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.help.AndroidWebHelpProvider.Companion.HELP_PREFIX
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.SaveConfigurationDialog
+import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES_LEGACY
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.dsl.builder.AlignX
@@ -44,9 +46,13 @@ internal class ScreenRecorderOptionsDialog(
 ) : DialogWrapper(project, true) {
 
   private lateinit var recordingLengthField: JEditorPane
+  private val saveConfigResolver = project.service<SaveConfigurationResolver>()
+  private val saveLocation: String
+    get() = saveConfigResolver.expandSaveLocation (options.saveLocation)
+  private lateinit var saveLocationText: JEditorPane
 
   init {
-    title = "Screen Recorder Options"
+    title = message("screenrecord.options.title")
     init()
   }
 
@@ -83,7 +89,11 @@ internal class ScreenRecorderOptionsDialog(
 
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
+          text(message("screenrecord.options.save.directory"))
+          text(saveLocation)
+            .applyToComponent { saveLocationText = this }
           button(message("configure.save.button.text")) { configureSave() }
+            .align(AlignX.RIGHT)
         }
       }
     }
@@ -104,17 +114,20 @@ internal class ScreenRecorderOptionsDialog(
 
   private fun configureSave() {
     val dialog = SaveConfigurationDialog(
-      project,
-      options.saveLocation,
-      options.filenameTemplate,
-      options.postSaveAction,
-      if (canUseEmulatorRecording && options.useEmulatorRecording) "webm" else "mp4",
-      Instant.now(),
+        project,
+        options.saveLocation,
+        options.filenameTemplate,
+        options.postSaveAction,
+        if (canUseEmulatorRecording && options.useEmulatorRecording) "webm" else "mp4",
+        Instant.now(),
         options.recordingCount + 1)
     if (dialog.createWrapper(null, rootPane).showAndGet()) {
       options.filenameTemplate = dialog.filenameTemplate
       options.saveLocation = dialog.saveLocation
       options.postSaveAction = dialog.postSaveAction
+
+      saveLocationText.text = saveLocation
+      pack()
     }
   }
 

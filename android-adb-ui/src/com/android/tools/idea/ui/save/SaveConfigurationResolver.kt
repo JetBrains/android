@@ -29,7 +29,7 @@ import java.util.Locale
 
 /** Provides methods operating on save location and filename template. */
 @Service(Service.Level.PROJECT)
-internal class SaveConfiguration(private val project: Project) {
+internal class SaveConfigurationResolver(private val project: Project) {
 
   private val userHome: @NonNls String = System.getProperty("user.home")
 

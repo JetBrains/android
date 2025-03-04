@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.save
 
-import com.android.tools.idea.ui.save.SaveConfiguration.Companion.PROJECT_DIR_MACRO
-import com.android.tools.idea.ui.save.SaveConfiguration.Companion.USER_HOME_MACRO
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.PROJECT_DIR_MACRO
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.USER_HOME_MACRO
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -31,15 +31,15 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-/** Tests for [SaveConfiguration]. */
-class SaveConfigurationTest {
+/** Tests for [SaveConfigurationResolver]. */
+class SaveConfigurationResolverTest {
   @get:Rule
   val projectRule = ProjectRule()
 
   private val project: Project
     get() = projectRule.project
-  private val saveConfig: SaveConfiguration
-    get() = project.service<SaveConfiguration>()
+  private val saveConfigResolver: SaveConfigurationResolver
+    get() = project.service<SaveConfigurationResolver>()
   private val projectDir
     get() = project.guessProjectDir()!!.toNioPath()
   private val normalizedProjectDir
@@ -63,21 +63,21 @@ class SaveConfigurationTest {
 
   @Test
   fun testExpandFilenamePattern() {
-    assertThat(saveConfig.expandFilenamePattern(PROJECT_DIR_MACRO, "screenshots/%Y%M%D_%H%m%S", "png", timestamp, 5))
+    assertThat(saveConfigResolver.expandFilenamePattern(PROJECT_DIR_MACRO, "screenshots/%Y%M%D_%H%m%S", "png", timestamp, 5))
         .isEqualTo("$normalizedProjectDir/screenshots/20250121_102214.png".toPlatformPath())
-    assertThat(saveConfig.expandFilenamePattern("Pictures", "%p_%3d", "png", timestamp, 5))
+    assertThat(saveConfigResolver.expandFilenamePattern("Pictures", "%p_%3d", "png", timestamp, 5))
         .isEqualTo("$userHome/Pictures/${project.name}_005.png".toPlatformPath())
-    assertThat(saveConfig.expandFilenamePattern("$USER_HOME_MACRO/Screenshots", "%5d", "png", timestamp, 1))
+    assertThat(saveConfigResolver.expandFilenamePattern("$USER_HOME_MACRO/Screenshots", "%5d", "png", timestamp, 1))
         .isEqualTo("$userHome/Screenshots/00001.png".toPlatformPath())
   }
 
   @Test
   fun testGeneralizeSaveLocation() {
-    assertThat(saveConfig.generalizeSaveLocation("$normalizedProjectDir/screenshots")).isEqualTo("$PROJECT_DIR_MACRO/screenshots")
-    assertThat(saveConfig.generalizeSaveLocation(userHome)).isEqualTo(USER_HOME_MACRO)
-    assertThat(saveConfig.generalizeSaveLocation("foo/bar")).isEqualTo("$USER_HOME_MACRO/foo/bar")
+    assertThat(saveConfigResolver.generalizeSaveLocation("$normalizedProjectDir/screenshots")).isEqualTo("$PROJECT_DIR_MACRO/screenshots")
+    assertThat(saveConfigResolver.generalizeSaveLocation(userHome)).isEqualTo(USER_HOME_MACRO)
+    assertThat(saveConfigResolver.generalizeSaveLocation("foo/bar")).isEqualTo("$USER_HOME_MACRO/foo/bar")
     val absPath = if (SystemInfo.isWindows) "C:/foo/bar" else "/foo/bar"
-    assertThat(saveConfig.generalizeSaveLocation(absPath)).isEqualTo(absPath)
+    assertThat(saveConfigResolver.generalizeSaveLocation(absPath)).isEqualTo(absPath)
   }
 
   private fun String.toPlatformPath(): String =

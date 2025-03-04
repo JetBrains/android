@@ -21,8 +21,8 @@ import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
-import com.android.tools.idea.ui.save.SaveConfiguration
 import com.android.tools.idea.ui.save.SaveConfigurationDialog
+import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.android.tools.pixelprobe.color.Colors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -97,6 +97,7 @@ import javax.imageio.metadata.IIOMetadataNode
 import javax.swing.Action
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -135,7 +136,10 @@ class ScreenshotViewer(
   private val imageFileEditor = editorProvider.createEditor(project, backingFile) as ImageFileEditor
 
   private val config = service<ScreenshotConfiguration>()
-  private val saveConfig = project.service<SaveConfiguration>()
+  private val saveConfigResolver = project.service<SaveConfigurationResolver>()
+  private val saveLocation: String
+    get() = saveConfigResolver.expandSaveLocation (config.saveLocation)
+  private lateinit var saveLocationText: JEditorPane
 
   private var decorationComboBox = ComboBox<ScreenshotDecorationOption>()
 
@@ -242,16 +246,17 @@ class ScreenshotViewer(
           comboBox(listOf(100, 50, 25))
             .onChanged { updateScale(it.item / 100.0) }
             .applyToComponent { item = (config.scale * 100).roundToInt() }
-
-          if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-            button(message("configure.save.button.text")) { configureSave() }
-              .align(AlignX.RIGHT)
-          }
         }
       }
-      else {
+      if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
-          button(message("configure.save.button.text")) { configureSave() }
+          text(message("screenrecord.options.save.directory"))
+          text(saveLocation)
+            .applyToComponent { saveLocationText = this }
+          button(message("configure.save.button.text")) {
+            configureSave()
+            saveLocationText.text = saveLocation
+          }
             .align(AlignX.RIGHT)
         }
       }
@@ -298,7 +303,7 @@ class ScreenshotViewer(
   private fun saveScreenshotWithoutAsking(): Boolean {
     val image = displayedImageRef.get() ?: return false
     val expandedFilename =
-        saveConfig.expandFilenamePattern(config.saveLocation, config.filenameTemplate, EXT_PNG, image.timestamp, config.screenshotCount + 1)
+        saveConfigResolver.expandFilenamePattern(config.saveLocation, config.filenameTemplate, EXT_PNG, image.timestamp, config.screenshotCount + 1)
     val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
     try {
       Files.createDirectories(file.parent)
@@ -470,6 +475,9 @@ class ScreenshotViewer(
       config.filenameTemplate = dialog.filenameTemplate
       config.saveLocation = dialog.saveLocation
       config.postSaveAction = dialog.postSaveAction
+
+      saveLocationText.text = saveLocation
+      pack()
     }
   }
 
@@ -563,7 +571,7 @@ class ScreenshotViewer(
   @State(name = "ScreenshotConfiguration", storages = [Storage(NON_ROAMABLE_FILE)])
   internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
     var frameScreenshot: Boolean = false
-    var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
+    var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
     var scale: Double = 1.0
     var filenameTemplate: String = "Screenshot_%Y%M%D_%H%m%S"
     var screenshotCount: Int = 0
