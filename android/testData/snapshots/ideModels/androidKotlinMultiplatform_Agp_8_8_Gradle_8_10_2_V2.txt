@@ -1989,16 +1989,16 @@ MODULE                        : Kotlin_Multiplatform.app
                             module                        : <ROOT>-:androidLib-MAIN
                             module                        : <ROOT>-:kmpSecondLib-androidMain
                             module                        : <ROOT>-:kmpSecondLib-commonMain
-                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:androidLib-MAIN
                         module                        : <ROOT>-:kmpSecondLib-androidMain
                         module                        : <ROOT>-:kmpSecondLib-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
+                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : com.example.app
@@ -2137,16 +2137,16 @@ MODULE                        : Kotlin_Multiplatform.app
                             module                        : <ROOT>-:androidLib-MAIN
                             module                        : <ROOT>-:kmpSecondLib-androidMain
                             module                        : <ROOT>-:kmpSecondLib-commonMain
-                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:androidLib-MAIN
                         module                        : <ROOT>-:kmpSecondLib-androidMain
                         module                        : <ROOT>-:kmpSecondLib-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
+                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/8.10.2/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2471,7 +2471,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpFirstLib_instrumentedTest
                     noReflect                     : true
@@ -2541,7 +2540,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpFirstLib
                     noReflect                     : true
@@ -2620,7 +2618,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpFirstLib_unitTest
                     noReflect                     : true
@@ -2743,7 +2740,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : kmpJvmOnly
                     noReflect                     : true
@@ -2824,7 +2820,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : kmpJvmOnly_test
                     noReflect                     : true
@@ -3056,7 +3051,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
@@ -3119,7 +3113,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
@@ -3200,7 +3193,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true

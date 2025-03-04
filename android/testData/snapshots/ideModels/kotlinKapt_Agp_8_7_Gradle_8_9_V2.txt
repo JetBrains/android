@@ -2473,7 +2473,6 @@ MODULE                        : MainActivity.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : app_localDebug
                     noJdk                         : true
@@ -2492,7 +2491,6 @@ MODULE                        : MainActivity.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : app_localDebugAndroidTest
                     noJdk                         : true
@@ -2511,7 +2509,6 @@ MODULE                        : MainActivity.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : app_localDebugUnitTest
                     noJdk                         : true
@@ -2592,7 +2589,6 @@ MODULE                        : MainActivity.javaLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : javaLib
                     noReflect                     : true
@@ -2617,7 +2613,6 @@ MODULE                        : MainActivity.javaLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : javaLib_test
                     noReflect                     : true
@@ -3716,7 +3711,6 @@ MODULE                        : MainActivity.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -3734,7 +3728,6 @@ MODULE                        : MainActivity.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
@@ -3752,7 +3745,6 @@ MODULE                        : MainActivity.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true

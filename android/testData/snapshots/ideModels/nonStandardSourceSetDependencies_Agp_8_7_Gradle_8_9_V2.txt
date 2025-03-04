@@ -3042,24 +3042,24 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
+                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:javaLibrary-MAIN
                         module                        : <ROOT>-:javaLibrary-testEnv
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
+                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -3321,24 +3321,24 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
+                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:javaLibrary-MAIN
                         module                        : <ROOT>-:javaLibrary-testEnv
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
+                            module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -3390,7 +3390,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -3408,7 +3407,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -3426,7 +3424,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -3534,7 +3531,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : common
                     noReflect                     : true
@@ -3615,7 +3611,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : common_test
                     noReflect                     : true
@@ -3688,7 +3683,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : desktop
                     noReflect                     : true
@@ -3712,7 +3706,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : desktop_test
                     noReflect                     : true
@@ -4098,8 +4091,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
@@ -4218,8 +4211,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
@@ -4345,8 +4338,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
@@ -4467,12 +4460,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
@@ -4605,8 +4598,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
@@ -4727,12 +4720,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
@@ -4752,7 +4745,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-a_debug
                     noJdk                         : true
@@ -4770,7 +4762,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-a_debugAndroidTest
                     noJdk                         : true
@@ -4788,7 +4779,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-a_debugUnitTest
                     noJdk                         : true
@@ -5125,16 +5115,16 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 IsSigned                      : false
@@ -5159,8 +5149,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
@@ -5171,11 +5161,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : me.monori.feature.b.test
@@ -5211,8 +5201,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
@@ -5223,11 +5213,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/8.9/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -5284,7 +5274,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-b_debug
                     noReflect                     : true
@@ -5355,7 +5344,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-b_debugAndroidTest
                     noReflect                     : true
@@ -5428,7 +5416,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature-b_debugUnitTest
                     noReflect                     : true
@@ -5510,7 +5497,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : javaLibrary
                     noReflect                     : true
@@ -5534,7 +5520,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : javaLibrary_test
                     noReflect                     : true
@@ -5558,7 +5543,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/testEnv
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : javaLibrary_testEnv
                     noReflect                     : true
@@ -5684,7 +5668,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : sample
                     noReflect                     : true
@@ -5767,7 +5750,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : sample_test
                     noReflect                     : true
@@ -6580,7 +6562,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -6598,7 +6579,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
@@ -6616,7 +6596,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true

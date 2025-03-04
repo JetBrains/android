@@ -2353,7 +2353,6 @@ MODULE                        : MainActivity.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
@@ -2385,7 +2384,6 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
@@ -2417,7 +2415,6 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
@@ -2511,7 +2508,6 @@ MODULE                        : MainActivity.javaLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : javaLib
                     noReflect                     : true
@@ -2546,7 +2542,6 @@ MODULE                        : MainActivity.javaLib
                     - friendPaths                 : <ROOT>/javaLib/build/classes/kotlin/main [-]
                     - friendPaths                 : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                     - friendPaths                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : javaLib
                     noReflect                     : true
@@ -3157,7 +3152,6 @@ MODULE                        : MainActivity.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -3178,7 +3172,6 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -3199,7 +3192,6 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true

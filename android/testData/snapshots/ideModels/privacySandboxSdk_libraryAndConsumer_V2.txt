@@ -2279,7 +2279,6 @@ MODULE                        : project.ads-sdk-implementation
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debug
                     noJdk                         : true
@@ -2297,7 +2296,6 @@ MODULE                        : project.ads-sdk-implementation
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debugAndroidTest
                     noJdk                         : true
@@ -2316,7 +2314,6 @@ MODULE                        : project.ads-sdk-implementation
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debugUnitTest
                     noJdk                         : true
@@ -3475,7 +3472,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -3494,7 +3490,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -3513,7 +3508,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -4682,7 +4676,6 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app-with-dynamic-feature_debug
                     noJdk                         : true
@@ -4701,7 +4694,6 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app-with-dynamic-feature_debugAndroidTest
                     noJdk                         : true
@@ -4720,7 +4712,6 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app-with-dynamic-feature_debugUnitTest
                     noJdk                         : true
@@ -5506,7 +5497,6 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : feature_debug
                     noJdk                         : true
@@ -5525,7 +5515,6 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : feature_debugAndroidTest
                     noJdk                         : true
@@ -5544,7 +5533,6 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : feature_debugUnitTest
                     noJdk                         : true

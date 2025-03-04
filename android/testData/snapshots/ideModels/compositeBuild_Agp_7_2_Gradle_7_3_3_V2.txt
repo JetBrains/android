@@ -2144,7 +2144,6 @@ MODULE                        : TestCompositeLib1.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -2162,7 +2161,6 @@ MODULE                        : TestCompositeLib1.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -2180,7 +2178,6 @@ MODULE                        : TestCompositeLib1.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -3318,7 +3315,6 @@ MODULE                        : TestCompositeLib1.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -3336,7 +3332,6 @@ MODULE                        : TestCompositeLib1.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
@@ -3354,7 +3349,6 @@ MODULE                        : TestCompositeLib1.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true
@@ -4808,7 +4802,6 @@ MODULE                        : TestCompositeLib3.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -4826,7 +4819,6 @@ MODULE                        : TestCompositeLib3.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -4844,7 +4836,6 @@ MODULE                        : TestCompositeLib3.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -7824,7 +7815,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -7842,7 +7832,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -7860,7 +7849,6 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -8965,7 +8953,6 @@ MODULE                        : project.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
@@ -8983,7 +8970,6 @@ MODULE                        : project.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
@@ -9001,7 +8987,6 @@ MODULE                        : project.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true

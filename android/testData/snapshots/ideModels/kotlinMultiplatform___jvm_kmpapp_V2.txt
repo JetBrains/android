@@ -2549,7 +2549,6 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debug
                     noReflect                     : true
@@ -2621,7 +2620,6 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debugAndroidTest
                     noReflect                     : true
@@ -2713,7 +2711,6 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debugUnitTest
                     noReflect                     : true
@@ -2783,7 +2780,6 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app
                     noReflect                     : true
@@ -2847,7 +2843,6 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_test
                     noReflect                     : true
@@ -3404,7 +3399,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : module2_debug
                     noReflect                     : true
@@ -3476,7 +3470,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : module2_debugAndroidTest
                     noReflect                     : true
@@ -3568,7 +3561,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : module2_debugUnitTest
                     noReflect                     : true
@@ -3638,7 +3630,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/main
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : module2
                     noReflect                     : true
@@ -3702,7 +3693,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/test
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : module2_test
                     noReflect                     : true

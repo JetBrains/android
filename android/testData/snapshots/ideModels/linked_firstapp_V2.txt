@@ -2092,7 +2092,6 @@ MODULE                        : My_First_App.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -2111,7 +2110,6 @@ MODULE                        : My_First_App.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
@@ -2130,7 +2128,6 @@ MODULE                        : My_First_App.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
@@ -3224,7 +3221,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
@@ -3242,7 +3238,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : mysharedlibrary_debugAndroidTest
                     noJdk                         : true
@@ -3261,7 +3256,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest
-                    jvmDefault                    : disable
                     jvmTarget                     : 21
                     moduleName                    : mysharedlibrary_debugUnitTest
                     noJdk                         : true

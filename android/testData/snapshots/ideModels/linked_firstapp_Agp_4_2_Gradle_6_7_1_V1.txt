@@ -1657,7 +1657,6 @@ MODULE                        : My_First_App.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -1688,7 +1687,6 @@ MODULE                        : My_First_App.app
                     - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -1719,7 +1717,6 @@ MODULE                        : My_First_App.app
                     - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
@@ -2320,7 +2317,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
@@ -2351,7 +2347,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
@@ -2382,7 +2377,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
-                    jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true

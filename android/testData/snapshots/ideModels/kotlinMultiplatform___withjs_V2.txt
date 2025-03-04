@@ -2225,7 +2225,6 @@
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : app_debug
                         noJdk                         : true
@@ -2244,7 +2243,6 @@
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : app_debugAndroidTest
                         noJdk                         : true
@@ -2263,7 +2261,6 @@
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : app_debugUnitTest
                         noJdk                         : true
@@ -2384,7 +2381,6 @@ Required by:
                     compilerArguments             : K2JVMCompilerArguments
                         assertionsMode                : legacy
                         backendThreads                : 1
-                        jvmDefault                    : disable
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2440,7 +2436,6 @@ Required by:
                     compilerArguments             : K2JVMCompilerArguments
                         assertionsMode                : legacy
                         backendThreads                : 1
-                        jvmDefault                    : disable
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2964,7 +2959,6 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : module2_debug
                         noReflect                     : true
@@ -3035,7 +3029,6 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : module2_debugAndroidTest
                         noReflect                     : true
@@ -3108,7 +3101,6 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
-                        jvmDefault                    : disable
                         jvmTarget                     : 21
                         moduleName                    : module2_debugUnitTest
                         noReflect                     : true
