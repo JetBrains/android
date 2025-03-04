@@ -31,6 +31,7 @@ internal fun mockEvaluationContext(
   val mockSuspendContext = mock<SuspendContextImpl>()
   whenever(mockSuspendContext.debugProcess).thenReturn(debugProcess)
   whenever(mockSuspendContext.virtualMachineProxy).thenReturn(mock<VirtualMachineProxyImpl>())
+  whenever(mockSuspendContext.managerThread).thenReturn(debugProcess.managerThread)
 
   val mockFrameProxyImpl = mock<StackFrameProxyImpl>()
   whenever(mockFrameProxyImpl.thisObject()).thenReturn(objectReference)
