@@ -936,7 +936,7 @@ public class RenderTaskTest {
   @Nullable
   private static Object getMSystemValue(@NotNull RenderTask task) {
     try {
-      Class<?> resourcesClass = task.getLayoutlibCallback().findClass("android.content.res.Resources");
+      Class<?> resourcesClass = RenderTaskTest.class.getClassLoader().loadClass("android.content.res.Resources");
       Field mSystemField = resourcesClass.getDeclaredField("mSystem");
       mSystemField.setAccessible(true);
       return mSystemField.get(null);

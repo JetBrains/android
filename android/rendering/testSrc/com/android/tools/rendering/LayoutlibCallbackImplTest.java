@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
@@ -41,9 +41,11 @@ import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.LayoutlibCallbackImpl;
-import com.android.tools.rendering.RenderLogger;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
+import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManagerKt;
 import com.google.common.base.Charsets;

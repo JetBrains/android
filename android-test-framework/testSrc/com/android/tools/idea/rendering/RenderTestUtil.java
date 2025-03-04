@@ -209,7 +209,7 @@ public class RenderTestUtil {
     }
   }
 
-  protected static void withRenderTask(@NotNull AndroidFacet facet,
+  public static void withRenderTask(@NotNull AndroidFacet facet,
                                         @NotNull VirtualFile file,
                                         @NotNull Configuration configuration,
                                         @NotNull RenderLogger logger,

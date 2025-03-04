@@ -103,9 +103,6 @@ public class DrawableRenderer implements Disposable {
       .withParserFactory(myParserFactory)
       .build()
       .whenComplete((task, ex) -> {
-        if (task != null) {
-          task.getLayoutlibCallback().setLogger(logger);
-        }
         if (logger.hasProblems()) {
           getLog().error(RenderProblem.format(logger.getMessages()));
         }

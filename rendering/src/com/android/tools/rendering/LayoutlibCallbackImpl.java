@@ -118,7 +118,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * Loader for Android Project class in order to use them in the layout editor.
  */
-public class LayoutlibCallbackImpl extends LayoutlibCallback {
+class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Logger LOG = Logger.getInstance(LayoutlibCallback.class);
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */

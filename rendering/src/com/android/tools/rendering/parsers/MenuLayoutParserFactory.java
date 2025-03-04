@@ -17,9 +17,9 @@ package com.android.tools.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.module.ModuleDependencies;
-import com.android.tools.rendering.LayoutlibCallbackImpl;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
+import java.util.function.Consumer;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -49,12 +49,12 @@ class MenuLayoutParserFactory {
 
 
   @NotNull
-  public static ILayoutPullParser create(@NotNull RenderXmlFile psiFile, @NotNull LayoutlibCallbackImpl layoutlibCallback) {
+  public static ILayoutPullParser create(@NotNull RenderXmlFile psiFile, @NotNull Consumer<String> menuResource) {
     Document frameLayoutDocument = XmlUtils.parseDocumentSilently(FRAME_LAYOUT_XML, true);
     if (frameLayoutDocument == null) {
       return createEmptyParser();
     }
-    layoutlibCallback.setMenuResource(psiFile.getName());
+    menuResource.accept(psiFile.getName());
     return DomPullParser.createFromDocument(frameLayoutDocument, false);
   }
 

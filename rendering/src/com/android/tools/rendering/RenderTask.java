@@ -15,6 +15,8 @@
  */
 package com.android.tools.rendering;
 
+import com.android.ide.common.rendering.api.ResourceReference;
+
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
@@ -1299,9 +1301,19 @@ public class RenderTask {
     return myLayoutLib;
   }
 
-  @NotNull
-  public LayoutlibCallbackImpl getLayoutlibCallback() {
-    return myLayoutlibCallback;
+  /**
+   * Sets the resource name to be used by the action bar when handling menus.
+   */
+  public void setMenuResource(@NotNull String resourceName) {
+    ActionBarHandler actionBarHandler = (ActionBarHandler)myLayoutlibCallback.getActionBarCallback();
+    if (actionBarHandler != null) {
+      ResourceReference menuResource =
+        new ResourceReference(
+          myContext.getModule().getResourceRepositoryManager().getNamespace(),
+          ResourceType.MENU,
+          SdkUtils.fileNameToResourceName(resourceName));
+      actionBarHandler.setMenuIds(Collections.singletonList(menuResource));
+    }
   }
 
   /**
