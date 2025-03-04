@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Error
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import junit.framework.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito
+import org.mockito.kotlin.doReturn
+import kotlin.test.assertEquals
+import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class PrebuildChecksTest {
@@ -39,26 +43,26 @@ class PrebuildChecksTest {
 
   @Test
   fun bailOnBuildSrc() {
-    var file = projectRule.fixture.addFileToProject(
+    val file = projectRule.fixture.addFileToProject(
       "buildSrc/src/java/com/example/Version.kt", "package com.example\n class Version {}")
     try {
       checkSupportedFiles(file)
-      Assert.fail("Expecting Exception")
+      fail("Expecting Exception")
     }
     catch (e: LiveEditUpdateException) {
-      Assert.assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE, e.error)
+      assertEquals(Error.UNSUPPORTED_BUILD_SRC_CHANGE, e.error)
     }
   }
 
   @Test
   fun bailOnGradleSource() {
-    var file = projectRule.fixture.addFileToProject(
+    val file = projectRule.fixture.addFileToProject(
       "build.gradle.kts", "plugins {}")
     try {
       checkSupportedFiles(file)
-      Assert.fail("Expecting Exception")
+      fail("Expecting Exception")
     } catch (e : LiveEditUpdateException) {
-      Assert.assertEquals(LiveEditUpdateException.Error.GRADLE_BUILD_FILE, e.error)
+      assertEquals(LiveEditUpdateException.Error.GRADLE_BUILD_FILE, e.error)
     }
   }
 
@@ -67,10 +71,31 @@ class PrebuildChecksTest {
    */
   @Test
   fun testNonComposeModule() {
-    var file = projectRule.fixture.addFileToProject(
+    val file = projectRule.fixture.addFileToProject(
       "src/java/com/example/NonCompose.kt", "package com.example\n class NonCompose {}")
+    prebuildChecks(myProject, listOf(file))
     ApplicationManager.getApplication().runReadAction {
-      prebuildChecks(myProject, listOf(file))
+      try {
+        readActionPrebuildChecks(myProject, file)
+      } catch (e : LiveEditUpdateException) {
+        fail("Non compose files should be supported.")
+      }
+    }
+  }
+
+  @Test
+  fun testInvalidFiles() {
+    val fileSpy = Mockito.spy(projectRule.fixture.addFileToProject (
+      "src/java/com/example/NonCompose.kt", "package com.example\n class NonCompose {}"))
+    doReturn(false).`when`(fileSpy).isValid
+    ApplicationManager.getApplication().runReadAction {
+      try {
+        readActionPrebuildChecks(myProject, fileSpy)
+        fail()
+      } catch (e : LiveEditUpdateException) {
+        assertEquals(Error.FILE_NOT_VALID, e.error)
+        assertEquals("The target file is no longer a valid file.", e.message)
+      }
     }
   }
 }

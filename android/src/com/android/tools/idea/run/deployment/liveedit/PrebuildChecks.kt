@@ -108,14 +108,24 @@ internal fun checkKotlinPluginBundled() {
 fun isKotlinPluginBundled() =
   PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId))?.isBundled ?: false
 
-internal fun ReadActionPrebuildChecks(project: Project, file: PsiFile) {
+internal fun readActionPrebuildChecks(project: Project, file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
-  file.module?.let {
+
+  if (!file.isValid) {
+    throw LiveEditUpdateException.fileNotValid(file)
+  }
+
+  file.module?.let { module ->
     // Module.getModuleTestSourceScope() doesn't work as intended and tracked on IJPL-482 for this reason ModuleScope(false) is used
-    val isTestSource = !it.getModuleScope(false).accept(file.virtualFile)
-    val isAndroidSpecificTestSource = TestArtifactSearchScopes.getInstance(it)?.isTestSource(file.virtualFile) == true
+    val isTestSource = !module.getModuleScope(false).accept(file.virtualFile)
+    val isAndroidSpecificTestSource = TestArtifactSearchScopes.getInstance(module)?.isTestSource(file.virtualFile) == true
     if (isAndroidSpecificTestSource || isTestSource) {
       throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
     }
+
+    if (module.isDisposed) {
+      throw LiveEditUpdateException.moduleIsDisposed(module)
+    }
   }
+
 }
