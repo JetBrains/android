@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Test
 
@@ -66,19 +65,16 @@ class OnDeviceRenderingClientTest {
     val selectionEventProto =
       buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
 
-    // Launch collector coroutine
-    val job = launch {
+    // Launch collector coroutine, these events are ephemeral so it needs to be started before
+    // sending the event.
+    launch {
       val receivedEvent = onDeviceRenderingClient.selectionEvents.first()
       assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
     }
 
-    // Give the collector coroutine a chance to start collecting, so we don't emit too early.
-    yield()
+    testScheduler.advanceUntilIdle()
 
     onDeviceRenderingClient.handleEvent(selectionEventProto)
-
-    // Wait for the collector coroutine to finish
-    job.join()
   }
 
   @Test
@@ -86,19 +82,16 @@ class OnDeviceRenderingClientTest {
     val touchEventProto =
       buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
 
-    // Launch collector coroutine
-    val job = launch {
+    // Launch collector coroutine, these events are ephemeral so it needs to be started before
+    // sending the event.
+    launch {
       val receivedEvent = onDeviceRenderingClient.hoverEvents.first()
       assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
     }
 
-    // Give the collector coroutine a chance to start collecting, so we don't emit too early.
-    yield()
+    testScheduler.advanceUntilIdle()
 
     onDeviceRenderingClient.handleEvent(touchEventProto)
-
-    // Wait for the collector coroutine to finish
-    job.join()
   }
 
   @Test
@@ -106,19 +99,16 @@ class OnDeviceRenderingClientTest {
     val rightClickEventProto =
       buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
 
-    // Launch collector coroutine
-    val job = launch {
+    // Launch collector coroutine, these events are ephemeral so it needs to be started before
+    // sending the event.
+    launch {
       val receivedEvent = onDeviceRenderingClient.rightClickEvents.first()
       assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
     }
 
-    // Give the collector coroutine a chance to start collecting, so we don't emit too early.
-    yield()
+    testScheduler.advanceUntilIdle()
 
     onDeviceRenderingClient.handleEvent(rightClickEventProto)
-
-    // Wait for the collector coroutine to finish
-    job.join()
   }
 
   @Test
@@ -129,15 +119,12 @@ class OnDeviceRenderingClientTest {
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(selectionEventProto)
 
-    // Launch collector coroutine.
-    val job = launch {
+    launch {
       withTimeout(100) {
         onDeviceRenderingClient.selectionEvents.first()
         fail("No event should be received.")
       }
     }
-
-    job.join()
   }
 
   @Test
@@ -148,15 +135,12 @@ class OnDeviceRenderingClientTest {
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(hoverEventProto)
 
-    // Launch collector coroutine.
-    val job = launch {
+    launch {
       withTimeout(100) {
         onDeviceRenderingClient.hoverEvents.first()
         fail("No event should be received.")
       }
     }
-
-    job.join()
   }
 
   @Test
@@ -167,19 +151,16 @@ class OnDeviceRenderingClientTest {
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(rightClickEventProto)
 
-    // Launch collector coroutine.
-    val job = launch {
+    launch {
       withTimeout(100) {
         onDeviceRenderingClient.rightClickEvents.first()
         fail("No event should be received.")
       }
     }
-
-    job.join()
   }
 
   @Test
-  fun testEnableOnDeviceRendering(): Unit = runTest {
+  fun testEnableOnDeviceRendering() = runTest {
     onDeviceRenderingClient.enableOnDeviceRendering(true)
 
     val expectedCommand = enableOnDeviceRenderingCommand
