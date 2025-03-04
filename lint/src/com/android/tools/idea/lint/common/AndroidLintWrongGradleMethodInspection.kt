@@ -16,10 +16,10 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
-import com.android.tools.lint.checks.WrongGradleMethod
+import com.android.tools.lint.checks.WrongGradleMethodDetector
 
 class AndroidLintWrongGradleMethodInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wrong.gradle.method"),
-    WrongGradleMethod.ISSUE,
+    WrongGradleMethodDetector.ISSUE,
   )
