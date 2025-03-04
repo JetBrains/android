@@ -29,6 +29,7 @@ class DisableIJSettingsSyncAction : AppLifecycleListener {
   override fun appFrameCreated(commandLineArgs: List<String?>) {
     if (!StudioFlags.SETTINGS_SYNC_ENABLED.get() && !checkIfFeaturePluginEnabled()) {
       ActionManager.getInstance().unregisterAction("SettingsSyncOpenSettingsAction")
+      ActionManager.getInstance().unregisterAction("SettingsSyncStatusAction")
     }
   }
 }
