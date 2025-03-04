@@ -17,7 +17,7 @@ package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressModel;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -231,7 +231,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     public void addProgress(@NotNull ProgressIndicatorEx indicator, @NotNull TaskInfo info) {}
 
     @Override
-    public List<Pair<TaskInfo, ProgressIndicator>> getBackgroundProcesses() {
+    public List<Pair<TaskInfo, ProgressModel>> getBackgroundProcessModels() {
       return Collections.emptyList();
     }
 

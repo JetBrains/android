@@ -121,11 +121,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
   override fun internalIsBuildRunning(project: Project): Boolean {
     val frame = (WindowManager.getInstance() as WindowManagerEx).findFrameFor(project)
     val statusBar = (if (frame == null) null else frame.statusBar as StatusBarEx?) ?: return false
-    for (backgroundProcess in statusBar.backgroundProcesses) {
+    for (backgroundProcess in statusBar.backgroundProcessModels) {
       val task = backgroundProcess.getFirst()
       if (task is TaskImpl) {
         val second = backgroundProcess.getSecond()
-        if (second.isRunning) {
+        if (second.isRunning()) {
           return true
         }
       }
