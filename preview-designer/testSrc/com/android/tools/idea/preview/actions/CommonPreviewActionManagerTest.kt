@@ -223,6 +223,18 @@ class CommonPreviewActionManagerTest {
     assertEquals("Only Parameter", label.text)
     assertEquals("Tooltip", label.toolTipText)
   }
+
+  @Test
+  fun contextToolbarActionsIsEmptyWhenNoActionIsSupported() {
+    val actionManager =
+      CommonPreviewActionManager(
+        mock(),
+        navigationHandler,
+        supportAnimationPreview = false,
+        supportInteractivePreview = false,
+      )
+    assertEquals(emptyList(), actionManager.sceneViewContextToolbarActions)
+  }
 }
 
 private data class Status(

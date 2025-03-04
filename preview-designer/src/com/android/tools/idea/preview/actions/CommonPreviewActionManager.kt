@@ -64,9 +64,13 @@ class CommonPreviewActionManager(
   }
 
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
-    listOf(Separator()) +
-      listOfNotNull(animationPreviewAction, interactivePreviewAction)
-        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
-        .hideIfRenderErrors()
-        .visibleOnlyInStaticPreview()
+    listOfNotNull(animationPreviewAction, interactivePreviewAction)
+      .takeIf { it.isNotEmpty() }
+      ?.let {
+        listOf(Separator()) +
+          it
+            .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
+            .hideIfRenderErrors()
+            .visibleOnlyInStaticPreview()
+      } ?: emptyList()
 }
