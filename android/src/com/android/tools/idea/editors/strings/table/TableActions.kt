@@ -17,19 +17,6 @@ package com.android.tools.idea.editors.strings.table
 
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
-import javax.swing.JTable
-
-/**
- * Holds instances for the frozen and scrollable table for the implementations of actions.
- */
-class ActionTable(
-  /** The frozen table to the left */
-  val leftTable: JTable,
-  /** The current table: can be either the frozen table or the scrollable table */
-  val currentTable: JTable,
-  /** The scrollable table to the right */
-  val rightTable: JTable
-)
 
 /**
  * The actions overridden in the 2 tables.
@@ -44,38 +31,52 @@ enum class ActionType(val actionName: String) {
   NEXT_COLUMN_EXTEND_SELECTION_ACTION("selectNextColumnExtendSelection"),
   PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION("selectPreviousColumnExtendSelection"),
   NEXT_COLUMN_CELL_ACTION("selectNextColumnCell"),
-  PREVIOUS_COLUMN_CELL_ACTION("selectPreviousColumnCell")
+  PREVIOUS_COLUMN_CELL_ACTION("selectPreviousColumnCell"),
+
+  NEXT_ROW("selectNextRow"),
+  NEXT_ROW_CELL("selectNextRowCell"),
+  NEXT_ROW_CHANGE_LEAD("selectNextRowChangeLead"),
+  PREVIOUS_ROW("selectPreviousRow"),
+  PREVIOUS_ROW_CELL("selectPreviousRowCell"),
+  PREVIOUS_ROW_CHANGE_LEAD("selectPreviousRowChangeLead"),
+  FIRST_ROW("selectFirstRow"),
+  LAST_ROW("selectLastRow"),
+  SCROLL_UP_CHANGE_SELECTION("scrollUpChangeSelection"),
+  SCROLL_DOWN_CHANGE_SELECTION("scrollDownChangeSelection"),
+  SELECT_ALL("selectAll"),
+  CLEAR_SELECTION("clearSelection"),
 }
 
 /**
  * Implementation the actions for each action type.
  */
-class TableAction(private val type: ActionType, private val table: ActionTable): AbstractAction(type.actionName) {
+class TableAction(private val type: ActionType, private val table: FrozenColumnTable<*>): AbstractAction(type.actionName) {
   override fun actionPerformed(event: ActionEvent) {
-    val column = table.currentTable.selectedColumn
+    val row = table.selectedRow
+    val column = table.selectedColumn
     when (type) {
-      ActionType.FIRST_COLUMN_ACTION -> goto(column = 0, target = table.leftTable, extend = false)
-      ActionType.FIRST_COLUMN_EXTEND_SELECTION_ACTION -> goto(column = 0, target = table.leftTable, extend = true)
-      ActionType.LAST_COLUMN_ACTION -> goto(table.rightTable.columnCount - 1, table.rightTable, extend = false)
-      ActionType.LAST_COLUMN_EXTEND_SELECTION_ACTION -> goto(table.rightTable.columnCount - 1, table.rightTable, extend = true)
-      ActionType.NEXT_COLUMN_ACTION -> goto(column + 1, table.currentTable, extend = false)
-      ActionType.PREVIOUS_COLUMN_ACTION -> goto(column - 1, table.currentTable, extend = false)
-      ActionType.NEXT_COLUMN_EXTEND_SELECTION_ACTION -> goto(column + 1, table.currentTable, extend = true)
-      ActionType.PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION -> goto(column - 1, table.currentTable, extend = true)
-      ActionType.NEXT_COLUMN_CELL_ACTION -> table.rightTable.transferFocus()
-      ActionType.PREVIOUS_COLUMN_CELL_ACTION -> table.leftTable.transferFocusBackward()
-    }
-  }
-
-  private fun goto(column: Int, target: JTable, extend: Boolean) {
-    when {
-      (column >= target.columnCount) -> if (target == table.leftTable) goto(0, table.rightTable, extend)
-      (column < 0 && target !== table.leftTable) -> goto(table.leftTable.columnCount - 1, table.leftTable, extend)
-      target === table.currentTable -> target.changeSelection(target.selectionModel.leadSelectionIndex, column, false, extend)
-      else -> {
-        target.changeSelection(table.currentTable.selectionModel.leadSelectionIndex, column, false, extend)
-        target.requestFocus()
-      }
+      ActionType.FIRST_COLUMN_ACTION -> table.gotoColumn(0, false)
+      ActionType.FIRST_COLUMN_EXTEND_SELECTION_ACTION -> table.gotoColumn(0, true)
+      ActionType.LAST_COLUMN_ACTION -> table.gotoColumn(table.columnCount - 1, false)
+      ActionType.LAST_COLUMN_EXTEND_SELECTION_ACTION -> table.gotoColumn(table.columnCount - 1, true)
+      ActionType.NEXT_COLUMN_ACTION -> table.gotoColumn(column + 1, false)
+      ActionType.PREVIOUS_COLUMN_ACTION -> table.gotoColumn(column - 1, false)
+      ActionType.NEXT_COLUMN_EXTEND_SELECTION_ACTION -> table.gotoColumn(column + 1, true)
+      ActionType.PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION -> table.gotoColumn(column - 1, true)
+      ActionType.NEXT_COLUMN_CELL_ACTION -> table.scrollableTable.transferFocus()
+      ActionType.PREVIOUS_COLUMN_CELL_ACTION -> table.frozenTable.transferFocusBackward()
+      ActionType.NEXT_ROW,
+      ActionType.NEXT_ROW_CELL,
+      ActionType.NEXT_ROW_CHANGE_LEAD -> table.gotoRow(row + 1)
+      ActionType.PREVIOUS_ROW,
+      ActionType.PREVIOUS_ROW_CELL,
+      ActionType.PREVIOUS_ROW_CHANGE_LEAD -> table.gotoRow(row - 1)
+      ActionType.SCROLL_UP_CHANGE_SELECTION -> table.scrollRow(false)
+      ActionType.SCROLL_DOWN_CHANGE_SELECTION -> table.scrollRow(true)
+      ActionType.FIRST_ROW -> table.gotoRow(0)
+      ActionType.LAST_ROW -> table.gotoRow(table.rowCount)
+      ActionType.SELECT_ALL -> table.selectAll()
+      ActionType.CLEAR_SELECTION -> table.clearSelection()
     }
   }
 }

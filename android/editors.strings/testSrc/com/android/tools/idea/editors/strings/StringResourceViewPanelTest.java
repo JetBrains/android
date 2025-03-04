@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.editors.strings.action.AddKeyAction;
 import com.android.tools.idea.editors.strings.action.AddLocaleAction;
 import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
@@ -48,6 +49,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
@@ -383,28 +386,32 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     // Initial state:
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
 
+    myPanel.getTable().getFrozenTable().setUI(new HeadlessTableUI());
+    myPanel.getTable().getScrollableTable().setUI(new HeadlessTableUI());
+    myPanel.getLoadingPanel().setSize(1200, 2000);
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+
     // The translation field is enabled in all columns of the scrollable table:
-    myTable.getScrollableTable().changeSelection(0, 0, false, false);
+    clickCell(ui, 0, 4);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
-    myTable.getScrollableTable().changeSelection(0, 1, false, false);
+    clickCell(ui, 0, 5);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
-    myTable.getScrollableTable().changeSelection(0, 2, false, false);
+    clickCell(ui, 0, 6);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
-    myTable.getScrollableTable().changeSelection(0, 3, false, false);
+    clickCell(ui, 0, 7);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
-    myTable.getScrollableTable().changeSelection(0, 4, false, false);
+    clickCell(ui, 0, 8);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
 
     // But disabled in all columns of the frozen table:
-    myTable.getFrozenTable().changeSelection(0, 0, false, false);
+    clickCell(ui, 0, 0);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
-    myTable.getFrozenTable().changeSelection(0, 1, false, false);
+    clickCell(ui, 0, 1);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
-    myTable.getFrozenTable().changeSelection(0, 2, false, false);
+    clickCell(ui, 0, 2);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
-    myTable.getFrozenTable().changeSelection(0, 3, false, false);
+    clickCell(ui, 0, 3);
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
-
   }
 
   @Nullable
@@ -425,5 +432,16 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       throw new RuntimeException("Expected to be non null");
     }
     return e;
+  }
+
+  private void clickCell(@NotNull FakeUi ui, int row, int column) {
+    JTable table = myPanel.getTable().getFrozenTable();
+    if (column >= table.getColumnCount()) {
+      column -= table.getColumnCount();
+      table = myPanel.getTable().getScrollableTable();
+    }
+    Rectangle bounds = table.getCellRect(row, column, false);
+    bounds = SwingUtilities.convertRectangle(table, bounds, myPanel.getLoadingPanel());
+    ui.mouse.click((int)bounds.getCenterX(), (int)bounds.getCenterY());
   }
 }

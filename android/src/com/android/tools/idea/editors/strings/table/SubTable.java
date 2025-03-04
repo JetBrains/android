@@ -45,7 +45,7 @@ final class SubTable<M extends TableModel> extends JBTable implements UiDataProv
     super(model);
 
     getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-    getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);

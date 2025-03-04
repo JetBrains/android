@@ -23,19 +23,17 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
-import java.awt.Font
-import javax.swing.JTable
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.awt.Font
+import javax.swing.JTable
 
 private const val STRING_VALUE = "Hey, I'm a String value!"
 private const val PROBLEM = "Big time problem"
@@ -63,23 +61,6 @@ class StringsCellRendererTest {
     whenever(frozenColumnTable.model).thenReturn(model)
     whenever(frozenColumnTable.frozenColumnCount).thenReturn(FROZEN_COLUMN_COUNT)
     doAnswer { it.getArgument<Int>(0) }.whenever(frozenColumnTable).convertColumnIndexToModel(any())
-  }
-
-  @Test
-  fun doesNothingIfValueIsNotString() {
-    val notAStringValue = 3
-    renderer.font = tableFont
-    assertThat(renderer.font).isEqualTo(tableFont)
-
-    renderer.getTableCellRendererComponent(frozenSubTable, notAStringValue, SOME_COLUMN)
-
-    assertThat(renderer.font).isNull()
-    assertThat(renderer.toolTipText).isNull()
-    verify(frozenSubTable, never()).convertRowIndexToModel(any())
-    verify(frozenSubTable, never()).convertColumnIndexToModel(any())
-    verify(frozenSubTable, never()).model
-
-    verifyNoInteractions(frozenColumnTable, scrollableSubTable)
   }
 
   @Test

@@ -16,13 +16,16 @@
 package com.android.tools.idea.editors.strings.table
 
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
-import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
+import com.intellij.util.ui.UIUtil
+import java.awt.Component
 import javax.swing.JTable
+import javax.swing.table.TableCellRenderer
 
 private val CELL_ERROR_ATTRIBUTES = SimpleTextAttributes(STYLE_WAVED, JBColor.red)
 
@@ -42,21 +45,24 @@ private fun SubTable<StringResourceTableModel>.translateColumn(column: Int): Int
 }
 
 /** Controls rendering of cells in the [StringResourceTable] displaying [String] values. */
-internal class StringsCellRenderer : ColoredTableCellRenderer() {
-  override fun customizeCellRenderer(
+internal class StringsCellRenderer : SimpleColoredRenderer(), TableCellRenderer {
+  override fun getTableCellRendererComponent(
     table: JTable,
     value: Any?,
-    selected: Boolean,
-    focusOwner: Boolean,
-    viewRowIndex: Int,
-    viewColumnIndex: Int
-  ) {
-    if (value !is String) return
-
+    isSelected: Boolean,
+    hasFocusDontUse: Boolean,
+    row: Int,
+    column: Int
+  ): Component {
+    clear()
     @Suppress("UNCHECKED_CAST")
-    with(table as SubTable<StringResourceTableModel>) {
-      customizeCellRenderer(frozenColumnTable, value, viewRowIndex, translateColumn(viewColumnIndex))
-    }
+    val subTable = table as SubTable<StringResourceTableModel>
+    val hasFocus = subTable.frozenColumnTable.frozenTable.hasFocus() || subTable.frozenColumnTable.scrollableTable.hasFocus()
+    foreground = UIUtil.getTableForeground(isSelected, hasFocus)
+    background = UIUtil.getTableBackground(isSelected, hasFocus)
+    font = table.font
+    customizeCellRenderer(subTable.frozenColumnTable, value as? String ?: "", row, subTable.translateColumn(column))
+    return this
   }
 
   private fun customizeCellRenderer(
