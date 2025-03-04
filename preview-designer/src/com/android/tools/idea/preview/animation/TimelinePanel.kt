@@ -21,9 +21,11 @@ import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.res.clamp
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBSlider
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
 import java.awt.BasicStroke
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
@@ -35,6 +37,7 @@ import java.awt.event.ComponentEvent
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import javax.swing.JSlider
+import javax.swing.UIManager
 import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.max
 
@@ -45,7 +48,7 @@ const val DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS = 10000L
 
 /** Timeline slider with auto-resized ticks and labels distance. */
 open class TimelinePanel(val tooltip: Tooltip, val tracker: AnimationTracker) :
-  JSlider(0, DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS.toInt(), 0) {
+  JBSlider(0, DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
 
@@ -148,6 +151,14 @@ open class TimelinePanel(val tooltip: Tooltip, val tracker: AnimationTracker) :
       } else {
         createStandardLabels(tickIncrement)
       }
+  }
+
+  override fun getBackground(): Color? {
+    return UIManager.get("Slider.background") as Color
+  }
+
+  override fun getForeground(): Color? {
+    return UIManager.get("Slider.foreground") as Color
   }
 }
 
