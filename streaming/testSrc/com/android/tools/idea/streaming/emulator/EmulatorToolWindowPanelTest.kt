@@ -45,6 +45,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_S
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
+import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.emulator.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
@@ -53,6 +54,7 @@ import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
+import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -368,6 +370,8 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrToolbarActions() {
+    // Move XR buttons to the Running Devices toolbar because clicking on an animated toolbar is problematic in a test environment.
+    service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
     val panel = createWindowPanelForXr()
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -1135,7 +1139,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mouseClickOn(component: Component) {
     val location: Point = getPosition(component)
-    mouse.click(location.x, location.y)
+    mouse.click(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
