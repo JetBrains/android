@@ -50,14 +50,14 @@ private val NEGATIVE_INFINITY = Duration.INFINITE * -1
  * Abstract read-through, on-disk cache of remotely accessed files. Implementations need to provide
  * [fetchAndFilterLocked] which actually does the work of fetching the data.
  */
-abstract class RemoteFileCache(
+abstract class RemoteFileCache<IdentifierType>(
   private val coroutineScope: CoroutineScope,
   private val ioDispatcher: CoroutineDispatcher,
   private val timeSource: TimeSource,
   private val clock: Clock,
 ) : Disposable {
 
-  private val files = mutableMapOf<String, Path>()
+  private val files = mutableMapOf<IdentifierType, Path>()
   private val tmpDir = createTempDirectory()
   private val mutex = Mutex()
 
@@ -66,7 +66,7 @@ abstract class RemoteFileCache(
    * exceptions.
    */
   fun get(
-    identifier: String,
+    identifier: IdentifierType,
     maxFileAge: Duration = NEGATIVE_INFINITY, // By default, no caching at all, EVER!
     indicator: ProgressIndicator? = null,
     transform: ((InputStream) -> InputStream)? = null,
@@ -90,7 +90,7 @@ abstract class RemoteFileCache(
    * which holds a [FetchStats] object.
    */
   fun getWithStats(
-    identifier: String,
+    identifier: IdentifierType,
     maxFileAge: Duration = NEGATIVE_INFINITY, // By default, no caching at all, EVER!
     indicator: ProgressIndicator? = null,
     transform: ((InputStream) -> InputStream)? = null,
@@ -101,7 +101,7 @@ abstract class RemoteFileCache(
 
   /** Actually does the work to get the value (and build the [FetchStats]). */
   private suspend fun doGet(
-    identifier: String,
+    identifier: IdentifierType,
     maxFileAge: Duration,
     indicator: ProgressIndicator?,
     transform: ((InputStream) -> InputStream)?,
@@ -150,7 +150,7 @@ abstract class RemoteFileCache(
     val numBytesCached: Long = 0,
   )
 
-  class RemoteFileCacheException(val fetchStats: FetchStats, private val delegate: Exception) :
+  class RemoteFileCacheException(val fetchStats: FetchStats, delegate: Exception) :
     Exception() {
     override val cause: Exception = delegate
     override val message = delegate.message
@@ -163,7 +163,7 @@ abstract class RemoteFileCache(
    */
   protected abstract fun fetchAndFilterLocked(
     existing: Path?,
-    identifier: String,
+    identifier: IdentifierType,
     indicator: ProgressIndicator?,
     start: TimeMark,
   ): Path

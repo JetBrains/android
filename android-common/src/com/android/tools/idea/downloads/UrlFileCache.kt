@@ -48,7 +48,7 @@ constructor(
   ioDispatcher: CoroutineDispatcher,
   timeSource: TimeSource,
   clock: Clock,
-) : RemoteFileCache(coroutineScope, ioDispatcher, timeSource, clock) {
+) : RemoteFileCache<String>(coroutineScope, ioDispatcher, timeSource, clock) {
   constructor(
     coroutineScope: CoroutineScope
   ) : this(coroutineScope, Dispatchers.IO, TimeSource.Monotonic, Clock.System)
