@@ -34,11 +34,3 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
     ],
 )
-
-build_test(
-    name = "cli_tools_build_test",
-    targets = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/util:project_spec_builder",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/util:query_summarizer",
-    ],
-)

@@ -341,7 +341,6 @@ validate_test_dependencies(
         "//tools/adt/idea/aswb/common/experiments:unit_tests",
         "//tools/adt/idea/aswb/common/ui/properties:unit_tests",
         "//tools/adt/idea/aswb/common/util:CommandLineTaskTest",
-        "//tools/adt/idea/aswb/querysync:cli_tools_build_test",
         "//tools/adt/idea/aswb/shared:tests",
     ],
 )
