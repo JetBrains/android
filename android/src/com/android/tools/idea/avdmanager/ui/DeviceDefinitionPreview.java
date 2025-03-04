@@ -16,22 +16,20 @@
 package com.android.tools.idea.avdmanager.ui;
 
 import static com.android.sdklib.devices.Device.isRollable;
-import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.FIGURE_FONT;
-import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.STANDARD_FONT;
-import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.TITLE_FONT;
 
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -41,7 +39,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
-import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +56,10 @@ public class DeviceDefinitionPreview extends JPanel {
    * Constant string used to signal the panel not to preview a null device
    */
   public static final String DO_NOT_DISPLAY = "DO_NOT_DISPLAY";
+
+  private static final Font STANDARD_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 12));
+  private static final Font FIGURE_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 10));
+  private static final Font TITLE_FONT = JBFont.h3().asBold();
 
   private static int figurePadding() {
     return JBUI.scale(3);

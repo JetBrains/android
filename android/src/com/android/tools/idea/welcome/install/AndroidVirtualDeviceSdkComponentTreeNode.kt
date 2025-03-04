@@ -40,7 +40,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
@@ -142,15 +141,19 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     }
 
     val abi = Abi.getEnum(systemImageDescription.primaryAbiType)
-    val supportsSmp =
-      abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
-    avdBuilder.cpuCoreCount = if (supportsSmp) AvdWizardUtils.getMaxCpuCores() else 1
+    val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && maxCpuCores() > 1
+    avdBuilder.cpuCoreCount = if (supportsSmp) maxCpuCores() else 1
 
     try {
       return avdManager.createAvd(avdBuilder)
     } catch (e: AvdManagerException) {
       throw WizardException(e.message ?: "Unable to create AVD", e)
     }
+  }
+
+  /** Return the max number of cores that an AVD can use on this development system. */
+  private fun maxCpuCores(): Int {
+    return Runtime.getRuntime().availableProcessors() / 2
   }
 
   @VisibleForTesting
