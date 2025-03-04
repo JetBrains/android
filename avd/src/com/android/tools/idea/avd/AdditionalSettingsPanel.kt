@@ -344,18 +344,17 @@ private fun EmulatedPerformanceGroup(
   }
 }
 
-internal class EmulatedPerformanceGroupState internal constructor(device: VirtualDevice) {
-  internal val ram =
-    StorageCapacityFieldState(requireNotNull(device.ram), VirtualDevice.MIN_RAM, UNITS)
+internal class EmulatedPerformanceGroupState(device: VirtualDevice) {
+  val ram = StorageCapacityFieldState(requireNotNull(device.ram), VirtualDevice.MIN_RAM, UNITS)
 
-  internal val vmHeapSize =
+  val vmHeapSize =
     StorageCapacityFieldState(
       requireNotNull(device.vmHeapSize),
       VirtualDevice.MIN_VM_HEAP_SIZE,
       UNITS,
     )
 
-  private companion object {
+  companion object {
     private val UNITS = listOf(StorageCapacity.Unit.MB, StorageCapacity.Unit.GB).toImmutableList()
   }
 }

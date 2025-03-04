@@ -18,10 +18,10 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.unit.dp
 
 internal object Padding {
-  internal val SMALL = 6.dp
-  internal val SMALL_MEDIUM = 8.dp
-  internal val MEDIUM = 12.dp
-  internal val MEDIUM_LARGE = 14.dp
-  internal val LARGE = 16.dp
-  internal val EXTRA_LARGE = 20.dp
+  val SMALL = 6.dp
+  val SMALL_MEDIUM = 8.dp
+  val MEDIUM = 12.dp
+  val MEDIUM_LARGE = 14.dp
+  val LARGE = 16.dp
+  val EXTRA_LARGE = 20.dp
 }

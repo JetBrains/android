@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avd
 
-internal enum class Boot(internal val properties: Map<String, String>, private val text: String) {
+internal enum class Boot(val properties: Map<String, String>, private val text: String) {
   COLD(
     mapOf(
       "fastboot.chosenSnapshotFile" to "",

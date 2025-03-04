@@ -50,7 +50,7 @@ internal class LocalVirtualDeviceSource(
 ) {
 
   companion object {
-    internal fun create(): LocalVirtualDeviceSource {
+    fun create(): LocalVirtualDeviceSource {
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()

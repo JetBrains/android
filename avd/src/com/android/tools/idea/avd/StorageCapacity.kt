@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.avd
 
-internal data class StorageCapacity
 /** @throws ArithmeticException If this cannot be expressed in bytes without overflow */
-internal constructor(internal val value: Long, internal val unit: Unit) :
-  Comparable<StorageCapacity> {
+internal data class StorageCapacity(val value: Long, val unit: Unit) : Comparable<StorageCapacity> {
 
   init {
     Math.multiplyExact(value, unit.byteCount)
@@ -41,9 +39,9 @@ internal constructor(internal val value: Long, internal val unit: Unit) :
     return subList.filter { byteCount % it.byteCount == 0L }.maxOrNull() ?: unit
   }
 
-  internal fun valueIn(unit: Unit) = value * this.unit.byteCount / unit.byteCount
+  fun valueIn(unit: Unit) = value * this.unit.byteCount / unit.byteCount
 
-  internal enum class Unit(internal val byteCount: Long) {
+  enum class Unit(val byteCount: Long) {
     B(1),
     KB(1_024),
     MB(1_024 * 1_024),
@@ -55,7 +53,7 @@ internal constructor(internal val value: Long, internal val unit: Unit) :
 
   override fun compareTo(other: StorageCapacity) = valueIn(Unit.B).compareTo(other.valueIn(Unit.B))
 
-  internal companion object {
-    internal val MIN = StorageCapacity(0, StorageCapacity.Unit.B)
+  companion object {
+    val MIN = StorageCapacity(0, Unit.B)
   }
 }

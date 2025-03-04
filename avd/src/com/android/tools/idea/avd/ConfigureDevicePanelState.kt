@@ -32,41 +32,40 @@ import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 
-internal class ConfigureDevicePanelState
-internal constructor(
+internal class ConfigureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
   fileSystem: FileSystem = FileSystems.getDefault(),
-  internal val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
+  val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
-  internal var device by mutableStateOf(device)
+  var device by mutableStateOf(device)
   private var skins by mutableStateOf(skins)
-  internal val systemImageTableSelectionState = TableSelectionState(image)
-  internal val storageGroupState = StorageGroupState(device, fileSystem)
-  internal val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
+  val systemImageTableSelectionState = TableSelectionState(image)
+  val storageGroupState = StorageGroupState(device, fileSystem)
+  val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 
-  internal val isValid
+  val isValid
     get() = device.isValid && validity.isValid
 
-  internal var validity by mutableStateOf(Validity())
+  var validity by mutableStateOf(Validity())
     private set
 
-  internal fun hasPlayStore(): Boolean {
+  fun hasPlayStore(): Boolean {
     val image = systemImageTableSelectionState.selection
     return if (image == null) false else device.hasPlayStore(image)
   }
 
-  internal fun setDeviceName(deviceName: String) {
+  fun setDeviceName(deviceName: String) {
     device = device.copy(name = deviceName)
   }
 
-  internal fun setSystemImageSelection(systemImage: ISystemImage) {
+  fun setSystemImageSelection(systemImage: ISystemImage) {
     systemImageTableSelectionState.selection = systemImage
     updatePreferredAbiValidity()
   }
 
-  internal fun setPreferredAbi(preferredAbi: String?) {
+  fun setPreferredAbi(preferredAbi: String?) {
     device = device.copy(preferredAbi = preferredAbi)
     updatePreferredAbiValidity()
   }
@@ -81,29 +80,29 @@ internal constructor(
       )
   }
 
-  internal fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
+  fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
     validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
   }
 
-  internal fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
+  fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
     validity = validity.copy(isDeviceNameValid = isDeviceNameValid)
   }
 
-  internal fun initDeviceSkins(path: Path) {
+  fun initDeviceSkins(path: Path) {
     val skin = getSkin(path)
     device = device.copy(skin = skin, defaultSkin = skin)
   }
 
-  internal fun initDefaultSkin(path: Path) {
+  fun initDefaultSkin(path: Path) {
     device = device.copy(defaultSkin = getSkin(path))
   }
 
-  internal fun setSkin(path: Path) {
+  fun setSkin(path: Path) {
     val skin = getSkin(path)
     device = device.copy(skin = if (skin !in skins()) device.defaultSkin else skin)
   }
 
-  internal fun skins(): Iterable<Skin> =
+  fun skins(): Iterable<Skin> =
     if (hasPlayStore()) setOf(NoSkin.INSTANCE, device.defaultSkin) else skins
 
   private fun getSkin(path: Path): Skin {
@@ -117,7 +116,7 @@ internal constructor(
     return skin
   }
 
-  internal fun resetPlayStoreFields() {
+  fun resetPlayStoreFields() {
     if (!hasPlayStore()) return
 
     device =
@@ -131,12 +130,11 @@ internal constructor(
   }
 }
 
-internal data class Validity
-internal constructor(
+internal data class Validity(
   private val isDeviceNameValid: Boolean = true,
-  internal val isSystemImageTableSelectionValid: Boolean = true,
+  val isSystemImageTableSelectionValid: Boolean = true,
   val isPreferredAbiValid: Boolean = true,
 ) {
-  internal val isValid
+  val isValid
     get() = isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
 }

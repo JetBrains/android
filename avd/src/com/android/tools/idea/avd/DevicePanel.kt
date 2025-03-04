@@ -126,14 +126,14 @@ internal fun DevicePanel(
       ApiFilter(
         androidVersions,
         systemImageFilterState.selectedApi,
-        systemImageFilterState::setSelectedApi,
+        systemImageFilterState::selectedApi::set,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
         systemImageFilterState.selectedServices,
         servicesCollection,
-        systemImageFilterState::setSelectedServices,
+        systemImageFilterState::selectedServices::set,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
     }
@@ -174,14 +174,14 @@ internal fun DevicePanel(
 
     ShowSdkExtensionSystemImagesCheckbox(
       systemImageFilterState.showSdkExtensionSystemImages,
-      systemImageFilterState::setShowSdkExtensionSystemImages,
+      systemImageFilterState::showSdkExtensionSystemImages::set,
       Modifier.padding(bottom = Padding.SMALL),
     )
 
     CheckboxRow(
       "Show unsupported system images",
       systemImageFilterState.showUnsupportedSystemImages,
-      systemImageFilterState::setShowUnsupportedSystemImages,
+      systemImageFilterState::showUnsupportedSystemImages::set,
     )
   }
 }
