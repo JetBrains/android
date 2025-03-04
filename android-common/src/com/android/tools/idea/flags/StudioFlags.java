@@ -381,7 +381,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> FORCE_MONOCHROME_ADAPTIVE_ICON = new BooleanFlag(
     NELE, "force.monochrome.adaptive.icon", "Display monochrome preview of adaptive icon when none provided",
     "When enabled, the adaptive icon preview will automatically create a monochrome version if none is provided.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
