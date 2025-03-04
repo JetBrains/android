@@ -24,17 +24,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeLiteralImpl extends CompositePsiElement implements DeclarativeLiteral {
+public class DeclarativeLiteralImpl extends DeclarativeSimpleLiteralImpl implements DeclarativeLiteral {
 
   public DeclarativeLiteralImpl(@NotNull IElementType type) {
     super(type);
   }
 
+  @Override
   public void accept(@NotNull DeclarativeVisitor visitor) {
     visitor.visitLiteral(this);
   }
@@ -53,64 +53,19 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
 
   @Override
   @Nullable
-  public PsiElement getBoolean() {
-    return findPsiChildByType(BOOLEAN);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getDoubleLiteral() {
-    return findPsiChildByType(DOUBLE_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getIntegerLiteral() {
-    return findPsiChildByType(INTEGER_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getLongLiteral() {
-    return findPsiChildByType(LONG_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getMultilineStringLiteral() {
-    return findPsiChildByType(MULTILINE_STRING_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getOneLineStringLiteral() {
-    return findPsiChildByType(ONE_LINE_STRING_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getUnsignedInteger() {
-    return findPsiChildByType(UNSIGNED_INTEGER);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getUnsignedLong() {
-    return findPsiChildByType(UNSIGNED_LONG);
-  }
-
-  @Override
-  public @Nullable Object getValue() {
+  public Object getValue() {
     return PsiImplUtil.getValue(this);
   }
 
   @Override
-  public @Nullable PsiReference getReference() {
+  @Nullable
+  public PsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 
   @Override
-  public @NotNull PsiReference @NotNull [] getReferences() {
+  @NotNull
+  public PsiReference[] getReferences() {
     return PsiImplUtil.getReferences(this);
   }
 

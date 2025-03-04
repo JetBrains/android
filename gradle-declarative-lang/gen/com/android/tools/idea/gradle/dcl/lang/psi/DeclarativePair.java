@@ -26,32 +26,11 @@ public interface DeclarativePair extends DeclarativeValue {
   @Nullable
   DeclarativePair getPair();
 
-  @Nullable
-  PsiElement getBoolean();
+  @NotNull
+  DeclarativeSimpleLiteral getSimpleLiteral();
 
-  @Nullable
-  PsiElement getDoubleLiteral();
-
-  @Nullable
-  PsiElement getIntegerLiteral();
-
-  @Nullable
-  PsiElement getLongLiteral();
-
-  @Nullable
-  PsiElement getMultilineStringLiteral();
-
-  @Nullable
-  PsiElement getOneLineStringLiteral();
-
-  @Nullable
-  PsiElement getUnsignedInteger();
-
-  @Nullable
-  PsiElement getUnsignedLong();
-
-  @Nullable
-  Object getFirst();
+  @NotNull
+  DeclarativeSimpleLiteral getFirst();
 
   @NotNull
   DeclarativeValue getSecond();

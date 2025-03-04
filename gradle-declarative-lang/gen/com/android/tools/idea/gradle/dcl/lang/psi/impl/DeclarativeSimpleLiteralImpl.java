@@ -28,14 +28,14 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativePairImpl extends CompositePsiElement implements DeclarativePair {
+public class DeclarativeSimpleLiteralImpl extends CompositePsiElement implements DeclarativeSimpleLiteral {
 
-  public DeclarativePairImpl(@NotNull IElementType type) {
+  public DeclarativeSimpleLiteralImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitPair(this);
+    visitor.visitSimpleLiteral(this);
   }
 
   @Override
@@ -46,26 +46,56 @@ public class DeclarativePairImpl extends CompositePsiElement implements Declarat
 
   @Override
   @Nullable
-  public DeclarativePair getPair() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativePair.class);
+  public PsiElement getBoolean() {
+    return findPsiChildByType(BOOLEAN);
   }
 
   @Override
-  @NotNull
-  public DeclarativeSimpleLiteral getSimpleLiteral() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeSimpleLiteral.class);
+  @Nullable
+  public PsiElement getDoubleLiteral() {
+    return findPsiChildByType(DOUBLE_LITERAL);
   }
 
   @Override
-  @NotNull
-  public DeclarativeSimpleLiteral getFirst() {
-    return PsiImplUtil.getFirst(this);
+  @Nullable
+  public PsiElement getIntegerLiteral() {
+    return findPsiChildByType(INTEGER_LITERAL);
   }
 
   @Override
-  @NotNull
-  public DeclarativeValue getSecond() {
-    return PsiImplUtil.getSecond(this);
+  @Nullable
+  public PsiElement getLongLiteral() {
+    return findPsiChildByType(LONG_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getMultilineStringLiteral() {
+    return findPsiChildByType(MULTILINE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getOneLineStringLiteral() {
+    return findPsiChildByType(ONE_LINE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getUnsignedInteger() {
+    return findPsiChildByType(UNSIGNED_INTEGER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getUnsignedLong() {
+    return findPsiChildByType(UNSIGNED_LONG);
+  }
+
+  @Override
+  @Nullable
+  public Object getValue() {
+    return PsiImplUtil.getValue(this);
   }
 
 }

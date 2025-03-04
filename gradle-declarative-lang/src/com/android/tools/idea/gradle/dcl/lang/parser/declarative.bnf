@@ -71,7 +71,7 @@
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
      "com.intellij.psi.NavigatablePsiElement"
   ]
-  implements("property|literal|pair")=[
+  implements("property|literal|simple_literal|pair")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
   implements("literal")=[
@@ -128,12 +128,13 @@ identifier ::= token {
 }
 
 private atomic_literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
-
+simple_literal ::= atomic_literal { methods=[getValue] }
 private compound_literal ::= pair
-literal ::= atomic_literal | compound_literal { methods=[getValue getReference getReferences] }
+
+literal ::= atomic_literal | compound_literal { extends="simple_literal" methods=[getValue getReference getReferences] }
 private expression::= factory | pair | property | literal
-pair ::= atomic_literal OP_TO expression {
-  methods=[getFirst  getSecond literal="" property="" factory_receiver="" factory_property_receiver=""]
+pair ::= simple_literal OP_TO expression {
+  methods=[getFirst getSecond literal="" property="" factory_receiver="" factory_property_receiver=""]
 }
 
 property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }

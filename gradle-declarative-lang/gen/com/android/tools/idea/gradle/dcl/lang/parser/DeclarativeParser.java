@@ -52,6 +52,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(LITERAL, SIMPLE_LITERAL),
     create_token_set_(ASSIGNABLE_BARE, ASSIGNABLE_PROPERTY, ASSIGNABLE_QUALIFIED),
     create_token_set_(BARE, PROPERTY, QUALIFIED),
     create_token_set_(BARE_RECEIVER, PROPERTY_RECEIVER, QUALIFIED_RECEIVER),
@@ -535,12 +536,12 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // atomic_literal OP_TO expression
+  // simple_literal OP_TO expression
   public static boolean pair(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "pair")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, PAIR, "<pair>");
-    r = atomic_literal(b, l + 1);
+    r = simple_literal(b, l + 1);
     r = r && consumeToken(b, OP_TO);
     r = r && expression(b, l + 1);
     exit_section_(b, l, m, r, false, null);
@@ -561,6 +562,17 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     r = p && consumeToken(b, OP_RPAREN) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // atomic_literal
+  public static boolean simple_literal(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "simple_literal")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, SIMPLE_LITERAL, "<simple literal>");
+    r = atomic_literal(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */

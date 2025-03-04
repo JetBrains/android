@@ -299,7 +299,7 @@ class DeclarativeDslParser(
                                argumentsList: List<DeclarativeValue>): GradleDslExpressionMap {
     val expressionMap = GradleDslExpressionMap(parentElement, mapPsiElement, propertyName, false)
     argumentsList.filterIsInstance<DeclarativePair>().map { argument ->
-      argument.second.accept(getExpressionVisitor(expressionMap, expressionMap, GradleNameElement.from(argument, this)))
+      argument.second.accept(getExpressionVisitor(expressionMap, expressionMap, GradleNameElement.from(argument.first, this)))
     }
     return expressionMap
   }

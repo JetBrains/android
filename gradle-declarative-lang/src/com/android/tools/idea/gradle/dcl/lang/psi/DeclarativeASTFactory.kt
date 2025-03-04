@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
@@ -51,6 +52,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeReceiverPrefixedFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleFactoryImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleLiteralImpl
 import com.intellij.lang.ASTFactory
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
@@ -75,6 +77,7 @@ class DeclarativeASTFactory : ASTFactory() {
     LITERAL -> DeclarativeLiteralImpl(type)
     QUALIFIED -> DeclarativeQualifiedImpl(type)
     ARGUMENT -> DeclarativeArgumentImpl(type)
+    SIMPLE_LITERAL -> DeclarativeSimpleLiteralImpl(type)
     else -> error("Unknown Declarative element type: `$type`")
   }
 }

@@ -195,7 +195,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair).isNotNull()
     assertThat(pair).isInstanceOf(DeclarativePair::class.java)
     assertThat(pair.text).isEqualTo("\"key\" to \"value\"")
-    assertThat(pair.first).isEqualTo("key")
+    assertThat(pair.first.value).isEqualTo("key")
     assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
     assertThat((pair.second as DeclarativeLiteral).value).isEqualTo("value")
 
@@ -206,7 +206,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair).isNotNull()
     assertThat(pair).isInstanceOf(DeclarativePair::class.java)
     assertThat(pair.text).isEqualTo("\"\"\"key\nkey\"\"\" to \"\"\"value\nvalue\"\"\"")
-    assertThat(pair.first).isEqualTo("key\nkey")
+    assertThat(pair.first.value).isEqualTo("key\nkey")
     assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
     assertThat((pair.second as DeclarativeLiteral).value).isEqualTo("value\nvalue")
   }
@@ -216,7 +216,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair).isNotNull()
     assertThat(pair).isInstanceOf(DeclarativePair::class.java)
     assertThat(pair.text).isEqualTo("\"number\" to 8")
-    assertThat(pair.first).isEqualTo("number")
+    assertThat(pair.first.value).isEqualTo("number")
     assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
     assertThat((pair.second as DeclarativeLiteral).value).isEqualTo(8)
   }
@@ -227,7 +227,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair2).isNotNull()
     assertThat(pair2).isInstanceOf(DeclarativePair::class.java)
     assertThat(pair2.text).isEqualTo("\"root\" to \"a\" to \"b\"")
-    assertThat(pair2.first).isEqualTo("root")
+    assertThat(pair2.first.value).isEqualTo("root")
     assertThat(pair2.second).isInstanceOf(DeclarativePair::class.java)
     assertThat((pair2.second as DeclarativePair).text).isEqualTo("\"a\" to \"b\"" )
   }
@@ -238,7 +238,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair).isNotNull()
     assertThat(pair).isInstanceOf(DeclarativePair::class.java)
     assertThat(pair.text).isEqualTo("\"root\" to listOf()")
-    assertThat(pair.first).isEqualTo("root")
+    assertThat(pair.first.value).isEqualTo("root")
     assertThat(pair.second).isInstanceOf(DeclarativeSimpleFactory::class.java)
     assertThat((pair.second as DeclarativeSimpleFactory).text).isEqualTo("listOf()" )
   }
