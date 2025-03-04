@@ -46,10 +46,10 @@ public abstract class FakeBuildSystem implements BuildSystem {
   public abstract BuildSystemName getName();
 
   @Nullable
-  abstract BuildInvoker getBuildInvoker();
+  abstract Optional<BuildInvoker> getBuildInvoker();
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
+  public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker();
   }
   @Override

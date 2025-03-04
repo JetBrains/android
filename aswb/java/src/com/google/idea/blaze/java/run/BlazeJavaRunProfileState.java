@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -112,16 +113,17 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   protected ProcessHandler startProcess() throws ExecutionException {
     Project project = getConfiguration().getProject();
     BlazeContext context = BlazeContext.create();
-    BuildInvoker invoker =
-      Blaze.getBuildSystemProvider(project)
-        .getBuildSystem()
-        .getBuildInvoker(
-          project, getExecutorType(), getConfiguration().getTargetKind());
     boolean debuggingLocalTest =
       TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
       && getExecutorType().isDebugType();
+    ImmutableSet<BuildInvoker.Capability> requirements =
+      debuggingLocalTest ? ImmutableSet.of(BuildInvoker.Capability.DEBUG_LOCAL_TEST) : ImmutableSet.of();
+    BuildInvoker invoker =
+      Blaze.getBuildSystemProvider(project)
+        .getBuildSystem()
+        .getBuildInvoker(project, requirements).orElseThrow();
     if (debuggingLocalTest
-        && !invoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_CLI)) {
+        && !invoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORT_CLI)) {
       return startProcessRunfilesCase(project);
     }
     return startProcessBazelCliCase(invoker, project, context);
@@ -190,7 +192,8 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
             return consoleView;
           }
         });
-    } else {
+    }
+    else {
       blazeCommand =
         getBlazeCommandBuilder(
           project,
@@ -273,7 +276,8 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       int debugPort = handlerState.getDebugPortState().port;
       if (isBinary) {
         command.addExeFlags(debugPortFlag(false, debugPort));
-      } else {
+      }
+      else {
         command.addBlazeFlags(BlazeFlags.JAVA_TEST_DEBUG);
         command.addBlazeFlags(debugPortFlag(true, debugPort));
       }
@@ -366,7 +370,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
           // later. The LocalTestResultFinderStrategy won't work here since it writes/reads the
           // test results to a local file.
           verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
-          ((BlazeTestResultHolder) testResultFinderStrategy).setTestResults(blazeTestResults);
+          ((BlazeTestResultHolder)testResultFinderStrategy).setTestResults(blazeTestResults);
           processHandler.detachProcess();
         }
 
@@ -374,7 +378,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         public void onFailure(Throwable throwable) {
           context.handleException(throwable.getMessage(), throwable);
           verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
-          ((BlazeTestResultHolder) testResultFinderStrategy)
+          ((BlazeTestResultHolder)testResultFinderStrategy)
             .setTestResults(BlazeTestResults.NO_RESULTS);
           processHandler.detachProcess();
         }
@@ -388,7 +392,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
           if (willBeDestroyed) {
             context.setCancelled();
             verify(testResultFinderStrategy instanceof BlazeTestResultHolder);
-            ((BlazeTestResultHolder) testResultFinderStrategy)
+            ((BlazeTestResultHolder)testResultFinderStrategy)
               .setTestResults(BlazeTestResults.NO_RESULTS);
             processHandler.detachProcess();
           }

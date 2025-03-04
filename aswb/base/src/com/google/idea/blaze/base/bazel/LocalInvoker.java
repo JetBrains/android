@@ -81,7 +81,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
 
   @Override
   public ImmutableSet<Capability> getCapabilities() {
-    return ImmutableSet.of(Capability.IS_LOCAL, Capability.SUPPORTS_CLI);
+    return ImmutableSet.of(Capability.BUILD_AIT, Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST);
   }
 
   @Override

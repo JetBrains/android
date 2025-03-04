@@ -36,8 +36,8 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
-    return new LocalInvoker(project, this, BuildBinaryType.BAZEL);
+  public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
+    return Optional.of(new LocalInvoker(project, this, BuildBinaryType.BAZEL));
   }
 
   @Override

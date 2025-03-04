@@ -67,7 +67,7 @@ public class BazelQueryRunner implements QueryRunner {
     if (PREFER_REMOTE_QUERIES.getValue()) {
       invoker =
           buildSystem
-              .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_API));
+              .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.RUN_REMOTE_QUERIES)).orElseThrow();
     } else {
       invoker = buildSystem.getDefaultInvoker(project);
     }

@@ -267,9 +267,9 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public BuildInvoker getBuildInvoker(
+    public Optional<BuildInvoker> getBuildInvoker(
         Project project, Set<BuildInvoker.Capability> requirements) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project, requirements));
+      return Optional.of(new BuildInvokerWrapper(inner.getBuildInvoker(project, requirements).orElseThrow()));
     }
 
     @Override
