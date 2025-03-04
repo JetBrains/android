@@ -39,14 +39,6 @@ public class ColorSet {
     public static Stroke
             sOutlineStroke = new BasicStroke(2);
 
-    public static Stroke
-            sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
-
-    public static Stroke
-            sLongDashedtroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 0, new float[] { 4 }, 0);
-
     protected boolean mDrawBackground = true;
     protected boolean mDrawWidgetInfos = true;
     protected boolean mUseTooltips = true;
