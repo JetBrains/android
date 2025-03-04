@@ -54,16 +54,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AvdWizardUtils {
 
-  public static final String WIZARD_ONLY = "AvdManager.WizardOnly.";
-
-  // Avd option keys
-  public static final String DEVICE_DEFINITION_KEY = WIZARD_ONLY + "DeviceDefinition";
-  public static final String SYSTEM_IMAGE_KEY = WIZARD_ONLY + "SystemImage";
-
-  public static final String DEFAULT_ORIENTATION_KEY = WIZARD_ONLY + "DefaultOrientation";
-
-  public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
-
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 12));
   public static final Font FIGURE_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 10));
@@ -82,12 +72,6 @@ public class AvdWizardUtils {
   @Deprecated
   static final File NO_SKIN = SkinUtils.noSkin().toFile();
 
-  // The AVD wizard needs a bit of extra width as its options panel is pretty dense
-  private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
-  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1100, 750);
-
-  private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
-
   /**
    * Return the max number of cores that an AVD can use on this development system.
    */
@@ -104,63 +88,4 @@ public class AvdWizardUtils {
                                                   @Nullable SystemImageDescription image) {
     return device == null ? null : DeviceSkinUpdater.updateSkin(device, image).toFile();
   }
-
-  /**
-   * Creates a {@link ModelWizardDialog} containing all the steps needed to create or edit AVDs
-   */
-  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
-                                                  @Nullable Project project,
-                                                  @Nullable AvdInfo avdInfo) {
-    return createAvdWizard(parent, project, new AvdOptionsModel(avdInfo));
-  }
-
-  /**
-   * Creates a {@link ModelWizardDialog} containing all the steps needed to create or edit AVDs
-   */
-  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
-                                                  @Nullable Project project,
-                                                  @NotNull AvdOptionsModel model) {
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    if (!model.isInEditMode().get()) {
-      wizardBuilder.addStep(new ChooseDeviceDefinitionStep(model));
-      wizardBuilder.addStep(new ChooseSystemImageStep(model, project));
-    }
-    wizardBuilder.addStep(new ConfigureAvdOptionsStep(project, model));
-    ModelWizard wizard = wizardBuilder.build();
-    StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
-    builder.setMinimumSize(AVD_WIZARD_MIN_SIZE);
-    builder.setPreferredSize(AVD_WIZARD_SIZE);
-    return builder.setHelpUrl(toUrl(AVD_WIZARD_HELP_URL)).build();
-  }
-
-  /**
-   * Utility method used to create a URL from its String representation without throwing a {@link MalformedURLException}.
-   * Callers should use this if they're absolutely certain their URL is well formatted.
-   */
-  @NotNull
-  private static URL toUrl(@NotNull String urlAsString) {
-    URL url;
-    try {
-      url = new URL(urlAsString);
-    }
-    catch (MalformedURLException e) {
-      // Caller should guarantee this will never happen!
-      throw new RuntimeException(e);
-    }
-    return url;
-  }
-
-  /**
-   * Creates a {@link ModelWizardDialog} containing all the steps needed to duplicate
-   * an existing AVD
-   */
-  public static ModelWizardDialog createAvdWizardForDuplication(@Nullable Component parent,
-                                                                @Nullable Project project,
-                                                                @NotNull AvdOptionsModel avdOptions) {
-    // Set this AVD as a copy
-    avdOptions.setAsCopy();
-
-    return createAvdWizard(parent, project, avdOptions);
-  }
-
 }

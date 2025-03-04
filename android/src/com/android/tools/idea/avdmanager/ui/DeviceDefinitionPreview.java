@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  * (both physical and in pixels) and some information about the screen
  * size and shape.
  */
-public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionList.DeviceCategorySelectionListener {
+public class DeviceDefinitionPreview extends JPanel {
 
   /**
    * Constant string used to signal the panel not to preview a null device
@@ -463,31 +463,5 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
     double heightPixels = widthPixels / widthIn * heightIn;
     return new Dimension((int)widthPixels, (int)heightPixels);
-  }
-
-  @Override
-  public void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices) {
-    if (devices == null) {
-      myMaxOutlineWidth = 0;
-      myMinOutlineWidthIn = 0;
-    }
-    else {
-      double maxWidth = 0;
-      double minWidth = Double.MAX_VALUE;
-      for (Device d : devices) {
-        Dimension pixelSize = d.getScreenSize(d.getDefaultState().getOrientation());
-        if (pixelSize == null) {
-          continue;
-        }
-        double diagonal = d.getDefaultHardware().getScreen().getDiagonalLength();
-        double sideRatio = pixelSize.getHeight() / pixelSize.getWidth();
-        double widthIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
-
-        maxWidth = Math.max(maxWidth, widthIn);
-        minWidth = Math.min(minWidth, widthIn);
-      }
-      myMaxOutlineWidth = maxWidth;
-      myMinOutlineWidthIn = minWidth;
-    }
   }
 }
