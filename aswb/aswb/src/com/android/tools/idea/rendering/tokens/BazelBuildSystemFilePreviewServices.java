@@ -67,9 +67,7 @@ public class BazelBuildSystemFilePreviewServices
 
   @Override
   public void subscribeBuildListener(Project project,
-                                     Disposable parentDisposable, BuildListener listener) {
-    throw new UnsupportedOperationException();
-  }
+                                     Disposable parentDisposable, BuildListener listener) {}
 
   @Override
   public BuildTargets getBuildTargets() {
