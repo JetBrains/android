@@ -17,15 +17,12 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
-import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
@@ -56,27 +53,55 @@ class CommonViewControlActionTest {
 
   @Test
   fun testLayoutOptions() {
-    val options =
-      listOf(
-        createOption("Layout A", EmptySurfaceLayoutManager()),
-        createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager()),
-      )
-
-    val viewControlAction = CommonViewControlAction(options)
+    val viewControlAction = CommonViewControlAction()
 
     val expected =
       """View Control
     Switch Layout
-    Layout A
-    Layout B
-    Layout C
+    Grid
+    Focus
+    ------------------------------------------------------
+    Color Blind Modes
+        ✔ Original
+        Protanopes
+        Protanomaly
+        Deuteranopes
+        Deuteranomaly
+        Tritanopes
+        Tritanomaly
 """
 
-    val screenViewProviderMock = mock<ScreenViewProvider>()
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.NONE)
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
+    assertEquals(expected, actionContent)
+  }
+
+  @Suppress("SpellCheckingInspection")
+  @Test
+  fun testColorBlindModeIsSelectedBasedOnTheScreenViewProvider() {
+    val viewControlAction = CommonViewControlAction()
+
+    val expected =
+      """View Control
+    Switch Layout
+    Grid
+    Focus
+    ------------------------------------------------------
+    Color Blind Modes
+        Original
+        Protanopes
+        ✔ Protanomaly
+        Deuteranopes
+        Deuteranomaly
+        Tritanopes
+        Tritanomaly
+"""
 
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.PROTANOMALY)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
@@ -86,8 +111,7 @@ class CommonViewControlActionTest {
   @Test
   fun testNotEnabledWhenRefreshing() {
     val event = TestActionEvent.createTestEvent(dataContext)
-    val viewControlAction =
-      CommonViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
+    val viewControlAction = CommonViewControlAction()
 
     viewModelStatus.isRefreshing = false
     viewControlAction.update(event)
@@ -101,11 +125,4 @@ class CommonViewControlActionTest {
     viewControlAction.update(event)
     assertTrue(event.presentation.isEnabled)
   }
-}
-
-private fun createOption(
-  displayText: String,
-  layoutManager: SurfaceLayoutManager,
-): SurfaceLayoutOption {
-  return SurfaceLayoutOption(displayText, { layoutManager })
 }

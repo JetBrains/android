@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
-class CommonViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
+/** View control action containing the preview layouts and color-blind mode options. */
+class CommonViewControlAction() :
   ViewControlAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }) {
 
   init {
     add(
       SwitchSurfaceLayoutManagerAction(
-          layoutOptions,
+          PREVIEW_LAYOUT_OPTIONS,
           isActionEnabled = {
             !isPreviewRefreshing(it.dataContext) &&
               // If Essentials Mode is enabled, it should not be possible to switch layout.
@@ -37,5 +39,7 @@ class CommonViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
           templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
         }
     )
+    addSeparator()
+    add(ColorBlindModeAction())
   }
 }
