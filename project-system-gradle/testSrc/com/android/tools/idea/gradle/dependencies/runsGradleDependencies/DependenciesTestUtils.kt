@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.AndroidGradleTestCase.fail
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -88,10 +86,3 @@ fun getBlockContent(text: String, path: String): String {
 
 fun Project.doesFileExists(relativePath: String) =
   VfsUtil.findFile(Paths.get(basePath, relativePath), false)?.exists() ?: false
-
-fun setupGradleSnapshotToWrapper(project: Project) {
-  val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")
-  val gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip")
-  val wrapper = GradleWrapper.find(project)!!
-  wrapper.updateDistributionUrl(gradle.toFile())
-}
