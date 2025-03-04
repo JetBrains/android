@@ -45,11 +45,13 @@ internal class ConfigureDevicePanelState(
   val storageGroupState = StorageGroupState(device, fileSystem)
   val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 
-  val isValid
-    get() = device.isValid && validity.isValid
+  var isDeviceNameValid by mutableStateOf(true)
+  var isSystemImageTableSelectionValid by mutableStateOf(true)
+  var isPreferredAbiValid by mutableStateOf(true)
 
-  var validity by mutableStateOf(Validity())
-    private set
+  val isValid
+    get() =
+      device.isValid && isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
 
   fun hasPlayStore(): Boolean {
     val image = systemImageTableSelectionState.selection
@@ -71,21 +73,10 @@ internal class ConfigureDevicePanelState(
   }
 
   private fun updatePreferredAbiValidity() {
-    validity =
-      validity.copy(
-        isPreferredAbiValid =
-          device.preferredAbi == null ||
-            systemImageTableSelectionState.selection == null ||
-            systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
-      )
-  }
-
-  fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
-    validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
-  }
-
-  fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
-    validity = validity.copy(isDeviceNameValid = isDeviceNameValid)
+    isPreferredAbiValid =
+      device.preferredAbi == null ||
+        systemImageTableSelectionState.selection == null ||
+        systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
   }
 
   fun initDeviceSkins(path: Path) {
@@ -128,13 +119,4 @@ internal class ConfigureDevicePanelState(
         vmHeapSize = device.defaultVmHeapSize,
       )
   }
-}
-
-internal data class Validity(
-  private val isDeviceNameValid: Boolean = true,
-  val isSystemImageTableSelectionValid: Boolean = true,
-  val isPreferredAbiValid: Boolean = true,
-) {
-  val isValid
-    get() = isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
 }

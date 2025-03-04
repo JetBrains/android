@@ -80,7 +80,7 @@ internal fun ConfigureDevicePanel(
       Modifier.padding(horizontal = Padding.SMALL_MEDIUM).width(200.dp),
       systemImage =
         configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {
-          configureDevicePanelState.validity.isSystemImageTableSelectionValid
+          configureDevicePanelState.isSystemImageTableSelectionValid
         },
     )
   }

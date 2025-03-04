@@ -96,7 +96,7 @@ internal fun DevicePanel(
         .collect {
           configureDevicePanelState.setDeviceName(it)
           nameError = deviceNameValidator.validate(it)
-          configureDevicePanelState.setIsDeviceNameValid(nameError == null)
+          configureDevicePanelState.isDeviceNameValid = nameError == null
         }
     }
 
@@ -140,9 +140,8 @@ internal fun DevicePanel(
 
     val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
     val filteredSystemImages = systemImageFilterState.filter(imageState.images, baseExtensionLevels)
-    configureDevicePanelState.setIsSystemImageTableSelectionValid(
+    configureDevicePanelState.isSystemImageTableSelectionValid =
       configureDevicePanelState.systemImageTableSelectionState.selection in filteredSystemImages
-    )
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       if (filteredSystemImages.isEmpty()) {

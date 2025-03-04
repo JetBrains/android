@@ -158,7 +158,7 @@ internal fun WizardPageScope.ConfigurationPage(
   val coroutineScope = rememberCoroutineScope()
 
   Column {
-    if (!state.validity.isPreferredAbiValid) {
+    if (!state.isPreferredAbiValid) {
       ErrorBanner(
         "Preferred ABI \"${state.device.preferredAbi}\" is not available with selected system image",
         Modifier.padding(vertical = 6.dp),
