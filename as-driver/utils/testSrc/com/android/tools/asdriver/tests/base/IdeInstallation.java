@@ -102,7 +102,9 @@ public abstract class IdeInstallation<T extends Ide> {
     return ideaLog;
   }
 
-  public Path getLogsDir() { return logsDir; }
+  public Path getLogsDir() {
+    return logsDir;
+  }
 
   public Path getWorkDir() {
     return workDir;
