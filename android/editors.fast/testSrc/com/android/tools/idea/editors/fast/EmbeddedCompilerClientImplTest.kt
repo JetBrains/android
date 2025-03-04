@@ -119,7 +119,6 @@ internal class EmbeddedCompilerClientImplTest {
       assertTrue(result.toString(), result is CompilationResult.Success)
       assertEquals(
         """
-        EmbeddedCompilerClientImplTest_simple compilation request.app.main.kotlin_module
         SourceKt.class
       """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
       )
@@ -164,8 +163,6 @@ internal class EmbeddedCompilerClientImplTest {
       assertInstanceOf<CompilationResult.Success>(result)
       assertEquals(
         """
-        EmbeddedCompilerClientImplTest_multi module compilation request succeeds.app.main.kotlin_module
-        EmbeddedCompilerClientImplTest_multi module compilation request succeeds.lib.main.kotlin_module
         SourceKt.class
       """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
       )
@@ -223,7 +220,6 @@ internal class EmbeddedCompilerClientImplTest {
             assertTrue(result.toString(), result is CompilationResult.Success)
             assertEquals(
               """
-              EmbeddedCompilerClientImplTest_parallel requests.app.main.kotlin_module
               SourceKt.class
             """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
             )
@@ -273,8 +269,6 @@ internal class EmbeddedCompilerClientImplTest {
         assertTrue(result.toString(), result is CompilationResult.Success)
         assertEquals(
           """
-              EmbeddedCompilerClientImplTest_inline test.app.main.kotlin_module
-              InlineKt.class
               SourceKt.class
             """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
         )
