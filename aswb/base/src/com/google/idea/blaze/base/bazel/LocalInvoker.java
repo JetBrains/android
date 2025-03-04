@@ -63,7 +63,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
-public class LocalInvoker extends AbstractBuildInvoker1 {
+public class LocalInvoker extends AbstractBuildInvoker {
   private static Logger logger = Logger.getInstance(LocalInvoker.class);
   private final BuildBinaryType buildBinaryType;
 

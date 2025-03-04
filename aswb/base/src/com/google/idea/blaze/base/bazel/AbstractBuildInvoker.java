@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,21 @@ package com.google.idea.blaze.base.bazel;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.async.FutureUtil;
-import com.google.idea.blaze.base.async.FutureUtil.FutureResult;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.scope.scopes.TimingScope.EventType;
-import com.google.idea.blaze.base.settings.BuildBinaryType;
+import com.google.idea.blaze.base.scope.scopes.TimingScope;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
-import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
-import java.io.InputStream;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -47,74 +39,22 @@ import javax.annotation.Nullable;
  * Base class for implementations of {@link BuildInvoker} that provides getters and deals with
  * running `blaze info`.
  */
+// TODO(b/374906681): Replace @link{AbstractBuildInvoker} and its usages by this class
 public abstract class AbstractBuildInvoker implements BuildInvoker {
-
   protected final Project project;
-  private final BuildBinaryType binaryType;
   private final String binaryPath;
   private final BuildSystem buildSystem;
-  private final BlazeCommandRunner commandRunner;
-
   private BlazeInfo blazeInfo;
 
-  public AbstractBuildInvoker(
-      Project project,
-      BuildBinaryType binaryType,
-      String binaryPath,
-      BuildSystem buildSystem,
-      BlazeCommandRunner commandRunner) {
+  public AbstractBuildInvoker(Project project, BuildSystem buildSystem, String binaryPath) {
     this.project = project;
-    this.binaryType = binaryType;
-    this.binaryPath = binaryPath;
     this.buildSystem = buildSystem;
-    this.commandRunner = commandRunner;
-  }
-
-  @Override
-  public BuildBinaryType getType() {
-    return binaryType;
+    this.binaryPath = binaryPath;
   }
 
   @Override
   public String getBinaryPath() {
-    return binaryPath;
-  }
-
-  @Override
-  @MustBeClosed
-  public BuildResultHelper createBuildResultHelper() {
-    return new BuildResultHelperBep();
-  }
-
-  @Override
-  public BlazeCommandRunner getCommandRunner() {
-    return commandRunner;
-  }
-
-  @Override
-  public BuildSystem getBuildSystem() {
-    return buildSystem;
-  }
-
-  @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
-    throws BuildException {
-    throw new UnsupportedOperationException(
-      String.format("The %s does not support invoke method", this.getClass().getSimpleName()));
-  }
-
-  @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
-    throw new UnsupportedOperationException(
-      String.format(
-        "The %s does not support invokeQuery method", this.getClass().getSimpleName()));
-  }
-
-  @Override
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
-    throw new UnsupportedOperationException(
-      String.format(
-        "The %s does not support invokeInfo method", this.getClass().getSimpleName()));
+    return this.binaryPath;
   }
 
   @Override
@@ -128,17 +68,17 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   private BlazeInfo getBlazeInfoResult(BlazeContext blazeContext) throws SyncFailedException {
     ListenableFuture<BlazeInfo> future = runBlazeInfo(blazeContext);
-    FutureResult<BlazeInfo> result =
-        FutureUtil.waitForFuture(blazeContext, future)
-            .timed(buildSystem.getName() + "Info", EventType.BlazeInvocation)
-            .withProgressMessage(String.format("Running %s info...", buildSystem.getName()))
-            .onError(String.format("Could not run %s info", buildSystem.getName()))
-            .run();
+    FutureUtil.FutureResult<BlazeInfo> result =
+      FutureUtil.waitForFuture(blazeContext, future)
+        .timed(buildSystem.getName() + "Info", TimingScope.EventType.BlazeInvocation)
+        .withProgressMessage(String.format("Running %s info...", buildSystem.getName()))
+        .onError(String.format("Could not run %s info", buildSystem.getName()))
+        .run();
     if (result.success()) {
       return result.result();
     }
     throw new SyncFailedException(
-        String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
+      String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
   }
 
   private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {
@@ -148,13 +88,28 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
       return Futures.immediateFailedFuture(new IllegalStateException("Empty project view set"));
     }
     List<String> syncFlags =
-        BlazeFlags.blazeFlags(
-            project,
-            viewSet,
-            BlazeCommandName.INFO,
-            blazeContext,
-            BlazeInvocationContext.SYNC_CONTEXT);
+      BlazeFlags.blazeFlags(
+        project,
+        viewSet,
+        BlazeCommandName.INFO,
+        blazeContext,
+        BlazeInvocationContext.SYNC_CONTEXT);
     return BlazeInfoRunner.getInstance()
-        .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
+      .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
+  }
+
+  @Override
+  public BuildResultHelper createBuildResultHelper() {
+    throw new UnsupportedOperationException("This method should not be called, this invoker does not support build result helpers.");
+  }
+
+  @Override
+  public BlazeCommandRunner getCommandRunner() {
+    throw new UnsupportedOperationException("This method should not be called, this invoker does not support command runners.");
+  }
+
+  @Override
+  public BuildSystem getBuildSystem() {
+    return this.buildSystem;
   }
 }
