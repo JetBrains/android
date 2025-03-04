@@ -16,12 +16,15 @@
 package com.google.idea.blaze.android.run.runner;
 
 import static com.google.idea.blaze.android.run.LaunchMetrics.logBuildTime;
+import static java.util.stream.Collectors.joining;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.idea.blaze.android.run.NativeSymbolFinder;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
@@ -40,7 +43,9 @@ import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /** Blaze specific build flow for android_binary builds. */
 public class BlazeApkBuildStep implements ApkBuildStep {
@@ -52,6 +57,7 @@ public class BlazeApkBuildStep implements ApkBuildStep {
   private final ImmutableList<String> exeFlags;
   private final String launchId;
   private final boolean useMobileInstall;
+  private final boolean nativeDebuggingEnabled;
   private final BuildInvoker buildInvoker;
   private final DeployInfoExtractor deployInfoExtractor;
 
@@ -63,6 +69,7 @@ public class BlazeApkBuildStep implements ApkBuildStep {
       ImmutableList<String> blazeFlags,
       ImmutableList<String> exeFlags,
       boolean useMobileInstall,
+      boolean nativeDebuggingEnabled,
       String launchId,
       BuildInvoker buildInvoker,
       DeployInfoExtractor deployInfoExtractor) {
@@ -71,6 +78,7 @@ public class BlazeApkBuildStep implements ApkBuildStep {
     this.blazeFlags = blazeFlags;
     this.exeFlags = exeFlags;
     this.useMobileInstall = useMobileInstall;
+    this.nativeDebuggingEnabled = nativeDebuggingEnabled;
     this.launchId = launchId;
     this.buildInvoker = buildInvoker;
     this.deployInfoExtractor = deployInfoExtractor;
@@ -106,6 +114,12 @@ public class BlazeApkBuildStep implements ApkBuildStep {
       deployOutputGroup = "android_deploy_info";
       apkOutputGroup = "default";
       command.addBlazeFlags("--output_groups=+android_deploy_info");
+    }
+    if (nativeDebuggingEnabled) {
+      command.addBlazeFlags(
+        NativeSymbolFinder.getInstances().stream()
+          .map(NativeSymbolFinder::getAdditionalBuildFlags)
+          .collect(joining(" ")));
     }
     try (BuildEventStreamProvider streamProvider = buildInvoker.invoke(command, context)) {
       buildOutputs =
@@ -158,6 +172,8 @@ public class BlazeApkBuildStep implements ApkBuildStep {
     Builder setExeFlags(ImmutableList<String> flags);
 
     Builder setUseMobileInstall(boolean v);
+
+    Builder setNativeDebuggingEnabled(boolean nativeDebuggingEnabled);
 
     Builder setLaunchId(String id);
 

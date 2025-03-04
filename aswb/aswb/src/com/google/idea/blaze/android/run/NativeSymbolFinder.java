@@ -16,18 +16,22 @@
 package com.google.idea.blaze.android.run;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.util.List;
 
 /** Configures Blaze build to output native symbols and obtains symbol file paths. */
 public interface NativeSymbolFinder {
   ExtensionPointName<NativeSymbolFinder> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.NativeSymbolFinder");
+
+  static List<NativeSymbolFinder> getInstances() {
+    return NativeSymbolFinder.EP_NAME.getExtensionList();
+  }
 
   /** Returns additional build flags required to output native symbols. */
   String getAdditionalBuildFlags();

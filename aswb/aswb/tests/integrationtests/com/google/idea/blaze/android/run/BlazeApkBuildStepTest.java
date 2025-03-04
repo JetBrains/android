@@ -36,6 +36,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ErrorCollector;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import java.io.File;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -180,6 +181,7 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
         .setBlazeFlags(ImmutableList.of())
         .setExeFlags(ImmutableList.of())
         .setUseMobileInstall(true)
+        .setNativeDebuggingEnabled(false)
         .setLaunchId("some-random-id")
         .setBuildInvoker(newFakeInvoker())
         .setDeployInfoExtractor(
