@@ -64,9 +64,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   fun status(): Status
 
-  /** Flag to indicate the inspection tooltips is enabled. */
-  var isInspectionTooltipEnabled: Boolean
-
   /** Flag to indicate if the preview filter is enabled or not. */
   var isFilterEnabled: Boolean
 

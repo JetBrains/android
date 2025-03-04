@@ -35,8 +35,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override fun invalidate() {}
 
-  override var isInspectionTooltipEnabled: Boolean = false
-
   override var isFilterEnabled: Boolean = false
 
   override var isUiCheckFilterEnabled: Boolean = false

@@ -48,12 +48,10 @@ class ComposeViewControlActionTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
   }
 
@@ -76,8 +74,6 @@ class ComposeViewControlActionTest {
     Layout A
     Layout B
     Layout C
-    ------------------------------------------------------
-    Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
         ✔ Original
@@ -116,8 +112,6 @@ class ComposeViewControlActionTest {
     Layout A
     Layout B
     Layout C
-    ------------------------------------------------------
-    Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
         Original
@@ -188,7 +182,6 @@ class ComposeViewControlActionTest {
   @Test
   fun testNotVisibleIfNoActionsAvailable() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
     val event = createAndUpdateEvent()
     assertFalse(event.presentation.isVisible)
   }
@@ -196,15 +189,6 @@ class ComposeViewControlActionTest {
   @Test
   fun testVisibleIfFilterActionAvailable() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(true)
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
-    val event = createAndUpdateEvent()
-    assertTrue(event.presentation.isVisible)
-  }
-
-  @Test
-  fun testVisibleIfInspectorActionAvailable() {
-    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
     val event = createAndUpdateEvent()
     assertTrue(event.presentation.isVisible)
   }
@@ -212,7 +196,6 @@ class ComposeViewControlActionTest {
   @Test
   fun testVisibleIfAdditionalActionAvailable() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
     val event = createAndUpdateEvent(ColorBlindModeAction())
     assertTrue(event.presentation.isVisible)
   }

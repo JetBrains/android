@@ -46,9 +46,7 @@ class ComposeViewControlAction(
           templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
         }
       )
-      addSeparator()
     }
-    add(ShowInspectionTooltipsAction())
     additionalActionProvider?.let {
       addSeparator()
       add(it)
@@ -59,13 +57,11 @@ class ComposeViewControlAction(
    * Action is visible if any of the following are enabled
    * * [ComposeShowFilterAction]
    * * [SwitchSurfaceLayoutManagerAction]
-   * * [ShowInspectionTooltipsAction]
    * * [additionalActionProvider]
    */
   private fun hasVisibleActions(e: AnActionEvent): Boolean {
     return ComposeShowFilterAction.shouldBeEnabled() ||
       layoutOptions.shouldBeEnabled() ||
-      ShowInspectionTooltipsAction.shouldBeEnabled() ||
       additionalActionProvider?.shouldBeEnabled(e) == true
   }
 

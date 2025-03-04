@@ -1541,13 +1541,6 @@ public final class StudioFlags {
     enabledUpTo(DEV)
   );
 
-  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(
-    COMPOSE, "view.inspector",
-    "Show the switch of view inspection tool in Compose",
-    "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
     COMPOSE, "view.filter",
     "Support filter the previews in Compose",

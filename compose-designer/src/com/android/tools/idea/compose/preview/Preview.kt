@@ -626,8 +626,6 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  override var isInspectionTooltipEnabled: Boolean = false
-
   override var isFilterEnabled: Boolean = false
 
   private val dataProvider = DataProvider {
@@ -698,13 +696,12 @@ class ComposePreviewRepresentation(
   @VisibleForTesting
   val staticPreviewInteractionHandler =
     ComposeNavigationInteractionHandler(
-        composeWorkBench.mainSurface,
         NavigatingInteractionHandler(
           composeWorkBench.mainSurface,
           navigationHandler,
           isSelectionEnabled = true,
           isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
-        ),
+        )
       )
       .also { delegateInteractionHandler.delegate = it }
 

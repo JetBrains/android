@@ -30,7 +30,6 @@ class NopComposePreviewManager : ComposePreviewManager {
       psiFilePointer = null,
     )
 
-  override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
   private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
