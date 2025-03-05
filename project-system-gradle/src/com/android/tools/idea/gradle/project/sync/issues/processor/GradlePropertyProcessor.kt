@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,24 +32,15 @@ import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.annotations.VisibleForTesting
 
-class SuppressUnsupportedSdkVersionPropertyProcessor(
-  val project: Project,
-  private val sdkVersionsToSuppress: String,
-) : BaseRefactoringProcessor(project) {
+class GradlePropertyProcessor(val project: Project, val propertyName: String, val propertyValue: String) : BaseRefactoringProcessor(project) {
+  public override fun getCommandName() = "Updating or adding $propertyName gradle property"
 
   public override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptor {
-      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
-        return "References to be updated or added: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
-      }
-
-      override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
-      }
-
-      override fun getProcessedElementsHeader(): String {
-        return "Updating or adding android.suppressUnsupportedCompileSdk gradle property"
-      }
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+      override fun getProcessedElementsHeader() = "Updating or adding $propertyName gradle property"
+      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int) =
+        "References to be updated or added: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
     }
   }
 
@@ -59,7 +50,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
     if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
       val gradlePropertiesPsiFile = PsiManager.getInstance(myProject).findFile(gradlePropertiesVirtualFile)
       if (gradlePropertiesPsiFile is PropertiesFile) {
-        val psiElement = when(val property = gradlePropertiesPsiFile.findPropertyByKey("android.suppressUnsupportedCompileSdk")) {
+        val psiElement = when(val property = gradlePropertiesPsiFile.findPropertyByKey(propertyName)) {
           null -> gradlePropertiesPsiFile
           else -> property.psiElement
         }
@@ -72,12 +63,6 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
       }
     }
     return emptyArray()
-  }
-
-  public override fun performRefactoring(usages: Array<UsageInfo>) {
-    updateProjectBuildModel(usages)
-
-    project.getSyncManager().requestSyncProject(TRIGGER_PROJECT_MODIFIED.toReason())
   }
 
   @VisibleForTesting
@@ -93,12 +78,12 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
         else -> return@forEach
       }
 
-      val existing = propertiesFile?.findPropertyByKey("android.suppressUnsupportedCompileSdk")
+      val existing = propertiesFile?.findPropertyByKey(propertyName)
       if (existing != null) {
-        existing.setValue(sdkVersionsToSuppress)
+        existing.setValue(propertyValue)
       }
       else {
-        propertiesFile?.addProperty("android.suppressUnsupportedCompileSdk", sdkVersionsToSuppress)
+        propertiesFile?.addProperty(propertyName, propertyValue)
       }
     }
 
@@ -107,7 +92,13 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
   }
 
 
-  public override fun getCommandName(): String {
-    return "Updating or adding android.suppressUnsupportedCompileSdk gradle property"
+
+  public override fun performRefactoring(usages: Array<UsageInfo>) {
+    updateProjectBuildModel(usages)
+
+    project.getSyncManager().requestSyncProject(TRIGGER_PROJECT_MODIFIED.toReason())
   }
+
+
+
 }

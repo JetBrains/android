@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradleEr
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.issues.processor.SuppressUnsupportedSdkVersionPropertyProcessor
+import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePropertyProcessor
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -36,7 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class SuppressUnsupportedSdkVersionPropertyProcessorTest {
+class GradlePropertyProcessorTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -45,7 +45,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
   fun `test usage view descriptor`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      val processor = SuppressUnsupportedSdkVersionPropertyProcessor(project, "UpsideDownCake")
+      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
       val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
 
       assertThat(usageDescriptor.getCodeReferencesText(1, 1))
@@ -68,7 +68,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
       }
       assertThat(gradlePropertiesFile.exists()).isTrue()
 
-      val processor = SuppressUnsupportedSdkVersionPropertyProcessor(project, "33,UpsideDownCake")
+      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "33,UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
@@ -98,7 +98,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
       val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       assertThat(gradlePropertiesFile.exists()).isTrue()
 
-      val processor = SuppressUnsupportedSdkVersionPropertyProcessor(project, "UpsideDownCake")
+      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
@@ -130,7 +130,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
       runWriteAction {
         gradlePropertiesFile.delete(this)
       }
-      val processor = SuppressUnsupportedSdkVersionPropertyProcessor(project, "UpsideDownCake")
+      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
