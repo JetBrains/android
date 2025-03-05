@@ -44,8 +44,14 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
     val connectedDevice = adbSession.connectedDevicesTracker.device(serialNumber) ?: return false
 
+    if (serialNumber.isEmulator()) {
+      return true
+    }
+    if (sdk < 19) {
+      return false
+    }
     return connectedDevice.cache.getOrPutSuspending(
-        cacheKey, fastDefaultValue = { false }, defaultValue = { computeIsSupported(serialNumber, sdk) })
+        cacheKey, fastDefaultValue = { true }, defaultValue = { computeIsSupported(serialNumber, sdk) })
   }
 
   private suspend fun computeIsSupported(serialNumber: String, sdk: Int): Boolean {
@@ -54,9 +60,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
     while (true) {
       try {
         return when {
-          serialNumber.isEmulator() -> true
           isWatch(serialNumber) && sdk < 30 -> false
-          sdk < 19 -> false
           else -> hasBinary(serialNumber)
         }
       }
