@@ -68,11 +68,15 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -83,6 +87,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -94,8 +99,11 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -149,6 +157,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private String myFloatingActionButtonImage;
 
   public AppBarConfigurationDialog(@NotNull NlModel model, boolean useAndroidxDependency) {
+    setupUI();
     myModel = model;
     myUseAndroidxDependency = useAndroidxDependency;
     myDisposable = Disposer.newDisposable();
@@ -350,6 +359,187 @@ public class AppBarConfigurationDialog extends JDialog {
     myCollapsedPreviewFuture = updateCollapsedImage();
   }
 
+  private void setupUI() {
+    myContentPane = new JPanel();
+    myContentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPane.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null,
+                                                  null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1, true, false));
+    panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    myButtonOK = new JButton();
+    myButtonOK.setText("OK");
+    panel2.add(myButtonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myButtonCancel = new JButton();
+    myButtonCancel.setText("Cancel");
+    panel2.add(myButtonCancel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPane.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                  null, 0, false));
+    final JSplitPane splitPane1 = new JSplitPane();
+    panel3.add(splitPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                               new Dimension(200, 200), null, 0, false));
+    final JPanel panel4 = new JPanel();
+    panel4.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    splitPane1.setLeftComponent(panel4);
+    final JPanel panel5 = new JPanel();
+    panel5.setLayout(new GridLayoutManager(6, 3, new Insets(16, 8, 0, 0), -1, -1));
+    panel4.add(panel5, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    myCollapsing = new JCheckBox();
+    myCollapsing.setText("Collapsing Toolbar");
+    panel5.add(myCollapsing, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myShowBackgroundImage = new JCheckBox();
+    myShowBackgroundImage.setText("Image Background");
+    panel5.add(myShowBackgroundImage, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myFloatingActionButton = new JCheckBox();
+    myFloatingActionButton.setText("Floating Action Button");
+    panel5.add(myFloatingActionButton, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myWithTabs = new JCheckBox();
+    myWithTabs.setText("With Tabs");
+    panel5.add(myWithTabs, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JPanel panel6 = new JPanel();
+    panel6.setLayout(new GridLayoutManager(2, 4, new Insets(0, 12, 0, 0), -1, -1));
+    panel5.add(panel6, new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    myFitStatusBar = new JCheckBox();
+    myFitStatusBar.setActionCommand("");
+    myFitStatusBar.setText("Fit Status Bar on Image");
+    myFitStatusBar.setToolTipText(
+      "Makes the toolbar with the image appear below the status bar. The status bar can be set to draw transparent by setting the theme value for: statusBarColor to color/transparent.");
+    panel6.add(myFitStatusBar, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myParallax = new JCheckBox();
+    myParallax.setText("Parallax Scrolling");
+    myParallax.setToolTipText("Makes the image scroll slower than the TabBar (only visible at runtime).");
+    panel6.add(myParallax, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundImageSelector = new JButton();
+    Font myBackgroundImageSelectorFont = getFont(null, -1, 8, myBackgroundImageSelector.getFont());
+    if (myBackgroundImageSelectorFont != null) myBackgroundImageSelector.setFont(myBackgroundImageSelectorFont);
+    myBackgroundImageSelector.setText("...");
+    panel5.add(myBackgroundImageSelector, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myFloatingActionButtonImageSelector = new JButton();
+    Font myFloatingActionButtonImageSelectorFont = getFont(null, -1, 8, myFloatingActionButtonImageSelector.getFont());
+    if (myFloatingActionButtonImageSelectorFont != null) {
+      myFloatingActionButtonImageSelector.setFont(myFloatingActionButtonImageSelectorFont);
+    }
+    myFloatingActionButtonImageSelector.setText("...");
+    panel5.add(myFloatingActionButtonImageSelector, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
+                                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                        GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myContentOverlap = new JCheckBox();
+    myContentOverlap.setText("Overlapping content");
+    panel5.add(myContentOverlap, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myContentOverlapAmount = new JTextField();
+    myContentOverlapAmount.setText("32dp");
+    panel5.add(myContentOverlapAmount, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, 1,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, -1), null, 0, false));
+    myTabCount = new JSpinner();
+    panel5.add(myTabCount, new GridConstraints(5, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                               false));
+    final Spacer spacer2 = new Spacer();
+    panel4.add(spacer2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myPreviewPanel = new JPanel();
+    myPreviewPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+    splitPane1.setRightComponent(myPreviewPanel);
+    myPreview = new JBLabel();
+    myPreview.setText("Preview:");
+    myPreviewPanel.add(myPreview, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                      null, null, 0, false));
+    myExpandedLabel = new JBLabel();
+    myExpandedLabel.setAlignmentX(0.0f);
+    myExpandedLabel.setText("Expanded");
+    myPreviewPanel.add(myExpandedLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                            null, null, null, 0, false));
+    myCollapsedLabel = new JBLabel();
+    myCollapsedLabel.setAlignmentX(0.0f);
+    myCollapsedLabel.setText("Collapsed");
+    myPreviewPanel.add(myCollapsedLabel, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                             null, null, null, 0, false));
+    myExpandedPreview = new JBLabel();
+    myPreviewPanel.add(myExpandedPreview, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                              null, null, null, 0, false));
+    myCollapsedPreview = new JBLabel();
+    myPreviewPanel.add(myCollapsedPreview, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               null, null, null, 1, false));
+    final Spacer spacer3 = new Spacer();
+    myPreviewPanel.add(spacer3, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
+  }
+
   @Nullable
   private static Future<?> cancel(@Nullable Future<?> future) {
     if (future != null) {
@@ -369,7 +559,8 @@ public class AppBarConfigurationDialog extends JDialog {
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
     Project project = getProject();
-    return (XmlFile)ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
+    return (XmlFile)ReadAction.compute(
+      () -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
   }
 
   private void updatePreviewImages() {
@@ -481,9 +672,9 @@ public class AppBarConfigurationDialog extends JDialog {
       return "";
     }
     return Templates.getImageView(
-                         namespaces.get(ANDROID_URI),
-                         getBackgroundImageCollapseMode(namespaces),
-                         myBackgroundImage);
+      namespaces.get(ANDROID_URI),
+      getBackgroundImageCollapseMode(namespaces),
+      myBackgroundImage);
   }
 
   @NotNull
@@ -600,8 +791,8 @@ public class AppBarConfigurationDialog extends JDialog {
     RenderService renderService = StudioRenderService.getInstance(getProject());
     final CompletableFuture<RenderTask> taskFuture =
       RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, myModel.getBuildTarget(), myModel.getConfiguration())
-      .withPsiFile(new PsiXmlFile(xmlFile))
-      .build();
+        .withPsiFile(new PsiXmlFile(xmlFile))
+        .build();
     return taskFuture.thenCompose(task -> {
       if (task != null) {
         task.setRenderingMode(SessionParams.RenderingMode.NORMAL);

@@ -44,11 +44,16 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import javax.swing.border.TitledBorder;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,6 +114,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
   public MoreFontsDialog(@NotNull AndroidFacet facet, @Nullable String currentValue, @NotNull Boolean showExistingFonts) {
     super(facet.getModule().getProject());
+    setupUI();
     setTitle("Resources");
     myResourceRepository = StudioResourceRepositoryManager.getInstance(facet);
     myContentPanel.setPreferredSize(new Dimension(getDefaultWidth(), getDefaultHeight()));
@@ -117,7 +123,8 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setName("Font list");
     myFontDetailList.setMinimumSize(new Dimension(getMinFontPreviewWidth(), getMinFontPreviewHeight()));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    ProjectFonts projectFonts = showExistingFonts ? new ProjectFonts(StudioDownloadableFontCacheService.getInstance(), myResourceRepository) : null;
+    ProjectFonts projectFonts =
+      showExistingFonts ? new ProjectFonts(StudioDownloadableFontCacheService.getInstance(), myResourceRepository) : null;
     myModel = new FontListModel(projectFonts, showExistingFonts);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
@@ -236,6 +243,120 @@ public class MoreFontsDialog extends DialogWrapper {
   @NotNull
   protected Action[] createActions() {
     return new Action[]{getOKAction(), getCancelAction()};
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myContentPanel.setLayout(new BorderLayout(0, 0));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new BorderLayout(0, 0));
+    myContentPanel.add(panel1, BorderLayout.NORTH);
+    panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                      TitledBorder.DEFAULT_POSITION, null, null));
+    panel1.add(mySearchField, BorderLayout.WEST);
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new BorderLayout(0, 0));
+    panel1.add(panel2, BorderLayout.EAST);
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Source");
+    panel2.add(jBLabel1, BorderLayout.WEST);
+    myProvider = new JComboBox();
+    panel2.add(myProvider, BorderLayout.CENTER);
+    myFontLabel = new JBLabel();
+    myFontLabel.setText("Fonts");
+    myFontLabel.setVerticalAlignment(1);
+    myContentPanel.add(myFontLabel, BorderLayout.WEST);
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new BorderLayout(0, 0));
+    myContentPanel.add(panel3, BorderLayout.CENTER);
+    final JPanel panel4 = new JPanel();
+    panel4.setLayout(new BorderLayout(0, 0));
+    panel3.add(panel4, BorderLayout.SOUTH);
+    panel4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                      TitledBorder.DEFAULT_POSITION, getFont(null, -1, -1, panel4.getFont()),
+                                                      null));
+    panel4.add(myValidatorPanel.getRootComponent(), BorderLayout.SOUTH);
+    myLicenseLabel = new HyperlinkLabel();
+    panel4.add(myLicenseLabel, BorderLayout.CENTER);
+    myFontListPanel = new JPanel();
+    myFontListPanel.setLayout(new BorderLayout(0, 0));
+    panel3.add(myFontListPanel, BorderLayout.CENTER);
+    myFontListPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 8, 0, 4), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myFontListScrollPane = new JBScrollPane();
+    myFontListPanel.add(myFontListScrollPane, BorderLayout.CENTER);
+    myFontList = new JBList();
+    myFontListScrollPane.setViewportView(myFontList);
+    myPreviewPanel = new JPanel();
+    myPreviewPanel.setLayout(new BorderLayout(0, 0));
+    panel3.add(myPreviewPanel, BorderLayout.EAST);
+    myPreviewPanel.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 4, 0, 8), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    final JPanel panel5 = new JPanel();
+    panel5.setLayout(new BorderLayout(0, 12));
+    myPreviewPanel.add(panel5, BorderLayout.NORTH);
+    panel5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                      TitledBorder.DEFAULT_POSITION, null, null));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Preview");
+    panel5.add(jBLabel2, BorderLayout.SOUTH);
+    myCreateParams = new JPanel();
+    myCreateParams.setLayout(new BorderLayout(0, 0));
+    panel5.add(myCreateParams, BorderLayout.CENTER);
+    myFontName = new JBLabel();
+    myFontName.setText("Font Name:");
+    myFontName.setVerticalAlignment(0);
+    myCreateParams.add(myFontName, BorderLayout.WEST);
+    myFontNameEditor = new JTextField();
+    myFontNameEditor.setText("droid_sans");
+    myCreateParams.add(myFontNameEditor, BorderLayout.CENTER);
+    myDownloadable = new JPanel();
+    myDownloadable.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myCreateParams.add(myDownloadable, BorderLayout.SOUTH);
+    myMakeDownloadable = new JRadioButton();
+    myMakeDownloadable.setSelected(true);
+    myMakeDownloadable.setText("Create downloadable font");
+    myDownloadable.add(myMakeDownloadable, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JRadioButton radioButton1 = new JRadioButton();
+    radioButton1.setText("Add font to project");
+    myDownloadable.add(radioButton1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myPreviewPanel.add(jBScrollPane1, BorderLayout.CENTER);
+    myFontDetailList = new JBList();
+    jBScrollPane1.setViewportView(myFontDetailList);
+    ButtonGroup buttonGroup;
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(myMakeDownloadable);
+    buttonGroup.add(radioButton1);
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
   }
 
   private static int computeFontHeightInFontList(@NotNull JComponent component) {
@@ -449,7 +570,7 @@ public class MoreFontsDialog extends DialogWrapper {
       }
 
       int batches = (familyCount / FONT_CACHE_LOAD_BATCH_SIZE) + 1;
-      for (int i = 0; i < batches; i ++) {
+      for (int i = 0; i < batches; i++) {
         final int batchStart = i * FONT_CACHE_LOAD_BATCH_SIZE;
         final int batchEnd = Math.min((i + 1) * FONT_CACHE_LOAD_BATCH_SIZE, familyCount);
         ForkJoinPool.commonPool().execute(() -> {
@@ -458,7 +579,7 @@ public class MoreFontsDialog extends DialogWrapper {
             Font addedFont = getMenuFontFromFamily(family);
 
             if (addedFont == null) {
-               continue;
+              continue;
             }
 
             // This is just to warm-up the font measuring call. Subsequent calls will be faster.
@@ -668,12 +789,12 @@ public class MoreFontsDialog extends DialogWrapper {
 
     @Nullable
     public FontFamily getFont(@NotNull String name) {
-      return (myProjectFonts != null)? myProjectFonts.getFont(name) : null;
+      return (myProjectFonts != null) ? myProjectFonts.getFont(name) : null;
     }
 
     @Nullable
     public String getErrorMessage(@Nullable FontFamily family) {
-      return (myProjectFonts != null)? myProjectFonts.getErrorMessage(family) : null;
+      return (myProjectFonts != null) ? myProjectFonts.getErrorMessage(family) : null;
     }
 
     private void loadRemainingFonts() {
@@ -710,6 +831,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private static class HeaderLabel extends JBLabel {
     private static final Color CONTRAST_BORDER_COLOR = JBColor.lazy(new Supplier<Color>() {
       final Color color = new JBColor(0x9b9b9b, 0x4b4b4b);
+
       @NotNull
       @Override
       public Color get() {

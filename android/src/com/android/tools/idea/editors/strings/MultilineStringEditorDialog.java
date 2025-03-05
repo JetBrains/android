@@ -19,6 +19,10 @@ import com.android.ide.common.resources.Locale;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.Dimension;
+import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,11 +41,12 @@ public class MultilineStringEditorDialog extends DialogWrapper {
   private String myTranslation;
 
   public MultilineStringEditorDialog(@NotNull AndroidFacet facet,
-                                        @NotNull String key,
-                                        @Nullable String value,
-                                        @Nullable Locale locale,
-                                        @Nullable String translation) {
+                                     @NotNull String key,
+                                     @Nullable String value,
+                                     @Nullable Locale locale,
+                                     @Nullable String translation) {
     super(facet.getModule().getProject(), false);
+    setupUI();
     myLocale = locale;
 
     myDefaultTextField.setOneLineMode(false);
@@ -100,5 +105,31 @@ public class MultilineStringEditorDialog extends DialogWrapper {
     myTranslation = myTranslationTextField.getText();
 
     super.doOKAction();
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Default Value:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myDefaultTextField = new EditorTextField();
+    myPanel.add(myDefaultTextField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        new Dimension(400, 150), null, null, 0, false));
+    myTranslationLabel = new JBLabel();
+    myTranslationLabel.setText("Translation:");
+    myPanel.add(myTranslationLabel,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myTranslationTextField = new EditorTextField();
+    myTranslationTextField.setName("translationEditorTextField");
+    myPanel.add(myTranslationTextField, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            new Dimension(400, 150), null, null, 0, false));
   }
 }

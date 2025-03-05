@@ -30,7 +30,13 @@ import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import icons.StudioIcons;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -80,6 +86,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     mySelection = selection;
     myLineModel = lineModel;
     myModel = new DefaultComboBoxModel<>();
+    setupUI();
     myTypeSupplier = () -> {
       Object selectedType = myDataType.getSelectedItem();
       if (selectedType instanceof CustomAttributeType) {
@@ -249,6 +256,55 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myDataType = new ComboBox<>();
   }
 
+  private void setupUI() {
+    createUIComponents();
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(10, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Attribute Name");
+    myContentPanel.add(jBLabel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myContentPanel.add(myAttributeNameEditor, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                  null, new Dimension(300, -1), null, 0, false));
+    myInitialValueEditor.setText("");
+    myContentPanel.add(myInitialValueEditor, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, new Dimension(300, -1), null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Value");
+    myContentPanel.add(jBLabel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myAcceptAnyway = new JCheckBox();
+    myAcceptAnyway.setAlignmentY(0.5f);
+    myAcceptAnyway.setMargin(new Insets(1, 1, 0, 1));
+    myAcceptAnyway.setText("Accept definition with errors");
+    myAcceptAnyway.setVerticalAlignment(0);
+    myContentPanel.add(myAcceptAnyway, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myContentPanel.add(spacer1, new GridConstraints(5, 0, 5, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Data Type");
+    myContentPanel.add(jBLabel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myContentPanel.add(myDataType, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                       GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(300, -1), null, 0, false));
+    myError = new JLabel();
+    myError.setText("");
+    myContentPanel.add(myError, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
+
   private static class MyTextFieldModel implements CommonTextFieldModel {
     private final List<ValueChangedListener> myListeners;
     private final Runnable myTextChanged;
@@ -341,7 +397,10 @@ public class NewCustomAttributePanel extends DialogWrapper {
     @NotNull
     @Override
     public Function1<Runnable, Unit> getUiExecution() {
-      return (runnable) -> { runnable.run(); return Unit.INSTANCE; };
+      return (runnable) -> {
+        runnable.run();
+        return Unit.INSTANCE;
+      };
     }
 
     @NotNull
@@ -388,7 +447,10 @@ public class NewCustomAttributePanel extends DialogWrapper {
     @NotNull
     @Override
     public Function1<Runnable, Unit> getUiExecution() {
-      return (runnable) -> { runnable.run(); return Unit.INSTANCE; };
+      return (runnable) -> {
+        runnable.run();
+        return Unit.INSTANCE;
+      };
     }
 
     @NotNull

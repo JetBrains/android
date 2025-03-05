@@ -22,12 +22,19 @@ import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.Consumer;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
+import java.util.Locale;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.apache.xerces.util.XMLChar;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -70,6 +77,7 @@ public class MorphPanel extends JPanel {
                     @NotNull List<String> tagSuggestions) {
     myFacet = facet;
     myProject = project;
+    setupUI();
     setName(MORPH_DIALOG_NAME);
     setFocusable(true);
     myOkButton.addActionListener(e -> doOkAction());
@@ -80,8 +88,9 @@ public class MorphPanel extends JPanel {
   private void setupButtonList(List<String> suggestions, @NotNull String oldTag) {
     DefaultListModel<Palette.Item> model = new DefaultListModel<>();
     ViewHandlerManager manager = ViewHandlerManager.get(myProject);
-    for (String tagSuggestion: suggestions) {
-      ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion, () -> {});
+    for (String tagSuggestion : suggestions) {
+      ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion, () -> {
+      });
       model.addElement(new Palette.Item(tagSuggestion, handler));
     }
 
@@ -102,7 +111,8 @@ public class MorphPanel extends JPanel {
     int oldTagPos = suggestions.indexOf(oldTag);
     if (oldTagPos > -1) {
       mySuggestionsList.setSelectedIndex(oldTagPos);
-    } else {
+    }
+    else {
       myNewTagText.setText(suggestions.get(0));
       mySuggestionsList.setSelectedIndex(0);
     }
@@ -200,5 +210,53 @@ public class MorphPanel extends JPanel {
   @VisibleForTesting
   void setTagNameText(String name) {
     myNewTagLabel.setText(name);
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRoot.setLayout(new GridLayoutManager(3, 3, new Insets(10, 10, 10, 10), -1, -1));
+    myNewTagLabel = new JBLabel();
+    Font myNewTagLabelFont = getFont(null, Font.BOLD, -1, myNewTagLabel.getFont());
+    if (myNewTagLabelFont != null) myNewTagLabel.setFont(myNewTagLabelFont);
+    myNewTagLabel.setText("Convert View to:");
+    myRoot.add(myNewTagLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myRoot.add(myNewTagText, new GridConstraints(0, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                 new Dimension(200, -1), null, null, 0, false));
+    myOkButton = new JButton();
+    myOkButton.setText("Apply");
+    myRoot.add(myOkButton, new GridConstraints(2, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
+                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySuggestionsList = new JList();
+    mySuggestionsList.setName("suggestionList");
+    myRoot.add(mySuggestionsList, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
   }
 }

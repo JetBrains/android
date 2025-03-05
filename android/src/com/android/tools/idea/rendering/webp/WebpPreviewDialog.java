@@ -27,12 +27,16 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -81,6 +85,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
 
   WebpPreviewDialog(@NotNull Project project, @NotNull WebpConversionSettings settings, @NotNull List<WebpConvertedFile> files) {
     super(project);
+    setupUI();
     setTitle("Preview and Adjust Converted Images");
     myProject = project;
     mySettings = settings;
@@ -178,11 +183,76 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
           graphics.setColor(JBColor.GRAY);
           graphics.drawLine(third, 0, third, height);
           graphics.drawLine(2 * third, 0, 2 * third, height);
-        } finally {
+        }
+        finally {
           graphics.dispose();
         }
       }
     };
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            0, false));
+    panel1.add(myPreviewImage, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new BorderLayout(0, 0));
+    myPanel.add(panel2,
+                new GridConstraints(4, 0, 1, 3, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL, 1, 1, null, null, null, 0,
+                                    false));
+    myQualityLabel = new JBLabel();
+    myQualityLabel.setText("Quality (Default 75%) :");
+    panel2.add(myQualityLabel, BorderLayout.WEST);
+    myQualitySlider = new JSlider();
+    myQualitySlider.setMajorTickSpacing(5);
+    myQualitySlider.setPaintTicks(true);
+    panel2.add(myQualitySlider, BorderLayout.CENTER);
+    myQualityText = new JBLabel();
+    myQualityText.setText("");
+    panel2.add(myQualityText, BorderLayout.EAST);
+    myFileIndexLabel = new JBLabel();
+    myFileIndexLabel.setHorizontalAlignment(0);
+    myFileIndexLabel.setText("");
+    myPanel.add(myFileIndexLabel, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                      0, false));
+    myPngLabel = new JBLabel();
+    myPngLabel.setHorizontalAlignment(0);
+    myPngLabel.setText("PNG");
+    myPanel.add(myPngLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setHorizontalAlignment(0);
+    jBLabel1.setText("WEBP");
+    myPanel.add(jBLabel1, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                              GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPngSizeLabel = new JBLabel();
+    myPngSizeLabel.setText("");
+    myPanel.add(myPngSizeLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_NONE, 1,
+                                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myWebpSizeLabel = new JBLabel();
+    myWebpSizeLabel.setText("");
+    myPanel.add(myWebpSizeLabel,
+                new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setHorizontalAlignment(0);
+    jBLabel2.setText("Difference");
+    myPanel.add(jBLabel2, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                              GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 
   protected class PrevAction extends DialogWrapperAction {
@@ -240,10 +310,10 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     myNextAction.setEnabled(myFiles.size() > 1);
 
     if (SystemInfo.isMac) {
-      return new Action[] { getCancelAction(), myPrevAction, myNextAction, myAcceptAll };
+      return new Action[]{getCancelAction(), myPrevAction, myNextAction, myAcceptAll};
     }
 
-    return new Action[] { myPrevAction, myNextAction, myAcceptAll, getCancelAction() };
+    return new Action[]{myPrevAction, myNextAction, myAcceptAll, getCancelAction()};
   }
 
   private void updatePreview() {
@@ -317,10 +387,12 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
               }
             }
           }
-        } else {
+        }
+        else {
           myDeltaImage = null;
         }
-      } catch (IOException ignore) {
+      }
+      catch (IOException ignore) {
       }
 
       UIUtil.invokeLaterIfNeeded(() -> {
@@ -335,7 +407,8 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
         String extension = convertedFile.sourceFile.getExtension();
         if (extension == null) {
           extension = "Source";
-        } else {
+        }
+        else {
           extension = StringUtil.toUpperCase(extension);
         }
         myPngLabel.setText(extension);
