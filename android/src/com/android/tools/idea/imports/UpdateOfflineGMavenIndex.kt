@@ -21,7 +21,6 @@ import com.google.common.io.Resources
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 
 /**
  * Updates the checked in class index file of the Google Maven repository.
@@ -40,7 +39,7 @@ fun main(args: Array<String>) {
   val indexData = ungzip(readUrlData("$BASE_URL/$RELATIVE_PATH"))
 
   val file = repoRoot.resolve("tools/adt/idea/android/resources/gmavenIndex/$OFFLINE_NAME.json")
-  Files.write(file, indexData, StandardOpenOption.CREATE)
+  Files.write(file, indexData)
   println("Finished updating $file.")
 }
 
