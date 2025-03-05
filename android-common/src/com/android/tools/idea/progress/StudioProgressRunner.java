@@ -103,7 +103,7 @@ public class StudioProgressRunner implements ProgressRunner {
         }
       };
       ProgressManager.getInstance().run(task);
-    });
+    }, ModalityState.any());
   }
 
   private void doRunSync(@NotNull ProgressIndicator indicator, @NotNull ProgressRunnable progressRunnable) {
