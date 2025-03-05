@@ -92,7 +92,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   private fun isRecordingSupported(params: Parameters, project: Project): Boolean {
     return params.featureLevel >= 19 &&
-           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber, params.featureLevel)
+           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber)
   }
 
   @UiThread

@@ -68,7 +68,6 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.anyInt
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -126,7 +125,7 @@ class DeviceToolWindowPanelTest {
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
-    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(true)
+    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any())).thenReturn(true)
     project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
   }
 

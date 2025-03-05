@@ -30,7 +30,6 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.anyInt
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -83,7 +82,7 @@ class ScreenRecorderActionTest {
 
   @Test
   fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
-    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
+    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any())).thenReturn(false)
     val event = TestActionEvent.createTestEvent { userData[it] }
 
     action.update(event)
@@ -93,7 +92,7 @@ class ScreenRecorderActionTest {
 
   @Test
   fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
-    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
+    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device")).thenReturn(true)
     val event = TestActionEvent.createTestEvent { userData[it] }
 
     action.update(event)

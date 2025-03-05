@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
  * A cache of mapping of a device to a boolean indicating if it supports screen recording.
  */
 interface ScreenRecordingSupportedCache {
-  fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean
+  fun isScreenRecordingSupported(serialNumber: String): Boolean
 
   companion object {
     fun getInstance(project: Project): ScreenRecordingSupportedCache = project.getService(ScreenRecordingSupportedCache::class.java)

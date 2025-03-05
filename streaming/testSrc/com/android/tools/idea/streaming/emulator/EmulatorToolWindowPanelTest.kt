@@ -164,7 +164,7 @@ class EmulatorToolWindowPanelTest {
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
-    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), any())).thenReturn(true)
+    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any())).thenReturn(true)
     projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
   }
 

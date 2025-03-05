@@ -17,12 +17,16 @@ package com.android.tools.idea.ui.screenrecording
 
 import com.android.adblib.AdbSession
 import com.android.adblib.CoroutineScopeCache.Key
-import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.adblib.DeviceSelector
-import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.device
+import com.android.adblib.deviceInfo
 import com.android.adblib.shellAsText
+import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
@@ -39,30 +43,37 @@ private val IS_SUPPORTED_RETRY_TIMEOUT = Duration.ofSeconds(2)
  */
 internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecordingSupportedCache {
   private val adbSession: AdbSession = AdbLibService.getSession(project)
+  private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
   private val cacheKey = Key<Boolean>("ScreenRecordingSupportedCache")
 
-  override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    val connectedDevice = adbSession.connectedDevicesTracker.device(serialNumber) ?: return false
+  override fun isScreenRecordingSupported(serialNumber: String): Boolean {
+    val connectedDeviceState: DeviceState.Connected = deviceProvisioner.findConnectedDevice(serialNumber) ?: return false
+    val properties = connectedDeviceState.properties
 
-    if (serialNumber.isEmulator()) {
+    if (properties.isVirtual == true) {
       return true
     }
-    if (sdk < 19) {
+    val api = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+    if (api < 19) {
       return false
     }
-    return connectedDevice.cache.getOrPutSuspending(
-        cacheKey, fastDefaultValue = { true }, defaultValue = { computeIsSupported(serialNumber, sdk) })
+    if (properties.deviceType == DeviceType.WEAR && api < 30) {
+      return false
+    }
+    if (properties.manufacturer == "Google" || properties.manufacturer == "Samsung") {
+      return true // Reputable vendors support screen recording.
+    }
+    return connectedDeviceState.connectedDevice.cache.getOrPutSuspending(
+        cacheKey, fastDefaultValue = { true }, defaultValue = { computeIsSupported(serialNumber) })
   }
 
-  private suspend fun computeIsSupported(serialNumber: String, sdk: Int): Boolean {
-    // The default value (from the cache) is "false" until this function terminates,
+  private suspend fun computeIsSupported(serialNumber: String): Boolean {
+    // The default value (from the cache) is true until this function terminates,
     // so we try every 2 seconds until we can answer without error.
     while (true) {
       try {
-        return when {
-          isWatch(serialNumber) && sdk < 30 -> false
-          else -> hasBinary(serialNumber)
-        }
+        val out = execute(serialNumber, "ls $SCREEN_RECORDER_DEVICE_PATH")
+        return out.trim() == SCREEN_RECORDER_DEVICE_PATH
       }
       catch (e: Throwable) {
         thisLogger().warn("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
@@ -71,19 +82,10 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
     }
   }
 
-  private suspend fun isWatch(serialNumber: String): Boolean {
-    val out = execute(serialNumber, "getprop $RO_BUILD_CHARACTERISTICS")
-    return out.trim().split(",").contains("watch")
-  }
-
-  private suspend fun hasBinary(serialNumber: String): Boolean {
-    val out = execute(serialNumber, "ls $SCREEN_RECORDER_DEVICE_PATH")
-    return out.trim() == SCREEN_RECORDER_DEVICE_PATH
-  }
-
   private suspend fun execute(serialNumber: String, command: String): String =
-    //TODO: Check for `stderr` and `exitCode` to report errors
-    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
+      adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
 }
 
-private fun String.isEmulator() = startsWith("emulator-")
+private fun DeviceProvisioner.findConnectedDevice(serialNumber: String): DeviceState.Connected? =
+    devices.value.firstOrNull { it.state.connectedDevice?.deviceInfo?.serialNumber == serialNumber }?.state as? DeviceState.Connected
+
