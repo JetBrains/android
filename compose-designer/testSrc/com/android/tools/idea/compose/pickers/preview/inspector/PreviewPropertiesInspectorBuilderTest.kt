@@ -34,11 +34,13 @@ import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_NAME
+import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.preview.config.PARAMETER_UI_MODE
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
+import com.android.tools.property.panel.impl.ui.PropertyCheckBox
 import com.android.tools.property.panel.impl.ui.PropertyTextField
-import com.android.tools.property.panel.impl.ui.PropertyThreeStateCheckBox
 import com.google.common.collect.HashBasedTable
 import java.awt.Component
 import javax.swing.JLabel
@@ -146,6 +148,8 @@ class PreviewPropertiesInspectorBuilderTest {
         put(TestPsiPropertyItem(PARAMETER_API_LEVEL, "16"))
         put(TestPsiPropertyItem(PARAMETER_LOCALE, "Default (en-US)"))
         put(TestPsiPropertyItem(PARAMETER_FONT_SCALE, "1.6"))
+        put(TestPsiPropertyItem(PARAMETER_SHOW_SYSTEM_UI, "false"))
+        put(TestPsiPropertyItem(PARAMETER_SHOW_BACKGROUND, "true"))
         put(TestPsiPropertyItem(PARAMETER_UI_MODE, "Car"))
       }
 
@@ -155,8 +159,8 @@ class PreviewPropertiesInspectorBuilderTest {
     // In the Preview Picker we have added the 3 regions:
     // * Preview Configuration (indexes: 0, 1)
     // * Hardware (index 3: Is a JPanel containing 16 components)
-    // * Display (indexes: 4, 5, 6, 7, 8)
-    assertEquals(9, inspectorPanel.lines.size)
+    // * Display (indexes: 4, 5, 6, 7, 8, 9, 10)
+    assertEquals(11, inspectorPanel.lines.size)
 
     // Test name line.
     assertEquals("name", inspectorPanel.lines[0].editorModel?.property?.name)
@@ -191,8 +195,12 @@ class PreviewPropertiesInspectorBuilderTest {
     assertEquals("Default (en-US)", displayInspectorPanelLines[6].editorModel?.property?.value)
     assertEquals("fontScale", displayInspectorPanelLines[7].editorModel?.property?.name)
     assertEquals("1.6", displayInspectorPanelLines[7].editorModel?.property?.value)
-    assertEquals("uiMode", displayInspectorPanelLines[8].editorModel?.property?.name)
-    assertEquals("Car", displayInspectorPanelLines[8].editorModel?.property?.value)
+    assertEquals("showSystemUi", displayInspectorPanelLines[8].editorModel?.property?.name)
+    assertEquals("false", displayInspectorPanelLines[8].editorModel?.property?.value)
+    assertEquals("showBackground", displayInspectorPanelLines[9].editorModel?.property?.name)
+    assertEquals("true", displayInspectorPanelLines[9].editorModel?.property?.value)
+    assertEquals("uiMode", displayInspectorPanelLines[10].editorModel?.property?.name)
+    assertEquals("Car", displayInspectorPanelLines[10].editorModel?.property?.value)
   }
 
   /** Covers [HardwarePanelHelper] test cases. */
@@ -226,7 +234,7 @@ class PreviewPropertiesInspectorBuilderTest {
     // Check "is round" line, it consists on a three-state check-box with a text field
     assertEquals("IsRound", (hardwarePanelComponents[8] as JLabel).text)
     val isRoundCheckTextField =
-      (hardwarePanelComponents[9] as PropertyThreeStateCheckBox).components[1] as PropertyTextField
+      (hardwarePanelComponents[9] as PropertyCheckBox).components[1] as PropertyTextField
     assertEquals("true", isRoundCheckTextField.text)
 
     // Check chin size line.
