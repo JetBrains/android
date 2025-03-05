@@ -8,8 +8,6 @@ load(
 
 ZIP_TOOL_LABEL = "@bazel_tools//tools/zip:zipper"
 
-ANDROID_IDE_INFO = None
-
 # JAVA
 
 def _get_java_info(target, rule):

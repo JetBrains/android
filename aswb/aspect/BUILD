@@ -43,6 +43,7 @@ filegroup(
         "artifacts.bzl",
         "build_compose_dependencies.bzl",
         "build_dependencies.bzl",
+        "build_dependencies_android_deps.bzl",
         "build_dependencies_deps.bzl",
         "intellij_info.bzl",
         "intellij_info_bundled.bzl",

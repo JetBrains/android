@@ -4,12 +4,15 @@
 # to make supporting other versions of bazel easier, by replacing build_dependencies_deps.bzl.
 load(
     ":build_dependencies_deps.bzl",
-    "ANDROID_IDE_INFO",
     "ZIP_TOOL_LABEL",
     _ide_cc_not_validated = "IDE_CC",
     _ide_java_not_validated = "IDE_JAVA",
     _ide_java_proto_not_validated = "IDE_JAVA_PROTO",
     _ide_kotlin_not_validated = "IDE_KOTLIN",
+)
+load(
+    ":build_dependencies_android_deps.bzl",
+    "ANDROID_IDE_INFO",
 )
 
 ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import, j2kt_native_import"

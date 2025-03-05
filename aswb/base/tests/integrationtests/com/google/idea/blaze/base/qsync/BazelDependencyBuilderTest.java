@@ -69,6 +69,12 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
         .toPath()
         .resolve("tools/adt/idea/aswb/aspect/build_dependencies_deps.bzl")
         .toString());
+    System.setProperty(
+      "qsync.aspect.build_dependencies_android_deps.bzl.file",
+      getRunfilesWorkspaceRoot()
+        .toPath()
+        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_android_deps.bzl")
+        .toString());
     ServiceContainerUtil.registerComponentInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService,
                                                    getTestRootDisposable());
   }

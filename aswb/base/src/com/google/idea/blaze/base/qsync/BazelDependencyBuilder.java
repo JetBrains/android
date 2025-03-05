@@ -325,6 +325,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         Path.of(INVOCATION_FILES_DIR + "/build_dependencies_deps.bzl"),
         MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
     files.put(
+        Path.of(INVOCATION_FILES_DIR + "/build_dependencies_android_deps.bzl"),
+        MoreFiles.asByteSource(getBundledAspectAndroidDepsFilePath()));
+    files.put(
         Path.of(INVOCATION_FILES_DIR + "/" + aspectFileName),
         getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
     Optional<String> targetPatternFileWorkspaceRelativeFile;
@@ -347,6 +350,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
   protected Path getBundledAspectDepsFilePath() {
     return getBundledAspectPath("build_dependencies_deps.bzl");
+  }
+
+  protected Path getBundledAspectAndroidDepsFilePath() {
+    return getBundledAspectPath("build_dependencies_android_deps.bzl");
   }
 
   private ByteSource getByteSourceFromString(String content) {
