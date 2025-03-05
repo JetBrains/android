@@ -97,7 +97,6 @@
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
-    <orderEntry type="library" name="jewel-ide-laf-bridge" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>
