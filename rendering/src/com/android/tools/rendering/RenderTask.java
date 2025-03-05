@@ -171,7 +171,7 @@ public class RenderTask {
   @NotNull private final RenderContext myContext;
 
   @NotNull private final RenderLogger myLogger;
-  @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
+  @NotNull private final LayoutlibCallbackEx myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
   /**
@@ -280,16 +280,17 @@ public class RenderTask {
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
-        new LayoutlibCallbackImpl(
-          this,
-          myLayoutLib,
-          renderContextModule,
-          myLogger,
-          myCredential,
-          actionBarHandler,
-          parserFactory,
-          moduleClassLoader,
-          useCustomInflater);
+        new LayoutlibCallbackExDelegate(renderContextModule,
+                                        new LayoutlibCallbackImpl(
+                                          this,
+                                          myLayoutLib,
+                                          renderContextModule,
+                                          myLogger,
+                                          myCredential,
+                                          actionBarHandler,
+                                          parserFactory,
+                                          moduleClassLoader,
+                                          useCustomInflater));
       if (renderContextModule.getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
