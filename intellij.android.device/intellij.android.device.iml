@@ -49,6 +49,5 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module" module-name="intellij.android.adb" />
-    <orderEntry type="library" name="jewel-ide-laf-bridge" level="project" />
   </component>
 </module>

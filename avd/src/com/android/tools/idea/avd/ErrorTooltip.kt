@@ -47,10 +47,10 @@ internal fun ErrorTooltip(
   if (errorMessage != null) {
     Tooltip(
       tooltip = { Text(errorMessage) },
-      modifier,
-      style,
-      tooltipPlacement,
-      content,
+      modifier = modifier,
+      style = style,
+      tooltipPlacement = tooltipPlacement,
+      content = content,
     )
   }
 }
