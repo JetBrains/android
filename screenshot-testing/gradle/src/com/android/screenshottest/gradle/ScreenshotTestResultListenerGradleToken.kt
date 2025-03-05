@@ -30,11 +30,11 @@ import com.intellij.openapi.project.Project
 class ScreenshotTestResultListenerGradleToken : ScreenshotTestResultListenerToken<GradleProjectSystem>, GradleToken {
 
   override fun onTestSuiteScheduled(project: Project, testSuite: ScreenshotTestSuite) {
-      ScreenshotTestDetailsViewManager.showTestResultInEditorTab(project, testSuite)
+    ScreenshotTestDetailsViewManager.showTestResultInEditorTab(project, testSuite)
   }
 
   override fun onTestCaseStarted(project: Project, testSuite: ScreenshotTestSuite) {
-      ScreenshotTestDetailsViewManager.updateTestResultWithoutFocus(testSuite)
+    ScreenshotTestDetailsViewManager.updateTestResultWithoutFocus(project, testSuite)
   }
 
   override fun onTestSuiteFinished(project: Project, testSuite: ScreenshotTestSuite) {

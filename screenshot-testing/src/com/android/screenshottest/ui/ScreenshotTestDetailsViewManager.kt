@@ -26,23 +26,23 @@ import com.intellij.openapi.project.Project
  * Manages state of screenshot test result details view.
  */
 object ScreenshotTestDetailsViewManager : Disposable {
-  private val inMemoryTestResultFile = ScreenshotTestResultVirtualFile("Screenshot Test Results Detail")
 
   /**
    * Update screenshot test details view with the latest result and focus on it
    */
   fun showTestResultInEditorTab(project: Project, testSuite: ScreenshotTestSuite) {
     val editorProvider = FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { it.javaClass == ScreenshotTestResultEditorProvider::class.java }
+    val inMemoryTestResultFile = ScreenshotTestResultVirtualFile(testSuite.name)
     (editorProvider as ScreenshotTestResultEditorProvider).inMemoryTestResultVirtualFile = inMemoryTestResultFile
     val fileEditorManager = FileEditorManager.getInstance(project)
     if (fileEditorManager.isFileOpen(inMemoryTestResultFile)) {
       // If test result is already opened in editor, do not open the file again. Update file content and focus on the tab
-      ScreenshotTestResultEditorSingleton.updateTestResult(testSuite)
+      ScreenshotTestResultEditorSingleton.updateTestResult(project, testSuite)
       val fd = OpenFileDescriptor(project, inMemoryTestResultFile)
       FileEditorManager.getInstance(project).openEditor(fd, true)
     }
     else {
-      ScreenshotTestResultEditorSingleton.updateTestResult(testSuite)
+      ScreenshotTestResultEditorSingleton.updateTestResult(project, testSuite)
       fileEditorManager.openFile(inMemoryTestResultFile).first()
     }
   }
@@ -50,8 +50,8 @@ object ScreenshotTestDetailsViewManager : Disposable {
   /**
    * Update screenshot test details view with the latest result without focusing on it
    */
-  fun updateTestResultWithoutFocus(testSuite: ScreenshotTestSuite) =
-    ScreenshotTestResultEditorSingleton.updateTestResult(testSuite)
+  fun updateTestResultWithoutFocus(project: Project, testSuite: ScreenshotTestSuite) =
+    ScreenshotTestResultEditorSingleton.updateTestResult(project, testSuite)
 
   override fun dispose() = Unit
 }

@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "@intellij//:com.intellij.platform.images",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
     ],

@@ -16,16 +16,17 @@
 package com.android.screenshottest.ui
 
 import com.android.screenshottest.ScreenshotTestSuite
+import com.android.screenshottest.ui.composables.DiffViewUi
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.getPreferredFocusedComponent
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
-import org.jetbrains.jewel.ui.component.Text
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 
@@ -35,10 +36,14 @@ import javax.swing.JComponent
  */
 object ScreenshotTestResultEditorSingleton : UserDataHolderBase(), FileEditor {
   lateinit var inMemoryTestResultVirtualFile: ScreenshotTestResultVirtualFile
+  private lateinit var mProject: Project
+  private lateinit var mTestSuite: ScreenshotTestSuite
 
   private fun readResolve(): Any = ScreenshotTestResultEditorSingleton
 
-  fun updateTestResult(testSuite: ScreenshotTestSuite): ScreenshotTestResultEditorSingleton {
+  fun updateTestResult(project: Project, testSuite: ScreenshotTestSuite): ScreenshotTestResultEditorSingleton {
+    mProject = project
+    mTestSuite = testSuite
     return this
   }
 
@@ -46,10 +51,9 @@ object ScreenshotTestResultEditorSingleton : UserDataHolderBase(), FileEditor {
 
   override fun getComponent(): JComponent {
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
-    val component = StudioComposePanel {
-      Text("just for test")
+    return StudioComposePanel {
+      DiffViewUi(mProject, mTestSuite.testResult)
     }
-    return component
   }
 
   @NotNull
@@ -76,6 +80,6 @@ object ScreenshotTestResultEditorSingleton : UserDataHolderBase(), FileEditor {
   override fun addPropertyChangeListener(listener: PropertyChangeListener) = Unit
 
   override fun removePropertyChangeListener(listener: PropertyChangeListener) = Unit
-
-  const val SCREENSHOT_TEST_RESULT_EDITOR_NAME = "Screenshot Test Result Viewer"
 }
+
+const val SCREENSHOT_TEST_RESULT_EDITOR_NAME = "Screenshot Test Result Viewer"
