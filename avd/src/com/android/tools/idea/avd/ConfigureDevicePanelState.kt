@@ -34,14 +34,13 @@ import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 
 internal class ConfigureDevicePanelState(
-  device: VirtualDevice,
+  val device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
   val deviceNameValidator: DeviceNameValidator,
   fileSystem: FileSystem = FileSystems.getDefault(),
   val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
-  var device by mutableStateOf(device)
   private var skins by mutableStateOf(skins)
   val systemImageTableSelectionState = TableSelectionState(image)
   val storageGroupState = StorageGroupState(device, fileSystem)
@@ -62,10 +61,6 @@ internal class ConfigureDevicePanelState(
     return if (image == null) false else device.hasPlayStore(image)
   }
 
-  fun setDeviceName(deviceName: String) {
-    device = device.copy(name = deviceName)
-  }
-
   val deviceNameError by derivedStateOf { deviceNameValidator.validate(this.device.name) }
 
   fun setSystemImageSelection(systemImage: ISystemImage) {
@@ -74,7 +69,7 @@ internal class ConfigureDevicePanelState(
   }
 
   fun setPreferredAbi(preferredAbi: String?) {
-    device = device.copy(preferredAbi = preferredAbi)
+    device.preferredAbi = preferredAbi
     updatePreferredAbiValidity()
   }
 
@@ -87,16 +82,17 @@ internal class ConfigureDevicePanelState(
 
   fun initDeviceSkins(path: Path) {
     val skin = getSkin(path)
-    device = device.copy(skin = skin, defaultSkin = skin)
+    device.skin = skin
+    device.defaultSkin = skin
   }
 
   fun initDefaultSkin(path: Path) {
-    device = device.copy(defaultSkin = getSkin(path))
+    device.defaultSkin = getSkin(path)
   }
 
   fun setSkin(path: Path) {
     val skin = getSkin(path)
-    device = device.copy(skin = if (skin !in skins()) device.defaultSkin else skin)
+    device.skin = if (skin !in skins()) device.defaultSkin else skin
   }
 
   fun skins(): Iterable<Skin> =
@@ -116,13 +112,12 @@ internal class ConfigureDevicePanelState(
   fun resetPlayStoreFields() {
     if (!hasPlayStore()) return
 
-    device =
-      device.copy(
-        expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit()),
-        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        graphicsMode = GraphicsMode.AUTO,
-        ram = device.defaultRam,
-        vmHeapSize = device.defaultVmHeapSize,
-      )
+    device.apply {
+      expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit())
+      cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES
+      graphicsMode = GraphicsMode.AUTO
+      ram = defaultRam
+      vmHeapSize = defaultVmHeapSize
+    }
   }
 }

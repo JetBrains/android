@@ -75,7 +75,7 @@ class AdditionalSettingsPanelTest {
     rule.onNodeWithText("[None]").performClick()
 
     // Assert
-    assertThat(state.device).isEqualTo(device.copy(skin = NoSkin.INSTANCE))
+    assertThat(state.device.skin).isEqualTo(NoSkin.INSTANCE)
   }
 
   @Test
@@ -103,7 +103,7 @@ class AdditionalSettingsPanelTest {
     rule.onNodeWithText("LTE").performClick()
 
     // Assert
-    assertThat(state.device).isEqualTo(device.copy(speed = AvdNetworkSpeed.LTE))
+    assertThat(state.device.speed).isEqualTo(AvdNetworkSpeed.LTE)
   }
 
   @Test
@@ -119,7 +119,7 @@ class AdditionalSettingsPanelTest {
     rule.onNodeWithText("Landscape").performClick()
 
     // Assert
-    assertThat(state.device).isEqualTo(device.copy(orientation = ScreenOrientation.LANDSCAPE))
+    assertThat(state.device.orientation).isEqualTo(ScreenOrientation.LANDSCAPE)
   }
 
   @Test
@@ -134,6 +134,7 @@ class AdditionalSettingsPanelTest {
     val fileSystem = createInMemoryFileSystem()
 
     val state = configureDevicePanelState(device, image = image, fileSystem = fileSystem)
+    val initialExpandedStorage = device.expandedStorage
 
     val mySdCardFileImg = fileSystem.getPath(System.getProperty("user.home"), "mySdCardFile.img")
     Files.createDirectories(mySdCardFileImg.parent)
@@ -147,15 +148,14 @@ class AdditionalSettingsPanelTest {
     rule.waitForIdle()
 
     // Assert
-    assertThat(state.device)
-      .isEqualTo(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)))
+    assertThat(state.device.expandedStorage).isEqualTo(ExistingImage(mySdCardFileImg))
 
     // Act
     rule.onNodeWithTag("CustomRadioButton").performClick()
     rule.waitForIdle()
 
     // Assert
-    assertThat(state.device).isEqualTo(device)
+    assertThat(state.device.expandedStorage).isEqualTo(initialExpandedStorage)
   }
 
   @Test
@@ -172,7 +172,7 @@ class AdditionalSettingsPanelTest {
     rule.onNodeWithText("3").performClick()
 
     // Assert
-    assertThat(state.device).isEqualTo(device.copy(cpuCoreCount = 3))
+    assertThat(state.device.cpuCoreCount).isEqualTo(3)
   }
 
   @Test
@@ -188,7 +188,7 @@ class AdditionalSettingsPanelTest {
     rule.onNodeWithText("Hardware").performClick()
 
     // Assert
-    assertThat(state.device).isEqualTo(device.copy(graphicsMode = GraphicsMode.HARDWARE))
+    assertThat(state.device.graphicsMode).isEqualTo(GraphicsMode.HARDWARE)
   }
 
   @Test
@@ -205,9 +205,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onTooltips().assertCountEquals(0)
-
-    assertThat(state.device)
-      .isEqualTo(device.copy(ram = StorageCapacity(3, StorageCapacity.Unit.GB)))
+    assertThat(state.device.ram).isEqualTo(StorageCapacity(3, StorageCapacity.Unit.GB))
   }
 
   @Test
@@ -224,7 +222,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("Specify a RAM value").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(ram = null))
+    assertThat(state.device.ram).isNull()
   }
 
   @Test
@@ -242,7 +240,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("RAM must be at least 128M. Recommendation is 1G.").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(ram = null))
+    assertThat(state.device.ram).isNull()
   }
 
   @Test
@@ -259,7 +257,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("RAM value is too large").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(ram = null))
+    assertThat(state.device.ram).isNull()
   }
 
   @Test
@@ -279,8 +277,7 @@ class AdditionalSettingsPanelTest {
     // Assert
     rule.onTooltips().assertCountEquals(0)
 
-    assertThat(state.device)
-      .isEqualTo(device.copy(vmHeapSize = StorageCapacity(229, StorageCapacity.Unit.MB)))
+    assertThat(state.device.vmHeapSize).isEqualTo(StorageCapacity(229, StorageCapacity.Unit.MB))
   }
 
   @Test
@@ -299,7 +296,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("Specify a VM heap size").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(vmHeapSize = null))
+    assertThat(state.device.vmHeapSize).isNull()
   }
 
   @Test
@@ -318,7 +315,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("VM heap must be at least 16M").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(vmHeapSize = null))
+    assertThat(state.device.vmHeapSize).isNull()
   }
 
   @Test
@@ -337,7 +334,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithText("VM heap size is too large").assertIsDisplayed()
-    assertThat(state.device).isEqualTo(device.copy(vmHeapSize = null))
+    assertThat(state.device.vmHeapSize).isNull()
   }
 }
 

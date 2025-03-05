@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -67,10 +66,8 @@ internal fun StorageGroup(
   state: StorageGroupState,
   hasPlayStore: Boolean,
   postMvpFeaturesEnabled: Boolean,
-  onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
-    @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
     GroupHeader("Storage")
 
     Row(Modifier.testTag("InternalStorageRow")) {
@@ -83,9 +80,7 @@ internal fun StorageGroup(
       )
 
       LaunchedEffect(Unit) {
-        state.internalStorage.storageCapacity.collect {
-          onDeviceChange(device.copy(internalStorage = it))
-        }
+        state.internalStorage.storageCapacity.collect { device.internalStorage = it }
       }
 
       InfoOutlineIcon(
@@ -96,10 +91,10 @@ internal fun StorageGroup(
 
     if (postMvpFeaturesEnabled) {
       if (device.formFactor != FormFactors.WEAR) {
-        ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+        ExpandedStorage(device, state, hasPlayStore)
       }
     } else {
-      ExpandedStorage(device, state, hasPlayStore, onDeviceChange)
+      ExpandedStorage(device, state, hasPlayStore)
     }
   }
 }
@@ -109,7 +104,6 @@ private fun ExpandedStorage(
   device: VirtualDevice,
   state: StorageGroupState,
   hasPlayStore: Boolean,
-  onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Row {
     Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
@@ -202,9 +196,7 @@ private fun ExpandedStorage(
     enabled = !hasPlayStore,
   )
 
-  LaunchedEffect(Unit) {
-    state.expandedStorageFlow.collect { onDeviceChange(device.copy(expandedStorage = it)) }
-  }
+  LaunchedEffect(Unit) { state.expandedStorageFlow.collect { device.expandedStorage = it } }
 }
 
 private fun Result.internalStorageErrorMessage(hasPlayStore: Boolean) =
@@ -355,10 +347,9 @@ internal class StorageGroupState(
 
   companion object {
     private fun customValue(device: VirtualDevice) =
-      if (device.expandedStorage is Custom) {
-        device.expandedStorage.value
-      } else {
-        StorageCapacity(512, StorageCapacity.Unit.MB)
+      when (val expandedStorage = device.expandedStorage) {
+        is Custom -> expandedStorage.value
+        else -> StorageCapacity(512, StorageCapacity.Unit.MB)
       }
 
     private fun ExpandedStorage.toTextFieldValue() = if (this is ExistingImage) toString() else ""

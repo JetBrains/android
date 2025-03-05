@@ -72,7 +72,7 @@ internal class EditVirtualDeviceDialog(
       }
     }
 
-  val device = VirtualDevice.withDefaults(baseDevice).copyFrom(avdBuilder)
+  val device = VirtualDevice(baseDevice).apply { copyFrom(avdBuilder) }
 
   @Composable
   fun WizardPageScope.Page() {

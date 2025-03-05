@@ -91,7 +91,7 @@ internal fun DevicePanel(
     LaunchedEffect(Unit) {
       nameFocusRequester.requestFocus()
       snapshotFlow { nameState.text.toString() }
-        .collect { configureDevicePanelState.setDeviceName(it) }
+        .collect { configureDevicePanelState.device.name = it }
     }
 
     ErrorTooltip(configureDevicePanelState.deviceNameError) {

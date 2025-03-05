@@ -74,7 +74,7 @@ internal fun ConfigureDevicePanel(
 
     Divider(Orientation.Vertical, Modifier.fillMaxHeight())
     DeviceDetails(
-      configureDevicePanelState.device.device.toVirtualDeviceProfile(),
+      configureDevicePanelState.device.deviceProfile.toVirtualDeviceProfile(),
       Modifier.padding(horizontal = Padding.SMALL_MEDIUM).width(200.dp),
       systemImage =
         configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {

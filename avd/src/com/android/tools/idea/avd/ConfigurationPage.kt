@@ -69,7 +69,7 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
   return image.androidVersion.apiLevel >= SdkVersionInfo.LOWEST_ACTIVE_API &&
-    DeviceSystemImageMatcher.matches(device.device, image)
+    DeviceSystemImageMatcher.matches(device.deviceProfile, image)
 }
 
 private fun resolve(sdkHandler: AndroidSdkHandler, deviceSkin: Path, imageSkins: Iterable<Path>) =
@@ -124,33 +124,22 @@ internal fun WizardPageScope.ConfigurationPage(
   val fileSystem = LocalFileSystem.current
   val state =
     remember(device) {
-      if (image == null) {
-        val state =
-          ConfigureDevicePanelState(
-            device,
-            skins,
-            filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
-              it.isSupported()
-            },
-            deviceNameValidator,
-            fileSystem,
-          )
-
-        state.initDeviceSkins(resolveDefaultSkin(device, sdkHandler, fileSystem))
-        state
-      } else {
-        val copy =
-          if (device.expandedStorage is Custom) {
-            device.copy(existingCustomExpandedStorage = device.expandedStorage.withMaxUnit())
-          } else {
-            device
+      val initialImage =
+        image
+          ?: filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
+            it.isSupported()
           }
+      val state =
+        ConfigureDevicePanelState(device, skins, initialImage, deviceNameValidator, fileSystem)
+      val defaultSkin = resolveDefaultSkin(device, sdkHandler, fileSystem)
+      if (image == null) {
+        state.initDeviceSkins(defaultSkin)
+      } else {
+        state.initDefaultSkin(defaultSkin)
 
-        val state = ConfigureDevicePanelState(copy, skins, image, deviceNameValidator, fileSystem)
-        state.initDefaultSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
-
-        state
+        (device.expandedStorage as? Custom)?.let { device.existingCustomExpandedStorage = it }
       }
+      state
     }
 
   updateSystemImageSelection(state.systemImageTableSelectionState, filteredImageState)
@@ -227,7 +216,7 @@ private fun resolveDefaultSkin(
   sdkHandler: AndroidSdkHandler,
   fileSystem: FileSystem,
 ): Path {
-  val skin = device.device.defaultHardware.skinFile
+  val skin = device.deviceProfile.defaultHardware.skinFile
 
   return resolve(
     sdkHandler,

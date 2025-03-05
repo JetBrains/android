@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.runtime.remember
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
@@ -67,10 +68,16 @@ internal class LocalVirtualDeviceSource(
       pushPage {
         leftSideButtons = emptyList()
 
-        val deviceNameValidator = DeviceNameValidator.createForAvdManager(avdManager)
+        val deviceNameValidator = remember { DeviceNameValidator.createForAvdManager(avdManager) }
+        val device =
+          remember(profile) {
+            VirtualDevice(profile.device).apply {
+              initializeFromProfile()
+              name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))
+            }
+          }
         ConfigurationPage(
-          VirtualDevice.withDefaults(profile.device)
-            .copy(name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))),
+          device,
           null,
           systemImageStateFlow,
           skins,

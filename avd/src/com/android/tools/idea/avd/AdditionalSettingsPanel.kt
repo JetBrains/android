@@ -53,41 +53,40 @@ internal fun AdditionalSettingsPanel(
   modifier: Modifier = Modifier,
 ) {
   val hasPlayStore = state.hasPlayStore()
+  val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     Row {
       Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
       Dropdown(
-        state.device.skin,
+        device.skin,
         state.skins().toImmutableList(),
-        onSelectedItemChange = { state.device = state.device.copy(skin = it) },
+        onSelectedItemChange = { device.skin = it },
         Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
-        !state.device.isFoldable,
+        !device.isFoldable,
       )
     }
 
-    CameraGroup(state.device, state::device::set)
-    NetworkGroup(state.device, state::device::set)
-    StartupGroup(state.device, state::device::set)
+    CameraGroup(device)
+    NetworkGroup(device)
+    StartupGroup(device)
 
     StorageGroup(
-      state.device,
+      device,
       state.storageGroupState,
       hasPlayStore,
       StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
-      state::device::set,
     )
 
     EmulatedPerformanceGroup(
-      state.device,
+      device,
       state.emulatedPerformanceGroupState,
       hasPlayStore,
       state.maxCpuCoreCount,
-      state::device::set,
     )
 
     PreferredAbiGroup(
-      state.device.preferredAbi,
+      device.preferredAbi,
       state.systemImageTableSelectionState.selection,
       onPreferredAbiChange = state::setPreferredAbi,
     )
@@ -95,7 +94,7 @@ internal fun AdditionalSettingsPanel(
 }
 
 @Composable
-private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+private fun CameraGroup(device: VirtualDevice) {
   if (device.cameraLocations.isEmpty()) {
     return
   }
@@ -109,7 +108,7 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
         Dropdown(
           device.frontCamera,
           FRONT_CAMERAS,
-          onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
+          onSelectedItemChange = { device.frontCamera = it },
           Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         )
 
@@ -132,7 +131,7 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
         Dropdown(
           device.rearCamera,
           REAR_CAMERAS,
-          onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
+          onSelectedItemChange = { device.rearCamera = it },
           Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         )
 
@@ -157,7 +156,7 @@ private val FRONT_CAMERAS =
 private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
 
 @Composable
-private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+private fun NetworkGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Network")
 
@@ -167,7 +166,7 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       Dropdown(
         device.speed,
         SPEEDS,
-        onSelectedItemChange = { onDeviceChange(device.copy(speed = it)) },
+        onSelectedItemChange = { device.speed = it },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -184,7 +183,7 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       Dropdown(
         device.latency,
         LATENCIES,
-        onSelectedItemChange = { onDeviceChange(device.copy(latency = it)) },
+        onSelectedItemChange = { device.latency = it },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -201,7 +200,7 @@ private val SPEEDS = AvdNetworkSpeed.values().asIterable().toImmutableList()
 private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList()
 
 @Composable
-private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+private fun StartupGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Startup")
 
@@ -212,10 +211,7 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
         Modifier.alignByBaseline(),
         menuContent = {
           ORIENTATIONS.forEach {
-            selectableItem(
-              device.orientation == it,
-              onClick = { onDeviceChange(device.copy(orientation = it)) },
-            ) {
+            selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
               Text(it.shortDisplayValue)
             }
           }
@@ -231,7 +227,7 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       Dropdown(
         device.defaultBoot,
         BOOTS,
-        onSelectedItemChange = { onDeviceChange(device.copy(defaultBoot = it)) },
+        onSelectedItemChange = { device.defaultBoot = it },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -260,7 +256,6 @@ private fun EmulatedPerformanceGroup(
   state: EmulatedPerformanceGroupState,
   hasGooglePlayStore: Boolean,
   maxCpuCoreCount: Int,
-  onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Emulated Performance")
@@ -275,7 +270,7 @@ private fun EmulatedPerformanceGroup(
           for (count in 1..maxCpuCoreCount) {
             selectableItem(
               device.cpuCoreCount == count,
-              onClick = { onDeviceChange(device.copy(cpuCoreCount = count)) },
+              onClick = { device.cpuCoreCount = count },
             ) {
               Text(count.toString())
             }
@@ -292,7 +287,7 @@ private fun EmulatedPerformanceGroup(
       Dropdown(
         device.graphicsMode,
         listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
-        onSelectedItemChange = { onDeviceChange(device.copy(graphicsMode = it)) },
+        onSelectedItemChange = { device.graphicsMode = it },
         Modifier.alignByBaseline(),
         !hasGooglePlayStore,
       )
@@ -310,9 +305,7 @@ private fun EmulatedPerformanceGroup(
         !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
 
-      LaunchedEffect(Unit) {
-        state.ram.storageCapacity.collect { onDeviceChange(device.copy(ram = it)) }
-      }
+      LaunchedEffect(Unit) { state.ram.storageCapacity.collect { device.ram = it } }
 
       InfoOutlineIcon(
         "The amount of RAM on the AVD. This RAM is allocated from the host system while the AVD is running. Larger amounts of RAM will " +
@@ -331,9 +324,7 @@ private fun EmulatedPerformanceGroup(
         !hasGooglePlayStore,
       )
 
-      LaunchedEffect(Unit) {
-        state.vmHeapSize.storageCapacity.collect { onDeviceChange(device.copy(vmHeapSize = it)) }
-      }
+      LaunchedEffect(Unit) { state.vmHeapSize.storageCapacity.collect { device.vmHeapSize = it } }
 
       InfoOutlineIcon(
         "The amount of RAM available to the Java virtual machine (VM) to allocate to running apps on the AVD. A larger VM heap allows " +

@@ -41,16 +41,18 @@ import org.mockito.kotlin.whenever
 
 class VirtualDeviceTest {
   @Test
-  fun withDefaults() {
+  fun initializeFromProfile() {
     val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
-    with(VirtualDevice.withDefaults(pixel8)) {
-      assertThat(ram).isEqualTo(EmulatedProperties.defaultRamSize(device).toStorageCapacity())
+    with(VirtualDevice(pixel8)) {
+      initializeFromProfile()
+      assertThat(ram)
+        .isEqualTo(EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity())
       assertThat(vmHeapSize)
-        .isEqualTo(EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity())
+        .isEqualTo(EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity())
       assertThat(internalStorage)
-        .isEqualTo(EmulatedProperties.defaultInternalStorage(device).toStorageCapacity())
+        .isEqualTo(EmulatedProperties.defaultInternalStorage(deviceProfile).toStorageCapacity())
     }
   }
 
@@ -78,8 +80,9 @@ class VirtualDeviceTest {
     avdBuilder.bootMode = ColdBoot
     avdBuilder.userSettings[UserSettingsKey.PREFERRED_ABI] = SdkConstants.ABI_RISCV64
 
-    with(VirtualDevice.withDefaults(pixel8).copyFrom(avdBuilder)) {
-      assertThat(device).isEqualTo(pixel8)
+    with(VirtualDevice(pixel8)) {
+      copyFrom(avdBuilder)
+      assertThat(deviceProfile).isEqualTo(pixel8)
       assertThat(name).isEqualTo("My Pixel")
       assertThat(expandedStorage).isEqualTo(Custom(StorageCapacity(100, StorageCapacity.Unit.MB)))
       assertThat(skin.path().toString()).isEqualTo("pixel_8")
@@ -106,25 +109,23 @@ class VirtualDeviceTest {
       AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
 
     val device =
-      VirtualDevice(
-        device = pixel8,
-        name = "My Pixel",
-        expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB)),
-        skin = DefaultSkin(Paths.get("pixel_8")),
-        defaultSkin = DefaultSkin(Paths.get("pixel_8")),
-        orientation = ScreenOrientation.LANDSCAPE,
-        cpuCoreCount = 2,
-        ram = StorageCapacity(16, StorageCapacity.Unit.GB),
-        vmHeapSize = StorageCapacity(500, StorageCapacity.Unit.MB),
-        internalStorage = StorageCapacity(128, StorageCapacity.Unit.GB),
-        frontCamera = AvdCamera.WEBCAM,
-        rearCamera = AvdCamera.EMULATED,
-        graphicsMode = GraphicsMode.AUTO,
-        latency = AvdNetworkLatency.GPRS,
-        speed = AvdNetworkSpeed.GSM,
-        defaultBoot = Boot.COLD,
-        preferredAbi = SdkConstants.ABI_RISCV64,
-      )
+      VirtualDevice(deviceProfile = pixel8).apply {
+        name = "My Pixel"
+        expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB))
+        skin = DefaultSkin(Paths.get("pixel_8"))
+        orientation = ScreenOrientation.LANDSCAPE
+        cpuCoreCount = 2
+        ram = StorageCapacity(16, StorageCapacity.Unit.GB)
+        vmHeapSize = StorageCapacity(500, StorageCapacity.Unit.MB)
+        internalStorage = StorageCapacity(128, StorageCapacity.Unit.GB)
+        frontCamera = AvdCamera.WEBCAM
+        rearCamera = AvdCamera.EMULATED
+        graphicsMode = GraphicsMode.AUTO
+        latency = AvdNetworkLatency.GPRS
+        speed = AvdNetworkSpeed.GSM
+        defaultBoot = Boot.COLD
+        preferredAbi = SdkConstants.ABI_RISCV64
+      }
 
     avdBuilder.copyFrom(device, mockSystemImage())
 

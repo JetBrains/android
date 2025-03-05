@@ -16,9 +16,6 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assertCountEquals
@@ -32,6 +29,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
@@ -49,10 +47,10 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsValid() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("3")
@@ -62,16 +60,16 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onTooltips().assertCountEquals(0)
-    assertEquals(device.copy(internalStorage = StorageCapacity(3, StorageCapacity.Unit.GB)), device)
+    assertThat(device.internalStorage).isEqualTo(StorageCapacity(3, StorageCapacity.Unit.GB))
   }
 
   @Test
   fun internalStorageIsEmpty() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("")
@@ -81,16 +79,16 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Specify an internal storage value").assertIsDisplayed()
-    assertEquals(device.copy(internalStorage = null), device)
+    assertThat(device.internalStorage).isNull()
   }
 
   @Test
   fun internalStorageIsLessThanMinAndHasPlayStore() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, true, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, true, false) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("1")
@@ -103,16 +101,16 @@ class StorageGroupTest {
       .onNodeWithText("Internal storage for Play Store devices must be at least 2G")
       .assertIsDisplayed()
 
-    assertEquals(device.copy(internalStorage = null), device)
+    assertThat(device.internalStorage).isNull()
   }
 
   @Test
   fun internalStorageIsLessThanMin() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("1")
@@ -122,16 +120,16 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Internal storage must be at least 2G").assertIsDisplayed()
-    assertEquals(device.copy(internalStorage = null), device)
+    assertThat(device.internalStorage).isNull()
   }
 
   @Test
   fun internalStorageIsOverflow() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("8589934592")
@@ -141,17 +139,17 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
-    assertEquals(device.copy(internalStorage = null), device)
+    assertThat(device.internalStorage).isNull()
   }
 
   @Test
   fun expandedStorageFormFactorDoesNotEqualWearOS() {
     // Arrange
-    var device = TestDevices.pixel9Pro()
+    val device = TestDevices.pixel9Pro()
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, true, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, true) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertExists()
@@ -164,7 +162,7 @@ class StorageGroupTest {
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, true, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, true) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertDoesNotExist()
@@ -177,7 +175,7 @@ class StorageGroupTest {
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertExists()
@@ -186,10 +184,10 @@ class StorageGroupTest {
   @Test
   fun onCustomRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
@@ -197,21 +195,18 @@ class StorageGroupTest {
     composeRule.waitForIdle()
 
     // Assert
-    assertEquals(ExpandedStorageRadioButton.CUSTOM, state.selectedRadioButton)
-
-    assertEquals(
-      device.copy(expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))),
-      device,
-    )
+    assertThat(state.selectedRadioButton).isEqualTo(ExpandedStorageRadioButton.CUSTOM)
+    assertThat(device.expandedStorage)
+      .isEqualTo(Custom(StorageCapacity(512, StorageCapacity.Unit.MB)))
   }
 
   @Test
   fun onExistingImageRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
@@ -222,16 +217,16 @@ class StorageGroupTest {
     // Assert
     assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
     composeRule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
-    assertEquals(device.copy(expandedStorage = null), device)
+    assertThat(device.expandedStorage).isNull()
   }
 
   @Test
   fun onNoneRadioButtonClick() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onNodeWithText("None").performClick()
@@ -239,16 +234,16 @@ class StorageGroupTest {
 
     // Assert
     assertEquals(ExpandedStorageRadioButton.NONE, state.selectedRadioButton)
-    assertEquals(device.copy(expandedStorage = None), device)
+    assertThat(device.expandedStorage).isEqualTo(None)
   }
 
   @Test
   fun customIsValid() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("513")
@@ -258,20 +253,17 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onTooltips().assertCountEquals(0)
-
-    assertEquals(
-      device.copy(expandedStorage = Custom(StorageCapacity(513, StorageCapacity.Unit.MB))),
-      device,
-    )
+    assertThat(device.expandedStorage)
+      .isEqualTo(Custom(StorageCapacity(513, StorageCapacity.Unit.MB)))
   }
 
   @Test
   fun customIsEmpty() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("")
@@ -281,16 +273,16 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Specify an SD card size").assertIsDisplayed()
-    assertEquals(device.copy(expandedStorage = null), device)
+    assertThat(device.expandedStorage).isNull()
   }
 
   @Test
   fun customIsLessThanMinAndHasPlayStore() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, true, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, true, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("99")
@@ -302,17 +294,16 @@ class StorageGroupTest {
     composeRule
       .onNodeWithText("The SD card for Play Store devices must be at least 100M")
       .assertIsDisplayed()
-
-    assertEquals(device.copy(expandedStorage = null), device)
+    assertThat(device.expandedStorage).isNull()
   }
 
   @Test
   fun customIsLessThanMin() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("9")
@@ -322,16 +313,16 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("The SD card must be at least 10M").assertIsDisplayed()
-    assertEquals(device.copy(expandedStorage = null), device)
+    assertThat(device.expandedStorage).isNull()
   }
 
   @Test
   fun customIsOverflow() {
     // Arrange
-    var device by mutableStateOf(TestDevices.pixel6())
+    val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("8796093022208")
@@ -341,22 +332,19 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("SD card size is too large").assertIsDisplayed()
-    assertEquals(device.copy(expandedStorage = null), device)
+    assertThat(device.expandedStorage).isNull()
   }
 
   @Test
   fun existingCustomExpandedStorageDoesntEqualState() {
     // Arrange
-    var device by
-      mutableStateOf(
-        TestDevices.pixel6()
-          .copy(
-            existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
-          )
-      )
-
+    val device =
+      TestDevices.pixel6().apply {
+        existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
+      }
     val state = StorageGroupState(device)
-    setContent { StorageGroup(device, state, false, false, onDeviceChange = { device = it }) }
+
+    setContent { StorageGroup(device, state, false, false) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("513")
