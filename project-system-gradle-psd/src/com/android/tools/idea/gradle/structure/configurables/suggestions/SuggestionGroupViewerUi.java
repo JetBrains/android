@@ -15,10 +15,6 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.panels.VerticalLayout;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import java.awt.BorderLayout;
-import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,7 +24,6 @@ public class SuggestionGroupViewerUi {
   protected JPanel myPanel;
 
   public SuggestionGroupViewerUi(String borderTitle) {
-    setupUI();
     myView.setLayout(new VerticalLayout(0));
     myView.setBorder(IdeBorderFactory.createBorder());
     myView.setLayout(new BoxLayout(myView, BoxLayout.Y_AXIS));
@@ -43,16 +38,5 @@ public class SuggestionGroupViewerUi {
   @NotNull
   public JPanel getPanel() {
     return myPanel;
-  }
-
-  private void setupUI() {
-    myPanel = new JPanel();
-    myPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myView = new JPanel();
-    myView.setLayout(new BorderLayout(0, 0));
-    myPanel.add(myView, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
-                                            0, false));
   }
 }

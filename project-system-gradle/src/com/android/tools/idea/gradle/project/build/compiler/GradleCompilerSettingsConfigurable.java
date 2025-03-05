@@ -22,11 +22,6 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
-import java.awt.Insets;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +53,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
     myDisplayName = displayName;
-    setupUI();
     myCompilerConfiguration = CompilerConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
   }
@@ -139,71 +133,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
     myCommandLineOptionsEditor = new RawCommandLineEditor();
     myCommandLineOptionsEditor.setDialogCaption("Command-line Options");
-  }
-
-  private void setupUI() {
-    createUIComponents();
-    myContentPanel = new JPanel();
-    myContentPanel.setLayout(new GridLayoutManager(11, 3, new Insets(0, 0, 0, 0), -1, -1));
-    final Spacer spacer1 = new Spacer();
-    myContentPanel.add(spacer1, new GridConstraints(10, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    myParallelBuildCheckBox = new JCheckBox();
-    myParallelBuildCheckBox.setText("Compile independent modules in parallel (may require larger heap size)");
-    myContentPanel.add(myParallelBuildCheckBox, new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
-                                                                    null, null, null, 0, false));
-    myContentPanel.add(myParallelBuildDocHyperlinkLabel,
-                       new GridConstraints(3, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
-                                           false));
-    final JBLabel jBLabel1 = new JBLabel();
-    jBLabel1.setText("<html><br></html>");
-    myContentPanel.add(jBLabel1, new GridConstraints(4, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final JBLabel jBLabel2 = new JBLabel();
-    jBLabel2.setText("<html><b>Note:</b> These settings are used for <b>compiling</b> Gradle-based Android projects.</html>");
-    myContentPanel.add(jBLabel2, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final JBLabel jBLabel3 = new JBLabel();
-    jBLabel3.setText("<html><br></html>");
-    myContentPanel.add(jBLabel3, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final JBLabel jBLabel4 = new JBLabel();
-    jBLabel4.setText("<html><br></html>");
-    myContentPanel.add(jBLabel4, new GridConstraints(7, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final JBLabel jBLabel5 = new JBLabel();
-    jBLabel5.setText("Command-line Options:");
-    myContentPanel.add(jBLabel5, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    myContentPanel.add(myCommandLineOptionsEditor,
-                       new GridConstraints(5, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myContentPanel.add(myCommandLineOptionsDocHyperlinkLabel,
-                       new GridConstraints(6, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
-                                           false));
-    myContinueBuildWithErrors = new JCheckBox();
-    myContinueBuildWithErrors.setText("Continue the build after failures");
-    myContentPanel.add(myContinueBuildWithErrors, new GridConstraints(8, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
-                                                                      null, null, null, 0, false));
-    final JBLabel jBLabel6 = new JBLabel();
-    jBLabel6.setText("<html><br></html>");
-    myContentPanel.add(jBLabel6, new GridConstraints(9, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
   }
 
   @NotNull

@@ -26,15 +26,9 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import java.awt.Insets;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +59,6 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private GradleAndroidModel myAndroidModel;
 
   public GradleSignStep(@NotNull ExportSignedPackageWizard exportSignedPackageWizard) {
-    setupUI();
     myWizard = exportSignedPackageWizard;
 
     myBuildVariantsList.setModel(myBuildVariantsListModel);
@@ -172,39 +165,5 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   String getApkPathPropertyName(String moduleName, TargetType targetType) {
     return (targetType.equals(ExportSignedPackageWizard.APK) ? PROPERTY_APK_PATH : PROPERTY_BUNDLE_PATH) +
            (isNullOrEmpty(moduleName) ? "" : "For" + moduleName);
-  }
-
-  private void setupUI() {
-    myContentPanel = new JPanel();
-    myContentPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-    final JBLabel jBLabel1 = new JBLabel();
-    jBLabel1.setText("Destination Folder:");
-    jBLabel1.setDisplayedMnemonic('D');
-    jBLabel1.setDisplayedMnemonicIndex(0);
-    myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final Spacer spacer1 = new Spacer();
-    myContentPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    myApkPathField = new TextFieldWithBrowseButton();
-    myContentPanel.add(myApkPathField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                           null, null, 0, false));
-    final JBLabel jBLabel2 = new JBLabel();
-    jBLabel2.setText("Build Variants:");
-    jBLabel2.setDisplayedMnemonic('B');
-    jBLabel2.setDisplayedMnemonicIndex(0);
-    myContentPanel.add(jBLabel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
-                                                     0, false));
-    final JBScrollPane jBScrollPane1 = new JBScrollPane();
-    myContentPanel.add(jBScrollPane1, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, false));
-    myBuildVariantsList = new JBList();
-    jBScrollPane1.setViewportView(myBuildVariantsList);
-    jBLabel1.setLabelFor(myApkPathField);
   }
 }

@@ -32,15 +32,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -102,7 +96,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     boolean processorAlreadyConfiguredForJava8Dialog
   ) {
     super(processor.getProject());
-    setupUI();
     myProcessor = processor;
     myJava8Processor = java8Processor;
     myR8FullModeProcessor = r8FullModeProcessor;
@@ -145,12 +138,12 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
                 myProcessor, myJava8Processor, myR8FullModeProcessor, hasChangesInBuildFiles, true, true);
               return dialog.showAndGet();
             });
-          if (runProcessor) {
-            DumbService.getInstance(myProcessor.getProject()).smartInvokeLater(() -> myProcessor.run());
-          }
-          else {
-            notifyCancelledUpgrade(myProcessor.getProject(), myProcessor.getCurrent());
-          }
+            if (runProcessor) {
+              DumbService.getInstance(myProcessor.getProject()).smartInvokeLater(() -> myProcessor.run());
+            }
+            else {
+              notifyCancelledUpgrade(myProcessor.getProject(), myProcessor.getCurrent());
+            }
         }
       };
       myProcessor.setBackFromPreviewAction(backAction);
@@ -194,7 +187,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     if (myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
       JBLabel label = new JBLabel("Action on no explicit Java language level: ");
       myJava8SettingsPanel.add(label);
-      myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[]{
+      myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[] {
         NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
         NoLanguageLevelAction.INSERT_OLD_DEFAULT
       });
@@ -209,7 +202,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     if (myR8FullModeProcessor.isEnabled() && !myR8FullModeProcessor.isAlwaysNoOpForProject()) {
       JBLabel label = new JBLabel("Action on no android.enableR8.fullMode property: ");
       myR8FullModeSettingsPanel.add(label);
-      myNoPropertyPresentActionComboBox = new ComboBox<>(new NoPropertyPresentAction[]{
+      myNoPropertyPresentActionComboBox = new ComboBox<>(new NoPropertyPresentAction[] {
         NoPropertyPresentAction.ACCEPT_NEW_DEFAULT,
         NoPropertyPresentAction.INSERT_OLD_DEFAULT
       });
@@ -232,7 +225,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   @Override
   protected Action[] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorDialog.PreviewRefactoringAction();
-    return ArrayUtil.mergeArrays(super.createActions(), new Action[]{previewAction});
+    return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }
 
   @Override
@@ -273,30 +266,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     Action okAction = super.getOKAction();
     okAction.putValue(NAME, "Upgrade");
     return okAction;
-  }
-
-  private void setupUI() {
-    myPanel = new JPanel();
-    myPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
-    final Spacer spacer1 = new Spacer();
-    myPanel.add(spacer1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    myEditorPane = new JEditorPane();
-    myPanel.add(myEditorPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null,
-                                                  new Dimension(150, 50), null, 0, false));
-    myJava8SettingsPanel = new JPanel();
-    myJava8SettingsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-    myPanel.add(myJava8SettingsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, false));
-    myR8FullModeSettingsPanel = new JPanel();
-    myR8FullModeSettingsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-    myPanel.add(myR8FullModeSettingsPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               null, null, null, 0, false));
   }
 
   private class PreviewRefactoringAction extends DialogWrapperAction {

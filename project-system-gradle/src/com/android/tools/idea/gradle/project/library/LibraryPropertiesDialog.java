@@ -29,8 +29,6 @@ import com.intellij.openapi.ui.ex.MultiLineLabel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +57,6 @@ public class LibraryPropertiesDialog extends DialogWrapper {
 
   public LibraryPropertiesDialog(@NotNull Project project, @NotNull Library library) {
     super(project);
-    setupUI();
     myProject = project;
     myLibrary = library;
     init();
@@ -127,25 +124,6 @@ public class LibraryPropertiesDialog extends DialogWrapper {
   @VisibleForTesting
   LibraryRootsComponent getLibraryEditorComponent() {
     return myLibraryEditorComponent;
-  }
-
-  private void setupUI() {
-    myMainPanel = new JPanel();
-    myMainPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myTreePanel = new JPanel();
-    myTreePanel.setLayout(new BorderLayout(0, 0));
-    myMainPanel.add(myTreePanel, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                     new Dimension(600, 400), null, 0, false));
-    myIconLabel = new JBLabel();
-    myMainPanel.add(myIconLabel,
-                    new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, 1, 1, null, null, null, 0,
-                                        false));
-    myNameLabel = new JBLabel();
-    myMainPanel.add(myNameLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                     GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
-                                                     null, 0, false));
   }
 
   private static class SourcesAndDocsOnlyEditor extends ExistingLibraryEditor {

@@ -32,17 +32,11 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Insets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -51,15 +45,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
@@ -100,7 +91,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       boolean useGradleForSigning,
                       @NotNull List<AndroidFacet> facets) {
-    setupUI();
     myWizard = wizard;
     myFacets = facets;
     myUseGradleForSigning = useGradleForSigning;
@@ -166,159 +156,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       .setValue(getModuleProperty(myIsBundle), selectedItem == null ? "" : selectedItem.getModule().getName());
     mySelection = selectedItem;
     showGradleError(!isGradleValid(myWizard.getTargetType()));
-  }
-
-  private void setupUI() {
-    myContentPanel = new JPanel();
-    myContentPanel.setLayout(new GridLayoutManager(9, 2, new Insets(0, 0, 0, 0), -1, -1));
-    final JLabel label1 = new JLabel();
-    label1.setText("Module");
-    label1.setDisplayedMnemonic('M');
-    label1.setDisplayedMnemonicIndex(0);
-    myContentPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
-                                                   false));
-    myModuleCombo = new JComboBox();
-    myContentPanel.add(myModuleCombo, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
-                                                          null, 0, false));
-    final JSeparator separator1 = new JSeparator();
-    myContentPanel.add(separator1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                       GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(-1, 1), new Dimension(-1, 24), new Dimension(-1, 1), 0, false));
-    myKeyStorePathLabel = new JBLabel();
-    myKeyStorePathLabel.setText("Key store path");
-    myKeyStorePathLabel.setDisplayedMnemonic('K');
-    myKeyStorePathLabel.setDisplayedMnemonicIndex(0);
-    myContentPanel.add(myKeyStorePathLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                                null, null, 0, false));
-    myKeyStorePasswordLabel = new JBLabel();
-    myKeyStorePasswordLabel.setText("Key store password");
-    myKeyStorePasswordLabel.setDisplayedMnemonic('P');
-    myKeyStorePasswordLabel.setDisplayedMnemonicIndex(10);
-    myContentPanel.add(myKeyStorePasswordLabel, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                                    null, null, null, 0, false));
-    myKeyStorePasswordField = new JPasswordField();
-    myContentPanel.add(myKeyStorePasswordField,
-                       new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                           new Dimension(150, -1), null, 0, false));
-    myKeyAliasLabel = new JBLabel();
-    myKeyAliasLabel.setText("Key alias");
-    myKeyAliasLabel.setDisplayedMnemonic('E');
-    myKeyAliasLabel.setDisplayedMnemonicIndex(1);
-    myContentPanel.add(myKeyAliasLabel, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
-                                                            null, 0, false));
-    myKeyPasswordLabel = new JBLabel();
-    myKeyPasswordLabel.setText("Key password");
-    myKeyPasswordLabel.setDisplayedMnemonic('W');
-    myKeyPasswordLabel.setDisplayedMnemonicIndex(8);
-    myContentPanel.add(myKeyPasswordLabel, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               null, null, 0, false));
-    myKeyPasswordField = new JPasswordField();
-    myContentPanel.add(myKeyPasswordField, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                               GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               new Dimension(150, -1), null, 0, false));
-    myKeyAliasField = new TextFieldWithBrowseButton.NoPathCompletion();
-    myContentPanel.add(myKeyAliasField, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                            GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                            null, null, 0, false));
-    myKeyStorePathField = new JTextField();
-    myContentPanel.add(myKeyStorePathField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
-                                                                null, new Dimension(150, -1), null, 0, false));
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myContentPanel.add(panel1, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myCreateKeyStoreButton = new JButton();
-    myCreateKeyStoreButton.setText("Create new...");
-    myCreateKeyStoreButton.setMnemonic('C');
-    myCreateKeyStoreButton.setDisplayedMnemonicIndex(0);
-    panel1.add(myCreateKeyStoreButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myLoadKeyStoreButton = new JButton();
-    myLoadKeyStoreButton.setText("Choose existing...");
-    myLoadKeyStoreButton.setMnemonic('H');
-    myLoadKeyStoreButton.setDisplayedMnemonicIndex(1);
-    panel1.add(myLoadKeyStoreButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final Spacer spacer1 = new Spacer();
-    panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-    myRememberPasswordCheckBox = new JBCheckBox();
-    myRememberPasswordCheckBox.setText("Remember passwords");
-    myRememberPasswordCheckBox.setMnemonic('R');
-    myRememberPasswordCheckBox.setDisplayedMnemonicIndex(0);
-    myContentPanel.add(myRememberPasswordCheckBox, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                                       null, null, null, 0, false));
-    myGradlePanel = new JPanel();
-    myGradlePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myGradlePanel.setEnabled(false);
-    myContentPanel.add(myGradlePanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myGradleWarning = new JBLabel();
-    loadLabelText(myGradleWarning,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.bundle.gradle.error"));
-    myGradlePanel.add(myGradleWarning, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
-    label1.setLabelFor(myModuleCombo);
-    myKeyStorePathLabel.setLabelFor(myKeyStorePathField);
-    myKeyStorePasswordLabel.setLabelFor(myKeyStorePasswordField);
-    myKeyAliasLabel.setLabelFor(myKeyAliasField);
-    myKeyPasswordLabel.setLabelFor(myKeyPasswordField);
-  }
-
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
-  private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
-    }
   }
 
   @NotNull

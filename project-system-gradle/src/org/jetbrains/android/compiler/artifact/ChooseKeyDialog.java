@@ -7,9 +7,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBRadioButton;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.exportSignedPackage.NewKeyForm;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +37,6 @@ public class ChooseKeyDialog extends DialogWrapper {
                          @NotNull List<String> existingKeys,
                          @Nullable String keyToSelect) {
     super(project);
-    setupUI();
     myProject = project;
     myKeyStorePath = keyStorePath;
     myKeyStorePassword = password;
@@ -105,42 +101,6 @@ public class ChooseKeyDialog extends DialogWrapper {
 
   public boolean isNewKeyCreated() {
     return myCreateNewKeyRadioButton.isSelected();
-  }
-
-  private void setupUI() {
-    myPanel = new JPanel();
-    myPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myUseExistingKeyRadioButton = new JBRadioButton();
-    myUseExistingKeyRadioButton.setText("Use an existing key:");
-    myUseExistingKeyRadioButton.setMnemonic('U');
-    myUseExistingKeyRadioButton.setDisplayedMnemonicIndex(0);
-    myPanel.add(myUseExistingKeyRadioButton,
-                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final Spacer spacer1 = new Spacer();
-    myPanel.add(spacer1, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    myCreateNewKeyRadioButton = new JBRadioButton();
-    myCreateNewKeyRadioButton.setText("Create a new key");
-    myCreateNewKeyRadioButton.setMnemonic('N');
-    myCreateNewKeyRadioButton.setDisplayedMnemonicIndex(9);
-    myPanel.add(myCreateNewKeyRadioButton,
-                new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myNewKeyPanel = new JPanel();
-    myNewKeyPanel.setLayout(new BorderLayout(0, 0));
-    myPanel.add(myNewKeyPanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                   null, 2, false));
-    myKeyCombo = new JComboBox();
-    myPanel.add(myKeyCombo, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
-                                                false));
-    ButtonGroup buttonGroup;
-    buttonGroup = new ButtonGroup();
-    buttonGroup.add(myUseExistingKeyRadioButton);
-    buttonGroup.add(myCreateNewKeyRadioButton);
   }
 
   private class MyNewKeyForm extends NewKeyForm {

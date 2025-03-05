@@ -33,10 +33,6 @@ public class ConfigPanelUi {
   protected JPanel myComponentPanel;
   protected JBScrollPane myScrollPane;
 
-  public ConfigPanelUi() {
-    setupUI();
-  }
-
   public final JComponent getUiComponent() {
     return myComponentPanel;
   }
@@ -96,15 +92,5 @@ public class ConfigPanelUi {
         0,
         0));
     }
-  }
-
-  private void setupUI() {
-    myComponentPanel = new JPanel();
-    myComponentPanel.setLayout(new BorderLayout(0, 0));
-    myScrollPane = new JBScrollPane();
-    myComponentPanel.add(myScrollPane, BorderLayout.CENTER);
-    myPanel = new JPanel();
-    myPanel.setLayout(new GridBagLayout());
-    myScrollPane.setViewportView(myPanel);
   }
 }

@@ -18,10 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.VerticalLayout;
 
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Insets;
 import javax.swing.*;
 
 public abstract class SuggestionsViewerUi {
@@ -29,19 +25,6 @@ public abstract class SuggestionsViewerUi {
   protected JPanel myMainPanel;
 
   public SuggestionsViewerUi() {
-    setupUI();
     myMainPanel.setLayout(new VerticalLayout(0));
-  }
-
-  private void setupUI() {
-    myMainPanel = new JPanel();
-    myMainPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 4, 0, 4), -1, -1));
-    myEmptyIssuesLabel = new JBLabel();
-    myEmptyIssuesLabel.setFontColor(UIUtil.FontColor.BRIGHTER);
-    myEmptyIssuesLabel.setHorizontalAlignment(0);
-    myEmptyIssuesLabel.setText("No messages to display");
-    myMainPanel.add(myEmptyIssuesLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
-                                                            null, 0, false));
   }
 }
