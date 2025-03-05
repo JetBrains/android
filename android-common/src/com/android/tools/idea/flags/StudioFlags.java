@@ -2073,6 +2073,12 @@ public final class StudioFlags {
                     "offered later to the user if they accept the first line of the completion.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
+                    "Enable syntax highlighting for inline suggestions.",
+                    "When inline completions will use lexical syntax highlighting colors.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
                     "Enable sending context with compiler error queries.",
