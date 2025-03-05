@@ -130,7 +130,7 @@ private fun DataContext.projectNeedsBuild() = getData(CommonDataKeys.PROJECT)?.n
 
 private fun DataContext.isRefreshing() = isPreviewRefreshing(this)
 
-private fun DataContext.hasErrors() = isPreviewHasErrors(this) || hasSceneViewErrors(this)
+private fun DataContext.hasErrors() = previewHasSyntaxErrors(this) || hasSceneViewErrors(this)
 
 /**
  * Wraps each action to control its enabled state.
@@ -160,15 +160,12 @@ fun isPreviewRefreshing(dataContext: DataContext) =
   dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.isRefreshing == true
 
 /**
- * Returns if the preview attached to the given [DataContext] has errors or not. The preview needs
- * to have set a [PreviewViewModelStatus] using the [PREVIEW_VIEW_MODEL_STATUS] key in the
- * [DataContext].
+ * Returns if the preview file attached to the given [DataContext] has syntax errors or not.
  *
  * @param dataContext
  */
-fun isPreviewHasErrors(dataContext: DataContext) =
-  dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasSyntaxErrors == true ||
-    dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasRenderErrors == true
+private fun previewHasSyntaxErrors(dataContext: DataContext) =
+  dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasSyntaxErrors == true
 
 fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
