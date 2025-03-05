@@ -41,7 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -259,10 +258,7 @@ public class GoToApkLocationTask {
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ActionCenter.getToolWindow(project);
-      if (tw != null) {
-        tw.activate(null, false);
-      }
+      ActionCenter.activateLog(project, false);
     }
 
     @Override
