@@ -16,8 +16,10 @@
 package com.android.tools.idea.lint;
 
 import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
+import static com.android.tools.lint.checks.GradleDetector.KEY_IDE_AGP_VERSION;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.resources.ResourceItem;
@@ -55,7 +57,6 @@ import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -93,8 +94,6 @@ import org.xmlpull.v1.XmlPullParser;
  * Android specific implementation of {@linkplain LintIdeClient}
  */
 public class AndroidLintIdeClient extends LintIdeClient {
-  protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.AndroidLintIdeClient");
-
   @NonNull protected Project myProject;
 
   public AndroidLintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
@@ -166,6 +165,14 @@ public class AndroidLintIdeClient extends LintIdeClient {
       }
     }
     return platformLookup;
+  }
+
+  @Override
+  public @Nullable Object getClientProperty(@NotNull String key) {
+    if (key.equals(KEY_IDE_AGP_VERSION)) {
+      return ANDROID_GRADLE_PLUGIN_VERSION;
+    }
+    return super.getClientProperty(key);
   }
 
   @Nullable
@@ -437,13 +444,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
     return super.getResources(project, scope);
   }
-
-  @FunctionalInterface
-  interface ResourceHandleProvider {
-    Location.ResourceItemHandle createResourceItemHandle(@NonNull ResourceItem item, boolean nameOnly, boolean valueOnly);
-  }
-
-
 
   @Override
   @NonNull

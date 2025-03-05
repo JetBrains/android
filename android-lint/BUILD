@@ -37,6 +37,7 @@ iml_module(
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
+        "//tools/adt/idea/.idea/libraries:agp-version",
     ],
 )
 
