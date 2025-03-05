@@ -96,6 +96,7 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runReadAction
@@ -658,7 +659,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
       // Progress indicators must be disposed in the ui thread
-      launch(Dispatchers.Main) { Disposer.dispose(refreshProgressIndicator) }
+      launch(Dispatchers.EDT) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
@@ -844,7 +845,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         stopInteractivePreview()
       }
       is PreviewMode.Focus -> {
-        withContext(Dispatchers.Main) { previewView.focusMode = null }
+        withContext(Dispatchers.EDT) { previewView.focusMode = null }
       }
       is PreviewMode.AnimationInspection -> {
         stopAnimationInspector()
@@ -866,7 +867,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Focus -> {
         invalidateAndRefresh()
         surface.repaint()
-        withContext(Dispatchers.Main) { previewView.focusMode = FocusMode(surface) }
+        withContext(Dispatchers.EDT) { previewView.focusMode = FocusMode(surface) }
       }
       is PreviewMode.AnimationInspection -> {
         startAnimationInspector(mode.selected)
@@ -880,7 +881,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
-    withContext(Dispatchers.Main) {
+    withContext(Dispatchers.EDT) {
       createAnimationInspector(element)?.also {
         Disposer.register(this@CommonPreviewRepresentation, it)
         currentAnimationPreview = it
@@ -897,8 +898,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
     currentAnimationPreview?.let {
-      // The animation inspector should be disposed on the Dispatchers.Main
-      withContext(Dispatchers.Main) { Disposer.dispose(it) }
+      // The animation inspector should be disposed on the Dispatchers.EDT
+      withContext(Dispatchers.EDT) { Disposer.dispose(it) }
     }
     currentAnimationPreview = null
     invalidateAndRefresh()
@@ -918,7 +919,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
-    withContext(Dispatchers.Main) {
+    withContext(Dispatchers.EDT) {
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
     }
   }
