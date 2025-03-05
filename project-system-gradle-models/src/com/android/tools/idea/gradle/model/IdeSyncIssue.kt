@@ -308,6 +308,12 @@ interface IdeSyncIssue {
      */
     const val TYPE_MISSING_COMPOSE_COMPILER_GRADLE_PLUGIN = 56
 
+    /**
+     * Disabling the library constraints results in better sync performance, this will be
+     * surfaced to the user via this issue.
+     */
+    const val TYPE_LIBRARY_CONSTRAINTS_SHOULD_BE_DISABLED = 57
+
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).

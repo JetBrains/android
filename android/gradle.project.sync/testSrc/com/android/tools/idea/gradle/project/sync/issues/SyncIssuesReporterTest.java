@@ -335,7 +335,7 @@ public class SyncIssuesReporterTest {
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(16);
+    assertThat(strategies).hasSize(17);
 
     strategy = strategies.get(TYPE_COMPILE_SDK_VERSION_TOO_HIGH);
     assertThat(strategy).isInstanceOf(CompileSdkVersionTooHighReporter.class);
@@ -384,6 +384,9 @@ public class SyncIssuesReporterTest {
 
     strategy = strategies.get(IdeSyncIssue.TYPE_MISSING_COMPOSE_COMPILER_GRADLE_PLUGIN);
     assertThat(strategy).isInstanceOf(MissingComposeCompilerGradlePluginReporter.class);
+
+    strategy = strategies.get(IdeSyncIssue.TYPE_LIBRARY_CONSTRAINTS_SHOULD_BE_DISABLED);
+    assertThat(strategy).isInstanceOf(LibraryConstraintsEnabledReporter.class);
   }
 
   @Test

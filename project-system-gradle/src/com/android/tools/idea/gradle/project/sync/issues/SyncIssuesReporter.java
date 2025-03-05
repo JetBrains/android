@@ -68,7 +68,8 @@ public class SyncIssuesReporter {
       new AgpUsedJavaTooLowReporter(),
       new ExceptionSyncIssuesReporter(),
       new CompileSdkVersionTooHighReporter(),
-      new MissingComposeCompilerGradlePluginReporter()
+      new MissingComposeCompilerGradlePluginReporter(),
+      new LibraryConstraintsEnabledReporter()
     );
   }
 
