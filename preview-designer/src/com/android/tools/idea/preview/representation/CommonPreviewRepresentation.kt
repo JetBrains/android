@@ -948,7 +948,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         when {
           project.needsBuild ||
             previewViewModel.hasSyntaxErrors ||
-            previewViewModel.hasErrorsAndNeedsBuild ||
+            previewViewModel.hasRenderErrors ||
             previewViewModel.isOutOfDate -> null
           mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
           else -> null

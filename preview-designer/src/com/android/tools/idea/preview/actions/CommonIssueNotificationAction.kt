@@ -52,7 +52,7 @@ private fun getStatus(project: Project, previewStatus: PreviewViewModelStatus) =
     // Build/Syntax/Render errors
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
-    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
+    previewStatus.hasRenderErrors -> PreviewStatus.RenderIssues
 
     // Fast preview refresh/failures
     project.fastPreviewManager.isAutoDisabled -> PreviewStatus.FastPreviewFailed
@@ -76,7 +76,7 @@ private fun getStatusForFastPreview(project: Project, previewStatus: PreviewView
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
     project.needsBuild -> PreviewStatus.NeedsBuild
-    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
+    previewStatus.hasRenderErrors -> PreviewStatus.RenderIssues
     project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
 
     // Up-to-date

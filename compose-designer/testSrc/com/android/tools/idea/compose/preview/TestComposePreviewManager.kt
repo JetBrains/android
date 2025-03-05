@@ -23,7 +23,7 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   var currentStatus =
     ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
+      hasRenderErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,

@@ -168,7 +168,7 @@ fun isPreviewRefreshing(dataContext: DataContext) =
  */
 fun isPreviewHasErrors(dataContext: DataContext) =
   dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasSyntaxErrors == true ||
-    dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasErrorsAndNeedsBuild == true
+    dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasRenderErrors == true
 
 fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true

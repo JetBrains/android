@@ -144,7 +144,7 @@ class FastPreviewUtilTest {
     val testPreviewViewModelStatus =
       object : PreviewViewModelStatus {
         override var isRefreshing: Boolean = false
-        override var hasErrorsAndNeedsBuild: Boolean = false
+        override var hasRenderErrors: Boolean = false
         override var hasSyntaxErrors: Boolean = false
         override var isOutOfDate: Boolean = false
         override val areResourcesOutOfDate: Boolean = false

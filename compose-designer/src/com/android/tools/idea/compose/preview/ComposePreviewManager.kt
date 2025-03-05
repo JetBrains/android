@@ -30,8 +30,8 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
   /**
    * Status of the preview.
    *
-   * @param hasErrorsAndNeedsBuild true if the project has any runtime errors that prevent the
-   *   preview being up to date. For example missing classes.
+   * @param hasRenderErrors true if the project has any runtime errors that prevent the preview
+   *   being up to date. For example missing classes.
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax
    *   errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
@@ -45,7 +45,7 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
    * TODO(b/328056861) replace the use of this data class with PreviewViewModelStatus
    */
   data class Status(
-    override val hasErrorsAndNeedsBuild: Boolean,
+    override val hasRenderErrors: Boolean,
     override val hasSyntaxErrors: Boolean,
     override val isOutOfDate: Boolean,
     override val areResourcesOutOfDate: Boolean,
@@ -53,7 +53,7 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
     private val psiFilePointer: SmartPsiElementPointer<PsiFile>?,
   ) : PreviewViewModelStatus {
     /** True if the preview has errors that will need a refresh */
-    val hasErrors = hasErrorsAndNeedsBuild || hasSyntaxErrors
+    val hasErrors = hasRenderErrors || hasSyntaxErrors
 
     override val previewedFile: PsiFile?
       get() {

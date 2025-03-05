@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class NopComposePreviewManager : ComposePreviewManager {
   override fun status() =
     ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
+      hasRenderErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,

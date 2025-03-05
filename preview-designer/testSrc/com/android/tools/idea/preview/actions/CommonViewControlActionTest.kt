@@ -41,7 +41,7 @@ class CommonViewControlActionTest {
   private val viewModelStatus =
     object : PreviewViewModelStatus {
       override var isRefreshing: Boolean = true
-      override var hasErrorsAndNeedsBuild: Boolean = true
+      override var hasRenderErrors: Boolean = true
       override var hasSyntaxErrors: Boolean = true
       override var isOutOfDate: Boolean = true
       override val areResourcesOutOfDate: Boolean = true

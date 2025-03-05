@@ -22,7 +22,7 @@ import com.intellij.psi.PsiFile
  * update directly (e.g. Actions).
  *
  * @property isRefreshing true if the view is currently refreshing.
- * @property hasErrorsAndNeedsBuild true if the project has any runtime errors that prevent the
+ * @property hasRenderErrors true if any preview in a file has any render errors that prevent the
  *   preview being up-to-date. For example missing classes.
  * @property hasSyntaxErrors true if the preview is displaying content of a file that has syntax
  *   errors.
@@ -35,7 +35,7 @@ import com.intellij.psi.PsiFile
 interface PreviewViewModelStatus {
   val isRefreshing: Boolean
 
-  val hasErrorsAndNeedsBuild: Boolean
+  val hasRenderErrors: Boolean
 
   val hasSyntaxErrors: Boolean
 

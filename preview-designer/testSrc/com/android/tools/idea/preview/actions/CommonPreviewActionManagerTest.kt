@@ -68,12 +68,11 @@ class CommonPreviewActionManagerTest {
   @Test
   fun testToolbarActionsDisabledWhenPreviewHasErrors() {
     // Simulate different preview statuses
-    val errorStatus =
-      Status(hasErrorsAndNeedsBuild = true, hasSyntaxErrors = true, isRefreshing = false)
+    val errorStatus = Status(hasRenderErrors = true, hasSyntaxErrors = true, isRefreshing = false)
     val refreshingStatus =
-      Status(hasErrorsAndNeedsBuild = false, hasSyntaxErrors = false, isRefreshing = true)
+      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = true)
     val noErrorStatus =
-      Status(hasErrorsAndNeedsBuild = false, hasSyntaxErrors = false, isRefreshing = false)
+      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
 
     val statusesToEnable =
       mapOf(
@@ -122,7 +121,7 @@ class CommonPreviewActionManagerTest {
     whenever(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
 
     val noErrorStatus =
-      Status(hasErrorsAndNeedsBuild = false, hasSyntaxErrors = false, isRefreshing = false)
+      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
     val dataContext =
       SimpleDataContext.builder()
         .add(CommonDataKeys.PROJECT, projectRule.project)
@@ -238,7 +237,7 @@ class CommonPreviewActionManagerTest {
 }
 
 private data class Status(
-  override val hasErrorsAndNeedsBuild: Boolean,
+  override val hasRenderErrors: Boolean,
   override val hasSyntaxErrors: Boolean,
   override val isOutOfDate: Boolean = false,
   override val areResourcesOutOfDate: Boolean = false,

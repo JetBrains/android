@@ -1004,7 +1004,7 @@ class ComposePreviewRepresentation(
     // preview is out of date.
     val newStatus =
       ComposePreviewManager.Status(
-        hasErrorsAndNeedsBuild = !isRefreshing && hasErrorsAndNeedsBuild(),
+        hasRenderErrors = !isRefreshing && hasErrorsAndNeedsBuild(),
         hasSyntaxErrors = !isRefreshing && hasSyntaxErrors(),
         isOutOfDate =
           !isRefreshing &&
