@@ -164,7 +164,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     private fun KaSession.getAndroidResourceType(symbol: KaSymbol): ResourceType? {
-        val elementType = symbol.containingSymbol as? KaClassSymbol ?: return null
+        val elementType = symbol.containingDeclaration as? KaClassSymbol ?: return null
         val classId = elementType.classId ?: return null
         val outerClassId = classId.outerClassId ?: return null
         if (R_CLASS != outerClassId.shortClassName.asString()) return null
