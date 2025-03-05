@@ -107,7 +107,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   fun testAddSupportDependencyWithMatchInSubModule() {
     setupProject(
       appDependOnLibrary = true,
-      additionalLibrary1DeclaredDependencies = listOf("com.android.support:appcompat-v7:+"),
+      additionalLibrary1DeclaredDependencies = listOf("com.android.support:appcompat-v7:23.1.1"),
       additionalLibrary1ResolvedDependencies = listOf(ideAndroidLibrary("com.android.support:appcompat-v7:23.1.1"))
     )
     // Check that the version is picked up from one of the sub modules
@@ -141,7 +141,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         ideAndroidLibrary("androidx.appcompat:appcompat:2.0.0"),
         ideAndroidLibrary("androidx.appcompat:appcompat:1.2.0")
       ),
-      additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0")
+      additionalAppDeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -160,6 +160,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   fun testProjectWithIncompatibleIndirectDependencies() {
     setupProject(
+      appDependOnLibrary = true,
       additionalAppResolvedDependencies = listOf(
         ideAndroidLibrary("androidx.appcompat:appcompat:2.0.0"),
         ideAndroidLibrary("androidx.core:core:1.0.0")
@@ -190,7 +191,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalAppResolvedDependencies = listOf(
         ideAndroidLibrary("com.google.android.material:material:1.3.0")
       ),
-      additionalLibrary1DeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
+      additionalAppDeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
     )
 
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -251,6 +252,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
   fun testNewestSameMajorIsChosenFromExistingIndirectDependency() {
     setupProject(
+      appDependOnLibrary = true,
       additionalAppResolvedDependencies = listOf(
         ideAndroidLibrary("androidx.appcompat:appcompat:1.0.0")
       ),
