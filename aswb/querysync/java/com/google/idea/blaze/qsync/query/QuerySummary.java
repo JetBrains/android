@@ -59,6 +59,11 @@ public interface QuerySummary {
   ImmutableMultimap<Path, Path> getReverseSubincludeMap();
 
   /**
+   * Returns the set of labels of all files includes from BUILD files.
+   */
+  ImmutableSet<Label> getAllBuildIncludedFiles();
+
+  /**
    * Returns the parent package of a given build package.
    *
    * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
@@ -108,6 +113,11 @@ public interface QuerySummary {
     @Override
     public ImmutableMultimap<Path, Path> getReverseSubincludeMap() {
       return ImmutableMultimap.of();
+    }
+
+    @Override
+    public ImmutableSet<Label> getAllBuildIncludedFiles() {
+      return ImmutableSet.of();
     }
 
     @Override

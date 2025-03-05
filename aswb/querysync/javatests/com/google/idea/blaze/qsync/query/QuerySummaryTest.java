@@ -144,11 +144,40 @@ public class QuerySummaryTest {
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
-        .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/buildincludes:includes.bzl"));
+        .containsExactly(
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
+        );
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
-            TestData.ROOT.resolve("buildincludes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/BUILD"));
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
+            TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
+            TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
+            TestData.ROOT.resolve("buildincludes/BUILD"),
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
+            TestData.ROOT.resolve("buildincludes/BUILD")
+        );
+  }
+
+  @Test
+  public void testBuildAllIncludes() throws IOException {
+    QuerySummary qs =
+        QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
+    Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
+    assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
+    QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
+    assertThat(buildSrc.subincliudes())
+        .containsExactly(
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
+        );
+    assertThat(qs.getAllBuildIncludedFiles())
+        .containsExactly(
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
+        );
   }
 
   @Test

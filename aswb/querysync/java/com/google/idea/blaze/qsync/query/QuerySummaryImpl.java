@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -505,6 +506,17 @@ public abstract class QuerySummaryImpl implements QuerySummary {
                             .map(Label::toFilePath),
                     HashMultimap::create));
     return ImmutableMultimap.copyOf(Multimaps.invertFrom(includes, HashMultimap.create()));
+  }
+
+  /**
+   * Returns the set of labels of all files includes from BUILD files.
+   */
+  @Memoized
+  @Override
+  public ImmutableSet<Label> getAllBuildIncludedFiles() {
+    return getSourceFilesMap().values().stream()
+      .flatMap(it -> it.subincliudes().stream())
+      .collect(toImmutableSet());
   }
 
   /**
