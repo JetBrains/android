@@ -132,11 +132,11 @@ class SceneViewTopPanel(
       val popup =
         JBPopupFactory.getInstance()
           .createActionGroupPopup(
-            null,
-            actionGroup,
-            e.dataContext,
-            JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-            false,
+            /* title = */ null,
+            /* actionGroup = */ actionGroup,
+            /* dataContext = */ e.dataContext,
+            /* selectionAidMethod = */ JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+            /* showDisabledActions = */ true,
           )
       e.inputEvent?.component?.let { component ->
         val location = component.locationOnScreen
