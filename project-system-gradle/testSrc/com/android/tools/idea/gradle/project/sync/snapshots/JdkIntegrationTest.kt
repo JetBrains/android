@@ -30,6 +30,7 @@ import com.google.common.truth.Expect
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.RecursionManager
 import org.junit.rules.TemporaryFolder
@@ -77,7 +78,9 @@ class JdkIntegrationTest(
     disposable: Disposable,
     tempDir: File
   ) {
-    JdkTableUtils.removeAllJavaSdkFromJdkTable()
+    ApplicationManager.getApplication().invokeAndWait {
+      JdkTableUtils.removeAllJavaSdkFromJdkTable()
+    }
     testEnvironment.run {
       userHomeGradlePropertiesJdkPath?.let {
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
