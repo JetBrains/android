@@ -1,3 +1,4 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 package(default_visibility = [
@@ -11,7 +12,7 @@ java_proto_library(
     visibility = ["//tools/adt/idea/aswb/querysync:__subpackages__"],
 )
 
-java_library(
+aswb_library(
     name = "query",
     srcs = glob(["*.java"]),
     deps = [

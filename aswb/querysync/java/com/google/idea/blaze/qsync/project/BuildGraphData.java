@@ -32,7 +32,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 public interface BuildGraphData {
-  @VisibleForTesting BuildGraphData EMPTY = BuildGraphDataImpl.builder().projectDeps(ImmutableSet.of()).build();
+  BuildGraphData EMPTY = BuildGraphDataImpl.builder().projectDeps(ImmutableSet.of()).build();
 
   /**
    * The language classes supported by the query sync.

@@ -1,4 +1,6 @@
-java_library(
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
+
+aswb_library(
     name = "qsync",
     srcs = glob(["*.java"]),
     visibility = [

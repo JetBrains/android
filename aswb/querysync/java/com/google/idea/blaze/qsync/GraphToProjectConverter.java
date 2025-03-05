@@ -583,6 +583,7 @@ public class GraphToProjectConverter {
     Set<Path> directories = new HashSet<>();
     for (var sourceFile : sourceFiles) {
       if (sourceFile.getName().toString().endsWith(".xml")) {
+        @SuppressWarnings("PathAsIterable")
         List<Path> pathParts = Lists.newArrayList(sourceFile.getName());
         int resPos = pathParts.indexOf(Path.of("res"));
         if (resPos >= 0) {

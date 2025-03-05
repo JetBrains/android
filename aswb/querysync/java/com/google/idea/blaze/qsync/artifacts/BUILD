@@ -1,6 +1,7 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
-java_library(
+aswb_library(
     name = "artifacts",
     srcs = glob(["*.java"]),
     visibility = [

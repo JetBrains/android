@@ -1,3 +1,4 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 package(default_visibility = [
@@ -12,7 +13,7 @@ java_proto_library(
     proto_deps = ["//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto_srcs"],
 )
 
-java_library(
+aswb_library(
     name = "java",
     srcs = glob(["*.java"]),
     deps = [

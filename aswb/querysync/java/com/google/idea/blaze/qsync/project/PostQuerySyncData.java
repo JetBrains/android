@@ -34,7 +34,6 @@ import java.util.Optional;
 @AutoValue
 public abstract class PostQuerySyncData {
 
-  @VisibleForTesting
   public static final PostQuerySyncData EMPTY =
       builder()
           .setProjectDefinition(ProjectDefinition.EMPTY)
@@ -59,7 +58,6 @@ public abstract class PostQuerySyncData {
     return new AutoValue_PostQuerySyncData.Builder();
   }
 
-  @VisibleForTesting
   public abstract Builder toBuilder();
 
   /** Builder for {@link PostQuerySyncData}. */
