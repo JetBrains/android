@@ -830,8 +830,11 @@ internal class DeviceView(
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
       if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
+        if (!mouseHovering) {
+          sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_ENTER, event.adjustedModifiers)
+          mouseHovering = true
+        }
         sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
-        mouseHovering = true
       }
     }
 
