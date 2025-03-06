@@ -17,7 +17,9 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -25,8 +27,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.MessageDialogBuilder
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 
-class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
+class DeleteAction(
+  private val applicationScope: CoroutineScope =
+    AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+) : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -60,6 +68,14 @@ class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons
         }
 
         deleteAction.delete()
+      }
+
+      // Deleting a paired device unpairs it
+      deviceHandle.state.properties.wearPairingId?.let { wearPairingId ->
+        // The WearPairingManager is an Application-scoped service, so we use that scope too.
+        applicationScope.launch {
+          WearPairingManager.getInstance().removeAllPairedDevices(wearPairingId)
+        }
       }
     }
   }
