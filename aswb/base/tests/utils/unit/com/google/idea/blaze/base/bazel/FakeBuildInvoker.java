@@ -19,10 +19,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
-import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -31,7 +29,6 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /** Simple implementation of {@link BuildInvoker} for injecting dependencies in test code. */
@@ -42,7 +39,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
         .binaryPath("")
-        .buildResultHelperSupplier(() -> null)
         .commandRunner(new FakeBlazeCommandRunner())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
@@ -73,15 +69,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public BlazeInfo getBlazeInfo(BlazeContext blazeContext) {
     return null;
   }
-
-  @Override
-  @MustBeClosed
-  @Nullable
-  public BuildResultHelper createBuildResultHelper() {
-    return getBuildResultHelperSupplier().get();
-  }
-
-  protected abstract Supplier<BuildResultHelper> getBuildResultHelperSupplier();
 
   @Override
   public abstract FakeBlazeCommandRunner getCommandRunner();
@@ -146,8 +133,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
-
-    public abstract Builder buildResultHelperSupplier(Supplier<BuildResultHelper> supplier);
 
     public abstract Builder commandRunner(FakeBlazeCommandRunner runner);
 

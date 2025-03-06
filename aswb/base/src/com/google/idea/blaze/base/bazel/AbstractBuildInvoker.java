@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -96,11 +95,6 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
         BlazeInvocationContext.SYNC_CONTEXT);
     return BlazeInfoRunner.getInstance()
       .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
-  }
-
-  @Override
-  public BuildResultHelper createBuildResultHelper() {
-    throw new UnsupportedOperationException("This method should not be called, this invoker does not support build result helpers.");
   }
 
   @Override

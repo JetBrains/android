@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.command.WorkspaceRootReplacement;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolUtils;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.execution.BazelGuard;
@@ -73,11 +72,6 @@ public class LocalInvoker extends AbstractBuildInvoker {
       BuildBinaryType binaryType) {
     super(project, buildSystem, binaryPath(binaryType, project));
     this.buildBinaryType = binaryType;
-  }
-
-  @Override
-  public BuildResultHelper createBuildResultHelper() {
-    return new BuildResultHelperBep();
   }
 
   @Override

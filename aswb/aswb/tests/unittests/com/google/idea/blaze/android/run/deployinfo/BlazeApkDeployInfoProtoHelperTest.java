@@ -26,8 +26,8 @@ import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoO
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.manifest.ParsedManifestService;
 import com.google.idea.blaze.base.BlazeTestCase;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import java.io.File;
 import java.util.function.Predicate;
 import org.junit.Test;
@@ -39,9 +39,9 @@ import org.mockito.Mockito;
 /**
  * Unit tests for {@link BlazeApkDeployInfoProtoHelper}.
  *
- * <p>{@link BlazeApkDeployInfoProtoHelper#readDeployInfoProtoForTarget(Label, BuildResultHelper,
- * Predicate)} requires a integration test to test properly and is handled by {@link
- * com.google.idea.blaze.android.google3.run.deployinfo.BlazeApkDeployInfoTest}.
+ * <p>{@link BlazeApkDeployInfoProtoHelper#readDeployInfoProtoForTarget(Label, String,
+ * BlazeBuildOutputs, Predicate)} requires a integration test to test properly and is handled by
+ * {@link com.google.idea.blaze.android.google3.run.deployinfo.BlazeApkDeployInfoTest}.
  */
 @RunWith(JUnit4.class)
 public class BlazeApkDeployInfoProtoHelperTest extends BlazeTestCase {

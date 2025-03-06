@@ -20,7 +20,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -115,13 +114,6 @@ public interface BuildSystem {
     String getBinaryPath();
 
     BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException;
-
-    /**
-     * Create a {@link BuildResultHelper} instance. This instance must be closed when it is finished
-     * with.
-     */
-    @MustBeClosed
-    BuildResultHelper createBuildResultHelper();
 
     /**
      * Returns a {@link BlazeCommandRunner} to be used to invoke the build.

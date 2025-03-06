@@ -444,11 +444,6 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
     }
 
     @Override
-    protected Supplier<BuildResultHelper> getBuildResultHelperSupplier() {
-      return null;
-    }
-
-    @Override
     public FakeBlazeCommandRunner getCommandRunner() {
       throw new UnsupportedOperationException(String.format("%s does not support getCommandRunner()", this.getClass().getName()));
     }
