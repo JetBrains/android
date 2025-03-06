@@ -127,9 +127,6 @@ public interface BuildGraphData {
   @Nullable
   Label selectLabelWithLeastDeps(Collection<Label> candidates);
 
-  /** A set of all the targets that show up in java rules 'src' attributes */
-  ImmutableSet<Label> javaSources();
-
   /** Returns a list of all the java source files of the project, relative to the workspace root. */
   List<Path> getJavaSourceFiles();
 
