@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates.diff
+package com.android.tools.idea.templates.diff.activity
 
 import com.android.SdkConstants
 import com.android.testutils.TestUtils
@@ -30,7 +30,6 @@ import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.wizard.template.FormFactor

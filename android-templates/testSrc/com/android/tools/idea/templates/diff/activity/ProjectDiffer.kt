@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates.diff
+package com.android.tools.idea.templates.diff.activity
 
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.smartDiffAgpVersion
 import com.android.tools.idea.wizard.template.Template
