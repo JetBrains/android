@@ -42,6 +42,6 @@
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="truth-java8-extension" level="project" />
-    <orderEntry type="module" scope="TEST" module-name="android.sdktools.analytics-testing"  />
+    <orderEntry type="module" scope="TEST" module-name="android.sdktools.analytics-testing" />
   </component>
 </module>
