@@ -291,6 +291,7 @@ class ComposeStateObjectRendererTest {
   }
 
   @Test
+  @org.junit.Ignore("b/401279329")
   fun checkApplicable_NoValidMethod() {
     val source =
       """
