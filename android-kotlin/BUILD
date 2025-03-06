@@ -159,7 +159,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.kotlin.tests",
-    generate_k2_tests = True,
+    generate_k1_tests = True,
     iml_files = ["intellij.android.kotlin.tests.iml"],
     split_test_targets = {
         "configure": {

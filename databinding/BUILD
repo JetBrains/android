@@ -27,7 +27,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.databinding.tests",
-    generate_k2_tests = True,
+    generate_k1_tests = True,
     iml_files = ["intellij.android.databinding.tests.iml"],
     split_test_targets = {
         "gradle": {

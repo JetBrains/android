@@ -5,7 +5,7 @@ load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
-    generate_k2_tests = True,
+    generate_k1_tests = True,
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = ["noci:studio-win"],

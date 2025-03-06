@@ -24,7 +24,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.lint.tests",
-    generate_k2_tests = True,
+    generate_k1_tests = True,
     iml_files = ["tests/intellij.lint.tests.iml"],
     test_class = "com.android.tools.idea.lint.common.LintIdeTestSuite",
     test_data = [
