@@ -66,7 +66,6 @@ class PreviewPickerValuesProviderTest {
   @Before
   fun setup() {
     ConfigurationManager.getOrCreateInstance(module)
-    rule.fixture.stubDevicesAsLibrary(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
   }
 
   @RunsInEdt
