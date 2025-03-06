@@ -295,25 +295,22 @@ class WearPairingManager(
   }
 
   suspend fun removeAllPairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) =
-    withContext(workerThread) {
-      getPairsForDevice(deviceID).forEach {
-        removePairedDevices(it, restartWearGmsCore = restartWearGmsCore)
-      }
+    getPairsForDevice(deviceID).forEach {
+      removePairedDevices(it, restartWearGmsCore = restartWearGmsCore)
     }
 
   suspend fun removePairedDevices(
     phoneId: String,
     wearId: String,
     restartWearGmsCore: Boolean = true,
-  ) =
-    withContext(workerThread) {
-      val phoneWearPair =
-        mutex.withLock {
-          pairedDevicesList.find { it.phone.deviceID == phoneId && it.wear.deviceID == wearId }
-        } ?: return@withContext
+  ) {
+    val phoneWearPair =
+      mutex.withLock {
+        pairedDevicesList.find { it.phone.deviceID == phoneId && it.wear.deviceID == wearId }
+      } ?: return
 
-      removePairedDevices(phoneWearPair, restartWearGmsCore)
-    }
+    removePairedDevices(phoneWearPair, restartWearGmsCore)
+  }
 
   suspend fun removePairedDevices(
     phoneWearPair: PhoneWearPair,
@@ -373,7 +370,7 @@ class WearPairingManager(
   }
 
   internal suspend fun findDevice(deviceID: String): PairingDevice? =
-    withContext(workerThread) { getAvailableDevices().second[deviceID] }
+    getAvailableDevices().second[deviceID]
 
   private suspend fun getAvailableDevices() =
     withContext(workerThread) {
