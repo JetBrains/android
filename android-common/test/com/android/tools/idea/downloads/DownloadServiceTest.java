@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -71,10 +72,10 @@ public class DownloadServiceTest extends LightPlatformTestCase {
    */
   public void testAsync() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Semaphore s = new Semaphore();
-    s.down();
+    CountDownLatch testFinishedLatch = new CountDownLatch(1);
+    CountDownLatch downloadLatch = new CountDownLatch(1);
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
-      assertThat(s.waitFor(5000)).isTrue();
+      assertThat(downloadLatch.await(5, TimeUnit.SECONDS)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
@@ -88,10 +89,12 @@ public class DownloadServiceTest extends LightPlatformTestCase {
       catch (IOException e) {
         throw new RuntimeException(e);
       }
+      testFinishedLatch.countDown();
     }, () -> {
       throw new RuntimeException("Failure callback");
     });
-    s.up();
+    downloadLatch.countDown();
+    assertThat(testFinishedLatch.await(5, TimeUnit.SECONDS)).isTrue();
   }
 
   /**
