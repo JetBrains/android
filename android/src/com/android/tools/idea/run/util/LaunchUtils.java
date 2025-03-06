@@ -28,11 +28,14 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.progress.ProgressManager;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.UsesFeature;
@@ -75,7 +78,19 @@ public class LaunchUtils {
     }
 
     try {
-      MergedManifestSnapshot info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
+      MergedManifestSnapshot info;
+      ListenableFuture<MergedManifestSnapshot> future = MergedManifestManager.getMergedManifest(facet.getModule());
+      // Don't just `future.get()`, which might outlive the project that the manifest is being computed for: instead
+      // loop .get() with a timeout and check for our own cancellation if the manifest computation hasn't finished yet.
+      while(true) {
+        try {
+          info = future.get(100, TimeUnit.MILLISECONDS);
+          break;
+        }
+        catch (TimeoutException e) {
+          ProgressManager.checkCanceled();
+        }
+      }
       Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
       if (usesFeatureElem != null) {
         String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
