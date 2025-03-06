@@ -27,15 +27,19 @@ import kotlinx.coroutines.delay
  * so this was added to explicitly wait for them until IDEA-356331 gets fixed.
  */
 suspend fun <T> Project.runReadActionInSmartModeWithIndexes(body: Computable<T>): T {
-  var waitSmartModeWithFileIndexes = true
-  while (waitSmartModeWithFileIndexes) {
-    waitSmartModeWithFileIndexes = smartReadAction(this) {
-      UnindexedFilesScannerExecutor.getInstance(this).hasQueuedTasks
-      || UnindexedFilesScannerExecutor.getInstance(this).isRunning.value
+  var result: T? = null
+  while (true) {
+    val done = smartReadAction(this) {
+      if (UnindexedFilesScannerExecutor.getInstance(this).hasQueuedTasks
+          || UnindexedFilesScannerExecutor.getInstance(this).isRunning.value) {
+        return@smartReadAction false
+      }
+      else {
+        result = body.compute()
+        return@smartReadAction true
+      }
     }
-    if (waitSmartModeWithFileIndexes) delay(1000)
-  }
-  return readAction {
-    body.compute()
+    if (done) return result!!
+    delay(1000)
   }
 }
