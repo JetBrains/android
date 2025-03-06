@@ -105,7 +105,8 @@ internal data class MotionEventMessage(
   val action: Int,
   val buttonState: Int,
   val actionButton: Int,
-  val displayId: Int
+  val displayId: Int,
+  val isMouse: Boolean, // If true, the injected event should mimic the one produced by a physical mouse.
 ) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
@@ -118,10 +119,12 @@ internal data class MotionEventMessage(
     stream.writeInt(buttonState)
     stream.writeInt(actionButton)
     stream.writeInt(displayId)
+    stream.writeBoolean(isMouse)
   }
 
   override fun toString(): String =
-      "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
+      "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId" +
+      " isMouse=$isMouse)"
 
   companion object : Deserializer {
     const val TYPE = 1
@@ -166,7 +169,8 @@ internal data class MotionEventMessage(
       val buttonState = stream.readInt()
       val actionButton = stream.readInt()
       val displayId = stream.readInt()
-      return MotionEventMessage(pointers, action, buttonState, actionButton, displayId)
+      val isMouse = stream.readBoolean()
+      return MotionEventMessage(pointers, action, buttonState, actionButton, displayId, isMouse)
     }
 
     private fun deserializePointer(stream: Base128InputStream): Pointer {

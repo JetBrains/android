@@ -96,13 +96,15 @@ public:
 
   // Pointers are expected to be ordered according to their ids.
   // The action translates directly to android.view.MotionEvent.action.
-  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t button_state, int32_t action_button, int32_t display_id)
+  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t button_state, int32_t action_button, int32_t display_id,
+                     bool is_mouse)
       : ControlMessage(TYPE),
         pointers_(pointers),
         action_(action),
         button_state_(button_state),
         action_button_(action_button),
-        display_id_(display_id) {
+        display_id_(display_id),
+        is_mouse_(is_mouse) {
   }
   ~MotionEventMessage() override = default;
 
@@ -121,6 +123,11 @@ public:
   // The display device where the mouse event occurred. Zero indicates the main display.
   [[nodiscard]] int32_t display_id() const { return display_id_; }
 
+  // If true, the injected event should mimic the one produced by a physical mouse.
+  // Otherwise, the behavior is dependent on the event type. See Controller::ProcessMotionEvent
+  // for the exact logic.
+  [[nodiscard]] bool is_mouse() const { return is_mouse_; }
+
   static constexpr int TYPE = 1;
 
   static constexpr int MAX_POINTERS = 2;
@@ -135,6 +142,7 @@ private:
   const int32_t button_state_;
   const int32_t action_button_;
   const int32_t display_id_;
+  const bool is_mouse_;
 
   DISALLOW_COPY_AND_ASSIGN(MotionEventMessage);
 };

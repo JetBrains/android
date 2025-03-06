@@ -356,6 +356,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   if (!display_info.IsValid()) {
     return;
   }
+  int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_MOUSE : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
   if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 30 &&
       // TODO: Handle hover and scroll motion events using uinput.
@@ -366,8 +367,8 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualTouchscreen::MAX_PRESSURE;
       int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
       for (auto& pointer : message.pointers()) {
-        bool success = touchscreen.WriteTouchEvent(pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_FINGER, action, pointer.x, pointer.y,
-                                                   pressure, major_axis_size, event_time);
+        bool success = touchscreen.WriteTouchEvent(pointer.pointer_id, tool, action, pointer.x, pointer.y, pressure, major_axis_size,
+                                                   event_time);
         if (!success) {
           Log::E("Error writing touch event");
         }
@@ -381,8 +382,8 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
         int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
         for (auto& pointer : message.pointers()) {
           if (pointer.pointer_id == pointer_id) {
-            bool success = touchscreen.WriteTouchEvent(pointer_id, AMOTION_EVENT_TOOL_TYPE_FINGER, action, pointer.x, pointer.y,
-                                                       pressure, major_axis_size, event_time);
+            bool success = touchscreen.WriteTouchEvent(pointer_id, tool, action, pointer.x, pointer.y, pressure, major_axis_size,
+                                                       event_time);
             if (!success) {
               Log::E("Error writing touch event");
             }
@@ -411,7 +412,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       }
       Agent::RecordTouchEvent();
     }
-    if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
+    if (message.is_mouse() || action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
       // AINPUT_SOURCE_MOUSE
       // - when action_button() is non-zero, as the Android framework has special handling for mouse in performButtonActionOnTouchDown(),
       //   which opens the context menu on right click.
@@ -425,13 +426,14 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     for (auto& pointer: message.pointers()) {
       JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
       pointer_helper_->SetPointerId(properties, pointer.pointer_id);
+      pointer_helper_->SetPointerToolType(properties, tool);
       JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
       // We must clear first so that axis information from previous runs is not reused.
       pointer_helper_->ClearPointerCoords(coordinates);
       Point point = AdjustedDisplayCoordinates(pointer.x, pointer.y, display_info);
       pointer_helper_->SetPointerCoords(coordinates, point.x, point.y);
-      float pressure = ((action & AMOTION_EVENT_ACTION_MASK) == AMOTION_EVENT_ACTION_POINTER_UP &&
-          event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
+      float pressure = action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP ||
+          action == AMOTION_EVENT_ACTION_BUTTON_PRESS || action == AMOTION_EVENT_ACTION_BUTTON_RELEASE ? 1 : 0;
       pointer_helper_->SetPointerPressure(coordinates, pressure);
       for (auto const& [axis, value]: pointer.axis_values) {
         pointer_helper_->SetAxisValue(coordinates, axis, value);

@@ -115,7 +115,8 @@ MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) 
   int32_t button_state = stream.ReadInt32();
   int32_t action_button = stream.ReadInt32();
   int32_t display_id = stream.ReadInt32();
-  return new MotionEventMessage(std::move(pointers), action, button_state, action_button, display_id);
+  bool is_mouse = stream.ReadBool();
+  return new MotionEventMessage(std::move(pointers), action, button_state, action_button, display_id, is_mouse);
 }
 
 KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
