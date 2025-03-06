@@ -49,6 +49,7 @@ import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Ref
 import com.intellij.util.concurrency.ThreadingAssertions
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import org.jetbrains.android.dom.manifest.UsesFeature
@@ -228,7 +229,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
          || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
       }
-    } catch (e : ProcessCanceledException) {
+    } catch (e: CancellationException) {
       throw e
     } catch (e: Throwable) {
       LOG.warn("Manifest Index could not be queried", e)
