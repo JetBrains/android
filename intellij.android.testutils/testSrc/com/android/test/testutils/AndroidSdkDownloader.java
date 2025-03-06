@@ -11,7 +11,7 @@ import org.jetbrains.intellij.build.dependencies.BuildDependenciesManualRunOnly;
 
 @SuppressWarnings("UnstableApiUsage")
 public class AndroidSdkDownloader {
-  private static final String ANDROID_SDK_VERSION = "30.3.0.0";
+  private static final String ANDROID_SDK_VERSION = "35.0.0.0";
 
   public static Path downloadSdk(BuildDependenciesCommunityRoot communityRoot) {
     Path androidSdkRoot = communityRoot.communityRoot.resolve("build/dependencies/build/android-sdk");
