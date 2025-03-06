@@ -46,11 +46,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.Path
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
@@ -99,7 +99,6 @@ class WearPairingManager(
     fun pairingDeviceRemoved(phoneWearPair: PhoneWearPair)
   }
 
-  private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
   private val pairingStatusListeners = CopyOnWriteArrayList<PairingStatusChangedListener>()
   private val mutex = Mutex()
 
@@ -213,23 +212,14 @@ class WearPairingManager(
     runningJob =
       coroutineScope.launch(defaultDispatcher) {
         while (isActive) {
-          withTimeoutOrNull(
-            60_000
-          ) { // Wake up when there is an event, or from time to time (to check pairing state)
-            updateDevicesChannel.receive()
-          }
-          if (!isActive) {
-            break
-          }
           try {
             updateListAndForwardState()
           } catch (ex: Throwable) {
             LOG.warn(ex)
           }
+          delay(PERIODIC_UPDATE_INTERVAL)
         }
       }
-
-    updateDevicesChannel.trySend(Unit)
   }
 
   @Synchronized
@@ -330,7 +320,7 @@ class WearPairingManager(
   suspend fun removePairedDevices(
     phoneWearPair: PhoneWearPair,
     restartWearGmsCore: Boolean = true,
-  ) =
+  ): Unit =
     withContext(defaultDispatcher) {
       try {
         mutex.withLock {
@@ -368,20 +358,19 @@ class WearPairingManager(
       } catch (ex: Throwable) {
         LOG.warn(ex)
       }
-
-      updateDevicesChannel.trySend(Unit)
+      updateListAndForwardState()
     }
 
   override fun deviceConnected(device: IDevice) {
-    updateDevicesChannel.trySend(Unit)
+    coroutineScope.launch { updateListAndForwardState() }
   }
 
   override fun deviceDisconnected(device: IDevice) {
-    updateDevicesChannel.trySend(Unit)
+    coroutineScope.launch { updateListAndForwardState() }
   }
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    updateDevicesChannel.trySend(Unit)
+    coroutineScope.launch { updateListAndForwardState() }
   }
 
   internal suspend fun findDevice(deviceID: String): PairingDevice? =
@@ -415,27 +404,31 @@ class WearPairingManager(
 
   private suspend fun updateListAndForwardState() =
     withContext(defaultDispatcher) {
-      val (connectedDevices, deviceTable) = getAvailableDevices()
-
-      // Don't loop directly on the list, because its values may be updated (ie added/removed)
-      pairedDevicesList.toList().forEach { phoneWearPair ->
-        addDisconnectedPairedDeviceIfMissing(phoneWearPair.phone, deviceTable)
-        addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
-      }
-
-      withContext(edtDispatcher + ModalityState.any().asContextElement()) {
-        // Broadcast data to listeners
-        val (wears, phones) =
-          deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
-        model.phoneList.set(phones)
-        model.wearList.set(wears)
-        updateSelectedDevice(phones, model.selectedPhoneDevice)
-        updateSelectedDevice(wears, model.selectedWearDevice)
+      try {
+        val (connectedDevices, deviceTable) = getAvailableDevices()
 
         // Don't loop directly on the list, because its values may be updated (ie added/removed)
         pairedDevicesList.toList().forEach { phoneWearPair ->
-          updateForwardState(phoneWearPair, connectedDevices)
+          addDisconnectedPairedDeviceIfMissing(phoneWearPair.phone, deviceTable)
+          addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
         }
+
+        withContext(edtDispatcher + ModalityState.any().asContextElement()) {
+          // Broadcast data to listeners
+          val (wears, phones) =
+            deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
+          model.phoneList.set(phones)
+          model.wearList.set(wears)
+          updateSelectedDevice(phones, model.selectedPhoneDevice)
+          updateSelectedDevice(wears, model.selectedWearDevice)
+
+          // Don't loop directly on the list, because its values may be updated (ie added/removed)
+          pairedDevicesList.toList().forEach { phoneWearPair ->
+            updateForwardState(phoneWearPair, connectedDevices)
+          }
+        }
+      } catch (ex: Throwable) {
+        LOG.warn(ex)
       }
     }
 
@@ -572,6 +565,8 @@ class WearPairingManager(
     @JvmStatic
     fun getInstance(): WearPairingManager =
       ApplicationManager.getApplication().getService(WearPairingManager::class.java)
+
+    private val PERIODIC_UPDATE_INTERVAL = 60.seconds
   }
 }
 
