@@ -47,8 +47,8 @@ import java.util.regex.Pattern
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.Path
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -68,12 +68,23 @@ private val LOG
 
 @Service(Service.Level.APP)
 class WearPairingManager(
-  private val notificationsManager: WearPairingNotificationManager =
-    WearPairingNotificationManager.getInstance(),
+  private val coroutineScope: CoroutineScope,
+  private val notificationsManager: WearPairingNotificationManager,
   private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
   private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
   private val edtDispatcher: CoroutineContext = Dispatchers.EDT,
 ) : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
+
+  constructor(
+    coroutineScope: CoroutineScope
+  ) : this(
+    coroutineScope = coroutineScope,
+    notificationsManager = WearPairingNotificationManager.getInstance(),
+    defaultDispatcher = Dispatchers.Default,
+    ioDispatcher = Dispatchers.IO,
+    edtDispatcher = Dispatchers.EDT,
+  )
+
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -200,7 +211,7 @@ class WearPairingManager(
       null
     ) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
     runningJob =
-      GlobalScope.launch(defaultDispatcher) {
+      coroutineScope.launch(defaultDispatcher) {
         while (isActive) {
           withTimeoutOrNull(
             60_000

@@ -60,5 +60,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/base/flags:studio.android.sdktools.flags[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )

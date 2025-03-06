@@ -28,9 +28,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -64,7 +66,12 @@ class WearPairingManagerTest {
   private val avdWearInfo =
     AvdInfo(Paths.get("ini"), Paths.get("id2"), mock<ISystemImage>(), wearPropertiesMap, null)
 
-  private val pairingManager = WearPairingManager()
+  private lateinit var pairingManager: WearPairingManager
+
+  @Before
+  fun setup() {
+    pairingManager = WearPairingManager(TestScope())
+  }
 
   @Test
   fun directAccessDevicePairingReportsCorrectDeviceIdTest(): Unit = runBlocking {
