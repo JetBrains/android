@@ -16,7 +16,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   kotlin("jvm")
@@ -40,7 +39,6 @@ kotlin { jvmToolchain(17) }
 dependencies {
   intellijPlatform {
     intellijIdeaCommunity(libs.versions.idea)
-    instrumentationTools()
     bundledPlugin("org.jetbrains.kotlin")
   }
 }
