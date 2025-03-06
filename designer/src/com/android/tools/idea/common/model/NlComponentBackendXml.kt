@@ -19,6 +19,7 @@ import com.android.tools.idea.util.ReformatUtil
 import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -192,7 +193,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   }
 
   override fun getDefaultNavigatable(): Navigatable? {
-    return tag?.navigationElement as? Navigatable
+    return runReadAction { tag }?.navigationElement as? Navigatable
   }
 
   private fun getStackTrace(): String {
