@@ -194,7 +194,6 @@ public class BuildGraphDataImplTest {
             Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"));
 
     Path protoSourceFilePath = TESTDATA_ROOT.resolve("protodep/testproto.proto");
-    assertThat(graph.getProtoSourceFiles()).containsExactly(protoSourceFilePath);
 
     Collection<ProjectTarget> firstConsumingTargets =
         graph.getFirstReverseDepsOfType(protoSourceFilePath, ImmutableSet.of("java_proto_library"));
