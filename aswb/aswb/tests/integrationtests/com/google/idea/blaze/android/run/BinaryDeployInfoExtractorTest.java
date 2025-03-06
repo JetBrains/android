@@ -39,6 +39,7 @@ import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.bazel.BepUtils.FileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
+import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
@@ -137,7 +138,7 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static class TestRuntimeArtifactCache implements RuntimeArtifactCache {
     @Override
     public ImmutableList<Path> fetchArtifacts(
-        Label label, List<? extends OutputArtifact> artifacts, BlazeContext context) {
+      Label label, List<? extends OutputArtifact> artifacts, BlazeContext context, RuntimeArtifactKind artifactKind) {
       return artifacts.stream()
           .map(a -> Paths.get(a.getBazelOutRelativePath()))
           .collect(toImmutableList());

@@ -41,6 +41,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.run.BlazeBeforeRunCommandHelper;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
+import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.run.WithBrowserHyperlinkExecutionException;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationRunner.BlazeCommandRunProfileState;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
@@ -338,7 +339,8 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
                       .getOutputGroupTargetArtifacts(DEFAULT_OUTPUT_GROUP_NAME, target.toString())
                       .asList(),
                   BlazeContext.create(),
-                  project)
+                  project,
+                  RuntimeArtifactKind.JAR)
               .stream()
               .filter(File::canExecute)
               .collect(Collectors.toList());

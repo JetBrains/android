@@ -82,15 +82,15 @@ public class RuntimeArtifactCacheImplTest {
     Label target = Label.of("//some/label:target");
     List<Path> paths =
         runtimeArtifactCache.fetchArtifacts(
-            target, ImmutableList.of(artifact1, artifact2), BlazeContext.create());
+            target, ImmutableList.of(artifact1, artifact2), BlazeContext.create(), RuntimeArtifactKind.JAR);
     assertThat(paths)
         .containsExactly(
             runfilesDirectory.resolve(
                 RuntimeArtifactCacheImpl.getArtifactLocalPath(
-                    target, Path.of("out/test1.jar"))),
+                  target, RuntimeArtifactKind.JAR, Path.of("out/test1.jar"))),
             runfilesDirectory.resolve(
                 RuntimeArtifactCacheImpl.getArtifactLocalPath(
-                    target, Path.of("out/test2.jar"))));
+                  target, RuntimeArtifactKind.JAR, Path.of("out/test2.jar"))));
     assertThat(Files.readAllBytes(paths.get(0))).isEqualTo("abc".getBytes());
     assertThat(Files.readAllBytes(paths.get(1))).isEqualTo("def".getBytes());
     assertThat(testArtifactFetcher.getCopiedArtifacts()).isEqualTo(List.of(artifact1, artifact2));
@@ -112,7 +112,7 @@ public class RuntimeArtifactCacheImplTest {
       .build();
     Label target = Label.of("//some/label:target");
     assertThrows(IllegalStateException.class, () -> runtimeArtifactCache.fetchArtifacts(
-      target, ImmutableList.of(artifact1, artifact2), BlazeContext.create()));
+      target, ImmutableList.of(artifact1, artifact2), BlazeContext.create(), RuntimeArtifactKind.JAR));
   }
 
   private BuildArtifactCacheDirectory createBuildArtifactCache(RuntimeArtifactCacheImplTest.TestArtifactFetcher artifactFetcher) throws

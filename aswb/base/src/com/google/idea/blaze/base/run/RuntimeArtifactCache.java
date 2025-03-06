@@ -35,5 +35,5 @@ public interface RuntimeArtifactCache {
    * build.
    */
   ImmutableList<Path> fetchArtifacts(
-      Label target, List<? extends OutputArtifact> artifacts, BlazeContext context);
+      Label target, List<? extends OutputArtifact> artifacts, BlazeContext context, RuntimeArtifactKind artifactKind);
 }

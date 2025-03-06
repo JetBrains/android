@@ -22,6 +22,7 @@ import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
@@ -100,7 +101,7 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     return runtimeArtifactCache
         .fetchArtifacts(
-            com.google.idea.blaze.common.Label.of(targetLabel.toString()), artifacts, context)
+          com.google.idea.blaze.common.Label.of(targetLabel.toString()), artifacts, context, RuntimeArtifactKind.APK)
         .stream()
         .map(Path::toFile)
         .collect(toImmutableList());

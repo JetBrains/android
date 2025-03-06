@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.NativeSymbolFinder;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.run.RuntimeArtifactCache;
+import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
@@ -64,7 +65,7 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
         context);
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     ImmutableList<File> localApks =
-      runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context).stream()
+      runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
         .map(Path::toFile)
         .collect(toImmutableList());
     ImmutableList<File> nativeSymbols = fetchNativeSymbolArtifacts(buildOutputs, context);
