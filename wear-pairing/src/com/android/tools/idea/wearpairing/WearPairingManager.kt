@@ -27,7 +27,6 @@ import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.getDefaultAvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -45,7 +44,9 @@ import com.intellij.util.net.NetUtils
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
+import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.Path
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -68,7 +69,10 @@ private val LOG
 @Service(Service.Level.APP)
 class WearPairingManager(
   private val notificationsManager: WearPairingNotificationManager =
-    WearPairingNotificationManager.getInstance()
+    WearPairingNotificationManager.getInstance(),
+  private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  private val edtDispatcher: CoroutineContext = Dispatchers.EDT,
 ) : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
   enum class PairingState {
     UNKNOWN,
@@ -196,7 +200,7 @@ class WearPairingManager(
       null
     ) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
     runningJob =
-      GlobalScope.launch(Dispatchers.IO) {
+      GlobalScope.launch(defaultDispatcher) {
         while (isActive) {
           withTimeoutOrNull(
             60_000
@@ -247,7 +251,7 @@ class WearPairingManager(
     wearDevice: IDevice,
     connect: Boolean = true,
   ) =
-    withContext(Dispatchers.IO) {
+    withContext(ioDispatcher) {
       LOG.warn("Starting device bridge {connect = $connect}")
       removeAllPairedDevices(wear.deviceID, restartWearGmsCore = false)
 
@@ -316,7 +320,7 @@ class WearPairingManager(
     phoneWearPair: PhoneWearPair,
     restartWearGmsCore: Boolean = true,
   ) =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       try {
         mutex.withLock {
           pairedDevicesList.removeAll {
@@ -373,7 +377,7 @@ class WearPairingManager(
     getAvailableDevices().second[deviceID]
 
   private suspend fun getAvailableDevices() =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       val deviceTable = hashMapOf<String, PairingDevice>()
 
       // Collect list of all available AVDs
@@ -399,7 +403,7 @@ class WearPairingManager(
     }
 
   private suspend fun updateListAndForwardState() =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       val (connectedDevices, deviceTable) = getAvailableDevices()
 
       // Don't loop directly on the list, because its values may be updated (ie added/removed)
@@ -408,7 +412,7 @@ class WearPairingManager(
         addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
       }
 
-      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+      withContext(edtDispatcher + ModalityState.any().asContextElement()) {
         // Broadcast data to listeners
         val (wears, phones) =
           deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
@@ -425,7 +429,7 @@ class WearPairingManager(
     }
 
   internal suspend fun launchDevice(project: Project?, deviceId: String, avdInfo: AvdInfo) =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       connectedDevicesProvider()
         .find { it.getDeviceID() == deviceId }
         ?.apply {
@@ -438,7 +442,7 @@ class WearPairingManager(
     AndroidDebugBridge.getBridge()?.also {
       return it // Instance found, just return it
     }
-    return withContext(workerThread) {
+    return withContext(defaultDispatcher) {
       AndroidSdkUtils.findAdb(null).adbPath?.let {
         try {
           AdbService.getInstance().getDebugBridge(it).await()
@@ -451,7 +455,7 @@ class WearPairingManager(
   }
 
   private suspend fun getConnectedDevices() =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
     }
 
@@ -489,7 +493,7 @@ class WearPairingManager(
     device: PairingDevice,
     deviceTable: HashMap<String, PairingDevice>,
   ) =
-    withContext(workerThread) {
+    withContext(defaultDispatcher) {
       val deviceID = device.deviceID
       if (!deviceTable.contains(deviceID)) {
         if (device.isEmulator) {
@@ -514,6 +518,27 @@ class WearPairingManager(
         } else {
           deviceTable[deviceID] =
             device // Paired physical device - Add to be shown as "disconnected"
+        }
+      }
+    }
+
+  private suspend fun IDevice.getDeviceID() =
+    withContext(defaultDispatcher) {
+      when {
+        // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the
+        // path. They were added in https://r.android.com/2441481 and, since we use the path as an
+        // ID, the .. does not match the path information we have in Studio.
+        // We intentionally use normalize since it does not access disk and will just normalize the
+        // path removing the ..
+        isEmulator && avdData?.isDone == true ->
+          avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
+        isEmulator ->
+          EmulatorConsole.getConsole(this@getDeviceID)?.avdPath?.let { normalizeAvdId(it) } ?: name
+        getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null ->
+          getProperty(PROP_FIREBASE_TEST_LAB_SESSION) ?: name
+        else -> {
+          val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(serialNumber)
+          if (matcher.matches()) matcher.group(1) else serialNumber
         }
       }
     }
@@ -610,27 +635,6 @@ private fun normalizeAvdId(avdId: String) =
     Path(avdId.trim()).normalize().toString()
   } catch (_: Throwable) {
     avdId
-  }
-
-private suspend fun IDevice.getDeviceID() =
-  withContext(workerThread) {
-    when {
-      // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the
-      // path. They were added in https://r.android.com/2441481 and, since we use the path as an
-      // ID, the .. does not match the path information we have in Studio.
-      // We intentionally use normalize since it does not access disk and will just normalize the
-      // path removing the ..
-      isEmulator && avdData?.isDone == true ->
-        avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
-      isEmulator ->
-        EmulatorConsole.getConsole(this@getDeviceID)?.avdPath?.let { normalizeAvdId(it) } ?: name
-      getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null ->
-        getProperty(PROP_FIREBASE_TEST_LAB_SESSION) ?: name
-      else -> {
-        val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(serialNumber)
-        if (matcher.matches()) matcher.group(1) else serialNumber
-      }
-    }
   }
 
 private fun updateSelectedDevice(
