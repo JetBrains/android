@@ -278,7 +278,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
           newPair.second.replace(newElement)
           (psiElement.replace(newPair) as DeclarativePair).second
         }
-        is DeclarativeAssignment -> psiElement.value?.firstChild?.replace(newElement) ?: return
+        is DeclarativeAssignment -> psiElement.value?.replace(newElement) ?: return
         is DeclarativeSimpleFactory -> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
         is DeclarativeFactoryReceiver -> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
         else -> psiElement.replace(newElement)

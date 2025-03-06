@@ -25,6 +25,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.impl.DebugUtil
+import com.intellij.testFramework.VfsTestUtil
 import java.util.LinkedList
 
 fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
@@ -105,4 +111,18 @@ fun <T> factoryOf(vararg elements: T): List<T> {
   val b = Factory<T>()
   b.addAll(elements)
   return b
+}
+
+fun compareWithExpectedPsi(project: Project, dslFile: GradleDslFile, expected: String){
+  // verifying that Psi tree after writing is the same as after parsing the
+  val fileExpected = VfsTestUtil.createFile(
+    project.guessProjectDir()!!,
+    "expected-"+dslFile.file.name,
+    expected
+  )
+  val dslFileExpected = object : GradleBuildFile(fileExpected, project, ":", _root_ide_package_.com.android.tools.idea.gradle.dsl.model.BuildModelContext.create(project, _root_ide_package_.org.mockito.Mockito.mock())) {}
+  dslFileExpected.parse()
+  val expectedOutput = DebugUtil.psiToString(dslFileExpected.psiElement!!, false, false)
+  val writtenOutput = DebugUtil.psiToString(dslFile.psiElement!!, false, false)
+  assertThat(writtenOutput).isEqualTo(expectedOutput)
 }

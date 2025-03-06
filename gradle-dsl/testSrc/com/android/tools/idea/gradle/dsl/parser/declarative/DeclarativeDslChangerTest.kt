@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -215,6 +216,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     )
     val dslFile = object : GradleSettingsFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
+    compareWithExpectedPsi(project, dslFile, expected)
   }
 
   private fun handleChangeAndVerification(
@@ -241,5 +243,6 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     )
     val dslFile = object : GradleBuildFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
+    compareWithExpectedPsi(project, dslFile, expected)
   }
 }

@@ -24,9 +24,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
+import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
@@ -233,6 +233,7 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
     }
     val text = VfsUtil.loadText(file).replace("\r", "")
     assertEquals(expected, text)
+    compareWithExpectedPsi(project, dslFile, expected)
   }
 
 }
