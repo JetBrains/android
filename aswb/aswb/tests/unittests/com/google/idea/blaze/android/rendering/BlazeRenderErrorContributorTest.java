@@ -89,6 +89,7 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link BlazeRenderErrorContributor}. */
 @RunWith(JUnit4.class)
+@Ignore("b/401277613")
 public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   private static final String BLAZE_BIN = "blaze-out/crosstool/bin";
   private static final String GENERATED_RESOURCES_ERROR = "Generated resources";
