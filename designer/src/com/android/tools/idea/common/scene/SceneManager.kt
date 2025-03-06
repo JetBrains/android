@@ -33,6 +33,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -49,6 +50,8 @@ abstract class SceneManager(
   protected open val designSurface: DesignSurface<*>,
   private val sceneComponentProvider: SceneComponentHierarchyProvider,
 ) : Disposable, ResourceChangeListener {
+  private val isDisposed = AtomicBoolean(false)
+
   init {
     Disposer.register(model, this)
   }
@@ -103,7 +106,11 @@ abstract class SceneManager(
   val viewObject: Any?
     get() = scene.root?.nlComponent?.viewInfo?.viewObject
 
+  /** Returns true if this [SceneManager] has been disposed. */
+  protected fun isDisposed(): Boolean = isDisposed.get()
+
   override fun dispose() {
+    isDisposed.set(true)
     deactivate(this)
   }
 

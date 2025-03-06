@@ -56,7 +56,6 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.annotations.TestOnly
 
@@ -81,9 +80,6 @@ open class LayoutlibSceneManager(
     LayoutlibSceneManagerHierarchyProvider(),
   layoutScannerConfig: LayoutScannerConfiguration = LayoutScannerEnabled(),
 ) : SceneManager(model, designSurface, sceneComponentProvider), InteractiveSceneManager {
-
-  private val isDisposed = AtomicBoolean(false)
-
   private var areListenersRegistered = false
 
   override val designSurface: NlDesignSurface
@@ -223,7 +219,7 @@ open class LayoutlibSceneManager(
         CompletableFuture.runAsync(
           {
             // Ensure the new derived that is passed to the Scene components hierarchy
-            if (!isDisposed.get()) update()
+            if (!isDisposed()) update()
 
             // Selection change listener should run in UI thread not in the layoublib rendering
             // thread. This avoids race condition.
@@ -250,7 +246,7 @@ open class LayoutlibSceneManager(
 
       override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
         UIUtil.invokeLaterIfNeeded {
-          if (!isDisposed.get()) {
+          if (!isDisposed()) {
             val previous: Boolean = scene.isAnimated
             scene.isAnimated = animate
             update()
@@ -291,7 +287,7 @@ open class LayoutlibSceneManager(
     getTriggerFromChangeType(model.lastChangeType).also { model.resetLastChange() }
 
   private fun onBeforeRender(): Boolean {
-    if (isDisposed.get()) {
+    if (isDisposed()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("tried to render after LayoutlibSceneManager has been disposed")
       return false
@@ -317,7 +313,7 @@ open class LayoutlibSceneManager(
   }
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
-    if (isDisposed.get()) {
+    if (isDisposed()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("requestLayout after LayoutlibSceneManager has been disposed")
     }
@@ -325,7 +321,7 @@ open class LayoutlibSceneManager(
       layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
     return currentTask.layout().thenAccept { result: RenderResult? ->
       result
-        ?.takeUnless { isDisposed.get() }
+        ?.takeUnless { isDisposed() }
         ?.let {
           layoutlibSceneRenderer.updateHierarchy(it)
           model.notifyListenersModelChangedOnLayout(animate)
@@ -400,7 +396,7 @@ open class LayoutlibSceneManager(
     super.deactivate(source).also { if (it) layoutlibSceneRenderer.deactivate() }
 
   override fun dispose() {
-    if (isDisposed.getAndSet(true)) return
+    if (isDisposed()) return
     try {
       if (areListenersRegistered) {
         val model = model
@@ -433,7 +429,7 @@ open class LayoutlibSceneManager(
     @AndroidCoordinate x: Int,
     @AndroidCoordinate y: Int,
   ) {
-    if (isDisposed.get()) {
+    if (isDisposed()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
       return
@@ -450,7 +446,7 @@ open class LayoutlibSceneManager(
    * @return a future that is completed when layoutlib handled the key event
    */
   fun triggerKeyEventAsync(event: KeyEvent) {
-    if (isDisposed.get()) {
+    if (isDisposed()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
       return
