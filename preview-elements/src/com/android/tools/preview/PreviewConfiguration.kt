@@ -18,6 +18,7 @@ package com.android.tools.preview
 import com.android.annotations.TestOnly
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
+import com.android.resources.UiMode
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
@@ -177,7 +178,6 @@ private fun PreviewConfiguration.applyTo(
   }
 
   renderConfiguration.locale = Locale.create(locale)
-  renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
   renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
 
@@ -204,6 +204,12 @@ private fun PreviewConfiguration.applyTo(
     // device, because different devices might
     // have different default themes.
     renderConfiguration.setTheme(renderConfiguration.getPreferredTheme())
+  }
+
+  if (uiMode != UNSET_UI_MODE_VALUE || device == null) {
+    renderConfiguration.uiModeFlagValue = uiMode
+  } else {
+    renderConfiguration.uiMode = getUiModeForDevice(device)
   }
 
   customSize?.let {
@@ -253,4 +259,25 @@ fun ConfigurablePreviewElement<*>.applyConfigurationForTest(
     defaultDeviceProvider,
     getCustomDeviceSize(),
   )
+}
+
+/** Value used to indicate that the UI mode has not been set. */
+const val UNSET_UI_MODE_VALUE = 0
+
+/**
+ * Determines the appropriate UiMode for a given Device.
+ *
+ * @param device The Device to determine the UiMode from.
+ * @return The corresponding UiMode.
+ */
+fun getUiModeForDevice(device: Device?): UiMode {
+  return when {
+    Device.isWear(device) -> UiMode.WATCH
+    Device.isTv(device) -> UiMode.TELEVISION
+    Device.isAutomotive(device) -> UiMode.CAR
+    Device.isDesktop(device) -> UiMode.DESK
+    Device.isXr(device) -> UiMode.VR_HEADSET
+    Device.isThings(device) -> UiMode.APPLIANCE
+    else -> UiMode.NORMAL
+  }
 }

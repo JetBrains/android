@@ -37,6 +37,9 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[test]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[test]",
     ],
 )
 
