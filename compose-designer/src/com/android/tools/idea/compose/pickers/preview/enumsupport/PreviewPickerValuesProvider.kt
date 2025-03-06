@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.pickers.preview.enumsupport
 
-import com.android.SdkConstants
 import com.android.ide.common.resources.Locale
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
@@ -50,8 +49,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 @VisibleForTesting
 internal fun IAndroidTarget.displayName(): String =
@@ -65,7 +62,7 @@ object PreviewPickerValuesProvider {
   ): EnumSupportValuesProvider {
     val providersMap = mutableMapOf<String, EnumValuesProvider>()
 
-    providersMap[PARAMETER_UI_MODE] = createUiModeEnumProvider(module)
+    providersMap[PARAMETER_UI_MODE] = createUiModeEnumProvider()
 
     providersMap[PARAMETER_API_LEVEL] = createApiLevelEnumProvider(module)
 
@@ -121,54 +118,15 @@ private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   return groupDevices(studioDevices)
 }
 
-private fun createUiModeEnumProvider(module: Module): EnumValuesProvider = uiModeProvider@{
-  val configurationClass =
-    findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
-  val uiModeValueParams =
-    configurationClass.fields
-      .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
-      .mapNotNull { uiMode ->
-        (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
-          val displayName =
-            if (UiMode.VR.resolvedValue == it.toString()) {
-              UiMode.VR.display
-            } else {
-              uiMode.name
-                .substringAfter("UI_MODE_TYPE_")
-                .replace('_', ' ')
-                .toLowerCaseAsciiOnly()
-                .capitalizeAsciiOnly()
-            }
-          ClassEnumValueParams(uiMode.name, displayName, it.toString())
-        }
-      }
-      .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
-      .sortedBy { params -> params.resolvedValue }
-
-  val uiModeNoNightValues =
-    uiModeValueParams.map { uiModeParams ->
-      UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
-        uiModeParams.value,
-        uiModeParams.displayName,
-        uiModeParams.resolvedValue,
-      )
-    }
-
-  val uiModeNightValues =
-    uiModeValueParams.map { uiModeParams ->
-      UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
-        uiModeParams.value,
-        uiModeParams.displayName,
-        uiModeParams.resolvedValue,
-      )
-    }
+private fun createUiModeEnumProvider(): EnumValuesProvider = uiModeProvider@{
   return@uiModeProvider listOf(
+    UiModeWithNightMaskEnumValue.UndefinedEnumValue,
     EnumValue.header(message("picker.preview.uimode.header.notnight")),
     UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
-    *uiModeNoNightValues.toTypedArray(),
+    *UiModeWithNightMaskEnumValue.uiModeNoNightValues.toTypedArray(),
     EnumValue.header(message("picker.preview.uimode.header.night")),
     UiModeWithNightMaskEnumValue.NormalNightEnumValue,
-    *uiModeNightValues.toTypedArray(),
+    *UiModeWithNightMaskEnumValue.uiModeNightValues.toTypedArray(),
   )
 }
 

@@ -125,12 +125,12 @@ internal open class PsiCallParameterPropertyItem(
         }
       writeParameter(parameterString)
     }
-    model.firePropertyValuesChanged()
   }
 
-  private fun deleteParameter() = runModification {
+  fun deleteParameter() = runModification {
     argumentExpression?.parent?.deleteElementAndCleanParent()
     argumentExpression = null
+    model.firePropertyValuesChanged()
   }
 
   private fun writeParameter(parameterString: String) = runModification {
@@ -147,6 +147,7 @@ internal open class PsiCallParameterPropertyItem(
     }
     argumentExpression = newValueArgument.getArgumentExpression()
     argumentExpression?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }
+    model.firePropertyValuesChanged()
   }
 
   private fun runModification(invoke: () -> Unit) =

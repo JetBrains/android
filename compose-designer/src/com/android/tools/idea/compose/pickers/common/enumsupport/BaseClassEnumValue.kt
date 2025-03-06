@@ -30,8 +30,8 @@ internal interface BaseClassEnumValue : EnumValue {
   /** The fully qualified class that needs importing */
   val fqClass: String
 
-  /** The new value String of the parameter */
-  val valueToWrite: String
+  /** The new value String of the parameter or null if parameter should be deleted */
+  val valueToWrite: String?
 
   /** Value to use in case the [fqClass] cannot be imported */
   val fqFallbackValue: String
@@ -48,13 +48,17 @@ internal interface BaseClassEnumValue : EnumValue {
    */
   val trackableValue: PreviewPickerValue
 
-  override val value: String?
+  override val value: String
     get() = resolvedValue
 
   override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
     if (property is ClassPsiCallParameter) {
-      newEnumValue.newValue(valueToWrite)
-      property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue, trackableValue)
+      val finalValue = valueToWrite
+      if (finalValue == null) {
+        property.deleteParameter()
+      } else {
+        property.importAndSetValue(fqClass, finalValue, fqFallbackValue, trackableValue)
+      }
     } else {
       newEnumValue.newValue(fqFallbackValue)
       property.value = fqFallbackValue

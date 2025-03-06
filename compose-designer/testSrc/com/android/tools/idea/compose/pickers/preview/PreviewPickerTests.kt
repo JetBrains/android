@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
-import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
@@ -440,16 +439,16 @@ class PreviewPickerTests {
     val notNightOption = UiModeWithNightMaskEnumValue.NormalNotNightEnumValue
 
     // The Night/NotNight is not explicitly set
-    val nightModeUndefined = UiMode.NORMAL
+    val nightModeUndefined = UiModeWithNightMaskEnumValue.UndefinedEnumValue
 
     nightModeOption.select(uiModeProperty) {}
     notNightOption.select(uiModeProperty) {}
     nightModeUndefined.select(uiModeProperty) {}
 
-    assertEquals(3, testTracker.valuesRegistered.size)
+    // Only 2 registered as undefined will not be set, instead property will be removed
+    assertEquals(2, testTracker.valuesRegistered.size)
     assertEquals(PreviewPickerValue.UI_MODE_NIGHT, testTracker.valuesRegistered[0])
     assertEquals(PreviewPickerValue.UI_MODE_NOT_NIGHT, testTracker.valuesRegistered[1])
-    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[2])
   }
 
   @RunsInEdt

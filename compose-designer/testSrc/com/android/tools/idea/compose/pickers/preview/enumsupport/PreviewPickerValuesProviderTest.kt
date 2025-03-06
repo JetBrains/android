@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.pickers.preview.enumsupport
 
 import com.android.SdkConstants
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -38,7 +37,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
-import org.jetbrains.android.compose.stubDevicesAsLibrary
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -92,16 +90,17 @@ class PreviewPickerValuesProviderTest {
 
     val valuesProvider = PreviewPickerValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
-    assertEquals(10, uiModeValues.size)
-    // The Normal mode should go right after the header, remaining options are sorted on their
-    // resolved value
-    assertEquals("Not Night", (uiModeValues[0] as HeaderEnumValue).header)
-    assertEquals("Normal", uiModeValues[1].display)
-    assertEquals("Undefined", uiModeValues[2].display)
-    assertEquals("Desk", uiModeValues[3].display)
-    assertEquals("Car", uiModeValues[4].display)
-    assertEquals("Night", (uiModeValues[5] as HeaderEnumValue).header)
-    assertEquals("Normal", uiModeValues[6].display)
+    assertEquals(17, uiModeValues.size)
+    assertEquals("Undefined", uiModeValues[0].display) // Has lowest value (0)
+    // We only care of the order of the first 2 options, all else are sorted on their value and
+    // their availability depends on the sdk used
+    assertEquals("Not Night", (uiModeValues[1] as HeaderEnumValue).header)
+    assertEquals("Normal", uiModeValues[2].display) // Preferred first option
+
+    // Find 'Night' separator
+    var nightModeIndex = uiModeValues.indexOfLast { it is HeaderEnumValue }
+    assertEquals("Night", (uiModeValues[nightModeIndex] as HeaderEnumValue).header)
+    assertEquals("Normal", uiModeValues[++nightModeIndex].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     assertEquals(
@@ -160,18 +159,17 @@ class PreviewPickerValuesProviderTest {
 
     val valuesProvider = PreviewPickerValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
-    assertEquals(18, uiModeValues.size)
+    assertEquals(17, uiModeValues.size)
+    assertEquals("Undefined", uiModeValues[0].display) // Has lowest value (0)
     // We only care of the order of the first 2 options, all else are sorted on their value and
     // their availability depends on the sdk used
-    assertEquals("Not Night", (uiModeValues[0] as HeaderEnumValue).header)
-    assertEquals("Normal", uiModeValues[1].display) // Preferred first option
-    assertEquals("Undefined", uiModeValues[2].display) // Has lowest value (0)
+    assertEquals("Not Night", (uiModeValues[1] as HeaderEnumValue).header)
+    assertEquals("Normal", uiModeValues[2].display) // Preferred first option
 
     // Find 'Night' separator
     var nightModeIndex = uiModeValues.indexOfLast { it is HeaderEnumValue }
     assertEquals("Night", (uiModeValues[nightModeIndex] as HeaderEnumValue).header)
     assertEquals("Normal", uiModeValues[++nightModeIndex].display)
-    assertEquals("Undefined", uiModeValues[++nightModeIndex].display)
 
     val deviceEnumValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     val deviceHeaders = deviceEnumValues.filterIsInstance<HeaderEnumValue>()

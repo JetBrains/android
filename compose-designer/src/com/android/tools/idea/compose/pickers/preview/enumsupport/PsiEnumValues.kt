@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.enumsupport
 
 import com.android.SdkConstants
+import com.android.tools.configurations.Configuration.UI_MODE_NIGHT_YES
 import com.android.tools.idea.compose.pickers.common.enumsupport.BaseClassEnumValue
 import com.android.tools.idea.compose.pickers.common.enumsupport.ClassConstantEnumValue
 import com.android.tools.property.panel.api.EnumValue
@@ -50,19 +51,28 @@ internal const val UI_MODE_NIGHT_MASK = 0x30
  *   which option is currently selected, will be mixed with the resolved value of the selected night
  *   mode
  */
-internal class UiModeWithNightMaskEnumValue(
+internal open class UiModeWithNightMaskEnumValue(
   isNight: Boolean,
   uiModeType: String,
   override val display: String,
   uiModeTypeResolvedValue: String,
 ) : BaseClassEnumValue {
 
-  private val nightModeString = if (isNight) "UI_MODE_NIGHT_YES" else "UI_MODE_NIGHT_NO"
+  private val nightModeString = "UI_MODE_NIGHT_YES"
 
-  override val valueToWrite: String = "Configuration.$nightModeString or Configuration.$uiModeType"
+  override val valueToWrite: String? =
+    if (isNight) {
+      "Configuration.$UI_MODE_NIGHT_YES or Configuration.$uiModeType"
+    } else {
+      "Configuration.$uiModeType"
+    }
 
   override val fqFallbackValue: String =
-    "${SdkConstants.CLASS_CONFIGURATION}.$nightModeString or ${SdkConstants.CLASS_CONFIGURATION}.$uiModeType}"
+    if (isNight) {
+      "${SdkConstants.CLASS_CONFIGURATION}.$nightModeString or ${SdkConstants.CLASS_CONFIGURATION}.$uiModeType}"
+    } else {
+      "${SdkConstants.CLASS_CONFIGURATION}.$uiModeType"
+    }
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
 
@@ -106,6 +116,17 @@ internal class UiModeWithNightMaskEnumValue(
         UiMode.NORMAL.resolvedValue,
       )
 
+    val UndefinedEnumValue =
+      object :
+        UiModeWithNightMaskEnumValue(
+          false,
+          UiMode.UNDEFINED.classConstant,
+          UiMode.UNDEFINED.display,
+          UiMode.UNDEFINED.resolvedValue,
+        ) {
+        override val valueToWrite = null
+      }
+
     /** Pre-defined [EnumValue] for `UI_MODE_TYPE_NORMAL` in night mode (`UI_MODE_NIGHT_YES`) */
     val NormalNightEnumValue =
       UiModeWithNightMaskEnumValue(
@@ -114,6 +135,24 @@ internal class UiModeWithNightMaskEnumValue(
         UiMode.NORMAL.display,
         UiMode.NORMAL.resolvedValue,
       )
+
+    val uiModeNoNightValues =
+      UiMode.values()
+        .filter { it != UiMode.UNDEFINED && it != UiMode.NORMAL }
+        .map { uiMode ->
+          createNotNightUiModeEnumValue(uiMode.classConstant, uiMode.display, uiMode.resolvedValue)
+        }
+
+    val uiModeNightValues =
+      UiMode.values()
+        .filter { it != UiMode.UNDEFINED && it != UiMode.NORMAL }
+        .map { uiMode: UiMode ->
+          UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
+            uiMode.classConstant,
+            uiMode.display,
+            uiMode.resolvedValue,
+          )
+        }
   }
 }
 
