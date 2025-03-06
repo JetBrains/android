@@ -16,12 +16,12 @@
 package com.google.idea.blaze.qsync.project;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static java.util.Arrays.stream;
 
 import com.google.auto.value.AutoBuilder;
-import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -32,8 +32,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import com.google.common.graph.Graph;
-import com.google.common.graph.Graphs;
 import com.google.common.graph.Traverser;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
@@ -70,6 +68,7 @@ import javax.annotation.Nullable;
 public record BuildGraphDataImpl(
   Storage storage,
   ImmutableSetMultimap<Label, Label> sourceOwners,
+  ImmutableSetMultimap<Label, Label> rdeps,
   PackageSet packages) implements BuildGraphData {
 
   @Override
@@ -118,22 +117,6 @@ public record BuildGraphDataImpl(
   }
 
   /**
-   * An immutable directed graph of all project dependencies.
-   *
-   * <p>This graph include both in-project targets, and direct out-of-project dependencies.
-   *
-   * <p>To find the reverse dependencies of a target, you can use {@link Graph#predecessors} or
-   * {@link Graphs#transpose(Graph)} with this method.
-   */
-  @Memoized
-  @Override
-  public DepsGraph<Label> depsGraph() {
-    DepsGraph.Builder<Label> builder = new DepsGraph.Builder<>();
-    storage.targetMap().values().stream().forEach(target -> builder.add(target.label(), target.deps()));
-    return builder.build();
-  }
-
-  /**
    * Calculates the set of direct reverse dependencies for a set of targets (including the targets
    * themselves).
    */
@@ -146,7 +129,7 @@ public record BuildGraphDataImpl(
       // filter the rdeps based on the languages, removing those that don't have a common
       // language. This ensures we don't follow reverse deps of (e.g.) a java target depending on
       // a cc target.
-      depsGraph().rdeps(target).stream()
+      getRdeps(target).stream()
           .filter(d -> !Collections.disjoint(storage.targetMap().get(d).languages(), targetLanguages))
           .forEach(directRdeps::add);
     }
@@ -178,7 +161,7 @@ public record BuildGraphDataImpl(
         if (target != null && ruleKinds.contains(target.kind())) {
           result.add(target);
         } else {
-          toVisit.addAll(depsGraph().rdeps(next));
+          toVisit.addAll(getRdeps(next));
         }
       }
     }
@@ -202,7 +185,7 @@ public record BuildGraphDataImpl(
       return ImmutableList.of();
     }
 
-    return Streams.stream(Traverser.forGraph(depsGraph()::rdeps).breadthFirst(targetOwners))
+    return Streams.stream(Traverser.forGraph(this::getRdeps).breadthFirst(targetOwners))
         .map(label -> storage.targetMap().get(label))
         .filter(Objects::nonNull)
         .collect(toImmutableSet());
@@ -256,7 +239,7 @@ public record BuildGraphDataImpl(
           // possible that further up the dependency graph we'll run into a different one
           // of the consuming targets - and potentially have found one of the rules we
           // need along the way.
-          for (Label nextTargetLabel : depsGraph().rdeps(currentLabel)) {
+          for (Label nextTargetLabel : getRdeps(currentLabel)) {
             toVisit.add(new TargetSearchNode(nextTargetLabel, hasDesiredRule));
           }
         }
@@ -353,6 +336,7 @@ public record BuildGraphDataImpl(
         return new BuildGraphDataImpl(
           storage,
           computeSourceOwners(storage),
+          computeRdeps(storage),
           computePackages(storage));
       }
 
@@ -362,6 +346,16 @@ public record BuildGraphDataImpl(
             t -> t.sourceLabels().values().stream().map(src -> new SimpleEntry<>(src, t.label())))
           .collect(toImmutableSetMultimap(SimpleEntry::getKey, SimpleEntry::getValue));
         return sourceOwners;
+      }
+
+      private static ImmutableSetMultimap<Label, Label> computeRdeps(Storage storage) {
+        final var rdeps = ImmutableSetMultimap.<Label, Label>builder();
+        for (ProjectTarget target : storage.targetMap().values()) {
+          for (Label rdep : target.deps()) {
+            rdeps.put(rdep, target.label());
+          }
+        }
+        return rdeps.build();
       }
 
       private static PackageSet computePackages(Storage storage) {
@@ -600,6 +594,10 @@ public record BuildGraphDataImpl(
       activeLanguages.add(QuerySyncLanguage.CC);
     }
     return activeLanguages.build();
+  }
+
+  private ImmutableSet<Label> getRdeps(Label target) {
+    return rdeps.get(target);
   }
 
   public static Storage.Builder builder() {
