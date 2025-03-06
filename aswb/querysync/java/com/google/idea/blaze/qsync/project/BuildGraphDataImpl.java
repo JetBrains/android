@@ -21,7 +21,6 @@ import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMulti
 import static java.util.Arrays.stream;
 
 import com.google.auto.value.AutoBuilder;
-import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -68,7 +67,10 @@ import javax.annotation.Nullable;
  * <p>This class is immutable. A new instance of it will be created every time there is any change
  * to the project structure.
  */
-public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
+public record BuildGraphDataImpl(
+  Storage storage,
+  ImmutableSetMultimap<Label, Label> sourceOwners,
+  PackageSet packages) implements BuildGraphData {
 
   @Override
   @Nullable
@@ -79,20 +81,6 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
   @Override
   public Collection<Label> allTargets() {
     return storage.allTargets();
-  }
-
-  /** A set of all the BUILD files */
-  @Memoized
-  @Override
-  public PackageSet packages() {
-    PackageSet.Builder packages = new PackageSet.Builder();
-    for (Label sourceFile : storage.sourceFileLabels()) {
-      if (sourceFile.getName().equals(Path.of("BUILD")) || sourceFile.getName().equals(Path.of("BUILD.bazel"))) {
-        // TODO: b/334110669 - support Bazel workspaces.
-        packages.add(sourceFile.getPackage());
-      }
-    }
-    return packages.build();
   }
 
   /**
@@ -361,11 +349,30 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
       abstract Storage autoBuild();
 
       public final BuildGraphDataImpl build() {
-        final var result = new BuildGraphDataImpl(autoBuild());
-        // these are memoized, but we choose to pay the cost of building it now so that it's done at
-        // sync time rather than later on.
-        ImmutableSetMultimap<Label, Label> unused = result.sourceOwners();
-        return result;
+        final var  storage = autoBuild();
+        return new BuildGraphDataImpl(
+          storage,
+          computeSourceOwners(storage),
+          computePackages(storage));
+      }
+
+      private static ImmutableSetMultimap<Label, Label> computeSourceOwners(Storage storage) {
+        final var sourceOwners = storage.targetMap().values().stream()
+          .flatMap(
+            t -> t.sourceLabels().values().stream().map(src -> new SimpleEntry<>(src, t.label())))
+          .collect(toImmutableSetMultimap(SimpleEntry::getKey, SimpleEntry::getValue));
+        return sourceOwners;
+      }
+
+      private static PackageSet computePackages(Storage storage) {
+        PackageSet.Builder packages = new PackageSet.Builder();
+        for (Label sourceFile : storage.sourceFileLabels()) {
+          if (sourceFile.getName().equals(Path.of("BUILD")) || sourceFile.getName().equals(Path.of("BUILD.bazel"))) {
+            // TODO: b/334110669 - support Bazel workspaces.
+            packages.add(sourceFile.getPackage());
+          }
+        }
+        return packages.build();
       }
     }
   }
@@ -395,15 +402,6 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
     }
   }
 
-  @Memoized
-  @Override
-  public ImmutableSetMultimap<Label, Label> sourceOwners() {
-    return storage.targetMap().values().stream()
-        .flatMap(
-            t -> t.sourceLabels().values().stream().map(src -> new SimpleEntry<>(src, t.label())))
-        .collect(toImmutableSetMultimap(e -> e.getKey(), e -> e.getValue()));
-  }
-
   @Override
   public ImmutableSet<Label> getSourceFileOwners(Path path) {
     return sourceFileToLabel(path).map(this::getSourceFileOwners).orElse(ImmutableSet.of());
@@ -428,17 +426,10 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
         .orElse(null);
   }
 
-  /** A set of all the targets that show up in java rules 'src' attributes */
-  @Memoized
-  @Override
-  public ImmutableSet<Label> javaSources() {
-    return sourcesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR);
-  }
-
   /** Returns a list of all the java source files of the project, relative to the workspace root. */
   @Override
   public List<Path> getJavaSourceFiles() {
-    return pathListFromSourceFileLabelsOnly(javaSources());
+    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR);
   }
 
   @Override
@@ -594,7 +585,7 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
   @Override
   public void outputStats(Context<?> context) {
     context.output(PrintOutput.log("%-10d Source files", storage.sourceFileLabels().size()));
-    context.output(PrintOutput.log("%-10d Java sources", javaSources().size()));
+    context.output(PrintOutput.log("%-10d Java sources", getJavaSourceFiles().size()));
     context.output(PrintOutput.log("%-10d Packages", packages().size()));
     context.output(PrintOutput.log("%-10d External dependencies", storage.projectDeps().size()));
   }
