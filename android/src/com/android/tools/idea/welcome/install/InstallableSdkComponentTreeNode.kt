@@ -62,7 +62,7 @@ abstract class InstallableSdkComponentTreeNode(
     }
 
   protected val repositoryPackages: RepositoryPackages
-    get() = sdkHandler!!.getRepoManagerAndLoadSynchronously(PROGRESS_LOGGER).packages
+    get() = sdkHandler!!.getRepoManager(PROGRESS_LOGGER).packages
 
   /** Gets the unfiltered collection of all packages required by this component. */
   protected abstract val requiredSdkPackages: Collection<String>
@@ -97,6 +97,8 @@ abstract class InstallableSdkComponentTreeNode(
   override fun updateState(handler: AndroidSdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
     sdkHandler = handler
+    // Ensure that local packages are loaded
+    handler.getRepoManagerAndLoadSynchronously(PROGRESS_LOGGER)
     val nothingToInstall = !isWritable(handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
     isEnabled = isOptional
