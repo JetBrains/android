@@ -260,7 +260,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         result.addAllElements(suggestions.map {
           LookupElementBuilder.create(it.name)
             .withTypeText(it.type.str, null, true)
-            .withInsertHandler(insert(it.type))
+            .withInsertHandler(insertAssignmentValue(it.type))
         })
       }
     }
@@ -356,6 +356,22 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
 
       else -> editor.caretModel.moveToOffset(context.tailOffset)
+    }
+  }
+
+  private fun insertAssignmentValue(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
+    context.editor.run {
+      val file = virtualFile.toPsiFile(context.project)
+      val element = file?.findElementAt(caretModel.offset)
+      context.commitDocument()
+      when (type) {
+        FACTORY -> {
+          if (element?.beforeElement("(") == true) return@InsertHandler
+          document.insertString(context.tailOffset, "()")
+          caretModel.moveToOffset(context.tailOffset - 1)
+        }
+        else -> caretModel.moveToOffset(context.tailOffset)
+      }
     }
   }
 

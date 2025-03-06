@@ -424,6 +424,20 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER")
       )
     }
+    doCompletionTest("""
+      androidApp {
+        compileOptions {
+          sourceCompatibility = VERSION_H$caret
+        }
+      }
+    """, "build.gradle.dcl", """
+      androidApp {
+        compileOptions {
+          sourceCompatibility = VERSION_HIGHER$caret
+        }
+      }
+    """)
+
   }
 
   @Test
@@ -437,6 +451,20 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly("true", "false")
     }
+
+    doCompletionTest("""
+      androidApp {
+        buildFeatures {
+          dataBinding = tr$caret
+        }
+      }
+   """, """
+      androidApp {
+        buildFeatures {
+          dataBinding = true$caret
+        }
+      }
+   """)
   }
 
   @Test
