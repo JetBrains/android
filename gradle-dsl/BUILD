@@ -27,6 +27,7 @@ iml_module(
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
+        "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
