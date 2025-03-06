@@ -441,22 +441,6 @@ public record BuildGraphDataImpl(Storage storage) implements BuildGraphData {
     return pathListFromSourceFileLabelsOnly(javaSources());
   }
 
-  /**
-   * Returns a list of all the proto source files of the project, relative to the workspace root.
-   */
-  @Memoized
-  @Override
-  public List<Path> getProtoSourceFiles() {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isProtoSource, SourceType.REGULAR);
-  }
-
-  /** Returns a list of all the cc source files of the project, relative to the workspace root. */
-  @Memoized
-  @Override
-  public List<Path> getCcSourceFiles() {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isCc, SourceType.REGULAR);
-  }
-
   @Override
   public List<Path> getSourceFilesByRuleKindAndType(
     Predicate<String> ruleKindPredicate, SourceType... sourceTypes) {

@@ -133,14 +133,6 @@ public interface BuildGraphData {
   /** Returns a list of all the java source files of the project, relative to the workspace root. */
   List<Path> getJavaSourceFiles();
 
-  /**
-   * Returns a list of all the proto source files of the project, relative to the workspace root.
-   */
-  List<Path> getProtoSourceFiles();
-
-  /** Returns a list of all the cc source files of the project, relative to the workspace root. */
-  List<Path> getCcSourceFiles();
-
   List<Path> getSourceFilesByRuleKindAndType(
     Predicate<String> ruleKindPredicate, ProjectTarget.SourceType... sourceTypes);
 
