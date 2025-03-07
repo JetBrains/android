@@ -2848,7 +2848,6 @@ android-studio/plugins/java/lib/jps-builders-6.jar
 android-studio/plugins/java/lib/jps-builders.jar
 android-studio/plugins/java/lib/jps-javac-extension.jar
 android-studio/plugins/java/lib/jps-launcher.jar
-android-studio/plugins/java/lib/jps/java-compiler-charts-jps.jar
 android-studio/plugins/java/lib/jshell-frontend.jar
 android-studio/plugins/java/lib/jshell-protocol.jar
 android-studio/plugins/java/lib/maven-resolver-connector-basic.jar
