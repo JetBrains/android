@@ -280,6 +280,7 @@ studio_plugin(
             "//tools/adt/idea/gmaven:intellij.android.gmaven",
             "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
             "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+            "//tools/vendor/google/android-keys:android-keys",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

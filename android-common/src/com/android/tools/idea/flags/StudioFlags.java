@@ -1316,6 +1316,12 @@ public final class StudioFlags {
     "If enabled, calls out reads of variables of type State inside @Composable functions.",
     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED = new BooleanFlag(
+    EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
+    "Enable use of the ContentServing API for fetching Android SDK documentation.",
+    "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation.",
+    enabledUpTo(CANARY));
+
   //endregion
 
   //region Essentials Mode

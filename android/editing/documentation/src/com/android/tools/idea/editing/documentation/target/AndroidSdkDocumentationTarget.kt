@@ -19,7 +19,12 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.android.tools.idea.downloads.RemoteFileCache.RemoteFileCacheException
 import com.android.tools.idea.downloads.UrlFileCache
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.googleapis.GoogleApiKeyProvider
+import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi.CONTENT_SERVING
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
+import com.google.gson.JsonParser
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
 import com.google.wireless.android.sdk.stats.EditorFileType
@@ -42,6 +47,9 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.Reader
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.days
@@ -61,6 +69,12 @@ sealed class AndroidSdkDocumentationTarget<T>(
   private val url: String,
   private val localJavaDocInfo: String?,
 ) : DocumentationTarget where T : PsiElement, T : Navigatable {
+  private val contentServingApiKey by lazy {
+    GoogleApiKeyProvider.getApiKey(CONTENT_SERVING)?.takeIf {
+      StudioFlags.REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED.get()
+    }
+  }
+
   /** A [String] we can use to refer to this element. */
   protected abstract val displayName: String?
 
@@ -77,7 +91,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
   }
 
   override fun computeDocumentation(): DocumentationResult {
-    val urlWithHeaders = UrlFileCache.UrlWithHeaders(url)
+    val urlWithHeaders = createUrlWithHeaders()
     val deferredPathAndStats =
       UrlFileCache.getInstance(targetElement.project).getWithStats(
         urlWithHeaders,
@@ -125,6 +139,19 @@ sealed class AndroidSdkDocumentationTarget<T>(
     localJavaDocInfo: String?,
   ): AndroidSdkDocumentationTarget<T>?
 
+  private fun createUrlWithHeaders(): UrlFileCache.UrlWithHeaders {
+    if (contentServingApiKey == null) return UrlFileCache.UrlWithHeaders(url)
+    val uri = URI(url.substringBeforeLast(".html"))
+    // This is just to create a unique key in the cache for methods/fields/etc.
+    val suffix = URLEncoder.encode(url.substringAfterLast(".html"), StandardCharsets.UTF_8)
+    val urlEncodedUrl = URLEncoder.encode(uri.host + uri.path, StandardCharsets.UTF_8)
+    val apiUrl = String.format(HOST + PATH, urlEncodedUrl, contentServingApiKey)
+    return UrlFileCache.UrlWithHeaders(
+      apiUrl,
+      mapOf("Accept" to JSON, "Content-Type" to JSON, "X-URL-Suffix" to suffix),
+    )
+  }
+
   /**
    * Retrieves the documentation HTML from the file pointed to by [deferredPathAndStats], which must
    * be a completed [Deferred]. We wait to unwrap the [Deferred] until inside this method so we need
@@ -160,14 +187,29 @@ sealed class AndroidSdkDocumentationTarget<T>(
    * links.
    */
   private fun InputStream.filterStream(): InputStream {
+    // If we're receiving SafeHTML from contentserving, we need to unwrap it
+    val contentStream = if (contentServingApiKey != null) unwrapSafeHtmlFromStream(this) else this
     val stringBuilder = StringBuilder()
-    filter(BufferedReader(InputStreamReader(this)), stringBuilder)
+    filter(BufferedReader(InputStreamReader(contentStream)), stringBuilder)
     // This is an ugly hack to replace relative URL links with absolute links so that the platform
     // can correctly follow them. It would be best not to do this, but it's equivalent to what the
     // platform was already doing in JavaDocExternalFilter. Once we are rendering doc pages on the
     // server formatted specifically for Studio, we should be able to remove this.
     val corrected = HREF_REGEX.replace(stringBuilder.toString(), "$1$DEV_SITE_ROOT$2")
     return ByteArrayInputStream(corrected.toByteArray())
+  }
+
+  private fun unwrapSafeHtmlFromStream(inputStream: InputStream): InputStream {
+    val contents = inputStream.readBytes().toString(StandardCharsets.UTF_8)
+    val json = JsonParser.parseString(contents).asJsonObject
+    val safeHtml =
+      "${AndroidJavaDocExternalFilter.START_SECTION}\n" +
+        json
+          .get("htmlBody")
+          .asJsonObject
+          .get("privateDoNotAccessOrElseSafeHtmlWrappedValue")
+          .asString
+    return ByteArrayInputStream(safeHtml.toByteArray())
   }
 
   /** This class exists only to expose [JavaDocExternalFilter.doBuildFromStream]. */
@@ -200,6 +242,10 @@ sealed class AndroidSdkDocumentationTarget<T>(
   }
 
   companion object {
+    private const val JSON = "application/json"
+    private val HOST = "https://${CONTENT_SERVING.apiName}.clients6.google.com"
+    private val PATH = "/v1/namespaces/prod/resources/%s/locales/en?key=%s&fields=html_body"
+
     /** Returns the standard URL for the documentation for `this` [PsiClass]. */
     @JvmStatic
     protected fun PsiClass.documentationUrl(): String? {

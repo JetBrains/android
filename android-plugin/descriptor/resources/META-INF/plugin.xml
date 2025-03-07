@@ -40,6 +40,7 @@
   <xi:include href="/META-INF/android-editing-metrics.xml"/>
   <xi:include href="/META-INF/android-lang.xml"/>
   <xi:include href="/META-INF/android-lang-databinding.xml"/>
+  <xi:include href="/META-INF/android-keys.xml"/>
   <xi:include href="/META-INF/android-navigator.xml"/>
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>

@@ -16,7 +16,6 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_deps = [
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/base/testutils:studio.android.sdktools.testutils",
@@ -27,6 +26,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/vendor/google/android-keys",
     ],
 )

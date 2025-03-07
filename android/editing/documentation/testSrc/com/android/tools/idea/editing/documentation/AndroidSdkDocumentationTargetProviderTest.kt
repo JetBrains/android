@@ -21,6 +21,9 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.downloads.RemoteFileCache
 import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.android.tools.idea.downloads.UrlFileCache
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.googleapis.GoogleApiKeyProvider
+import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi.CONTENT_SERVING
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
@@ -41,12 +44,16 @@ import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.reflect.KClass
@@ -76,6 +83,10 @@ private const val TEXT_VIEW_DOC_URL =
   "http://developer.android.com/reference/android/widget/TextView.html"
 // The contents here don't really matter.
 private const val SIMPLE_HTML = "<html><body>Yo, this is HTML.</body></html>"
+private const val JSON = "application/json"
+private const val FAKE_KEY = "amazingKey"
+private val HOST = "https://${CONTENT_SERVING.apiName}.clients6.google.com"
+private val PATH = "/v1/namespaces/prod/resources/%s/locales/en?key=%s&fields=html_body"
 
 private fun CharSequence.collapseSpaces() =
   replace(Regex(" {2,}"), " ").replace(Regex("^ +", RegexOption.MULTILINE), "")
@@ -100,16 +111,38 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   private val simpleHtmlPath by lazy { fixture.createFile("simple.html", SIMPLE_HTML).toNioPath() }
 
-  private val docUrl = UrlFileCache.UrlWithHeaders(TEXT_VIEW_DOC_URL + testConfig.urlSuffix)
+  private val docUrl =
+    if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
+      val uri = URI(TEXT_VIEW_DOC_URL.substringBeforeLast(".html"))
+      val urlEncodedUrl = URLEncoder.encode(uri.host + uri.path, StandardCharsets.UTF_8)
+      // This suffix is necessary to differentiate different post-processed versions of
+      // the same source material in the cache.
+      val suffix = URLEncoder.encode(testConfig.urlSuffix, StandardCharsets.UTF_8)
+      val apiUrl = String.format(HOST + PATH, urlEncodedUrl, FAKE_KEY)
+      val headers = mapOf("Accept" to JSON, "Content-Type" to JSON, "X-URL-Suffix" to suffix)
+      UrlFileCache.UrlWithHeaders(apiUrl, headers)
+    } else {
+      UrlFileCache.UrlWithHeaders(TEXT_VIEW_DOC_URL + testConfig.urlSuffix)
+    }
 
   private val preFilteringPath by lazy {
-    TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.html")
+    if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
+      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextViewJsonResponse.json")
+    } else {
+      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.html")
+    }
   }
 
   private val postFilteringPath by lazy {
-    TestUtils.resolveWorkspacePath(
-      "$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.html"
-    )
+    if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
+      TestUtils.resolveWorkspacePath(
+        "$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.Safe.html"
+      )
+    } else {
+      TestUtils.resolveWorkspacePath(
+        "$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.html"
+      )
+    }
   }
 
   private val documentationContentAfterFiltering by lazy {
@@ -119,10 +152,25 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   private val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
 
   private val mockUrlFileCache: UrlFileCache = mock()
+  private val fakeApiKeyProvider =
+    object : GoogleApiKeyProvider {
+      override fun getApiKey(api: GoogleApiKeyProvider.GoogleApi) = FAKE_KEY
+    }
 
   @Before
   fun setUp() {
+    StudioFlags.REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED.override(
+      testConfig.useContentServingApi != ContentServingApiState.DISABLED
+    )
     project.replaceService(UrlFileCache::class.java, mockUrlFileCache, fixture.testRootDisposable)
+    val providers =
+      if (testConfig.useContentServingApi == ContentServingApiState.MISSING_PROVIDER) listOf()
+      else listOf(fakeApiKeyProvider)
+    ExtensionTestUtil.maskExtensions(
+      GoogleApiKeyProvider.EP_NAME,
+      providers,
+      fixture.testRootDisposable,
+    )
   }
 
   @Test
@@ -407,8 +455,17 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     val urlSuffix: String,
     val cursorWindow: String,
     val hintStrings: List<String>,
+    val useContentServingApi: ContentServingApiState,
   ) {
-    override fun toString() = "${language.displayName} ${targetType.simpleName}"
+    override fun toString(): String {
+      return "${language.displayName} ${targetType.simpleName} (Skinny docs $useContentServingApi)"
+    }
+  }
+
+  enum class ContentServingApiState {
+    ENABLED,
+    DISABLED,
+    MISSING_PROVIDER,
   }
 
   companion object {
@@ -420,6 +477,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
           urlSuffix = "",
           cursorWindow = "Text|View.",
           hintStrings = listOf("android.widget", "public", "class", "TextView"),
+          ContentServingApiState.ENABLED,
         ),
         TestConfig(
           JavaLanguage.INSTANCE,
@@ -427,6 +485,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
           urlSuffix = "#AUTO_SIZE_TEXT_TYPE_NONE",
           cursorWindow = "AUTO_SIZE_TE|XT_TYPE_NONE",
           hintStrings = listOf("android.widget.TextView", "AUTO_SIZE_TEXT_TYPE_NONE", "int"),
+          ContentServingApiState.ENABLED,
         ),
         TestConfig(
           JavaLanguage.INSTANCE,
@@ -435,12 +494,22 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
           cursorWindow = "addText|ChangedListener",
           hintStrings =
             listOf("android.widget.TextView", "addTextChangedListener", "TextWatcher", "void"),
+          ContentServingApiState.ENABLED,
         ),
       )
 
     @JvmStatic
     @Parameters(name = "{0}")
-    fun data(): List<TestConfig> =
-      JAVA_CONFIGS + JAVA_CONFIGS.map { it.copy(language = KotlinLanguage.INSTANCE) }
+    fun data(): List<TestConfig> {
+      val kotlinConfigs = JAVA_CONFIGS.map { it.copy(language = KotlinLanguage.INSTANCE) }
+      val enabledConfigs = JAVA_CONFIGS + kotlinConfigs
+      val disabledConfigs =
+        enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.DISABLED) }
+      val missingConfigs =
+        enabledConfigs.map {
+          it.copy(useContentServingApi = ContentServingApiState.MISSING_PROVIDER)
+        }
+      return enabledConfigs + disabledConfigs + missingConfigs
+    }
   }
 }

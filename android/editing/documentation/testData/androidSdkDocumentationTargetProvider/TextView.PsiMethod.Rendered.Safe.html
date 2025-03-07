@@ -1,0 +1,47 @@
+<HTML><base href="http://developer.android.com/reference/android/widget/TextView.html#addTextChangedListener(android.text.TextWatcher)"><style type="text/css"> ul.inheritance {
+margin:0;
+padding:0;
+}
+ul.inheritance li {
+display:inline;
+list-style-type:none;
+}
+ul.inheritance li ul.inheritance {
+margin-left:15px;
+padding-left:15px;
+padding-top:1px;
+}
+</style> <h3><a href="psi_element://android.widget.TextView"><code>android.widget.TextView</code></a></h3>
+<div class="api-level">
+<div>
+Added in <a href="http://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 1</a>
+</div>
+
+
+
+</div>
+<div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr">public void addTextChangedListener (<a href="http://developer.android.com/reference/android/text/TextWatcher">TextWatcher</a> watcher)</pre></devsite-code>
+
+
+
+
+<p>Adds a TextWatcher to the list of those whose methods are called
+whenever this TextView&#39;s text changes.
+</p><p>
+In 1.0, the <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/text/TextWatcher#afterTextChanged(android.text.Editable)">TextWatcher.afterTextChanged</a></code> method was erroneously
+not called after <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/widget/TextView#setText(char[],%20int,%20int)">setText(char, int, int)</a></code> calls. Now, doing <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/widget/TextView#setText(char[],%20int,%20int)">setText(char, int, int)</a></code>
+if there are any text changed listeners forces the buffer type to
+Editable if it would not otherwise be and does call this method.</p><p></p>
+<table class="responsive">
+<tbody><tr><th colspan="2">Parameters</th></tr>
+<tr>
+<td><code translate="no" dir="ltr">watcher</code></td>
+<td width="100%">
+<code translate="no" dir="ltr">TextWatcher</code> <p></p></td>
+</tr>
+</tbody></table>
+
+</div>
+
+<div data-version-added="1">
+</HTML>

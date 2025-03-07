@@ -47,14 +47,14 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
     // The format has changed over time, so we need to look for different formats.
     // The document begins with a bunch of stuff we don't want to include (e.g.
     // page navigation etc); in all formats this seems to end with the following marker:
-    @NonNls private const val START_SECTION = "<!-- ======== START OF CLASS DATA ======== -->"
+    @NonNls const val START_SECTION = "<!-- ======== START OF CLASS DATA ======== -->"
     // This doesn't appear anywhere in recent documentation,
     // but presumably was needed at one point; left for now
     // for users who have old documentation installed locally.
     @NonNls private const val SKIP_HEADER = "<!-- END HEADER -->"
 
     private fun String.isClassDescriptionStart() =
-      startsWith("<h2>Class Overview") || equals("<br><hr>")
+      startsWith("<h2>Class Overview") || equals("<br><hr>") || equals("<br/><hr/>")
 
     /**
      * Returns true if we've clearly reached the section after the class description. Newer docs
