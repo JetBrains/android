@@ -154,7 +154,7 @@ private fun logSmartStepTargetFilteringEvent(status: DexSearchStatus, timeMs: Lo
 private suspend fun findDexWithLocationCacheAwareSafe(
   debugProcess: DebugProcessImpl,
   expression: KtElement,
-  location: Location
+  location: Location,
 ): Pair<Dex?, DexSearchStatus> {
   return try {
     findDexWithLocationCacheAware(debugProcess, expression, location)
@@ -175,12 +175,12 @@ private suspend fun findDexWithLocationCacheAware(
     return it as Dex to DexSearchStatus.FOUND
   }
 
-  val configuration = debugProcess.androidRunConfiguration
+  val configuration =
+    debugProcess.androidRunConfiguration
       ?: return null to DexSearchStatus.APK_PROVIDER_NOT_AVAILABLE
-  val apkProvider = configuration.apkProvider
-      ?: return null to DexSearchStatus.APK_PROVIDER_NOT_AVAILABLE
-  val module = findModule(expression)
-      ?: return null to DexSearchStatus.MODULE_NOT_FOUND
+  val apkProvider =
+    configuration.apkProvider ?: return null to DexSearchStatus.APK_PROVIDER_NOT_AVAILABLE
+  val module = findModule(expression) ?: return null to DexSearchStatus.MODULE_NOT_FOUND
   val project = debugProcess.project
   val androidDevices =
     configuration.deployTargetContext.currentDeployTargetProvider
@@ -280,7 +280,12 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
       if (insn is InvokeInstruction) {
         val methodInfo = dex.retrieveMethod(insn.methodIndex())
         if (methodInfo != null) {
-          visitOrdinaryFunction(methodInfo.owner, methodInfo.name, methodInfo.signature)
+          visitOrdinaryFunction(
+            methodInfo.owner,
+            methodInfo.name,
+            methodInfo.signature,
+            insn.opcode.name.startsWith("INVOKE_STATIC"),
+          )
         }
       }
     }
