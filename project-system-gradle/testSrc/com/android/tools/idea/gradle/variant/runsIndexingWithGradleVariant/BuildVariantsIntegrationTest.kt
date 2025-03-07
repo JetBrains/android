@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.variant.runsGradleVariant
+package com.android.tools.idea.gradle.variant.runsIndexingWithGradleVariant
 
 import com.android.SdkConstants
 import com.android.testutils.AssumeUtil.assumeNotWindows
@@ -31,7 +31,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject

@@ -323,8 +323,9 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
-        "runs_gradle_variants": {
-            "test_filter": ".runsGradleVariant",
+        "runs_indexing_with_gradle_variants": {
+            "test_filter": ".runsIndexingWithGradleVariant",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
