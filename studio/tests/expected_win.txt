@@ -1825,6 +1825,9 @@ android-studio/plugins/android/resources/device-art-resources/pixel_9_pro_fold/d
 android-studio/plugins/android/resources/device-art-resources/pixel_9_pro_xl/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_9_pro_xl/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_9_pro_xl/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_9a/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_9a/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_9a/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/layout

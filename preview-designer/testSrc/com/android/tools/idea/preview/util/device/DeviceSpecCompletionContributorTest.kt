@@ -62,22 +62,24 @@ internal class DeviceSpecCompletionContributorTest {
   fun providedDeviceInId() {
     fixture.completeDeviceSpec("id:pixel_9$caret")
 
-    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("pixel_9", fixture.lookupElementStrings!![0])
     assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
     assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
     assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
+    assertEquals("pixel_9a", fixture.lookupElementStrings!![4])
   }
 
   @Test
   fun providedDeviceInParent() {
     fixture.completeDeviceSpec("spec:parent=pixel_9$caret")
 
-    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("pixel_9", fixture.lookupElementStrings!![0])
     assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
     assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
     assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
+    assertEquals("pixel_9a", fixture.lookupElementStrings!![4])
   }
 
   @Test

@@ -107,6 +107,7 @@ class DeviceMenuActionTest {
                   Pixel 9 Pro XL (448 × 997 dp, xxhdpi)
                   Pixel 9 Pro Fold (852 × 883 dp, 390dpi)
                   Pixel 9 Pro (427 × 952 dp, xxhdpi)
+                  Pixel 9a (411 × 923 dp, 420dpi)
                   Pixel 8 (411 × 914 dp, 420dpi)
                   Pixel 8 Pro (448 × 997 dp, xxhdpi)
                   Pixel 8a (411 × 914 dp, 420dpi)
