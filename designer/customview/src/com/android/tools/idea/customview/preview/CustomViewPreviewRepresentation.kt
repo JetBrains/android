@@ -27,7 +27,6 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.setupChangeListener
@@ -67,7 +66,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -426,23 +424,21 @@ class CustomViewPreviewRepresentation(
       val configuration = model.configuration
 
       // Load and set preview size if exists for this custom view
-      withContext(uiThread) {
-        persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let {
-          previewDimensions ->
-          configuration.updateScreenSize(
-            previewDimensions[0].toInt(),
-            previewDimensions[1].toInt(),
-            configuration.device,
-          )
-        }
-
-        surface.models.forEach { surface.removeModel(it) }
-        val newSceneManager = surface.addModelWithoutRender(model).await()
-        newSceneManager.requestRenderAndWait()
-        surface.activate()
-
-        stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
+      persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let { previewDimensions
+        ->
+        configuration.updateScreenSize(
+          previewDimensions[0].toInt(),
+          previewDimensions[1].toInt(),
+          configuration.device,
+        )
       }
+
+      surface.models.forEach { surface.removeModel(it) }
+      val newSceneManager = surface.addModelWithoutRender(model).await()
+      newSceneManager.requestRenderAndWait()
+      surface.activate()
+
+      stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
     }
 
   override fun onActivate() {
