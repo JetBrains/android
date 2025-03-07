@@ -143,40 +143,6 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun transitionIsCached() {
-    var transitionCalls = 0
-    var stateCalls = 0
-    val clock =
-      object : TestClock() {
-        override fun getTransitions(animation: Any, clockTimeMsStep: Long) =
-          super.getTransitions(animation, clockTimeMsStep).also { transitionCalls++ }
-
-        override fun updateFromAndToStates(
-          animation: ComposeAnimation,
-          fromState: Any,
-          toState: Any,
-        ) = super.updateFromAndToStates(animation, fromState, toState).also { stateCalls++ }
-      }
-
-    setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
-      withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 1 } }
-      assertEquals(1, transitionCalls)
-      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 2 } }
-      assertEquals(2, stateCalls)
-      // Swap
-      ui.clickOn(toolbar.components[1])
-      withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 2 } }
-      assertEquals(2, transitionCalls)
-      assertEquals(3, stateCalls)
-      // Swap again
-      ui.clickOn(toolbar.components[1])
-      assertEquals(2, transitionCalls)
-      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 4 } }
-      assertEquals(4, stateCalls)
-    }
-  }
-
-  @Test
   fun `show error panel on faulty clock`() {
     var numberOfCalls = 0
 

@@ -23,11 +23,8 @@ import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
-import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JComponent
-import javax.swing.border.MatteBorder
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -118,16 +115,11 @@ abstract class SupportedAnimationManager(
   /** [AnimationCard] for coordination panel. */
   final override lateinit var card: AnimationCard
 
-  private val tabScrollPane =
-    JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
-
   val tab by lazy {
     AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
   }
   override val timelineMaximumMs: Int
     get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
-
-  private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
   override fun createTimelineElement(
     parent: JComponent,
@@ -178,17 +170,10 @@ abstract class SupportedAnimationManager(
   protected abstract fun loadTransitionFromLibrary(): Transition
 
   /**
-   * Load transition for current animation state. If transition was loaded before, the cached result
-   * is used.
+   * Load transition for current animation state.
    */
   private suspend fun loadTransition(longTimeout: Boolean = false) {
-    val stateHash = animationState.state.value.hashCode()
-    if (!cachedTransitions.containsKey(stateHash)) {
-      executeInRenderSession(longTimeout) {
-        cachedTransitions[stateHash] = loadTransitionFromLibrary()
-      }
-    }
-    currentTransition = cachedTransitions.getOrDefault(stateHash, Transition())
+    executeInRenderSession(longTimeout) { currentTransition = loadTransitionFromLibrary() }
   }
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)

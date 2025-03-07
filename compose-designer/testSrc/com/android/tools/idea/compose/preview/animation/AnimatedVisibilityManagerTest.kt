@@ -137,38 +137,6 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
   }
 
   @Test
-  fun transitionIsCached() {
-    var transitionCalls = 0
-    var stateCalls = 0
-    val clock =
-      object : TestClock() {
-        override fun getTransitions(animation: Any, clockTimeMsStep: Long) =
-          super.getTransitions(animation, clockTimeMsStep).also { transitionCalls++ }
-
-        override fun updateAnimatedVisibilityState(animation: Any, state: Any) {
-          super.updateAnimatedVisibilityState(animation, state)
-          stateCalls++
-        }
-      }
-
-    setupAndCheckToolbar(clock) { toolbar, ui ->
-      delayUntilCondition(200) { stateCalls == 2 }
-      assertEquals(1, transitionCalls)
-      assertEquals(2, stateCalls)
-      // Swap
-      ui.clickOn(toolbar.components[1])
-      delayUntilCondition(200) { transitionCalls == 2 }
-      assertEquals(2, transitionCalls)
-      assertEquals(3, stateCalls)
-      // Swap again
-      ui.clickOn(toolbar.components[1])
-      delayUntilCondition(200) { stateCalls == 4 }
-      assertEquals(2, transitionCalls)
-      assertEquals(4, stateCalls)
-    }
-  }
-
-  @Test
   fun changeTime() {
     var numberOfCalls = 0
     val clock =
