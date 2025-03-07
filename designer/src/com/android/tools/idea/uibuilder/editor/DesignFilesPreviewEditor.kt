@@ -20,6 +20,7 @@ import android.widget.ImageView
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
@@ -53,6 +54,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -234,6 +236,18 @@ class DesignFilesPreviewEditor(
             }
           },
         )
+      val configurationChangeListener = ConfigurationListener { flags ->
+        if ((flags and ConfigurationListener.CFG_THEME) > 0) {
+          // Reset the toolbar on configuration change
+          toolbar.setFrameMs(0)
+        }
+        return@ConfigurationListener true
+      }
+      surface.configurations.firstOrNull()?.let {
+        it.addListener(configurationChangeListener)
+        // Remove the listener when disposing the panel, so the configuration won't leak
+        Disposer.register(panel) { it.removeListener(configurationChangeListener) }
+      }
     }
     return toolbar
   }
