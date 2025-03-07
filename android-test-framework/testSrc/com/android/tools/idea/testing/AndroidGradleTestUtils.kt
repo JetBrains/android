@@ -240,6 +240,7 @@ import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
+import java.util.IdentityHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -2475,7 +2476,7 @@ private fun setupDataNodesForSelectedVariant(
         listOfNotNull(lib.srcJar, lib.samplesJar),
         lib.docJar,
       )
-    }, newVariant)
+    }, newVariant, IdentityHashMap())
     moduleNode.setupAndroidContentEntriesPerSourceSet(gradleAndroidModel)
   }
 }

@@ -133,6 +133,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import java.io.File
 import java.io.IOException
+import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
 
@@ -146,9 +147,11 @@ private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal constructor(private val myCommandLineArgs: CommandLineArgs) :
   AbstractProjectResolverExtension(), AndroidGradleProjectResolverMarker {
   private var project: Project? = null
-  private val myModuleDataByGradlePath: MutableMap<GradleProjectPath, DataNode<out ModuleData>> = mutableMapOf()
-  private val myGradlePathByModuleId: MutableMap<String?, GradleProjectPath> = mutableMapOf()
-  private var myResolvedLibraryTable: IdeResolvedLibraryTable? = null
+  private val moduleDataByGradlePath: MutableMap<GradleProjectPath, DataNode<out ModuleData>> = mutableMapOf()
+  private val gradlePathByModuleId: MutableMap<String?, GradleProjectPath> = mutableMapOf()
+  // It's fine to use an identity hash map because the instances are looked up from the library table
+  private val libraryDataCache = IdentityHashMap<IdeArtifactLibrary, LibraryData>()
+  private var resolvedLibraryTable: IdeResolvedLibraryTable? = null
 
   constructor() : this(CommandLineArgs())
 
@@ -160,7 +163,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY, true)
     // Similarly for KAPT.
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY, true)
-    myResolvedLibraryTable = null
+    resolvedLibraryTable = null
     super.setProjectResolverContext(projectResolverContext)
   }
 
@@ -244,8 +247,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
             projectIdentifier.projectPath,
             sourceSet
           )
-          myModuleDataByGradlePath[gradleProjectPath] = node
-          myGradlePathByModuleId[node.data.id] = gradleProjectPath
+          moduleDataByGradlePath[gradleProjectPath] = node
+          gradlePathByModuleId[node.data.id] = gradleProjectPath
         }
       }
     }
@@ -483,16 +486,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       super.populateModuleDependencies(gradleModule, ideModule, ideProject)
       return
     }
-    if (myResolvedLibraryTable == null) {
+    if (resolvedLibraryTable == null) {
       val ideLibraryTable = resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
         ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
-      myResolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
+      resolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
       ideProject.createChild(
         AndroidProjectKeys.IDE_LIBRARY_TABLE,
-        myResolvedLibraryTable!!
+        resolvedLibraryTable!!
       )
     }
-    val libraryResolver = fromLibraryTables(myResolvedLibraryTable!!, null)
+    val libraryResolver = fromLibraryTables(resolvedLibraryTable!!, null)
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
@@ -530,11 +533,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
     ideModule.setupAndroidDependenciesForMpss(
       { gradleProjectPath: GradleSourceSetProjectPath ->
-        val node = myModuleDataByGradlePath[gradleProjectPath] ?: return@setupAndroidDependenciesForMpss null
+        val node = moduleDataByGradlePath[gradleProjectPath] ?: return@setupAndroidDependenciesForMpss null
         node.data
       },
       artifactLookup::apply,
-      androidModelNode.data.selectedVariant(libraryResolver)
+      androidModelNode.data.selectedVariant(libraryResolver),
+      libraryDataCache
     )
   }
 
@@ -548,8 +552,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
     )?.data
     return ResolvedLibraryTableBuilder(
-      { key: Any? -> myGradlePathByModuleId[key] },
-      { key: Any? -> myModuleDataByGradlePath[key] },
+      { key: Any? -> gradlePathByModuleId[key] },
+      { key: Any? -> moduleDataByGradlePath[key] },
       { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
       {
         kotlinMultiplatformAndroidSourceSetData?.sourceSetsByGradleProjectPath?.get(
@@ -568,11 +572,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, Set<String>>, artifact: File) =
     artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
-      ?.mapNotNull { artifactToModuleId -> myGradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath }
+      ?.mapNotNull { artifactToModuleId -> gradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath }
 
   @Suppress("UnstableApiUsage")
   override fun resolveFinished(projectDataNode: DataNode<ProjectData>) {
     disableOrphanModuleNotifications()
+    moduleDataByGradlePath.clear()
+    gradlePathByModuleId.clear()
+    libraryDataCache.clear()
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.

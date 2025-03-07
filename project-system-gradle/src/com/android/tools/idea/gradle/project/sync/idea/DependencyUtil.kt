@@ -89,7 +89,8 @@ private class AndroidDependenciesSetupContext(
   private val gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   private val additionalArtifactsMapper: (IdeArtifactLibrary) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
-  private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>
+  private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>,
+  private val libraryDataCache: MutableMap<IdeArtifactLibrary, LibraryData>
 ) {
 
   private abstract inner class WorkItem<D : IdeLibrary, T> {
@@ -119,7 +120,7 @@ private class AndroidDependenciesSetupContext(
   }
 
   private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
-    override fun setupTargetData(): LibraryData {
+    override fun setupTargetData(): LibraryData = libraryDataCache.computeIfAbsent(library) {
       val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
 
       library.component?.let { component ->
@@ -132,12 +133,12 @@ private class AndroidDependenciesSetupContext(
 
       libraryData.addPath(BINARY, library.artifact.absolutePath)
       setupSourcesAndJavaDocsFrom(libraryData, library)
-      return libraryData
+      return@computeIfAbsent libraryData
     }
   }
 
   private inner class AndroidLibraryWorkItem(library: IdeAndroidLibrary) : LibraryWorkItem<IdeAndroidLibrary>(library) {
-    override fun setupTargetData(): LibraryData {
+    override fun setupTargetData(): LibraryData = libraryDataCache.computeIfAbsent(library) {
       val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
       library.compileJarFiles.filter { it.exists() }.forEach { compileJar ->
         libraryData.addPath(BINARY, compileJar.path)
@@ -150,7 +151,7 @@ private class AndroidDependenciesSetupContext(
       }
       setupAnnotationsFrom(libraryData, libraryName, library)
       setupSourcesAndJavaDocsFrom(libraryData, library)
-      return libraryData
+      return@computeIfAbsent libraryData
     }
   }
 
@@ -248,7 +249,8 @@ private class AndroidDependenciesSetupContext(
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   additionalArtifactsMapper: (IdeArtifactLibrary) -> AdditionalArtifactsPaths?,
-  variant: IdeVariant
+  variant: IdeVariant,
+  libraryDataCache: MutableMap<IdeArtifactLibrary, LibraryData>
 ) {
   // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
   // exception here as other intellij plugins can manipulate the tree, we do not want to break an import
@@ -277,7 +279,8 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       gradleProjectPathToModuleData,
       additionalArtifactsMapper,
       processedLibraries,
-      processedModuleDependencies
+      processedModuleDependencies,
+      libraryDataCache
     )
       .setupForArtifact(ideBaseArtifact, dependencyScope)
 
