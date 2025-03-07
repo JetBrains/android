@@ -814,20 +814,24 @@ MODULE                        : kotlinMultiPlatform
                         jvmCompilationImplementation  : <empty>
                         jvmCompilationRuntimeOnly     : <empty>
                         jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
                         jvmMainApi                    : <empty>
                         jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
                         jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/app/build/libs/app-jvm.jar [-]
                         - jvmRuntimeElements-published          : <ROOT>/app/build/libs/app-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -930,8 +934,62 @@ MODULE                        : kotlinMultiPlatform
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-                    - additionalArtifacts         : <ROOT>/app/build/libs/app-metadata.jar [-]
-                    - additionalArtifacts         : <ROOT>/app/build/libs/app-jvm.jar [-]
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/app/build/libs/app-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/app/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/app/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/app/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/app/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/app/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/app/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/app/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/app/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/app/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/app/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/app/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/app/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/app/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/app/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/app/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/app/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/app/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/app/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -1160,20 +1218,24 @@ MODULE                        : kotlinMultiPlatform
                         jvmCompilationImplementation  : <empty>
                         jvmCompilationRuntimeOnly     : <empty>
                         jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
                         jvmMainApi                    : <empty>
                         jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
                         jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         - jvmRuntimeElements-published          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1284,8 +1346,56 @@ MODULE                        : kotlinMultiPlatform
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-                    - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-                    - additionalArtifacts         : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/module2/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/module2/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/module2/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/module2/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/module2/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/module2/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/module2/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/module2/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/module2/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/module2/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -2692,6 +2802,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/app/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/app/src/jvmMain/kotlin [-]
+                    - sourceDirs                  : <ROOT>/app/src/jvmMain/java [-]
                     platform                      : JVM
                 archiveFile                   : <ROOT>/app/build/libs/app-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
@@ -2728,6 +2839,7 @@ MODULE                        : kotlinMultiPlatform.app
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/app/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/app/build/classes/java/jvmMain [-]
                     effectiveClassesDir           : <ROOT>/app/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/app/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -2752,6 +2864,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/app/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/app/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/app/src/jvmTest/java [-]
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -2791,6 +2904,7 @@ MODULE                        : kotlinMultiPlatform.app
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/app/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/app/build/classes/java/jvmTest [-]
                     effectiveClassesDir           : <ROOT>/app/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/app/build/processedResources/jvm/test [-]
                 platform                      : JVM
@@ -3586,6 +3700,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/module2/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmMain/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/jvmMain/java [-]
                     platform                      : JVM
                 archiveFile                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
@@ -3625,6 +3740,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/java/jvmMain [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -3650,6 +3766,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/module2/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/jvmTest/java [-]
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -3689,6 +3806,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/java/jvmTest [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/jvm/test [-]
                 platform                      : JVM

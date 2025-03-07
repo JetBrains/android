@@ -436,7 +436,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/common/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/common/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -611,6 +611,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/jvmMain
             JavaSource                    : file://<PROJECT>/common/src/jvmMain/kotlin
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/common/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/common/src/jvmMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -620,6 +621,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         Classes
             -                             : file://<PROJECT>/common/build/classes/kotlin/jvm/main
+            -                             : file://<PROJECT>/common/build/classes/java/jvmMain
             -                             : file://<PROJECT>/common/build/processedResources/jvm/main
         BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.common.jvmTest
@@ -633,8 +635,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/common/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : NonStandardSourceSetDependencies.common.jvmMain
         ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.jvmTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
@@ -672,6 +672,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/jvmTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/jvmTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2487,6 +2488,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
         Classes
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main
+            -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/jvmMain
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
             -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
@@ -2501,8 +2503,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.jvmTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin

@@ -442,6 +442,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/src/jvmMain [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/jvmMain/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/jvmMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/jvmMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -462,8 +463,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/app/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : kotlinMultiPlatform.app.jvmMain
         ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.jvmTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
@@ -501,6 +500,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/src/jvmTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/jvmTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1287,6 +1287,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/jvmMain [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/jvmMain/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/jvmMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/jvmMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1308,8 +1309,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/module2/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : kotlinMultiPlatform.module2.jvmMain
         ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
@@ -1347,6 +1346,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/jvmTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/jvmTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK

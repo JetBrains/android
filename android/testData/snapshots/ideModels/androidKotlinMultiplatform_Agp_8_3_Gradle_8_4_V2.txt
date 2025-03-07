@@ -152,7 +152,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/androidLib
-                buildDir                      : <ROOT>/androidLib/build
+                buildDir                      : <ROOT>/androidLib/build [-]
                 buildFile                     : <ROOT>/androidLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -713,7 +713,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpFirstLib
-                buildDir                      : <ROOT>/kmpFirstLib/build
+                buildDir                      : <ROOT>/kmpFirstLib/build [-]
                 buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -835,7 +835,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpJvmOnly
-                buildDir                      : <ROOT>/kmpJvmOnly/build
+                buildDir                      : <ROOT>/kmpJvmOnly/build [-]
                 buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -874,20 +874,24 @@ MODULE                        : Kotlin_Multiplatform
                         jvmCompilationImplementation  : <empty>
                         jvmCompilationRuntimeOnly     : <empty>
                         jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
                         jvmMainApi                    : <empty>
                         jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
                         jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         - jvmRuntimeElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -922,8 +926,62 @@ MODULE                        : Kotlin_Multiplatform
                         - metadataSourcesElements     : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
-                    - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                    - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpJvmOnly/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/kmpJvmOnly/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpJvmOnly/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/kmpJvmOnly/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/kmpJvmOnly/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpJvmOnly/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/kmpJvmOnly/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpJvmOnly/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/kmpJvmOnly/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpJvmOnly/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -1000,20 +1058,24 @@ MODULE                        : Kotlin_Multiplatform
                         jvmCompilationImplementation  : <empty>
                         jvmCompilationRuntimeOnly     : <empty>
                         jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
                         jvmMainApi                    : <empty>
                         jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
                         jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1051,8 +1113,58 @@ MODULE                        : Kotlin_Multiplatform
                         - metadataSourcesElements     : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
-                    - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                    - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : 11
+                            targetCompatibility           : 11
+                            jdkInstallationPath           : /usr/lib/jvm/java-11-openjdk-amd64
+                            - artifacts                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : 11
+                            targetCompatibility           : 11
+                            jdkInstallationPath           : /usr/lib/jvm/java-11-openjdk-amd64
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -1110,7 +1222,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     ModelVersion                  : 8.3.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/androidLib/build
+    BuildFolder                   : <ROOT>/androidLib/build [-]
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
@@ -1559,9 +1671,9 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 AssembleTaskName              : assembleTypeoneModetwoDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateTypeoneModetwoDebugSources
-                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/generateTypeoneModetwoDebugRFile/R.jar
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes
+                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/generateTypeoneModetwoDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : typeoneModetwoDebug
                     Manifest                      : <ROOT>/androidLib/src/typeoneModetwoDebug/AndroidManifest.xml [-]
@@ -1593,7 +1705,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleTypeoneModetwoDebug
-                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
+                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
@@ -2165,7 +2277,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ModelVersion                  : 8.3.1
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/kmpFirstLib/build
+    BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
@@ -2421,9 +2533,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
                 - dependency                  : :kmpJvmOnly::kmpJvmOnly
-                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib
-                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
@@ -2723,6 +2833,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmpJvmOnly/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmMain/kotlin
+                    - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmMain/java [-]
                     platform                      : JVM
                 archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
@@ -2759,6 +2870,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
                     effectiveClassesDir           : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -2800,6 +2912,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmpJvmOnly/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmTest/java [-]
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -2839,6 +2952,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/java/jvmTest [-]
                     effectiveClassesDir           : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/kmpJvmOnly/build/processedResources/jvm/test [-]
                 platform                      : JVM
@@ -3099,6 +3213,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmpSecondLib/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmMain/kotlin
+                    - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmMain/java [-]
                     platform                      : JVM
                 archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
@@ -3135,6 +3250,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
                     effectiveClassesDir           : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -3176,6 +3292,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmpSecondLib/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmTest/java [-]
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -3215,6 +3332,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
                     effectiveClassesDir           : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/kmpSecondLib/build/processedResources/jvm/test [-]
                 platform                      : JVM

@@ -824,7 +824,7 @@ MODULE                        : kotlinMultiPlatform
                 group                         : kotlinMultiPlatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/module2
-                buildDir                      : <ROOT>/module2/build
+                buildDir                      : <ROOT>/module2/build [-]
                 buildFile                     : <ROOT>/module2/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -2216,7 +2216,7 @@ MODULE                        : kotlinMultiPlatform.module2
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/module2/build
+    BuildFolder                   : <ROOT>/module2/build [-]
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : kotlinMultiPlatform

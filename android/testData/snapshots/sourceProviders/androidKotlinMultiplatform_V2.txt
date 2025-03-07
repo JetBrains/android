@@ -833,11 +833,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
-                JavaDirectories:
-                    file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
                 ResDirectoryUrls:
-                    file://./androidLib/build/generated/res/resValues/typeoneModetwo/debug
-                ResDirectories:
                     file://./androidLib/build/generated/res/resValues/typeoneModetwo/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)

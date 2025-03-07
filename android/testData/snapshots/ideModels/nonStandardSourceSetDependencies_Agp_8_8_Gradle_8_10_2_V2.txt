@@ -994,7 +994,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/common
-                buildDir                      : <ROOT>/common/build
+                buildDir                      : <ROOT>/common/build [-]
                 buildFile                     : <ROOT>/common/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1033,20 +1033,24 @@ MODULE                        : NonStandardSourceSetDependencies
                         jvmCompilationImplementation  : <empty>
                         jvmCompilationRuntimeOnly     : <empty>
                         jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
                         jvmMainApi                    : <empty>
                         jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
                         jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmRuntimeElements-published          : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1081,8 +1085,62 @@ MODULE                        : NonStandardSourceSetDependencies
                         - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
-                    - additionalArtifacts         : <ROOT>/common/build/libs/common-metadata.jar [-]
-                    - additionalArtifacts         : <ROOT>/common/build/libs/common-jvm.jar [-]
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/common/build/libs/common-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/common/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/common/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/common/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/common/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/common/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/common/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/common/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/common/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/common/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/common/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/common/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/common/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -1152,11 +1210,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
                             - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
-                            - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                            - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/desktop/build/classes/java/main [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
@@ -1847,9 +1902,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             - dependencies                : default (DefaultExternalProjectDependency)
                                 projectPath                   : :jarWrapperLib
                                 - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                            - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
@@ -1877,8 +1930,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             - dependencies                : jvmApiElements (DefaultExternalProjectDependency)
                                 projectPath                   : :common
                                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
-                            - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : default (DefaultExternalProjectDependency)
                                 projectPath                   : :jarWrapperLib
                                 - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -1992,20 +2044,24 @@ MODULE                        : NonStandardSourceSetDependencies
                                 jvmCompilationImplementation  : <empty>
                                 jvmCompilationRuntimeOnly     : <empty>
                                 jvmCompileClasspath           : <empty>
+                                jvmMainAnnotationProcessor    : <empty>
                                 jvmMainApi                    : <empty>
                                 jvmMainApiDependenciesMetadata          : <empty>
+                                jvmMainCompileClasspath       : <empty>
                                 jvmMainCompileOnly            : <empty>
                                 jvmMainCompileOnlyDependenciesMetadata  : <empty>
                                 jvmMainImplementation         : <empty>
                                 jvmMainImplementationDependenciesMetadata         : <empty>
                                 jvmMainIntransitiveDependenciesMetadata : <empty>
                                 jvmMainResolvableDependenciesMetadata   : <empty>
+                                jvmMainRuntimeClasspath       : <empty>
                                 jvmMainRuntimeOnly            : <empty>
                                 jvmRuntimeClasspath           : <empty>
                                 - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmRuntimeElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmSourcesElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
                                 - jvmSourcesElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
+                                jvmTestAnnotationProcessor    : <empty>
                                 jvmTestApi                    : <empty>
                                 jvmTestApiDependenciesMetadata          : <empty>
                                 jvmTestCompilationApi         : <empty>
@@ -2049,6 +2105,58 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testRuntimeClasspath          : <empty>
                                 testRuntimeOnly               : <empty>
                             sourceSets
+                                jvmMain
+                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                    sources
+                                        SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmMain/classes [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                            patterns                      : FilePatternSetImpl
+                                        RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmMain/resources [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                            patterns                      : FilePatternSetImpl
+                                jvmTest
+                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                    - dependencies                : DefaultExternalLibraryDependency
+                                        file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                    sources
+                                        SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmTest/classes [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                                            patterns                      : FilePatternSetImpl
+                                        RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmTest/resources [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                                            patterns                      : FilePatternSetImpl
                                 main
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2058,6 +2166,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                                     sources
                                         SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
@@ -2065,6 +2174,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                             outputDir                     : <ROOT>/kmp-java/sample/out/production/classes [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
                                             patterns                      : FilePatternSetImpl
                                         RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
                                             - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
@@ -2074,24 +2184,24 @@ MODULE                        : NonStandardSourceSetDependencies
                                 test
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
+                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
+                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
                                     sources
                                         TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                             - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
                                             outputDir                     : <ROOT>/kmp-java/sample/out/test/classes [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                                             patterns                      : FilePatternSetImpl
                                         TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
                                             - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
@@ -3416,6 +3526,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmMain/kotlin
+                    - sourceDirs                  : <ROOT>/common/src/jvmMain/java [-]
                     platform                      : JVM
                 archiveFile                   : <ROOT>/common/build/libs/common-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
@@ -3452,6 +3563,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/common/build/classes/java/jvmMain [-]
                     effectiveClassesDir           : <ROOT>/common/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/common/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -3493,6 +3605,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/common/src/jvmTest/java [-]
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -3532,6 +3645,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/common/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/common/build/classes/java/jvmTest [-]
                     effectiveClassesDir           : <ROOT>/common/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/common/build/processedResources/jvm/test [-]
                 platform                      : JVM
@@ -5600,6 +5714,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                     effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
@@ -5683,6 +5798,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                     effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
