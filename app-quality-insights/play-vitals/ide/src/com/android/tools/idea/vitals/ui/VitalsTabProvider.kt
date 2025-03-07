@@ -55,15 +55,19 @@ class VitalsTabProvider : AppInsightsTabProvider {
     tabPanel: AppInsightsTabPanel,
     activeTabFlow: Flow<Boolean>,
   ) {
+    val scope = AndroidCoroutineScope(tabPanel)
     val deprecationData = getConfigurationManager(project).deprecationData
+    val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     if (deprecationData.isDeprecated()) {
       tabPanel.setComponent(
-        ServiceDeprecatedPanel(deprecationData) { UpdateChecker.updateAndShowResult(project) }
+        ServiceDeprecatedPanel(scope, activeTabFlow, tracker, deprecationData) {
+          UpdateChecker.updateAndShowResult(project)
+        }
       )
       return
     }
     tabPanel.setComponent(placeholderContent())
-    AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
+    scope.launch(AndroidDispatchers.diskIoThread) {
       val configManager = project.service<VitalsConfigurationService>().manager
       val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
       withContext(AndroidDispatchers.uiThread) {

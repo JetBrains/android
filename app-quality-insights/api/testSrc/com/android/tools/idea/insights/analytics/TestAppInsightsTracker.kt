@@ -94,4 +94,11 @@ object TestAppInsightsTracker : AppInsightsTracker {
     insight: AiInsight,
     contextLimit: Int,
   ) = Unit
+
+  override fun logServiceDeprecated(
+    panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    userNotified: Boolean?,
+    userClickedMoreInfo: Boolean?,
+    userClickedUpdate: Boolean?,
+  ) = Unit
 }

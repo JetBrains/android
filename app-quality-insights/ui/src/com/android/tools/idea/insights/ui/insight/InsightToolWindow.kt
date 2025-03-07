@@ -16,8 +16,10 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
@@ -28,7 +30,9 @@ import com.intellij.util.ui.JBDimension
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -40,9 +44,18 @@ object InsightToolWindow {
     parentDisposable: Disposable,
     permissionDeniedHandler: InsightPermissionDeniedHandler,
     tabVisibility: Flow<Boolean>,
+    tracker: AppInsightsTracker,
   ): AppInsightsToolWindowDefinition {
+    val insightWindowVisibility =
+      MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val content =
-      InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
+      InsightToolWindowContent(
+        projectController,
+        parentDisposable,
+        permissionDeniedHandler,
+        tracker,
+        insightWindowVisibility,
+      )
     return AppInsightsToolWindowDefinition(
         "Insights",
         StudioIcons.StudioBot.LOGO_MONOCHROME,
@@ -62,6 +75,7 @@ object InsightToolWindow {
             )
         projectController.coroutineScope.launch {
           toolWindowVisibility.collect { isVisible ->
+            insightWindowVisibility.tryEmit(isVisible)
             if (isVisible) {
               projectController.enableAction(Action.FetchInsight::class)
               if (insightStateFLow.value !is LoadingState.Ready) {
@@ -80,6 +94,8 @@ private class InsightToolWindowContent(
   projectController: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
+  tracker: AppInsightsTracker,
+  visibilityFlow: Flow<Boolean>,
 ) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
@@ -87,8 +103,11 @@ private class InsightToolWindowContent(
     val comp =
       if (projectController.aiInsightToolkit.insightDeprecationData.isDeprecated()) {
         InsightDeprecatedPanel(
+          AndroidCoroutineScope(parentDisposable),
           projectController.project,
           projectController.aiInsightToolkit.insightDeprecationData,
+          visibilityFlow,
+          tracker,
         )
       } else {
         InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler)
