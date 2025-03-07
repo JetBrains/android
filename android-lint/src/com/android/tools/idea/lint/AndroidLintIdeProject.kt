@@ -162,6 +162,10 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
                 // goes in the opposite direction
                 main.setDirectLibraries(emptyList())
                 client.setModuleMap(mapOf(main to module))
+                val file = project.subset?.firstOrNull()
+                if (file != null) {
+                  main.addFile(file)
+                }
                 return Pair.create<Project, Project>(main, null)
               } else {
                 projectMap.put(main, androidModule)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.SdkConstants.DOT_PROPERTIES
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
@@ -24,6 +25,7 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.GradleDetector
+import com.android.tools.lint.checks.GradleDetector.Companion.KEY_REVISION
 import com.android.tools.lint.detector.api.Incident
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
@@ -36,21 +38,25 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     AndroidLintBundle.message("android.lint.inspections.android.gradle.plugin.version"),
     GradleDetector.AGP_DEPENDENCY,
   ) {
+
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
     incident: Incident,
   ): Array<LintIdeQuickFix> {
     val fixes = super.getQuickFixes(startElement, endElement, incident)
-    return if (LintIdeSupport.get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
-      val recommendedVersion = LintIdeSupport.get().recommendedAgpVersion(startElement.project)
-      fixes + InvokeAGPUpgradeAssistantQuickFix(recommendedVersion)
-    } else {
-      fixes
+    if (incident.file.path.endsWith(DOT_PROPERTIES)) {
+      // gradle wrapper update: don't link to the AGP upgrade assistant
+      return fixes
     }
+    val version =
+      incident.clientProperties?.get(KEY_REVISION)?.let { AgpVersion.parse(it) }
+        ?: LintIdeSupport.get().recommendedAgpVersion(startElement.project)
+        ?: return fixes
+    return arrayOf(InvokeAGPUpgradeAssistantQuickFix(version), *fixes)
   }
 
-  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) :
+  class InvokeAGPUpgradeAssistantQuickFix(private val agpVersion: AgpVersion?) :
     DefaultLintQuickFix(
       if (agpVersion == null) "Invoke Upgrade Assistant"
       else "Invoke Upgrade Assistant for upgrade to $agpVersion"
@@ -60,7 +66,7 @@ class AndroidLintAndroidGradlePluginVersionInspection :
       endElement: PsiElement,
       context: AndroidQuickfixContexts.Context,
     ) {
-      LintIdeSupport.get().updateAgpToLatest(startElement.project)
+      LintIdeSupport.get().updateAgpToLatest(startElement.project, agpVersion)
     }
 
     override fun generatePreview(

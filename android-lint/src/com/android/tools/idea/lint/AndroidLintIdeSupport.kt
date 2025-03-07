@@ -57,14 +57,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import java.io.File
+import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
-import java.io.File
-import java.util.EnumSet
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
@@ -115,8 +115,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
 
-    if (file.name.endsWith(EXT_GRADLE_DECLARATIVE))
-      return true
+    if (file.name.endsWith(EXT_GRADLE_DECLARATIVE)) return true
 
     return when (file.fileType) {
       JavaFileType.INSTANCE,
@@ -181,7 +180,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun shouldRecommendUpdateAgpToLatest(project: Project) =
     project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
 
-  override fun updateAgpToLatest(project: Project) {
+  override fun updateAgpToLatest(project: Project, agpVersion: AgpVersion?) {
+    // TODO: AGP Upgrade Assistant needs to be updated to support updating to a specific version
     project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 

@@ -18,6 +18,6 @@ androidApplication {
 
 declarativeDependencies {
     compile("com.android.support:appcompat-v7:+")
-    freeCompile(<warning>"com.google.guava:guava:11.0.2"</warning>)
+    freeCompile(<warning>"androidx.appcompat:appcompat:1.6.0"</warning>)
     compile(<warning>"com.android.support:appcompat-v7:13.0.0"</warning>)
 }

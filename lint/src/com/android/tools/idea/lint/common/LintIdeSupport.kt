@@ -41,11 +41,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import java.io.File
+import java.util.EnumSet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
-import java.io.File
-import java.util.EnumSet
 
 /**
  * Extension point for the general lint support to look up services it does not directly depend
@@ -94,7 +94,7 @@ abstract class LintIdeSupport {
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
         fileType === TomlFileType ||
-      file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+        file.name.endsWith(EXT_GRADLE_DECLARATIVE)
     ) {
       return true
     }
@@ -162,7 +162,7 @@ abstract class LintIdeSupport {
 
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
 
-  open fun updateAgpToLatest(project: Project) {}
+  open fun updateAgpToLatest(project: Project, agpVersion: AgpVersion?) {}
 
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
 
