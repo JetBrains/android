@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.DeclarativeAndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
@@ -82,40 +83,48 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
   }
 
   @Test
-  @Ignore("Dependencies fo android element will be added in future")
   fun testUpdateFactoryParameter() {
     val file = """
-      declarativeDependencies {
-        implementation("abc")
+      androidApp {
+        dependenciesDcl {
+          implementation("abc")
+        }
       }
     """.trimIndent()
     val expected = """
-      declarativeDependencies {
-        implementation("bcd")
+      androidApp {
+        dependenciesDcl {
+          implementation("bcd")
+        }
       }
     """.trimIndent()
     doTest(file, expected) {
-      val call = (elements.first().value as DependenciesDslElement).elements.first().value as GradleDslMethodCall
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val call = (dependencies as DependenciesDslElement).elements.first().value as GradleDslMethodCall
       (call.argumentsElement.expressions[0] as GradleDslLiteral).setValue("bcd")
     }
   }
 
   @Test
-  @Ignore("Dependencies fo android element will be added in future")
   fun testUpdateFactoryName() {
     val file = """
-      declarativeDependencies {
-        implementation("abc")
+      androidApp {
+        dependenciesDcl {
+          implementation("abc")
+        }
       }
     """.trimIndent()
     val expected = """
-      declarativeDependencies {
-        api("abc")
+      androidApp {
+        dependenciesDcl {
+          api("abc")
+        }
       }
     """.trimIndent()
     doTest(file, expected) {
-      val call = (elements.first().value as DependenciesDslElement).elements.first().value as GradleDslMethodCall
-      call.nameElement.rename("api")
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val call = (dependencies as DependenciesDslElement).elements.first().value as GradleDslMethodCall
+      call.rename("api")
     }
   }
 
@@ -188,21 +197,25 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
 
 
   @Test
-  @Ignore("Dependencies fo android element will be added in future")
   fun testAppendDependencyToBlock(){
     val file = """
-      declarativeDependencies {
-          api("someDependency")
+      androidApp {
+          dependenciesDcl {
+              api("someDependency")
+          }
       }
     """.trimIndent()
     val expected = """
-      declarativeDependencies {
-          api("someDependency")
-          implementation("newDependency")
+      androidApp {
+          dependenciesDcl {
+              api("someDependency")
+              implementation("newDependency")
+          }
       }
     """.trimIndent()
     doTest(file, expected) {
-      val block = (elements.first().value as DependenciesDslElement)
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val block = (dependencies as DependenciesDslElement)
       // new literal has externalSyntax = METHOD by default
       block.setNewLiteral("implementation", "newDependency")
     }
