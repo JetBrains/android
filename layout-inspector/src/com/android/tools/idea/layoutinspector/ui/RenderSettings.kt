@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_BLUE
 import com.intellij.ide.util.PropertiesComponent
 import kotlin.properties.Delegates
 
@@ -23,7 +23,9 @@ private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
-private const val HIGHLIGHT_COLOR_KEY = "live.layout.inspector.highlight.color"
+private const val RECOMPOSITION_COLOR_KEY = "live.layout.inspector.highlight.color"
+
+const val RECOMPOSITION_DEFAULT_COLOR = RECOMPOSITION_COLOR_BLUE
 
 interface RenderSettings {
   data class State(
@@ -131,14 +133,16 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
     }
 
   override var recompositionColor: Int
-    get() = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
+    get() =
+      PropertiesComponent.getInstance().getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
     set(value) {
       val actual = value.and(0xFFFFFF)
       val old =
-        PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
+        PropertiesComponent.getInstance()
+          .getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
       if (old != actual) {
         PropertiesComponent.getInstance()
-          .setValue(HIGHLIGHT_COLOR_KEY, actual, HIGHLIGHT_DEFAULT_COLOR)
+          .setValue(RECOMPOSITION_COLOR_KEY, actual, RECOMPOSITION_DEFAULT_COLOR)
         invokeListeners()
       }
     }

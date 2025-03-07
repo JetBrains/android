@@ -32,14 +32,12 @@ import javax.swing.JComponent
 import kotlin.reflect.KMutableProperty1
 import org.jetbrains.annotations.VisibleForTesting
 
-const val HIGHLIGHT_COLOR_RED = 0xFF0000
-const val HIGHLIGHT_COLOR_BLUE = 0x4F9EE3
-const val HIGHLIGHT_COLOR_GREEN = 0x479345
-const val HIGHLIGHT_COLOR_YELLOW = 0xFFC66D
-const val HIGHLIGHT_COLOR_PURPLE = 0x871094
-const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
-
-const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
+const val RECOMPOSITION_COLOR_RED = 0xFF0000
+const val RECOMPOSITION_COLOR_BLUE = 0x4F9EE3
+const val RECOMPOSITION_COLOR_GREEN = 0x479345
+const val RECOMPOSITION_COLOR_YELLOW = 0xFFC66D
+const val RECOMPOSITION_COLOR_PURPLE = 0x871094
+const val RECOMPOSITION_COLOR_ORANGE = 0xE1A336
 
 /** Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings]. */
 class RenderSettingsAction(
@@ -125,12 +123,12 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
   }
 
   init {
-    add(ColorSettingAction("Red", HIGHLIGHT_COLOR_RED, renderSettingsProvider))
-    add(ColorSettingAction("Blue", HIGHLIGHT_COLOR_BLUE, renderSettingsProvider))
-    add(ColorSettingAction("Green", HIGHLIGHT_COLOR_GREEN, renderSettingsProvider))
-    add(ColorSettingAction("Yellow", HIGHLIGHT_COLOR_YELLOW, renderSettingsProvider))
-    add(ColorSettingAction("Purple", HIGHLIGHT_COLOR_PURPLE, renderSettingsProvider))
-    add(ColorSettingAction("Orange", HIGHLIGHT_COLOR_ORANGE, renderSettingsProvider))
+    add(ColorSettingAction("Red", RECOMPOSITION_COLOR_RED, renderSettingsProvider))
+    add(ColorSettingAction("Blue", RECOMPOSITION_COLOR_BLUE, renderSettingsProvider))
+    add(ColorSettingAction("Green", RECOMPOSITION_COLOR_GREEN, renderSettingsProvider))
+    add(ColorSettingAction("Yellow", RECOMPOSITION_COLOR_YELLOW, renderSettingsProvider))
+    add(ColorSettingAction("Purple", RECOMPOSITION_COLOR_PURPLE, renderSettingsProvider))
+    add(ColorSettingAction("Orange", RECOMPOSITION_COLOR_ORANGE, renderSettingsProvider))
   }
 }
 

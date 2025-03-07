@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 import org.junit.Test
@@ -75,14 +75,14 @@ class ComposeStatisticsTest {
   fun testRecompositionCounts() {
     val compose = ComposeStatistics()
     compose.showRecompositions = true
-    compose.recompositionHighlightColor = HIGHLIGHT_COLOR_RED
+    compose.recompositionHighlightColor = RECOMPOSITION_COLOR_RED
     compose.frameReceived()
     compose.frameReceived()
     compose.updateRecompositionStats(RecompositionData(12, 33, 51, 2.1f), 2.1f)
     compose.updateRecompositionStats(RecompositionData(34, 51, 0, 1.1f), 5.1f)
     compose.resetRecompositionCountsClick()
     compose.resetRecompositionCountsClick()
-    compose.recompositionHighlightColor = HIGHLIGHT_COLOR_ORANGE
+    compose.recompositionHighlightColor = RECOMPOSITION_COLOR_ORANGE
     compose.frameReceived()
     compose.updateRecompositionStats(RecompositionData(5, 10, 103, 1.1f), 1.1f)
     compose.updateRecompositionStats(RecompositionData(17, 103, 0, 4.1f), 9.1f)

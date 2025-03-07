@@ -45,7 +45,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_ORANGE
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -276,7 +276,7 @@ class RenderLogicTest {
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
     composeNode.recompositions.highlightCount = 17f
-    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = RECOMPOSITION_COLOR_ORANGE
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -296,7 +296,7 @@ class RenderLogicTest {
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
     composeNode.recompositions.highlightCount = 7f
-    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = RECOMPOSITION_COLOR_ORANGE
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }

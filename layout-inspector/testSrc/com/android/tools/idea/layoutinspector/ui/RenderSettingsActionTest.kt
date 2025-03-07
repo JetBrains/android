@@ -19,8 +19,8 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HighlightColorAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -173,7 +173,7 @@ class FakeRenderSettings : RenderSettings {
       invokeListeners()
     }
 
-  override var recompositionColor = HIGHLIGHT_COLOR_RED
+  override var recompositionColor = RECOMPOSITION_COLOR_RED
     set(value) {
       field = value
       invokeListeners()

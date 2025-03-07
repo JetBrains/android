@@ -60,7 +60,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAn
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_ORANGE
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -323,7 +323,7 @@ class DeviceViewContentPanelTest {
     )
 
     compose1.recompositions.highlightCount = 17f
-    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = RECOMPOSITION_COLOR_ORANGE
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight3.png"),
