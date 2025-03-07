@@ -69,6 +69,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.ModuleUtilCore
@@ -175,15 +176,14 @@ class ComposePreviewRepresentationProvider(
 
   private suspend fun logFileIfComposable(project: Project, psiFile: PsiFile) {
     // We need to be in smart mode to be able to access the index for the annotations.
-    if (DumbService.getInstance(project).isDumb) return
-
-    val foundComposableAnnotations = readAction {
-      KotlinAnnotationsIndex[
-        COMPOSABLE_ANNOTATION_NAME,
-        project,
-        GlobalSearchScope.fileScope(psiFile),
-      ]
-    }
+    val foundComposableAnnotations =
+      smartReadAction(project) {
+        KotlinAnnotationsIndex[
+          COMPOSABLE_ANNOTATION_NAME,
+          project,
+          GlobalSearchScope.fileScope(psiFile),
+        ]
+      }
 
     withContext(Dispatchers.Default) {
       // If the file has methods annotated with @Composable methods, log it as a Compose file.
