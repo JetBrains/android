@@ -34,6 +34,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[test]",
@@ -43,7 +44,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/base/flags:studio.android.sdktools.flags[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android:intellij.android.core.tests[test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[test]",

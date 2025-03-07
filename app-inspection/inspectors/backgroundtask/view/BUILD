@@ -54,9 +54,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:app-inspection.inspectors.backgroundtask.model[test]",
@@ -73,7 +74,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto[test]",
-        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:app-inspection.inspectors.backgroundtask.ide[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/codenavigation[test]",

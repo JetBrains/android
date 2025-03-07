@@ -27,16 +27,16 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/intellij.android.compose-common[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin[test]",
-        "//tools/adt/idea/.idea/libraries:truth",
     ],
 )

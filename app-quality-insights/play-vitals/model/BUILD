@@ -20,6 +20,9 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
@@ -27,9 +30,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[test]",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
-        "@intellij//:intellij.libraries.grpc",
-        "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
 )
 

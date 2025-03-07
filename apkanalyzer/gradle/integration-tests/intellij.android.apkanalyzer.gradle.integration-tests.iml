@@ -7,8 +7,8 @@
     </content>
     <content url="file://$MODULE_DIR$/../testSrc" />
     <orderEntry type="jdk" jdkName="jbr-21" jdkType="JavaSDK" />
-    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />

@@ -9,14 +9,20 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.plugins.gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java-i18n" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java.ide" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
+    <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
@@ -29,8 +35,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
@@ -53,10 +57,6 @@
     <orderEntry type="module" module-name="intellij.android.build-attribution" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
-    <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />

@@ -9,11 +9,11 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />

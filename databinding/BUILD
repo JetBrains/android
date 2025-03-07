@@ -63,10 +63,10 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",

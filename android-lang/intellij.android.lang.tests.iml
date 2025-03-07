@@ -11,6 +11,8 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.lang" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -19,8 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.core" />
   </component>
 </module>

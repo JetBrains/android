@@ -12,7 +12,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources",
         "//tools/base/profgen/profgen:studio.android.sdktools.profgen",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
@@ -27,6 +26,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )
 

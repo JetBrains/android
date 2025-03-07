@@ -28,7 +28,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "@intellij//:com.intellij.gradle",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )

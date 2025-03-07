@@ -40,10 +40,10 @@ iml_module(
         "//tools/adt/idea/room:intellij.android.room",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/android-lang:intellij.android.lang",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/android-lang:intellij.android.lang",
     ],
 )

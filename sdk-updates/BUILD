@@ -42,9 +42,10 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[test]",
         "//tools/base/repository:studio.android.sdktools.repository[test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[test]",
@@ -55,6 +56,5 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
 )

@@ -52,12 +52,12 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[test]",

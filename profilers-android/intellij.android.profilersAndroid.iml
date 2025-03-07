@@ -9,8 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.profilers.ui" />
     <orderEntry type="module" module-name="intellij.android.profilers" />
@@ -19,26 +17,19 @@
     <orderEntry type="module" module-name="intellij.android.transportDatabase" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.perflib" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
-    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module-library">
       <library name="traceprocessor-proto">
         <CLASSES>
@@ -65,9 +56,18 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="app-inspection.ide" />
-    <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perflib" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

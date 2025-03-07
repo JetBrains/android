@@ -12,16 +12,16 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/as-driver:as-driver.utils[test]",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[test]",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "@intellij//:intellij.libraries.grpc",
     ],
 )
 

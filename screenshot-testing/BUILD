@@ -43,9 +43,10 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[test]",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
@@ -54,6 +55,5 @@ iml_module(
         "@intellij//:JUnit[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
     ],
 )

@@ -9,7 +9,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -23,5 +22,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/base/adblib:studio.android.sdktools.adblib",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
     ],
 )

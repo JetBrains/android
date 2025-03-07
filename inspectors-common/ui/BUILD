@@ -17,12 +17,12 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/codenavigation",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/codenavigation",
         "@intellij//:com.intellij.modules.json[test]",
     ],
 )

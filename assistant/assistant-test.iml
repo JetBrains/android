@@ -12,6 +12,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.templates" scope="TEST" />
     <orderEntry type="module" module-name="assistant" scope="TEST" />
@@ -34,6 +35,5 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
   </component>
 </module>

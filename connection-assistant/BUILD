@@ -53,6 +53,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -60,7 +61,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/connection-assistant[test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

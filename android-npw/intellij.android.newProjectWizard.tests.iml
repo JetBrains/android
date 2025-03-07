@@ -11,12 +11,14 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
@@ -33,8 +35,6 @@
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />

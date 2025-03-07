@@ -10,13 +10,13 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>

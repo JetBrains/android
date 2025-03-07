@@ -26,6 +26,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[test]",
@@ -41,7 +42,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[test]",
         "//tools/analytics-library/crash:analytics-crash[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[test]",
         "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",

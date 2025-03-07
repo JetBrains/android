@@ -29,10 +29,10 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/threading-checker:intellij.android.threading-checker[test]",

@@ -16,9 +16,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "@intellij//:test-framework[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
@@ -27,6 +24,9 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
         "@intellij//:intellij.libraries.grpc",
+        "@intellij//:test-framework[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
 
@@ -43,6 +43,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -65,6 +66,5 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags[test]",
         "@intellij//:intellij.platform.vcs.impl[test]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[test]",
-        "@intellij//:intellij.libraries.grpc",
     ],
 )

@@ -42,6 +42,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/artwork:intellij.android.artwork",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-templates:intellij.android.templates[test]",
         "//tools/adt/idea/assistant[test]",
@@ -54,6 +55,5 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[test]",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
-        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
     ],
 )

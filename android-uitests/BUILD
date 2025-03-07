@@ -56,9 +56,9 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:com.intellij.gradle[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

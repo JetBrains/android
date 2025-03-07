@@ -37,9 +37,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
@@ -57,6 +58,5 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
-        "@intellij//:intellij.libraries.grpc",
     ],
 )

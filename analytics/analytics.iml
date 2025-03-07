@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -22,5 +21,6 @@
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
   </component>
 </module>

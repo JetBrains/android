@@ -69,9 +69,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",

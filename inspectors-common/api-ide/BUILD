@@ -19,10 +19,10 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/codenavigation",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/codenavigation",
     ],
 )

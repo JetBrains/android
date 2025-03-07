@@ -30,12 +30,12 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/wizard:intellij.android.wizard[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",

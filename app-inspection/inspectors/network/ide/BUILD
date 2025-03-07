@@ -41,6 +41,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/codenavigation",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
@@ -53,6 +54,5 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view[test]",
         "//tools/adt/idea/app-inspection/inspectors/network/model:app-inspection.inspectors.network.model[test]",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[test]",
-        "//tools/adt/idea/codenavigation",
     ],
 )

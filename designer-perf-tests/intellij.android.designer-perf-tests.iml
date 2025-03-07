@@ -12,6 +12,7 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -22,7 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
-    <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />

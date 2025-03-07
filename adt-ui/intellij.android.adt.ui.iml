@@ -13,6 +13,16 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="module" module-name="android.sdktools.ninepatch" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
@@ -21,17 +31,7 @@
     <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.platform.images" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.webp" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="android.sdktools.ninepatch" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.observable" />
   </component>
 </module>

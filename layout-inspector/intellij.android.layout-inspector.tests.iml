@@ -12,12 +12,17 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="dynamic-layout-inspector.common" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
+    <orderEntry type="library" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
@@ -44,13 +49,9 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
-    <orderEntry type="module" module-name="dynamic-layout-inspector.common" />
     <orderEntry type="module" module-name="app-inspection.api" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.ide" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
-    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
@@ -61,7 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
-    <orderEntry type="library" name="mockito-kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
   </component>

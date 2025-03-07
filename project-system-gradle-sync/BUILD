@@ -50,6 +50,8 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:JUnit",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -62,8 +64,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[test]",
-        "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:JUnit",
     ],
 )
 

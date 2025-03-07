@@ -31,6 +31,8 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
+        "//tools/adt/idea/avd:intellij.android.avd",
+        "//tools/adt/idea/intellij.android.device",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:test-framework[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -41,8 +43,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[test]",
-        "//tools/adt/idea/avd:intellij.android.avd",
-        "//tools/adt/idea/intellij.android.device",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

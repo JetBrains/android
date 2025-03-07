@@ -25,6 +25,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[test]",
@@ -34,7 +35,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/base/flags:studio.android.sdktools.flags[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/android:intellij.android.core.tests[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[test]",

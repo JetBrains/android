@@ -138,11 +138,11 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[test]",
-        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",

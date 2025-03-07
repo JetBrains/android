@@ -1105,13 +1105,13 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
+        "@intellij//:intellij-sdk[test]",
+        "//tools/base/perf-logger:studio.perf-logger[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )
 
@@ -1124,13 +1124,13 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[test]",
         "//tools/base/common:studio.android.sdktools.common[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

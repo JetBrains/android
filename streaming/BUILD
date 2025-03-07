@@ -74,6 +74,7 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/analytics-library/crash:analytics-crash[test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[test]",
@@ -106,7 +107,6 @@ iml_module(
         "@intellij//:intellij.webp[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
     ],
@@ -230,6 +230,7 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[test]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[test]",
@@ -253,7 +254,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",

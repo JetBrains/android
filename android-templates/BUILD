@@ -74,9 +74,10 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android:intellij.android.core[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
@@ -102,7 +103,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[test]",
-        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

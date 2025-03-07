@@ -27,6 +27,8 @@
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
+    <orderEntry type="module" module-name="intellij.android.avd" />
+    <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
@@ -37,8 +39,6 @@
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.avd" />
-    <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

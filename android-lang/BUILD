@@ -69,6 +69,8 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
@@ -77,8 +79,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/android-common:intellij.android.common[test]",
         "//tools/base/flags:studio.android.sdktools.flags[test]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
-        "//tools/adt/idea/android:intellij.android.core",
     ],
 )

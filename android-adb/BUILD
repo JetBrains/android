@@ -50,6 +50,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[test]",
@@ -68,10 +70,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "@intellij//:com.intellij.gradle[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:zxing-core[test]",
-        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[test]",
         "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[test]",
@@ -89,9 +89,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",

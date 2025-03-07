@@ -61,6 +61,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -73,7 +74,6 @@ iml_module(
         "//tools/adt/idea/designer:intellij.android.designer[test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[test]",

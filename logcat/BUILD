@@ -52,13 +52,14 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:com.intellij.java",
+        "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.modules.json[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/tracker:analytics-tracker[test]",
@@ -80,7 +81,6 @@ iml_module(
         "//tools/adt/idea/logcat:intellij.android.logcat[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

@@ -30,14 +30,14 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/android:intellij.android.core[test]",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/lint:intellij.lint[test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",

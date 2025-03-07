@@ -7,13 +7,22 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="module-library">
+      <library name="logcat-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/logcat/proto/logcat-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.modules.json" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
@@ -35,15 +44,6 @@
     <orderEntry type="module" module-name="intellij.android.logcat" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module-library">
-      <library name="logcat-proto">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/logcat/proto/logcat-proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />

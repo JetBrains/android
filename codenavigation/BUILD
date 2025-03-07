@@ -12,13 +12,13 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/native-symbolizer",
         "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/analytics",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
