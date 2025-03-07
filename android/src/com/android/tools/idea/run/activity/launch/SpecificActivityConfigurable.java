@@ -33,6 +33,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.LanguageTextField;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Insets;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidTreeClassChooserFactory;
 import org.jetbrains.android.util.AndroidUtils;
@@ -56,7 +61,7 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
     myContext = context;
 
     // Perform Form creation once the project and context are saved into fields
-    $$$setupUI$$$();
+    setupUI();
 
     myActivityField.addActionListener(new ActionListener() {
       @Override
@@ -89,7 +94,28 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
     });
   }
 
-  private void $$$setupUI$$$() {
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Activity:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myPanel.add(myActivityField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     null, null, 0, false));
+    mySkipActivityValidationCheckBox = new JCheckBox();
+    mySkipActivityValidationCheckBox.setText("Skip Activity validation");
+    myPanel.add(mySkipActivityValidationCheckBox, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                      null, null, null, 0, false));
   }
 
   private void createUIComponents() {

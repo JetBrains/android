@@ -31,18 +31,30 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.function.Function;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,6 +88,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
                                        boolean isAndroidTest,
                                        Function<ConfigurationModuleSelector, ConfigurationSpecificEditor<T>> configurationSpecificEditorFactory) {
     Disposer.register(project, this);
+    setupUI();
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
       public boolean isModuleAccepted(Module module) {
@@ -117,7 +130,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
-    if(!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+    if (!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
       myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
     }
 
@@ -223,5 +236,119 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @VisibleForTesting
   DeploymentTargetOptions getDeploymentTargetOptions() {
     return myDeploymentTargetOptions;
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(46, 14), null, 0, false));
+    myTabbedPane = new JBTabbedPane();
+    myPanel.add(myTabbedPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                  new Dimension(200, 200), null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(6, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myTabbedPane.addTab(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.general.tab.title"), panel1);
+    myModuleJBLabel = new JBLabel();
+    myModuleJBLabel.setText("Module:");
+    myModuleJBLabel.setDisplayedMnemonic('M');
+    myModuleJBLabel.setDisplayedMnemonicIndex(0);
+    panel1.add(myModuleJBLabel,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    panel1.add(spacer2, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myModulesComboBox = new ModulesComboBox();
+    panel1.add(myModulesComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                      null, 0, false));
+    myConfigurationSpecificPanel = new JPanel();
+    myConfigurationSpecificPanel.setLayout(new BorderLayout(0, 0));
+    panel1.add(myConfigurationSpecificPanel, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    final Spacer spacer3 = new Spacer();
+    panel1.add(spacer3, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myTabbedPane.addTab(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.misc.tab.title"), panel2);
+    final Spacer spacer4 = new Spacer();
+    panel2.add(spacer4, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel2.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    panel3.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(), "Logcat",
+                                                                              TitledBorder.DEFAULT_JUSTIFICATION,
+                                                                              TitledBorder.DEFAULT_POSITION, null, null));
+    final Spacer spacer5 = new Spacer();
+    panel3.add(spacer5, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myClearLogCheckBox = new JCheckBox();
+    loadButtonText(myClearLogCheckBox, getMessageFromBundle("messages/AndroidBundle",
+                                                                                  "android.run.configuration.logcat.skip.content.label"));
+    panel3.add(myClearLogCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myShowLogcatCheckBox = new JCheckBox();
+    myShowLogcatCheckBox.setText("Show logcat automatically");
+    myShowLogcatCheckBox.setMnemonic('S');
+    myShowLogcatCheckBox.setDisplayedMnemonicIndex(0);
+    panel3.add(myShowLogcatCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myModuleJBLabel.setLabelFor(myModulesComboBox);
+  }
+
+  private static Method cachedGetBundleMethod = null;
+
+  private String getMessageFromBundle(String path, String key) {
+    ResourceBundle bundle;
+    try {
+      Class<?> thisClass = this.getClass();
+      if (cachedGetBundleMethod == null) {
+        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
+        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
+      }
+      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
+    }
+    catch (Exception e) {
+      bundle = ResourceBundle.getBundle(path);
+    }
+    return bundle.getString(key);
+  }
+
+  private void loadButtonText(AbstractButton component, String text) {
+    StringBuffer result = new StringBuffer();
+    boolean haveMnemonic = false;
+    char mnemonic = '\0';
+    int mnemonicIndex = -1;
+    for (int i = 0; i < text.length(); i++) {
+      if (text.charAt(i) == '&') {
+        i++;
+        if (i == text.length()) break;
+        if (!haveMnemonic && text.charAt(i) != '&') {
+          haveMnemonic = true;
+          mnemonic = text.charAt(i);
+          mnemonicIndex = result.length();
+        }
+      }
+      result.append(text.charAt(i));
+    }
+    component.setText(result.toString());
+    if (haveMnemonic) {
+      component.setMnemonic(mnemonic);
+      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    }
   }
 }

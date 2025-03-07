@@ -20,6 +20,11 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -66,7 +71,7 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
                                       @Nullable AndroidFacet androidFacet,
                                       @NonNull String instrumentationExtraParams) {
     super(project);
-
+    setupUI();
     init();
     setTitle("Instrumentation Extra Params");
 
@@ -138,5 +143,35 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
       })
       .map(p -> String.format("-e %s %s", p.getNAME(), p.getVALUE()))
       .collect(Collectors.joining(" "));
+  }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setHorizontalTextPosition(11);
+    jBLabel1.setText("Instrumentation Extra Params:");
+    panel1.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                             false));
+    myUserExtraParamsTablePanel = new JPanel();
+    myUserExtraParamsTablePanel.setLayout(new BorderLayout(0, 0));
+    panel1.add(myUserExtraParamsTablePanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, false));
+    myGradleExtraParamsTablePanel = new JPanel();
+    myGradleExtraParamsTablePanel.setLayout(new BorderLayout(0, 0));
+    myContentPanel.add(myGradleExtraParamsTablePanel,
+                       new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
   }
 }
