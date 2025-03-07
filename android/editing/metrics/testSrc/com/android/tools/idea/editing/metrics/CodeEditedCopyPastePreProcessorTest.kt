@@ -22,49 +22,75 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 
 @RunWith(JUnit4::class)
 class CodeEditedCopyPastePreProcessorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val fixture by lazy { projectRule.fixture }
-  private val fakeCodeEditedMetricsService = FakeCodeEditedMetricsService()
+  private val codeEditedListener = TestCodeEditedListener()
 
   private val processor = CodeEditedCopyPastePreProcessor()
 
+  private val testDispatcher = StandardTestDispatcher()
+  private val testScope = TestScope(testDispatcher)
+
   @Before
   fun setUp() {
+    CodeEditedListener.EP_NAME.point.registerExtension(
+      codeEditedListener,
+      projectRule.testRootDisposable,
+    )
+
     application.replaceService(
       CodeEditedMetricsService::class.java,
-      fakeCodeEditedMetricsService,
+      CodeEditedMetricsServiceImpl(testScope, testDispatcher),
       projectRule.testRootDisposable,
     )
   }
 
   @Test
   fun preprocessOnCopyReturnsNull() {
+    val mockCodeEditedMetricsService: CodeEditedMetricsService = mock()
+    application.replaceService(
+      CodeEditedMetricsService::class.java,
+      mockCodeEditedMetricsService,
+      projectRule.testRootDisposable,
+    )
+
     val result = processor.preprocessOnCopy(mock(), IntArray(0), IntArray(0), "foo")
 
     assertThat(result).isNull()
-    assertThat(fakeCodeEditedMetricsService.currentCodeEditingAction)
-      .isEqualTo(CodeEditingAction.Unknown)
+    verify(mockCodeEditedMetricsService, never()).setCodeEditingAction(any())
   }
 
   @Test
   fun preprocessOnPasteSetsAction() {
+    val mockCodeEditedMetricsService: CodeEditedMetricsService = mock()
+    application.replaceService(
+      CodeEditedMetricsService::class.java,
+      mockCodeEditedMetricsService,
+      projectRule.testRootDisposable,
+    )
+
     val str = "foobar"
 
     val result = processor.preprocessOnPaste(mock(), mock(), mock(), str, null)
 
     assertThat(result).isEqualTo(str)
-    assertThat(fakeCodeEditedMetricsService.currentCodeEditingAction)
-      .isEqualTo(CodeEditingAction.UserPaste)
+    verify(mockCodeEditedMetricsService).setCodeEditingAction(CodeEditingAction.UserPaste)
   }
 
   @Test
@@ -84,7 +110,8 @@ class CodeEditedCopyPastePreProcessorTest {
       fixture.performEditorAction(IdeActions.ACTION_COPY)
     }
 
-    assertThat(fakeCodeEditedMetricsService.eventToAction).isEmpty()
+    testScope.advanceUntilIdle()
+    assertThat(codeEditedListener.events).isEmpty()
 
     application.invokeAndWait {
       fixture.moveCaret("foobar|")
@@ -93,8 +120,8 @@ class CodeEditedCopyPastePreProcessorTest {
     }
 
     // Make sure the paste actually happened.
+    testScope.advanceUntilIdle()
     assertThat(fixture.editor.document.text).contains(" foobarfoo ")
-    assertThat(fakeCodeEditedMetricsService.eventToAction.values)
-      .containsExactly(CodeEditingAction.UserPaste)
+    assertThat(codeEditedListener.events).containsExactly(CodeEdited(3, 0, Source.USER_PASTE))
   }
 }

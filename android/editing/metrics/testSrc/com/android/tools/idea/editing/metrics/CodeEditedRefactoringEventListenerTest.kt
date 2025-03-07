@@ -22,6 +22,9 @@ import com.intellij.refactoring.rename.RenameProcessor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
@@ -35,14 +38,19 @@ class CodeEditedRefactoringEventListenerTest {
   @get:Rule val edtRule = EdtRule()
   private val fixture by lazy { projectRule.fixture }
   private val disposable by lazy { projectRule.testRootDisposable }
-  private val fakeCodeEditedMetricsService = FakeCodeEditedMetricsService()
+  private val codeEditedListener = TestCodeEditedListener()
+
+  private val testDispatcher = StandardTestDispatcher()
+  private val testScope = TestScope(testDispatcher)
 
   @Before
   fun setUp() {
+    CodeEditedListener.EP_NAME.point.registerExtension(codeEditedListener, disposable)
+
     application.replaceService(
       CodeEditedMetricsService::class.java,
-      fakeCodeEditedMetricsService,
-      disposable,
+      CodeEditedMetricsServiceImpl(testScope, testDispatcher),
+      projectRule.testRootDisposable,
     )
   }
 
@@ -87,11 +95,10 @@ class CodeEditedRefactoringEventListenerTest {
       val refactor = RenameProcessor(projectRule.project, property, "NEW_NAME", false, false)
       refactor.run()
     }
-    with(fakeCodeEditedMetricsService) {
-      assertThat(eventToAction.values.distinct()).containsExactly(CodeEditingAction.Refactoring)
-      assertThat(eventToAction).hasSize(5)
-    }
-    assertThat(fakeCodeEditedMetricsService.currentCodeEditingAction)
-      .isEqualTo(CodeEditingAction.Unknown)
+
+    testScope.advanceUntilIdle()
+    assertThat(codeEditedListener.events).hasSize(5)
+    assertThat(codeEditedListener.events.distinct())
+      .containsExactly(CodeEdited(3, 3, Source.REFACTORING))
   }
 }

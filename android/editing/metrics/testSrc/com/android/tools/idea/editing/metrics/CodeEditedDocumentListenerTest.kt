@@ -22,6 +22,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,14 +39,19 @@ class CodeEditedDocumentListenerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val fixture by lazy { projectRule.fixture }
   private val disposable by lazy { projectRule.testRootDisposable }
-  private val fakeCodeEditedMetricsService = FakeCodeEditedMetricsService()
+  private val codeEditedListener = TestCodeEditedListener()
+
+  private val testDispatcher = StandardTestDispatcher()
+  private val testScope = TestScope(testDispatcher)
 
   @Before
   fun setUp() {
+    CodeEditedListener.EP_NAME.point.registerExtension(codeEditedListener, disposable)
+
     application.replaceService(
       CodeEditedMetricsService::class.java,
-      fakeCodeEditedMetricsService,
-      disposable,
+      CodeEditedMetricsServiceImpl(testScope, testDispatcher),
+      projectRule.testRootDisposable,
     )
 
     application.invokeAndWait {
@@ -58,11 +66,9 @@ class CodeEditedDocumentListenerTest {
 
     UIUtil.pump()
 
-    with(fakeCodeEditedMetricsService.eventToAction) {
-      assertThat(keys.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
-      assertThat(keys.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
-      assertThat(values.distinct()).containsExactly(CodeEditingAction.Typing)
-    }
+    testScope.advanceUntilIdle()
+    val expectedEvents = List(ADDED_STRING.length) { CodeEdited(1, 0, Source.TYPING) }
+    assertThat(codeEditedListener.events).containsExactlyElementsIn(expectedEvents)
   }
 
   @Test
@@ -83,10 +89,8 @@ class CodeEditedDocumentListenerTest {
     UIUtil.pump()
 
     // If we're getting events from both Editors, we'll have doubles of the events.
-    with(fakeCodeEditedMetricsService.eventToAction) {
-      assertThat(keys.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
-      assertThat(keys.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
-      assertThat(values.distinct()).containsExactly(CodeEditingAction.Typing)
-    }
+    testScope.advanceUntilIdle()
+    val expectedEvents = List(ADDED_STRING.length) { CodeEdited(1, 0, Source.TYPING) }
+    assertThat(codeEditedListener.events).containsExactlyElementsIn(expectedEvents)
   }
 }

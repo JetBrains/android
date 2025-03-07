@@ -20,6 +20,9 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Before
 import org.junit.Rule
@@ -31,13 +34,21 @@ import org.junit.runners.JUnit4
 class CodeEditedBackspaceHandlerDelegateTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val fixture by lazy { projectRule.fixture }
-  private val fakeCodeEditedMetricsService = FakeCodeEditedMetricsService()
+  private val codeEditedListener = TestCodeEditedListener()
+
+  private val testDispatcher = StandardTestDispatcher()
+  private val testScope = TestScope(testDispatcher)
 
   @Before
   fun setUp() {
+    CodeEditedListener.EP_NAME.point.registerExtension(
+      codeEditedListener,
+      projectRule.testRootDisposable,
+    )
+
     application.replaceService(
       CodeEditedMetricsService::class.java,
-      fakeCodeEditedMetricsService,
+      CodeEditedMetricsServiceImpl(testScope, testDispatcher),
       projectRule.testRootDisposable,
     )
   }
@@ -58,13 +69,7 @@ class CodeEditedBackspaceHandlerDelegateTest {
     application.invokeAndWait { fixture.moveCaret("val fo|") }
     fixture.type('\b')
 
-    with(fakeCodeEditedMetricsService.eventToAction) {
-      assertThat(this).hasSize(1)
-      with(keys.single()) {
-        assertThat(oldFragment.toString()).isEqualTo("o")
-        assertThat(newFragment.toString()).isEmpty()
-      }
-      assertThat(values).containsExactly(CodeEditingAction.Typing)
-    }
+    testScope.advanceUntilIdle()
+    assertThat(codeEditedListener.events).containsExactly(CodeEdited(0, 1, Source.TYPING))
   }
 }
