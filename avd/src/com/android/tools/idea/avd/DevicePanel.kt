@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
+import com.android.sdklib.displayApiString
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SortOrder
@@ -279,7 +280,7 @@ private fun SystemImageTable(
       TableTextColumn(
         "API",
         TableColumnWidth.Fixed(125.dp),
-        { it.androidVersion.apiStringWithExtension },
+        { it.androidVersion.displayApiString },
         Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )
