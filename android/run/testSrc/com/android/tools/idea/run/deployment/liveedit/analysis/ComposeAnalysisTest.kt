@@ -34,8 +34,6 @@ private const val START_RESTART_GROUP = "startRestartGroup(I)Landroidx/compose/r
 private const val START_MOVABLE_GROUP = "startMovableGroup(ILjava/lang/Object;)V"
 private const val START_REPLACEABLE_GROUP = "startReplaceableGroup(I)V"
 private const val START_REUSABLE_GROUP = "startReusableGroup(ILjava/lang/Object;)V"
-
-// These two are currently unused; we need test cases that generate them, but doing this properly is tricky.
 private const val START_REPLACE_GROUP = "startReplaceGroup(I)V"
 
 class ComposeAnalysisTest {
@@ -235,16 +233,20 @@ class ComposeAnalysisTest {
       }
       """)
 
-    // TODO(386111622): Check compose calls for K2.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
-    ensureComposeCalls(output, START_REPLACEABLE_GROUP)
     val groupTable = computeGroupTableForTest(output)
 
     // No restart lambdas for composable functions that return values
     groupTable.assertGroupTable(methodGroupCount = 1, restartLambdaCount = 0, lambdaGroupCount = 0, innerClassCount = 0)
-    val compute = groupTable.assertMethodGroup(1273468969)
-    assertEquals("compute", compute.name)
+
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      ensureComposeCalls(output, START_REPLACE_GROUP)
+      val compute = groupTable.assertMethodGroup(1273468969)
+      assertEquals("compute", compute.name)
+    } else {
+      ensureComposeCalls(output, START_REPLACEABLE_GROUP)
+      val compute = groupTable.assertMethodGroup(1157296644)
+      assertEquals("compute", compute.name)
+    }
   }
 
   @Test
@@ -326,7 +328,7 @@ class ComposeAnalysisTest {
     assertEquals(innerClassCount, composableInnerClasses.size)
   }
 
-  private class Output(val file: KtFile, val keyMeta: IrClass, val classes: List<IrClass>)
+  private class Output(val file: KtFile, val classes: List<IrClass>)
 
   private fun compileForTest(content: String): Output {
     val fileName = "Test"
@@ -334,7 +336,7 @@ class ComposeAnalysisTest {
     val output = projectRule.directApiCompileIr(file)
     val keyMeta = output["${fileName}Kt\$KeyMeta"]
     val classes = output.values.filterNot { it == keyMeta }
-    return Output(file, keyMeta!!, classes)
+    return Output(file, classes)
   }
 
   private fun ensureComposeCalls(output: Output, vararg methods: String) {
@@ -360,8 +362,7 @@ class ComposeAnalysisTest {
   }
 
   private fun computeGroupTableForTest(output: Output): GroupTable {
-    val groups = parseComposeGroups(output.keyMeta)
-    val groupTable = computeGroupTable(output.classes, groups)
+    val groupTable = computeGroupTable(output.classes)
     println(groupTable.toStringWithLineInfo(output.file))
     return groupTable
   }

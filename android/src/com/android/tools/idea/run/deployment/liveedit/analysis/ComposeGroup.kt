@@ -49,6 +49,18 @@ fun parseComposeGroups(keyMetaClass: IrClass): List<ComposeGroup> {
   return keyMetaList
 }
 
+fun parseComposeGroups(classes: List<IrClass>): List<ComposeGroup> {
+  for (clazz in classes) {
+    for (method in clazz.methods) {
+      val keyMeta = method.annotations.singleOrNull { it.desc == "Landroidx/compose/runtime/internal/FunctionKeyMeta;" }
+      if (keyMeta != null) {
+        println(clazz.name + "." + method.name + " --> " + keyMeta.values)
+      }
+    }
+  }
+  return emptyList()
+}
+
 private fun toComposeGroup(annotation: IrAnnotation): ComposeGroup {
   val range = TextRange.create(annotation.values["startOffset"] as Int, annotation.values["endOffset"] as Int)
   return ComposeGroup(annotation.values["key"] as Int, range)

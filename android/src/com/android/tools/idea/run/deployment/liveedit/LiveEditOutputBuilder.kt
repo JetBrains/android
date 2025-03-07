@@ -67,12 +67,6 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     }
 
     val keyMetaFiles = classFiles.filter(::isKeyMeta)
-    if (keyMetaFiles.size > 1) {
-      throw IllegalStateException("Multiple KeyMeta files Found: $keyMetaFiles")
-    }
-
-    val keyMetaClass = keyMetaFiles.singleOrNull()?.let{ IrClass(it.asByteArray()) }
-    val groups = if (keyMetaClass != null) { parseComposeGroups(keyMetaClass) } else { emptyList() }
 
     val irClasses = mutableListOf<IrClass>()
     val modifiedMethods = mutableListOf<IrMethod>()
@@ -87,7 +81,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       }
     }
 
-    val groupTable = computeGroupTable(irClasses, groups)
+    val groupTable = computeGroupTable(irClasses)
     debug.log(groupTable.toStringWithLineInfo(sourceFile))
 
     // If a Composable lambda is created in a non-Compose context, re-instantiating it requires restarting the activity. The most common
@@ -109,7 +103,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       }
 
       // If we have method changes but no group information, the best we can do is a save and load
-      if (groups.isEmpty()) {
+      if (groupTable.methodGroups.isEmpty() && groupTable.lambdaGroups.isEmpty()) {
         outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
         break
       }

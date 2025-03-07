@@ -312,7 +312,11 @@ class BasicCompileTest {
     """)
 
     val output = compile(file, cache)
-    Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName" }) // CustomJvmName.class doesn't change
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName__RenamedFileKt" })
+    } else {
+      Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName" }) // CustomJvmName.class doesn't change
+    }
     Assert.assertTrue(output.classesMap["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
   }
 

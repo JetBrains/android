@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.SdkConstants
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.psi.KtFile
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
@@ -96,9 +97,8 @@ class MutableGroupTable : GroupTable {
   override val composableInnerClasses = mutableMapOf<IrClass, IrMethod>()
 }
 
-fun computeGroupTable(classes: List<IrClass>, groups: List<ComposeGroup>): GroupTable {
+fun computeGroupTable(classes: List<IrClass>): GroupTable {
   val classesByName = classes.associateBy { it.name }
-  val groupsByKey = groups.associateBy { it.key }
   val singletons = classes.singleOrNull { isComposableSingleton(it.name) }
 
   val groupTable = MutableGroupTable()
@@ -108,14 +108,14 @@ fun computeGroupTable(classes: List<IrClass>, groups: List<ComposeGroup>): Group
 
   val singletonInit = singletonMethods.singleOrNull { it.name == SdkConstants.CLASS_CONSTRUCTOR }
   if (singletonInit != null) {
-    analyzeMethod(analyzer, singletonInit, classesByName, groupsByKey, groupTable)
+    analyzeMethod(analyzer, singletonInit, classesByName, groupTable)
     for (method in singletonMethods.filter { it != singletonInit }) {
-      analyzeMethod(analyzer, method, classesByName, groupsByKey, groupTable)
+      analyzeMethod(analyzer, method, classesByName, groupTable)
     }
   }
 
   for (method in classes.filter { it != singletons }.flatMap { it.methods }) {
-    analyzeMethod(analyzer, method, classesByName, groupsByKey, groupTable)
+    analyzeMethod(analyzer, method, classesByName, groupTable)
   }
 
   val inners = mutableMapOf<IrMethod, MutableList<IrClass>>()
@@ -183,7 +183,6 @@ private fun analyzeMethod(
   analyzer: ComposeAnalyzer,
   method: IrMethod,
   classesByName: Map<String, IrClass>,
-  groupsByKey: Map<Int, ComposeGroup>,
   groupTable: MutableGroupTable
 ) {
   val frames = analyzer.analyze(method.clazz.name, method.node)
@@ -214,8 +213,7 @@ private fun analyzeMethod(
 
           // Ignore groups that were not specified in the FunctionKeyMeta information that we parsed; we use that as the source of truth for
           // which group keys we need to care about.
-          val group = groupsByKey[key] ?: continue
-          groupTable.methodGroups[method] = group
+          groupTable.methodGroups[method] = ComposeGroup(key, TextRange.EMPTY_RANGE)
         }
       }
 
@@ -224,7 +222,7 @@ private fun analyzeMethod(
         if (methodInstr.owner == "androidx/compose/runtime/internal/ComposableLambdaKt" && Type.getReturnType(
             methodInstr.desc) in COMPOSABLE_LAMBDA_TYPES) {
           val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
-          val group = groupsByKey[lambda.key] ?: continue
+          val group = ComposeGroup(lambda.key, TextRange.EMPTY_RANGE)
           val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException(
             "Unknown class type in ComposableLambda in $method: ${lambda.block} associated with key ${lambda.key}")
           groupTable.lambdaGroups[clazz] = group
