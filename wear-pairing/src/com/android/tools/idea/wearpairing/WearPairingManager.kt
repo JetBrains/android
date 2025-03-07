@@ -45,7 +45,6 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 import kotlin.coroutines.CoroutineContext
-import kotlin.io.path.Path
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -535,9 +534,9 @@ class WearPairingManager(
         // We intentionally use normalize since it does not access disk and will just normalize the
         // path removing the ..
         isEmulator && avdData?.isDone == true ->
-          avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
+          avdData.get()?.avdFolder?.normalize()?.toString() ?: name
         isEmulator ->
-          EmulatorConsole.getConsole(this@getDeviceID)?.avdPath?.let { normalizeAvdId(it) } ?: name
+          EmulatorConsole.getConsole(this@getDeviceID)?.avdNioPath?.normalize()?.toString() ?: name
         getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null ->
           getProperty(PROP_FIREBASE_TEST_LAB_SESSION) ?: name
         else -> {
@@ -635,13 +634,6 @@ private val WIFI_DEVICE_SERIAL_PATTERN =
   Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?")
 @VisibleForTesting
 internal const val PROP_FIREBASE_TEST_LAB_SESSION = "debug.firebase.test.lab.session"
-
-private fun normalizeAvdId(avdId: String) =
-  try {
-    Path(avdId.trim()).normalize().toString()
-  } catch (_: Throwable) {
-    avdId
-  }
 
 private fun updateSelectedDevice(
   deviceList: List<PairingDevice>,
