@@ -52,10 +52,6 @@ abstract class SceneManager(
 ) : Disposable, ResourceChangeListener {
   private val isDisposed = AtomicBoolean(false)
 
-  init {
-    Disposer.register(model, this)
-  }
-
   val scene: Scene = Scene(this, designSurface)
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val activationLock = ReentrantLock()
@@ -105,6 +101,10 @@ abstract class SceneManager(
    */
   val viewObject: Any?
     get() = scene.root?.nlComponent?.viewInfo?.viewObject
+
+  init {
+    Disposer.register(model, this)
+  }
 
   /** Returns true if this [SceneManager] has been disposed. */
   protected fun isDisposed(): Boolean = isDisposed.get()
