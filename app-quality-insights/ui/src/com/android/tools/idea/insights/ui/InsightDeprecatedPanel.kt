@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -29,6 +31,7 @@ import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
+import fleet.util.takeTillFirst
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -36,9 +39,18 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.SwingConstants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
-class InsightDeprecatedPanel(project: Project, data: DevServicesDeprecationData) :
-  JPanel(GridBagLayout()) {
+class InsightDeprecatedPanel(
+  scope: CoroutineScope,
+  project: Project,
+  data: DevServicesDeprecationData,
+  visibilityFlow: Flow<Boolean>,
+  private val tracker: AppInsightsTracker,
+) : JPanel(GridBagLayout()) {
   init {
     val gbc =
       GridBagConstraints().apply {
@@ -55,6 +67,11 @@ class InsightDeprecatedPanel(project: Project, data: DevServicesDeprecationData)
     }
     add(createSpacer(), gbc)
     add(createSpacer(), gbc.apply { gridx = 3 })
+
+    scope.launch {
+      visibilityFlow.takeTillFirst { it }.collect()
+      logEvent(userNotified = true)
+    }
   }
 
   private fun createSpacer() =
@@ -116,7 +133,10 @@ class InsightDeprecatedPanel(project: Project, data: DevServicesDeprecationData)
     JPanel().apply {
       val button =
         JButton("Update Android Studio").apply {
-          addActionListener { UpdateChecker.updateAndShowResult(project) }
+          addActionListener {
+            logEvent(userClickedUpdate = true)
+            UpdateChecker.updateAndShowResult(project)
+          }
         }
       add(button)
     }
@@ -126,9 +146,24 @@ class InsightDeprecatedPanel(project: Project, data: DevServicesDeprecationData)
       val label =
         HyperlinkLabel().apply {
           setHyperlinkText("More info")
-          addHyperlinkListener { BrowserUtil.browse(url) }
+          addHyperlinkListener {
+            logEvent(userClickedMoreInfo = true)
+            BrowserUtil.browse(url)
+          }
           icon = AllIcons.General.ContextHelp
         }
       add(label)
     }
+
+  private fun logEvent(
+    userNotified: Boolean? = null,
+    userClickedMoreInfo: Boolean? = null,
+    userClickedUpdate: Boolean? = null,
+  ) =
+    tracker.logServiceDeprecated(
+      AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL,
+      userNotified,
+      userClickedMoreInfo,
+      userClickedUpdate,
+    )
 }
