@@ -983,7 +983,7 @@ class WelcomeScreenWizardTest {
     val remotePackage = FakeRemotePackage(path)
     remotePackage.setCompleteUrl("http://www.example.com/package.zip")
 
-    val factory = RepoManager.getCommonModule().createLatestFactory()
+    val factory = RepoManager.commonModule.createLatestFactory()
     val license: License = factory.createLicenseType("some license text", "license1")
     remotePackage.license = license
 
