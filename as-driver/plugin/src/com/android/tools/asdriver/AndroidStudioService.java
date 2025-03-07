@@ -54,6 +54,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
+import com.intellij.openapi.options.advanced.AdvancedSettings;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -807,6 +808,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   public void openProject(ASDriver.OpenProjectRequest request, StreamObserver<ASDriver.OpenProjectResponse> responseObserver) {
     ASDriver.OpenProjectResponse.Builder responseBuilder = ASDriver.OpenProjectResponse.newBuilder();
     responseBuilder.setResult(ASDriver.OpenProjectResponse.Result.ERROR);
+
+    // b/401589614: disable the native file chooser, as we cannot interact with it programmatically.
+    AdvancedSettings.setBoolean("ide.ui.native.file.chooser", false);
 
     try {
       // The OpenFile action cannot be run synchronously (with .invokeAndWait) because it opens a modal dialog and won't return until the
