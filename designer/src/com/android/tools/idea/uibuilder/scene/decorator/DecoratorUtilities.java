@@ -160,29 +160,6 @@ public class DecoratorUtilities {
   public static final int MASK_RIGHT = 8;
   public static final int MASK_BASELINE = 16;
 
-  static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
-    HashSet<String> set = new HashSet<>();
-    String id = c.getId();
-    if (id == null) {
-      return set;
-    }
-    set.add(id);
-    int lastCount;
-    do {
-      lastCount = set.size();
-      for (NlComponent sister : sisters) {
-        for (int i = 0; i < list.length; i++) {
-          String str = ConstraintComponentUtilities.getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
-          if (set.contains(str)) {
-            set.add(sister.getId());
-          }
-        }
-      }
-    }
-    while (set.size() > lastCount);
-    return set;
-  }
-
   /**
    * From a given component and a list of components, returns a set of the components that are part of the same connection graph related to
    * the given component.
