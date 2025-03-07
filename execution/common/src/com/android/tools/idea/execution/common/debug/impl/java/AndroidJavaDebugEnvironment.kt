@@ -25,6 +25,7 @@ import com.intellij.execution.ExecutionResult
 import com.intellij.execution.configurations.RemoteConnection
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
@@ -36,12 +37,18 @@ import com.intellij.psi.search.GlobalSearchScope
  * This class is needed by the platform to create a debug session. See [DebuggerManagerEx.attachVirtualMachine]
  */
 internal class AndroidJavaDebugEnvironment(
-  private val project: Project,
+  project: Project,
   private val client: Client,
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
   private val detachIsDefault: Boolean
-) : DebugEnvironment {
+) : DebugEnvironment, Disposable {
+  init {
+    Disposer.register(project, this)
+  }
+
+  private var disposableProject: Project? = project
+  private val runJre = ProjectRootManager.getInstance(project).projectSdk
 
   private val myRemoteConnection = RemoteConnection(true, "localhost", client.debuggerListenPort.toString(), false)
 
@@ -49,6 +56,11 @@ internal class AndroidJavaDebugEnvironment(
   override fun getSearchScope() = searchScope
 
   override fun createExecutionResult(): ExecutionResult {
+    val project = disposableProject
+    if (project == null) {
+      throw IllegalStateException("The project is disposed and hence the debug environment is invalid")
+    }
+
     val console = consoleViewToReuse ?: TextConsoleBuilderFactory.getInstance().createBuilder(project).console
     Disposer.register(project, console)
     val debugProcessHandler = AndroidRemoteDebugProcessHandler(
@@ -61,6 +73,10 @@ internal class AndroidJavaDebugEnvironment(
     return DefaultExecutionResult(console, debugProcessHandler)
   }
 
+  override fun dispose() {
+    disposableProject = null
+  }
+
   override fun isRemote() = true
 
   override fun getRemoteConnection() = myRemoteConnection
@@ -69,5 +85,5 @@ internal class AndroidJavaDebugEnvironment(
 
   override fun getSessionName() = mySessionName
 
-  override fun getRunJre() = ProjectRootManager.getInstance(project).projectSdk
+  override fun getRunJre() = runJre
 }
