@@ -527,7 +527,9 @@ public class AndroidStudio extends Ide {
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
     TestLogger.log("Waiting up to %d %s for Gradle build", timeout, unit);
     Matcher matcher = install.getIdeaLog()
-      .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
+      .waitForMatchingLine(".*Gradle build finished in (.*)",
+                           "(.*org\\.gradle\\.tooling\\.\\w+Exception.*)|" +
+                           "(.*Gradle build failed in (.*))", timeout, unit);
     TestLogger.log("Build took %s", matcher.group(1));
   }
 

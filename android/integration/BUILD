@@ -360,15 +360,23 @@ iml_test(
     test_class = "com.android.tools.idea.GoToDeclarationTest",
 )
 
+live_edit_test_data = [
+    # Gradle
+    "//tools/base/build-system:gradle-distrib-8.10.2",
+    # The project and the project's Maven dependencies.
+    ":liveeditproject",
+    ":live_edit_project_deps",
+    # SDK / Platform to build. Need 35+ for the compose libraies that it uses.
+    "//prebuilts/studio/sdk:platforms/android-35",
+    "//prebuilts/studio/sdk:build-tools/35.0.0",
+    "//prebuilts/studio/sdk:platform-tools",
+]
+
 iml_test(
     name = "LiveEditTest",
     timeout = "long",
-    data = [
-        ":live_edit_project_deps",
-        ":liveeditproject",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
+    data = live_edit_test_data + [
         "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
@@ -380,7 +388,6 @@ iml_test(
     ],
     tags_linux = [
         "block-network",
-        "noci:studio-linux",  # TODO(b/401353433): fails with IntelliJ 2025.1.
     ],
     tags_mac = [],
     tags_windows = [
@@ -776,13 +783,10 @@ iml_test(
     test_class = "com.android.tools.idea.SamplesImportTest",
 )
 
-multi_project_test_data = [
-    ":live_edit_project_deps",
+multi_project_test_data = live_edit_test_data + [
     ":buildproject_deps",
     ":minapp",
-    ":liveeditproject",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
-    "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
@@ -871,23 +875,42 @@ maven_repository(
     name = "live_edit_project_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.5.1",
-        "@maven//:androidx.compose.compiler.compiler_1.3.2",
-        "@maven//:androidx.compose.material.material_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
-        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
-        "@maven//:androidx.compose.ui.ui_1.3.0",
-        "@maven//:androidx.core.core-ktx_1.9.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
-        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
-        "@maven//:com.android.tools.build.gradle_8.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
-        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
-        "@maven//:org.jetbrains.markdown_0.2.1",
+        # Mostly from Compose BOM 2024.04.01
+        "@maven//:androidx.activity.activity-compose_1.9.3",
+        "@maven//:androidx.collection.collection-ktx_1.4.2",
+        "@maven//:androidx.compose.compose-bom_2024.09.00",
+        "@maven//:androidx.compose.material.material-icons-core_1.7.0",
+        "@maven//:androidx.compose.material.material_1.7.0",
+        "@maven//:androidx.compose.material3.material3_1.3.0",
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.7.1",
+        "@maven//:androidx.compose.ui.ui-graphics_1.7.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.7.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.7.0",
+        "@maven//:androidx.compose.ui.ui_1.7.0",
+        "@maven//:androidx.core.core-ktx_1.15.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.7",
+        "@maven//:androidx.test.espresso.espresso-core_3.5.1",
+        "@maven//:androidx.test.ext.junit_1.1.5",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.8.0",
+        "@maven//:com.android.tools.build.aapt2_8.8.0-12006047",
+        "@maven//:commons-io.commons-io_2.13.0",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.compose.ui.ui-test-junit4-desktop_1.7.3",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.24",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.21",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",
+        "@maven//:org.junit.junit-bom_5.9.2",
+        "@maven//:org.junit.junit-bom_5.9.3",
     ],
 )
 

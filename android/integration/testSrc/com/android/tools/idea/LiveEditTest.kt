@@ -60,8 +60,8 @@ class LiveEditTest {
 
   @Test
   fun liveEditTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
-    system.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
+    val project = createLiveEditProject()
+    system.installLiveEditMavenDependencies()
 
     enableLiveEdit()
     system.runAdb { adb ->
@@ -82,7 +82,7 @@ class LiveEditTest {
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
           val path = project.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
-          studio.openFile("LiveEditTest", path.toString())
+          studio.openFile(project.getTargetProject().getFileName().toString(), path.toString())
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
@@ -93,7 +93,7 @@ class LiveEditTest {
             waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);
           }
 
-          val newContents00 = "import androidx.compose.material.Button"
+          val newContents00 = "import androidx.compose.material3.Button"
           studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE 00.*?// END SEARCH 00", newContents00)
 
           val newContents01 = "Button(onClick = {}) {\n" +

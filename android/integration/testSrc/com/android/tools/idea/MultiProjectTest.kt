@@ -37,11 +37,14 @@ class MultiProjectTest {
     system.runStudio(project) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
-      val project2 = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
-      system.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
+      
+      val project2 = createLiveEditProject()
+      system.installLiveEditMavenDependencies()
       val targetPath = project2.install(system.installation.fileSystem.root)
       system.installation.trustPath(targetPath)
+      project2.setSdkDir(system.sdk.sourceDir)
       studio.openProject(targetPath.toString(), true)
+
       val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
       // Make first edit
       studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")

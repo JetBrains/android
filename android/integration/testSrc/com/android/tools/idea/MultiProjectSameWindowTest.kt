@@ -37,14 +37,15 @@ class MultiProjectSameWindowTest {
       studio.waitForIndex()
 
       // Install and open a second project.
-      val project2 = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
-      system.installRepo(
-        MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest")
-      )
+      val project2 = createLiveEditProject()
+      system.installLiveEditMavenDependencies()
 
       val projectPath2 = project2.install(system.installation.fileSystem.root)
       system.installation.trustPath(projectPath2)
+
+      project2.setSdkDir(system.sdk.sourceDir)
       studio.openProject(projectPath2.toString(), false)
+
 
       // Wait for sync so that the project name reliably is "LiveEditTest".
       // Since other actions might have reset the log, we may accidentally find the first sync
@@ -57,12 +58,12 @@ class MultiProjectSameWindowTest {
       // Open file in second project
       val mainActivityPath2 =
         project2.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
-      studio.openFile("LiveEditTest", mainActivityPath2.toString())
+      studio.openFile(project2.getTargetProject().getFileName().toString(), mainActivityPath2.toString())
       Thread.sleep(3000)
 
       // Edit file
       studio.editFile(
-        "LiveEditTest",
+        project2.getTargetProject().getFileName().toString(),
         mainActivityPath2.toString(),
         "Before editing",
         "After editing",
@@ -71,7 +72,7 @@ class MultiProjectSameWindowTest {
       // Verify edit - this is a verification since editing will fail if the search regex can't be
       // found.
       studio.editFile(
-        "LiveEditTest",
+        project2.getTargetProject().getFileName().toString(),
         mainActivityPath2.toString(),
         "After editing",
         "After second editing",
