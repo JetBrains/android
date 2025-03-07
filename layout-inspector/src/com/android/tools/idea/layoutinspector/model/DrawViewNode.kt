@@ -45,16 +45,6 @@ fun getLabelFontSize(scale: Double) = 12f.scale(scale)
 
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
 
-private const val HOVER_COLOR_ARGB = 0xFF6AA1D3.toInt()
-private const val SELECTION_COLOR_ARGB = 0xFF1886F7.toInt()
-private const val BASE_COLOR_ARGB = 0x80808080.toInt()
-private const val OUTLINE_COLOR_ARGB = 0xFFFFFFFF.toInt()
-
-private val HOVER_COLOR = Color(HOVER_COLOR_ARGB, true)
-private val SELECTION_COLOR = Color(SELECTION_COLOR_ARGB, true)
-private val BASE_COLOR = Color(BASE_COLOR_ARGB, true)
-private val OUTLINE_COLOR = Color(OUTLINE_COLOR_ARGB, true)
-
 fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
   BasicStroke(thickness(scale), CAP_BUTT, JOIN_MITER, 10.0f, getDash(scale), 0f)
 
@@ -135,18 +125,23 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: RenderSettings,
+    renderSettings: RenderSettings,
     treeSettings: TreeSettings,
   ) {
+    val hoverColor = Color(renderSettings.hoverColor, true)
+    val selectionColor = Color(renderSettings.selectionColor, true)
+    val baseColor = Color(renderSettings.baseColor, true)
+    val outlineColor = Color(renderSettings.outlineColor, true)
+
     val owner = unfilteredOwner
     // Draw the outline of the border (the white border around the main view border) if necessary.
     if (isSelected || isHovered) {
-      g2.color = OUTLINE_COLOR
-      g2.stroke = getEmphasizedLineOutlineStroke(viewSettings.scaleFraction)
-      if (viewSettings.drawBorders) {
+      g2.color = outlineColor
+      g2.stroke = getEmphasizedLineOutlineStroke(renderSettings.scaleFraction)
+      if (renderSettings.drawBorders) {
         g2.draw(bounds)
       }
-      if (viewSettings.drawUntransformedBounds) {
+      if (renderSettings.drawUntransformedBounds) {
         g2.draw(owner.layoutBounds)
       }
     }
@@ -164,15 +159,15 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 
     // Draw the label background if necessary (the white border of the label and the label
     // background).
-    if (isSelected && viewSettings.drawLabel) {
-      g2.font = g2.font.deriveFont(getLabelFontSize(viewSettings.scaleFraction))
+    if (isSelected && renderSettings.drawLabel) {
+      g2.font = g2.font.deriveFont(getLabelFontSize(renderSettings.scaleFraction))
       val fontMetrics = g2.fontMetrics
       val textWidth = fontMetrics.stringWidth(owner.unqualifiedName).toFloat()
       val countWidth =
         if (showCount) fontMetrics.stringWidth(composeCount.toString()).toFloat() else 0f
 
       val border =
-        if (viewSettings.drawBorders || !viewSettings.drawUntransformedBounds) {
+        if (renderSettings.drawBorders || !renderSettings.drawUntransformedBounds) {
           bounds
         } else {
           owner.layoutBounds
@@ -209,8 +204,8 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         )
       }
 
-      g2.color = SELECTION_COLOR
-      val emphasizedBorderThickness = getEmphasizedBorderThickness(viewSettings.scaleFraction)
+      g2.color = selectionColor
+      val emphasizedBorderThickness = getEmphasizedBorderThickness(renderSettings.scaleFraction)
       g2.fill(
         Rectangle2D.Float(
           labelX - emphasizedBorderThickness / 2f,
@@ -234,55 +229,55 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     // Draw the border
     when {
       isSelected -> {
-        g2.color = SELECTION_COLOR
-        g2.stroke = getSelectedLineStroke(viewSettings.scaleFraction)
+        g2.color = selectionColor
+        g2.stroke = getSelectedLineStroke(renderSettings.scaleFraction)
       }
       isHovered -> {
-        g2.color = HOVER_COLOR
-        g2.stroke = getEmphasizedLineStroke(viewSettings.scaleFraction)
+        g2.color = hoverColor
+        g2.stroke = getEmphasizedLineStroke(renderSettings.scaleFraction)
       }
       showHighlight -> {
-        g2.color = highlightColor(model, highlightCount, viewSettings)
-        g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
+        g2.color = highlightColor(model, highlightCount, renderSettings)
+        g2.stroke = getNormalLineStroke(renderSettings.scaleFraction)
       }
       else -> {
-        g2.color = BASE_COLOR
-        g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
+        g2.color = baseColor
+        g2.stroke = getNormalLineStroke(renderSettings.scaleFraction)
       }
     }
     if (
-      viewSettings.drawBorders ||
+      renderSettings.drawBorders ||
         isHovered ||
         showHighlight ||
-        (isSelected && !viewSettings.drawUntransformedBounds)
+        (isSelected && !renderSettings.drawUntransformedBounds)
     ) {
       g2.draw(bounds)
     }
-    if (viewSettings.drawUntransformedBounds) {
+    if (renderSettings.drawUntransformedBounds) {
       g2.draw(owner.layoutBounds)
     }
 
     // Draw the text of the label if necessary.
-    if (isSelected && viewSettings.drawLabel) {
+    if (isSelected && renderSettings.drawLabel) {
       g2.color = Color.WHITE
       g2.drawString(
         owner.unqualifiedName,
         labelX + borderWidth,
-        labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f,
+        labelY - borderWidth - getEmphasizedBorderThickness(renderSettings.scaleFraction) / 2f,
       )
 
       if (showCount) {
         g2.drawString(
           composeCount.toString(),
           countX + borderWidth,
-          labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f,
+          labelY - borderWidth - getEmphasizedBorderThickness(renderSettings.scaleFraction) / 2f,
         )
       }
     }
 
     // Draw gradient for recomposition highlights
     if (showHighlight) {
-      g2.paint = heatmapColor(model, highlightCount, viewSettings)
+      g2.paint = heatmapColor(model, highlightCount, renderSettings)
       g2.fill(bounds)
     }
   }
@@ -396,26 +391,31 @@ class DrawViewImage(
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: RenderSettings,
+    renderSettings: RenderSettings,
     treeSettings: TreeSettings,
   ) {
+    val hoverColor = Color(renderSettings.hoverColor, true)
+    val selectionColor = Color(renderSettings.selectionColor, true)
+    val baseColor = Color(renderSettings.baseColor, true)
+    val outlineColor = Color(renderSettings.outlineColor, true)
+
     if (isSelected || isHovered) {
-      g2.color = OUTLINE_COLOR
-      g2.stroke = getEmphasizedImageLineOutlineStroke(viewSettings.scaleFraction)
+      g2.color = outlineColor
+      g2.stroke = getEmphasizedImageLineOutlineStroke(renderSettings.scaleFraction)
       g2.draw(bounds)
     }
     when {
       isSelected -> {
-        g2.color = SELECTION_COLOR
-        g2.stroke = getSelectedImageLineStroke(viewSettings.scaleFraction)
+        g2.color = selectionColor
+        g2.stroke = getSelectedImageLineStroke(renderSettings.scaleFraction)
       }
       isHovered -> {
-        g2.color = HOVER_COLOR
-        g2.stroke = getEmphasizedImageLineStroke(viewSettings.scaleFraction)
+        g2.color = hoverColor
+        g2.stroke = getEmphasizedImageLineStroke(renderSettings.scaleFraction)
       }
       else -> {
-        g2.color = BASE_COLOR
-        g2.stroke = getNormalImageLineStroke(viewSettings.scaleFraction)
+        g2.color = baseColor
+        g2.stroke = getNormalImageLineStroke(renderSettings.scaleFraction)
       }
     }
     g2.draw(bounds)
@@ -443,12 +443,14 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: RenderSettings,
+    renderSettings: RenderSettings,
     treeSettings: TreeSettings,
   ) {
+    val baseColor = Color(renderSettings.baseColor, true)
+
     if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {
-      g2.color = BASE_COLOR
-      g2.stroke = getNormalImageLineStroke(viewSettings.scaleFraction)
+      g2.color = baseColor
+      g2.stroke = getNormalImageLineStroke(renderSettings.scaleFraction)
       g2.drawRect(0, 0, root.layoutBounds.width, root.layoutBounds.height)
     }
   }

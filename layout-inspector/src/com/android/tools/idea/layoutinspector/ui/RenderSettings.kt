@@ -26,6 +26,10 @@ private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 private const val RECOMPOSITION_COLOR_KEY = "live.layout.inspector.highlight.color"
 
 const val RECOMPOSITION_DEFAULT_COLOR = RECOMPOSITION_COLOR_BLUE
+const val HOVER_COLOR_ARGB = 0xFF6AA1D3.toInt()
+const val SELECTION_COLOR_ARGB = 0xFF1886F7.toInt()
+const val BASE_COLOR_ARGB = 0x80808080.toInt()
+const val OUTLINE_COLOR_ARGB = 0xFFFFFFFF.toInt()
 
 interface RenderSettings {
   data class State(
@@ -34,6 +38,10 @@ interface RenderSettings {
     val drawUntransformedBounds: Boolean,
     val drawLabel: Boolean,
     val drawFold: Boolean,
+    val hoverColor: Int,
+    val selectionColor: Int,
+    val baseColor: Int,
+    val outlineColor: Int,
     val recompositionColor: Int,
   )
 
@@ -58,7 +66,19 @@ interface RenderSettings {
 
   var drawFold: Boolean
 
-  /** The color used for recomposition highlights */
+  /** The color used for bounds that are hovered. */
+  val hoverColor: Int
+
+  /** The color used for bounds that are selected. */
+  val selectionColor: Int
+
+  /** The color used for bounds that are not selected or hovered. */
+  val baseColor: Int
+
+  /** The color used as outline for selected nodes. */
+  val outlineColor: Int
+
+  /** The color used for recomposition highlights. */
   var recompositionColor: Int
 
   fun toState(): State {
@@ -68,6 +88,10 @@ interface RenderSettings {
       drawUntransformedBounds = drawUntransformedBounds,
       drawLabel = drawLabel,
       drawFold = drawFold,
+      hoverColor = hoverColor,
+      selectionColor = selectionColor,
+      baseColor = baseColor,
+      outlineColor = outlineColor,
       recompositionColor = recompositionColor,
     )
   }
@@ -92,8 +116,13 @@ class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
 
   override var drawFold by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
+  override val hoverColor = HOVER_COLOR_ARGB
+  override val selectionColor = SELECTION_COLOR_ARGB
+  override val baseColor = BASE_COLOR_ARGB
+  override val outlineColor = OUTLINE_COLOR_ARGB
+
   override var recompositionColor: Int
-    get() = 0xFF0000
+    get() = RECOMPOSITION_DEFAULT_COLOR
     set(_) {}
 }
 
@@ -131,6 +160,11 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
       PropertiesComponent.getInstance().setValue(DRAW_FOLD_KEY, value, true)
       invokeListeners()
     }
+
+  override val hoverColor = HOVER_COLOR_ARGB
+  override val selectionColor = SELECTION_COLOR_ARGB
+  override val baseColor = BASE_COLOR_ARGB
+  override val outlineColor = OUTLINE_COLOR_ARGB
 
   override var recompositionColor: Int
     get() =

@@ -173,6 +173,10 @@ class FakeRenderSettings : RenderSettings {
       invokeListeners()
     }
 
+  override val hoverColor = HOVER_COLOR_ARGB
+  override val selectionColor = SELECTION_COLOR_ARGB
+  override val baseColor = BASE_COLOR_ARGB
+  override val outlineColor = OUTLINE_COLOR_ARGB
   override var recompositionColor = RECOMPOSITION_COLOR_RED
     set(value) {
       field = value
