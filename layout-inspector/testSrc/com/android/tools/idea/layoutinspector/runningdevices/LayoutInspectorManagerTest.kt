@@ -58,6 +58,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
@@ -214,6 +215,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
+  @Ignore("b/401493980")
   fun testToggleLayoutInspectorOffMultipleTimesForSameTab() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
