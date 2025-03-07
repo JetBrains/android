@@ -17,20 +17,37 @@ package com.android.tools.idea.editors.strings
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.intellij.ui.components.JBTextField
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.util.function.IntSupplier
-import javax.swing.text.JTextComponent
 
 /** A text field that can be wired up to edit a particular column in a [StringResourceTable]. */
-internal class TranslationsEditorTextField(table: StringResourceTable, columnSupplier: IntSupplier) : JBTextField() {
+internal class TranslationsEditorTextField(
+  private val table: StringResourceTable,
+  private val columnSupplier: IntSupplier
+) : JBTextField() {
+  private var lastSavedValue: String? = null
+
+  override fun setText(text: String?) {
+    super.setText(text)
+    lastSavedValue = null
+  }
+
   init {
-    val adapter = object : KeyAdapter() {
-      override fun keyReleased(event: KeyEvent) {
-        // The text field is only editable when there is a selected cell
-        if (table.hasSelectedCell()) table.model.setValueAt(text, table.selectedModelRowIndex, columnSupplier.asInt)
+    addActionListener { saveText() }
+    addFocusListener(object : FocusAdapter() {
+      override fun focusLost(event: FocusEvent) {
+        saveText()
       }
+    })
+  }
+
+  private fun saveText() {
+    // Make sure both listeners do not save the same value twice.
+    // When creating new entries in a strings file, that could lead to multiple resources being created.
+    if (table.hasSelectedCell() && text != lastSavedValue) {
+      lastSavedValue = text;
+      table.model.setValueAt(text, table.selectedModelRowIndex, columnSupplier.asInt)
     }
-    addKeyListener(adapter)
   }
 }

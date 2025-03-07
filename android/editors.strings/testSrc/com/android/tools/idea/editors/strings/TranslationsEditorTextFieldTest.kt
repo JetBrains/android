@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
@@ -22,7 +23,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.awt.event.KeyEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,9 +31,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
 
 /** Tests the [TranslationsEditorTextField] class. */
 @RunWith(JUnit4::class)
@@ -48,14 +49,16 @@ class TranslationsEditorTextFieldTest {
   private val translationsEditorTextField = TranslationsEditorTextField(table) { selectedColumn }
 
   private lateinit var fakeUi: FakeUi
+  private lateinit var focusManager: FakeKeyboardFocusManager
 
   @Before
   fun setUp() {
     whenever(table.model).thenReturn(model)
     invokeAndWaitIfNeeded {
-      fakeUi = FakeUi(translationsEditorTextField)
+      fakeUi = FakeUi(translationsEditorTextField, createFakeWindow = true)
       fakeUi.root.validate()
     }
+    focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
   }
 
   @Test
@@ -69,23 +72,13 @@ class TranslationsEditorTextFieldTest {
 
   @Test
   @RunsInEdt
-  fun doesNothingUntilKeyReleased() {
-    whenever(table.hasSelectedCell()).thenReturn(true)
-    fakeUi.keyboard.setFocus(translationsEditorTextField)
-    fakeUi.keyboard.press(KeyEvent.VK_A)
-
-    verifyNoInteractions(model)
-
-    fakeUi.keyboard.release(KeyEvent.VK_A)
-
-    verify(model).setValueAt(any(), any(), any())
-  }
-
-  @Test
-  @RunsInEdt
   fun editsAppropriateColumn() {
     whenever(table.hasSelectedCell()).thenReturn(true)
+
+    // Simulate weird focus behaviour in JTextComponent:
     fakeUi.keyboard.setFocus(translationsEditorTextField)
+    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
+
     val testData =
       listOf(
         Triple("zweiundvierzig und sechzehn", 42, 16),
@@ -97,9 +90,25 @@ class TranslationsEditorTextFieldTest {
       translationsEditorTextField.text = text
       whenever(table.selectedModelRowIndex).thenReturn(i)
       selectedColumn = j
-      fakeUi.keyboard.pressAndRelease(KeyEvent.VK_A)
+      fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
 
       verify(model).setValueAt(text, i, j)
     }
+  }
+
+  @Test
+  fun valueSavedWhenFocusLost() {
+    whenever(table.hasSelectedCell()).thenReturn(true)
+
+    // Simulate weird focus behaviour in JTextComponent:
+    fakeUi.keyboard.setFocus(translationsEditorTextField)
+    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
+
+    translationsEditorTextField.text = "Hello"
+    whenever(table.selectedModelRowIndex).thenReturn(13)
+    selectedColumn = 17
+
+    translationsEditorTextField.focusListeners.forEach { it.focusLost(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_LOST)) }
+    verify(model).setValueAt("Hello", 13, 17)
   }
 }

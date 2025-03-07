@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.SameThreadExecutor
 
 /** Represents a single entry in the translations editor. */
@@ -163,34 +164,36 @@ class StringResource(
   fun getTranslationAsString(locale: Locale) = localeToTranslationMap[locale]?.string ?: ""
 
   fun putTranslation(locale: Locale, translation: String): ListenableFuture<Boolean> {
-    if (getTranslationAsResourceItem(locale) == null) {
-      return Futures.transform(createTranslationBefore(locale, translation, getAnchor(locale)), { item: ResourceItem? ->
-        if (item == null) {
-          false
-        }
-        else {
-          localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-          true
-        }
-      }, SameThreadExecutor.INSTANCE)
-    }
+    SlowOperations.knownIssue("b/401392046").use {
+      if (getTranslationAsResourceItem(locale) == null) {
+        return Futures.transform(createTranslationBefore(locale, translation, getAnchor(locale)), { item: ResourceItem? ->
+          if (item == null) {
+            false
+          }
+          else {
+            localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+            true
+          }
+        }, SameThreadExecutor.INSTANCE)
+      }
 
-    if (getTranslationAsString(locale) == translation) return Futures.immediateFuture(false)
+      if (getTranslationAsString(locale) == translation) return Futures.immediateFuture(false)
 
-    var item = checkNotNull(getTranslationAsResourceItem(locale))
+      var item = checkNotNull(getTranslationAsResourceItem(locale))
 
-    val changed = stringResourceWriter.setItemText(data.project, item, translation)
-    if (!changed) return Futures.immediateFuture(false)
+      val changed = stringResourceWriter.setItemText(data.project, item, translation)
+      if (!changed) return Futures.immediateFuture(false)
 
-    if (translation.isEmpty()) {
-      localeToTranslationMap.remove(locale)
+      if (translation.isEmpty()) {
+        localeToTranslationMap.remove(locale)
+        return Futures.immediateFuture(true)
+      }
+
+      item = checkNotNull(data.repository.getTranslation(key, locale))
+
+      localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
       return Futures.immediateFuture(true)
     }
-
-    item = checkNotNull(data.repository.getTranslation(key, locale))
-
-    localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-    return Futures.immediateFuture(true)
   }
 
   private fun getAnchor(locale: Locale): StringResourceKey? {

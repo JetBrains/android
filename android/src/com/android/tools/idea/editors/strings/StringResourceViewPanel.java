@@ -463,7 +463,11 @@ public class StringResourceViewPanel implements Disposable {
 
   private static void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
     component.setText(text);
-    component.setCaretPosition(0);
+    if (!text.equals(component.getText())) {
+      // Only reset caret position if we are editing a different field.
+      // Avoid this when submitting a field without moving to another field.
+      component.setCaretPosition(0);
+    }
     component.setEditable(editable);
     // If a text component is not editable when it gains focus and becomes editable while still focused,
     // the caret does not appear, so we need to set the caret visibility manually
