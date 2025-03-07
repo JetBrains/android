@@ -25,7 +25,11 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
+import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
+import com.android.tools.idea.layoutinspector.ui.HOVER_COLOR_ARGB
+import com.android.tools.idea.layoutinspector.ui.SELECTION_COLOR_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.viewWindow
@@ -193,6 +197,7 @@ class OnDeviceRendererPanelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
+          color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
         )
         .toByteArray()
@@ -226,6 +231,7 @@ class OnDeviceRendererPanelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
+          color = HOVER_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
         )
         .toByteArray()
@@ -259,6 +265,7 @@ class OnDeviceRendererPanelTest {
               inspectorModel[COMPOSE1]!!.layoutBounds,
               inspectorModel[ROOT]!!.layoutBounds,
             ),
+          color = BASE_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
         )
         .toByteArray()
@@ -299,6 +306,7 @@ class OnDeviceRendererPanelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds = listOf(inspectorModel[COMPOSE2]!!.layoutBounds),
+          color = RECOMPOSITION_COLOR_RED_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
         )
         .toByteArray()

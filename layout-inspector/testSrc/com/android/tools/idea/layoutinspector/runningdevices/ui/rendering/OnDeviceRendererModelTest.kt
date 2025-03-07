@@ -27,8 +27,12 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
+import com.android.tools.idea.layoutinspector.ui.HOVER_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
+import com.android.tools.idea.layoutinspector.ui.SELECTION_COLOR_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
@@ -87,7 +91,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.selectNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions = DrawInstruction(rootViewId = ROOT, Rectangle(10, 50, 80, 50))
+    val expectedInstructions =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(10, 50, 80, 50),
+        color = SELECTION_COLOR_ARGB,
+      )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
 
@@ -103,7 +112,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.hoverNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions = DrawInstruction(rootViewId = ROOT, Rectangle(10, 50, 80, 50))
+    val expectedInstructions =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(10, 50, 80, 50),
+        color = HOVER_COLOR_ARGB,
+      )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
 
@@ -120,9 +134,21 @@ class OnDeviceRendererModelTest {
 
     val expectedInstructions1 =
       listOf(
-        DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[COMPOSE1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[ROOT]!!.layoutBounds),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[ROOT]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
       )
 
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
@@ -133,7 +159,13 @@ class OnDeviceRendererModelTest {
     testScheduler.advanceUntilIdle()
 
     val expectedInstructions2 =
-      listOf(DrawInstruction(rootViewId = ROOT, Rectangle(25, 30, 50, 50)))
+      listOf(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(25, 30, 50, 50),
+          color = BASE_COLOR_ARGB,
+        )
+      )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
   }
@@ -156,7 +188,14 @@ class OnDeviceRendererModelTest {
     inspectorModel.update(newWindow, listOf(ROOT), 0)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions2 = listOf(DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 50, 50)))
+    val expectedInstructions2 =
+      listOf(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 50, 50),
+          color = RECOMPOSITION_COLOR_RED_ARGB,
+        )
+      )
     val instructions2 = onDeviceRendererModel.recomposingNodes.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
 
@@ -185,7 +224,15 @@ class OnDeviceRendererModelTest {
 
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions1)
-      .isEqualTo(listOf(DrawInstruction(rootViewId = ROOT, Rectangle(25, 30, 50, 50))))
+      .isEqualTo(
+        listOf(
+          DrawInstruction(
+            rootViewId = ROOT,
+            bounds = Rectangle(25, 30, 50, 50),
+            color = BASE_COLOR_ARGB,
+          )
+        )
+      )
 
     onDeviceRendererModel.selectNode(x = 30.0, y = 35.0, rootId = ROOT)
     onDeviceRendererModel.hoverNode(x = 30.0, y = 35.0, rootId = ROOT)
@@ -193,10 +240,22 @@ class OnDeviceRendererModelTest {
 
     val instructions2 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions2)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, Rectangle(25, 30, 50, 50)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(25, 30, 50, 50),
+          color = SELECTION_COLOR_ARGB,
+        )
+      )
     val instructions3 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions3)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, Rectangle(25, 30, 50, 50)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(25, 30, 50, 50),
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     // Offset the selected view by 5.
     val xrWindow2 = viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 30, 35, 55, 55) {} }
@@ -205,14 +264,34 @@ class OnDeviceRendererModelTest {
 
     val instructions4 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions4)
-      .isEqualTo(listOf(DrawInstruction(rootViewId = ROOT, Rectangle(30, 35, 55, 55))))
+      .isEqualTo(
+        listOf(
+          DrawInstruction(
+            rootViewId = ROOT,
+            bounds = Rectangle(30, 35, 55, 55),
+            color = BASE_COLOR_ARGB,
+          )
+        )
+      )
 
     val instructions5 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions5)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, Rectangle(30, 35, 55, 55)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(30, 35, 55, 55),
+          color = SELECTION_COLOR_ARGB,
+        )
+      )
     val instructions6 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions6)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, Rectangle(30, 35, 55, 55)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(30, 35, 55, 55),
+          color = HOVER_COLOR_ARGB,
+        )
+      )
   }
 
   @Test
@@ -252,9 +331,21 @@ class OnDeviceRendererModelTest {
 
     val expectedInstructions1 =
       listOf(
-        DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[COMPOSE1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[ROOT]!!.layoutBounds),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[ROOT]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
       )
 
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
@@ -265,8 +356,16 @@ class OnDeviceRendererModelTest {
 
     val expectedInstructions2 =
       listOf(
-        DrawInstruction(rootViewId = ROOT, inspectorModel[COMPOSE1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[ROOT]!!.layoutBounds),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[ROOT]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
       )
 
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
@@ -278,7 +377,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.selectNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions1 = DrawInstruction(rootViewId = ROOT, Rectangle(10, 50, 80, 50))
+    val expectedInstructions1 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(10, 50, 80, 50),
+        color = SELECTION_COLOR_ARGB,
+      )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
 
@@ -294,7 +398,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.selectNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions2 = DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 100, 100))
+    val expectedInstructions2 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(0, 0, 100, 100),
+        color = SELECTION_COLOR_ARGB,
+      )
     val instructions2 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
   }
@@ -304,7 +413,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.hoverNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions1 = DrawInstruction(rootViewId = ROOT, Rectangle(10, 50, 80, 50))
+    val expectedInstructions1 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(10, 50, 80, 50),
+        color = HOVER_COLOR_ARGB,
+      )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
 
@@ -320,7 +434,12 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.hoverNode(15.0, 55.0, ROOT)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions2 = DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 100, 100))
+    val expectedInstructions2 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(0, 0, 100, 100),
+        color = HOVER_COLOR_ARGB,
+      )
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
   }
@@ -342,9 +461,21 @@ class OnDeviceRendererModelTest {
 
     val expectedInstructions1 =
       listOf(
-        DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 10, 10)),
-        DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 50, 50)),
-        DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 100, 100)),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 10, 10),
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 50, 50),
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 100, 100),
+          color = BASE_COLOR_ARGB,
+        ),
       )
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
@@ -353,7 +484,14 @@ class OnDeviceRendererModelTest {
     inspectorModel.update(systemNodesWindow, listOf(ROOT), 0)
     testScheduler.advanceUntilIdle()
 
-    val expectedInstructions2 = listOf(DrawInstruction(rootViewId = ROOT, Rectangle(0, 0, 10, 10)))
+    val expectedInstructions2 =
+      listOf(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 10, 10),
+          color = BASE_COLOR_ARGB,
+        )
+      )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
   }
@@ -376,13 +514,25 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.selectNode(5.0, 5.0, ROOT)
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, bounds = Rectangle(0, 0, 50, 50)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 50, 50),
+          color = SELECTION_COLOR_ARGB,
+        )
+      )
 
     treeSettings.hideSystemNodes = true
     onDeviceRendererModel.selectNode(5.0, 5.0, ROOT)
     val instructions2 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions2)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, bounds = Rectangle(0, 0, 10, 10)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 10, 10),
+          color = SELECTION_COLOR_ARGB,
+        )
+      )
   }
 
   @Test
@@ -403,13 +553,25 @@ class OnDeviceRendererModelTest {
     onDeviceRendererModel.hoverNode(5.0, 5.0, ROOT)
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, bounds = Rectangle(0, 0, 50, 50)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 50, 50),
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     treeSettings.hideSystemNodes = true
     onDeviceRendererModel.hoverNode(5.0, 5.0, ROOT)
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, bounds = Rectangle(0, 0, 10, 10)))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 10, 10),
+          color = HOVER_COLOR_ARGB,
+        )
+      )
   }
 
   @Test
@@ -420,9 +582,21 @@ class OnDeviceRendererModelTest {
 
     val expectedVisibleNodes =
       listOf(
-        DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[COMPOSE1]!!.layoutBounds),
-        DrawInstruction(rootViewId = ROOT, inspectorModel[ROOT]!!.layoutBounds),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[ROOT]!!.layoutBounds,
+          color = BASE_COLOR_ARGB,
+        ),
       )
 
     val visibleNodes1 = onDeviceRendererModel.visibleNodes.first()
@@ -430,7 +604,13 @@ class OnDeviceRendererModelTest {
 
     val hoveredNode1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(hoveredNode1)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     // Test borders are not drawn.
     renderSettings.drawBorders = false
@@ -440,12 +620,24 @@ class OnDeviceRendererModelTest {
 
     val hoveredNode2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(hoveredNode2)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     // Verify selected node is not affected.
     val selectedNode1 = onDeviceRendererModel.selectedNode.first()
     assertThat(selectedNode1)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = SELECTION_COLOR_ARGB,
+        )
+      )
 
     // Test borders are re-drawn.
     renderSettings.drawBorders = true
@@ -455,7 +647,13 @@ class OnDeviceRendererModelTest {
 
     val hoveredNode3 = onDeviceRendererModel.hoveredNode.first()
     assertThat(hoveredNode3)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     // Test borders are not drawn during updates.
     renderSettings.drawBorders = false
@@ -470,7 +668,13 @@ class OnDeviceRendererModelTest {
 
     val hoveredNode4 = onDeviceRendererModel.hoveredNode.first()
     assertThat(hoveredNode4)
-      .isEqualTo(DrawInstruction(rootViewId = ROOT, inspectorModel[VIEW1]!!.layoutBounds))
+      .isEqualTo(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          color = HOVER_COLOR_ARGB,
+        )
+      )
 
     // Test listener is removed on dispose.
     Disposer.dispose(onDeviceRendererModel)

@@ -44,6 +44,7 @@ val enableInterceptTouchEventsCommand =
 fun buildDrawNodeCommand(
   rootId: Long,
   bounds: List<Rectangle>,
+  color: Int,
   type: LayoutInspectorViewProtocol.DrawCommand.Type,
 ): Command {
   val drawInstructions =
@@ -62,6 +63,7 @@ fun buildDrawNodeCommand(
         .apply {
           this.rootId = rootId
           this.bounds = rect
+          this.color = color
         }
         .build()
     }

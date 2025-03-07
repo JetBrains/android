@@ -32,8 +32,9 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * @param rootViewId The drawId of the root view the [bounds] belong to.
  * @param bounds The bounds of the node being rendered.
+ * @param color The color used to render these [bounds].
  */
-data class DrawInstruction(val rootViewId: Long, val bounds: Rectangle)
+data class DrawInstruction(val rootViewId: Long, val bounds: Rectangle, val color: Int)
 
 /**
  * Contains state that controls the rendering of the view bounds. It is different from
@@ -88,15 +89,13 @@ class OnDeviceRendererModel(
         setVisibleNodes(newNodes)
         // If the model is updated the DrawInstruction for the selected and hovered nodes can be
         // stale (for example if the position has changed).
-        _selectedNode.value = newNodes.find { it == inspectorModel.selection }?.toDrawInstruction()
-        _hoveredNode.value = newNodes.find { it == inspectorModel.hoveredNode }?.toDrawInstruction()
+        setSelectedNode(newNodes.find { it == inspectorModel.selection })
+        setHoveredNode(newNodes.find { it == inspectorModel.hoveredNode })
 
         if (treeSettings.showRecompositions) {
-          // TODO(next CL): add support for custom color
-          _recomposingNodes.value =
-            newNodes.filter { it.recompositions.hasHighlight }.mapNotNull { it.toDrawInstruction() }
+          setRecomposingNodes(newNodes.filter { it.recompositions.hasHighlight })
         } else {
-          _recomposingNodes.value = emptyList<DrawInstruction>()
+          setRecomposingNodes(emptyList())
         }
       }
     }
@@ -104,14 +103,14 @@ class OnDeviceRendererModel(
   private val selectionListener =
     object : InspectorModel.SelectionListener {
       override fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin) {
-        _selectedNode.value = newNode?.toDrawInstruction()
+        setSelectedNode(newNode)
       }
     }
 
   private val hoverListener =
     object : InspectorModel.HoverListener {
       override fun onHover(oldNode: ViewNode?, newNode: ViewNode?) {
-        _hoveredNode.value = newNode?.toDrawInstruction()
+        setHoveredNode(newNode)
       }
     }
 
@@ -175,18 +174,32 @@ class OnDeviceRendererModel(
     renderSettings.modificationListeners.remove(renderSettingsListener)
   }
 
+  private fun setSelectedNode(node: ViewNode?) {
+    _selectedNode.value = node?.toDrawInstruction(color = renderSettings.selectionColor)
+  }
+
+  private fun setHoveredNode(node: ViewNode?) {
+    _hoveredNode.value = node?.toDrawInstruction(color = renderSettings.hoverColor)
+  }
+
   /** Sets the visible nodes, while respecting render settings. */
   private fun setVisibleNodes(nodes: List<ViewNode>) {
     if (renderSettings.drawBorders) {
-      _visibleNodes.value = nodes.mapNotNull { it.toDrawInstruction() }
+      _visibleNodes.value =
+        nodes.mapNotNull { it.toDrawInstruction(color = renderSettings.baseColor) }
     } else {
       _visibleNodes.value = emptyList()
     }
   }
 
+  private fun setRecomposingNodes(nodes: List<ViewNode>) {
+    _recomposingNodes.value =
+      nodes.mapNotNull { it.toDrawInstruction(color = renderSettings.recompositionColor) }
+  }
+
   /** Convert a ViewNode to [DrawInstruction]. */
-  private fun ViewNode.toDrawInstruction(): DrawInstruction? {
+  private fun ViewNode.toDrawInstruction(color: Int): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
-    return DrawInstruction(rootViewId = rootView.drawId, bounds = layoutBounds)
+    return DrawInstruction(rootViewId = rootView.drawId, bounds = layoutBounds, color = color)
   }
 }

@@ -143,6 +143,7 @@ private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstructi
   return LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
     .setRootId(rootViewId)
     .setBounds(boundsRect)
+    .setColor(color)
     .build()
 }
 
