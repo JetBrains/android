@@ -168,7 +168,11 @@ private constructor(
       issueModel.uiCheckInstanceId = issueProvider.uiCheckInstanceId
       if (wasAdded) {
         listenerRemovalDisposable = Disposable { issueModel.removeIssueProvider(issueProvider) }
-        Disposer.register(parentDisposable, listenerRemovalDisposable!!)
+        if (!Disposer.tryRegister(parentDisposable, listenerRemovalDisposable!!)) {
+          // Parent was already disposed, dispose the listener immediately and return
+          Disposer.dispose(listenerRemovalDisposable!!)
+          return@launch
+        }
       }
 
       val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
