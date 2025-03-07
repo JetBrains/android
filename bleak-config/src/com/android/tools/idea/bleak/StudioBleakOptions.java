@@ -54,10 +54,12 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftValueHashMap", "myMap"),
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap", "myMap"),
     new IgnoredRef(-2, "com.intellij.concurrency.ConcurrentIntKeySoftValueHashMap", "myMap"),
-    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProtectedQueue"), // SLRUMap is a bounded cache
-    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProbationalQueue"),
-    new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProtectedQueue"),
-    new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProbationalQueue"),
+    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "protectedQueue"), // SLRUMap is a bounded cache
+    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "probationalQueue"),
+    new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "protectedQueue"),
+    new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "probationalQueue"),
+    new IgnoredRef(-2, "com.intellij.util.io.FileAccessorCache$1", "protectedQueue"), // this is a subclass of SLRUMap
+    new IgnoredRef(-2, "com.intellij.util.io.FileAccessorCache$1", "probationalQueue"),
     new IgnoredRef(-1, "com.intellij.util.containers.FixedHashMap", "table"),
     new IgnoredRef(-1, "com.github.benmanes.caffeine.cache.BoundedBuffer$RingBuffer", "buffer"),
     new IgnoredRef(-2, "com.github.benmanes.caffeine.cache.BoundedLocalCache$BoundedLocalLoadingCache", "cache"),
@@ -81,6 +83,10 @@ public class StudioBleakOptions {
     new IgnoredRef(1, "com.intellij.util.CachedValueStabilityChecker", "ourFieldCache"),
     new IgnoredRef(-2, "com.intellij.psi.impl.source.resolve.reference.PsiReferenceRegistrarImpl", "bindingCache"),
     new IgnoredRef(-2, "com.intellij.platform.diagnostic.telemetry.exporters.BatchSpanProcessor$1", "L$0"), // batch size is bounded
+    new IgnoredRef(-1, "com.intellij.diagnostic.WriteDelayDiagnosticsHandlerImpl", "delaysMap"), // lazy histogram buckets
+    new IgnoredRef(-1, "com.intellij.turboComplete.analysis.usage.KindRecentUsageTracker", "recentUsages"), // fixed-length queue
+    new IgnoredRef(-2, "jdk.internal.vm.ThreadContainers", "CONTAINER_REGISTRY"), // contains only weak references
+    new IgnoredRef(-1, "com.intellij.openapi.vfs.newvfs.persistent.namecache.MRUFileNameCache", "myCache"), // bounded cache
 
     new IgnoredRef(-2, "com.intellij.openapi.application.impl.ReadMostlyRWLock", "readers"),
     new IgnoredRef(1, "org.jdom.JDOMInterner", "INSTANCE"),
