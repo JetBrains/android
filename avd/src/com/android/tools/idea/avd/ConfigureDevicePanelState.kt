@@ -47,7 +47,14 @@ internal class ConfigureDevicePanelState(
   val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 
   var isSystemImageTableSelectionValid by mutableStateOf(true)
-  var isPreferredAbiValid by mutableStateOf(true)
+
+  val isPreferredAbiValid by derivedStateOf {
+    // Most changes to the system image selection will not affect whether the Preferred ABI is
+    // valid, so use derivedStateOf to minimize unnecessary recomposition.
+    device.preferredAbi == null ||
+      systemImageTableSelectionState.selection == null ||
+      systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
+  }
 
   val isValid
     get() =
@@ -65,19 +72,6 @@ internal class ConfigureDevicePanelState(
 
   fun setSystemImageSelection(systemImage: ISystemImage) {
     systemImageTableSelectionState.selection = systemImage
-    updatePreferredAbiValidity()
-  }
-
-  fun setPreferredAbi(preferredAbi: String?) {
-    device.preferredAbi = preferredAbi
-    updatePreferredAbiValidity()
-  }
-
-  private fun updatePreferredAbiValidity() {
-    isPreferredAbiValid =
-      device.preferredAbi == null ||
-        systemImageTableSelectionState.selection == null ||
-        systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
   }
 
   fun initDeviceSkins(path: Path) {

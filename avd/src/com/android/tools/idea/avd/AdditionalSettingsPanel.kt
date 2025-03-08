@@ -88,7 +88,7 @@ internal fun AdditionalSettingsPanel(
     PreferredAbiGroup(
       device.preferredAbi,
       state.systemImageTableSelectionState.selection,
-      onPreferredAbiChange = state::setPreferredAbi,
+      onPreferredAbiChange = device::preferredAbi::set,
     )
   }
 }
