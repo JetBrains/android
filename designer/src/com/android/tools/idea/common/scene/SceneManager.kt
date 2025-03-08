@@ -52,7 +52,7 @@ abstract class SceneManager(
 ) : Disposable, ResourceChangeListener {
   private val isDisposed = AtomicBoolean(false)
 
-  val scene: Scene = Scene(this, designSurface)
+  val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val activationLock = ReentrantLock()
   @GuardedBy("myActivationLock") private var isActivated = false
@@ -104,6 +104,11 @@ abstract class SceneManager(
 
   init {
     Disposer.register(model, this)
+    // Scene is initialized here to ensure that the SceneManager is already registered with the
+    // disposer.
+    // If initialized earlier, it could mean that a failed initialization would also leave the Scene
+    // in the disposer as a leak  .
+    scene = Scene(this, designSurface)
   }
 
   /** Returns true if this [SceneManager] has been disposed. */
