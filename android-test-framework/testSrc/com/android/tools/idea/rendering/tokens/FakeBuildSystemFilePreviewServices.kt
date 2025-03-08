@@ -71,8 +71,8 @@ class FakeBuildSystemFilePreviewServices(
   }
 
   override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
-    listeners.add(listener)
-    Disposer.register(parentDisposable) { listeners.remove(listener) }
+    synchronized(listener) { listeners.add(listener) }
+    Disposer.register(parentDisposable) { synchronized(listener) { listeners.remove(listener) } }
   }
 
   /**
@@ -85,7 +85,7 @@ class FakeBuildSystemFilePreviewServices(
   ) {
     val buildResult = BuildListener.BuildResult(buildStatus, EverythingGlobalScope())
     val buildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
-    listeners.forEach {listener ->
+    synchronized(listeners) { listeners.toList() }.forEach {listener ->
       listener.buildStarted(buildMode, buildResultFuture)
     }
     lastStatus = buildStatus
