@@ -328,6 +328,7 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags_linux = [
         "block-network",
+        "noci:studio-linux",  # TODO(b/401353433): fails with IntelliJ 2025.1.
     ],
     tags_mac = [],
     tags_windows = [
