@@ -79,6 +79,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -426,7 +427,7 @@ public final class BlazeEditProjectViewControl {
     File directory = location.getParentFile();
     int tries = 0;
     while (true) {
-      String candidateName = String.format("%s-%02d", name, tries);
+      String candidateName = String.format(Locale.ROOT, "%s-%02d", name, tries);
       File candidateFile = new File(directory, candidateName);
       if (!candidateFile.exists()) {
         return candidateFile.getAbsolutePath();

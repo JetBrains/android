@@ -7,6 +7,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
     "intellij_plugin",
     "intellij_plugin_library",
     "stamped_plugin_xml",
@@ -19,10 +20,11 @@ load(
 load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
-java_library(
+aswb_library(
     name = "base",
     srcs = glob(["src/**/*.java"]),
     javacopts = ["-Xep:FutureReturnValueIgnored:OFF"],
+    resource_strip_prefix = "tools/adt/idea/aswb/base/src",
     resources = glob(["src/resources/**/*"]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [

@@ -69,6 +69,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Runs the 'blaze build' phase of sync. */
@@ -288,8 +289,8 @@ public final class BuildPhaseSyncTask {
     context.output(
         SummaryOutput.output(
                 Prefix.INFO,
-                String.format(
-                    "Found %d %s, split into %d %s",
+                String.format(Locale.ROOT,
+                              "Found %d %s, split into %d %s",
                     targetCount,
                     StringUtil.pluralize("target", targetCount),
                     shardCount,
@@ -312,7 +313,7 @@ public final class BuildPhaseSyncTask {
 
     targets.stream().limit(50).forEach(target -> sb.append("  ").append(target).append('\n'));
     if (targets.size() > 50) {
-      sb.append(String.format("\nPlus %d more targets", targets.size() - 50));
+      sb.append(String.format(Locale.ROOT, "\nPlus %d more targets", targets.size() - 50));
     }
     context.output(PrintOutput.log(sb.toString()));
   }

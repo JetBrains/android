@@ -20,7 +20,6 @@ import java.time.Instant;
 
 /** Provider for the current value of "now" for users of {@code java.time}. */
 @FunctionalInterface
-@VisibleForTesting
 public interface TimeSource {
   /** Returns the current {@link Instant} according to this time source. */
   Instant now();

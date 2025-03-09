@@ -22,6 +22,7 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
+import java.util.Locale;
 import java.util.concurrent.Future;
 
 /** Kicks off an indexing task associated with a running prefetch task, with progress dialog. */
@@ -66,6 +67,6 @@ public final class PrefetchIndexingTask extends DumbModeTask {
       TimeoutUtil.sleep(50);
     }
     long end = System.currentTimeMillis();
-    logger.info(String.format("%s took: %d ms", taskName, (end - startTimeMillis)));
+    logger.info(String.format(Locale.ROOT, "%s took: %d ms", taskName, (end - startTimeMillis)));
   }
 }

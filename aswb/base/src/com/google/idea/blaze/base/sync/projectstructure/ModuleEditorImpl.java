@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -124,7 +125,7 @@ public class ModuleEditorImpl implements BlazeSyncPlugin.ModuleEditor {
     }
     if (orphanModules.size() > 0) {
       context.output(
-          PrintOutput.log(String.format("Removing %d dead modules", orphanModules.size())));
+        PrintOutput.log(String.format(Locale.ROOT, "Removing %d dead modules", orphanModules.size())));
       for (Module module : orphanModules) {
         if (module.isDisposed()) {
           continue;

@@ -21,6 +21,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import java.util.Collection;
+import java.util.Locale;
 
 /** Parameters that control the sync. */
 @AutoValue
@@ -119,6 +120,6 @@ public abstract class BlazeSyncParams {
 
   @Override
   public final String toString() {
-    return String.format("%s (%s)", title(), syncMode().name().toLowerCase());
+    return String.format(Locale.ROOT, "%s (%s)", title(), syncMode().name().toLowerCase(Locale.ROOT));
   }
 }

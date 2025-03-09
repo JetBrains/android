@@ -52,6 +52,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyBoundsListener;
 import java.awt.event.HierarchyEvent;
+import java.util.Locale;
 import java.util.Optional;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
@@ -144,7 +145,7 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
         if (missing > 0) {
           String dependency = StringUtil.pluralize("dependency", missing);
           presentation.setText(
-              String.format("Analysis disabled - missing %d %s ", missing, dependency));
+              String.format(Locale.ROOT, "Analysis disabled - missing %d %s ", missing, dependency));
         }
       }
     }

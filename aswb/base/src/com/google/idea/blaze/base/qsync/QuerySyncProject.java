@@ -71,6 +71,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -534,15 +535,15 @@ public class QuerySyncProject {
     if (!result.incompleteTargets().isEmpty()) {
       final int limit = 20;
       logger.warn(
-          String.format(
-              "%d project deps had missing artifacts:\n  %s",
+          String.format(Locale.ROOT,
+                        "%d project deps had missing artifacts:\n  %s",
               result.incompleteTargets().size(),
               result.incompleteTargets().stream()
                   .limit(limit)
                   .map(Objects::toString)
                   .collect(Collectors.joining("\n  "))));
       if (result.incompleteTargets().size() > limit) {
-        logger.warn(String.format("  (and %d more)", result.incompleteTargets().size() - limit));
+        logger.warn(String.format(Locale.ROOT, "  (and %d more)", result.incompleteTargets().size() - limit));
       }
     }
     // update the snapshot with any missing artifacts:

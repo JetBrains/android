@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -185,7 +186,7 @@ public final class RemoteOutputsCache {
           RemoteArtifactPrefetcher.getInstance()
               .downloadArtifacts(
                   /* projectName= */ project.getName(), /* outputArtifacts= */ artifactsToDownload);
-      logger.info(String.format("Prefetching %d output artifacts", artifactsToDownload.size()));
+      logger.info(String.format(Locale.ROOT, "Prefetching %d output artifacts", artifactsToDownload.size()));
       FutureUtil.waitForFuture(context, downloadArtifactsFuture)
           .timed("PrefetchRemoteOutput", EventType.Prefetching)
           .withProgressMessage("Prefetching output artifacts...")

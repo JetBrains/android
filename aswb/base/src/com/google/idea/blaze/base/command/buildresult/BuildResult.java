@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
+import java.util.Locale;
 import java.util.Objects;
 
 /** The result of a blaze operation */
@@ -42,7 +43,7 @@ public class BuildResult {
 
     @Override
     public String toString() {
-      return name().toLowerCase();
+      return name().toLowerCase(Locale.ROOT);
     }
   }
 

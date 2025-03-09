@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
  * Matches source files to test targets, if the source file is present in the test target's 'srcs'
  * list. Only looks for exact matches.
  */
+@SuppressWarnings("FileComparisons")
 public class TestTargetSourcesHeuristic implements TestTargetHeuristic {
 
   @Override

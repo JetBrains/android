@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 class AswbDumpVfs extends DumbAwareAction {
@@ -94,7 +95,7 @@ class AswbDumpVfs extends DumbAwareAction {
 
     @Override
     public void before(List<? extends VFileEvent> events) {
-      vfsDiagLogger.info(String.format("VFS Events: (%d)", events.size()));
+      vfsDiagLogger.info(String.format(Locale.ROOT, "VFS Events: (%d)", events.size()));
       for (int i = 0; i < events.size(); i++) {
         VFileEvent event = events.get(i);
         vfsDiagLogger.info("    " + event);

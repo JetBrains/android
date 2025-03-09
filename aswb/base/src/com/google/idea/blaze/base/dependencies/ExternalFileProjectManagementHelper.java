@@ -58,6 +58,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -100,7 +101,7 @@ public class ExternalFileProjectManagementHelper
   /** Whether the editor notification should be shown for this file type. */
   private static boolean supportedFileType(File file) {
     LanguageClass language =
-        LanguageClass.fromExtension(FileUtilRt.getExtension(file.getName()).toLowerCase());
+        LanguageClass.fromExtension(FileUtilRt.getExtension(file.getName()).toLowerCase(Locale.ROOT));
     if (language != null && !LanguageSupport.languagesSupportedByCurrentIde().contains(language)) {
       return false;
     }

@@ -19,6 +19,7 @@ import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.StateUpdate;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Locale;
 
 /**
  * Tracks the state of a sharded build.
@@ -59,15 +60,15 @@ public final class ShardedBuildProgressTracker {
   private static String makeStateString(
       int totalShards, int buildsCompleted, int buildsInProgress) {
     if (buildsCompleted == totalShards) {
-      return String.format(
-          "%d %s complete", buildsCompleted, StringUtil.pluralize("shard", buildsCompleted));
+      return String.format(Locale.ROOT,
+                           "%d %s complete", buildsCompleted, StringUtil.pluralize("shard", buildsCompleted));
     }
     if (buildsInProgress == totalShards) {
-      return String.format(
-          "%d %s running", buildsInProgress, StringUtil.pluralize("shard", buildsInProgress));
+      return String.format(Locale.ROOT,
+                           "%d %s running", buildsInProgress, StringUtil.pluralize("shard", buildsInProgress));
     }
-    return String.format(
-        "%d %s: %d complete, %d running",
-        totalShards, StringUtil.pluralize("shard", totalShards), buildsCompleted, buildsInProgress);
+    return String.format(Locale.ROOT,
+                         "%d %s: %d complete, %d running",
+                         totalShards, StringUtil.pluralize("shard", totalShards), buildsCompleted, buildsInProgress);
   }
 }

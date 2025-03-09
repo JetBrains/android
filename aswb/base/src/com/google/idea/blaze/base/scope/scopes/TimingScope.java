@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -160,8 +161,8 @@ public class TimingScope implements BlazeScope {
   private static String durationStr(Duration duration) {
     long timeMillis = duration.toMillis();
     return timeMillis >= 1000
-        ? String.format("%.1fs", timeMillis / 1000d)
-        : String.format("%sms", timeMillis);
+        ? String.format(Locale.ROOT, "%.1fs", timeMillis / 1000d)
+        : String.format(Locale.ROOT, "%sms", timeMillis);
   }
 
   private static String getIndentation(int depth) {

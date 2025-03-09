@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.newvfs.NewVirtualFile;
 import com.intellij.openapi.vfs.newvfs.RefreshQueue;
 import com.intellij.openapi.vfs.newvfs.RefreshSession;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -60,7 +61,7 @@ public class FileRefresher {
     applicationEx.assertIsNonDispatchThread();
     context.output(
         new PrintOutput(
-            String.format("Refreshing virtual file system... (%d files)", updatedFiles.size())));
+            String.format(Locale.ROOT, "Refreshing virtual file system... (%d files)", updatedFiles.size())));
     markExistingFilesDirty(context, updatedFiles);
     ImmutableList.Builder<VirtualFile> virtualFiles = ImmutableList.builder();
     if (!skipFindingBuildOutputsExperiment.isEnabled()) {
@@ -105,8 +106,8 @@ public class FileRefresher {
     refreshFilesRecursively(virtualFiles.build());
     context.output(
         new PrintOutput(
-            String.format(
-                "Done refreshing virtual file system... (%d files)", updatedFiles.size())));
+            String.format(Locale.ROOT,
+                          "Done refreshing virtual file system... (%d files)", updatedFiles.size())));
   }
 
   private static void refreshFilesRecursively(ImmutableList<VirtualFile> virtualFiles) {
@@ -181,7 +182,7 @@ public class FileRefresher {
       }
     }
     context.output(
-        new PrintOutput(String.format("%d existing files require refreshing...", markedAsDirty)));
+        new PrintOutput(String.format(Locale.ROOT, "%d existing files require refreshing...", markedAsDirty)));
   }
 
   /**

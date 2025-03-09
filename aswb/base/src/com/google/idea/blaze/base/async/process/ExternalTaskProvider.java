@@ -24,7 +24,6 @@ import com.intellij.openapi.application.ApplicationManager;
  * Constructs an {@link ExternalTask} from a builder instance. This indirection exists to allow easy
  * redirection in blaze-invoking integration tests.
  */
-@VisibleForTesting
 public interface ExternalTaskProvider {
 
   static ExternalTaskProvider getInstance() {

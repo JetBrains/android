@@ -93,6 +93,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -464,9 +465,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     if (shouldLog) {
       context.output(
           PrintOutput.log(
-              String.format(
-                  "Fetching and parsing %d artifact info files (%s)",
-                  totalFilesToFetch, StringUtilRt.formatFileSize(totalBytesToFetch))));
+              String.format(Locale.ROOT,
+                            "Fetching and parsing %d artifact info files (%s)",
+                            totalFilesToFetch, StringUtilRt.formatFileSize(totalBytesToFetch))));
     }
 
     ImmutableSet.Builder<JavaArtifacts> artifactInfoFilesBuilder = ImmutableSet.builder();
@@ -484,7 +485,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     if (shouldLog) {
       context.output(
           PrintOutput.log(
-              String.format("Fetched and parsed artifact info files in %d ms", elapsed)));
+              String.format(Locale.ROOT, "Fetched and parsed artifact info files in %d ms", elapsed)));
     }
     DependencyBuildContext buildContext =
         DependencyBuildContext.create(

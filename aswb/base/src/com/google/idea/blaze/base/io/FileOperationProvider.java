@@ -91,6 +91,7 @@ public class FileOperationProvider {
     return Files.createTempFile(tempDirectory, prefix, suffix, attributes);
   }
 
+  @SuppressWarnings("NoNioFilesCopy")
   public File copy(File source, File target, CopyOption... options) throws IOException {
     return Files.copy(source.toPath(), target.toPath(), options).toFile();
   }

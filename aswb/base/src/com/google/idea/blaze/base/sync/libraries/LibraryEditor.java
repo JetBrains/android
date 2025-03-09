@@ -41,6 +41,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -63,7 +64,7 @@ public class LibraryEditor {
         intelliJLibraryState.add(LibraryKey.fromIntelliJLibraryName(name));
       }
     }
-    context.output(PrintOutput.log(String.format("Workspace has %d libraries", libraries.size())));
+    context.output(PrintOutput.log(String.format(Locale.ROOT, "Workspace has %d libraries", libraries.size())));
 
     try {
       Set<String> newLibraryKeys = new HashSet<>();

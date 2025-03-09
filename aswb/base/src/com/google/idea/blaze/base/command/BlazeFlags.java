@@ -102,7 +102,6 @@ public final class BlazeFlags {
   public static final String ADB = "--adb";
 
   // We add this to every single BlazeCommand instance. It's for tracking usage.
-  @VisibleForTesting
   public static String getToolTagFlag() {
     String platformPrefix = PlatformUtils.getPlatformPrefix();
 

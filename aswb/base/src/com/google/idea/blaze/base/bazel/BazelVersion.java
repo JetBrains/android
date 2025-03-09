@@ -66,7 +66,6 @@ public class BazelVersion implements ProtoWrapper<ProjectData.BazelVersion> {
     return bugfix;
   }
 
-  @VisibleForTesting
   public static BazelVersion parseVersion(@Nullable String string) {
     // treat all unknown / development versions as the very latest version
     if (string == null) {

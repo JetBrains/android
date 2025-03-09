@@ -38,11 +38,11 @@ final class TasksToolWindowServiceImpl implements TasksToolWindowService, Dispos
   private final ToolWindowTabs tabs;
   private final Project project;
 
+  @SuppressWarnings("unused")
   TasksToolWindowServiceImpl(Project project) {
     this(project, Instant::now);
   }
 
-  @VisibleForTesting
   @NonInjectable
   TasksToolWindowServiceImpl(Project project, TimeSource timeSource) {
     this.project = project;

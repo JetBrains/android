@@ -112,6 +112,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -231,7 +232,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
 
     context.output(
         PrintOutput.log(
-            String.format(
+            String.format(Locale.ROOT,
                 "Total rules: %d, new/changed: %d, removed: %d",
                 targetCount, diff.getUpdatedOutputs().size(), removedCount)));
 
@@ -418,18 +419,18 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
 
               context.output(
                   PrintOutput.log(
-                      String.format(
+                      String.format(Locale.ROOT,
                           "Loaded %d aspect files, total size %dkB",
                           fileState.getUpdatedOutputs().size(), totalSizeLoaded.get() / 1024)));
               if (duplicateTargetLabels > 0) {
                 context.output(
                     new PerformanceWarning(
-                        String.format(
+                        String.format(Locale.ROOT,
                             "There were %d duplicate rules, built with the following "
                                 + "configurations: %s.\nYour IDE sync is slowed down by ~%d%%.",
-                            duplicateTargetLabels,
-                            configurations,
-                            (100 * duplicateTargetLabels / targetMap.size()))));
+                                      duplicateTargetLabels,
+                                      configurations,
+                                      (100 * duplicateTargetLabels / targetMap.size()))));
               }
 
               // remove previously synced targets which are now unsupported

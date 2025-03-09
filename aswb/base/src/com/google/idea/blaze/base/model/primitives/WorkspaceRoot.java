@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 /** Represents a workspace root */
+@SuppressWarnings("FileComparisons")
 public class WorkspaceRoot implements ProtoWrapper<String> {
   private final File directory;
 

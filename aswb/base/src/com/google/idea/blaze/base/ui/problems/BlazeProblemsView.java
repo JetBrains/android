@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -242,7 +243,7 @@ public class BlazeProblemsView {
   private static String getExportTextPrefix(IssueOutput issue) {
     int line = issue.getLine();
     if (line >= 0) {
-      return String.format("line: %d", line);
+      return String.format(Locale.ROOT, "line: %d", line);
     }
     return "";
   }
@@ -250,7 +251,7 @@ public class BlazeProblemsView {
   private static String getRenderTextPrefix(IssueOutput issue) {
     int line = issue.getLine();
     if (line >= 0) {
-      return String.format("(%d, %d)", line, issue.getColumn());
+      return String.format(Locale.ROOT, "(%d, %d)", line, issue.getColumn());
     }
     return "";
   }

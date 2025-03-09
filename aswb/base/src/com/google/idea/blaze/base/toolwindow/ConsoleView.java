@@ -90,6 +90,7 @@ final class ConsoleView implements Disposable {
 
   private JComponent content;
 
+  @SuppressWarnings("NoOp")
   static ConsoleView create(
       Project project, ImmutableList<Filter> consoleFilters, Disposable parentDisposable) {
     ConsoleView view = new ConsoleView(project, parentDisposable);

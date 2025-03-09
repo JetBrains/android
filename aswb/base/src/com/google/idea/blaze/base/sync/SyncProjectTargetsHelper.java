@@ -41,6 +41,7 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.common.PrintOutput;
 import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.Locale;
 
 /** Derives sync targets from the project directories. */
 public final class SyncProjectTargetsHelper {
@@ -141,9 +142,9 @@ public final class SyncProjectTargetsHelper {
             .collect(toImmutableList());
     context.output(
         PrintOutput.log(
-            String.format(
-                "%d targets found under project directories; syncing %d of them.",
-                targets.size(), retained.size())));
+            String.format(Locale.ROOT,
+                          "%d targets found under project directories; syncing %d of them.",
+                          targets.size(), retained.size())));
     return retained;
   }
 }

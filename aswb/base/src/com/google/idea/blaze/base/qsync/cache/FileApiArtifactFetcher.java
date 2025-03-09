@@ -46,6 +46,7 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
                                                            new ThreadPoolExecutor(1, maxThreads.getValue(),
                                                                                   10L, TimeUnit.SECONDS,
                                                                                   new SynchronousQueue<Runnable>()), maxThreads.getValue()));
+  @SuppressWarnings("NoNioFilesCopy")
   @Override
   public ListenableFuture<?> copy(
       ImmutableMap<? extends LocalFileOutputArtifact, ArtifactDestination> artifactToDest,

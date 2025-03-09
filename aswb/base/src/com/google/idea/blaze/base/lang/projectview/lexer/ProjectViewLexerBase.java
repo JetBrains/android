@@ -23,7 +23,6 @@ import java.util.List;
 /** Lexer for project view files. */
 public class ProjectViewLexerBase {
 
-  @VisibleForTesting
   static class Token {
     final ProjectViewTokenType type;
     final int left;

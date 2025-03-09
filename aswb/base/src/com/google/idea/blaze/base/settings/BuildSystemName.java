@@ -24,9 +24,4 @@ public enum BuildSystemName {
   public String getName() {
     return name();
   }
-
-  /** The build system name, lower case. */
-  public String getLowerCaseName() {
-    return name().toLowerCase();
-  }
 }

@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.dependencies.TestSize;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import java.io.File;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -41,7 +42,7 @@ public class TestSizeFromRoughTargetNameHeuristic implements TestTargetHeuristic
   /** Looks for an substring match between the rule name and the test size annotation class name. */
   @Nullable
   private static TestSize guessTargetTestSize(TargetInfo target) {
-    String ruleName = target.label.targetName().toString().toLowerCase();
+    String ruleName = target.label.targetName().toString().toLowerCase(Locale.ROOT);
     return TARGET_NAME_TO_TEST_SIZE.entrySet().stream()
         .filter(entry -> ruleName.contains(entry.getKey()))
         .map(Map.Entry::getValue)
