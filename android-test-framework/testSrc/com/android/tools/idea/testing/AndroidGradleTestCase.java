@@ -199,7 +199,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
+    fixture.setTestDataPath(TestUtils.resolveWorkspacePath(getTestDataDirectoryWorkspaceRelativePath()).toRealPath().toString());
     ensureSdkManagerAvailable(AndroidVersion.fromString(myAgpVersionSoftwareEnvironment.getCompileSdk()));
 
     Project project = fixture.getProject();
@@ -383,7 +383,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @Override
   @SystemIndependent
   public String getTestDataDirectoryWorkspaceRelativePath() {
-    return "tools/adt/idea/android/testData";
+    return "android/android/testData";
   }
 
   @NotNull
