@@ -42,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.Splitter
+import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JPanel
@@ -269,6 +270,8 @@ fun verifyUiRemoved(content: Component, container: Container, displayView: Abstr
 }
 
 fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
   val toolbars =
     container.allChildren().filterIsInstance<ActionToolbar>().filter {
       it.component.name == "LayoutInspector.MainToolbar"
