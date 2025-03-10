@@ -40,4 +40,8 @@ private class StudioComposeTestRuleImpl : StudioComposeTestRule() {
       }
     }
   }
+
+  override fun setContent(composable: @Composable () -> Unit) {
+    setContent(false, composable)
+  }
 }
