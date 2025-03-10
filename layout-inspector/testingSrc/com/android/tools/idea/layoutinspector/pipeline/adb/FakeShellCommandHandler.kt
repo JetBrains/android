@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.fakeadbserver.services.StatusWriter
 import java.net.Socket
 import kotlinx.coroutines.CoroutineScope
 
@@ -38,6 +40,8 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell") {
     device: DeviceState,
     command: String,
     args: String,
+    statusWriter: StatusWriter,
+    shellCommandOutputProvider: (() -> ShellCommandOutput)?,
   ): Boolean {
     val response =
       when (command) {

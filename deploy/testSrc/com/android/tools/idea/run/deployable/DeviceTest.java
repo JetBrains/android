@@ -27,6 +27,8 @@ import com.android.fakeadbserver.ClientState;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
+import com.android.fakeadbserver.services.ShellCommandOutput;
+import com.android.fakeadbserver.services.StatusWriter;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import kotlin.jvm.functions.Function0;
 import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -271,7 +274,9 @@ public class DeviceTest {
                             @NotNull Socket socket,
                             @NotNull DeviceState device,
                             @NotNull String command,
-                            @NotNull String args) {
+                            @NotNull String args,
+                            @NotNull StatusWriter statusWriter,
+                            @Nullable Function0<? extends @NotNull ShellCommandOutput> shellCommandOutputProvider) {
         if (!this.command.equals(command) || !commandPattern.matcher(args).matches()) {
           return false;
         }

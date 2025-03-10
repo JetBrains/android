@@ -20,8 +20,8 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.fakeadbserver.services.StatusWriter
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler
-import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
