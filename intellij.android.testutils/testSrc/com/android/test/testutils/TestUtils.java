@@ -212,9 +212,7 @@ public class  TestUtils {
   @NonNull
   public static synchronized Path getWorkspaceRoot() {
     if (workspaceRoot == null) {
-      var path = Paths.get(PathManager.getCommunityHomePath());
-      AndroidSdkDownloader.downloadSdk(new BuildDependenciesCommunityRoot(path));
-      workspaceRoot = path;
+      workspaceRoot = AndroidSdkDownloader.downloadSdk(new BuildDependenciesCommunityRoot(Paths.get(PathManager.getCommunityHomePath())));
     }
 
     llDownloader.makeSureComponentIsInPlace();
@@ -462,7 +460,7 @@ public class  TestUtils {
     }
 
     String hostDir = osType.getFolderName();
-    return "build/dependencies/build/android-sdk/prebuilts/studio/sdk/" + hostDir;
+    return "prebuilts/studio/sdk/" + hostDir;
   }
 
   /**
