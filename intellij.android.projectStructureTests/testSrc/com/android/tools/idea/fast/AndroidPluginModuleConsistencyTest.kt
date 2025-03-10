@@ -36,6 +36,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
   private val gradleDslPluginModules = listOf(
     "intellij.android.gradle.declarative.lang",
     "intellij.android.gradle.declarative.lang.ide",
+    "intellij.android.gradle.declarative.lang.sync",
     "intellij.android.gradle.dsl",
     "intellij.android.gradle.dsl.declarative",
     "intellij.android.gradle.dsl.kotlin",
@@ -129,6 +130,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
           val isGradleDslModule = "intellij.android.gradle.dsl" == otherAndroidModuleName
           val isGradleDslDeclarativeLangModule = "intellij.android.gradle.declarative.lang" == otherAndroidModuleName
                                                  || "intellij.android.gradle.declarative.lang.ide" == otherAndroidModuleName
+                                                 || "intellij.android.gradle.declarative.lang.sync" == otherAndroidModuleName
                                                  || "intellij.android.gradle.dsl.flags" == otherAndroidModuleName
 
           !isGradleDslModule && !isGradleDslDeclarativeLangModule && otherAndroidModuleName.startsWith("intellij.android")
