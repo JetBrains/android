@@ -20,7 +20,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HighlightColorAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -94,12 +94,12 @@ class RenderSettingsActionTest {
   fun testSelectedColor() {
     val colors =
       mapOf(
-        0xFF0000 to "Red",
-        0x4F9EE3 to "Blue",
-        0x479345 to "Green",
-        0xFFC66D to "Yellow",
-        0x871094 to "Purple",
-        0xE1A336 to "Orange",
+        0xFFFF0000.toInt() to "Red",
+        0xFF4F9EE3.toInt() to "Blue",
+        0xFF479345.toInt() to "Green",
+        0xFFFFC66D.toInt() to "Yellow",
+        0xFF871094.toInt() to "Purple",
+        0xFFE1A336.toInt() to "Orange",
       )
     val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
@@ -177,7 +177,7 @@ class FakeRenderSettings : RenderSettings {
   override val selectionColor = SELECTION_COLOR_ARGB
   override val baseColor = BASE_COLOR_ARGB
   override val outlineColor = OUTLINE_COLOR_ARGB
-  override var recompositionColor = RECOMPOSITION_COLOR_RED
+  override var recompositionColor = RECOMPOSITION_COLOR_RED_ARGB
     set(value) {
       field = value
       invokeListeners()

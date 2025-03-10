@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_PURPLE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_PURPLE_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
@@ -57,25 +57,25 @@ class RenderSettingsTest {
 
     settings1.drawBorders = true
     settings1.drawLabel = false
-    settings1.recompositionColor = RECOMPOSITION_COLOR_RED
+    settings1.recompositionColor = RECOMPOSITION_COLOR_RED_ARGB
 
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
-    assertThat(settings1.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_RED)
+    assertThat(settings1.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_RED_ARGB)
 
     val settings2 = InspectorRenderSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
-    assertThat(settings2.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_RED)
+    assertThat(settings2.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_RED_ARGB)
 
     settings2.drawBorders = false
     settings2.drawLabel = true
-    settings2.recompositionColor = RECOMPOSITION_COLOR_PURPLE
+    settings2.recompositionColor = RECOMPOSITION_COLOR_PURPLE_ARGB
 
     // settings1 gets the new values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isTrue()
-    assertThat(settings1.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_PURPLE)
+    assertThat(settings1.recompositionColor).isEqualTo(RECOMPOSITION_COLOR_PURPLE_ARGB)
   }
 
   @Test

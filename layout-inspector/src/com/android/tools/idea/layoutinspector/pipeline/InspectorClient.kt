@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -322,6 +322,6 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override var currentMode3D: Boolean = false
   override var hideSystemNodes: Boolean = true
   override var showRecompositions: Boolean = false
-  override var recompositionHighlightColor: Int = RECOMPOSITION_COLOR_RED
+  override var recompositionHighlightColor: Int = RECOMPOSITION_COLOR_RED_ARGB
   override var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
 }

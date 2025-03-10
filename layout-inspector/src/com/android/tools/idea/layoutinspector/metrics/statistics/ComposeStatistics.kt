@@ -18,12 +18,12 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_BLUE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_GREEN
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_ORANGE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_PURPLE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_YELLOW
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_BLUE_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_GREEN_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_ORANGE_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_PURPLE_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_YELLOW_ARGB
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 
 /** Accumulator of live mode statistics for compose related events */
@@ -47,7 +47,7 @@ class ComposeStatistics {
   var showRecompositions = false
 
   /** The currently selected recomposition highlight color. */
-  var recompositionHighlightColor = RECOMPOSITION_COLOR_RED
+  var recompositionHighlightColor = RECOMPOSITION_COLOR_RED_ARGB
 
   /** Number of frames received with recomposition counts ON. */
   private var framesWithRecompositionCountsOn = 0
@@ -63,7 +63,7 @@ class ComposeStatistics {
   /** Start a new session by resetting all counters. */
   fun start() {
     showRecompositions = false
-    recompositionHighlightColor = RECOMPOSITION_COLOR_RED
+    recompositionHighlightColor = RECOMPOSITION_COLOR_RED_ARGB
     imageClicks = 0
     componentTreeClicks = 0
     goToSourceFromPropertyValueClicks = 0
@@ -144,12 +144,12 @@ class ComposeStatistics {
     }
     framesWithRecompositionCountsOn++
     when (recompositionHighlightColor) {
-      RECOMPOSITION_COLOR_RED -> framesWithRecompositionColorRed++
-      RECOMPOSITION_COLOR_BLUE -> framesWithRecompositionColorBlue++
-      RECOMPOSITION_COLOR_GREEN -> framesWithRecompositionColorGreen++
-      RECOMPOSITION_COLOR_YELLOW -> framesWithRecompositionColorYellow++
-      RECOMPOSITION_COLOR_PURPLE -> framesWithRecompositionColorPurple++
-      RECOMPOSITION_COLOR_ORANGE -> framesWithRecompositionColorOrange++
+      RECOMPOSITION_COLOR_RED_ARGB -> framesWithRecompositionColorRed++
+      RECOMPOSITION_COLOR_BLUE_ARGB -> framesWithRecompositionColorBlue++
+      RECOMPOSITION_COLOR_GREEN_ARGB -> framesWithRecompositionColorGreen++
+      RECOMPOSITION_COLOR_YELLOW_ARGB -> framesWithRecompositionColorYellow++
+      RECOMPOSITION_COLOR_PURPLE_ARGB -> framesWithRecompositionColorPurple++
+      RECOMPOSITION_COLOR_ORANGE_ARGB -> framesWithRecompositionColorOrange++
     }
   }
 }
