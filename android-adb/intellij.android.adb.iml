@@ -17,7 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="library" name="studio-plugin-com.intellij.platform.images" level="project" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />

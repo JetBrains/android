@@ -67,7 +67,6 @@
     <orderEntry type="module" module-name="android.sdktools.perflib" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
-    <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>
