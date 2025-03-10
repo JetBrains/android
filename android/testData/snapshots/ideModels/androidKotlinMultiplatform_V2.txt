@@ -844,6 +844,7 @@ MODULE                        : Kotlin_Multiplatform
                         androidUnitTestResolvableDependenciesMetadata     : <empty>
                         androidUnitTestRuntimeClasspath         : <empty>
                         androidUnitTestRuntimeOnly    : <empty>
+                        annotationProcessorClasspath  : <empty>
                         - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
@@ -2629,6 +2630,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     - resourceDirs                : <ROOT>/kmpFirstLib/src/androidMain/resources
                     - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidMain/kotlin
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -2828,6 +2830,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmpJvmOnly/src/jvmMain/java [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3138,6 +3141,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     - resourceDirs                : <ROOT>/kmpSecondLib/src/androidMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/androidMain/kotlin
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3199,6 +3203,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmpSecondLib/src/jvmMain/java [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
