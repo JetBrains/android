@@ -21,10 +21,13 @@ import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.lint.client.api.Configuration
+import com.android.tools.lint.client.api.FlagConfiguration
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
 import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.client.api.Vendor
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
 import com.intellij.codeInsight.intention.IntentionAction
@@ -63,6 +66,13 @@ abstract class LintIdeSupport {
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
+
+  open fun getIssueRegistry(issues: List<Issue>): IssueRegistry {
+    return object : IssueRegistry() {
+      override val issues: List<Issue> = issues
+      override val vendor: Vendor = issues.firstOrNull()?.vendor ?: AOSP_VENDOR
+    }
+  }
 
   open fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val dir = module.getModuleDir() ?: return null
@@ -156,6 +166,38 @@ abstract class LintIdeSupport {
    */
   open fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
     return LintIdeClient(lintResult.getModule().project, lintResult)
+  }
+
+  /**
+   * Creates a batch client which ignores project-local configurations and custom lint jars from
+   * dependencies. Used for in-IDE refactoring uses of lint, such as the unused resources
+   * refactoring, which behind the scenes runs lint to find the unused resources -- and we want to
+   * make sure that the lint run doesn't get confused by project local settings (such as a lint.xml
+   * file which turns off the unused resources lint inspection for one of the folders) or slowed
+   * down by third party lint checks loaded from the project dependencies.
+   */
+  open fun createIsolatedClient(
+    lintResult: LintBatchResult,
+    issueRegistry: IssueRegistry,
+  ): LintIdeClient {
+    return object : LintIdeClient(lintResult.project, lintResult) {
+      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
+        emptyList()
+
+      override fun findRuleJars(
+        project: com.android.tools.lint.detector.api.Project
+      ): Iterable<File> = emptyList()
+
+      override fun getConfiguration(
+        project: com.android.tools.lint.detector.api.Project,
+        driver: LintDriver?,
+      ): Configuration =
+        object : FlagConfiguration(configurations) {
+          override fun exactCheckedIds(): Set<String> = issueRegistry.issues.map { it.id }.toSet()
+        }
+
+      override fun getConfiguration(file: File): Configuration? = null
+    }
   }
 
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null

@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
-import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
+import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get as lint
 import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
@@ -61,17 +61,19 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
   interface Filter {
     fun shouldProcessFile(psiFile: PsiFile): Boolean
+
     fun shouldProcessResource(resource: String?): Boolean
   }
 
   private object AllFilter : Filter {
     override fun shouldProcessFile(psiFile: PsiFile) = true
+
     override fun shouldProcessResource(resource: String?) = true
   }
 
-  class FileFilter private constructor(
-    private val files: Set<PsiFile>,
-    private val directories: Set<PsiDirectory>) : Filter {
+  class FileFilter
+  private constructor(private val files: Set<PsiFile>, private val directories: Set<PsiDirectory>) :
+    Filter {
 
     override fun shouldProcessFile(psiFile: PsiFile): Boolean {
       if (psiFile in files) return true
@@ -91,7 +93,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
     companion object {
       @JvmStatic
-      fun from(elements: Collection<PsiElement>) : FileFilter {
+      fun from(elements: Collection<PsiElement>): FileFilter {
         val files = elements.mapNotNull { it.containingFile }.toSet()
         val dirs = elements.mapNotNull { it as? PsiDirectory }.toSet()
 
@@ -165,7 +167,10 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
         val problems = fileListMap[file] ?: continue
 
         val projectSystem = myProject.getProjectSystem()
-        val performer = projectSystem.getTokenOrNull(UnusedResourcesToken.EP_NAME)?.getPerformerFor(projectSystem, psiFile)
+        val performer =
+          projectSystem
+            .getTokenOrNull(UnusedResourcesToken.EP_NAME)
+            ?.getPerformerFor(projectSystem, psiFile)
         if (performer != null) {
           val problemNames = problems.mapNotNull { getResource(it) }.toSet()
           val elements = performer.computeUnusedElements(psiFile, problemNames)
@@ -181,8 +186,9 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
           }
         } else {
           when (getFolderType(psiFile)) {
-            // Not found in a resource folder and not handled by the Project System; ignore this resource
-            // (it would be dangerous to just delete the file; see for example http://b.android.com/220069.)
+            // Not found in a resource folder and not handled by the Project System;
+            // ignore this resource (it would be dangerous to just delete the file; see
+            // for example http://b.android.com/220069.)
             null -> Unit
             ResourceFolderType.VALUES -> {
               unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
@@ -222,7 +228,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   private fun getElementsInFile(
     psiFile: PsiFile,
     problems: List<LintProblemData>,
-    excludedResources: Set<String>
+    excludedResources: Set<String>,
   ): Sequence<PsiElement> {
     // Delete all the resources in the given file
     if (psiFile !is XmlFile || !psiFile.isValid()) return emptySequence()
@@ -236,19 +242,20 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
       .mapNotNull { startOffset ->
-        val attribute = PsiTreeUtil.findElementOfClassAtOffset(
-          psiFile,
-          startOffset,
-          XmlAttribute::class.java,
-          false
-        )
+        val attribute =
+          PsiTreeUtil.findElementOfClassAtOffset(
+            psiFile,
+            startOffset,
+            XmlAttribute::class.java,
+            false,
+          )
         when {
           attribute == null ->
             PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)
           SdkConstants.ATTR_ID != attribute.localName ->
-            // If deleting a resource, delete the whole resource element, except for attribute
-            // android:id="" declarations
-            // where we remove the attribute, not the tag
+            // If deleting a resource, delete the whole resource element, except for
+            // attribute android:id="" declarations where we remove the attribute, not
+            // the tag
             PsiTreeUtil.getParentOfType(attribute, XmlTag::class.java)
           else -> attribute
         }
@@ -264,7 +271,8 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
     val scope = AnalysisScope(myProject)
 
     val lintResult = LintBatchResult(myProject, map, scope, enabledIssues, null)
-    val client = get().createBatchClient(lintResult)
+    val issueRegistry = lint().getIssueRegistry(enabledIssues.toList())
+    val client = lint().createIsolatedClient(lintResult, issueRegistry)
     // Note: We pass in *all* modules in the project here, not just those in the scope of the
     // resource refactoring. If you for example are running the unused resource refactoring on a
     // library module, we want to only remove unused resources from the specific library
@@ -279,9 +287,10 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
     // Make sure we don't remove resources that are still referenced from
     // tests (though these should probably be in a test resource source
     // set instead.)
-    val lint =
-      client.createDriver(request, get().getIssueRegistry()).apply { checkTestSources = true }
-    lint.analyze()
+    with(client.createDriver(request, issueRegistry)) {
+      checkTestSources = true
+      analyze()
+    }
 
     // Make sure lint didn't put extra issues into the map
     val allowedIssues = setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
@@ -342,7 +351,10 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
 interface UnusedResourcesToken<P : AndroidProjectSystem> : Token {
   companion object {
-    val EP_NAME = ExtensionPointName<UnusedResourcesToken<AndroidProjectSystem>>("org.jetbrains.android.refactoring.unusedResourcesToken")
+    val EP_NAME =
+      ExtensionPointName<UnusedResourcesToken<AndroidProjectSystem>>(
+        "org.jetbrains.android.refactoring.unusedResourcesToken"
+      )
   }
 
   fun getPerformerFor(projectSystem: P, psiFile: PsiFile): UnusedResourcesPerformer?
@@ -353,4 +365,3 @@ interface UnusedResourcesPerformer {
 
   fun perform(element: PsiElement)
 }
-

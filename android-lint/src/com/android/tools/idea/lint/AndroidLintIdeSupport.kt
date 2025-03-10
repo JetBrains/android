@@ -36,6 +36,9 @@ import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.android.tools.lint.client.api.Configuration
+import com.android.tools.lint.client.api.FlagConfiguration
+import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
@@ -164,6 +167,30 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun createEditorClient(lintResult: LintEditorResult) =
     AndroidLintIdeClient(lintResult.getModule().project, lintResult)
+
+  override fun createIsolatedClient(
+    lintResult: LintBatchResult,
+    issueRegistry: IssueRegistry,
+  ): LintIdeClient {
+    return object : AndroidLintIdeClient(lintResult.project, lintResult) {
+      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
+        emptyList()
+
+      override fun findRuleJars(
+        project: com.android.tools.lint.detector.api.Project
+      ): Iterable<File> = emptyList()
+
+      override fun getConfiguration(
+        project: com.android.tools.lint.detector.api.Project,
+        driver: LintDriver?,
+      ): Configuration =
+        object : FlagConfiguration(configurations) {
+          override fun exactCheckedIds(): Set<String> = issueRegistry.issues.map { it.id }.toSet()
+        }
+
+      override fun getConfiguration(file: File): Configuration? = null
+    }
+  }
 
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
