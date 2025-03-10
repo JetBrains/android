@@ -16,15 +16,11 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.RestoreAppAction.Config.Browse
 import com.android.tools.idea.backup.RestoreAppAction.Config.File
-import com.android.tools.idea.backup.asyncaction.ActionEnableState
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionGroupWithSuspendedUpdate
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
@@ -34,7 +30,7 @@ import java.nio.file.Path
 
 /** A Restore App popup [ActionGroup] containing recently used backup files and a browse action */
 internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = ActionHelperImpl()) :
-  ActionGroupWithSuspendedUpdate() {
+  ActionGroup() {
 
   override fun getActionUpdateThread() = BGT
 
@@ -47,25 +43,15 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
     e.presentation.isPopupGroup = true
     e.presentation.isVisible = showGroup(project)
     e.presentation.isEnabled = false
-    super.update(e)
-  }
 
-  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
     if (
       (e.place == "MainToolbar" || e.place == "MainMenu") &&
         actionHelper.getDeployTargetCount(project) != 1
     ) {
-      return Disabled(message("error.multiple.devices"))
+      return e.presentation.enableRichTooltip(this, message("error.multiple.devices"))
     }
-    val serialNumber =
-      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
-    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
-      return Disabled(message("error.device.not.supported"))
-    }
-    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
-      true -> Enabled
-      else -> Disabled(message("error.applications.not.installed"))
-    }
+
+    e.presentation.isEnabled = true
   }
 
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
@@ -76,11 +62,6 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
         files.forEach { add(RestoreAppAction(File(Path.of(it)))) }
       }
       .toTypedArray()
-  }
-
-  private suspend fun getDeviceSerialNumber(e: AnActionEvent): String? {
-    val project = e.project ?: return null
-    return SERIAL_NUMBER_KEY.getData(e.dataContext) ?: actionHelper.getDeployTargetSerial(project)
   }
 
   companion object {

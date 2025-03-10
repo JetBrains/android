@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup.testing
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -23,6 +24,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import javax.swing.JButton
 import javax.swing.JComponent
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 
 internal inline fun <reified T> DialogWrapper.findComponent(name: String): T {
   return TreeWalker(rootPane).descendants().filterIsInstance<T>().find {
@@ -39,3 +41,11 @@ internal fun DialogWrapper.clickOk() {
 // implementation details that might change.
 internal fun Presentation.hasTooltip(): Boolean =
   getClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP) != null
+
+fun FakeBackupManager.waitForBackupInvocations(num: Int) {
+  waitForCondition(5.seconds) { showBackupDialogInvocations.size == num }
+}
+
+fun FakeBackupManager.waitForRestoreInvocations(num: Int) {
+  waitForCondition(5.seconds) { restoreModalInvocations.size == num }
+}

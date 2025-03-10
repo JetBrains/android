@@ -16,10 +16,8 @@
 package com.android.tools.idea.backup
 
 import com.android.flags.junit.FlagRule
-import com.android.tools.idea.backup.asyncaction.ActionEnableState
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeBackupManager
-import com.android.tools.idea.backup.testing.hasTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -33,7 +31,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -59,20 +56,6 @@ class RestoreAppActionGroupTest {
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
       temporaryFolder,
     )
-
-  @Test
-  fun update_deviceNotSupported() {
-    val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
-    val event = testEvent(project)
-    fakeBackupManager.isDeviceSupported = false
-
-    action.update(event)
-
-    val presentation = event.presentation
-    assertThat(presentation.isVisible).isTrue()
-    assertThat(presentation.isEnabled).isFalse()
-    assertThat(presentation.hasTooltip()).isTrue()
-  }
 
   @Test
   fun update_withoutFileHistory() {
@@ -112,26 +95,6 @@ class RestoreAppActionGroupTest {
     val presentation = event.presentation
     assertThat(presentation.isVisible).isTrue()
     assertThat(presentation.isEnabled).isTrue()
-  }
-
-  @Test
-  fun suspendedUpdate_noCompatibleApplication() {
-    val action =
-      RestoreAppActionGroup(
-        actionHelper = FakeActionHelper("com.app", 1, "serial", isCompatibleApp = false)
-      )
-    val event = testEvent(project)
-    val state = runBlocking { action.suspendedUpdate(project, event) }
-    assertThat(state)
-      .isEqualTo(ActionEnableState.Disabled(""""No compatible application installed""""))
-  }
-
-  @Test
-  fun suspendedUpdate_noTargets() {
-    val action = RestoreAppActionGroup(actionHelper = FakeActionHelper("com.app", 1, null))
-    val event = testEvent(project)
-    val state = runBlocking { action.suspendedUpdate(project, event) }
-    assertThat(state).isEqualTo(ActionEnableState.Disabled("Selected device is not running"))
   }
 
   @Test

@@ -16,10 +16,11 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.DialogFactory.DialogButton
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.CommonBundle
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal class DialogFactoryImpl : DialogFactory {
@@ -29,7 +30,7 @@ internal class DialogFactoryImpl : DialogFactory {
     message: String,
     buttons: List<DialogButton>,
   ) {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val buttonTexts = buttons.map { it.text }
       val actionMap = buttons.associateBy { it.text }
       @Suppress("UnstableApiUsage")

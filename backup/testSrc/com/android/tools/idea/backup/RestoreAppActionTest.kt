@@ -22,7 +22,7 @@ import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
-import com.android.tools.idea.backup.testing.hasTooltip
+import com.android.tools.idea.backup.testing.waitForRestoreInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -35,7 +35,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.runInEdtAndWait
 import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
@@ -77,20 +76,6 @@ class RestoreAppActionTest {
   }
 
   @Test
-  fun update_deviceNotSupported() {
-    val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
-    val event = testEvent(project)
-    fakeBackupManager.isDeviceSupported = false
-
-    action.update(event)
-
-    val presentation = event.presentation
-    assertThat(presentation.isVisible).isTrue()
-    assertThat(presentation.isEnabled).isFalse()
-    assertThat(presentation.hasTooltip()).isTrue()
-  }
-
-  @Test
   fun update_flagDisabled() {
     StudioFlags.BACKUP_ENABLED.override(false)
     val action = RestoreAppAction(actionHelper = FakeActionHelper("com.app", 1, "serial"))
@@ -124,7 +109,7 @@ class RestoreAppActionTest {
 
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeBackupManager.waitForRestoreInvocations(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations)
       .containsExactly(
@@ -141,11 +126,27 @@ class RestoreAppActionTest {
 
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeDialogFactory.waitForDialogs(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
+  }
+
+  @Test
+  fun actionPerformed_deviceNotSupported() {
+    val actionHelper = FakeActionHelper("com.app", 1, "serial")
+    fakeBackupManager.isDeviceSupported = false
+    val action = RestoreAppAction(actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
+    val event = testEvent(project, "serial")
+
+    action.actionPerformed(event)
+
+    fakeDialogFactory.waitForDialogs(1)
+
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not supported"))
   }
 
   private fun testEvent(project: Project? = null, serialNumber: String? = null): AnActionEvent {

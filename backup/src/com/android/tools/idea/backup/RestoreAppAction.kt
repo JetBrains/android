@@ -16,19 +16,16 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
 import com.android.tools.idea.backup.RestoreAppAction.Config.Standalone
-import com.android.tools.idea.backup.asyncaction.ActionEnableState
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.components.service
@@ -42,7 +39,7 @@ internal class RestoreAppAction(
   private val config: Config = Standalone,
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
-) : ActionWithSuspendedUpdate() {
+) : AnAction() {
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -60,41 +57,35 @@ internal class RestoreAppAction(
     e.presentation.text = config.presentation.text
     e.presentation.description = config.presentation.description
 
-    super.update(e)
-  }
-
-  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
     if (
       (e.place == "MainToolbar" || e.place == "MainMenu") &&
         actionHelper.getDeployTargetCount(project) != 1
     ) {
-      return Disabled(message("error.multiple.devices"))
+      return e.presentation.enableRichTooltip(this, message("error.multiple.devices"))
     }
-    val serialNumber =
-      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
-    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
-      return Disabled(message("error.device.not.supported"))
-    }
-    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
-      true -> Enabled
-      else -> Disabled(message("error.applications.not.installed"))
-    }
+
+    e.presentation.isEnabled = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val coroutineScope = project.service<DeviceProvisionerService>().deviceProvisioner.scope
-    coroutineScope.launch(uiThread) {
+    coroutineScope.launch {
       val serialNumber = getDeviceSerialNumber(e)
       if (serialNumber == null) {
-        dialogFactory.showDialog(
-          project,
-          message("restore.file.action.error.title"),
-          message("error.device.not.running"),
-        )
+        project.showDialog(message("error.device.not.running"))
         return@launch
       }
       val backupManager = BackupManager.getInstance(project)
+      if (!backupManager.isDeviceSupported(serialNumber)) {
+        project.showDialog(message("error.device.not.supported"))
+        return@launch
+      }
+      val isCompatible = actionHelper.checkCompatibleApps(project, serialNumber)
+      if (!isCompatible) {
+        project.showDialog(message("error.applications.not.installed"))
+        return@launch
+      }
       val file =
         (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return@launch
       backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
@@ -128,5 +119,9 @@ internal class RestoreAppAction(
     }
 
     abstract val presentation: Presentation
+  }
+
+  private suspend fun Project.showDialog(message: String) {
+    dialogFactory.showDialog(this@showDialog, message("restore.file.action.error.title"), message)
   }
 }

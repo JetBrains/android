@@ -16,18 +16,15 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Invalid
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Valid
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
-import com.android.tools.idea.backup.asyncaction.ActionEnableState
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
@@ -36,7 +33,7 @@ import kotlinx.coroutines.launch
 internal class BackupAppAction(
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
-) : ActionWithSuspendedUpdate() {
+) : AnAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -46,33 +43,19 @@ internal class BackupAppAction(
       return
     }
     e.presentation.isVisible = true
-    super.update(e)
-  }
-
-  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
+    val project = e.project ?: return
     if (actionHelper.getApplicationId(project) == null) {
-      return Disabled("Selected run configuration is not an app")
+      e.presentation.enableRichTooltip(this, "Selected run configuration is not an app")
+      return
     }
-    val backupManager = BackupManager.getInstance(project)
-    return when (val backupInfo = e.getBackupInfo()) {
-      is Invalid -> Disabled(backupInfo.reason)
-      is Valid -> {
-        val installed = backupManager.isInstalled(backupInfo.serialNumber, backupInfo.applicationId)
-        if (installed) Enabled else Disabled(message("error.application.not.installed"))
-      }
-    }
+    e.presentation.isEnabled = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    project.coroutineScope.launch(uiThread) {
+    project.coroutineScope.launch {
       when (val backupInfo = e.getBackupInfo()) {
-        is Invalid ->
-          dialogFactory.showDialog(
-            project,
-            message("backup.app.action.error.title"),
-            backupInfo.reason,
-          )
+        is Invalid -> backupInfo.showDialog(project)
         is Valid -> doBackup(project, backupInfo)
       }
     }
@@ -86,10 +69,11 @@ internal class BackupAppAction(
 
   private suspend fun AnActionEvent.getBackupInfo(): BackupInfo {
     val project = project ?: throw IllegalStateException("Missing project")
+    val backupManager = BackupManager.getInstance(project)
     val serialNumber =
       actionHelper.getDeployTargetSerial(project)
         ?: return Invalid(message("error.device.not.running"))
-    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+    if (!backupManager.isDeviceSupported(serialNumber)) {
       return Invalid(message("error.device.not.supported"))
     }
     val applicationId =
@@ -97,17 +81,22 @@ internal class BackupAppAction(
         ?: return Invalid(message("error.incompatible.run.config"))
 
     val targetCount = actionHelper.getDeployTargetCount(project)
-    when {
-      targetCount == 0 -> return Invalid(message("error.device.not.running"))
-      targetCount > 1 -> return Invalid(message("error.multiple.devices"))
+    return when {
+      targetCount == 0 -> Invalid(message("error.device.not.running"))
+      targetCount > 1 -> Invalid(message("error.multiple.devices"))
+      !backupManager.isInstalled(serialNumber, applicationId) ->
+        Invalid(message("error.application.not.installed"))
+      else -> Valid(applicationId, serialNumber)
     }
-
-    return Valid(applicationId, serialNumber)
   }
 
   private sealed class BackupInfo {
     class Valid(val applicationId: String, val serialNumber: String) : BackupInfo()
 
     class Invalid(val reason: String) : BackupInfo()
+  }
+
+  private suspend fun Invalid.showDialog(project: Project) {
+    dialogFactory.showDialog(project, message("backup.app.action.error.title"), reason)
   }
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.backup.testing.FakeBackupManager.ShowBackupDialogI
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.backup.testing.hasTooltip
+import com.android.tools.idea.backup.testing.waitForBackupInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -34,7 +35,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -67,20 +67,6 @@ internal class BackupAppActionTest {
     val presentation = event.presentation
     assertThat(presentation.isVisible).isTrue()
     assertThat(presentation.isEnabled).isTrue()
-  }
-
-  @Test
-  fun update_deviceNotSupported() {
-    val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
-    val event = testEvent(project)
-    fakeBackupManager.isDeviceSupported = false
-
-    action.update(event)
-
-    val presentation = event.presentation
-    assertThat(presentation.isVisible).isTrue()
-    assertThat(presentation.isEnabled).isFalse()
-    assertThat(presentation.hasTooltip()).isTrue()
   }
 
   @Test
@@ -118,7 +104,7 @@ internal class BackupAppActionTest {
 
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeBackupManager.waitForBackupInvocations(1)
 
     assertThat(fakeBackupManager.showBackupDialogInvocations)
       .containsExactly(
@@ -135,10 +121,25 @@ internal class BackupAppActionTest {
 
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
+  }
+
+  @Test
+  fun actionPerformed_deviceNotSupported() {
+    val actionHelper = FakeActionHelper("com.app", 0, "serial")
+    fakeBackupManager.isDeviceSupported = false
+    val action = BackupAppAction(actionHelper, fakeDialogFactory)
+    val event = testEvent(project, "serial")
+
+    action.actionPerformed(event)
+
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not supported"))
   }
 
   @Test
@@ -148,7 +149,7 @@ internal class BackupAppActionTest {
     val event = testEvent(project, "serial")
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
@@ -164,7 +165,7 @@ internal class BackupAppActionTest {
 
     action.actionPerformed(event)
 
-    runInEdtAndWait {}
+    fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))

@@ -19,25 +19,24 @@ package com.android.tools.idea.backup
 import com.android.adblib.DeviceSelector
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_ACTION
-import com.android.tools.idea.backup.asyncaction.ActionEnableState
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
-import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
-import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Backups the state of the foreground app to a file */
 internal class BackupForegroundAppAction(
-  private val actionHelper: ActionHelper = ActionHelperImpl()
-) : ActionWithSuspendedUpdate() {
+  private val actionHelper: ActionHelper = ActionHelperImpl(),
+  private val dialogFactory: DialogFactory = DialogFactoryImpl(),
+) : AnAction() {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -46,33 +45,33 @@ internal class BackupForegroundAppAction(
     if (!StudioFlags.BACKUP_ENABLED.get()) {
       return
     }
-    e.presentation.isVisible = true
-    super.update(e)
-  }
-
-  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
-    val serialNumber =
-      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.ready"))
-    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
-      return Disabled(message("error.device.not.supported"))
-    }
-    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
-      true -> Enabled
-      else -> Disabled(message("error.applications.not.installed"))
-    }
+    e.presentation.isEnabledAndVisible = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val backupManager = BackupManager.getInstance(project)
-    val serialNumber = getDeviceSerialNumber(e) ?: return
+    val serialNumber = getDeviceSerialNumber(e)
     val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     deviceProvisioner.scope.launch {
+      if (serialNumber == null) {
+        project.showDialog(message("error.device.not.ready"))
+        return@launch
+      }
+      if (!backupManager.isDeviceSupported(serialNumber)) {
+        project.showDialog(message("error.device.not.supported"))
+        return@launch
+      }
+      val isCompatible = actionHelper.checkCompatibleApps(project, serialNumber)
+      if (!isCompatible) {
+        project.showDialog(message("error.applications.not.installed"))
+        return@launch
+      }
       val handle =
         deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
       handle?.scope?.launch {
         val applicationId = backupManager.getForegroundApplicationId(serialNumber)
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           backupManager.showBackupDialog(serialNumber, applicationId, BACKUP_FOREGROUND_APP_ACTION)
         }
       }
@@ -81,5 +80,9 @@ internal class BackupForegroundAppAction(
 
   private fun getDeviceSerialNumber(e: AnActionEvent): String? {
     return SERIAL_NUMBER_KEY.getData(e.dataContext)
+  }
+
+  private suspend fun Project.showDialog(message: String) {
+    dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
   }
 }

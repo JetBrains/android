@@ -16,9 +16,11 @@
 
 package com.android.tools.idea.backup.testing
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.backup.DialogFactory
 import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.intellij.openapi.project.Project
+import kotlin.time.Duration.Companion.seconds
 
 internal class FakeDialogFactory : DialogFactory {
   val dialogs = mutableListOf<DialogData>()
@@ -30,6 +32,10 @@ internal class FakeDialogFactory : DialogFactory {
     buttons: List<DialogButton>,
   ) {
     dialogs.add(DialogData(title, message, buttons.map { it.text }))
+  }
+
+  fun waitForDialogs(num: Int) {
+    waitForCondition(5.seconds) { dialogs.size == num }
   }
 
   data class DialogData(
