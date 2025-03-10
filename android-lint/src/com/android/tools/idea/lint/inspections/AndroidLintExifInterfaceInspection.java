@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.ide.common.gradle.Component;
-import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.lint.checks.ExifInterfaceDetector;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -110,17 +110,19 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
           }
         }
 
+        AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(module);
+        boolean useAndroidX = androidModuleSystem.getUseAndroidX();
+        RegisteringModuleSystem moduleSystem = androidModuleSystem.getRegisteringModuleSystem();
         // We have neither class resolvable in the project, so we must find a dependency to add.
-        GradleCoordinate libraryCoordinate = getExifLibraryCoordinate();
-        boolean useAndroidx =
-          libraryCoordinate != null && libraryCoordinate.toString().startsWith(GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE.getMavenGroupId());
+        WellKnownMavenArtifactId id = getExifArtifactId(useAndroidX);
         try {
           WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
-            if (libraryCoordinate != null) {
-              ProjectSystemUtil.getModuleSystem(module).registerDependency(libraryCoordinate, DependencyType.IMPLEMENTATION);
+            if (moduleSystem != null) {
+              RegisteredDependencyId dependencyId = moduleSystem.getRegisteredDependencyId(id);
+              moduleSystem.registerDependency(dependencyId, DependencyType.IMPLEMENTATION);
             }
 
-            syncAndReplaceReferences(project, startElement, useAndroidx);
+            syncAndReplaceReferences(project, startElement, useAndroidX);
           });
         }
         finally {
@@ -152,32 +154,8 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       }, MoreExecutors.directExecutor());
     }
 
-    private static GradleCoordinate getExifLibraryCoordinate() {
-      RepositoryUrlManager manager = RepositoryUrlManager.get();
-      Component component = manager.getArtifactComponent(GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE, true);
-      String libraryComponentIdentifier = null;
-      if (component != null) {
-        libraryComponentIdentifier = component.toIdentifier();
-      }
-      if (libraryComponentIdentifier != null) {
-        return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
-      }
-
-      component = manager.getArtifactComponent(GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE, true);
-      if (component != null) {
-        libraryComponentIdentifier = component.toIdentifier();
-      }
-      if (libraryComponentIdentifier == null) {
-        return null;
-      }
-
-      if (component != null) {
-        if (component.getVersion().compareTo(Version.parse("25.1.0")) < 0) {
-          libraryComponentIdentifier = GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE.getComponent("25.1.0").toIdentifier();
-        }
-      }
-
-      return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
+    private static @NotNull WellKnownMavenArtifactId getExifArtifactId(boolean useAndroidX) {
+      return useAndroidX ? GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE : GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE;
     }
 
     private static void replaceJavaReferences(@NotNull PsiElement element, @Nullable PsiClass cls, boolean useAndroidx) {
