@@ -121,7 +121,7 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
     SelectableLazyColumn (
       state = listState,
       selectionMode = SelectionMode.Single,
-      onSelectedIndexesChanged = {
+      onSelectedIndexesChange = {
         if (it.isNotEmpty() && leaks[it.first()] != selectedLeak) {
           val newSelectedLeak = leaks[it.first()]
           onLeakSelection(newSelectedLeak)
