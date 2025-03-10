@@ -30,7 +30,6 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.FoldingModel;
@@ -676,12 +675,7 @@ public class AndroidValueResourcesTest {
   public void javaHighlighting() {
     copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
 
-    String sourceFileName = "JavaHighlighting.java";
-    // TODO(b/400465855): Remove the "before 251" path after the 2025.1 merge completes.
-    if (ApplicationInfo.getInstance().getBuild().getBaselineVersion() < 251) {
-      sourceFileName = "JavaHighlighting.Before251.java";
-    }
-    VirtualFile fileToCheck = copyFileToProject(sourceFileName, "app/src/p1/p2/JavaHighlighting.java");
+    VirtualFile fileToCheck = copyFileToProject("JavaHighlighting.java", "app/src/p1/p2/JavaHighlighting.java");
     myFixture.configureFromExistingVirtualFile(fileToCheck);
 
     myFixture.checkHighlighting(true, false, false);
