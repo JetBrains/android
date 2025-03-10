@@ -34,7 +34,7 @@ class IjarAnalysisSuppressor: BytecodeAnalysisSuppressor {
 
   companion object {
     @JvmField
-    val enabled = BoolExperiment("header.jar.analysis.suppression.enabled", false)
+    val enabled = BoolExperiment("header.jar.analysis.suppression.enabled", true)
 
    @VisibleForTesting
     fun IjarAnalysisSuppressor.shouldSuppressPath(filePath: @NonNls String): Boolean {
