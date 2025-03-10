@@ -3565,6 +3565,7 @@ Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/vcs-git.jar
 Android Studio Preview.app/Contents/plugins/vcs-github-IC/lib/vcs-github.jar
+Android Studio Preview.app/Contents/plugins/vcs-gitlab-IC/lib/vcs-gitlab.jar
 Android Studio Preview.app/Contents/plugins/vcs-hg/lib/vcs-hg.jar
 Android Studio Preview.app/Contents/plugins/vcs-svn/lib/vcs-svn.jar
 Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/mac/libwebp_jni.dylib

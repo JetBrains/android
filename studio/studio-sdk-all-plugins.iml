@@ -127,6 +127,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.clangConfig" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.clangFormat" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.github" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.gitlab" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.gradle" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.terminal" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.textmate" level="project" />

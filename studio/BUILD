@@ -1329,6 +1329,7 @@ iml_module(
         "@intellij//:org.jetbrains.plugins.clangConfig",
         "@intellij//:org.jetbrains.plugins.clangFormat",
         "@intellij//:org.jetbrains.plugins.github",
+        "@intellij//:org.jetbrains.plugins.gitlab",
         "@intellij//:org.jetbrains.plugins.gradle",
         "@intellij//:org.jetbrains.plugins.terminal",
         "@intellij//:org.jetbrains.plugins.textmate",

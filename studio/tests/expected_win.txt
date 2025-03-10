@@ -2832,6 +2832,7 @@ android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
 android-studio/plugins/vcs-git/lib/git4idea-rt.jar
 android-studio/plugins/vcs-git/lib/vcs-git.jar
 android-studio/plugins/vcs-github-IC/lib/vcs-github.jar
+android-studio/plugins/vcs-gitlab-IC/lib/vcs-gitlab.jar
 android-studio/plugins/vcs-hg/lib/vcs-hg.jar
 android-studio/plugins/vcs-svn/lib/vcs-svn.jar
 android-studio/plugins/webp/lib/libwebp/win/webp_jni.dll

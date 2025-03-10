@@ -95,6 +95,7 @@ public class StartUpTest {
         "Git for App Insights",
         "Git",
         "GitHub",
+        "GitLab",
         "Google Cloud Tools For Android Studio",
         "Gradle",
         "Gradle Declarative Support",
