@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ex.ApplicationInfoEx
@@ -37,16 +36,14 @@ class KotlinPluginTest {
 
   @Test
   fun testKotlinVersion() {
-    val kotlinLayout = KotlinPluginLayout.instance
-
     // The 'standalone' compiler version is defined by Kotlin/kotlinc/build.txt.
     // This version is the default for new projects created in the IDE. So, it should generally be a release version.
-    val standaloneCompilerVersion = kotlinLayout.standaloneCompilerVersion
+    val standaloneCompilerVersion = KotlinPluginLayout.standaloneCompilerVersion
     assertThat(standaloneCompilerVersion.isRelease).isTrue()
 
     // The 'IDE' compiler version is defined by kotlin-plugin.jar!/META-INF/compiler.version.
     // This version corresponds to the Kotlin compiler used for IDE analysis.
-    val ideCompilerVersion = kotlinLayout.ideCompilerVersion
+    val ideCompilerVersion = KotlinPluginLayout.ideCompilerVersion
     assertThat(ideCompilerVersion.isSnapshot).isFalse()
     assertThat(ideCompilerVersion.kotlinVersion).isAtLeast(standaloneCompilerVersion.kotlinVersion)
   }
