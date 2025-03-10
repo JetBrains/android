@@ -242,7 +242,8 @@ public final class TransportFileManager implements TransportFileCopier {
     return CommonConfig.newBuilder()
       .setSocketType(socketType)
       .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-      .setServiceSocketName(TransportDeviceManager.DEVICE_SOCKET_NAME);
+      // Using "@" to indicate an abstract socket in unix.
+      .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME);
   }
 
 
