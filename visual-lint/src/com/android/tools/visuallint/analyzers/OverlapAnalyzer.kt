@@ -93,11 +93,13 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     firstView: ViewInfo,
     secondView: ViewInfo,
   ): VisualLintIssueContent {
-    val summary = "${nameWithId(firstView)} is covered by ${nameWithId(secondView)}"
+    val firstName = nameWithId(firstView)
+    val secondName = nameWithId(secondView)
+    val summary = "$firstName is covered by $secondName"
     val content = { count: Int ->
       HtmlBuilder()
         .add(
-          "Content of ${nameWithId(firstView)} is partially covered by ${nameWithId(secondView)} in ${previewConfigurations(count)}."
+          "Content of $firstName is partially covered by $secondName in ${previewConfigurations(count)}."
         )
         .newline()
         .add("This may affect text readability. Fix this issue by adjusting widget positioning.")

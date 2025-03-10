@@ -56,10 +56,11 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "The text field ${nameWithId(view)} is too wide"
+    val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
         .add(
-          "The text field ${simpleName(view)} is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}."
+          "The text field $simpleName is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}."
         )
         .newline()
         .add(

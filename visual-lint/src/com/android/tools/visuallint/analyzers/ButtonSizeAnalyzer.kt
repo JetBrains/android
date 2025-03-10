@@ -56,10 +56,11 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "The button ${nameWithId(view)} is too wide"
+    val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
         .add(
-          "The button ${simpleName(view)} is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}."
+          "The button $simpleName is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}."
         )
         .newline()
         .add("Material Design recommends buttons to be no wider than ${MAX_BUTTON_WIDTH_DP}dp")

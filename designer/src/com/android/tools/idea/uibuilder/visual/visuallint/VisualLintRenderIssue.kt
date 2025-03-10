@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.visuallint.VisualLintErrorType
@@ -299,8 +298,10 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
       ) {
         issueType = VisualLintErrorType.ATF_COLORBLIND
         summary = COLOR_BLIND_ISSUE_SUMMARY
+        val colorBlindFilterName = appliedColorBlindFilter(model).displayName
+        val description = content.atfIssue!!.describe()
         descriptionProvider = { count ->
-          colorBLindModeDescriptionProvider(content.atfIssue!!, model, count)
+          colorBLindModeDescriptionProvider(colorBlindFilterName, description, count)
         }
       }
       val component = componentFromViewInfo(content.view, model)
@@ -324,14 +325,11 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
         model.displaySettings.modelDisplayName.value?.startsWith(it.displayName) == true
       } ?: ColorBlindMode.NONE
 
-    private val colorBLindModeDescriptionProvider:
-      (ValidatorData.Issue, NlModel, Int) -> HtmlBuilder =
-      { issue, model, count ->
-        val colorBlindFilter = appliedColorBlindFilter(model).displayName
-        val description = issue.describe()
+    private val colorBLindModeDescriptionProvider: (String, String, Int) -> HtmlBuilder =
+      { colorBlindFilterName, description, count ->
         val contentDescription =
           StringBuilder()
-            .append("Color contrast check fails for $colorBlindFilter ")
+            .append("Color contrast check fails for $colorBlindFilterName ")
             .append(
               when (count) {
                 0,

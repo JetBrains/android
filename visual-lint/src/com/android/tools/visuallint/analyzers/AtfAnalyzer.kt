@@ -100,10 +100,10 @@ private fun validateAndUpdateLint(
     ) {
       val viewInfo =
         viewInfoFromSrcId(validatorResult, it.mSrcId, accessibilityToViewInfo, viewToViewInfo)
+      val description = it.describe()
       issues.add(
         VisualLintIssueContent(view = viewInfo, message = it.summarize(), atfIssue = it) {
-          count: Int ->
-          HtmlBuilder().addHtml(it.describe())
+          HtmlBuilder().addHtml(description)
         }
       )
     }

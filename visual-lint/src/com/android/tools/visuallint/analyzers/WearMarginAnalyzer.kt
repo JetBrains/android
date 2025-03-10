@@ -72,10 +72,11 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "The view ${nameWithId(view)} is too close to the side of the device"
+    val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
         .add(
-          "In ${previewConfigurations(count)}, the view ${simpleName(view)} is closer to the side of the device than the recommended amount."
+          "In ${previewConfigurations(count)}, the view $simpleName is closer to the side of the device than the recommended amount."
         )
         .newline()
         .add(
