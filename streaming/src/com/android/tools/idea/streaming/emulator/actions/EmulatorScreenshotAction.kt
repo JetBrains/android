@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.SdkConstants
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
@@ -62,7 +63,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.getData(CommonDataKeys.PROJECT) ?: return
     val emulatorView = getEmulatorView(event) ?: return
-    emulatorView.emulator.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorView, project))
+    emulatorView.emulator.getScreenshot(getScreenshotRequest(emulatorView.displayId), ScreenshotReceiver(emulatorView, project))
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -82,14 +83,16 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
         val screenshotDecorator = EmulatorScreenshotDecorator(emulatorView)
         val emulatorController = emulatorView.emulator
-        val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
+        val displayId = emulatorView.displayId
+        val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && emulatorController.getSkin() != null) listOf(avdFrame) else listOf()
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue,
+                                              emulatorController.emulatorConfig.deviceType)
         val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
         val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
         val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
         processedImage.writeImage("PNG", file)
         val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
-        val screenshotProvider = EmulatorScreenshotProvider(emulatorController)
+        val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId)
 
         ApplicationManager.getApplication().invokeLater {
           val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
@@ -103,7 +106,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class EmulatorScreenshotProvider(val emulatorController: EmulatorController) : ScreenshotProvider {
+  private class EmulatorScreenshotProvider(val emulatorController: EmulatorController, val displayId: Int) : ScreenshotProvider {
 
     init {
       Disposer.register(emulatorController, this)
@@ -111,7 +114,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
     override fun captureScreenshot(): ScreenshotImage {
       val receiver = FutureStreamObserver<Image>()
-      emulatorController.getScreenshot(pngFormat(), receiver)
+      emulatorController.getScreenshot(getScreenshotRequest(displayId), receiver)
 
       try {
         val screenshot = receiver.futureResult.get()
@@ -141,6 +144,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
   private class EmulatorScreenshotDecorator(val emulatorView: EmulatorView) : ScreenshotDecorator {
 
     override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
+      if (emulatorView.displayId != PRIMARY_DISPLAY_ID) {
+        return screenshotImage.image // Decorations are applied only to the primary display.
+      }
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
@@ -196,4 +202,5 @@ private val avdFrame = object : FramingOption {
   override val displayName = "Show Device Frame"
 }
 
-private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()
+private fun getScreenshotRequest(displayId: Int) =
+    ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).setDisplay(displayId).build()

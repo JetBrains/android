@@ -984,8 +984,10 @@ class EmulatorToolWindowPanelTest {
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
 
-    emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
-                                            DisplayConfiguration.newBuilder().setDisplay(2).setWidth(3840).setHeight(2160).build()))
+    runBlocking {
+      emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
+                                              DisplayConfiguration.newBuilder().setDisplay(2).setWidth(3840).setHeight(2160).build()))
+    }
 
     waitForCondition(2.seconds) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()

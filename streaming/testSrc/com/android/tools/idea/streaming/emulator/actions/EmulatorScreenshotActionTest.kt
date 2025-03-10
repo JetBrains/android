@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
@@ -26,6 +27,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
+import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
@@ -38,6 +40,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
+import kotlinx.coroutines.runBlocking
 import org.intellij.images.editor.ImageFileEditor
 import org.junit.Rule
 import org.junit.Test
@@ -70,6 +73,11 @@ class EmulatorScreenshotActionTest {
   private var emulatorView: EmulatorView
     get() = nullableEmulatorView ?: throw IllegalStateException()
     set(value) { nullableEmulatorView = value }
+
+  private val project
+    get() = emulatorViewRule.project
+  private val testRootDisposable
+    get() = emulatorViewRule.disposable
 
   @Test
   fun testAction() {
@@ -148,6 +156,27 @@ class EmulatorScreenshotActionTest {
     assertThat(clipComboBox.optionsAsString()).contains("Play Store Compatible")
   }
 
+  @Test
+  fun testSecondaryDisplay() {
+    val primaryDisplayView = emulatorViewRule.newEmulatorView()
+    emulator = emulatorViewRule.getFakeEmulator(primaryDisplayView)
+
+    val displayId = 1
+    val emulatorController = primaryDisplayView.emulator
+    runBlocking {
+      emulator.changeSecondaryDisplays(
+          listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
+    }
+    val emulatorView = EmulatorView(testRootDisposable, emulatorController, project, displayId, null, true)
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(2.seconds) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(false), "SecondaryDisplay")
+  }
+
   private fun findScreenshotViewer(): ScreenshotViewer? {
     return findModelessDialog { it is ScreenshotViewer } as ScreenshotViewer?
   }
@@ -163,12 +192,14 @@ class EmulatorScreenshotActionTest {
   }
 }
 
-private fun ScreenshotViewer.waitForUpdateAndGetImage(): BufferedImage {
+private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean = true): BufferedImage {
   EDT.dispatchAllInvocationEvents()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   val fileEditor = fileEditor()
   waitForCondition(2.seconds) {
-    fileEditor.imageEditor.document.value?.let { it.isCornerTransparent() && it.isSame(fileEditor.file.readImage()) } ?: false
+    fileEditor.imageEditor.document.value?.let {
+      (!expectTransparentCorner || it.isCornerTransparent()) && it.isSame(fileEditor.file.readImage())
+    } ?: false
   }
   return fileEditor.imageEditor.document.value
 }
