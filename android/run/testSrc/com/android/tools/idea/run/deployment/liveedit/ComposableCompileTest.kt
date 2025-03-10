@@ -103,6 +103,49 @@ class ComposableCompileTest {
   }
 
   @Test
+  fun composableLambdaArg() {
+    val file = projectRule.createKtFile("ComposeSimple.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun word(value: String) {
+        println(value)
+      }
+
+      @Composable
+      fun composableNested(inner: @Composable () -> Unit) {
+        inner()
+      }
+
+      @Composable
+      fun caller() {
+        composableNested {
+          word("hello")
+        }
+      }""")
+    val cache = projectRule.initialCache(listOf(file))
+    projectRule.modifyKtFile(file, """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun word(value: String) {
+        println(value)
+      }
+
+      @Composable
+      fun composableNested(inner: @Composable () -> Unit) {
+        inner()
+      }
+
+      @Composable
+      fun caller() {
+        composableNested {
+          word("hi")
+        }
+      }""")
+    val output = compile(file, cache)
+    Assert.assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
+  }
+
+  @Test
   fun simpleComposeNested() {
     val file = projectRule.createKtFile("ComposeNested.kt" , """
       import androidx.compose.runtime.Composable
