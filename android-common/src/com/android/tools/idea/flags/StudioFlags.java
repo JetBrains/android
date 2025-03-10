@@ -2403,6 +2403,11 @@ public final class StudioFlags {
     "Use Journeys with Gemini Editor when editing journey files (.journey.xml extensions)",
     enabledUpTo(DEV)
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EXECUTION = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
+    "Enable triggering Journeys with Gemini run configurations",
+    enabledUpTo(DEV)
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   // region WIZARD_MIGRATION
