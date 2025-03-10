@@ -231,7 +231,7 @@ class GradleModuleSystem(
   fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
     getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
 
-  private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
+  private fun Component.dependency() = Dependency(group, name, RichVersion.require(version))
 
   fun getDirectDependencies(module: Module): Sequence<Dependency> {
     // TODO: b/129297171
