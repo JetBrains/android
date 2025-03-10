@@ -117,6 +117,10 @@ internal class EmulatorConsoleRecordingProvider(
     @VisibleForTesting
     internal fun getRecorderOptions(options: ScreenRecorderOptions): Array<String> {
       val args = mutableListOf<String>()
+      if (options.displayId != 0) {
+        args.add("--display")
+        args.add(options.displayId.toString())
+      }
       if (options.width > 0 && options.height > 0) {
         args.add("--size")
         args.add("${options.width}x${options.height}")

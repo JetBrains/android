@@ -41,17 +41,19 @@ class EmulatorConsoleRecordingProviderTest {
   }
 
   @Test
-  fun getRecorderOptionsDefaultTimeLimit() {
+  fun getRecorderOptionsDefaultTimeLimitSecondaryDisplay() {
     val options = ScreenRecorderOptions(
-        displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 0)
+        displayId = 7, width = 800, height = 500, bitrateMbps = 8, showTouches = true, timeLimitSec = 0)
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 
     assertThat(args).asList().containsExactly(
+      "--display",
+      "7",
       "--size",
-      "600x400",
+      "800x500",
       "--bit-rate",
-      "6000000",
+      "8000000",
     ).inOrder()
   }
 }
