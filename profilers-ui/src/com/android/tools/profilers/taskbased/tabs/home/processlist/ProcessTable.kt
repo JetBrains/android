@@ -120,7 +120,7 @@ fun ProcessTable(processList: List<Common.Process>,
     SelectableLazyColumn (
       state = listState,
       selectionMode = SelectionMode.Single,
-      onSelectedIndexesChanged = {
+      onSelectedIndexesChange = {
         // The - 1 is to account for the sticky header.
         if (it.isNotEmpty() && processList[it.first() - 1] != selectedProcess) {
           val newSelectedDeviceProcess = processList[it.first() - 1]
