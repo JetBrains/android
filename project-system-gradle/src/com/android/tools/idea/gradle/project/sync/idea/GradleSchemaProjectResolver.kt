@@ -60,6 +60,7 @@ class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
   }
 
   override fun getExtraProjectModelClasses(): Set<Class<out Any>> {
+    if (!DeclarativeIdeSupport.isEnabled()) return setOf()
     throw UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.")
   }
 
