@@ -11,7 +11,7 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
   </component>
 </module>
