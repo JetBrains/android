@@ -152,23 +152,23 @@ class KotlinModelConverter {
     fun String.makeRelativeAndDeduplicate(): String = File(this).makeRelativeAndDeduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
-      myName = sourceSet.name,
-      myFolder = folder,
-      myManifestFile = manifestFile.absolutePath.makeRelativeAndDeduplicate(),
-      myKotlinDirectories = sourceSet.sourceDirs.makeRelativeAndDeduplicate(),
-      myResourcesDirectories = sourceSet.resourceDirs.makeRelativeAndDeduplicate(),
-      myJavaDirectories = if (withJava) {
+      name = sourceSet.name,
+      folder = folder,
+      manifestFile = manifestFile.absolutePath.makeRelativeAndDeduplicate(),
+      kotlinDirectories = sourceSet.sourceDirs.makeRelativeAndDeduplicate(),
+      resourcesDirectories = sourceSet.resourceDirs.makeRelativeAndDeduplicate(),
+      javaDirectories = if (withJava) {
         sourceSet.getJavaSourceDirectories().makeRelativeAndDeduplicate()
       } else emptyList(),
-      myAidlDirectories = emptyList(),
-      myRenderscriptDirectories = emptyList(),
-      myResDirectories = sourceSet.getResSourceDirectories().makeRelativeAndDeduplicate(),
-      myAssetsDirectories = sourceSet.getAssetsSourceDirectories().makeRelativeAndDeduplicate(),
-      myJniLibsDirectories = emptyList(),
-      myShadersDirectories = emptyList(),
-      myMlModelsDirectories = emptyList(),
-      myBaselineProfileDirectories = emptyList(),
-      myCustomSourceDirectories = emptyList()
+      aidlDirectories = emptyList(),
+      renderscriptDirectories = emptyList(),
+      resDirectories = sourceSet.getResSourceDirectories().makeRelativeAndDeduplicate(),
+      assetsDirectories = sourceSet.getAssetsSourceDirectories().makeRelativeAndDeduplicate(),
+      jniLibsDirectories = emptyList(),
+      shadersDirectories = emptyList(),
+      mlModelsDirectories = emptyList(),
+      baselineProfileDirectories = emptyList(),
+      customSourceDirectories = emptyList()
     )
   }
 

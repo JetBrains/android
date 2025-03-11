@@ -152,22 +152,22 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
 
     return IdeSourceProviderImpl(
-      myName = provider.name,
-      myFolder = folder,
-      myManifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
-      myJavaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
-      myKotlinDirectories = copy(provider::getKotlinDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
-      myResourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
-      myAidlDirectories = provider.aidlDirectories.makeRelativeAndDeduplicate(),
-      myRenderscriptDirectories = provider.renderscriptDirectories.makeRelativeAndDeduplicate(),
-      myResDirectories = provider.resDirectories.makeRelativeAndDeduplicate(),
-      myAssetsDirectories = provider.assetsDirectories.makeRelativeAndDeduplicate(),
-      myJniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
-      myShadersDirectories = copy(provider::getShadersDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
-      myMlModelsDirectories =
+      name = provider.name,
+      folder = folder,
+      manifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
+      javaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
+      kotlinDirectories = copy(provider::getKotlinDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
+      resourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
+      aidlDirectories = provider.aidlDirectories.makeRelativeAndDeduplicate(),
+      renderscriptDirectories = provider.renderscriptDirectories.makeRelativeAndDeduplicate(),
+      resDirectories = provider.resDirectories.makeRelativeAndDeduplicate(),
+      assetsDirectories = provider.assetsDirectories.makeRelativeAndDeduplicate(),
+      jniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
+      shadersDirectories = copy(provider::getShadersDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
+      mlModelsDirectories =
       if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList(),
-      myCustomSourceDirectories = emptyList(),
-      myBaselineProfileDirectories = emptyList(),
+      customSourceDirectories = emptyList(),
+      baselineProfileDirectories = emptyList(),
     )
   }
 

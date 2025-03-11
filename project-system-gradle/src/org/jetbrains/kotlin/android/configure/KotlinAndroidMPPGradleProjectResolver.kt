@@ -160,15 +160,15 @@ fun IdeVariantCoreImpl.patchFromMppModel(
       ?: IdeSourceProviderImpl().copy(
         // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
         // is null
-        myName = "${variantName}_KotlinMPP",
+        nameField = "${variantName}_KotlinMPP",
         // The location of this root folder does not really matter. It is used as an anchor for relative paths stored inside the object,
         // but paths returned are absolute anyway. Redirecting it to a non-existent subdirectory allows us to avoid conflicting content
         // roots set up for non-existent manifest files.
-        myFolder = root?.resolve("__KotlinMPP__"),
+        folderField = root?.resolve("__KotlinMPP__"),
 
         // This is unfortunately a required property, and it is already meaningless in unit test artifacts. Here, we return a second copy
         // of the same file returned by the default configuration to avoid NPEs in various places.
-        myManifestFile = "AndroidManifest.xml"
+        manifestFileField = "AndroidManifest.xml"
       )
 
     return thisOrNewProvider.appendDirectories(

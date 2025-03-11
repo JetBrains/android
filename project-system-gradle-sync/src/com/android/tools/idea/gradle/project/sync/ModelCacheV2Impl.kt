@@ -152,23 +152,23 @@ internal fun modelCacheV2Impl(
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
-      myName = provider.name.deduplicate(),
-      myFolder = folder,
-      myManifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
-      myJavaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
-      myKotlinDirectories = provider.kotlinDirectories.makeRelativeAndDeduplicate(),
-      myResourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
-      myAidlDirectories = provider.aidlDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myRenderscriptDirectories = provider.renderscriptDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myResDirectories = provider.resDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myAssetsDirectories = provider.assetsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myJniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
-      myShadersDirectories = provider.shadersDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myMlModelsDirectories = provider.mlModelsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myCustomSourceDirectories = provider.customDirectories?.map {
+      name = provider.name.deduplicate(),
+      folder = folder,
+      manifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
+      javaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
+      kotlinDirectories = provider.kotlinDirectories.makeRelativeAndDeduplicate(),
+      resourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
+      aidlDirectories = provider.aidlDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      renderscriptDirectories = provider.renderscriptDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      resDirectories = provider.resDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      assetsDirectories = provider.assetsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      jniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
+      shadersDirectories = provider.shadersDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      mlModelsDirectories = provider.mlModelsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      customSourceDirectories = provider.customDirectories?.map {
         IdeCustomSourceDirectoryImpl(it.sourceTypeName, folder, it.directory.makeRelativeAndDeduplicate())
       } ?: emptyList(),
-      myBaselineProfileDirectories = if (modelVersions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES])
+      baselineProfileDirectories = if (modelVersions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES])
         provider.baselineProfileDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
       else
         mutableListOf()
