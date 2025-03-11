@@ -360,7 +360,8 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
   if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 30 &&
       // TODO: Handle hover and scroll motion events using uinput.
-      action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
+      action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_ENTER &&
+      action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
       message.action_button() == 0 && message.button_state() == 0) {
     auto& touchscreen = GetVirtualTouchscreen(display_id, display_info.logical_size.width, display_info.logical_size.height);
     if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
@@ -398,7 +399,8 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.action = action;
     event.button_state = message.button_state();
     event.event_time_millis = duration_cast<milliseconds>(event_time).count();;
-    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL) {
+    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_ENTER &&
+        action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL) {
       if (action == AMOTION_EVENT_ACTION_DOWN) {
         motion_event_start_time_ = event.event_time_millis;
       }
