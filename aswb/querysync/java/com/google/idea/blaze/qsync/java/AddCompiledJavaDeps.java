@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.java;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
@@ -27,10 +28,12 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectProto.JarDirectory;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Adds compiled jars from dependencies to the project. */
 public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
@@ -43,18 +46,32 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
+    Set<String> skipped = new HashSet<>();
+    Set<String> seen = new HashSet<>();
     Map<String, Set<String>> libNameToJars = new HashMap<>();
     for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
-        for (BuildArtifact jar : javaInfo.jars()) {
+        Set<String> locallySeen = new HashSet<>();
+        for (BuildArtifact jar :
+          javaInfo.jars().stream()
+            // Prefer already added artifactPaths.
+            .sorted(Comparator.comparing(it -> !seen.contains(it.artifactPath().toString())))
+            .toList()) {
+          if (locallySeen.contains(jar.digest())) {
+            skipped.add(jar.artifactPath().toString());
+            continue;
+          }
+          locallySeen.add(jar.digest());
+          seen.add(jar.artifactPath().toString());
           javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
           libNameToJars
-            .computeIfAbsent(target.label().toString(), t -> new HashSet())
+            .computeIfAbsent(target.label().toString(), t -> new HashSet<>())
             .add(javaDepsDir.path().resolve(jar.artifactPath()).toString());
         }
       }
     }
+    context.output(PrintOutput.output("Skipped " + skipped.size() + " duplicate jars"));
     if (!enableBazelAdditionalLibraryRootsProvider) {
       updateProjectProtoUpdateAllJarsInOneLibrary(javaDepsDir, update);
     } else {
