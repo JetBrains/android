@@ -90,24 +90,29 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   }
 
   /**
-   * Returns SceneView if the given [mouseX] and [mouseY] coordinates are within the resizing handle
-   * area. If resizing is disabled or the coordinates are outside the resize handler area of any
-   * SceneView, this method returns null.
+   * Returns SceneView if it's focused mode and the given [mouseX] and [mouseY] coordinates are
+   * within the resizing handle area. If resizing is disabled or the coordinates are outside the
+   * resize handler area of SceneView, this method returns null.
    */
   private fun getViewInResizeZone(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
   ): SceneView? {
+    if (surface.sceneViews.size != 1) {
+      // Only available in focused mode
+      return null
+    }
     // if we are hovering any scene return immediately
     val sceneViewUnderMouse = surface.getSceneViewAt(mouseX, mouseY)
     if (sceneViewUnderMouse != null) {
       return null
     }
+    val sceneView = surface.sceneViews.single()
 
-    return surface.sceneViews.find { sceneView ->
+    return sceneView.takeIf { sceneView ->
       if (!sceneView.isResizeable || !sceneView.scene.isResizeAvailable) {
         // Resizing is disabled
-        return@find false
+        return@takeIf false
       }
 
       val size = sceneView.scaledContentSize
