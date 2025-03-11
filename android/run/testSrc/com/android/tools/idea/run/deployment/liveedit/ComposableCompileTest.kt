@@ -168,9 +168,6 @@ class ComposableCompileTest {
       }""")
     val output = compile(file, cache)
 
-    // TODO(386111622): Check group IDs for K2.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
     Assert.assertTrue(-1369675262 in output.groupIds)
     val groupIdForNestedLambda = if (!KotlinPluginModeProvider.isK2Mode()) {
       22704048
@@ -278,9 +275,6 @@ class ComposableCompileTest {
     val apk = projectRule.directApiCompileByteArray(file)
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
     val output = compile(listOf(LiveEditCompilerInput(file, fileState)), compiler)
-
-    // TODO(386111622): Check ComposableSingletons and getLambda for K2.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
 
     val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
     Assert.assertNotNull(singleton)
