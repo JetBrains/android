@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.sync
 import com.google.common.base.Objects
+import org.gradle.declarative.dsl.schema.DataClass
 import java.io.Serializable
 
 data class FullName(val name: String) : Serializable
@@ -60,7 +61,9 @@ data class SchemaFunction(val receiver: DataClassRef,
   }
 
   override fun getNextLevel(schema: BuildDeclarativeSchema, predicate: (name: String) -> Boolean): List<Entry> = when (semantic) {
-    is BlockFunction -> schema.resolveRef(semantic.accessor.fqName)?.let { getEntries(it, predicate) }
+    is BlockFunction -> schema.resolveRef(semantic.accessor.fqName)?.let {
+      getEntries(schema, it, predicate)
+    }
                         ?: listOf() //TODO need to make it universal (b/355179149)
     is PlainFunction -> {
       (semantic.returnValue as? DataClassRef)?.let { classType ->
@@ -81,7 +84,9 @@ data class DataProperty(val name: String, val valueType: DataTypeReference) : En
   }
 
   override fun getNextLevel(schema: BuildDeclarativeSchema, predicate: (name: String) -> Boolean): List<Entry> = when (valueType) {
-    is DataClassRef -> schema.resolveRef(valueType.fqName)?.let { getEntries(it, predicate) } ?: listOf()
+    is DataClassRef -> schema.resolveRef(valueType.fqName)?.let {
+      getEntries(schema, it, predicate)
+    } ?: listOf()
     is SimpleTypeRef -> listOf() // no next for simple types
   }
 }
@@ -111,7 +116,25 @@ class BuildDeclarativeSchema(var topLevelReceiver: ClassModel?, val dataClassesB
 data class ProjectSchemas(val projects: Set<BuildDeclarativeSchema>) : Serializable
 data class SettingsSchemas(val settings: Set<BuildDeclarativeSchema>) : Serializable
 
-internal fun getEntries(dataClass: ClassType, predicate: (String) -> Boolean): List<Entry> {
+// iterates over tree structure
+internal fun getEntries(schema: BuildDeclarativeSchema,
+                        dataClass: ClassType,
+                        predicate: (String) -> Boolean,
+                        saw: MutableSet<FullName> = mutableSetOf()): List<Entry> {
+  if(saw.contains(dataClass.name)) return listOf() else saw.add(dataClass.name)
+  val result = mutableListOf<Entry>()
+  if (dataClass is ClassModel) {
+    for (superType in dataClass.supertypes) {
+      schema.resolveRef(superType)?.let {
+        result += getEntries(schema, it, predicate, saw)
+      }
+    }
+  }
+  result += getEntries(dataClass, predicate)
+  return result.distinct()
+}
+
+private fun getEntries(dataClass: ClassType, predicate: (String) -> Boolean): List<Entry> {
   if (dataClass is ClassModel) {
     val result = mutableListOf<Entry>()
     result.addAll(dataClass.properties.filter { predicate(it.name) })

@@ -73,7 +73,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
       )
     }
   }
@@ -111,7 +111,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
       )
     }
   }
@@ -140,7 +140,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
         "buildFeatures", "buildOutputs", "buildTypes", "bundle", "compileOptions",
-        "compileSdk", "defaultConfig", "dependenciesDcl", "lint", "namespace",
+        "compileSdk", "defaultConfig", "dependenciesDcl", "getDefaultProguardFile", "lint", "namespace",
         "productFlavors", "signingConfigs", "sourceSets"
       )
     }
@@ -181,7 +181,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("isMinifyEnabled")
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "applicationIdSuffix", "buildConfigField", "isMinifyEnabled", "multiDexEnabled", "versionNameSuffix")
     }
   }
 
