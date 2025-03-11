@@ -32,7 +32,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.event.KeyEvent
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
@@ -90,13 +89,13 @@ private class WrappedComboBox(
       this::transferFocus,
       KeyStrokes.TAB,
       "tab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     registerActionKey(
       this::transferFocusBackward,
       KeyStrokes.BACKTAB,
       "backtab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
 
     // We consume the shift, otherwise the popup will show when backtab-ing
@@ -104,14 +103,14 @@ private class WrappedComboBox(
       {},
       KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT, KeyEvent.SHIFT_DOWN_MASK),
       "shift",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
 
     HelpSupportBinding.registerHelpKeyActions(
       this,
       { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, true)

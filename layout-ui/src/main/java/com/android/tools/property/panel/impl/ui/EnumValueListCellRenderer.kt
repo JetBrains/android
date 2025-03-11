@@ -55,7 +55,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
 
   private fun createCenteredSeparator(): JComponent {
     // Make the separator appear in the middle of the list element.
-    // Remove this when CompoBoxWithWidePopup no longer requires all elements to have this minimum
+    // Remove this when ComboBoxWithWidePopup no longer requires all elements to have this minimum
     // height.
     // See WideSelectionListUI.updateLayoutState
     val separator = JPanel(BorderLayout())

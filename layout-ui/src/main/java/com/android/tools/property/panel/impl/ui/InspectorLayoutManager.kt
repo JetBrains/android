@@ -119,46 +119,6 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
     invalidateLayout()
   }
 
-  fun getRowHeight(component: Component): Int {
-    return maxOf(component.height, otherComponentHeight(component))
-  }
-
-  /**
-   * Return the height of the "other" component in a line that contains [component].
-   *
-   * @return the height of the component to the right [index + 1] of a component that is placed to
-   *   the left the height of the component to the left [index - 1] of a component that is placed to
-   *   the right -1 if this component takes the entire space in the line
-   */
-  private fun otherComponentHeight(component: Component): Int {
-    val container = component.parent
-    val placement = placementMap.getOrDefault(component, Placement.LINE)
-    return when (placement) {
-      Placement.LINE -> -1
-      Placement.LEFT -> {
-        val index = indexOf(container, component)
-        if (index >= 0 && index + 1 < container.componentCount)
-          container.getComponent(index + 1).height
-        else -1
-      }
-      Placement.RIGHT -> {
-        val index = indexOf(container, component)
-        if (index > 0) container.getComponent(index - 1).height else -1
-      }
-    }
-  }
-
-  private fun indexOf(container: Container, component: Component): Int {
-    // Note: Do NOT iterate over container.components() since that call would allocate an array
-    for (index in 0 until container.componentCount) {
-      val current = container.getComponent(index)
-      if (component == current) {
-        return index
-      }
-    }
-    return -1
-  }
-
   private fun invalidateLayout() {
     leftWidth = -1
     rightWidth = -1

@@ -53,7 +53,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
@@ -98,9 +97,7 @@ class DeviceMenuAction(
   ) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val button =
-      e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton
-        ?: return
+    val button = e.presentation.getClientProperty(COMPONENT_KEY) as? ActionButton ?: return
     updateActions(e.dataContext)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
@@ -381,16 +378,16 @@ class DeviceMenuAction(
     fun getSortedMajorDevices(config: Configuration): List<Device> {
       val groupedDevices = getSuitableDevicesForMenu(config)
       return listOf(
-          AdditionalDeviceService.getInstance()?.getWindowSizeDevices(),
-          groupedDevices.get(DeviceGroup.NEXUS_XL),
-          groupedDevices.get(DeviceGroup.NEXUS_TABLET),
-          groupedDevices.get(DeviceGroup.DESKTOP),
-          groupedDevices.get(DeviceGroup.WEAR),
-          groupedDevices.get(DeviceGroup.TV),
-          groupedDevices.get(DeviceGroup.AUTOMOTIVE),
-          groupedDevices.get(DeviceGroup.XR),
+          AdditionalDeviceService.getInstance().getWindowSizeDevices(),
+          groupedDevices[DeviceGroup.NEXUS_XL],
+          groupedDevices[DeviceGroup.NEXUS_TABLET],
+          groupedDevices[DeviceGroup.DESKTOP],
+          groupedDevices[DeviceGroup.WEAR],
+          groupedDevices[DeviceGroup.TV],
+          groupedDevices[DeviceGroup.AUTOMOTIVE],
+          groupedDevices[DeviceGroup.XR],
           config.settings.avdDevices,
-          groupedDevices.get(DeviceGroup.GENERIC),
+          groupedDevices[DeviceGroup.GENERIC],
         )
         .map { it ?: emptyList() }
         .flatten()
