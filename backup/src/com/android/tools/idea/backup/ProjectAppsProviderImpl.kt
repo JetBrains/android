@@ -16,15 +16,17 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.model.AndroidModel
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.openapi.project.modules
 
 class ProjectAppsProviderImpl(private val project: Project) : ProjectAppsProvider {
-  override fun getApplicationIds() =
-    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).mapNotNullTo(
-      mutableSetOf()
-    ) {
-      AndroidModel.get(it)?.applicationId
-    }
+  override fun getApplicationIds(): Set<String> =
+    project.modules.filter { it.isApp() }.mapNotNullTo(hashSetOf()) { it.applicationId }
 }
+
+private fun Module.isApp() = getModuleSystem().isValidForAndroidRunConfiguration()
+
+private val Module.applicationId
+  get() = AndroidModel.get(this)?.applicationId
