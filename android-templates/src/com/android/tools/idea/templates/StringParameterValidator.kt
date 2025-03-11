@@ -49,6 +49,7 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
+import org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.name.FqName
 import java.io.File
@@ -93,6 +94,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
  * Validate the given value for this parameter and list the constraints that the given value violates.
  * @return All constraints of this parameter that are violated by the proposed value.
  */
+@OptIn(K1ModeProjectStructureApi::class) // For the K1 code paths only.
 @VisibleForTesting
 fun StringParameter.validateStringType(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()

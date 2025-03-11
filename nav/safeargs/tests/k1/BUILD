@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.safeargs.tests.k1",
     iml_files = ["intellij.android.nav.safeargs.tests.k1.iml"],
+    kotlinc_opts = ["-opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
     split_test_targets = {
         "gradle": {
             "tags": ["cpu:3"],

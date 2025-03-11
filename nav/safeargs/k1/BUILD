@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.nav.safeargs.k1",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.k1.iml"],
+    kotlinc_opts = ["-opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
     lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

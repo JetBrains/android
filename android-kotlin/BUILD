@@ -149,6 +149,7 @@ iml_module(
     srcs = ["android-extensions-idea-common/src"],
     iml_files = ["android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml"],
     jvm_target = "8",
+    kotlinc_opts = ["-opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

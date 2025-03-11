@@ -8,7 +8,7 @@
     <option name="languageVersion" value="2.0" />
   </component>
   <component name="KotlinCompilerSettings">
-    <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xcontext-receivers -opt-in=org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction -opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi" />
+    <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xcontext-receivers -opt-in=org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction" />
   </component>
   <component name="KotlinJpsPluginSettings">
     <option name="version" value="2.0.21" />
