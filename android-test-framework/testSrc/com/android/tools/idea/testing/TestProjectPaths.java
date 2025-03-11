@@ -56,6 +56,9 @@ public final class TestProjectPaths {
   public static final String MIGRATE_BUILD_CONFIG_WITH_GENERATED_SOURCES = "projects/migrateBuildConfigWithGeneratedSources";
   public static final String MIGRATE_RES_VALUES = "projects/migrateResValues";
   public static final String MIGRATE_TO_APP_COMPAT = "projects/migrateToAppCompat";
+  public static final String MIGRATE_TO_VERSION_CATALOG = "projects/migrateToVersionCatalog";
+  public static final String MIGRATE_TO_VERSION_CATALOG_KTS = "projects/migrateToVersionCatalogKts";
+  public static final String MIGRATE_TO_VERSION_CATALOG_PLUGINS = "projects/migrateToVersionCatalogPlugins";
   public static final String MODULE_INFO_BOTH = "projects/moduleInfo/both";
   public static final String MODULE_INFO_FLAVORS = "projects/moduleInfo/flavors";
   public static final String MODULE_INFO_GRADLE_ONLY = "projects/moduleInfo/gradleOnly";

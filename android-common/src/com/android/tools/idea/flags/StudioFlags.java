@@ -1265,6 +1265,10 @@ public final class StudioFlags {
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
+  public static final Flag<Boolean> MIGRATE_TO_VERSION_CATALOG_REFACTORING_ENABLED = new BooleanFlag(
+    REFACTORINGS, "migrateto.versioncatalog.enabled", "Enable the Migrate to Version Catalog refactoring",
+    "If enabled, show the action in the refactoring menu", false);
+
   //endregion
 
   //region NDK

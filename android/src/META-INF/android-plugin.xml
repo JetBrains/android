@@ -132,6 +132,10 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
+    <action id="AndroidMigrateToCatalogAction" class="com.android.tools.idea.refactoring.catalog.MigrateToCatalogAction" text="Migrate to Version Catalog..."
+            description="Migrates build files to use Gradle version catalogs">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
     <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction" text="Modularize..."
             description="Moves classes and their associated resources to another module">
       <add-to-group group-id="RefactoringMenu"/>
