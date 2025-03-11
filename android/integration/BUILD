@@ -1,3 +1,4 @@
+load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -36,7 +37,11 @@ iml_test(
     name = "OpenProjectTest",
     timeout = "long",
     data = open_project_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.OpenProjectTest",
@@ -46,8 +51,12 @@ iml_test(
     name = "OpenProjectWithThreadingAgentDisabledTest",
     timeout = "long",
     data = open_project_data,
+    exec_properties = RBE_CPU_8,
     jvm_flags = ["-Dthreading_agent.disabled=true"],
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.OpenProjectTest",
@@ -62,7 +71,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.ShowUsagesTest",
@@ -147,12 +160,14 @@ iml_test(
     name = "EditorPerformanceTest",
     timeout = "long",
     data = editor_performance_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
         "ci:perfgate-win",
         "noci:studio-linux",
         "noci:studio-win",
+        "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -163,12 +178,14 @@ iml_test(
     name = "StartupPerformanceTest",
     timeout = "long",
     data = editor_performance_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
         "ci:perfgate-win",
         "noci:studio-linux",
         "noci:studio-win",
+        "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -179,12 +196,14 @@ iml_test(
     name = "EditorPerformanceWithK2Test",
     timeout = "long",
     data = editor_performance_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
         "ci:perfgate-win",
         "noci:studio-linux",
         "noci:studio-win",
+        "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -200,7 +219,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.LanguageHighlightingTest",
@@ -213,7 +236,11 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
@@ -234,7 +261,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = [
         "block-network",
     ],
@@ -253,8 +284,12 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # b/243923041
+    tags = [
+        "manual",  # b/243923041
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
@@ -269,7 +304,11 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
@@ -288,7 +327,11 @@ iml_test(
         "//tools/base/build-system:gradle-distrib-7.2",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = [
         "block-network",
     ],
@@ -308,7 +351,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     test_class = "com.android.tools.idea.GoToDeclarationTest",
 )
 
@@ -325,7 +372,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = [
         "block-network",
         "noci:studio-linux",  # TODO(b/401353433): fails with IntelliJ 2025.1.
@@ -352,7 +403,11 @@ iml_test(
     name = "ApplyChangesTest",
     timeout = "long",
     data = apply_changes_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -366,8 +421,11 @@ iml_test(
     name = "ApplyCodeChangesTest",
     timeout = "long",
     data = apply_changes_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
-    tags = [],
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -391,7 +449,11 @@ iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -413,7 +475,11 @@ iml_test(
     name = "CreateProjectTest",
     timeout = "long",
     data = create_project_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.CreateProjectTest",
@@ -508,7 +574,11 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.BuildProjectTest",
@@ -524,12 +594,14 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
         "ci:studio-linux_very_flaky",  # b/283129200
         "noci:studio-linux",
         "noci:studio-win",
+        "studio-e2e-test",
     ],
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
 )
@@ -545,9 +617,11 @@ iml_test(
         "//prebuilts/studio/sdk:platforms/android-31",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "noci:studio-win",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "studio-e2e-test",
     ],
     tags_linux = [
         "block-network",
@@ -570,7 +644,11 @@ iml_test(
         "//prebuilts/studio/sdk:platforms/android-31",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = [
         "block-network",
         "noci:studio-linux",
@@ -595,7 +673,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -617,7 +699,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -636,7 +722,11 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -658,7 +748,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -671,7 +765,11 @@ iml_test(
 iml_test(
     name = "SamplesImportTest",
     data = open_project_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.SamplesImportTest",
@@ -691,7 +789,11 @@ iml_test(
     name = "MultiProjectTest",
     timeout = "long",
     data = multi_project_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = ["block-network"],
@@ -702,7 +804,11 @@ iml_test(
     name = "MultiProjectSameWindowTest",
     timeout = "long",
     data = multi_project_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = ["block-network"],
@@ -734,7 +840,11 @@ iml_test(
     name = "FirstLaunchTest",
     timeout = "moderate",
     data = first_launch_test_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
@@ -1006,7 +1116,11 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
