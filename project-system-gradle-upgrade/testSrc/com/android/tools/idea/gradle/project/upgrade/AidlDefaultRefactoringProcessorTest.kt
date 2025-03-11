@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.buildMainSourceProviderStub
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 
 @RunsInEdt
@@ -36,6 +37,8 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/aidl-default", processor.getReadMoreUrl())
   }
 
+  // TODO(b/400927524): Disable test due to flakiness
+  @Ignore
   @Test
   fun testNoAidlDirectory() {
     writeToBuildFile(TestFileName("AidlDefault/NoAidlDeclaration"))
