@@ -25,12 +25,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo;
 import com.google.idea.blaze.qsync.deps.CcToolchain;
@@ -64,7 +64,7 @@ public class ConfigureCcCompilation {
     public UpdateOperation() {}
 
     @Override
-    public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+    public void update(ProjectProtoUpdate update, State artifactState, Context<?> context)
         throws BuildException {
       new ConfigureCcCompilation(artifactState, update).update();
     }

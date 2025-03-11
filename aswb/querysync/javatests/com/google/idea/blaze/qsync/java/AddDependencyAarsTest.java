@@ -80,7 +80,7 @@ public class AddDependencyAarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update, State.EMPTY);
+    addAars.update(update, State.EMPTY, new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -113,7 +113,7 @@ public class AddDependencyAarsTest {
                                     new AarResPackage(
                                         "com.google.idea.blaze.qsync.testdata.android"))))
                     .build(),
-                DependencyBuildContext.NONE)));
+                DependencyBuildContext.NONE)), new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -189,7 +189,7 @@ public class AddDependencyAarsTest {
                                 "aardigest",
                                 Path.of("path/to/dep.aar"),
                                 Label.of("//path/to:dep"))))
-                    .build())));
+                    .build())), new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());

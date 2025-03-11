@@ -92,7 +92,7 @@ public class AddProjectGenSrcsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGensrcs.update(update, artifactState);
+    addGensrcs.update(update, artifactState, context);
     ProjectProto.Project newProject = update.build();
 
     Module workspace = newProject.getModules(0);
@@ -179,7 +179,7 @@ public class AddProjectGenSrcsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGenSrcs.update(update, artifactState);
+    addGenSrcs.update(update, artifactState, context);
     ProjectProto.Project newProject = update.build();
 
     Module workspace = newProject.getModules(0);
@@ -266,7 +266,7 @@ public class AddProjectGenSrcsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGenSrcs.update(update, artifactState);
+    addGenSrcs.update(update, artifactState, context);
     verify(context, never()).setHasWarnings();
   }
 
@@ -293,7 +293,7 @@ public class AddProjectGenSrcsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGensrcs.update(update, artifactState);
+    addGensrcs.update(update, artifactState, context);
     ProjectProto.Project newProject = update.build();
 
     Module workspace = newProject.getModules(0);

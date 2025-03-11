@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.java;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
@@ -40,7 +41,7 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
     Map<String, Set<String>> libNameToJars = new HashMap<>();
     for (TargetBuildInfo target : artifactState.targets()) {

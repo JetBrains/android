@@ -77,7 +77,7 @@ public class AddProjectGenSrcJarsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    javaDeps.update(update, artifactState);
+    javaDeps.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
     assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList());
@@ -110,7 +110,7 @@ public class AddProjectGenSrcJarsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    javaDeps.update(update, artifactState);
+    javaDeps.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
     Module workspace = newProject.getModules(0);
@@ -160,7 +160,7 @@ public class AddProjectGenSrcJarsTest {
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    javaDeps.update(update, artifactState);
+    javaDeps.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
     Module workspace = newProject.getModules(0);

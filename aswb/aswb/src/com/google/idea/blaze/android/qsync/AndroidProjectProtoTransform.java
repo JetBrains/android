@@ -65,7 +65,7 @@ public class AndroidProjectProtoTransform implements ProjectProtoTransform {
       throws BuildException {
     ProjectProtoUpdate update = new ProjectProtoUpdate(proto, graph, context);
     for (var op : updateOperations) {
-      op.update(update, artifactState);
+      op.update(update, artifactState, context);
     }
     return update.build();
   }

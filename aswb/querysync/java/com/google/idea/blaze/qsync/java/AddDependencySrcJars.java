@@ -17,8 +17,9 @@ package com.google.idea.blaze.qsync.java;
 
 import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY;
 
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -53,7 +54,7 @@ public class AddDependencySrcJars implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+  public void update(ProjectProtoUpdate update, State artifactState, Context<?> context)
       throws BuildException {
     for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isEmpty()) {

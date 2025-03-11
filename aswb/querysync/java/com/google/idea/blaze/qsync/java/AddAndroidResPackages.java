@@ -19,8 +19,9 @@ import static java.util.function.Predicate.not;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -36,7 +37,7 @@ public class AddAndroidResPackages implements ProjectProtoUpdateOperation {
   public AddAndroidResPackages() {}
 
   @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+  public void update(ProjectProtoUpdate update, State artifactState, Context<?> context)
       throws BuildException {
     update
         .workspaceModule()

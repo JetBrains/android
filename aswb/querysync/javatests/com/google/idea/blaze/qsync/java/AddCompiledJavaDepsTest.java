@@ -55,7 +55,7 @@ public class AddCompiledJavaDepsTest {
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
-    javaDeps.update(update, State.EMPTY);
+    javaDeps.update(update, State.EMPTY, new NoopContext());
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).isEqualTo(original.getLibraryList());
     assertThat(newProject.getModulesList()).isEqualTo(original.getModulesList());
@@ -105,7 +105,7 @@ public class AddCompiledJavaDepsTest {
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
-    javaDeps.update(update, artifactState);
+    javaDeps.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);
     assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keySet())

@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.java;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata.Extractor;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
@@ -76,7 +77,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) {
     for (TargetBuildInfo target : artifactState.targets()) {
       getProjectGenSrcJars(target)
           .forEach(

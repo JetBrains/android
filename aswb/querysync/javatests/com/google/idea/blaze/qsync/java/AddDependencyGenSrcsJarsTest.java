@@ -86,7 +86,7 @@ public class AddDependencyGenSrcsJarsTest {
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addGenSrcJars.update(update, State.EMPTY);
+    addGenSrcJars.update(update, State.EMPTY, new NoopContext());
 
     ProjectProto.Project newProject = update.build();
 
@@ -125,7 +125,7 @@ public class AddDependencyGenSrcsJarsTest {
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update, artifactState);
+    addGenSrcJars.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     verify(cache, never()).get(ArgumentMatchers.any());
@@ -201,7 +201,7 @@ public class AddDependencyGenSrcsJarsTest {
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update, artifactState);
+    addGenSrcJars.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);
@@ -253,7 +253,7 @@ public class AddDependencyGenSrcsJarsTest {
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update, artifactState);
+    addGenSrcJars.update(update, artifactState, new NoopContext());
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);

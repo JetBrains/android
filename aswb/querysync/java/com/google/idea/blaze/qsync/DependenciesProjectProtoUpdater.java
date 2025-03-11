@@ -102,7 +102,7 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
 
     ProjectProtoUpdate protoUpdate = new ProjectProtoUpdate(proto, graph, context);
     for (ProjectProtoUpdateOperation op : updateOperations) {
-      op.update(protoUpdate, artifactState);
+      op.update(protoUpdate, artifactState, context);
     }
     return protoUpdate.build();
   }

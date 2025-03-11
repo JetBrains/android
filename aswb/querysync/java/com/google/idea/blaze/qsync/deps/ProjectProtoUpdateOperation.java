@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.deps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
@@ -38,5 +39,5 @@ public interface ProjectProtoUpdateOperation {
     return ImmutableSetMultimap.of();
   }
 
-  void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) throws BuildException;
+  void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) throws BuildException;
 }

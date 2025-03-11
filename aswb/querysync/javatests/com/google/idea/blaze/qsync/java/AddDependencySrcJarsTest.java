@@ -92,7 +92,7 @@ public class AddDependencySrcJarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addSrcJars.update(update, State.EMPTY);
+    addSrcJars.update(update, State.EMPTY, new NoopContext());
 
     ProjectProto.Project newProject = update.build();
 
@@ -159,7 +159,7 @@ public class AddDependencySrcJarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addSrcJars.update(update, artifactState);
+    addSrcJars.update(update, artifactState, new NoopContext());
 
     ProjectProto.Project newProject = update.build();
 
