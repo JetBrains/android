@@ -5,6 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.actions.InlineAction;
@@ -18,6 +19,14 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidInlineStyleTest extends AndroidTestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    // TODO(b/402201770): Re-enable idempotence checks for cached values.
+    Registry.get("platform.random.idempotence.check.rate").setValue(0, getTestRootDisposable());
+  }
+
   private static final String BASE_PATH = "refactoring/inlineStyle/";
 
   public void test1() {

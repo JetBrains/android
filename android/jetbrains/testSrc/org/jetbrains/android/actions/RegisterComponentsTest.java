@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -25,6 +26,14 @@ public class RegisterComponentsTest extends AndroidTestCase {
    * "Add activity" intention name, isn't shared with non-test code, used to avoid typos in the test suite
    */
   private static final String ADD_ACTIVITY_TO_MANIFEST = "Add activity to manifest";
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    // TODO(b/402201770): Re-enable idempotence checks for cached values.
+    Registry.get("platform.random.idempotence.check.rate").setValue(0, getTestRootDisposable());
+  }
 
   /**
    * Test that "add activity" quick intention does show up and works

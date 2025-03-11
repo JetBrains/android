@@ -38,6 +38,7 @@ import com.intellij.openapi.editor.impl.ImaginaryEditor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -142,6 +143,9 @@ public class AndroidValueResourcesTest {
 
   @Before
   public void setUp() {
+    // TODO(b/402201770): Re-enable idempotence checks for cached values.
+    Registry.get("platform.random.idempotence.check.rate").setValue(0, androidProjectRule.getTestRootDisposable());
+
     myFixture = androidProjectRule.getFixture();
     myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
 

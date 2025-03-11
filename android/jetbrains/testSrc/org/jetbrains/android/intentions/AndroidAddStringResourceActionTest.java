@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
@@ -27,6 +28,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    // TODO(b/402201770): Re-enable idempotence checks for cached values.
+    Registry.get("platform.random.idempotence.check.rate").setValue(0, getTestRootDisposable());
+
     TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
 
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
