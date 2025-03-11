@@ -31,6 +31,7 @@ import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
+import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.AvdInfo
@@ -881,6 +882,7 @@ class EmulatorView(
           message.hasDisplayConfigurationsChangedNotification() ->
               checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification)
           message.hasPosture() -> updateCurrentPosture(message.posture.value)
+          message.hasXrOptions() -> updateXrOptions(message.xrOptions)
           else  -> {}
         }
       }
@@ -906,6 +908,11 @@ class EmulatorView(
 
     private fun updateCurrentPosture(posture: PostureValue) {
       emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: LOG.error("Unexpected posture: $posture")
+    }
+
+    private fun updateXrOptions(xrOptions: XrOptions) {
+      xrInputController?.environment = xrOptions.environment
+      xrInputController?.passthroughCoefficient = xrOptions.passthroughCoefficient
     }
 
     override fun onError(t: Throwable) {

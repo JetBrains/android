@@ -55,6 +55,7 @@ import com.android.emulator.control.XrOptions
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
@@ -155,8 +156,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
       }
     }
-  @Volatile var xrOptions: XrOptions =
-      XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
+  @Volatile var xrOptions: XrOptions = XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
+    private set
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
       if (field != value) {
@@ -522,6 +523,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private fun createPostureNotification(posture: PostureValue): Notification =
       Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
 
+  private fun createXrOptionsNotification(xrOptions: XrOptions): Notification =
+      Notification.newBuilder().setXrOptions(xrOptions).build()
+
   private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
     val configIniFile = avdFolder.resolve("config.ini")
     val configIni = readKeyValueFile(configIniFile) ?: return null
@@ -614,6 +618,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         }
         devicePosture?.let {
           responseObserver.sendStreamingResponse(createPostureNotification(it))
+        }
+        if (config.deviceType == DeviceType.XR) {
+          responseObserver.sendStreamingResponse(createXrOptionsNotification(xrOptions))
         }
       }
     }

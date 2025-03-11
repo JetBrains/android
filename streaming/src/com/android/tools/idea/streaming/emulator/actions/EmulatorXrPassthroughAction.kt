@@ -30,7 +30,7 @@ class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val xrController = getEmulatorXrInputController(event) ?: return false
-    return xrController.passthroughCoefficient != 0f
+    return xrController.passthroughCoefficient > 0
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -38,7 +38,8 @@ class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
     val project = event.project ?: return
     val xrController = EmulatorXrInputController.getInstance(project, emulator)
     val passthroughCoefficient = if (state) 1f else 0f
-    val xrOptions = XrOptions.newBuilder().setPassthroughCoefficient(passthroughCoefficient).build()
+    val xrOptions =
+        XrOptions.newBuilder().setPassthroughCoefficient(passthroughCoefficient).setEnvironment(xrController.environment).build()
     emulator.setXrOptions(xrOptions, object : EmptyStreamObserver<Empty>() {
       override fun onNext(message: Empty) {
         xrController.passthroughCoefficient = passthroughCoefficient
@@ -52,6 +53,11 @@ class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
     super.update(event)
     val presentation = event.presentation
     presentation.isVisible = getEmulatorConfig(event)?.deviceType == DeviceType.XR
-    presentation.isEnabled = isEmulatorConnected(event)
+    presentation.isEnabled = isEnabled(event)
+  }
+
+  private fun isEnabled(event: AnActionEvent): Boolean {
+    val xrController = getEmulatorXrInputController(event) ?: return false
+    return xrController.passthroughCoefficient != EmulatorXrInputController.UNKNOWN_PASSTHROUGH_COEFFICIENT
   }
 }

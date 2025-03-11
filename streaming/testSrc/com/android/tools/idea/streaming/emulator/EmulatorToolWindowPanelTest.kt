@@ -388,7 +388,6 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
-    assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     // Check that the buttons not applicable to XR devices are hidden.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
@@ -405,6 +404,9 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != EmulatorXrInputController.UNKNOWN_PASSTHROUGH_COEFFICIENT }
+    assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes = mapOf(
       "Hand Tracking" to XrInputMode.HAND,

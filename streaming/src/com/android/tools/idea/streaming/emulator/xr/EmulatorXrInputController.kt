@@ -26,10 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
-import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -58,24 +55,23 @@ import java.awt.event.MouseWheelEvent
 import kotlin.math.PI
 import kotlin.math.min
 
-// TODO: Adjust this coefficient when XR gRPC API is implemented.
-private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
-
 /**
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
  */
-internal class EmulatorXrInputController(private val emulator: EmulatorController) : ConnectionStateListener, Disposable {
+internal class EmulatorXrInputController(private val emulator: EmulatorController) : Disposable {
 
-  @Volatile var environment: XrOptions.Environment = XrOptions.Environment.LIVING_ROOM_DAY
+  @Volatile var environment: XrOptions.Environment? = null
     set(value) {
+      requireNotNull(value)
       if (field != value) {
         field = value
         ActivityTracker.getInstance().inc()
       }
     }
-  @Volatile var passthroughCoefficient: Float = 0f
+  @Volatile var passthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
     set(value) {
+      require(value >= 0)
       if (field != value) {
         field = value
         ActivityTracker.getInstance().inc()
@@ -123,7 +119,6 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   init {
     Disposer.register(emulator, this)
-    emulator.addConnectionStateListener(this)
   }
 
   /**
@@ -454,24 +449,11 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     emulator.getOrCreateInputEventSender().onNext(inputEvent)
   }
 
-  override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
-    if (connectionState == ConnectionState.CONNECTED) {
-      updateXrOptions()
-    }
-  }
-
-  private fun updateXrOptions() {
-    emulator.getXrOptions(object : EmptyStreamObserver<XrOptions>() {
-      override fun onNext(message: XrOptions) {
-        environment = message.environment
-        passthroughCoefficient = message.passthroughCoefficient
-      }
-    })
-  }
-
   companion object {
     fun getInstance(project: Project, emulator: EmulatorController): EmulatorXrInputController =
         project.service<EmulatorXrInputControllerService>().getXrInputController(emulator)
+
+    const val UNKNOWN_PASSTHROUGH_COEFFICIENT = -1f
   }
 
   private enum class NavigationKey {
@@ -536,6 +518,9 @@ internal class EmulatorXrInputControllerService(project: Project): Disposable {
     xrControllers.clear()
   }
 }
+
+// TODO: Adjust this coefficient when XR gRPC API is finalized.
+private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
 
 /** Distance of translational movement in meters when moving mouse across the device display. */
 private const val TRANSLATION_SCALE = 5f
