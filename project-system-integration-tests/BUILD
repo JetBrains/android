@@ -1,3 +1,4 @@
+load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -136,8 +137,10 @@ iml_test(
 iml_test(
     name = "GradleTokensTest",
     timeout = "long",
+    exec_properties = RBE_CPU_8,
     jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
+    tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
     # tags_mac = ["block-network"],

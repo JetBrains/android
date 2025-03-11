@@ -1,3 +1,4 @@
+load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
@@ -292,7 +293,9 @@ iml_test(
     name = "ComposePreviewKotlinTest",
     timeout = "long",
     data = compose_preview_data,
+    exec_properties = RBE_CPU_8,
     module = ":intellij.android.compose-designer.integration",
+    tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
