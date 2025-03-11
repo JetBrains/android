@@ -157,18 +157,30 @@ fun IdeVariantCoreImpl.patchFromMppModel(
     if (missingSourceDirs.isEmpty() && missingResourceDirs.isEmpty()) return this
 
     val thisOrNewProvider = this
-      ?: IdeSourceProviderImpl().copy(
+      ?: IdeSourceProviderImpl(
         // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
         // is null
-        nameField = "${variantName}_KotlinMPP",
+        name = "${variantName}_KotlinMPP",
         // The location of this root folder does not really matter. It is used as an anchor for relative paths stored inside the object,
         // but paths returned are absolute anyway. Redirecting it to a non-existent subdirectory allows us to avoid conflicting content
         // roots set up for non-existent manifest files.
-        folderField = root?.resolve("__KotlinMPP__"),
+        folder = root?.resolve("__KotlinMPP__"),
 
         // This is unfortunately a required property, and it is already meaningless in unit test artifacts. Here, we return a second copy
         // of the same file returned by the default configuration to avoid NPEs in various places.
-        manifestFileField = "AndroidManifest.xml"
+        manifestFile = "AndroidManifest.xml",
+        javaDirectories = emptyList(),
+        kotlinDirectories = emptyList(),
+        resourcesDirectories = emptyList(),
+        aidlDirectories = emptyList(),
+        renderscriptDirectories = emptyList(),
+        resDirectories = emptyList(),
+        assetsDirectories = emptyList(),
+        jniLibsDirectories = emptyList(),
+        shadersDirectories = emptyList(),
+        mlModelsDirectories = emptyList(),
+        customSourceDirectories = emptyList(),
+        baselineProfileDirectories = emptyList()
       )
 
     return thisOrNewProvider.appendDirectories(
