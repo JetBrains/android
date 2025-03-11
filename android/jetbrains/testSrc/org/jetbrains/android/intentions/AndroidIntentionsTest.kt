@@ -20,7 +20,7 @@ private const val REPLACE_SWITCH_WITH_IF = "Replace 'switch' with 'if'"
 @RunWith(JUnit4::class)
 class AndroidIntentionsTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = AndroidProjectRule.withSdk()
 
   private val fixture by lazy {
     projectRule.fixture.apply {
@@ -81,6 +81,18 @@ class AndroidIntentionsTest {
   fun creatingUnresolvedMethod() {
     facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
     doTest(null, true, "Create method 'someMethod' in 'MainActivity'", "CannotResolveMethod.java", "CannotResolveMethod_after.java")
+  }
+
+  @Test
+  fun importingUnresolvedSymbol() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
+    doTest(null, true, "Import class", "CannotResolveSymbol.java", "CannotResolveSymbol_after.java")
+  }
+
+  @Test
+  fun createUnresolvedClass() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
+    doTest(null, true, "Create class 'SomeClass'", "CannotResolveClass.java", "CannotResolveClass_after.java")
   }
 
   private fun doTest(
