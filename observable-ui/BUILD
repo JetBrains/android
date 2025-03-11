@@ -6,6 +6,13 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.observable.ui.iml"],
     test_class = "com.android.tools.idea.observable.ui.ObservableUiTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -14,9 +21,5 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/observable:intellij.android.observable",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )

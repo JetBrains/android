@@ -61,6 +61,18 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/android-lang:intellij.android.lang",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -71,14 +83,5 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/android-lang:intellij.android.lang[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/base/flags:studio.android.sdktools.flags[test]",
-        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
     ],
 )

@@ -5,6 +5,12 @@ iml_module(
     name = "app-inspection.inspector.api",
     srcs = ["src"],
     iml_files = ["app-inspection.inspector.api.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-common:intellij.android.common",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -14,8 +20,5 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[test]",
     ],
 )

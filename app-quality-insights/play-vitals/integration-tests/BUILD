@@ -7,6 +7,17 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-vitals.integration-tests",
     enable_tests = False,
     iml_files = ["intellij.android.app-quality-insights.play-vitals.integration-tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_resources = ["testData"],
     test_srcs = ["src"],
     visibility = ["//visibility:public"],
@@ -14,14 +25,6 @@ iml_module(
     deps = [
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.libraries.grpc",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[test]",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

@@ -5,6 +5,7 @@ iml_module(
     name = "analytics",
     srcs = ["src"],
     iml_files = ["analytics.iml"],
+    test_deps = ["//tools/adt/idea/.idea/libraries:junit4"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -22,6 +23,5 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/base/adblib:studio.android.sdktools.adblib",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
     ],
 )

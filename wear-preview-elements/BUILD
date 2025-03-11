@@ -20,18 +20,19 @@ iml_module(
 iml_module(
     name = "intellij.android.wear-preview-elements.tests",
     iml_files = ["intellij.android.wear-preview-elements.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements[test]",
-        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 # Build target to verify that wear-preview-elements builds for tools/base

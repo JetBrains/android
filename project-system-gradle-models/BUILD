@@ -20,6 +20,7 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.models.tests",
     iml_files = ["intellij.android.projectSystem.gradle.models.tests.iml"],
+    test_deps = ["//tools/adt/idea/.idea/libraries:junit4"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -27,6 +28,5 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
     ],
 )

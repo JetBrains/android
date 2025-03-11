@@ -25,16 +25,19 @@ iml_module(
 iml_module(
     name = "intellij.android.layoutlib.tests",
     iml_files = ["intellij.android.layoutlib.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[test]",
-        "//tools/adt/idea/.idea/libraries:layoutlib[test]",
     ],
 )
 

@@ -33,6 +33,7 @@ iml_module(
 iml_module(
     name = "intellij.android.navigator.testutils",
     iml_files = ["intellij.android.navigator.testutils.iml"],
+    test_deps = ["//tools/adt/idea/.idea/libraries:junit4"],
     test_srcs = ["testUtils"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -44,6 +45,5 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:truth",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
     ],
 )

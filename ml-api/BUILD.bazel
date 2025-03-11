@@ -12,19 +12,20 @@ iml_module(
     iml_files = ["intellij.android.ml-api.iml"],
     resources = ["src/resources"],
     test_class = "com.android.tools.idea.gemini.GeminiPluginApiTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:test-framework",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:com.intellij.platform.images",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+    ],
     test_srcs = ["src/testSrc/kotlin"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "@intellij//:test-framework[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:com.intellij.java[test]",
-        "@intellij//:org.jetbrains.kotlin[test]",
-        "@intellij//:com.intellij.platform.images[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-    ],
+    deps = ["@intellij//:intellij-sdk"],
 )

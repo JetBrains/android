@@ -5,6 +5,17 @@ iml_module(
     name = "intellij.android.core.editing.metrics",
     srcs = ["src"],
     iml_files = ["intellij.android.core.editing.metrics.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -14,13 +25,5 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

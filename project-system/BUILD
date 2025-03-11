@@ -29,6 +29,16 @@ iml_module(
     name = "intellij.android.projectSystem.tests",
     iml_files = ["intellij.android.projectSystem.tests.iml"],
     test_class = "com.android.tools.idea.projectsystem.ProjectSystemTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -39,12 +49,5 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

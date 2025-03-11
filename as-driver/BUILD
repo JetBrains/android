@@ -64,6 +64,19 @@ iml_module(
         "//conditions:default": ["@intellij//:distribution-zip"],
     }),
     iml_files = ["utils/as-driver.utils.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/repository:studio.android.sdktools.repository",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "@intellij//:intellij-sdk",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/as-driver:librunfiles",
+    ],
     test_srcs = ["utils/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -71,16 +84,6 @@ iml_module(
         "//prebuilts/tools/common/m2:junit-4.12",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/repository:studio.android.sdktools.repository[test]",
-        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
-        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/as-driver:librunfiles[test]",
     ],
 )
 
@@ -96,15 +99,18 @@ iml_module(
     name = "as-driver.integration",
     enable_tests = False,
     iml_files = ["integration/as-driver.integration.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "@intellij//:intellij-sdk",
+    ],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "@intellij//:intellij-sdk[test]",
     ],
 )
 

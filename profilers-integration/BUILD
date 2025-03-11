@@ -7,17 +7,18 @@ iml_module(
     name = "intellij.android.profilers.integration",
     enable_tests = False,
     iml_files = ["intellij.android.profilers.integration.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 profilers_test_common_data = [

@@ -11,6 +11,15 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/adblib:studio.android.sdktools.adblib",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
+        "//tools/adt/idea/android-adb:intellij.android.adb",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["src"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -35,11 +44,5 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/adblib:studio.android.sdktools.adblib[test]",
-        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[test]",
-        "//tools/adt/idea/android-adb:intellij.android.adb[test]",
-        "//tools/adt/idea/artwork:intellij.android.artwork[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

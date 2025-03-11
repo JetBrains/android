@@ -7,6 +7,13 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.adt.ui.compose.iml"],
     kotlin_use_compose = True,
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//prebuilts/tools/common/m2:jewel-standalone",
+        "//prebuilts/tools/common/m2:compose-desktop-test",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+    ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -22,10 +29,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/adt-ui-compose:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//prebuilts/tools/common/m2:jewel-standalone[test]",
-        "//prebuilts/tools/common/m2:compose-desktop-test[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 

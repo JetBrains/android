@@ -8,23 +8,24 @@ iml_module(
     name = "intellij.android.core.integration",
     enable_tests = False,
     iml_files = ["intellij.android.core.integration.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/platform-performance-testing",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//prebuilts/tools/common/m2:junit-4.12[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/platform-performance-testing[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 open_project_data = [

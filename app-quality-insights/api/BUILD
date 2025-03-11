@@ -7,6 +7,19 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.api.iml"],
     test_class = "com.android.tools.idea.insights.InsightsApiTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:test-framework",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils",
+        "@intellij//:intellij.platform.vcs.impl",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -31,16 +44,6 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "@intellij//:test-framework[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[test]",
-        "@intellij//:intellij.platform.vcs.impl[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

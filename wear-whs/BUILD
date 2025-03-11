@@ -8,6 +8,18 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.idea.wearwhs.WearHealthServicesTestSuite",
     test_data = glob(["testData/**"]),
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "@intellij//:test-framework",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -27,14 +39,5 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "@intellij//:test-framework[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

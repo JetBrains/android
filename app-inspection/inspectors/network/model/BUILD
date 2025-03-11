@@ -6,6 +6,16 @@ iml_module(
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.network.model.iml"],
     lint_baseline = "lint_baseline.xml",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -24,12 +34,5 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

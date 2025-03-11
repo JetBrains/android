@@ -9,20 +9,21 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/editing/testData",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-        "//tools/adt/idea/android-plugin:intellij.android.plugin[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )

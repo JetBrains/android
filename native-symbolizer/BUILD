@@ -25,6 +25,14 @@ iml_module(
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -37,10 +45,5 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

@@ -7,6 +7,14 @@ iml_module(
     iml_files = ["intellij.android.studio-labs.iml"],
     kotlin_use_compose = True,
     resources = ["resources"],
+    # do not sort: must match IML order
+    test_deps = [
+        "@intellij//:test-framework",
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:truth-java8-extension",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -19,10 +27,5 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "@intellij//:intellij-sdk",
-        "@intellij//:test-framework[test]",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:truth-java8-extension[test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[test]",
     ],
 )

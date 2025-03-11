@@ -7,18 +7,19 @@ iml_module(
     name = "app-inspection.integration",
     enable_tests = False,
     iml_files = ["app-inspection.integration.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//prebuilts/tools/common/m2:junit-4.12[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 iml_test(

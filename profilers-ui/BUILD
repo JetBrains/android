@@ -11,6 +11,19 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.profilers.ProfilersUiTestSuite",
     test_data = glob(["testData/**"]),
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-transport:intellij.android.transport",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/profilers-ui:traceprocessor-proto",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -34,16 +47,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android-transport:intellij.android.transport[test]",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/profilers-ui:traceprocessor-proto[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

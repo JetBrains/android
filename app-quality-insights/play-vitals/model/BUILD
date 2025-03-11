@@ -7,6 +7,16 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.model.iml"],
     test_class = "com.android.tools.idea.vitals.PlayVitalsModelTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -23,13 +33,6 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[test]",
     ],
 )
 

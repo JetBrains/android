@@ -31,25 +31,26 @@ iml_module(
     test_data = [
         "//tools/adt/idea/rendering/testData",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/rendering:intellij.android.rendering",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:kxml2",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/adt/idea/rendering:intellij.android.rendering[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:kxml2[test]",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
-        "//tools/adt/idea/.idea/libraries:asm-tools[test]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:layoutlib[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 # Build target to verify that rendering builds for tools/base

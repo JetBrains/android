@@ -20,6 +20,13 @@ iml_module(
     name = "app-inspection.inspectors.backgroundtask.model",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.backgroundtask.model.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -35,9 +42,5 @@ iml_module(
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/codenavigation",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

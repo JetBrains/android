@@ -39,25 +39,28 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
+        "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
+        "//tools/base/adblib:studio.android.sdktools.adblib",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/android-common:intellij.android.common.tests",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[test]",
-        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[test]",
-        "//tools/base/adblib:studio.android.sdktools.adblib[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/adt/idea/android-common:intellij.android.common.tests[test]",
-        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[test]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[test]",
     ],
 )
 
@@ -66,16 +69,19 @@ iml_module(
     name = "intellij.android.device-explorer.integration.tests",
     enable_tests = False,
     iml_files = ["intellij.android.device-explorer.integration.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["integration"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

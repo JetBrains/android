@@ -24,21 +24,22 @@ iml_module(
     name = "intellij.android.projectSystem.integration.tests",
     enable_tests = False,
     iml_files = ["intellij.android.projectSystem.integration.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/lint:studio.android.sdktools.lint-checks",
+        "//tools/adt/idea/android:intellij.android.core",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//prebuilts/tools/common/m2:junit-4.12[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/lint:studio.android.sdktools.lint-checks[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 iml_test(

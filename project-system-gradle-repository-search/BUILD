@@ -22,6 +22,12 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.repositorySearch.tests",
     iml_files = ["intellij.android.projectSystem.gradle.repositorySearch.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -29,8 +35,5 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[test]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
     ],
 )

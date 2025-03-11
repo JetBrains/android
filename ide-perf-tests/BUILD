@@ -97,6 +97,17 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -107,14 +118,6 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.toml.lang",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android-plugin:intellij.android.plugin[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

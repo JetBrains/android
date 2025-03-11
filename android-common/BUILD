@@ -9,6 +9,15 @@ iml_module(
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = ["noci:studio-win"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -26,12 +35,6 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/android-common:libandroid-core-proto",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 
@@ -43,6 +46,20 @@ iml_module(
     # keep sorted
     test_data = [
         "//tools/adt/idea/android-common/testData",
+    ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/android-common:libandroid-core-proto",
     ],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
@@ -61,17 +78,6 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
-        "//tools/adt/idea/android-common:libandroid-core-proto[test]",
     ],
 )
 

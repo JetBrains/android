@@ -5,6 +5,12 @@ iml_module(
     name = "intellij.android.plugin",
     iml_files = ["intellij.android.plugin.iml"],
     test_class = "org.jetbrains.android.AndroidPluginTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
@@ -86,8 +92,5 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
     ],
 )

@@ -8,6 +8,11 @@ iml_module(
     jvm_target = "8",
     resources = ["resources"],
     tags = ["noci:studio-win"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:equalsverifier",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -17,7 +22,5 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:equalsverifier[test]",
     ],
 )

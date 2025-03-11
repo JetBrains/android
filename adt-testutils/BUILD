@@ -11,6 +11,15 @@ iml_module(
         "//tools/adt/idea/studio:required_jvm_args",  # Used to compute JNA path
     ],
     iml_files = ["intellij.android.adt.testutils.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/repository:studio.android.sdktools.repository",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "@intellij//:org.toml.lang",
+        "@intellij//:test-framework",
+    ],
     test_srcs = ["src/main/java"],
     visibility = ["//visibility:public"],
     exports = ["@intellij//:test-framework"],
@@ -27,11 +36,5 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/repository:studio.android.sdktools.repository[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "@intellij//:org.toml.lang[test]",
-        "@intellij//:test-framework[test]",
     ],
 )

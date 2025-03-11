@@ -10,6 +10,14 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/android:intellij.android.core.tests",
+    ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
@@ -25,10 +33,5 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/android:intellij.android.core.tests[test]",
     ],
 )

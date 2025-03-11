@@ -64,23 +64,24 @@ iml_module(
         "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
+    ],
     test_friends = ["//tools/adt/idea/render-resources:intellij.android.render-resources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/base/resource-repository:studio.android.sdktools.resource-repository[test]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 # Build target to verify that render-resources tests succeed for tools/base

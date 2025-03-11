@@ -1101,6 +1101,13 @@ iml_module(
         ":android-studio.plugin.lst",
         ":android-studio.win.zip",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+    ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -1108,10 +1115,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/base/perf-logger:studio.perf-logger[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )
 
@@ -1120,19 +1123,20 @@ iml_module(
     name = "intellij.android.studio.integration",
     enable_tests = False,
     iml_files = ["integration/intellij.android.studio.integration/intellij.android.studio.integration.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["integration/intellij.android.studio.integration/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//prebuilts/tools/common/m2:junit-4.12[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 iml_test(

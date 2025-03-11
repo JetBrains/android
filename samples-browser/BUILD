@@ -12,6 +12,15 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
     ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -28,11 +37,5 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

@@ -5,6 +5,17 @@ iml_module(
     name = "app-inspection.api",
     srcs = ["src"],
     iml_files = ["app-inspection.api.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
+        "//tools/adt/idea/.idea/libraries:mockito",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -21,13 +32,5 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )

@@ -24,23 +24,24 @@ iml_module(
 iml_module(
     name = "intellij.android.preview-elements.tests",
     iml_files = ["intellij.android.preview-elements.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib",
+        "//tools/base/environment-services:studio.intellij.android.environment-services",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[test]",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[test]",
-        "//tools/base/sdklib:studio.android.sdktools.sdklib[test]",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[test]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[test]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
-        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 # Build target to verify that preview-elements builds for tools/base

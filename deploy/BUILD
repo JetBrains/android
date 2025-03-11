@@ -6,6 +6,15 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
     test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -25,11 +34,5 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/android-adb:intellij.android.adb",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

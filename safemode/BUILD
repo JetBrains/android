@@ -56,17 +56,18 @@ iml_module(
     name = "intellij.android.safemode.integration.tests",
     enable_tests = False,
     iml_files = ["intellij.android.safemode.integration.tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/as-driver:as-driver.utils",
+        "//tools/base/common:studio.android.sdktools.common",
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )
 
 iml_test(

@@ -24,6 +24,18 @@ iml_module(
     name = "intellij.android.gradle.declarative.lang.ide.tests",
     iml_files = ["intellij.android.gradle.declarative.lang.ide.tests.iml"],
     test_data = glob(["testData/**"]),
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -32,14 +44,5 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android:intellij.android.core[test]",
-        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[test]",
-        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[test]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[test]",
-        "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync[test]",
     ],
 )

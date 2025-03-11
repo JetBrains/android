@@ -6,16 +6,17 @@ iml_module(
     generate_k1_tests = True,
     iml_files = ["intellij-integration-tests.iml"],
     test_class = "com.android.tools.idea.IntellijIntegrationTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij-sdk",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "@intellij//:org.jetbrains.kotlin[test]",
-        "@intellij//:intellij-sdk[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
+    deps = ["@intellij//:com.intellij.java"],
 )

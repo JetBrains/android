@@ -28,25 +28,25 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.apkanalyzer.gradle.integration-tests",
     iml_files = ["intellij.android.apkanalyzer.gradle.integration-tests.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:truth-java8-extension",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+    ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle[test]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[test]",
-        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
-        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[test]",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:truth-java8-extension[test]",
-        "//tools/base/common:studio.android.sdktools.common[test]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
-    ],
 )
 
 generate_old_agp_tests_from_list(

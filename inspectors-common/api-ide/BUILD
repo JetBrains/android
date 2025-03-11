@@ -6,6 +6,13 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.inspectors-common.api-ide.iml"],
     test_class = "com.android.tools.inspectors.common.api.ide.InspectorsCommonApiIdeTestSuite",
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -20,9 +27,5 @@ iml_module(
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/codenavigation",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
     ],
 )

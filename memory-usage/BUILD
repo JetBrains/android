@@ -8,6 +8,7 @@ iml_module(
     enable_tests = False,
     iml_files = ["memory-usage.iml"],
     jvm_target = "8",
+    test_deps = ["//tools/adt/idea/.idea/libraries:junit4"],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -15,7 +16,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "@intellij//:intellij-sdk",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
     ],
 )
 
