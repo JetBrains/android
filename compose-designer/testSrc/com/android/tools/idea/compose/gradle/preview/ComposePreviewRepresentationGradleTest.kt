@@ -536,29 +536,27 @@ class ComposePreviewRepresentationGradleTest {
     composePreviewRepresentation.updateRefreshIndicatorCallbackForTests {
       backgroundIndicatorsCreated++
     }
-    var refreshDeferred = runBlocking {
+    runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
         completableDeferred = completableDeferred,
       )
-      completableDeferred
+      completableDeferred.await()
     }
-    assertNotNull(refreshDeferred)
-    runInEdtAndWait { Disposer.dispose(composePreviewRepresentation, false) }
     assertEquals(1, backgroundIndicatorsCreated)
 
-    refreshDeferred = runBlocking {
+    runInEdtAndWait { Disposer.dispose(composePreviewRepresentation, false) }
+    runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
         completableDeferred = completableDeferred,
       )
-      completableDeferred
+      assertTrue(completableDeferred.isCompleted)
+      // Verify that it is completed exceptionally
+      assertNotNull(completableDeferred.getCompletionExceptionOrNull())
     }
-    // Verify that it is completed exceptionally
-    assertTrue(refreshDeferred.isCompleted)
-    assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
     // Verify that no additional background indicator is created
     assertEquals(1, backgroundIndicatorsCreated)
   }
