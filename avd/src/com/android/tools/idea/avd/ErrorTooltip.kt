@@ -44,15 +44,14 @@ internal fun ErrorTooltip(
   tooltipPlacement: TooltipPlacement = style.metrics.placement,
   content: @Composable () -> Unit,
 ) {
-  if (errorMessage != null) {
-    Tooltip(
-      tooltip = { Text(errorMessage) },
-      modifier = modifier,
-      style = style,
-      tooltipPlacement = tooltipPlacement,
-      content = content,
-    )
-  }
+  Tooltip(
+    tooltip = { Text(errorMessage ?: "") },
+    modifier,
+    enabled = errorMessage != null,
+    style,
+    tooltipPlacement,
+    content,
+  )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
