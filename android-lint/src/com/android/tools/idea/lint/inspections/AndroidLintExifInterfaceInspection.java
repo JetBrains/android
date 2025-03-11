@@ -50,15 +50,24 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.concurrent.CancellationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtCallExpression;
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtFile;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
+import org.jetbrains.kotlin.psi.KtReferenceExpression;
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
   private static final AndroidxName
     NEW_EXIF_INTERFACE = new AndroidxName("android.support.media.ExifInterface", "androidx.exifinterface.media.ExifInterface");
+  private static final AndroidxName NEW_EXIF_PACKAGE = new AndroidxName("android.support.media", "androidx.exifinterface.media");
 
   public AndroidLintExifInterfaceInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.exif.interface"), ExifInterfaceDetector.ISSUE);
@@ -84,14 +93,19 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         LocalHistoryAction action = LocalHistory.getInstance().startAction(getName());
         Project project = module.getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIF_INTERFACE.newName(), GlobalSearchScope.allScope(project));
-        if (cls == null) {
-          cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIF_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
-        }
         if (cls != null) {
-          replaceReferences(getName(), startElement, cls, false);
+          replaceReferences(getName(), startElement, cls, true);
           return;
         }
+        else {
+          cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIF_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
+          if (cls != null) {
+            replaceReferences(getName(), startElement, cls, false);
+            return;
+          }
+        }
 
+        // We have neither class resolvable in the project, so we must find a dependency to add.
         GradleCoordinate libraryCoordinate = getExifLibraryCoordinate();
         boolean useAndroidx =
           libraryCoordinate != null && libraryCoordinate.toString().startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
@@ -161,6 +175,65 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
     }
 
+    private static void replaceJavaReferences(@NotNull PsiElement element, @Nullable PsiClass cls, boolean useAndroidx) {
+      Project project = element.getProject();
+      PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+      PsiFile file = element.getContainingFile();
+      file.accept(new JavaRecursiveElementVisitor() {
+        @Override
+        public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement expression) {
+          if (ExifInterfaceDetector.EXIF_INTERFACE.equals(expression.getReferenceName())) {
+            if (expression.isQualified()) {
+              PsiElement context = expression.getParent();
+              if (expression instanceof PsiReferenceExpression) {
+                if (cls != null) {
+                  PsiReferenceExpression replacement = factory.createReferenceExpression(cls);
+                  expression.replace(replacement);
+                  return;
+                }
+              }
+              else {
+                expression.replace(
+                  factory.createReferenceFromText(useAndroidx ? NEW_EXIF_INTERFACE.newName() : NEW_EXIF_INTERFACE.oldName(), context));
+                return;
+              }
+            }
+          }
+          super.visitReferenceElement(expression);
+        }
+      });
+    }
+
+    private static void replaceKotlinReferences(@NotNull PsiElement element, @Nullable PsiClass cls, boolean useAndroidx) {
+      Project project = element.getProject();
+      KtPsiFactory factory = new KtPsiFactory(project);
+      PsiFile file = element.getContainingFile();
+      file.accept(new KtTreeVisitorVoid() {
+
+        @Override
+        public void visitDotQualifiedExpression(@NotNull KtDotQualifiedExpression expression) {
+          KtExpression receiver = expression.getReceiverExpression();
+          KtExpression selector = expression.getSelectorExpression();
+          if (selector instanceof KtCallExpression call) {
+            KtExpression callee = call.getCalleeExpression();
+            if (callee != null && ExifInterfaceDetector.EXIF_INTERFACE.equals(callee.getText())) {
+              if (ExifInterfaceDetector.OLD_EXIF_PACKAGE.equals(receiver.getText())) {
+                KtExpression replacement = factory.createExpression(useAndroidx ? NEW_EXIF_PACKAGE.newName() : NEW_EXIF_PACKAGE.oldName());
+                receiver.replace(replacement);
+              }
+            }
+          }
+          else if (selector instanceof KtReferenceExpression reference) {
+            if (ExifInterfaceDetector.EXIF_INTERFACE.equals(reference.getText())) {
+              KtExpression replacement = factory.createExpression(useAndroidx ? NEW_EXIF_PACKAGE.newName() : NEW_EXIF_PACKAGE.oldName());
+              receiver.replace(replacement);
+            }
+          }
+          super.visitDotQualifiedExpression(expression);
+        }
+      });
+    }
+
     /**
      * Replaces the references to the old ExifInterface with the new class name.
      *
@@ -174,32 +247,13 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                                           @Nullable PsiClass cls,
                                           boolean useAndroidx) {
       WriteCommandAction.writeCommandAction(element.getProject()).withName(actionName).run(() -> {
-        Project project = element.getProject();
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiFile file = element.getContainingFile();
-        file.accept(new JavaRecursiveElementVisitor() {
-          @Override
-          public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement expression) {
-            if (ExifInterfaceDetector.EXIF_INTERFACE.equals(expression.getReferenceName())) {
-              if (expression.isQualified()) {
-                PsiElement context = expression.getParent();
-                if (expression instanceof PsiReferenceExpression) {
-                  if (cls != null) {
-                    PsiReferenceExpression replacement = factory.createReferenceExpression(cls);
-                    expression.replace(replacement);
-                    return;
-                  }
-                }
-                else {
-                  expression.replace(
-                    factory.createReferenceFromText(useAndroidx ? NEW_EXIF_INTERFACE.newName() : NEW_EXIF_INTERFACE.oldName(), context));
-                  return;
-                }
-              }
-            }
-            super.visitReferenceElement(expression);
-          }
-        });
+        if (file instanceof PsiJavaFile) {
+          replaceJavaReferences(element, cls, useAndroidx);
+        }
+        else if (file instanceof KtFile) {
+          replaceKotlinReferences(element, cls, useAndroidx);
+        }
       });
     }
   }
