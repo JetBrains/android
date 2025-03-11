@@ -110,6 +110,7 @@ private constructor(
 
   @Throws(IOException::class, InterruptedException::class)
   fun waitForDevice(emulator: Emulator) {
+    TestLogger.log("Adb#waitForDevice")
     waitForDevice(emulator, 24.hours)
   }
 
