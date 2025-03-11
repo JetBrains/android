@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
+import com.intellij.openapi.vfs.VFileProperty
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.backend.observation.ActivityKey
 import com.intellij.platform.backend.observation.trackActivity
@@ -130,6 +131,7 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
         }
         when {
           !file.isInLocalFileSystem -> return@readAction arrayOf()
+          file.`is`(VFileProperty.SYMLINK) -> return@readAction arrayOf()
           file.exists() && file.isDirectory -> file.children
           else -> {
             file.fileType
