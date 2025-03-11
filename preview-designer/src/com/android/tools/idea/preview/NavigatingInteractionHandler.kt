@@ -334,7 +334,7 @@ class NavigatingInteractionHandler(
           isOptionDown,
         )
 
-      if (isOptionDown && isPopUpEnabled()) {
+      if (isOptionDown && isPopUpEnabled() && navigatables.isNotEmpty()) {
         // Open a pop up menu with all components under coordinates
         val actions = createActionGroup(sceneView, navigatables)
         withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }

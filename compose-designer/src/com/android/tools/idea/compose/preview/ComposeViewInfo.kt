@@ -74,7 +74,23 @@ fun List<ComposeViewInfo>.findSmallestHit(
  * live in the file.
  */
 fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<ComposeViewInfo> {
-  return this.findAllLeafHits(x, y).filter { it.sourceLocation.fileName == fileName }
+  if (!this.containsPoint(x, y)) return emptyList()
+  val leafHits = mutableListOf<ComposeViewInfo>()
+  val stack = mutableListOf(this)
+
+  while (stack.isNotEmpty()) {
+    val currentViewInfo: ComposeViewInfo = stack.pop()
+    val childrenContainingPoint =
+      currentViewInfo.children.filter { it.containsPoint(x, y) && it.doesFileExistInTree(fileName) }
+
+    // If no children contain point then it must be a leaf
+    if (childrenContainingPoint.isEmpty() && currentViewInfo.sourceLocation.fileName == fileName) {
+      leafHits.push(currentViewInfo)
+    } else {
+      stack.addAll(childrenContainingPoint)
+    }
+  }
+  return leafHits.toList()
 }
 
 /** This function will return all hits that have no children. */

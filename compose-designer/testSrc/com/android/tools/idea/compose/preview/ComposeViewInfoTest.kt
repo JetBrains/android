@@ -33,7 +33,7 @@ class ComposeViewInfoTest {
   ) : SourceLocation
 
   @Test
-  fun checkLeafHits() {
+  fun checkLeafHitsInFile() {
     //              root
     //            /     \
     //          fileA    fileC
@@ -43,6 +43,8 @@ class ComposeViewInfoTest {
     //     fileA (line 5)    fileB  (line 7)
     //                             \
     //                             fileA (line 8)
+    //                                \
+    //                               fileC
     //
     // Given that all the components shown above contain the point x, y and the file A is passed
     // into the function findLeafHitsInFile will return both components on line 5 and line 8 of
@@ -79,7 +81,14 @@ class ComposeViewInfoTest {
                         ComposeViewInfo(
                           TestSourceLocation("fileA", lineNumber = 8),
                           PxBounds(0, 0, 200, 200),
-                          children = listOf(),
+                          children = listOf(
+                            ComposeViewInfo(
+                              TestSourceLocation("fileC", lineNumber = 8),
+                              PxBounds(0, 0, 200, 200),
+                              children = listOf(),
+                              name = "",
+                            )
+                          ),
                           name = "",
                         )
                       ),
