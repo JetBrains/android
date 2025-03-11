@@ -425,7 +425,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-251.23536.34.2511.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-251.23774.16.2511.__BUILD_NUMBER__
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
 android-studio/lib/forms_rt.jar
@@ -3073,7 +3073,7 @@ android-studio/plugins/gradle/lib/ant/ant-swing.jar
 android-studio/plugins/gradle/lib/ant/ant-testutil.jar
 android-studio/plugins/gradle/lib/ant/ant-xz.jar
 android-studio/plugins/gradle/lib/ant/ant.jar
-android-studio/plugins/gradle/lib/gradle-api-8.12.jar
+android-studio/plugins/gradle/lib/gradle-api-8.13.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle.jar
