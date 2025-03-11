@@ -87,6 +87,11 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
     }
 
     @Override
+    public boolean startInWriteAction() {
+      return false;
+    }
+
+    @Override
     public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
       Module module = AndroidPsiUtils.getModuleSafely(startElement);
       if (module != null) {
