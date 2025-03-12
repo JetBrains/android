@@ -47,12 +47,9 @@ interface NavigationHandler : Disposable {
    * and their line number to calculate whether the caret was moved to a line that has a preview.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
-   * @param fileName  [fileName] in which to look for components
+   * @param fileName [fileName] in which to look for components
    */
-  suspend fun findBoundsOfComponents(
-    sceneView: SceneView,
-    fileName: String,
-  ): Map<Int, Rectangle>
+  suspend fun findBoundsOfComponents(sceneView: SceneView, lineNumber: Int): List<Rectangle>
 
   /**
    * Triggered when preview in the design surface is clicked, returns true if the navigation was

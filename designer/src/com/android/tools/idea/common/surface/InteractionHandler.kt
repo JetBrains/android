@@ -61,6 +61,11 @@ interface InteractionHandler {
   ): Interaction?
 
   /**
+   * Called when [Preview] gets event [onCaretPositionChanged] the caret has been moved to [line]
+   */
+  fun onCaretMoved(line: Int)
+
+  /**
    * Called when [GuiInputHandler] has the dragging event and there is no interactive [Interaction].
    * ([mouseX], [mouseY]) is the position and [modifiersEx] is the pressed modifiers when dragging
    * starts.
@@ -296,6 +301,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
   }
 
+  override fun onCaretMoved(line: Int) {}
+
   override fun doubleClick(mouseEvent: MouseEvent, @InputEventMask modifiersEx: Int) {
     val x: Int = mouseEvent.getX()
     val y: Int = mouseEvent.getY()
@@ -390,6 +397,8 @@ object NopInteractionHandler : InteractionHandler {
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
     null
 
+  override fun onCaretMoved(line: Int) {}
+
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
@@ -397,7 +406,7 @@ object NopInteractionHandler : InteractionHandler {
 
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
 
-  override fun singleClick(mouseEvent: MouseEvent,modifiersEx: Int) {}
+  override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) {}
 
   override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {}
 
@@ -452,10 +461,12 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
 
   override fun stayHovering(mouseX: Int, mouseY: Int) = delegate.stayHovering(mouseX, mouseY)
 
-  override fun singleClick(mouseEvent: MouseEvent ,modifiersEx: Int) =
+  override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) =
     delegate.singleClick(mouseEvent, modifiersEx)
 
-  override fun doubleClick( mouseEvent: MouseEvent, modifiersEx: Int) =
+  override fun onCaretMoved(line: Int) = delegate.onCaretMoved(line)
+
+  override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) =
     delegate.doubleClick(mouseEvent, modifiersEx)
 
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) =

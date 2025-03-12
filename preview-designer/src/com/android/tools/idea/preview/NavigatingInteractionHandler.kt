@@ -45,6 +45,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants
@@ -200,6 +201,23 @@ class NavigatingInteractionHandler(
     if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
       super.mouseExited()
     }
+  }
+
+  override fun onCaretMoved(lineNumber: Int) {
+    for (sceneView in surface.sceneViews) {
+      scope.launch(Dispatchers.Default) {
+        sceneView!!.clearHighlight()
+        var rectanglesToHightlight = navigationHandler.findBoundsOfComponents(sceneView, lineNumber)
+        rectanglesToHightlight.forEach({
+          val x = Coordinates.getSwingX(sceneView, it.x)
+          val y = Coordinates.getSwingY(sceneView, it.y)
+          val width = Coordinates.getSwingDimension(sceneView, it.width)
+          val height = Coordinates.getSwingDimension(sceneView, it.height)
+          sceneView!!.highlighBox(x, y, width, height)
+        })
+      }
+    }
+    surface.repaint()
   }
 
   private fun selectComponentToTheLeft(

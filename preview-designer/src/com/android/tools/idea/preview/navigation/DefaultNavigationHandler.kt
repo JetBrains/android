@@ -45,7 +45,9 @@ open class DefaultNavigationHandler(
       requestFocus: Boolean,
       fileName: String,
       shouldFindAllNavigatables: Boolean,
-    ) -> List<PreviewNavigatableWrapper>
+    ) -> List<PreviewNavigatableWrapper>,
+  private val componentNavigationDelegateTwo:
+    (sceneView: SceneView, fileName: String, lineNumber: Int) -> List<java.awt.Rectangle>,
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
   // Default location to use when components are not found
@@ -80,9 +82,10 @@ open class DefaultNavigationHandler(
 
   override suspend fun findBoundsOfComponents(
     sceneView: SceneView,
-    fileName: String,
-  ): Map<Int, Rectangle> {
-    return emptyMap()
+    lineNumber: Int,
+  ): List<Rectangle> {
+    val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
+    return componentNavigationDelegateTwo(sceneView, fileName, lineNumber)
   }
 
   override suspend fun navigateTo(

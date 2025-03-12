@@ -48,9 +48,9 @@ class LayoutlibInteractionHandler(
 
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
 
-  override fun singleClick( mouseEvent: MouseEvent,modifiersEx: Int) {}
+  override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) {}
 
-  override fun doubleClick( mouseEvent: MouseEvent, modifiersEx: Int) {}
+  override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {}
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
     surface.zoomController.zoom(type, mouseX, mouseY)
@@ -75,6 +75,8 @@ class LayoutlibInteractionHandler(
       return LayoutlibInteraction(view)
     }
   }
+
+  override fun onCaretMoved(line: Int) {}
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
 

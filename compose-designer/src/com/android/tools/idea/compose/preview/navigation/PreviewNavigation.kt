@@ -124,23 +124,27 @@ fun findNavigatableComponentHit(
 private fun findBoundsOfComponentsInFile(
   sceneView: SceneView,
   fileName: String,
-): Map<Int, Rectangle> {
+  lineNumber: Int,
+): List<Rectangle> {
   val model = sceneView.sceneManager.model
-  val root = model.treeReader.components.firstOrNull() ?: return mapOf()
-  val viewInfo = root.viewInfo ?: return mapOf()
+  val root = model.treeReader.components.firstOrNull() ?: return listOf()
+  val viewInfo = root.viewInfo ?: return listOf()
   val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
-  if (allViewInfos.isEmpty()) return mapOf()
-  val lineNumberToBounds =
-    allViewInfos.first().findAllHitsInFile(fileName).associate {
-      it.sourceLocation.lineNumber to
+  if (allViewInfos.isEmpty()) return listOf()
+  val rectangles =
+    allViewInfos
+      .first()
+      .findAllHitsInFile(fileName)
+      .filter { it.sourceLocation.lineNumber == lineNumber }
+      .map {
         Rectangle(
           it.bounds.left,
-          it.bounds.right,
+          it.bounds.top,
           it.bounds.right - it.bounds.left,
           it.bounds.bottom - it.bounds.top,
         )
-    }
-  return lineNumberToBounds
+      }
+  return rectangles
 }
 
 /**
@@ -202,11 +206,5 @@ private fun findNavigatableComponents(
 }
 
 /** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
-class ComposePreviewNavigationHandler : DefaultNavigationHandler(::findNavigatableComponents) {
-  override suspend fun findBoundsOfComponents(
-    sceneView: SceneView,
-    fileName: String,
-  ): Map<Int, Rectangle> {
-    return findBoundsOfComponentsInFile(sceneView, fileName)
-  }
-}
+class ComposePreviewNavigationHandler :
+  DefaultNavigationHandler(::findNavigatableComponents, ::findBoundsOfComponentsInFile)
