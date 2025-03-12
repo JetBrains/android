@@ -17,6 +17,8 @@ package com.android.gmdcodecompletion
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -149,6 +151,7 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
 
 fun isFtlPluginEnabled(project: Project, selectedModules: Array<Module>): Boolean {
   fun GradleBuildModel.getPluginNames(): List<String> = this.plugins().orEmpty().mapNotNull { it.psiElement?.text }
+  if (!ApplicationManager.getApplication().isUnitTestMode && project.getProjectSystem() !is GradleProjectSystem) return false
   val projectBuildModel = ProjectBuildModel.get(project) ?: return false
   val selectedPlugins: HashSet<String> = hashSetOf()
   selectedModules.forEach {

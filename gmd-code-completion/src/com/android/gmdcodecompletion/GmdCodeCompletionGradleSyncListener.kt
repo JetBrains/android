@@ -18,6 +18,9 @@ package com.android.gmdcodecompletion
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogService
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 /**
@@ -26,6 +29,7 @@ import com.intellij.openapi.project.Project
  */
 class GmdCodeCompletionGradleSyncListener(private val project: Project) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+    if (!ApplicationManager.getApplication().isUnitTestMode && project.getProjectSystem() !is GradleProjectSystem) return
     if (!result.isSuccessful) return
     val deviceCatalogServices = listOf(ManagedVirtualDeviceCatalogService.getInstance(), FtlDeviceCatalogService.getInstance())
     deviceCatalogServices.forEach { it.updateDeviceCatalog(project) }
