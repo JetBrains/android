@@ -22,6 +22,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.JavaProjectRootsUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import org.jetbrains.android.AndroidTestCase
@@ -32,6 +33,13 @@ import org.jetbrains.jps.model.java.JpsJavaExtensionService
 private const val CREATE_FIELD = "Create field"
 
 class AndroidLightOrGeneratedClassIntentionActionFilterTest : AndroidTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+
+    // TODO(b/402201770): Re-enable idempotence checks for cached values.
+    Registry.get("platform.random.idempotence.check.rate").setValue(0, testRootDisposable)
+  }
 
   fun testLightClasses() {
     myFixture.addFileToProject("res/values/strings.xml", "<resources><string name='existing_res'></string></resources>")
