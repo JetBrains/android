@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import androidx.compose.compiler.plugins.kotlin.k2.ComposeFirExtensionRegistrar
+import androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrar
 import com.android.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -27,9 +28,15 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.fir.extensions.KotlinFirCompilerPluginConfigurationForIdeProvider
 
 /**
  * Path to the compose-runtime jar. Note that unlike all other dependencies, we
@@ -52,18 +59,47 @@ val composeRuntimePath
     composeRuntimePathForK1
   }
 
+@OptIn(ExperimentalCompilerApi::class)
+private val composeExtensionStorage by lazy {
+  val storage = CompilerPluginRegistrar.ExtensionStorage()
+  val pluginRegistrar = ComposePluginRegistrar()
+  val compilerConfiguration = CompilerConfiguration() // We can add extra compiler options with .apply { .. }.
+  val configurationWithComposeSpecificOptions = KotlinFirCompilerPluginConfigurationForIdeProvider.getCompilerConfigurationWithCustomOptions(
+    pluginRegistrar, compilerConfiguration) ?: compilerConfiguration
+  with(pluginRegistrar) {
+    storage.registerExtensions(configurationWithComposeSpecificOptions)
+  }
+  storage
+}
+
+@OptIn(ExperimentalCompilerApi::class)
+private val composeCompilerPluginProviderForTest by lazy {
+  object : KotlinCompilerPluginsProvider {
+    override fun <T : Any> getRegisteredExtensions(module: KaSourceModule,
+                                                   extensionType: ProjectExtensionDescriptor<T>): List<T> {
+      val registrars = composeExtensionStorage.registeredExtensions[extensionType] ?: return emptyList()
+      @Suppress("UNCHECKED_CAST")
+      return registrars as List<T>
+    }
+
+    override fun isPluginOfTypeRegistered(module: KaSourceModule,
+                                          pluginType: KotlinCompilerPluginsProvider.CompilerPluginType): Boolean = false
+  }
+}
+
 /**
  * Register the plugin for the given project rule. If you are using the default model via [AndroidProjectRule.inMemory],
  * you should probably use [setUpComposeInProjectFixture] which will also add the Compose Runtime dependency to the
  * project.
  */
+@OptIn(ExperimentalCompilerApi::class)
 fun registerComposeCompilerPlugin(project: Project) {
   // Register the compose compiler plugin much like what Intellij would normally do.
   if (KotlinPluginModeProvider.isK2Mode()) {
-    if (!project.extensionArea.hasExtensionPoint(FirExtensionRegistrarAdapter.extensionPointName)) {
-      FirExtensionRegistrarAdapter.registerExtensionPoint(project)
-    }
-    FirExtensionRegistrarAdapter.registerExtension(project, ComposeFirExtensionRegistrar())
+    if (project.getService(KotlinCompilerPluginsProvider::class.java) == composeCompilerPluginProviderForTest) return
+    project.registerServiceInstance(KotlinCompilerPluginsProvider::class.java,
+                                    composeCompilerPluginProviderForTest, project)
+    return
   }
   if (IrGenerationExtension.getInstances(project).find { it is ComposePluginIrGenerationExtension } == null) {
     IrGenerationExtension.registerExtension(project, ComposePluginIrGenerationExtension())

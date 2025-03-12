@@ -691,6 +691,7 @@ private fun createHeavyFixtureFactory(
       File(moduleRootPath).mkdirs()
       val extraModuleFixtureBuilder =
         projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+      extraModuleFixtureBuilder.setProjectDescriptor(projectDescriptor)
       extraModuleFixtureBuilder.setModuleName(extraModuleName)
       initializeModuleFixtureBuilderWithSrcAndGen(extraModuleFixtureBuilder, moduleRootPath)
     }
