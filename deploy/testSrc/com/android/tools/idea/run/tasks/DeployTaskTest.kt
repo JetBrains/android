@@ -73,12 +73,6 @@ class DeployTaskTest {
   @After
   fun shutdown() {
     Disposer.dispose(rootDisposable)
-
-    // Null out the static reference in [ApplicationManager].
-    // Keeping a reference to a disposed object can cause problems for other tests.
-    val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
-    field.isAccessible = true
-    field.set(null, null)
   }
 
   @Test
