@@ -55,10 +55,14 @@ iml_module(
         "GroovyAddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.GroovyAddNewModulesToAppTest",
+            # b/399316550 flaky on windows, gradle daemon not found?
+            "tags": ["noci:studio-win"],
         },
         "GroovyVersionCatalogAddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.GroovyVersionCatalogAddNewModulesToAppTest",
+            # b/399316550 flaky on windows, gradle daemon not found?
+            "tags": ["noci:studio-win"],
         },
         "KtsAddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well

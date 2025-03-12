@@ -46,6 +46,8 @@ iml_module(
         },
         "KotlinBomPlatformDependencyTest": {
             "test_filter": "com.android.tools.idea.templates.KotlinBomPlatformDependencyTest",
+            # b/399316550 flaky on windows, gradle daemon not found?
+            "tags": ["noci:studio-win"],
         },
         "other": {
             "data": [
