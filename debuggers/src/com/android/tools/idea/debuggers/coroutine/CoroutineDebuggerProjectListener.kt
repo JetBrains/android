@@ -62,7 +62,7 @@ private class CoroutineDebuggerListener(private val project: Project) : XDebugge
       return
     }
 
-    val debuggerConnection = DebuggerConnection(project, null, null, shouldAttachCoroutineAgent = false, alwaysShowPanel = true)
+    val debuggerConnection = DebuggerConnection(project, null, null, false, alwaysShowPanel = true)
 
     // creating the [DebuggerConnection] object does nothing on its own. In order for the panel to be created
     // we need to forward the "processStarted" call to the Kotlin plugin DebuggerConnection component,
