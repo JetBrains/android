@@ -51,8 +51,14 @@ class ScreenshotImage(
     if (rotationQuadrants == 0 && scale == 1.0) {
       return this
     }
+    val w: Int
+    val h: Int
+    when (rotationQuadrants % 2) {
+      0 -> { w = width; h = height }
+      else -> { w = height; h = width }
+    }
     return ScreenshotImage(
-      image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (width * scale).roundToInt(), (height * scale).roundToInt()),
+      image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (w * scale).roundToInt(), (h * scale).roundToInt()),
       screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
       displayInfo = displayInfo,
       deviceType = deviceType)
