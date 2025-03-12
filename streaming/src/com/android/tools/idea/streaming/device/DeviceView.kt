@@ -814,6 +814,7 @@ internal class DeviceView(
         currentModifiers = currentModifiers and BUTTON_MASK.inv()
       }
       lastTouchCoordinates = null
+      terminateHovering(event)
       updateMultiTouchMode(event)
     }
 
@@ -829,12 +830,17 @@ internal class DeviceView(
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
-        if (!mouseHovering) {
-          sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_ENTER, event.adjustedModifiers)
-          mouseHovering = true
+      if (isInsideDisplay(event)) {
+        if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
+          if (!mouseHovering) {
+            sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_ENTER, event.adjustedModifiers)
+            mouseHovering = true
+          }
+          sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
         }
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
+      }
+      else {
+        terminateHovering(event)
       }
     }
 
