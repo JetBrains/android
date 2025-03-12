@@ -24,7 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 
 class DoNotIntercept {
   fun noArgsInstanceMethod() {

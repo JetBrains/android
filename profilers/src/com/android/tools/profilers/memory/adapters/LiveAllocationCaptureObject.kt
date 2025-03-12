@@ -40,7 +40,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 import java.io.OutputStream
 import java.util.TreeMap
 import java.util.concurrent.Executor
