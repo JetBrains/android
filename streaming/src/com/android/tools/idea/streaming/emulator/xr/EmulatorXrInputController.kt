@@ -268,19 +268,20 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
         when (inputMode) {
           XrInputMode.LOCATION_IN_SPACE_XY -> {
             translation.clear()
+            // Direction of movement in 3D space is opposite to direction of mouse dragging.
             translation.deltaX = -deltaX * scale
-            translation.deltaY = -deltaY * scale
+            translation.deltaY = deltaY * scale // Direction of Y axis in 3D space is opposite to screen coordinates.
             inputEvent.setXrHeadMovementEvent(translation)
           }
           XrInputMode.LOCATION_IN_SPACE_Z -> {
             translation.clear()
-            translation.deltaZ = -deltaY * scale
+            translation.deltaZ = -deltaY * scale // Dragging mouse down moves forward in 3D space.
             inputEvent.setXrHeadMovementEvent(translation)
           }
           XrInputMode.VIEW_DIRECTION -> {
             // Moving the mouse between opposite edges of the device display shifts the view direction by 180 degrees
-            rotation.x = -deltaY * scale
-            rotation.y = deltaX * scale
+            rotation.x = deltaY * scale // Dragging mouse down rotates the direction of view up.
+            rotation.y = deltaX * scale // Dragging mouse to the right rotates the direction of view to the left.
             inputEvent.setXrHeadRotationEvent(rotation)
           }
           else -> throw Error("Internal error") // Unreachable due to the !isMouseUsedForNavigation check above.

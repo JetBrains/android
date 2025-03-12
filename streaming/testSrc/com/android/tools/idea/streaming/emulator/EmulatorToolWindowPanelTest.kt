@@ -603,12 +603,12 @@ class EmulatorToolWindowPanelTest {
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { y: 2.2642112 }")
     ui.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: -2.2642112 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: 2.2642112 }")
     ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     ui.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_rotation_event { x: -2.2642112 y: -1.1321056 }")
+        .isEqualTo("xr_head_rotation_event { x: 2.2642112 y: -1.1321056 }")
   }
 
   @Test
@@ -638,12 +638,12 @@ class EmulatorToolWindowPanelTest {
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_x: -3.6036036 }")
     ui.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: -3.6036036 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: 3.6036036 }")
     ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     ui.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_movement_event { delta_x: 1.8018018 delta_y: -3.6036036 }")
+        .isEqualTo("xr_head_movement_event { delta_x: 1.8018018 delta_y: 3.6036036 }")
     ui.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
