@@ -15,10 +15,8 @@
  */
 package org.jetbrains.android.uipreview.nontransitive.app
 
-class R {
-  class string {
-    companion object {
-      const val app_name: Int = 0x7f011111
-    }
+object R {
+  object string {
+    const val app_name: Int = 0x7f011111
   }
 }
