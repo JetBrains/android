@@ -40,14 +40,42 @@ import org.jetbrains.jewel.ui.theme.tooltipStyle
 internal fun ErrorTooltip(
   errorMessage: String?,
   modifier: Modifier = Modifier,
-  style: TooltipStyle = validationErrorTooltipStyle(),
+  content: @Composable () -> Unit,
+) {
+  ValidationTooltip(errorMessage, modifier, validationErrorTooltipStyle(), content = content)
+}
+
+/**
+ * Displays a tooltip with warning styling when hovering over the given [content] if
+ * [warningMessage] is not null; otherwise, just displays the content.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun WarningTooltip(
+  warningMessage: String?,
+  modifier: Modifier = Modifier,
+  content: @Composable () -> Unit,
+) {
+  ValidationTooltip(warningMessage, modifier, validationWarningTooltipStyle(), content = content)
+}
+
+/**
+ * Displays a tooltip when hovering over the given [content] if [message] is not null; otherwise,
+ * just displays the content.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun ValidationTooltip(
+  message: String?,
+  modifier: Modifier = Modifier,
+  style: TooltipStyle = JewelTheme.tooltipStyle,
   tooltipPlacement: TooltipPlacement = style.metrics.placement,
   content: @Composable () -> Unit,
 ) {
   Tooltip(
-    tooltip = { Text(errorMessage ?: "") },
+    tooltip = { Text(message ?: "") },
     modifier,
-    enabled = errorMessage != null,
+    enabled = message != null,
     style,
     tooltipPlacement,
     content,
@@ -57,27 +85,46 @@ internal fun ErrorTooltip(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun validationErrorTooltipStyle(): TooltipStyle {
-  val colors = JewelTheme.tooltipStyle.colors
-  val metrics = JewelTheme.tooltipStyle.metrics
   return TooltipStyle(
     TooltipColors(
       background = JewelTheme.globalColors.outlines.error,
       content = JewelTheme.globalColors.text.normal,
       border = JewelTheme.globalColors.outlines.focusedError,
-      shadow = colors.shadow,
+      shadow = JewelTheme.tooltipStyle.colors.shadow,
     ),
+    validationTooltipMetrics(),
+  )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun validationWarningTooltipStyle(): TooltipStyle {
+  return TooltipStyle(
+    TooltipColors(
+      background = JewelTheme.globalColors.outlines.warning,
+      content = JewelTheme.globalColors.text.normal,
+      border = JewelTheme.globalColors.outlines.focusedWarning,
+      shadow = JewelTheme.tooltipStyle.colors.shadow,
+    ),
+    validationTooltipMetrics(),
+  )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun validationTooltipMetrics() =
+  with(JewelTheme.tooltipStyle.metrics) {
     TooltipMetrics(
-      contentPadding = metrics.contentPadding,
+      contentPadding = contentPadding,
       showDelay = 500.milliseconds,
-      cornerSize = metrics.cornerSize,
-      borderWidth = metrics.borderWidth,
-      shadowSize = metrics.shadowSize,
+      cornerSize = cornerSize,
+      borderWidth = borderWidth,
+      shadowSize = shadowSize,
       placement =
         TooltipPlacement.ComponentRect(
           anchor = Alignment.TopCenter,
           alignment = Alignment.TopEnd,
           offset = DpOffset(0.dp, -8.dp),
         ),
-    ),
-  )
-}
+    )
+  }
