@@ -27,7 +27,7 @@ class GameViewModel : ViewModel() {
         if (it == null) {
             SpannableString("")
         } else {
-            val scrambledWord = it.toString()
+            val scrambledWord = it
             val spannable: Spannable = SpannableString(scrambledWord)
             spannable.setSpan(
                     TtsSpan.VerbatimBuilder(scrambledWord).build(),
