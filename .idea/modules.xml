@@ -418,6 +418,8 @@
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.iml" filepath="$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.tests.iml" filepath="$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.iml" filepath="$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.tests.iml" filepath="$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wizard/intellij.android.wizard.iml" filepath="$PROJECT_DIR$/wizard/intellij.android.wizard.iml" />
