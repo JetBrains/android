@@ -14,9 +14,7 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>
-                <arg>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compose-compiler-plugin/2.0.21/kotlin-compose-compiler-plugin-2.0.21.jar</arg>
-              </args>
+              <args>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compose-compiler-plugin/2.0.21/kotlin-compose-compiler-plugin-2.0.21.jar</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
@@ -85,6 +83,7 @@
     <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-designer" />
 </module>

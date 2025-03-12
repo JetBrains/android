@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.actions.SCENE_VIEW
@@ -32,10 +33,13 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
@@ -56,11 +60,12 @@ import org.mockito.kotlin.mock
 @RunsInEdt
 class SavePreviewInNewSizeActionTest {
 
-  @get:Rule val projectRule = ComposeProjectRule()
+  @get:Rule val projectRule = ComposeProjectRule(AndroidProjectRule.withAndroidModel())
 
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val studioFlagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_RESIZING, true)
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   @Test
   fun `update isVisible and isEnabled when scene manager is resized`() {
@@ -312,6 +317,76 @@ class SavePreviewInNewSizeActionTest {
         """
           .trimIndent()
       )
+  }
+
+  @Test
+  fun `send statistics on save`() = runTest {
+    ComposeResizeToolingUsageTracker.forceEnableForUnitTests = true
+
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+            @Composable
+            fun MyComposable() {
+            }
+            """
+          .trimIndent(),
+      )
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first()
+
+    val configuration = createConfiguration(500, 600)
+
+    val newWidth = 100
+    val newHeight = 200
+
+    configuration.updateScreenSize(newWidth, newHeight)
+
+    val sceneManager = mock<LayoutlibSceneManager>()
+    `when`(sceneManager.isResized).thenReturn(true)
+
+    val sceneView = mock<SceneView>()
+    `when`(sceneView.sceneManager).thenReturn(sceneManager)
+    `when`(sceneView.configuration).thenReturn(configuration)
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(SCENE_VIEW, sceneView)
+        .add(
+          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
+          previewElement as PsiComposePreviewElementInstance,
+        )
+        .build()
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(dataContext)
+
+    action.actionPerformed(event)
+
+    val eventAnalytics =
+      usageTrackerRule.usages
+        .find {
+          it.studioEvent.resizeComposePreviewEvent.eventType ==
+            ResizeComposePreviewEvent.EventType.RESIZE_SAVED
+        }!!
+        .studioEvent
+        .resizeComposePreviewEvent
+    assertThat(eventAnalytics.savedDeviceWidth).isEqualTo(newWidth)
+    assertThat(eventAnalytics.savedDeviceHeight).isEqualTo(newHeight)
+    assertThat(eventAnalytics.resizeMode)
+      .isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }
 
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {

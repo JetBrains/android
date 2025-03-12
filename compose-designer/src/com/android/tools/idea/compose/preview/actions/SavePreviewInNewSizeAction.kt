@@ -17,8 +17,10 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
@@ -26,6 +28,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
+import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -55,6 +58,17 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     val previewElementDefinition =
       previewElement.previewElementDefinition?.element as? KtAnnotationEntry ?: return
     val previewMethod = previewElement.previewBody?.element?.parent as? KtFunction ?: return
+
+    val (widthDp, heightDp) = getDimensions(configuration)
+    val mode =
+      if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
+      else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
+    ComposeResizeToolingUsageTracker.logResizeSaved(
+      DESIGN_SURFACE.getData(e.dataContext),
+      mode,
+      widthDp,
+      heightDp,
+    )
 
     WriteCommandAction.runWriteCommandAction(
       project,
@@ -126,6 +140,7 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
         widthDp = heightDp
         heightDp = temp
       }
+
       newAnnotation.removeArgument(PARAMETER_WIDTH_DP)
       argumentList.addArgument(ktPsiFactory.createArgument("$PARAMETER_WIDTH_DP = $widthDp"))
       newAnnotation.removeArgument(PARAMETER_HEIGHT_DP)
