@@ -109,7 +109,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class BazelDependencyBuilder implements DependencyBuilder {
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
-  public static final BoolExperiment buildGeneratedSrcJars =
+  private static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", false);
 
   // Note, this is currently incompatible with the build API.

@@ -101,7 +101,7 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
   private void updateArtifactDirectory(ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) throws BuildException {
     try {
       new ArtifactDirectoryUpdate(
-        artifactCache, workspaceRoot, inspectorsDir, artifactDirectoryContents, null, false)
+        artifactCache, workspaceRoot, inspectorsDir, artifactDirectoryContents)
         .update();
     }
     catch (IOException e) {

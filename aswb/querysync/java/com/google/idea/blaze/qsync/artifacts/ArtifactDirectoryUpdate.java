@@ -65,23 +65,17 @@ public class ArtifactDirectoryUpdate {
   private final Path root;
   private final ArtifactDirectoryContents contents;
   private final Set<Path> updatedPaths;
-  private final FileTransform stripGeneratedSourcesTransform;
-  private final boolean buildGeneratedSrcJars;
 
   public ArtifactDirectoryUpdate(
       BuildArtifactCache artifactCache,
       Path workspaceRoot,
       Path root,
-      ArtifactDirectoryContents contents,
-      FileTransform stripGeneratedSourcesTransform,
-      boolean buildGeneratedSrcJars) {
+      ArtifactDirectoryContents contents) {
     this.artifactCache = artifactCache;
     this.workspaceRoot = workspaceRoot;
     this.root = root;
     this.contents = contents;
     updatedPaths = Sets.newHashSet();
-    this.stripGeneratedSourcesTransform = stripGeneratedSourcesTransform;
-    this.buildGeneratedSrcJars = buildGeneratedSrcJars;
   }
 
   public static Path getContentsFile(Path artifactDir) {
@@ -211,13 +205,6 @@ public class ArtifactDirectoryUpdate {
           break;
         case UNZIP:
           updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src.get(), dest));
-          break;
-        case STRIP_SUPPORTED_GENERATED_SOURCES:
-          if (buildGeneratedSrcJars) {
-            updatedPaths.addAll(stripGeneratedSourcesTransform.copyWithTransform(src.get(), dest));
-          } else {
-            updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src.get(), dest));
-          }
           break;
         default:
           throw new IllegalArgumentException(
