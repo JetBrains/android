@@ -164,14 +164,14 @@ class GradleModuleSystem(
       ?.libraries
       ?.filterIsInstance<IdeArtifactLibrary>()
       ?.mapNotNull { it.component }
-      ?.find { it.matches(coordinate) }
+      ?.find { it.matches(coordinate.toDependency()) }
       ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
 
-  private fun Component.matches(coordinate: GradleCoordinate): Boolean =
-    this.group == coordinate.groupId &&
-    this.name == coordinate.artifactId &&
-    RichVersion.parse(coordinate.revision).contains(this.version)
+  private fun Component.matches(dependency: Dependency): Boolean =
+    this.group == dependency.group &&
+    this.name == dependency.name &&
+    dependency.version?.contains(this.version) == true
 
   private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
@@ -182,12 +182,12 @@ class GradleModuleSystem(
       else -> null
     }
 
-  fun getDependencyPath(coordinate: GradleCoordinate): Path? {
+  fun getDependencyPath(dependency: Dependency): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.libraries
       ?.filterIsInstance<IdeArtifactLibrary>()
       ?.mapNotNull { it.componentToArtifact() }
-      ?.find { it.first.matches(coordinate) }
+      ?.find { it.first.matches(dependency) }
       ?.second?.toPath()
   }
 

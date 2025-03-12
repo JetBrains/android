@@ -282,7 +282,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that the module system returns a path.
-      assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNotNull()
+      assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getDependency("+"))).isNotNull()
     }
   }
 
