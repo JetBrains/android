@@ -28,6 +28,8 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.impl.DomInvocationHandler;
+import com.intellij.util.xml.impl.DomManagerImpl;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
@@ -78,7 +80,12 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @Override
   public XmlElementDescriptor getDescriptor(XmlTag tag) {
-    DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+    // At the time this is called, `DomManager.getElement()` may return null because its internal `isChanging` field is
+    // true. By getting the element via its handler instead, we can circumvent that. This seems brittle at best, but
+    // it's what the platform's `DomDescriptorProvider` is doing as well.
+    // See b/402201770 and https://youtrack.jetbrains.com/issue/IJPL-180788 for context.
+    DomInvocationHandler handler = DomManagerImpl.getDomManager(tag.getProject()).getDomHandler(tag);
+    DomElement element = handler != null ? handler.getProxy() : null;
     if (element instanceof LayoutElement) {
       return createLayoutElementDescriptor((LayoutElement)element, tag);
     }

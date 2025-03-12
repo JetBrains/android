@@ -142,8 +142,8 @@ public class AndroidValueResourcesTest {
 
   @Before
   public void setUp() {
-    // TODO(b/402201770): Re-enable idempotence checks for cached values.
-    Registry.get("platform.random.idempotence.check.rate").setValue(0, androidProjectRule.getTestRootDisposable());
+    // b/402201770: Ensure any idempotence checks fail consistently.
+    Registry.get("platform.random.idempotence.check.rate").setValue(1, androidProjectRule.getTestRootDisposable());
 
     myFixture = androidProjectRule.getFixture();
     myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());

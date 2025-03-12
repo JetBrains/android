@@ -23,8 +23,8 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    // TODO(b/402201770): Re-enable idempotence checks for cached values.
-    Registry.get("platform.random.idempotence.check.rate").setValue(0, getTestRootDisposable());
+    // b/402201770: Ensure any idempotence checks fail consistently.
+    Registry.get("platform.random.idempotence.check.rate").setValue(1, getTestRootDisposable());
   }
 
   private static final String BASE_PATH = "refactoring/inlineStyle/";

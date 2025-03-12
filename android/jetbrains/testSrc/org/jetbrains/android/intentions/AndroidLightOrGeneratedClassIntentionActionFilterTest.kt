@@ -37,8 +37,8 @@ class AndroidLightOrGeneratedClassIntentionActionFilterTest : AndroidTestCase() 
   override fun setUp() {
     super.setUp()
 
-    // TODO(b/402201770): Re-enable idempotence checks for cached values.
-    Registry.get("platform.random.idempotence.check.rate").setValue(0, testRootDisposable)
+    // b/402201770: Ensure any idempotence checks fail consistently.
+    Registry.get("platform.random.idempotence.check.rate").setValue(1, testRootDisposable)
   }
 
   fun testLightClasses() {
