@@ -19,6 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Assert.assertEquals
@@ -37,11 +38,10 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/aidl-default", processor.getReadMoreUrl())
   }
 
-  // TODO(b/400927524): Disable test due to flakiness
-  @Ignore
   @Test
   fun testNoAidlDirectory() {
     writeToBuildFile(TestFileName("AidlDefault/NoAidlDeclaration"))
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
