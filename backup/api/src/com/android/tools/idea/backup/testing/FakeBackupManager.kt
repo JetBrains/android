@@ -28,6 +28,7 @@ import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.util.ui.EDT
 import java.nio.file.Path
 import javax.swing.JPanel
 
@@ -44,6 +45,7 @@ class FakeBackupManager : BackupManager {
     source: BackupManager.Source,
     notify: Boolean,
   ) {
+    assert(EDT.isCurrentThreadEdt())
     showBackupDialogInvocations.add(
       ShowBackupDialogInvocation(serialNumber, applicationId, source, notify)
     )
@@ -56,6 +58,7 @@ class FakeBackupManager : BackupManager {
     source: BackupManager.Source,
     notify: Boolean,
   ): BackupResult {
+    assert(EDT.isCurrentThreadEdt())
     restoreModalInvocations.add(RestoreModalInvocation(serialNumber, backupFile, source, notify))
     return Success
   }
