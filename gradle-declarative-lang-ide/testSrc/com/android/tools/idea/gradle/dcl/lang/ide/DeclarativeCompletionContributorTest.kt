@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
@@ -73,7 +74,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors", "testNamespace"
       )
     }
   }
@@ -111,7 +112,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors"
+        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors", "testNamespace"
       )
     }
   }
@@ -141,7 +142,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       Truth.assertThat(suggestions.toList()).containsExactly(
         "buildFeatures", "buildOutputs", "buildTypes", "bundle", "compileOptions",
         "compileSdk", "defaultConfig", "dependenciesDcl", "getDefaultProguardFile", "lint", "namespace",
-        "productFlavors", "signingConfigs", "sourceSets"
+        "productFlavors", "signingConfigs", "sourceSets", "testBuildType", "testNamespace"
       )
     }
   }
@@ -397,7 +398,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
    dependencyResolutionManagement {
      repositories {
        maven {
-          url = u$caret
+          url = ur$caret
        }
      }
    }
@@ -479,7 +480,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("rootProject", "uri")
+      Truth.assertThat(suggestions.toList()).containsExactly("layout", "rootProject", "uri")
     }
   }
 
@@ -522,35 +523,35 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
-  // data property should not have another data property
+  // root data property should not have assignable data property
   // except rootProject.name
   // once this test fail we need to add more completion logic
   fun testNoDataPropertyForDataProperty() {
     val knownPaths = listOf(listOf("rootProject", "name"))
     val schema = DeclarativeService.getInstance(fixture.project).getDeclarativeSchema() ?: return
 
-    fun EntryWithContext.check() {
+    fun EntryWithContext.check(path: List<String>) {
       val maybeDataProperty = entry
       if (maybeDataProperty is DataProperty) {
         val type = maybeDataProperty.valueType
         if (type is DataClassRef)
           getNextLevel().forEach { nextLevelElement ->
-            (nextLevelElement.entry as? DataProperty)?.let{
-              Truth.assertThat(listOf(maybeDataProperty.name, it.name)).isIn(knownPaths)
+            (nextLevelElement.entry as? DataProperty)?.let {
+              if(it.valueType is SimpleTypeRef) Truth.assertThat(path + it.name).isIn(knownPaths)
             }
           }
       }
     }
 
-    fun EntryWithContext.iterate(seen: List<Entry>) {
-      check()
+    fun EntryWithContext.iterate(path: List<String>, seen: List<Entry>) {
+      check(path)
       getNextLevel().forEach {
-        if (!seen.contains(it.entry)) it.iterate(seen + it.entry)
+        if (!seen.contains(it.entry)) it.iterate(path + it.entry.simpleName,seen + it.entry)
       }
     }
 
     // looking for root properties that has simple props like rootProject.name
-    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry)) }
+    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry.simpleName),listOf(it.entry)) }
   }
 
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {

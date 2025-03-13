@@ -138,7 +138,7 @@ private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capt
     )
     .afterLeafSkipping(
       psiElement().andOr(psiElement().whitespace(), psiElement().withText(".")),
-      psiElement().withText("rootProject")
+      psiElement().withText("rootProject") // rootProject remains only root object with assignable properties
     )
 
 private val AFTER_PROPERTY_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
