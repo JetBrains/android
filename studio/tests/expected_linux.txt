@@ -2982,9 +2982,6 @@ android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extension
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/layoutlib_jni.so
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libandroid_runtime.so
 android-studio/plugins/dev/lib/dev.jar
-android-studio/plugins/devkit/lib/devkit-jps.jar
-android-studio/plugins/devkit/lib/devkit-runtimeModuleRepository-jps.jar
-android-studio/plugins/devkit/lib/devkit.jar
 android-studio/plugins/directaccess/lib/device_streaming_kt_proto.jar
 android-studio/plugins/directaccess/lib/directaccess.jar
 android-studio/plugins/directaccess/lib/directaccess.so.jar

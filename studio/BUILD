@@ -1211,7 +1211,6 @@ iml_module(
     runtime_deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:Coverage",
-        "@intellij//:DevKit",
         "@intellij//:Git4Idea",
         "@intellij//:HtmlTools",
         "@intellij//:JUnit",

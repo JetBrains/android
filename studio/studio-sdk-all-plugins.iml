@@ -5,7 +5,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="RUNTIME" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Coverage" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-DevKit" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Git4Idea" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-HtmlTools" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-JUnit" level="project" />
