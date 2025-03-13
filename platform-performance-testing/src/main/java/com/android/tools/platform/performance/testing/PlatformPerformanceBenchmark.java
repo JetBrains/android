@@ -17,8 +17,11 @@ package com.android.tools.platform.performance.testing;
 
 import static io.ktor.util.date.DateJvmKt.getTimeMillis;
 
+import com.android.tools.perflogger.Analyzer;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
+import com.android.tools.perflogger.WindowDeviationAnalyzer;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,6 +32,11 @@ public class PlatformPerformanceBenchmark {
   @NotNull
   private final Benchmark benchmark;
   private final long creationTimestampMs;
+
+  private static final Analyzer ANALYZER = new WindowDeviationAnalyzer.Builder()
+    .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
+    .setRunInfoQueryLimit(50)
+    .addMedianTolerance(new WindowDeviationAnalyzer.MedianToleranceParams.Builder().build()).build();
 
   public PlatformPerformanceBenchmark(@NotNull final String dashboardName) {
     String testDisplayNameNoWhitespaces = dashboardName.replace(' ', '_');
@@ -42,6 +50,7 @@ public class PlatformPerformanceBenchmark {
 
   public void log(@NotNull final String metricName, long metricValue) {
     Metric metric = new Metric(metricName);
+    metric.setAnalyzers(benchmark, Collections.singleton(ANALYZER));
     metric.addSamples(benchmark, new Metric.MetricSample(creationTimestampMs, metricValue));
     metric.commit();
   }
