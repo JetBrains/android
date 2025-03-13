@@ -165,8 +165,11 @@ class AppInsightsProjectLevelControllerRule(
       if (provider.supportsMultipleEvents) {
         consumeNext()
         consumeNext()
-        consumeNext()
-        if (eventsState is LoadingState.Ready && eventsState.value.events.isNotEmpty()) {
+        resultState = consumeNext()
+        if (
+          eventsState.valueOrNull()?.events?.isNotEmpty() == true &&
+            resultState.selectedEvent?.isStackTraceEmpty() == false
+        ) {
           client.completeFetchInsightCallWith(insightState)
           consumeNext()
         }
