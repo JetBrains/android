@@ -32,7 +32,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -40,16 +42,21 @@ import org.mockito.Mockito;
  * Tests for {@link AndroidSdkUtils}.
  */
 public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
+  @Nullable
+  Path existingPath = null;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    existingPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+    AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
     ApplicationManager.getApplication().runWriteAction(AndroidSdkUtilsTest::removeAllExistingSdks);
   }
 
   @Override
   protected void tearDown() throws Exception {
     ApplicationManager.getApplication().runWriteAction(AndroidSdkUtilsTest::removeAllExistingSdks);
+    AndroidSdkPathStore.getInstance().setAndroidSdkPath(existingPath);
     super.tearDown();
   }
 
