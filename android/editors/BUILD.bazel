@@ -43,7 +43,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//plugins/properties/properties-psi-api:psi",
-    "//plugins/properties/properties-psi-impl:psi-impl",
+    "//plugins/properties/properties-psi-impl:backend-psi",
     "//RegExpSupport:regexp",
     "//RegExpSupport:regexp_test_lib",
     "//platform/vcs-impl",
