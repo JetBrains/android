@@ -168,7 +168,7 @@ public class GradleDependencyManager {
    *
    * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest
-   * @param nameMapper   a factory to produce configuration names and artifact specs
+   * @param sourceSet    the name of the source set in the module to add the dependency to
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(
