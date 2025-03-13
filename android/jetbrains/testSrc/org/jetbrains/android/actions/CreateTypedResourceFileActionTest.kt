@@ -25,7 +25,9 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -40,6 +42,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class CreateTypedResourceFileActionTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
@@ -58,7 +61,7 @@ class CreateTypedResourceFileActionTest {
         .isTrue()
     }
 
-    val resDir = fixture.findFileInTempDir("res")
+    val resDir = ReadAction.compute<VirtualFile, Throwable> { fixture.findFileInTempDir("res") }
     val psiResDir = fixture.psiManager.findDirectory(resDir)
     dataContext.add(CommonDataKeys.PSI_ELEMENT, psiResDir)
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).

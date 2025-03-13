@@ -690,7 +690,7 @@ interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule 
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
-  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  TestRule by RuleChain.outerRule(EdtRule()).around(projectRule)!! {
   val project: Project get() = projectRule.project
   val fixture: CodeInsightTestFixture get() = projectRule.fixture
   val testRootDisposable: Disposable get() = projectRule.testRootDisposable
