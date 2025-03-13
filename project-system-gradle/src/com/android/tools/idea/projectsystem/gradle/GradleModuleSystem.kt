@@ -363,12 +363,8 @@ class GradleModuleSystem(
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependencies(module, dependencies) { _, name, _ ->
-          when {
-            name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
-            name.startsWith("test") -> "testAnnotationProcessor"
-            else -> "annotationProcessor"
-          }
+        manager.addDependencies(module, dependencies) { _, _, _ ->
+          "annotationProcessor"
         }
       }
       DependencyType.DEBUG_IMPLEMENTATION -> {
