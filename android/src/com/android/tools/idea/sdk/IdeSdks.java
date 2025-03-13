@@ -665,7 +665,7 @@ public class IdeSdks {
 
   @Nullable
   @VisibleForTesting
-  Sdk doGetJdk(boolean createIfNeeded) {
+  public Sdk doGetJdk(boolean createIfNeeded) {
     // b/161405154  If STUDIO_GRADLE_JDK is valid and selected then return the corresponding Sdk
     if (myEnvVariableSettings.isUseJdkEnvVariable()) {
       return myEnvVariableSettings.getSdk();
