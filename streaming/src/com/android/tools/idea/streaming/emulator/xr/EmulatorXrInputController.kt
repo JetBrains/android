@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -326,8 +327,8 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
       return false
     }
     translation.clear()
-    // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
-    translation.deltaZ = (-event.wheelRotation * MOUSE_WHEEL_NAVIGATION_FACTOR * scaleFactor).toFloat()
+    // Rotating mouse wheel forward moves the viewer forward in 3D space.
+    translation.deltaZ = event.getNormalizedScrollAmount(scaleFactor).toFloat() * MOUSE_WHEEL_NAVIGATION_FACTOR
     inputEvent.clear()
     inputEvent.setXrHeadMovementEvent(translation)
     sendInputEvent(inputEvent.build())
@@ -520,8 +521,7 @@ internal class EmulatorXrInputControllerService(project: Project): Disposable {
   }
 }
 
-// TODO: Adjust this coefficient when XR gRPC API is finalized.
-private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
+private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 0.25F
 
 /** Distance of translational movement in meters when moving mouse across the device display. */
 private const val TRANSLATION_SCALE = 5f

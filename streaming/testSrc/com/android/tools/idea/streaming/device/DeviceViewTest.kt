@@ -34,8 +34,8 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
