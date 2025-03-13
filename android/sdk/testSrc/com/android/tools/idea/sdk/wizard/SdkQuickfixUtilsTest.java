@@ -59,10 +59,11 @@ import org.junit.rules.RuleChain;
 /**
  * Tests for {@link SdkQuickfixUtils}.
  */
+@RunsInEdt
 public class SdkQuickfixUtilsTest {
   public AndroidProjectRule androidProjectRule = AndroidProjectRule.withSdk();
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(new EdtRule()).around(androidProjectRule).around(new HeadlessDialogRule());
+  public RuleChain ruleChain = RuleChain.outerRule(new EdtRule()).around(RuleChain.outerRule(androidProjectRule).around(new HeadlessDialogRule()));
 
   RepoManager myRepoManager;
   AndroidSdkHandler mySdkHandler;
