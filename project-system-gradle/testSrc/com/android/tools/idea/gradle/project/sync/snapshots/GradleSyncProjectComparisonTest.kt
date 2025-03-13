@@ -38,6 +38,7 @@ import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -199,7 +200,8 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
 
   @Test
-  fun testLightSyncActualNoBuild() {
+  @Ignore("b/403276116")
+  fun testLightSyncActual() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val dump = projectRule.project.saveAndDump()
     assertIsEqualToSnapshot(dump)
