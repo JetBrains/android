@@ -16,7 +16,6 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdInfo
@@ -78,7 +77,6 @@ internal class EditVirtualDeviceDialog(
   fun WizardPageScope.Page() {
     ConfigurationPage(
       device,
-      avdInfo.systemImage,
       systemImageStateFlow,
       skins,
       deviceNameValidator,
@@ -87,8 +85,8 @@ internal class EditVirtualDeviceDialog(
     )
   }
 
-  private suspend fun finish(device: VirtualDevice, image: ISystemImage): Boolean {
-    avdBuilder.copyFrom(device, image)
+  private suspend fun finish(device: VirtualDevice): Boolean {
+    avdBuilder.copyFrom(device)
 
     // At this point, builder.avdName still reflects its on-disk location. If the user
     // updated the display name, try to update avdName to reflect the new display name.

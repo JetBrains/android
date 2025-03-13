@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.compose.ComposeWizard
@@ -264,11 +263,9 @@ internal class AddDeviceWizard(
     }
   }
 
-  private suspend fun finish(device: VirtualDevice, image: ISystemImage): Boolean {
+  private suspend fun finish(device: VirtualDevice): Boolean {
     val avdInfo =
-      withContext(AndroidDispatchers.diskIoThread) {
-        VirtualDevices(source.avdManager).add(device, image)
-      }
+      withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(source.avdManager).add(device) }
     if (avdInfo != null) {
       onAdd(avdInfo)
     }
