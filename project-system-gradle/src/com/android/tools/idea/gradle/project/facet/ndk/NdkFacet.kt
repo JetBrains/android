@@ -26,6 +26,8 @@ import com.intellij.facet.impl.FacetUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.WriteExternalException
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 
 class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguration
 ) : Facet<NdkFacetConfiguration?>(facetType, module, name, configuration, null) {
@@ -82,16 +84,21 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
 
     @JvmStatic
     fun getInstance(module: Module): NdkFacet? {
-      if (module.isDisposed) {
-        Logger.getInstance(NdkFacet::class.java).warn("'$facetName' facet is requested on a disposed module $module")
-        return null
+      return runReadAction {
+        if (module.isDisposed) {
+          Logger.getInstance(NdkFacet::class.java).warn("'$facetName' facet is requested on a disposed module $module")
+          null
+        } else {
+          val holderModule = module.getHolderModule()
+          if (holderModule.isDisposed) {
+            Logger.getInstance(NdkFacet::class.java).warn(
+              "'$facetName' facet is requested on $module but holder module is disposed: $holderModule")
+            null
+          } else {
+            FacetManager.getInstance(holderModule).getFacetByType(facetTypeId)
+          }
+        }
       }
-      val holderModule = module.getHolderModule()
-      if (holderModule.isDisposed) {
-        Logger.getInstance(NdkFacet::class.java).warn("'$facetName' facet is requested on $module but holder module is disposed: $holderModule")
-        return null
-      }
-      return FacetManager.getInstance(holderModule).getFacetByType(facetTypeId)
     }
 
     @JvmStatic
