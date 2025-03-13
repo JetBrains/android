@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package proto1_project;
+
+import "simple_proto/external/external.proto";
+
+option java_package = "com.example.lib";
+option java_multiple_files = true;
+
+message LibMessage {
+  optional string message = 1;
+  optional proto1_external.ExternalMessage external_message = 2;
+}
