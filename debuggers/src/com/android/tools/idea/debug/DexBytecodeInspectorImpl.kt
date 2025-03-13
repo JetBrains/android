@@ -318,6 +318,8 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
           getCalledInlineFunction(debugProcess.positionManager, inlineCall.startLocation)
             ?: continue
         visitInlineFunction(call)
+      } else {
+        visitInlineInvokeCall()
       }
     }
   }
