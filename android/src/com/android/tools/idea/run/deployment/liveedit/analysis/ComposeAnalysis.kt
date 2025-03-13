@@ -123,7 +123,7 @@ fun computeGroupTable(classes: List<IrClass>, groups: List<ComposeGroup>): Group
     val outerClass = classesByName[clazz.enclosingMethod?.outerClass] ?: continue
     val outerMethod =
       outerClass.methods.singleOrNull { it.name == clazz.enclosingMethod?.outerMethod && it.desc == clazz.enclosingMethod.outerMethodDesc }
-        ?: continue
+      ?: continue
     inners.computeIfAbsent(outerMethod) { mutableListOf() }.add(clazz)
   }
 
