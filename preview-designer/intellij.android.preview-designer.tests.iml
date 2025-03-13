@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />
 </module>
