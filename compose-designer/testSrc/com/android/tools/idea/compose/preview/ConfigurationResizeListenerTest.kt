@@ -74,7 +74,10 @@ class ConfigurationResizeListenerTest {
     val sceneManager = mock<LayoutlibSceneManager>()
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
+    val listener =
+      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
+        advanceUntilIdle()
+      }
 
     listener.changed(CFG_NIGHT_MODE or CFG_ACTIVITY) // No CFG_DEVICE
     advanceUntilIdle()
@@ -95,10 +98,11 @@ class ConfigurationResizeListenerTest {
 
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     configuration.updateScreenSize(700, 800)
@@ -109,7 +113,7 @@ class ConfigurationResizeListenerTest {
   }
 
   @Test
-  fun `listener triggers render with swaped x and y due to landscape orientation`() = runTest {
+  fun `listener triggers render with swapped x and y due to landscape orientation`() = runTest {
     val sceneManager =
       mock<LayoutlibSceneManager>().also {
         whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
@@ -119,14 +123,16 @@ class ConfigurationResizeListenerTest {
 
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     val newDevice = device(500, 1000)
-    val state = configuration.deviceState!!.apply { orientation = ScreenOrientation.LANDSCAPE }
+    val state =
+      newDevice.defaultState.deepCopy()!!.apply { orientation = ScreenOrientation.LANDSCAPE }
     configuration.setEffectiveDevice(newDevice, state)
     advanceUntilIdle()
 
@@ -153,10 +159,11 @@ class ConfigurationResizeListenerTest {
 
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
@@ -182,10 +189,11 @@ class ConfigurationResizeListenerTest {
 
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
     configuration.addListener(listener)
     configuration.updateScreenSize(700, 800)
 
@@ -221,10 +229,11 @@ class ConfigurationResizeListenerTest {
 
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
@@ -251,7 +260,10 @@ class ConfigurationResizeListenerTest {
       }
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
+    val listener =
+      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
+        advanceUntilIdle()
+      }
     configuration.addListener(listener)
 
     // Simulate multiple, rapid device changes.
@@ -279,10 +291,11 @@ class ConfigurationResizeListenerTest {
     val configuration = createConfiguration(500, 600)
     val listener =
       ConfigurationResizeListener(
-        sceneManager,
-        configuration,
-        StandardTestDispatcher(testScheduler),
-      )
+          sceneManager,
+          configuration,
+          StandardTestDispatcher(testScheduler),
+        )
+        .also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
