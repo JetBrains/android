@@ -338,23 +338,7 @@ class GradleModuleSystem(
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val dependencies = Collections.singletonList(coordinate.toDependency())
-    if (module.isMultiPlatformModule) {
-      getGradleSourceSetName(module)?.let { registerDependencies(dependencies, type, it) }
-    } else {
-      registerDependencies(dependencies, type)
-    }
-  }
-
-  @RequiresBackgroundThread
-  private fun getGradleSourceSetName(module: Module): String? {
-    val moduleNode = CachedModuleDataFinder.findModuleData(module) ?: return null
-    val sourceSetData = moduleNode.data as? GradleSourceSetData ?: return null
-    return sourceSetData.moduleName
-  }
-
-  private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType, sourceSet: String) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    manager.addDependencies(module, dependencies, sourceSet)
+    registerDependencies(dependencies, type)
   }
 
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
@@ -723,6 +707,14 @@ class GradleModuleSystem(
       generateManifestClass = false,
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
+
+    @RequiresBackgroundThread
+    @JvmStatic
+    fun getGradleSourceSetName(module: Module): String? {
+      val moduleNode = CachedModuleDataFinder.findModuleData(module) ?: return null
+      val sourceSetData = moduleNode.data as? GradleSourceSetData ?: return null
+      return sourceSetData.moduleName
+    }
   }
 }
 
