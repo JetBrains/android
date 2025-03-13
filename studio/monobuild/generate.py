@@ -390,7 +390,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file: Path) -> di
 
     platform_jar_pattern = re.compile(r"\.\./lib/[^/]*\.jar")
     plugin_jar_pattern = re.compile(r"\.\./plugins/([^/]*)/lib/[^/]*\.jar")
-    v2_module_jar_pattern = re.compile(r"\.\.(/plugins)?/lib/modules/[^/]*\.jar")
+    v2_module_jar_pattern = re.compile(r"\.\.(/plugins/[^/]*)?/lib/modules/[^/]*\.jar")
 
     # Studio refers to plugins by their plugin ID. So, we need to find the plugin ID associated
     # with each plugin (by querying the plugin.xml file inside each plugin directory).
