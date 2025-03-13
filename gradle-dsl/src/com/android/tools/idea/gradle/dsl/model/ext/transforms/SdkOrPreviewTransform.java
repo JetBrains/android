@@ -102,15 +102,15 @@ public class SdkOrPreviewTransform extends PropertyTransform {
       }
       else if (value instanceof Integer) {
         operatorName = sdkSetter;
-        syntax = Objects.equals("kts", holder.getDslFile().getFile().getExtension())
-                 ? ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
-                 : ExternalNameInfo.ExternalNameSyntax.METHOD;
+        syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
+                 ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                 : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
       else if (value instanceof String && ((String) value).startsWith("android-")) {
         operatorName = previewSetter;
-        syntax = Objects.equals("kts", holder.getDslFile().getFile().getExtension())
-                 ? ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
-                 : ExternalNameInfo.ExternalNameSyntax.METHOD;
+        syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
+                 ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                 : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
         value = ((String)value).substring("android-".length());
       }
       else { // RawText, literal Strings not beginning "android-"
