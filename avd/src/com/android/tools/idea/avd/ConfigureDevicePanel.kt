@@ -141,12 +141,6 @@ private fun Tabs(
         Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
       )
     Tab.ADDITIONAL_SETTINGS -> {
-      if (configureDevicePanelState.hasPlayStore()) {
-        WarningBanner(
-          "Some device settings cannot be configured when using a Google Play Store image"
-        )
-      }
-
       VerticallyScrollableContainer {
         AdditionalSettingsPanel(
           configureDevicePanelState,

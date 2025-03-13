@@ -75,7 +75,7 @@ internal fun StorageGroup(
 
       StorageCapacityField(
         state.internalStorage,
-        state.internalStorage.result().internalStorageErrorMessage(hasPlayStore),
+        state.internalStorage.result().internalStorageErrorMessage(),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -91,20 +91,16 @@ internal fun StorageGroup(
 
     if (postMvpFeaturesEnabled) {
       if (device.formFactor != FormFactors.WEAR) {
-        ExpandedStorage(device, state, hasPlayStore)
+        ExpandedStorage(device, state)
       }
     } else {
-      ExpandedStorage(device, state, hasPlayStore)
+      ExpandedStorage(device, state)
     }
   }
 }
 
 @Composable
-private fun ExpandedStorage(
-  device: VirtualDevice,
-  state: StorageGroupState,
-  hasPlayStore: Boolean,
-) {
+private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
   Row {
     Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
 
@@ -120,37 +116,32 @@ private fun ExpandedStorage(
 
   Row(Modifier.testTag("CustomRow")) {
     RadioButtonRow(
-      ExpandedStorageRadioButton.CUSTOM,
-      state.selectedRadioButton,
+      value = ExpandedStorageRadioButton.CUSTOM,
+      selectedValue = state.selectedRadioButton,
       onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.CUSTOM },
-      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
-      !hasPlayStore,
+      modifier =
+        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
     )
 
     val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.CUSTOM
 
-    state.custom.minValue =
-      if (hasPlayStore) {
-        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
-      } else {
-        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
-      }
+    state.custom.minValue = VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
 
-    val errorMessage =
-      state.custom.result().customExpandedStorageErrorMessage(hasPlayStore, enabled)
+    val errorMessage = state.custom.result().customExpandedStorageErrorMessage(enabled)
 
     val isWarningVisible = state.isCustomChangedWarningVisible(errorMessage == null)
 
     StorageCapacityField(
-      state.custom,
-      errorMessage,
-      Modifier.alignByBaseline(),
-      enabled,
-      when {
-        errorMessage != null -> Outline.Error
-        isWarningVisible -> Outline.Warning
-        else -> Outline.None
-      },
+      state = state.custom,
+      errorMessage = errorMessage,
+      modifier = Modifier.alignByBaseline(),
+      enabled = enabled,
+      outline =
+        when {
+          errorMessage != null -> Outline.Error
+          isWarningVisible -> Outline.Warning
+          else -> Outline.None
+        },
     )
 
     if (isWarningVisible) {
@@ -167,25 +158,22 @@ private fun ExpandedStorage(
 
   Row {
     RadioButtonRow(
-      ExpandedStorageRadioButton.EXISTING_IMAGE,
-      state.selectedRadioButton,
+      value = ExpandedStorageRadioButton.EXISTING_IMAGE,
+      selectedValue = state.selectedRadioButton,
       onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.EXISTING_IMAGE },
-      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
-      !hasPlayStore,
+      modifier =
+        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
     )
 
-    val enabled =
-      state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE && !hasPlayStore
+    val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE
 
     ExistingImageField(
-      state.existingImage,
-      if (enabled && device.expandedStorage == null) {
+      existingImage = state.existingImage,
+      errorMessage =
         "The specified image must be a valid file"
-      } else {
-        null
-      },
-      enabled,
-      Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+          .takeIf { enabled && device.expandedStorage == null },
+      enabled = enabled,
+      modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
     )
   }
 
@@ -193,41 +181,27 @@ private fun ExpandedStorage(
     ExpandedStorageRadioButton.NONE,
     state.selectedRadioButton,
     onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.NONE },
-    enabled = !hasPlayStore,
   )
 
   LaunchedEffect(Unit) { state.expandedStorageFlow.collect { device.expandedStorage = it } }
 }
 
-private fun Result.internalStorageErrorMessage(hasPlayStore: Boolean) =
+private fun Result.internalStorageErrorMessage() =
   when (this) {
     is Valid -> null
     is Empty -> "Specify an internal storage value"
-    is LessThanMin ->
-      if (hasPlayStore) {
-        "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-      } else {
-        "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-      }
+    is LessThanMin -> "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
     is Overflow -> "Internal storage is too large"
   }
 
-private fun Result.customExpandedStorageErrorMessage(
-  hasPlayStore: Boolean,
-  customRadioButtonEnabled: Boolean,
-) =
+private fun Result.customExpandedStorageErrorMessage(customRadioButtonEnabled: Boolean) =
   if (!customRadioButtonEnabled) {
     null
   } else {
     when (this) {
       is Valid -> null
       is Empty -> "Specify an SD card size"
-      is LessThanMin ->
-        if (hasPlayStore) {
-          "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
-        } else {
-          "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
-        }
+      is LessThanMin -> "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
       is Overflow -> "SD card size is too large"
     }
   }
@@ -238,7 +212,7 @@ private fun <E : Enum<E>> RadioButtonRow(
   selectedValue: Enum<E>,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  enabled: Boolean,
+  enabled: Boolean = true,
 ) {
   RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier, enabled)
 }
@@ -315,10 +289,7 @@ internal class StorageGroupState(
     mutableStateOf(ExpandedStorageRadioButton.valueOf(requireNotNull(device.expandedStorage)))
 
   val custom =
-    StorageCapacityFieldState(
-      customValue(device),
-      VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE,
-    )
+    StorageCapacityFieldState(customValue(device), VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE)
 
   val existingImage = TextFieldState(requireNotNull(device.expandedStorage).toTextFieldValue())
 

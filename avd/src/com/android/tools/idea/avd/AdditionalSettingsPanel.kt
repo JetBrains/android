@@ -32,7 +32,6 @@ import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
-import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
 import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
@@ -72,17 +71,16 @@ internal fun AdditionalSettingsPanel(
     StartupGroup(device)
 
     StorageGroup(
-      device,
-      state.storageGroupState,
-      hasPlayStore,
-      StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
+      device = device,
+      state = state.storageGroupState,
+      hasPlayStore = hasPlayStore,
+      postMvpFeaturesEnabled = StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
     )
 
     EmulatedPerformanceGroup(
-      device,
-      state.emulatedPerformanceGroupState,
-      hasPlayStore,
-      state.maxCpuCoreCount,
+      device = device,
+      state = state.emulatedPerformanceGroupState,
+      maxCpuCoreCount = state.maxCpuCoreCount,
     )
 
     PreferredAbiGroup(
@@ -254,7 +252,6 @@ private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
   state: EmulatedPerformanceGroupState,
-  hasGooglePlayStore: Boolean,
   maxCpuCoreCount: Int,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -264,8 +261,7 @@ private fun EmulatedPerformanceGroup(
       Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       Dropdown(
-        Modifier.alignByBaseline(),
-        !hasGooglePlayStore,
+        modifier = Modifier.alignByBaseline(),
         menuContent = {
           for (count in 1..maxCpuCoreCount) {
             selectableItem(
@@ -285,11 +281,11 @@ private fun EmulatedPerformanceGroup(
       Text("Graphics acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       Dropdown(
-        device.graphicsMode,
-        listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
+        selectedItem = device.graphicsMode,
+        items =
+          listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
         onSelectedItemChange = { device.graphicsMode = it },
-        Modifier.alignByBaseline(),
-        !hasGooglePlayStore,
+        modifier = Modifier.alignByBaseline(),
       )
     }
 
@@ -299,10 +295,9 @@ private fun EmulatedPerformanceGroup(
       Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
-        state.ram,
-        state.ram.result().ramErrorMessage(),
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-        !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
+        state = state.ram,
+        errorMessage = state.ram.result().ramErrorMessage(),
+        modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
       LaunchedEffect(Unit) { state.ram.storageCapacity.collect { device.ram = it } }
@@ -318,10 +313,9 @@ private fun EmulatedPerformanceGroup(
       Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
-        state.vmHeapSize,
-        state.vmHeapSize.result().vmHeapSizeErrorMessage(),
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-        !hasGooglePlayStore,
+        state = state.vmHeapSize,
+        errorMessage = state.vmHeapSize.result().vmHeapSizeErrorMessage(),
+        modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
       LaunchedEffect(Unit) { state.vmHeapSize.storageCapacity.collect { device.vmHeapSize = it } }

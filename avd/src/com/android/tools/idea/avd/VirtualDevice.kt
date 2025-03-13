@@ -137,9 +137,7 @@ internal class VirtualDevice(
   }
 
   companion object {
-    val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)
-
-    val MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE = StorageCapacity(100, StorageCapacity.Unit.MB)
+    val MIN_INTERNAL_STORAGE = StorageCapacity(6, StorageCapacity.Unit.GB)
 
     val MIN_CUSTOM_EXPANDED_STORAGE = StorageCapacity(10, StorageCapacity.Unit.MB)
     val MIN_RAM = StorageCapacity(128, StorageCapacity.Unit.MB)
