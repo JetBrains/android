@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
@@ -346,15 +345,10 @@ class GradleModuleSystem(
 
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
-        // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependencies(module, dependencies) { _, _, _ ->
-          "annotationProcessor"
-        }
+        manager.addDependencies(module, dependencies, "annotationProcessor")
       }
       DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependencies(module, dependencies) { _, _, _ ->
-          "debugImplementation"
-        }
+        manager.addDependencies(module, dependencies, "debugImplementation")
       }
       else -> {
         manager.addDependencies(module, dependencies)

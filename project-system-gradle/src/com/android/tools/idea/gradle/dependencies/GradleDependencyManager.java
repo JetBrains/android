@@ -152,16 +152,16 @@ public class GradleDependencyManager {
    * Like {@link #addDependencies(Module, Iterable)} but allows you to customize the configuration
    * name of the inserted dependencies.
    *
-   * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest
-   * @param nameMapper   a factory to produce configuration names and artifact specs
+   * @param module        the module to add dependencies to
+   * @param dependencies  the dependencies of interest
+   * @param configuration the name of the configuration to add to
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(
     @NotNull Module module,
     @NotNull Iterable<Dependency> dependencies,
-    @Nullable ConfigurationNameMapper nameMapper) {
-    return addDependenciesInTransaction(module, dependencies, nameMapper);
+    @Nullable String configuration) {
+    return addDependenciesInTransaction(module, dependencies, configuration);
   }
 
   /**
@@ -183,7 +183,7 @@ public class GradleDependencyManager {
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<Dependency> dependencies,
-                                               @Nullable ConfigurationNameMapper nameMapper) {
+                                               @Nullable String configuration) {
 
     Project project = module.getProject();
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
@@ -207,8 +207,8 @@ public class GradleDependencyManager {
     WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
       for (Dependency dependency : dependencies) {
         String name = IMPLEMENTATION;
-        if (nameMapper != null) {
-          name = nameMapper.mapName(module, name, dependency);
+        if (configuration != null) {
+          name = configuration;
         }
         Optional<Dependency> resolvedCoordinate = resolveCoordinate(project, dependency, declaredAppCompatVersion);
         Dependency finalDependency = resolvedCoordinate.orElse(dependency);
