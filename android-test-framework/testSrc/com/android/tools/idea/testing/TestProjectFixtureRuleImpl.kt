@@ -127,12 +127,16 @@ private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposa
     setupJdk(jdkPath, testRootDisposable)
   }
 
-  val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
-  if (jdk.homePath != jdkPath.toAbsolutePath().toString()) {
-    Disposer.register(testRootDisposable) {
-      runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
+  // first get an existing JDK
+  IdeSdks.getInstance().doGetJdk(/*createIfNeeded = */false)
+    // if no existing JDK is found - create one and register it in Disposer for proper cleanup.
+    ?: IdeSdks.getInstance().doGetJdk(/*createIfNeeded = */true)?.also { createdJdk ->
+      Disposer.register(testRootDisposable) {
+        runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(createdJdk) } }
+      }
     }
-  }
+    // if nothing worked - throw an error.
+    ?: error("Failed to set JDK")
 
   val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
   Disposer.register(testRootDisposable) {
