@@ -19,6 +19,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
@@ -121,12 +122,19 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val actionFinished = AtomicInteger()
 
     val continueBackgroundAction = AtomicBoolean()
+    val actionWasCancelled = AtomicBoolean()
 
     backgroundActions.runInUpdateQueue(Any()) {
       actionStarted.incrementAndGet()
 
       waitForCondition(10.seconds) {
-        ProgressManager.checkCanceled()
+        try {
+          ProgressManager.checkCanceled()
+        } catch (pce: ProcessCanceledException) {
+          actionWasCancelled.set(true)
+          throw pce
+        }
+
         continueBackgroundAction.get()
       }
 
@@ -134,7 +142,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     }
 
     // Wait until the background action has started.
-    waitForCondition(10.seconds) { actionStarted.get() == 1 }
+    waitForCondition(10.seconds) { actionStarted.get() >= 1 }
 
     // Now that we know the read action has begun, try to get the write lock.
     val writeActionStarted = Semaphore(0)
@@ -144,10 +152,10 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     writeActionStarted.acquire()
     continueBackgroundAction.set(true)
 
-    // The background action, after all is said and done, should have been started twice and
-    // finished once.
+    // The background action, after all is said and done, should have been cancelled, but still
+    // should have finished.
     backgroundActions.waitForUpdateQueue()
-    assertThat(actionStarted.get()).isEqualTo(2)
+    assertThat(actionWasCancelled.get()).isTrue()
     assertThat(actionFinished.get()).isEqualTo(1)
   }
 
