@@ -1189,6 +1189,11 @@ private class AndroidTestResultsRow(override val methodName: String,
   override fun getRetentionSnapshot(device: AndroidDevice): File? = myTestCases[device.id]?.retentionSnapshot
 
   /**
+   * Returns the additional test artifacts.
+   */
+  override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = myTestCases[device.id]?.additionalTestArtifacts ?: mapOf()
+
+  /**
    * Returns an aggregated test result.
    */
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
@@ -1420,6 +1425,8 @@ private class AggregationRow(override val packageName: String = "",
   override fun getRetentionInfo(device: AndroidDevice): File? = null
 
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+
+  override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
 
   /**
    * Sorts children of this tree node by a given [comparator].

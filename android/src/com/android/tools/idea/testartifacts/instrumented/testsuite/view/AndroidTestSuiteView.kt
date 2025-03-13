@@ -42,6 +42,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.An
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.build.BuildViewSettingsProvider
+import com.intellij.execution.Platform
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.filters.Filter
@@ -145,6 +147,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private val myClock: Clock = Clock.systemDefaultZone(),
   @VisibleForTesting val myIsImportedResult: Boolean = false
 ) : ConsoleView,
+    BuildViewSettingsProvider,
     AndroidTestResultListener,
     AndroidTestResultsTableListener,
     AndroidTestSuiteDetailsViewListener,
@@ -196,7 +199,11 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private var myStartedDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
   private var myFinishedDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
 
-  private var scheduledTestCases = 0
+  // Key is a pair of <DeviceID, TestSuiteID>.
+  private val scheduledTestCasesForTestSuite: MutableMap<Pair<String, String>, Int> = mutableMapOf()
+  private val scheduledTestCases: Int
+    get() = scheduledTestCasesForTestSuite.values.sum()
+
   private var passedTestCases = 0
   private var failedTestCases = 0
   private var skippedTestCases = 0
@@ -410,7 +417,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @AnyThread
   override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {
     AppUIUtil.invokeOnEdt {
-      scheduledTestCases += testSuite.testCaseCount
+      scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myStartedDevices.add(device)
       updateProgress()
     }
@@ -421,6 +428,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
                                  testSuite: AndroidTestSuite,
                                  testCase: AndroidTestCase) {
     AppUIUtil.invokeOnEdt {
+      scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myResultsTableView.addTestCase(device, testCase)
       myDetailsView.reloadAndroidTestResults()
     }
@@ -431,6 +439,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
                                   testSuite: AndroidTestSuite,
                                   testCase: AndroidTestCase) {
     AppUIUtil.invokeOnEdt {
+      scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       // Include a benchmark output to a raw output console for backward compatibility.
       val benchmarkOutput = testCase.benchmark
       if (benchmarkOutput.isNotEmpty()) {
@@ -460,6 +469,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
     AppUIUtil.invokeOnEdt {
+      scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myFinishedDevices.add(device)
       if (myFinishedDevices.size == myScheduledDevices.size) {
         myTestFinishedTimeMillis = myClock.millis()
@@ -663,7 +673,24 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
   override fun print(text: String, contentType: ConsoleViewContentType) {
+    if (detectUnwantedEmptyLine(text)) {
+      return
+    }
     myDetailsView.rawTestLogConsoleView.print(text, contentType)
+  }
+
+  /**
+   * Copied from [org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsole].
+   */
+  private var lastMessageWasEmptyLine = false
+  private fun detectUnwantedEmptyLine(s: String): Boolean {
+    if (Platform.current().lineSeparator == s) {
+      if (lastMessageWasEmptyLine) return true
+      lastMessageWasEmptyLine = true
+    } else {
+      lastMessageWasEmptyLine = false
+    }
+    return false
   }
 
   override fun clear() {
@@ -791,4 +818,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   }
+
+  override fun isExecutionViewHidden(): Boolean = true
 }

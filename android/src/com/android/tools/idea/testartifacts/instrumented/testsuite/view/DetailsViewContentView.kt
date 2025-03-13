@@ -69,6 +69,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myBenchmarkTab: TabInfo
   @VisibleForTesting val myBenchmarkView: ConsoleViewImpl
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
+  val myScreenshotResultView: ScreenshotResultView
+  val myScreenshotTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
   @VisibleForTesting var lastSelectedTab: TabInfo? = null
@@ -80,6 +82,13 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var needsRefreshLogsView: Boolean = true
 
   init {
+    // Screenshot tab
+    myScreenshotResultView = ScreenshotResultView()
+    myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
+    myScreenshotTab.setText("Screenshot")
+    myScreenshotTab.setTooltipText("Show screenshot information")
+    tabs.addTab(myScreenshotTab)
+
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
     Disposer.register(parentDisposable, myLogsView)
@@ -182,6 +191,23 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     }
   }
 
+  fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>) {
+    val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
+    val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
+    val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
+    if (newImage != null || refImage != null || diffImage != null) {
+      myScreenshotTab.isHidden = false
+      myScreenshotResultView.newImagePath = newImage ?: ""
+      myScreenshotResultView.refImagePath = refImage ?: ""
+      myScreenshotResultView.diffImagePath = diffImage ?: ""
+      myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
+      myScreenshotResultView.updateView()
+      this.lastSelectedTab = myScreenshotTab
+    } else {
+      myScreenshotTab.isHidden = true
+    }
+  }
+
   private fun refreshTestResultLabel() {
     val device = myAndroidDevice
     if (device == null) {
@@ -245,13 +271,13 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting fun refreshLogsView() {
     needsRefreshLogsView = false
     myLogsView.clear()
+    myLogsView.scrollTo(0)
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
-      lastSelectedTab = tabs.selectedInfo
       logsTab.isHidden = true
       return
     }
     logsTab.isHidden = false
-    lastSelectedTab?.let { tabs.select(it, true) }
+    lastSelectedTab?.let { tabs.select(it, false) }
     if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)

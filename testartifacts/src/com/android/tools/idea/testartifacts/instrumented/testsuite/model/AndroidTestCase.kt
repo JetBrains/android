@@ -44,7 +44,9 @@ data class AndroidTestCase(val id: String,
                            var endTimestampMillis: Long? = null,
                            var benchmark: String = "",
                            var retentionInfo: File? = null,
-                           var retentionSnapshot: File? = null)
+                           var retentionSnapshot: File? = null,
+                           val additionalTestArtifacts: MutableMap<String, String> = mutableMapOf()
+)
 
 /**
  * A result of a test case execution.
