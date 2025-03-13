@@ -16,12 +16,15 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.DOT_JAVA
+import com.android.test.testutils.TestUtils
 import com.android.test.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
+import com.intellij.pom.java.LanguageLevel
+import com.intellij.testFramework.IdeaTestUtil
 import com.intellij.testFramework.LightProjectDescriptor
 import com.siyeh.ig.LightJavaInspectionTestCase
 import org.intellij.lang.annotations.Language
@@ -33,7 +36,11 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
     return myVisibilityInspection!!.sharedLocalInspectionTool
   }
 
-  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.java()
+  override fun getProjectDescriptor(): LightProjectDescriptor {
+    return object : ProjectDescriptor(LanguageLevel.HIGHEST) {
+      override fun getSdk(): Sdk? = IdeaTestUtil.createMockJdk("java 1.7", TestUtils.getMockJdk().toString())
+    }
+  }
 
   override fun setUp() {
     // Compute the workspace root before any IDE code starts messing with user.dir:
