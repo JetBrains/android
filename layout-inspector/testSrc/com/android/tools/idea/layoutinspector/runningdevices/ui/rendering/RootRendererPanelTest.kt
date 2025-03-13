@@ -206,7 +206,39 @@ class RootRendererPanelTest {
     assertThat(studioRenderer2).isNull()
     assertThat(deviceRenderer2).isNotNull()
   }
+
+  @Test
+  fun testSwitchConnection() {
+    val rootPanelRenderer =
+      RootPanelRenderer(
+        disposable = disposableRule.disposable,
+        renderModel = renderModel,
+        onDeviceRendererProvider = { onDeviceRendererPanel },
+        studioRendererProvider = { studioRendererPanel },
+      )
+
+    assertThat(rootPanelRenderer.currentRenderer).isInstanceOf(StudioRendererPanel::class.java)
+    inspectorModel.updateConnection(DisconnectedClient)
+    assertThat(rootPanelRenderer.currentRenderer).isNull()
+
+    inspectorModel.clear()
+    val xrWindow =
+      viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
+    inspectorModel.update(xrWindow, listOf(ROOT), 0)
+
+    assertThat(rootPanelRenderer.currentRenderer).isInstanceOf(OnDeviceRendererPanel::class.java)
+    inspectorModel.updateConnection(DisconnectedClient)
+    assertThat(rootPanelRenderer.currentRenderer).isNull()
+  }
 }
+
+private val RootPanelRenderer.currentRenderer: LayoutInspectorRenderer?
+  get() {
+    val renderers = mutableListOf<LayoutInspectorRenderer>()
+    renderers.addAll(allChildren().filterIsInstance<StudioRendererPanel>())
+    renderers.addAll(allChildren().filterIsInstance<OnDeviceRendererPanel>())
+    return renderers.singleOrNull()
+  }
 
 private fun createOnDeviceRenderer(
   disposable: Disposable,
