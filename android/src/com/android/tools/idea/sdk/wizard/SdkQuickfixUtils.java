@@ -305,7 +305,9 @@ public final class SdkQuickfixUtils {
   @Slow
   public static boolean checkPathIsAvailableForDownload(String path) {
     // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
-    ApplicationManager.getApplication().assertReadAccessNotAllowed();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      ApplicationManager.getApplication().assertReadAccessNotAllowed();
+    }
 
     RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
     mgr.loadSynchronously(
