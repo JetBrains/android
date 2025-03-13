@@ -1374,6 +1374,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS = new BooleanFlag(
+    TESTING, "additional.testing.gradle.options", "Show additional Gradle Options in Gradle RunConfiguration editor",
+    "If enabled, Gradle RunConfiguration shows an additional Android Studio specific options to customize Gradle task execution," +
+    "  such as showing test results in the test matrix, or use the device selector view to choose the target device.",
+    enabledUpTo(DEV)
+  );
+
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = new BooleanFlag(
     TESTING, "screenshot.testing", "Run screenshot tests",
     "If enabled, preview screenshot tests can be run from Studio and test results will be displayed in the test matrix",

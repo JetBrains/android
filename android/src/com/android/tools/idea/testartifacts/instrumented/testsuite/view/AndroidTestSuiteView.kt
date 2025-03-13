@@ -81,6 +81,7 @@ import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.wm.ToolWindowManager
@@ -147,6 +148,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private val myClock: Clock = Clock.systemDefaultZone(),
   @VisibleForTesting val myIsImportedResult: Boolean = false
 ) : ConsoleView,
+    UserDataHolderBase(),
     BuildViewSettingsProvider,
     AndroidTestResultListener,
     AndroidTestResultsTableListener,

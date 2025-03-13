@@ -19,6 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.getPsiElement
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
@@ -74,8 +75,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
     Assert.assertNotNull(psiClass)
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiClass as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -113,8 +115,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
     Assert.assertNotNull(psiMethod)
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -130,8 +133,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     Assert.assertNotNull(psiClass)
     val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -146,8 +150,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiClassKt = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
     val psiMethod = psiClassKt!!.allMethods.firstOrNull { it.name == methodName }
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -162,7 +167,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val context = TestConfigurationTesting.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -178,7 +184,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val context = TestConfigurationTesting.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -197,7 +204,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -213,7 +221,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -236,7 +245,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])

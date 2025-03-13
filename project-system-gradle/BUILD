@@ -467,6 +467,23 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_testsuite_integration": {
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "test_filter": ".testartifacts.testsuite",
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "other": {
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": ["ci:studio-win"],
@@ -540,6 +557,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
+        "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testSrc/resources"],

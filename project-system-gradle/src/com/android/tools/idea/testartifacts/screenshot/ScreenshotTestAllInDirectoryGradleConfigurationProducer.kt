@@ -16,6 +16,8 @@
 package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiDirectory
@@ -62,8 +64,10 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get())
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
+    }
+    configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
     return configure(configuration, sourceElement, context)
   }
 

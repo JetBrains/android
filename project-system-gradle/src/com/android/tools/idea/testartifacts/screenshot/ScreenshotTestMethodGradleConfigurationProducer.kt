@@ -17,12 +17,13 @@ package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -70,8 +71,10 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get())
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
+    }
+    configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
     return configure(configuration, sourceElement, context)
   }
 
