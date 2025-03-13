@@ -73,14 +73,19 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
   val schema = BuildDeclarativeSchema(null, map)
   val top = topLevelReceiverType.convert(schema)
   schema.topLevelReceiver = top
-  map.putAll(dataClassTypesByFqName.map { keyValue -> keyValue.key.convert() to keyValue.value.convert(schema) }.toMap())
+  map.putAll(
+    dataClassTypesByFqName.mapNotNull {
+      keyValue -> keyValue.value.convert(schema)?.let { keyValue.key.convert() to it }
+    }.toMap()
+  )
   return schema
 }
 
-private fun DataType.ClassDataType.convert(schema: BuildDeclarativeSchema): ClassType =
+private fun DataType.ClassDataType.convert(schema: BuildDeclarativeSchema): ClassType? =
   when (this) {
     is EnumClass -> convert()
     is DataClass -> convert(schema)
+    else -> null
   }
 
 private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
@@ -104,6 +109,7 @@ private fun FunctionSemantics.convert(): FunctionSemantic? = when (this) {
     when (val type = accessor.objectType) {
       is Name -> BlockFunction(type.convert())
       is Type -> (type.dataType as? DataClass)?.let { BlockFunction(DataClassRef(FullName(it.name.qualifiedName))) }
+      else -> null
     }
   is FunctionSemantics.Pure -> returnValueType.convert()?.let { PlainFunction(it) }
   is FunctionSemantics.AddAndConfigure -> {
@@ -143,6 +149,10 @@ private fun DataType.convert(): SimpleDataType? = when (this) {
   }
   is DataClass -> {
     LOG.warn("Cannot recognize declarative schema class of DataType:" + javaClass.canonicalName)
+    null
+  }
+  else -> {
+    LOG.warn("Cannot recognize declarative type of DataType:" + javaClass.canonicalName)
     null
   }
 }
