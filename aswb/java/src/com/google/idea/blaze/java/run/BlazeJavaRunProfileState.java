@@ -184,7 +184,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
           getExecutorType(),
           kotlinxCoroutinesJavaAgent);
       ConsoleView consoleView = SmRunnerUtils.getConsoleView(project, getConfiguration(), getEnvironment().getExecutor(), testUiSession);
-      context.addOutputSink(PrintOutput.class, new WritingOutputSink(consoleView));
       setConsoleBuilder(
         new TextConsoleBuilderImpl(project) {
           @Override
@@ -209,7 +208,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         BlazeInvocationContext.ContextType.RunConfiguration));
 
     //TODO: b/399392908 - Revisit code hot-swapping using HotSwapCommandBuilder
-    return getCommandRunnerProcessHandler(invoker, blazeCommand, testResultFinderStrategy, context);
+    return getCommandRunnerProcessHandler(project, invoker, blazeCommand, testResultFinderStrategy, context);
   }
 
   @Override
@@ -346,11 +345,21 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   //TODO(akhildixit) - the following handler is the same as the one in BlazeCommandGenericRunConfigurationRunner.java.
   // Extract it into a separate class to avoid code duplication.
   private ProcessHandler getCommandRunnerProcessHandler(
+    Project project,
     BuildInvoker invoker,
     BlazeCommand.Builder blazeCommandBuilder,
     BlazeTestResultFinderStrategy testResultFinderStrategy,
     BlazeContext context) {
     ProcessHandler processHandler = getGenericProcessHandler();
+    ConsoleView consoleView = getConsoleBuilder().getConsole();
+    context.addOutputSink(PrintOutput.class, new WritingOutputSink(consoleView));
+    setConsoleBuilder(
+      new TextConsoleBuilderImpl(project) {
+        @Override
+        protected ConsoleView createConsole() {
+          return consoleView;
+        }
+      });
     ListenableFuture<BlazeTestResults> blazeTestResultsFuture =
       BlazeExecutor.getInstance()
         .submit(
