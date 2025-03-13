@@ -38,7 +38,7 @@ def _get_dependency_attribute(rule, attr):
 
 def _get_followed_kotlin_dependencies(rule):
     deps = []
-    if rule.kind in ["kt_jvm_library_helper", "kt_android_library", "android_library"]:
+    if rule.kind in ["kt_jvm_library_helper", "kt_jvm_library", "kt_android_library", "android_library"]:
         deps.extend(_get_dependency_attribute(rule, "_toolchain"))
     if rule.kind in ["kt_jvm_toolchain"]:
         deps.extend(_get_dependency_attribute(rule, "kotlin_libs"))

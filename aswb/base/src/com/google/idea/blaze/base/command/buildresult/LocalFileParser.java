@@ -22,6 +22,7 @@ import com.intellij.util.io.URLUtil;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 /**
@@ -38,14 +39,33 @@ public class LocalFileParser implements OutputArtifactParser {
     }
     try {
       File f = new File(new URI(uri));
+      Path artifactNamePath = OutputArtifactParser.bazelFileToArtifactPath(file);
+      int prefixCount = file.getPathPrefixCount();
+      Path localArtifactPath = f.toPath();
+      artifactNamePath = maybeWorkaroundMissingExternalRepoPrefixInBazel(artifactNamePath, prefixCount, localArtifactPath);
       return new LocalFileOutputArtifact(
         f,
-        OutputArtifactParser.bazelFileToArtifactPath(file),
-        file.getPathPrefixCount(),
+        artifactNamePath,
+        prefixCount,
         file.getDigest());
     }
     catch (URISyntaxException | IllegalArgumentException e) {
       return null;
     }
+  }
+
+  /**
+   * Bazel reports source artifacts like external/repo~/artifact/path from external repositories as artifact/path and it is not enough
+   * to match them with artifact paths visible to aspects. This method adjusts the artifact name based on the local artifact path.
+   */
+  // TODO: b/403296316 - Replace with any better solution.
+  private static Path maybeWorkaroundMissingExternalRepoPrefixInBazel(Path artifactNamePath, int prefixCount, Path localArtifactPath) {
+    if (prefixCount == 0 && localArtifactPath.getNameCount() >= artifactNamePath.getNameCount() + 2){
+      int probableExternalNameIndex = localArtifactPath.getNameCount() - artifactNamePath.getNameCount() - 2;
+      if (localArtifactPath.getName(probableExternalNameIndex).toString().equals("external") && localArtifactPath.endsWith(artifactNamePath)) {
+        artifactNamePath = localArtifactPath.subpath(probableExternalNameIndex, localArtifactPath.getNameCount());
+      }
+    }
+    return artifactNamePath;
   }
 }
