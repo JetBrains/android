@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 public class TrustedProjectGuard implements BazelGuard {
   @Override
   public void checkIsExecutionAllowed(Project project) throws ExecutionDeniedException {
-    if (!TrustedProjects.isTrusted(project)) {
+    if (!TrustedProjects.isProjectTrusted(project)) {
       throw new ExecutionDeniedException("Execution is not allowed because project is not trusted");
     }
   }
