@@ -2275,6 +2275,7 @@ android-studio/plugins/directaccess/lib/directaccess.so.jar
 android-studio/plugins/directaccess/lib/ftl_client_kt_proto.jar
 android-studio/plugins/directaccess/lib/google-api-services-cloudbilling-v1-rev20240119-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-monitoring-v3-rev20230806-2.0.0.jar
+android-studio/plugins/directaccess/lib/google-api-services-serviceusage-v1-rev20240220-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
