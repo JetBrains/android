@@ -409,6 +409,16 @@ JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length, const uint16_t* c
   return array;
 }
 
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length) {
+  return JFloatArray(jni_env, jni_env->NewFloatArray(length));
+}
+
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length, const float* elements) {
+  JFloatArray array = Create(jni_env, length);
+  array.SetRegion(jni_env, 0, length, elements);
+  return array;
+}
+
 std::vector<int64_t> Jni::GetElements(jlongArray array) const {
   jsize size = jni_env_->GetArrayLength(array);
   std::vector<int64_t> result(size);

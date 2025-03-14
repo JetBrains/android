@@ -421,8 +421,8 @@ public:
   }
   ~XrRotationMessage() override = default;
 
-  [[nodiscard]] int x() const { return x_; }
-  [[nodiscard]] int y() const { return y_; }
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
 
   static constexpr int TYPE = 13;
 
@@ -448,9 +448,9 @@ public:
   }
   ~XrTranslationMessage() override = default;
 
-  [[nodiscard]] int x() const { return x_; }
-  [[nodiscard]] int y() const { return y_; }
-  [[nodiscard]] int z() const { return z_; }
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+  [[nodiscard]] float z() const { return z_; }
 
   static constexpr int TYPE = 14;
 
@@ -477,8 +477,8 @@ public:
   }
   ~XrAngularVelocityMessage() override = default;
 
-  [[nodiscard]] int x() const { return x_; }
-  [[nodiscard]] int y() const { return y_; }
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
 
   static constexpr int TYPE = 15;
 
@@ -505,9 +505,9 @@ public:
   }
   ~XrVelocityMessage() override = default;
 
-  [[nodiscard]] int x() const { return x_; }
-  [[nodiscard]] int y() const { return y_; }
-  [[nodiscard]] int z() const { return z_; }
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+  [[nodiscard]] float z() const { return z_; }
 
   static constexpr int TYPE = 16;
 
