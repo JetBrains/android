@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 @RunsInEdt
-class DeclarativeAnnotatorTest: UsefulTestCase() {
+class DeclarativeAnnotatorTest : UsefulTestCase() {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk().onEdt()
@@ -39,7 +39,7 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   private val fixture by lazy { projectRule.fixture }
 
   @Before
-  fun before(){
+  fun before() {
     DeclarativeIdeSupport.override(true)
     registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
   }
@@ -49,33 +49,27 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
 
   @Test
   fun checkFunctionIdentifier() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp {
          ${"coreLibraryDesugarin" highlightedAs HighlightSeverity.ERROR}("something")
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
 
   @Test
   fun dontCheckInFailedBlock() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       ${"androidApplication1" highlightedAs HighlightSeverity.ERROR} {
         ${"versionUnknownCode" highlightedAs HighlightSeverity.ERROR} = 8
         ${"versionName" highlightedAs HighlightSeverity.ERROR} = "0.1.2"
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun dontCheckInFailedBlock2() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp{
         ${"myDeps2" highlightedAs HighlightSeverity.ERROR} {
              ${"debugImplementation" highlightedAs HighlightSeverity.ERROR}("com.google.guava:guava:30.1.1-jre")
@@ -83,54 +77,42 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
         }
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkRootBlockIdentifier() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       ${"androidapplication" highlightedAs HighlightSeverity.ERROR}{
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkPropertyIdentifier() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp {
          defaultConfig {
            minSdk = 33
          }
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkInvalidUnicodeString() {
     // Annotator should skip highlighting of this element
     // as strings are parsed/highlighted by highlighting lexer
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp {
         namespace = "org.gradle.experim\uental.android.app"
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   @Ignore("New schema does not have NDO")
   fun stopCheckingWithUnknownNamedDomainObjects() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApplication {
         appBuildTypes {
           // not in schema
@@ -140,15 +122,12 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
         }
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   @Ignore("New schema does not have NDO")
   fun checkingWithKnownNamedDomainObjects() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp {
         appBuildTypes {
           debug {
@@ -157,15 +136,12 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
         }
       }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidLibrary {
         namespace = "com.google.samples.apps.nowinandroid.feature.bookmarks"
         dependenciesDcl {
@@ -179,15 +155,12 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
         }
     }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkMultipleErrorAdvancedCase() {
     // DSL is different from AGP as we adopt to Declarative requirements.
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidLibrary {
         ${"nameSpace" highlightedAs HighlightSeverity.ERROR} = "com.google.samples.apps.nowinandroid.feature.bookmarks"
         dependenciesDcl {
@@ -201,186 +174,146 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
         }
     }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkFactoryBlock() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidApp {
       buildTypes {
        buildType("new"){ }
       }
     }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
   fun checkFactoryBlockNegative() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidApp {
       buildTypes {
         ${"buildTypes" highlightedAs HighlightSeverity.ERROR}("new"){ }
       }
     }
     """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
   }
 
   @Test
-  fun checkCorrectSettingsSyntax(){
-    val file = fixture.addFileToProject("settings.gradle.dcl",
-    """
+  fun checkCorrectSettingsSyntax() {
+    doSettingsFileTest(
+      """
       rootProject.name = "nowinandroid"
 
       enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
       include(":app")
       include(":app-nia-catalog")
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
-  fun checkCorrectDemoSyntax(){
-    val file = fixture.addFileToProject("build.gradle.dcl",
-                                        """
+  fun checkCorrectDemoSyntax() {
+    doBuildFileTest("""
     androidApp {
        compileSdk = 33
     }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkWrongPropertyType() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidLibrary {
         ${"namespace = 1" highlightedAs HighlightSeverity.ERROR}
    }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkWrongBlockType() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     ${"androidLibrary = 1" highlightedAs HighlightSeverity.ERROR}
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkWrongFunctionType() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
     androidLibrary {
         dependenciesDcl {
             ${"implementation = \"dependency\"" highlightedAs HighlightSeverity.ERROR}
          }
     }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkEnums() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
      androidApp {
        compileOptions {
          sourceCompatibility = VERSION_15
-         ${"sourceCompatibility = 123" highlightedAs HighlightSeverity.ERROR }
+         ${"sourceCompatibility = 123" highlightedAs HighlightSeverity.ERROR}
        }
     }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkFunctionChain() {
-    val file = addDeclarativeSettingsFile("""
+    doSettingsFileTest("""
      plugins {
        id("some.plugin").version("1.0")
-    }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+     }
+    """)
   }
 
   @Test
   fun checkWrongTypeMessage() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
       androidApp {
         dependenciesDcl {
            ${"api = \"org.example:example:1.0\"".highlightedAs(HighlightSeverity.ERROR, "Element type should be of type: Factory")}
         }
       }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    """)
   }
+
   @Test
   fun checkRootProject() {
-    val file = addDeclarativeSettingsFile("""
+    doSettingsFileTest("""
       rootProject.name = "some"
-      ${ "rootProject.name = 1" highlightedAs HighlightSeverity.ERROR }
-      rootProject.${"abc" highlightedAs HighlightSeverity.ERROR } = "some"
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+      ${"rootProject.name = 1" highlightedAs HighlightSeverity.ERROR}
+      rootProject.${"abc" highlightedAs HighlightSeverity.ERROR} = "some"
+    """)
   }
 
   @Test
   fun layoutPositiveTest() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
        androidApp {
         bundle {
           deviceTargetingConfig = layout.projectDirectory.file("myfile")
         }
       }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun layoutNegativeTest() {
-    val file = addDeclarativeBuildFile("""
+    doBuildFileTest("""
        androidApp {
         bundle {
-          deviceTargetingConfig = ${"Layout" highlightedAs HighlightSeverity.ERROR }.${"projectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
-          deviceTargetingConfig = layout.${"ProjectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
-          deviceTargetingConfig = layout.projectDirectory.${"File" highlightedAs HighlightSeverity.ERROR }("myfile")
+          deviceTargetingConfig = ${"Layout" highlightedAs HighlightSeverity.ERROR}.${"projectDirectory" highlightedAs HighlightSeverity.ERROR}.${"file" highlightedAs HighlightSeverity.ERROR}("myfile")
+          deviceTargetingConfig = layout.${"ProjectDirectory" highlightedAs HighlightSeverity.ERROR}.${"file" highlightedAs HighlightSeverity.ERROR}("myfile")
+          deviceTargetingConfig = layout.projectDirectory.${"File" highlightedAs HighlightSeverity.ERROR}("myfile")
         }
       }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-    fixture.checkHighlighting()
+    """)
   }
 
   @Test
   fun checkMavenRepo() {
-    val file = addDeclarativeSettingsFile("""
+    doSettingsFileTest("""
       pluginManagement {
         repositories {
             maven {
@@ -388,9 +321,18 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
             }
         }
       }
-    """.trimIndent())
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    """)
+  }
 
+  private fun doBuildFileTest(buildFileContent: String) {
+    val file = addDeclarativeBuildFile(buildFileContent)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  private fun doSettingsFileTest(settingsFileContent: String) {
+    val file = addDeclarativeSettingsFile(settingsFileContent)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
 
