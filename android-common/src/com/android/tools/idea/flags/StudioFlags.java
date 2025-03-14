@@ -1855,6 +1855,15 @@ public final class StudioFlags {
       "testing.googleapis.com"
     );
 
+  public static final Flag<String> DEVICE_STREAMING_ENDPOINT =
+    new StringFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.new.endpoint",
+      "New Device Streaming endpoint",
+      "The new URL for Direct Access to connect to, in host:port form (with no protocol specified).",
+      "devicestreaming.googleapis.com"
+    );
+
   public static final Flag<String> DIRECT_ACCESS_MONITORING_ENDPOINT =
     new StringFlag(
       FIREBASE_TEST_LAB,
