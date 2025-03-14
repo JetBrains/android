@@ -340,20 +340,15 @@ class GradleModuleSystem(
     registerDependencies(dependencies, type)
   }
 
+  private val DependencyType.configurationName get() = when(this) {
+      DependencyType.ANNOTATION_PROCESSOR -> "annotationProcessor"
+      DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"
+      DependencyType.IMPLEMENTATION -> "implementation"
+    }
+
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
-
-    when (type) {
-      DependencyType.ANNOTATION_PROCESSOR -> {
-        manager.addDependencies(module, dependencies, "annotationProcessor")
-      }
-      DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependencies(module, dependencies, "debugImplementation")
-      }
-      else -> {
-        manager.addDependencies(module, dependencies)
-      }
-    }
+    manager.addDependencies(module, dependencies, type.configurationName)
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -64,7 +66,25 @@ class GradleModuleSystemTest : AndroidTestCase() {
     assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION).isSupported()).isTrue()
     gradleModuleSystem.registerDependency(coordinate, DependencyType.IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-      .addDependencies(myModule, listOf(dependency))
+      .addDependencies(myModule, listOf(dependency), "implementation")
+  }
+
+  fun testRegisterDebugDependency() {
+    val coordinate = GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("+")
+    val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("+")
+    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.DEBUG_IMPLEMENTATION).isSupported()).isTrue()
+    gradleModuleSystem.registerDependency(coordinate, DependencyType.DEBUG_IMPLEMENTATION)
+    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
+      .addDependencies(myModule, listOf(dependency), "debugImplementation")
+  }
+
+  fun testRegisterAnnotationProcessorDependency() {
+    val coordinate = GradleCoordinate.parseCoordinateString("android.arch.persistence.room:compiler:+")!!
+    val dependency = Dependency.parse("android.arch.persistence.room:compiler:+")
+    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()).isTrue()
+    gradleModuleSystem.registerDependency(coordinate, DependencyType.ANNOTATION_PROCESSOR)
+    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
+      .addDependencies(myModule, listOf(dependency), "annotationProcessor")
   }
 
   fun testNoGradleAndroidModel() {
