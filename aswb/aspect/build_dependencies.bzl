@@ -54,6 +54,8 @@ IDE_KOTLIN = _validate_ide(
         follow_additional_attributes = [],  # Additional attributes for the aspect to follow without requesting DependenciesInfo provider.
         followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
         toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+        get_kotlin_info = _target_rule_function,  # A function that takes a rule and returns a marker struct if the target
+        # was recognised as a Kotlin related target and `followed_dependenices` must be called.
     ),
 )
 
@@ -536,6 +538,7 @@ def _collect_own_java_artifacts(
     resource_package = ""
 
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
+    kotlin_info = IDE_KOTLIN.get_kotlin_info(target, ctx.rule)
 
     # Targets recognised as java_proto_info can have java_info dependencies.
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
@@ -632,7 +635,7 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
-    if not (java_info or android or java_proto_info or own_gensrc_files or own_src_files or own_srcjar_files):
+    if not (java_info or kotlin_info or android or java_proto_info or own_gensrc_files or own_src_files or own_srcjar_files):
         return None
     if own_jar_files or len(own_jar_depsets) > 1:
         own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
