@@ -26,10 +26,11 @@ import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import java.io.File
+val TEST_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/schemas"
+val TEST_PATCHED_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/patchedSchemas"
 
-internal fun createTestDeclarativeSchemas(): BuildDeclarativeSchemas {
-  val myTestDataRelativePath = "tools/adt/idea/gradle-declarative-lang-ide/testData/schemas"
-  val folder = File(FileUtil.toSystemDependentName(myTestDataRelativePath))
+internal fun createTestDeclarativeSchemas(path: String): BuildDeclarativeSchemas {
+  val folder = File(FileUtil.toSystemDependentName(path))
   val children = folder.list()
 
   val projectSchemas = mutableSetOf<BuildDeclarativeSchema>()
@@ -48,9 +49,17 @@ internal fun createTestDeclarativeSchemas(): BuildDeclarativeSchemas {
   return BuildDeclarativeSchemas(settingsSchemas, projectSchemas)
 }
 
-fun registerTestDeclarativeService(project: Project, disposable: Disposable){
+fun registerTestDeclarativeService(project: Project, disposable: Disposable) {
+  registerTestDeclarativeService(project, TEST_DATA_RELATIVE_PATH, disposable)
+}
+
+fun registerTestDeclarativeServicePatchedSchema(project: Project, disposable: Disposable) {
+  registerTestDeclarativeService(project, TEST_PATCHED_DATA_RELATIVE_PATH, disposable)
+}
+
+private fun registerTestDeclarativeService(project: Project, schemaPath: String, disposable: Disposable) {
   val mockService = mock(DeclarativeService::class.java)
-  val schema = createTestDeclarativeSchemas()
+  val schema = createTestDeclarativeSchemas(schemaPath)
   whenever(mockService.getDeclarativeSchema()).thenReturn(schema)
   project.replaceService(
     DeclarativeService::class.java, mockService, disposable
