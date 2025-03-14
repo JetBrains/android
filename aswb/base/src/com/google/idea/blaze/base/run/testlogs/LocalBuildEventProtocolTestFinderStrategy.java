@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.run.testlogs;
 
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
+import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.intellij.openapi.diagnostic.Logger;

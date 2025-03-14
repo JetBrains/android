@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.run.testlogs;
 
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
+import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 
 /** A strategy for locating results from 'blaze test' invocation (e.g. output XML files). */
 public interface BlazeTestResultFinderStrategy {

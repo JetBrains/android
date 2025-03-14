@@ -78,34 +78,4 @@ public interface BuildResultHelper extends AutoCloseable {
 
   @Override
   void close();
-
-  /** Indicates a failure to get artifact information */
-  class GetArtifactsException extends BuildException {
-    public GetArtifactsException(Throwable cause) {
-      super(cause);
-    }
-
-    public GetArtifactsException(String message) {
-      super(message);
-    }
-
-    public GetArtifactsException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-
-  /** Indicates a failure to get artifact information */
-  class GetFlagsException extends Exception {
-    public GetFlagsException(String message, Throwable cause) {
-      super(message, cause);
-    }
-
-    public GetFlagsException(String message) {
-      super(message);
-    }
-
-    public GetFlagsException(Throwable cause) {
-      super(cause);
-    }
-  }
 }
