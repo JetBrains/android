@@ -2143,7 +2143,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
                     "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
-                    enabledUpTo(DEV));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
     new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
