@@ -96,6 +96,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(10, 50, 80, 50),
         color = SELECTION_COLOR_ARGB,
+        label = "Text",
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
@@ -117,6 +118,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(10, 50, 80, 50),
         color = HOVER_COLOR_ARGB,
+        label = null,
       )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
@@ -138,16 +140,19 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
       )
 
@@ -164,6 +169,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(25, 30, 50, 50),
           color = BASE_COLOR_ARGB,
+          label = null,
         )
       )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
@@ -194,6 +200,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 50, 50),
           color = RECOMPOSITION_COLOR_RED_ARGB,
+          label = null,
         )
       )
     val instructions2 = onDeviceRendererModel.recomposingNodes.first()
@@ -230,6 +237,7 @@ class OnDeviceRendererModelTest {
             rootViewId = ROOT,
             bounds = Rectangle(25, 30, 50, 50),
             color = BASE_COLOR_ARGB,
+            label = null,
           )
         )
       )
@@ -245,6 +253,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(25, 30, 50, 50),
           color = SELECTION_COLOR_ARGB,
+          label = "View",
         )
       )
     val instructions3 = onDeviceRendererModel.hoveredNode.first()
@@ -254,6 +263,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(25, 30, 50, 50),
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 
@@ -270,6 +280,7 @@ class OnDeviceRendererModelTest {
             rootViewId = ROOT,
             bounds = Rectangle(30, 35, 55, 55),
             color = BASE_COLOR_ARGB,
+            label = null,
           )
         )
       )
@@ -281,6 +292,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(30, 35, 55, 55),
           color = SELECTION_COLOR_ARGB,
+          label = "View",
         )
       )
     val instructions6 = onDeviceRendererModel.hoveredNode.first()
@@ -290,6 +302,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(30, 35, 55, 55),
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
   }
@@ -335,16 +348,19 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
       )
 
@@ -360,11 +376,13 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
       )
 
@@ -382,6 +400,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(10, 50, 80, 50),
         color = SELECTION_COLOR_ARGB,
+        label = "Text",
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
@@ -403,6 +422,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(0, 0, 100, 100),
         color = SELECTION_COLOR_ARGB,
+        label = "View",
       )
     val instructions2 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
@@ -418,6 +438,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(10, 50, 80, 50),
         color = HOVER_COLOR_ARGB,
+        label = null,
       )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
@@ -439,6 +460,7 @@ class OnDeviceRendererModelTest {
         rootViewId = ROOT,
         bounds = Rectangle(0, 0, 100, 100),
         color = HOVER_COLOR_ARGB,
+        label = null,
       )
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
@@ -465,16 +487,19 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 10, 10),
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 50, 50),
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 100, 100),
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
       )
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
@@ -490,6 +515,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 10, 10),
           color = BASE_COLOR_ARGB,
+          label = null,
         )
       )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
@@ -519,6 +545,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 50, 50),
           color = SELECTION_COLOR_ARGB,
+          label = "View",
         )
       )
 
@@ -531,6 +558,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 10, 10),
           color = SELECTION_COLOR_ARGB,
+          label = "View",
         )
       )
   }
@@ -558,6 +586,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 50, 50),
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 
@@ -570,6 +599,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 10, 10),
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
   }
@@ -586,16 +616,19 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
+          label = null,
         ),
       )
 
@@ -609,6 +642,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 
@@ -625,6 +659,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 
@@ -636,6 +671,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = SELECTION_COLOR_ARGB,
+          label = "View",
         )
       )
 
@@ -652,6 +688,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 
@@ -673,6 +710,7 @@ class OnDeviceRendererModelTest {
           rootViewId = ROOT,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
+          label = null,
         )
       )
 

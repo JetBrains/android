@@ -33,8 +33,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * @param rootViewId The drawId of the root view the [bounds] belong to.
  * @param bounds The bounds of the node being rendered.
  * @param color The color used to render these [bounds].
+ * @param label Optional label to be rendered with the [bounds].
  */
-data class DrawInstruction(val rootViewId: Long, val bounds: Rectangle, val color: Int)
+data class DrawInstruction(
+  val rootViewId: Long,
+  val bounds: Rectangle,
+  val color: Int,
+  val label: String?,
+)
 
 /**
  * Contains state that controls the rendering of the view bounds. It is different from
@@ -175,7 +181,9 @@ class OnDeviceRendererModel(
   }
 
   private fun setSelectedNode(node: ViewNode?) {
-    _selectedNode.value = node?.toDrawInstruction(color = renderSettings.selectionColor)
+    // TODO(next CL): don't set label if disabled in render settings.
+    _selectedNode.value =
+      node?.toDrawInstruction(color = renderSettings.selectionColor, label = node.unqualifiedName)
   }
 
   private fun setHoveredNode(node: ViewNode?) {
@@ -198,8 +206,13 @@ class OnDeviceRendererModel(
   }
 
   /** Convert a ViewNode to [DrawInstruction]. */
-  private fun ViewNode.toDrawInstruction(color: Int): DrawInstruction? {
+  private fun ViewNode.toDrawInstruction(color: Int, label: String? = null): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
-    return DrawInstruction(rootViewId = rootView.drawId, bounds = layoutBounds, color = color)
+    return DrawInstruction(
+      rootViewId = rootView.drawId,
+      bounds = layoutBounds,
+      color = color,
+      label = label,
+    )
   }
 }

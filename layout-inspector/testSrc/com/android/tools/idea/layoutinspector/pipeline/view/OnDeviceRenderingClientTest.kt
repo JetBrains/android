@@ -171,7 +171,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testDrawSelectedNode(): Unit = runTest {
-    val drawInstructions = DrawInstruction(1L, Rectangle(), 1)
+    val drawInstructions = DrawInstruction(1L, Rectangle(), 1, "label")
     onDeviceRenderingClient.drawSelectedNode(drawInstructions)
 
     val expectedCommand =
@@ -180,6 +180,7 @@ class OnDeviceRenderingClientTest {
           bounds = listOf(Rectangle()),
           color = 1,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+          label = "label",
         )
         .toByteArray()
 
@@ -189,7 +190,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testDrawHoveredNode(): Unit = runTest {
-    val drawInstructions = DrawInstruction(1L, Rectangle(), 1)
+    val drawInstructions = DrawInstruction(1L, Rectangle(), 1, null)
     onDeviceRenderingClient.drawHoveredNode(drawInstructions)
 
     val expectedCommand =
@@ -207,7 +208,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testDrawVisibleNodes(): Unit = runTest {
-    val drawInstructions = DrawInstruction(1L, Rectangle(), 1)
+    val drawInstructions = DrawInstruction(1L, Rectangle(), 1, null)
     onDeviceRenderingClient.drawVisibleNodes(listOf(drawInstructions))
 
     val expectedCommand =
@@ -225,7 +226,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testDrawRecomposingNodes(): Unit = runTest {
-    val drawInstructions = DrawInstruction(1L, Rectangle(), 1)
+    val drawInstructions = DrawInstruction(1L, Rectangle(), 1, null)
     onDeviceRenderingClient.drawRecomposingNodes(listOf(drawInstructions))
 
     val expectedCommand =

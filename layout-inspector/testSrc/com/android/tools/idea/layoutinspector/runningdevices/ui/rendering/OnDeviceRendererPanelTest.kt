@@ -199,6 +199,7 @@ class OnDeviceRendererPanelTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+          label = inspectorModel[VIEW1]?.unqualifiedName,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(1)
