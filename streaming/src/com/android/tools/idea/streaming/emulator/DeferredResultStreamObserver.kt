@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.io.grpc.stub.StreamObserver
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 
-/**
- * A [StreamObserver] that exposes the result of the gRPC call as a [ListenableFuture].
- */
-class FutureStreamObserver<T> : EmptyStreamObserver<T>() {
-  val futureResult: ListenableFuture<T>
-    get() = futureResultInternal
+/** A [StreamObserver] that exposes the result of the gRPC call as a [Deferred]. */
+class DeferredResultStreamObserver<T> : EmptyStreamObserver<T>() {
 
-  private val futureResultInternal = SettableFuture.create<T>()
+  val deferredResult: Deferred<T>
+    get() = completableDeferredResult
+
+  private val completableDeferredResult = CompletableDeferred<T>()
 
   @AnyThread
   override fun onNext(message: T) {
-    futureResultInternal.set(message)
+    completableDeferredResult.complete(message)
   }
 
   @AnyThread
   override fun onError(t: Throwable) {
-    futureResultInternal.setException(t)
+    completableDeferredResult.completeExceptionally(t)
   }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ui.screenshot
 
 import com.android.ProgressManagerAdapter
@@ -22,11 +21,14 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
 import com.android.adblib.tools.screenCapAsBufferedImage
+import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
+import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
@@ -44,9 +46,10 @@ class ShellCommandScreenshotProvider(
   private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)
   private val deviceDisplayInfoRegex =
-     Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=${screenshotOptions.displayId}\\W", RegexOption.MULTILINE)
+    Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=${screenshotOptions.displayId}\\W", RegexOption.MULTILINE)
 
-  @WorkerThread
+  @Slow
+  @Throws(RuntimeException::class, CancellationException::class)
   override fun captureScreenshot(): ScreenshotImage {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
@@ -64,13 +67,19 @@ class ShellCommandScreenshotProvider(
     }
 
     return runBlocking {
-      val dumpsysOutput = dumpsysJob.await()
-      ProgressManagerAdapter.checkCanceled()
-      val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
-      ProgressManagerAdapter.checkCanceled()
-      val image = screenshotJob.await()
-      ProgressManagerAdapter.checkCanceled()
-      screenshotOptions.createScreenshotImage(image, displayInfo)
+      try {
+        val dumpsysOutput = dumpsysJob.await()
+        ProgressManagerAdapter.checkCanceled()
+        val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
+        ProgressManagerAdapter.checkCanceled()
+        val image = screenshotJob.await()
+        ProgressManagerAdapter.checkCanceled()
+        screenshotOptions.createScreenshotImage(image, displayInfo)
+      }
+      catch (e: Throwable) {
+        throwIfUnchecked(e)
+        throw RuntimeException(e)
+      }
     }
   }
 

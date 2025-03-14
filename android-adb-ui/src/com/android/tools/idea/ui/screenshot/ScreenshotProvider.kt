@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ui.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.Disposable
+import kotlinx.coroutines.CancellationException
+import java.io.IOException
 
 /**
  * Used in conjunction with [ScreenshotViewer].
  */
 interface ScreenshotProvider : Disposable {
   /**
-   * Captures and returns a new screenshot. Throws a [RuntimeException] in case of an error.
+   * Captures and returns a new screenshot.
+   *
+   * @throws RuntimeException if an error occurred
+   * @throws CancellationException if the operation was cancelled
    */
   @Slow
+  @Throws(RuntimeException::class, CancellationException::class)
   fun captureScreenshot(): ScreenshotImage
 }
