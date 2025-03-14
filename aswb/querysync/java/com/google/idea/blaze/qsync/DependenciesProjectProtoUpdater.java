@@ -54,7 +54,7 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
       ProjectDefinition projectDefinition,
       ProjectPath.Resolver pathResolver,
       Supplier<Boolean> attachDepsSrcjarsExperiment,
-      boolean enableBazelAdditionalLibraryRootsProvider) {
+      boolean enableLibraryEntity) {
     // Require empty package prefixes for srcjar inner paths, since the ultimate consumer of these
     // paths does not support setting a package prefix (see `Library.ModifiableModel.addRoot`).
     PackageStatementParser packageReader = new PackageStatementParser();
@@ -62,7 +62,7 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
 
     ImmutableList.Builder<ProjectProtoUpdateOperation> updateOperations =
         ImmutableList.<ProjectProtoUpdateOperation>builder()
-            .add(new AddCompiledJavaDeps(enableBazelAdditionalLibraryRootsProvider))
+            .add(new AddCompiledJavaDeps(enableLibraryEntity))
             .add(
                 new AddProjectGenSrcJars(
                     projectDefinition,
@@ -77,10 +77,10 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
               projectDefinition,
               pathResolver,
               srcJarInnerPathFinder,
-              enableBazelAdditionalLibraryRootsProvider));
+              enableLibraryEntity));
       updateOperations.add(
           new AddDependencyGenSrcsJars(
-            projectDefinition, new SrcJarPackageRootsExtractor(srcJarInnerPathFinder), enableBazelAdditionalLibraryRootsProvider));
+            projectDefinition, new SrcJarPackageRootsExtractor(srcJarInnerPathFinder), enableLibraryEntity));
     }
     this.updateOperations = updateOperations.build();
   }

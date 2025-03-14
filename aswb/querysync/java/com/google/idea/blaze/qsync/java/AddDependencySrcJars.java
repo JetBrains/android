@@ -40,17 +40,17 @@ public class AddDependencySrcJars implements ProjectProtoUpdateOperation {
   private final ProjectPath.Resolver pathResolver;
   private final SrcJarInnerPathFinder srcJarInnerPathFinder;
 
-  private final boolean enableBazelAdditionalLibraryRootsProvider;
+  private final boolean enableLibraryEntity;
 
   public AddDependencySrcJars(
       ProjectDefinition projectDefinition,
       ProjectPath.Resolver pathResolver,
       SrcJarInnerPathFinder srcJarInnerPathFinder,
-      boolean enableBazelAdditionalLibraryRootsProvider) {
+      boolean enableLibraryEntity) {
     this.projectDefinition = projectDefinition;
     this.pathResolver = pathResolver;
     this.srcJarInnerPathFinder = srcJarInnerPathFinder;
-    this.enableBazelAdditionalLibraryRootsProvider = enableBazelAdditionalLibraryRootsProvider;
+    this.enableLibraryEntity = enableLibraryEntity;
   }
 
   @Override
@@ -77,7 +77,7 @@ public class AddDependencySrcJars implements ProjectProtoUpdateOperation {
             .map(jarPath::withInnerJarPath)
             .map(ProjectPath::toProto)
             .map(LibrarySource.newBuilder()::setSrcjar)
-            .forEach(update.library(enableBazelAdditionalLibraryRootsProvider ? target.label().toString() : JAVA_DEPS_LIB_NAME)::addSources);
+            .forEach(update.library(enableLibraryEntity ? target.label().toString() : JAVA_DEPS_LIB_NAME)::addSources);
       }
     }
   }

@@ -157,7 +157,10 @@ class ProjectUpdaterWithWorkspaceEntity(
             roots = lib.jarUrls.map {
               LibraryRoot(
                 url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.COMPILED)
-            },
+            } + lib.sourceUrls.map {
+              LibraryRoot(
+                url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.SOURCES)
+            } ,
             entitySource = BazelEntitySource
           ))
         }
