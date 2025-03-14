@@ -49,7 +49,7 @@ internal data class StorageCapacity(val value: Long, val unit: Unit) : Comparabl
     TB(1_024L * 1_024 * 1_024 * 1_024),
   }
 
-  override fun toString() = value.toString() + unit.toString().first()
+  override fun toString() = "$value $unit"
 
   override fun compareTo(other: StorageCapacity) = valueIn(Unit.B).compareTo(other.valueIn(Unit.B))
 

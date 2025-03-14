@@ -105,7 +105,7 @@ class StorageCapacityTest {
     val string = CAPACITY.toString()
 
     // Assert
-    assertEquals("2048M", string)
+    assertEquals("2048 MB", string)
   }
 }
 

@@ -97,7 +97,7 @@ class StorageGroupTest {
     composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    composeRule.onNodeWithText("Internal storage must be at least 6G").assertIsDisplayed()
+    composeRule.onNodeWithText("Internal storage must be at least 6 GB").assertIsDisplayed()
     assertThat(device.internalStorage).isNull()
   }
 
@@ -269,7 +269,7 @@ class StorageGroupTest {
     composeRule.onCustomTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    composeRule.onNodeWithText("The SD card must be at least 10M").assertIsDisplayed()
+    composeRule.onNodeWithText("The SD card must be at least 10 MB").assertIsDisplayed()
     assertThat(device.expandedStorage).isNull()
   }
 

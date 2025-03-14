@@ -241,7 +241,7 @@ class AdditionalSettingsPanelTest {
     @OptIn(ExperimentalTestApi::class) rule.onRamTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule.onNodeWithText("RAM must be at least 128M. Recommendation is 1G.").assertIsDisplayed()
+    rule.onNodeWithText("RAM must be at least 128 MB. Recommendation is 1 GB.").assertIsDisplayed()
     assertThat(state.device.ram).isNull()
   }
 
@@ -316,7 +316,7 @@ class AdditionalSettingsPanelTest {
     rule.onVMHeapSizeTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule.onNodeWithText("VM heap must be at least 16M").assertIsDisplayed()
+    rule.onNodeWithText("VM heap must be at least 16 MB").assertIsDisplayed()
     assertThat(state.device.vmHeapSize).isNull()
   }
 
