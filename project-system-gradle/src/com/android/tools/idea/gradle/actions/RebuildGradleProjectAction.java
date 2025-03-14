@@ -27,6 +27,8 @@ public class RebuildGradleProjectAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    // Disable this action if Gradle Sync is running.
+    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
   }
 
   @Override

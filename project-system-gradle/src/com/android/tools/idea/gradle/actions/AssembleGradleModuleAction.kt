@@ -145,7 +145,7 @@ abstract class AbstractAssembleGradleModuleAction :
       val moduleCount = moduleNames.size
       val presentation = e.presentation
       val isCompilationActive = CompilerManager.getInstance(project).isCompilationActive
-      presentation.isEnabled = moduleCount > 0 && !isCompilationActive
+      presentation.isEnabled = moduleCount > 0 && !isCompilationActive && !isGradleSyncInProgress(project)
       val presentationText: String
       if (moduleCount > 0) {
         var text = StringBuilder("Assemble Module")

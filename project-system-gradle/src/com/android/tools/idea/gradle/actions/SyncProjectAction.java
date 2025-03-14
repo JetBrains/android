@@ -62,7 +62,6 @@ public class SyncProjectAction extends AndroidStudioGradleAction implements Dumb
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    boolean enabled = !GradleSyncState.getInstance(project).isSyncInProgress();
-    e.getPresentation().setEnabled(enabled);
+    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
   }
 }

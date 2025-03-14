@@ -43,8 +43,7 @@ abstract class AbstractBuildRunConfigurationAction :
 
   final override fun doUpdate(e: AnActionEvent, project: Project) {
     val runConfigurationName = getCurrentRunConfiguration(project)
-
-    updatePresentation(e, runConfigurationName)
+    updatePresentation(e, runConfigurationName, project)
   }
 
   final override fun doPerform(e: AnActionEvent, project: Project) {
@@ -121,10 +120,11 @@ abstract class AbstractBuildRunConfigurationAction :
     }
   }
 
-  private fun updatePresentation(e: AnActionEvent, runConfiguration: RunConfiguration?) {
+  private fun updatePresentation(e: AnActionEvent, runConfiguration: RunConfiguration?, project: Project) {
     val presentation = e.presentation
     val runConfigurationName = runConfiguration?.name
-    presentation.isEnabled = runConfigurationName != null && isValidRunConfigurationToBuild(runConfiguration)
+    presentation.isEnabled =
+      runConfigurationName != null && isValidRunConfigurationToBuild(runConfiguration) && !isGradleSyncInProgress(project)
     val presentationText = if (!presentation.isEnabled && runConfigurationName == null) {
       "Assemble Run Configuration (No Configuration Selected)"
     } else {

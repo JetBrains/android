@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.ide.impl.TrustedProjects;
@@ -65,6 +66,10 @@ public abstract class AndroidStudioGradleAction extends AnAction {
   }
 
   protected abstract void doUpdate(@NotNull AnActionEvent e, @NotNull Project project);
+
+  public static boolean isGradleSyncInProgress(@Nullable Project project) {
+    return project != null && GradleSyncState.getInstance(project).isSyncInProgress();
+  }
 
   @Override
   public final void actionPerformed(@NotNull AnActionEvent e) {

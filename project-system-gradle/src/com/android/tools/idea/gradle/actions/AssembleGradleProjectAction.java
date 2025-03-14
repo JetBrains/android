@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -32,7 +33,7 @@ public class AssembleGradleProjectAction extends AndroidStudioGradleAction {
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     boolean isCompilationActive = CompilerManager.getInstance(project).isCompilationActive();
-    e.getPresentation().setEnabled(!isCompilationActive);
+    e.getPresentation().setEnabled(!isCompilationActive && !isGradleSyncInProgress(project));
   }
 
   @Override

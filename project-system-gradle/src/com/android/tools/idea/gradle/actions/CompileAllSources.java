@@ -27,6 +27,7 @@ public class CompileAllSources extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
   }
 
   @Override

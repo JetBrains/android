@@ -31,7 +31,7 @@ class GenerateSourcesModuleAction : AndroidStudioGradleAction(ACTION_TEXT) {
 
     val modules = Info.getInstance(project).getModulesToBuildFromSelection(dataContext)
 
-    e.presentation.isEnabled = modules.isNotEmpty()
+    e.presentation.isEnabled = modules.isNotEmpty() && !isGradleSyncInProgress(project)
     e.presentation.text = MENU_TEXT
     e.presentation.isVisible = modules.isNotEmpty() || PROJECT_VIEW_POPUP != e.place
   }

@@ -32,6 +32,8 @@ public class CleanProjectAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabledAndVisible(ProjectSystemUtil.requiresAndroidModel(project));
+    boolean requiresAndroidModel = ProjectSystemUtil.requiresAndroidModel(project);
+    e.getPresentation().setVisible(requiresAndroidModel);
+    e.getPresentation().setEnabled(requiresAndroidModel && !isGradleSyncInProgress(project));
   }
 }

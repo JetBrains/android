@@ -32,7 +32,7 @@ public class AssembleGradleProjectWithTestsAction extends AndroidStudioGradleAct
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     boolean isCompilationActive = CompilerManager.getInstance(project).isCompilationActive();
-    e.getPresentation().setEnabled(!isCompilationActive);
+    e.getPresentation().setEnabled(!isCompilationActive && !isGradleSyncInProgress(project));
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.actions.AndroidStudioGradleAction.isGradleSyncInProgress;
 import static com.intellij.notification.NotificationType.ERROR;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -47,8 +48,8 @@ public class GenerateBundleAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    boolean enabled = isProjectBuildWithGradle(project);
-    e.getPresentation().setEnabledAndVisible(enabled);
+    e.getPresentation().setVisible(isProjectBuildWithGradle(project));
+    e.getPresentation().setEnabled(!isGradleSyncInProgress(project) && isProjectBuildWithGradle(project));
   }
 
   @Override

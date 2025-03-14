@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.actions.AndroidStudioGradleAction.isGradleSyncInProgress;
+
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -45,7 +48,11 @@ public class GenerateApkAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    e.getPresentation().setEnabledAndVisible(project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
+    if (project != null) {
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      e.getPresentation().setVisible(ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
+      e.getPresentation().setEnabled(!isGradleSyncInProgress(project) && projectSystem instanceof GradleProjectSystem);
+    }
   }
 
   @Override

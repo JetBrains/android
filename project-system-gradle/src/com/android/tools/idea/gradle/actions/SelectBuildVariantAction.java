@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -24,23 +25,33 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.actions.AndroidStudioGradleAction.isGradleProject;
 import static com.android.tools.idea.gradle.util.ui.EventUtil.getSelectedAndroidModule;
 
 /**
  * Action that allows users to select a build variant for the selected module, if the module is an Android Gradle module.
  */
-public class SelectBuildVariantAction extends AndroidStudioGradleAction {
+public class SelectBuildVariantAction extends AnAction {
   public SelectBuildVariantAction() {
     super("Select Build Variant...");
   }
 
   @Override
-  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-     e.getPresentation().setEnabled(isGradleProject(e));
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    if (!isGradleProject(e)) {
+      return;
+    }
+    Project project = e.getProject();
+    assert project != null;
+    doPerform(e, project);
   }
 
   @Override
-  protected void doPerform(@NotNull AnActionEvent e, @NotNull final Project project) {
+  public final void update(@NotNull AnActionEvent e) {
+    e.getPresentation().setEnabledAndVisible(isGradleProject(e));
+  }
+
+  private void doPerform(@NotNull AnActionEvent e, @NotNull final Project project) {
     final Module module = getSelectedAndroidModule(e);
     ToolWindowManager manager = ToolWindowManager.getInstance(project);
     ToolWindow toolWindow = manager.getToolWindow(BuildVariantToolWindowFactory.ID);
