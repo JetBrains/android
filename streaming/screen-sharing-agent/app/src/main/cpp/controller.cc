@@ -326,6 +326,22 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       RequestDeviceState((const RequestDeviceStateMessage&) message);
       break;
 
+    case XrRotationMessage::TYPE:
+      ProcessXrRotation((const XrRotationMessage&) message);
+      break;
+
+    case XrTranslationMessage::TYPE:
+      ProcessXrTranslation((const XrTranslationMessage&) message);
+      break;
+
+    case XrAngularVelocityMessage::TYPE:
+      ProcessXrAngularVelocity((const XrAngularVelocityMessage&) message);
+      break;
+
+    case XrVelocityMessage::TYPE:
+      ProcessXrVelocity((const XrVelocityMessage&) message);
+      break;
+
     case DisplayConfigurationRequest::TYPE:
       SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
       break;
@@ -710,6 +726,22 @@ void Controller::SendClipboardChangedNotification() {
   ClipboardChangedNotification message(std::move(text));
   message.Serialize(output_stream_);
   output_stream_.Flush();
+}
+
+void Controller::ProcessXrRotation(const XrRotationMessage& message) {
+  // TODO: Implement.
+}
+
+void Controller::ProcessXrTranslation(const XrTranslationMessage& message) {
+  // TODO: Implement.
+}
+
+void Controller::ProcessXrAngularVelocity(const XrAngularVelocityMessage& message) {
+  // TODO: Implement.
+}
+
+void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
+  // TODO: Implement.
 }
 
 void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {

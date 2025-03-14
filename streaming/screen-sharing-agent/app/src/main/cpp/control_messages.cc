@@ -66,6 +66,18 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case RequestDeviceStateMessage::TYPE:
       return unique_ptr<ControlMessage>(RequestDeviceStateMessage::Deserialize(stream));
 
+    case XrRotationMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrRotationMessage::Deserialize(stream));
+
+    case XrTranslationMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrTranslationMessage::Deserialize(stream));
+
+    case XrAngularVelocityMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrAngularVelocityMessage::Deserialize(stream));
+
+    case XrVelocityMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrVelocityMessage::Deserialize(stream));
+
     case DisplayConfigurationRequest::TYPE:
       return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
 
@@ -179,6 +191,32 @@ StopClipboardSyncMessage* StopClipboardSyncMessage::Deserialize(Base128InputStre
 RequestDeviceStateMessage* RequestDeviceStateMessage::Deserialize(Base128InputStream& stream) {
   int state = stream.ReadInt32() - 1; // Subtracting 1 to account for shifted encoding.
   return new RequestDeviceStateMessage(state);
+}
+
+XrRotationMessage* XrRotationMessage::Deserialize(Base128InputStream& stream) {
+  float x = stream.ReadFloat();
+  float y = stream.ReadFloat();
+  return new XrRotationMessage(x, y);
+}
+
+XrTranslationMessage* XrTranslationMessage::Deserialize(Base128InputStream& stream) {
+  float x = stream.ReadFloat();
+  float y = stream.ReadFloat();
+  float z = stream.ReadFloat();
+  return new XrTranslationMessage(x, y, z);
+}
+
+XrAngularVelocityMessage* XrAngularVelocityMessage::Deserialize(Base128InputStream& stream) {
+  float x = stream.ReadFloat();
+  float y = stream.ReadFloat();
+  return new XrAngularVelocityMessage(x, y);
+}
+
+XrVelocityMessage* XrVelocityMessage::Deserialize(Base128InputStream& stream) {
+  float x = stream.ReadFloat();
+  float y = stream.ReadFloat();
+  float z = stream.ReadFloat();
+  return new XrVelocityMessage(x, y, z);
 }
 
 DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128InputStream& stream) {

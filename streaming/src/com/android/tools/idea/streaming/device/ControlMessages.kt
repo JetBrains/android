@@ -66,6 +66,10 @@ sealed class ControlMessage(val type: Int) {
         StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
         StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
         RequestDeviceStateMessage.TYPE -> RequestDeviceStateMessage.deserialize(stream)
+        XrRotationMessage.TYPE -> XrRotationMessage.deserialize(stream)
+        XrTranslationMessage.TYPE -> XrTranslationMessage.deserialize(stream)
+        XrAngularVelocityMessage.TYPE -> XrAngularVelocityMessage.deserialize(stream)
+        XrVelocityMessage.TYPE -> XrVelocityMessage.deserialize(stream)
         DisplayConfigurationRequest.TYPE -> DisplayConfigurationRequest.deserialize(stream)
         ErrorResponse.TYPE -> ErrorResponse.deserialize(stream)
         DisplayConfigurationResponse.TYPE -> DisplayConfigurationResponse.deserialize(stream)
@@ -450,6 +454,113 @@ internal data class RequestDeviceStateMessage(val deviceStateId: Int) : ControlM
   }
 }
 
+/**
+ * Rotation in a 3D space. Each component is the angle of rotation in radians around
+ * the corresponding axis. Z rotation is not used.
+ */
+internal data class XrRotationMessage(val x: Float, val y: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(x)
+    stream.writeFloat(y)
+  }
+
+  override fun toString(): String =
+      "XrRotationMessage(x = $x, y = $y)"
+
+  companion object : Deserializer {
+    const val TYPE = 13
+
+    override fun deserialize(stream: Base128InputStream): XrRotationMessage {
+      val x = stream.readFloat()
+      val y = stream.readFloat()
+      return XrRotationMessage(x, y)
+    }
+  }
+}
+
+/**
+ * Translation in a 3D space. Each component is the distance in meters along the corresponding axis.
+ */
+internal data class XrTranslationMessage(val x: Float, val y: Float, val z: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(x)
+    stream.writeFloat(y)
+    stream.writeFloat(z)
+  }
+
+  override fun toString(): String =
+      "XrTranslationMessage(x = $x, y = $y, z = $z)"
+
+  companion object : Deserializer {
+    const val TYPE = 14
+
+    override fun deserialize(stream: Base128InputStream): XrTranslationMessage {
+      val x = stream.readFloat()
+      val y = stream.readFloat()
+      val z = stream.readFloat()
+      return XrTranslationMessage(x, y, z)
+    }
+  }
+}
+
+/**
+ * Angular velocity in a 3D space. Each component is the angular velocity in radians per second
+ * around the corresponding axis. Z rotation is not used.
+ */
+internal data class XrAngularVelocityMessage(val x: Float, val y: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(x)
+    stream.writeFloat(y)
+  }
+
+  override fun toString(): String =
+      "XrAngularVelocityMessage(x = $x, y = $y)"
+
+  companion object : Deserializer {
+    const val TYPE = 15
+
+    override fun deserialize(stream: Base128InputStream): XrAngularVelocityMessage {
+      val x = stream.readFloat()
+      val y = stream.readFloat()
+      return XrAngularVelocityMessage(x, y)
+    }
+  }
+}
+
+/**
+ * Velocity in a 3D space. Each component is the speed in meters per second along the corresponding
+ * axis.
+ */
+internal data class XrVelocityMessage(val x: Float, val y: Float, val z: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(x)
+    stream.writeFloat(y)
+    stream.writeFloat(z)
+  }
+
+  override fun toString(): String =
+      "XrVelocityMessage(x = $x, y = $y, z = $z)"
+
+  companion object : Deserializer {
+    const val TYPE = 16
+
+    override fun deserialize(stream: Base128InputStream): XrVelocityMessage {
+      val x = stream.readFloat()
+      val y = stream.readFloat()
+      val z = stream.readFloat()
+      return XrVelocityMessage(x, y, z)
+    }
+  }
+}
+
 /** Requests a display screenshot. */
 internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
@@ -460,7 +571,7 @@ internal data class DisplayConfigurationRequest private constructor(override val
   }
 
   companion object : Deserializer {
-    const val TYPE = 13
+    const val TYPE = 17
 
     override fun deserialize(stream: Base128InputStream): DisplayConfigurationRequest {
       val requestId = stream.readInt()
@@ -484,7 +595,7 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
   }
 
   companion object : Deserializer {
-    const val TYPE = 14
+    const val TYPE = 18
 
     override fun deserialize(stream: Base128InputStream): ErrorResponse {
       val requestId = stream.readInt()
@@ -514,7 +625,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
   }
 
   companion object : Deserializer {
-    const val TYPE = 15
+    const val TYPE = 19
 
     override fun deserialize(stream: Base128InputStream): DisplayConfigurationResponse {
       val requestId = stream.readInt()
@@ -550,7 +661,7 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
       "ClipboardChangedNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 16
+    const val TYPE = 20
 
     override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
@@ -586,7 +697,7 @@ internal data class SupportedDeviceStatesNotification(val deviceStates: List<Dev
       "SupportedDeviceStatesNotification(deviceStates=\"$deviceStates\", deviceStateId=$deviceStateId)"
 
   companion object : Deserializer {
-    const val TYPE = 17
+    const val TYPE = 21
 
     override fun deserialize(stream: Base128InputStream): SupportedDeviceStatesNotification {
       val numStates = stream.readInt()
@@ -615,7 +726,7 @@ internal data class DeviceStateNotification(val deviceStateId: Int) : ControlMes
       "DeviceStateNotification(deviceStateId=$deviceStateId)"
 
   companion object : Deserializer {
-    const val TYPE = 18
+    const val TYPE = 22
 
     override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
       val deviceState = stream.readInt() - 1
@@ -648,7 +759,7 @@ internal data class DisplayAddedOrChangedNotification(
       "DisplayAddedOrChangedNotification(displayId=$displayId, width=$width, height=$height, rotation=$rotation, displayType=$displayType)"
 
   companion object : Deserializer {
-    const val TYPE = 19
+    const val TYPE = 23
 
     override fun deserialize(stream: Base128InputStream): DisplayAddedOrChangedNotification {
       val displayId = stream.readInt()
@@ -675,7 +786,7 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
       "DisplayRemovedNotification(displayId=$displayId)"
 
   companion object : Deserializer {
-    const val TYPE = 20
+    const val TYPE = 24
 
     override fun deserialize(stream: Base128InputStream): DisplayRemovedNotification {
       val displayId = stream.readInt()
@@ -692,10 +803,10 @@ internal data class UiSettingsRequest private constructor(override val requestId
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 
   override fun toString(): String =
-    "UiSettingsRequest(requestId=$requestId)"
+      "UiSettingsRequest(requestId=$requestId)"
 
   companion object : Deserializer {
-    const val TYPE = 21
+    const val TYPE = 25
 
     override fun deserialize(stream: Base128InputStream): UiSettingsRequest {
       val requestId = stream.readInt()
@@ -762,29 +873,30 @@ internal data class UiSettingsResponse(
     stream.writeBoolean(gestureOverlayInstalled)
   }
 
-  override fun toString(): String =
-    "UiSettingsResponse(" +
-    "requestId=$requestId, " +
+  override fun toString(): String {
+    return "UiSettingsResponse(" +
+           "requestId=$requestId, " +
 
-    "darkMode=$darkMode, " +
-    "fontScale=$fontScale, " +
-    "density=$density, " +
-    "talkBackOn=$talkBackOn, " +
-    "selectToSpeakOn=$selectToSpeakOn, " +
-    "gestureNavigation=$gestureNavigation, " +
-    "debugLayout=$debugLayout, " +
-    "foregroundApplicationId=\"$foregroundApplicationId\", " +
-    "appLocale=\"$appLocale\", " +
+           "darkMode=$darkMode, " +
+           "fontScale=$fontScale, " +
+           "density=$density, " +
+           "talkBackOn=$talkBackOn, " +
+           "selectToSpeakOn=$selectToSpeakOn, " +
+           "gestureNavigation=$gestureNavigation, " +
+           "debugLayout=$debugLayout, " +
+           "foregroundApplicationId=\"$foregroundApplicationId\", " +
+           "appLocale=\"$appLocale\", " +
 
-    "originalValues=$originalValues, " +
+           "originalValues=$originalValues, " +
 
-    "fontScaleSettable=$fontScaleSettable, " +
-    "densitySettable=$densitySettable, " +
-    "tackBackInstalled=$tackBackInstalled, " +
-    "gestureOverlayInstalled=$gestureOverlayInstalled)"
+           "fontScaleSettable=$fontScaleSettable, " +
+           "densitySettable=$densitySettable, " +
+           "tackBackInstalled=$tackBackInstalled, " +
+           "gestureOverlayInstalled=$gestureOverlayInstalled)"
+  }
 
-    companion object : Deserializer {
-    const val TYPE = 22
+  companion object : Deserializer {
+    const val TYPE = 26
 
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
@@ -909,10 +1021,10 @@ internal data class UiSettingsChangeRequest<T>(
   }
 
   override fun toString(): String =
-    "UiSettingsChangeRequest(requestId=$requestId, command=${command.toString(value)})"
+      "UiSettingsChangeRequest(requestId=$requestId, command=${command.toString(value)})"
 
   companion object : Deserializer {
-    const val TYPE = 23
+    const val TYPE = 27
 
     override fun deserialize(stream: Base128InputStream): CorrelatedMessage {
       val requestId = stream.readInt()
@@ -935,12 +1047,11 @@ internal data class UiSettingsChangeResponse(
     stream.writeBoolean(originalValues)
   }
 
-  override fun toString(): String {
-    return "UiSettingsChangeResponse(requestId=$requestId, originalValues=\"$originalValues\")"
-  }
+  override fun toString(): String =
+      "UiSettingsChangeResponse(requestId=$requestId, originalValues=\"$originalValues\")"
 
   companion object : Deserializer {
-    const val TYPE = 24
+    const val TYPE = 28
 
     override fun deserialize(stream: Base128InputStream): UiSettingsChangeResponse {
       val requestId = stream.readInt()
@@ -950,7 +1061,6 @@ internal data class UiSettingsChangeResponse(
   }
 }
 
-
 /**
  * Resets the ui changes made on the device.
  */
@@ -959,10 +1069,10 @@ internal data class ResetUiSettingsRequest(override val requestId: Int) : Correl
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 
   override fun toString(): String =
-    "ResetUiSettingsRequest(requestId=$requestId)"
+      "ResetUiSettingsRequest(requestId=$requestId)"
 
   companion object : Deserializer {
-    const val TYPE = 25
+    const val TYPE = 29
 
     override fun deserialize(stream: Base128InputStream): ResetUiSettingsRequest {
       val requestId = stream.readInt()
