@@ -109,13 +109,17 @@ public class SdkQuickfixUtilsTest {
     // createDialogForPaths will cause a RuntimeException instead of creating a dialog when it is headless or in testing mode
     // Check for that exception instead of trying to see if showErrorDialog was called
     boolean causedException = false;
+    ModelWizardDialog dialog = null;
     try {
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(null, Collections.emptyList(), errorMessage);
-      Disposer.register(androidProjectRule.getTestRootDisposable(), dialog.getDisposable());
+      dialog = SdkQuickfixUtils.createDialogForPaths(null, Collections.emptyList(), errorMessage);
     }
     catch (RuntimeException error) {
       causedException = true;
       assertThat(error.getMessage()).isEqualTo(errorMessage);
+    } finally {
+      if (dialog != null) {
+        dialog.disposeIfNeeded();
+      }
     }
     assertThat(causedException).isTrue();
   }
@@ -139,14 +143,20 @@ public class SdkQuickfixUtilsTest {
   @Test
   public void testCreateDialogNoUncachedRepoReloads() {
     LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", sdkRoot.resolve("p"));
+    ModelWizardDialog dialog = null;
     try {
-      SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
+      dialog = SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
                                     null, ImmutableList.of(localPackage), mySdkHandler,
                                     null, false);
     }
     catch (RuntimeException e) {
       // Expected RuntimeException when creating the dialog in unit test mode.
       assertThat(e.getMessage()).contains("All packages are not available for download!");
+    }
+    finally {
+      if (dialog != null) {
+        dialog.disposeIfNeeded();
+      }
     }
 
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
