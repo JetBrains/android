@@ -8,11 +8,19 @@ searchable_options(
     visibility = ["//visibility:public"],
 )
 
+exports_files([
+    "update_searchable_options.py",
+    "searchable_options_test.py",
+])
+
 py_test(
     name = "searchable_options_test",
     srcs = [
         "searchable_options_test.py",
         "update_searchable_options.py",
+    ],
+    args = [
+        "--ide tools/adt/idea/studio/android-studio",
     ],
     data = [
         "//tools/adt/idea/studio:android-studio.linux.zip",
@@ -30,6 +38,10 @@ py_test(
 py_binary(
     name = "update_searchable_options",
     srcs = ["update_searchable_options.py"],
+    args = [
+        "--out tools/adt/idea/searchable-options",
+        "--ide tools/adt/idea/studio/android-studio",
+    ],
     data = [
         "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/adt/idea/studio:android-studio.mac.zip",

@@ -1,13 +1,17 @@
+import argparse
 import filecmp
 import glob
 import os
 import platform
 import re
 import shutil
+import sys
 import unittest
 import zipfile
 import update_searchable_options
 
+ide_path = None
+plugins = None
 
 class SearchableOptionTests(unittest.TestCase):
   """Tests searchable options to be up-to-date.
@@ -18,11 +22,13 @@ class SearchableOptionTests(unittest.TestCase):
   """
 
   def test_searchable_options(self):
-
     work_dir = os.getenv("TEST_TMPDIR")
     expected_dir = os.path.join(work_dir, "expected")
 
-    plugin_list = update_searchable_options.generate_searchable_options(work_dir, expected_dir)
+    plugin_list = update_searchable_options.generate_searchable_options(work_dir, expected_dir, ide_path, plugins)
+    if plugins:
+      plugin_list = {dir: id for dir, id in plugin_list.items() if id in plugins}
+    print(plugin_list)
 
     # Create actual tree
     plugin_path = {
@@ -60,4 +66,21 @@ class SearchableOptionTests(unittest.TestCase):
     return True
 
 if __name__ == "__main__":
-  unittest.main()
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "--ide",
+      dest="ide",
+      required=True,
+      help="The path (prefix) to the ide artifacts")
+  parser.add_argument(
+      "--plugins",
+      dest="plugins",
+      nargs="*",
+      default=[],
+      help="The plugins to export, if none chosen all plugins are exported")
+
+  args, left = parser.parse_known_args()
+  ide_path = args.ide
+  plugins = args.plugins
+  left.insert(0, sys.argv[0])
+  unittest.main(argv = left)
