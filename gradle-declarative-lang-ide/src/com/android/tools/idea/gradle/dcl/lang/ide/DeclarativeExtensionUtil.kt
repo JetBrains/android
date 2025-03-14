@@ -33,12 +33,15 @@ import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
+import com.android.tools.idea.gradle.dcl.lang.sync.GenericTypeRef
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.psi.PsiElement
@@ -54,21 +57,33 @@ enum class ElementType(val str: String) {
   OBJECT_VALUE("Factory value"),
   FACTORY("Factory"),
   PROPERTY("Property"),
-  ENUM_CONSTANT("Enum Constant")
+  ENUM_CONSTANT("Enum Constant"),
+  GENERIC_TYPE("Generic Type")
 }
 
 fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve: (FullName) -> ClassType?): ElementType = when (type) {
-  is DataClassRef ->
-    when (val resolvedType = resolve(type.fqName)) {
-      is ClassModel ->
-        if (resolvedType.isObjectValue(rootFunction)) OBJECT_VALUE
-        else ElementType.PROPERTY
-
-      is EnumModel -> ENUM
-      else -> BLOCK
-    }
-
+  is DataClassRef -> getDataClassType(resolve, type.fqName, rootFunction)
   is SimpleTypeRef -> getSimpleType(type.dataType)
+  is DataClassRefWithTypes ->  getDataClassType(resolve, type.fqName, rootFunction)
+  is GenericTypeRef -> ElementType.GENERIC_TYPE
+}
+
+private fun getDataClassType(
+  resolve: (FullName) -> ClassType?,
+  fullName: FullName,
+  rootFunction: List<PlainFunction>
+) = when (val resolvedType = resolve(fullName)) {
+    is ClassModel ->
+      if (resolvedType.isObjectValue(rootFunction)) OBJECT_VALUE
+      else ElementType.PROPERTY
+
+    is EnumModel -> ENUM
+    else -> BLOCK
+  }
+
+fun getType(type: SchemaMemberFunction): ElementType = when (type.semantic) {
+  is PlainFunction -> FACTORY
+  is BlockFunction -> if (type.parameters.isNotEmpty()) FACTORY_BLOCK else BLOCK
 }
 
 val VALUE_CLASSES = setOf("org.gradle.api.file.RegularFile", "org.gradle.api.file.Directory")
@@ -85,6 +100,7 @@ fun getType(type: SchemaFunction): ElementType = when (type.semantic) {
 }
 
 fun getType(entry: EntryWithContext, rootFunction: List<PlainFunction>): ElementType = when (entry.entry) {
+  is SchemaMemberFunction -> getType(entry.entry)
   is SchemaFunction -> getType(entry.entry)
   is DataProperty -> getType(entry.entry.valueType, rootFunction, entry::resolveRef)
 }

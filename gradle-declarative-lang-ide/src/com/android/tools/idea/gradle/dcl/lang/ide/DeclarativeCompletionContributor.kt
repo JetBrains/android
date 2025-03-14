@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.codeInsight.completion.CompletionConfidence
@@ -285,7 +285,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
         findPreviousSimpleFunction(parameters.position)?.let { parent ->
           result.addAllElements(
-            getSuggestionList(parent, schema, true).filter { it.first is SchemaFunction }
+            getSuggestionList(parent, schema, true).filter { it.first is SchemaMemberFunction }
               .map {
                 val suggestion = it.second
                 LookupElementBuilder.create(suggestion.name)
@@ -389,7 +389,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       // object type property
       OBJECT_VALUE -> {
         if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
-        val rootFunctions = getRootFunctions(parent, schemas)
+        val rootFunctions = getRootFunctions(parent, schemas).distinct()
           .filter { (it.semantic as? PlainFunction)?.returnValue == (entry as? DataProperty)?.valueType }
 
         if (rootFunctions.size == 1) {

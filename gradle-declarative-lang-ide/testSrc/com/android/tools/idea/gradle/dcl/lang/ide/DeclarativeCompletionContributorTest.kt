@@ -148,12 +148,29 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testAssignObjectType() {
+    doTest("""
+      androidApp {
+        buildTypes{
+          buildType("debug"){
+            matchingFallbacks = $caret
+          }
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "layout", "listOf"
+      )
+    }
+  }
+
+  @Test
   fun testInsideFileCompletionNoTyping() {
     doTest("""
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary", "layout"
+        "androidApp", "androidLibrary", "layout", "listOf"
       )
     }
   }
@@ -234,7 +251,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout"
+        "layout", "listOf"
       )
     }
 
@@ -499,7 +516,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("layout", "rootProject", "uri")
+      Truth.assertThat(suggestions.toList()).containsExactly("layout", "listOf", "rootProject", "uri")
     }
   }
 

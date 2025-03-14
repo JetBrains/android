@@ -29,7 +29,9 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
@@ -150,19 +152,18 @@ class DeclarativeAnnotator : Annotator {
       when (val entry = receiver.entry) {
         is SchemaFunction -> listOf(FoundFunction(entry))
         is DataProperty -> when (val type = entry.valueType) {
-          is DataClassRef -> receiver.resolveRef(type.fqName)?.let {
-            listOf(
-              when (it) {
-                is ClassModel -> FoundObjectProperty(it)
-                is EnumModel -> FoundEnum(it)
-              }
-            )
-          } ?: listOf()
-
+          is DataClassRef -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
           is SimpleTypeRef -> listOf(FoundSimpleProperty(type.dataType))
+          is DataClassRefWithTypes -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
+          else -> listOf()
         }
       }
     }
+  }
+
+  private fun ClassType.wrap() = when (this) {
+    is ClassModel -> FoundObjectProperty(this)
+    is EnumModel -> FoundEnum(this)
   }
 
   private fun showUnknownName(holder: AnnotationHolder) {

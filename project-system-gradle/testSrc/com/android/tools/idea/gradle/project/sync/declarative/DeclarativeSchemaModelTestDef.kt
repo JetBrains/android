@@ -26,11 +26,10 @@ import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FunctionSemantic
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.android.tools.idea.gradle.project.sync.snapshots.DeclarativeTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
-import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
@@ -151,7 +150,7 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       }
     }
 
-    fun SchemaFunction.dump() {
+    fun SchemaMemberFunction.dump() {
       out("FunctionName", simpleName)
       receiver.dump("Receiver")
       nest("Parameters") {
