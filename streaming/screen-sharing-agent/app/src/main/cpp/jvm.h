@@ -291,6 +291,8 @@ class JCharArray : public JRef<JCharArray, jcharArray> {
 public:
   using JRef::JRef;
 
+  static JCharArray Create(JNIEnv* jni_env, int32_t length);
+  static JCharArray Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars);
   void SetRegion(int32_t start, int32_t len, const uint16_t* chars) const {
     SetRegion(GetJni(), start, len, chars);
   }
@@ -374,8 +376,6 @@ public:
   }
 
   JClass GetClass(const char* name) const;
-
-  [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
 
   std::vector<int64_t> GetElements(jlongArray array) const;
 
