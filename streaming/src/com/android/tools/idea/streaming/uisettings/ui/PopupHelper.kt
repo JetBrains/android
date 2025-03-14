@@ -17,14 +17,13 @@ package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.findComponentForAction
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.BalloonImpl
+import com.intellij.ui.WindowMoveListener
+import com.intellij.ui.awt.AnchoredPoint
+import java.awt.Component
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.JComponent
@@ -33,22 +32,21 @@ import javax.swing.SwingUtilities
 /**
  * Shows the UI settings popup relative to the ActionButton if possible.
  */
-internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnActionEvent, displayView: AbstractDisplayView) {
+internal fun showUiSettingsPopup(panel: JComponent, displayView: AbstractDisplayView) {
   val balloon = JBPopupFactory.getInstance()
       .createBalloonBuilder(panel)
       .setShadow(true)
       .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
       .setRequestFocus(true)
+      .setShowCallout(false)
       .setAnimationCycle(200)
       .setFillColor(secondaryPanelBackground)
       .setBorderColor(secondaryPanelBackground)
       .createBalloon()
 
-  // Show the UI settings popup relative to the ActionButton.
-  // If such a component is not found use the displayView. The action was likely activated from the keyboard.
-  val component = event.findComponentForAction(action) as? JComponent ?: displayView
-  val position = findRelativePoint(component, displayView)
+  // Show the UI settings popup relative to the DisplayView.
+  val position = AnchoredPoint(AnchoredPoint.Anchor.LEFT, displayView)
 
   // Hide the balloon if Studio looses focus.
   val window = SwingUtilities.windowForComponent(position.component)
@@ -65,20 +63,13 @@ internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnA
   // Hide the balloon when the device window closes.
   Disposer.register(displayView, balloon)
 
-  // Show the balloon above the component if there is room, otherwise below.
-  balloon.show(position, Balloon.Position.above)
-}
+  // Show the balloon anchored to the left of the DisplayView.
+  balloon.show(position, Balloon.Position.atLeft)
 
-/**
- * Returns the point for displaying the balloon.
- * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard) returns the point NW of the [component]
- * - If [component] is in a popup itself, converts the point relative to the [displayView]
- * - Otherwise, returns the center of the button that was pressed
- */
-fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
-  return when {
-    component is AbstractDisplayView -> RelativePoint.getNorthWestOf(component)
-    PopupUtil.getPopupContainerFor(component) != null -> RelativePoint.getCenterOf(component).getPointOn(displayView)
-    else -> RelativePoint.getCenterOf(component)
-  }
+  // Make the Balloon moveable.
+  object : WindowMoveListener(panel) {
+    override fun getView(component: Component?): Component? {
+      return (balloon as? BalloonImpl)?.component ?: panel
+    }
+  }.installTo(panel)
 }
