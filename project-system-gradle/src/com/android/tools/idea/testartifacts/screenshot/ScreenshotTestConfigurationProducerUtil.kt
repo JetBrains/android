@@ -49,10 +49,17 @@ private const val COMPOSE_PREVIEW_ANNOTATION = "androidx.compose.ui.tooling.prev
 fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFacet): Boolean {
   val sourceProviders = SourceProviderManager.getInstance(facet)
   val virtualFile = PsiUtilCore.getVirtualFile(location.psiElement) ?: return false
-  val (screenshotTestSources, generatedScreenshotTestSources) =
-    sourceProviders.hostTestSources[CommonTestType.SCREENSHOT_TEST] to sourceProviders.generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]
-  return !(screenshotTestSources?.containsFile(virtualFile) == false && !screenshotTestSources.containedIn(virtualFile) &&
-           generatedScreenshotTestSources?.containsFile(virtualFile) == false && !generatedScreenshotTestSources.containedIn(virtualFile))
+  sourceProviders.hostTestSources[CommonTestType.SCREENSHOT_TEST]?.let {
+    if (it.containsFile(virtualFile) || it.containedIn(virtualFile)) {
+      return true
+    }
+  }
+  sourceProviders.generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]?.let {
+    if (it.containsFile(virtualFile) || it.containedIn(virtualFile)) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
