@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.impl.setTrusted
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
@@ -69,7 +69,7 @@ class AgpUpgradeActionTest {
   @Test
   fun testAgpUpgradeActionDisabledForUntrustedProject() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
-    project.setTrusted(false)
+    TrustedProjects.setProjectTrusted(project, false)
     val action = AgpUpgradeAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)

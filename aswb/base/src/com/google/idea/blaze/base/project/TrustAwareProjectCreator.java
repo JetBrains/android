@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.project;
 
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.impl.TrustedProjects;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
