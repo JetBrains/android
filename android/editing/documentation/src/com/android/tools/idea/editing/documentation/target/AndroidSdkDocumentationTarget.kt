@@ -141,6 +141,9 @@ sealed class AndroidSdkDocumentationTarget<T>(
 
   private fun createUrlWithHeaders(): UrlFileCache.UrlWithHeaders {
     if (contentServingApiKey == null) return UrlFileCache.UrlWithHeaders(url)
+    // We parse the URL to a URI object because it is safer than using the URL class.
+    // This is just to let us validate it is a valid URI but also to be able to
+    // separate out the host and path portions - removing the scheme, port, etc.
     val uri = URI(url.substringBeforeLast(".html"))
     // This is just to create a unique key in the cache for methods/fields/etc.
     val suffix = URLEncoder.encode(url.substringAfterLast(".html"), StandardCharsets.UTF_8)
