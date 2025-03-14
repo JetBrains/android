@@ -62,7 +62,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
-import com.android.tools.idea.streaming.emulator.xr.XrInputMode
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener

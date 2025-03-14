@@ -48,9 +48,10 @@ import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSens
 import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.emulator.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
-import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
+import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.UNKNOWN_PASSTHROUGH_COEFFICIENT
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
@@ -404,7 +405,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
-    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != EmulatorXrInputController.UNKNOWN_PASSTHROUGH_COEFFICIENT }
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
     assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)

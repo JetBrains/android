@@ -20,7 +20,7 @@ import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.getDisplayView
-import com.android.tools.idea.streaming.emulator.xr.XrInputMode
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction

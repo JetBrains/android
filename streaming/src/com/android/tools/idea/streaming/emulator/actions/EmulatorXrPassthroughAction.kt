@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.UNKNOWN_PASSTHROUGH_COEFFICIENT
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -58,6 +59,6 @@ class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
 
   private fun isEnabled(event: AnActionEvent): Boolean {
     val xrController = getEmulatorXrInputController(event) ?: return false
-    return xrController.passthroughCoefficient != EmulatorXrInputController.UNKNOWN_PASSTHROUGH_COEFFICIENT
+    return xrController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT
   }
 }
