@@ -166,10 +166,20 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
         supported_device_states_.clear();  // A single device state is treated the same as no states.
       }
       if (!supported_device_states_.empty()) {
-        const char* signature = Agent::feature_level() < 36 ?
-            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V" :
-            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)Landroid/hardware/devicestate/DeviceStateInfo;";
-        jmethodID register_callback_method = clazz.GetMethod("registerCallback", signature);
+        bool registerCallbackReturnsStateInfo = Agent::feature_level() >= 35;
+        const char* signature = registerCallbackReturnsStateInfo ?
+            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)Landroid/hardware/devicestate/DeviceStateInfo;" :
+            "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V";
+        jmethodID register_callback_method = nullptr;
+        if (Agent::feature_level() == 35) {
+          // In API 35 the registerCallback method may have either of the two signatures.
+          register_callback_method = clazz.FindMethod("registerCallback", signature);
+          signature = "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V"; // Fall back to the old signature.
+          registerCallbackReturnsStateInfo = false;
+        }
+        if (register_callback_method == nullptr) {
+          register_callback_method = clazz.GetMethod("registerCallback", signature);
+        }
         request_state_method_ = clazz.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
         if (Agent::feature_level() >= 33) {
           cancel_state_request_method_ = clazz.GetMethod("cancelStateRequest", "()V");
@@ -188,12 +198,12 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
           // "SecurityException: The calling process has already registered an IDeviceStateManagerCallback"
           clazz = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
           JObject callback = clazz.NewObject(clazz.GetConstructor("()V"));
-          if (Agent::feature_level() < 36) {
+          if (registerCallbackReturnsStateInfo) {
+            device_state_info2 = device_state_manager_.CallObjectMethod(jni, register_callback_method, callback.ref());
+          } else {
             device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
             // Obtain a fresh device state info after setting up the callback.
             device_state_info2 = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
-          } else {
-            device_state_info2 = device_state_manager_.CallObjectMethod(jni, register_callback_method, callback.ref());
           }
         }
 
