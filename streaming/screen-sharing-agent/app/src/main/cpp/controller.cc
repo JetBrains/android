@@ -595,7 +595,7 @@ void Controller::InjectInputEvent(const JObject& input_event) {
         input_event_injection_disabled_ = true;
       }
     } else {
-      Log::E("Unable to inject an input event %s", JString::ValueOf(exception).c_str());
+      Log::E("Unable to inject an input event %s", JString::ValueOf(input_event).c_str());
     }
   }
 }
