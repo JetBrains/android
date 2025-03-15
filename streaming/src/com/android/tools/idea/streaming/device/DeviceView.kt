@@ -513,6 +513,9 @@ internal class DeviceView(
       sendMotionEventDisplayCoordinates(adjusted, action, modifiers, button)
       sendMotionEventDisplayCoordinates(adjusted, MotionEventMessage.ACTION_UP, modifiers, button)
     }
+    else if (action == MotionEventMessage.ACTION_HOVER_EXIT) {
+      sendMotionEventDisplayCoordinates(displayCoordinates.constrainInside(deviceDisplaySize), action, modifiers, button, axisValues)
+    }
   }
 
   private fun sendMotionEventDisplayCoordinates(
