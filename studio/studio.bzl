@@ -112,7 +112,7 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         inputs = files + [argfile] + deps,
         outputs = [out],
         executable = ctx.executable._lnzipper,
-        execution_requirements = {"no-sandbox": "true", "no-remote": "true"},
+        execution_requirements = {"no-sandbox": "true", "no-remote": "true", "cpu:16": ""},
         arguments = args,
         progress_message = "lnzipping %s" % desc,
         mnemonic = "lnzipper",
