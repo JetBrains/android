@@ -490,6 +490,7 @@ iml_module(
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
         "//tools/external/gradle:gradle-8.14-20250304001707+0000",
+        "//tools/external/gradle:gradle-8.14-milestone-4",
     ],
     # do not sort: must match IML order
     test_deps = [

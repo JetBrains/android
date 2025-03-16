@@ -20,14 +20,19 @@ import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchema
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
+import com.android.tools.idea.gradle.dcl.lang.sync.ConcreteGeneric
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FunctionSemantic
+import com.android.tools.idea.gradle.dcl.lang.sync.GenericTypeRef
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
+import com.android.tools.idea.gradle.dcl.lang.sync.StarGeneric
 import com.android.tools.idea.gradle.project.sync.snapshots.DeclarativeTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -60,7 +65,8 @@ data class DeclarativeSchemaModelTestDef(
   }
 
   override fun isCompatible(): Boolean {
-    return agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
+    return agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
+           agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
   }
 
   override fun runTest(root: File, project: Project) {
@@ -135,6 +141,20 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       when (this) {
         is DataClassRef -> out("$prefix ReferenceType", fqName.name)
         is SimpleTypeRef -> out("$prefix SimpleType", dataType.name)
+        is GenericTypeRef -> out("$prefix GenericType", "<T>")
+        is DataClassRefWithTypes -> {
+          out("$prefix DataClassWithType", fqName.name)
+          nest("GenericTypes") {
+            typeArgument.forEach {
+                nestArrayElement {
+                  when(it){
+                    is ConcreteGeneric -> it.reference.dump("ConcreteGeneric")
+                    is StarGeneric -> out("Generic", "*")
+                  }
+                }
+              }
+          }
+        }
       }
     }
 
@@ -151,8 +171,21 @@ fun Project.dumpDeclarativeSchemaModel(): String {
     }
 
     fun SchemaMemberFunction.dump() {
-      out("FunctionName", simpleName)
+      out("MemberFunctionName", simpleName)
       receiver.dump("Receiver")
+      nest("Parameters") {
+        parameters.sortedBy { it.name }.forEach {
+          nestArrayElement {
+            out("Name", it.name ?: "N/A")
+            it.type.dump("Value")
+          }
+        }
+      }
+      semantic.dump()
+    }
+
+    fun SchemaFunction.dump() {
+      out("FunctionName", simpleName)
       nest("Parameters") {
         parameters.sortedBy { it.name }.forEach {
           nestArrayElement {
@@ -190,6 +223,11 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       nest("DataClassesMap:") {
         dataClassesByFqName.entries.sortedBy { it.key.name }.forEach {
           nest(it.key.name) { it.value.dump() }
+        }
+      }
+      nest("RootFunctions:") {
+        topLevelFunctions.entries.sortedBy { it.key }.forEach {
+          nest(it.key) { it.value.dump() }
         }
       }
     }
