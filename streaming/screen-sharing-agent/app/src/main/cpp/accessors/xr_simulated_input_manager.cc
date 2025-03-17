@@ -34,30 +34,34 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     xr_simulated_input_manager_ = ServiceManager::GetServiceAsInterface(
         jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager");
     JClass xr_simulated_input_manager_class = xr_simulated_input_manager_.GetClass();
-    inject_head_rotation_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadRotation", "([f)V");
-    inject_head_movement_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadMovement", "([f)V");
-    inject_head_angular_velocity_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadAngularVelocity", "([f)V");
-    inject_head_movement_velocity_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadMovementVelocity", "([f)V");
+    inject_head_rotation_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadRotation", "([F)V");
+    inject_head_movement_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadMovement", "([F)V");
+    inject_head_angular_velocity_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadAngularVelocity", "([F)V");
+    inject_head_movement_velocity_method_ = xr_simulated_input_manager_class.GetMethod("injectHeadMovementVelocity", "([F)V");
     xr_simulated_input_manager_.MakeGlobal();
   }
 }
 
 void XrSimulatedInputManager::InjectHeadRotation(Jni jni, const float data[3]) {
+  Log::D("XrSimulatedInputManager::InjectHeadRotation([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
   xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_rotation_method_, JFloatArray::Create(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadMovement(Jni jni, const float data[3]) {
+  Log::D("XrSimulatedInputManager::InjectHeadMovement([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
   xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_method_, JFloatArray::Create(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadAngularVelocity(Jni jni, const float data[3]) {
+  Log::D("XrSimulatedInputManager::InjectHeadAngularVelocity([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
   xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_angular_velocity_method_, JFloatArray::Create(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadMovementVelocity(Jni jni, const float data[3]) {
+  Log::D("XrSimulatedInputManager::InjectHeadMovementVelocity([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
   xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_velocity_method_, JFloatArray::Create(jni, 3, data).ref());
 }
