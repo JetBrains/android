@@ -280,7 +280,7 @@ public class RenderTask {
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
-        new LayoutlibCallbackExDelegate(renderContextModule,
+        new LayoutlibCallbackExDelegate(renderContextModule.getParentDisposable(),
                                         new LayoutlibCallbackImpl(
                                           this,
                                           myLayoutLib,
@@ -461,7 +461,7 @@ public class RenderTask {
         clearClassLoader();
       }
       myImageFactoryDelegate = null;
-      Disposer.dispose(myContext.getModule());
+      myContext.getModule().dispose();
 
       return null;
     });

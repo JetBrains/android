@@ -34,7 +34,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.utils.identity
 
 /** [LayoutlibSceneManager] used for tests that performs all operations synchronously. */
 open class SyncLayoutlibSceneManager(
@@ -54,11 +53,6 @@ open class SyncLayoutlibSceneManager(
   init {
     sceneRenderConfiguration.setRenderModuleWrapperForTest { TestRenderModelModule(it) }
     sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
-  }
-
-  override fun dispose() {
-    sceneRenderConfiguration.setRenderModuleWrapperForTest(identity())
-    sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest(identity())
   }
 
   /**
