@@ -175,17 +175,6 @@ public interface BuildSystem {
   }
 
   /**
-   * Get a Blaze invoker specific to the blaze command.
-   */
-  default BuildInvoker getBuildInvoker(
-    Project project, BlazeCommandName command) {
-    throw new UnsupportedOperationException(
-      String.format(
-        "The getBuildInvoker method specific to a blaze command is not implemented in %s",
-        this.getClass().getSimpleName()));
-  }
-
-  /**
    * Return the strategy for remote syncs to be used with this build system.
    */
   SyncStrategy getSyncStrategy(Project project);
