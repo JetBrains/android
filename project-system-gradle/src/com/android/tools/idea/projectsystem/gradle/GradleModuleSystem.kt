@@ -183,11 +183,17 @@ class GradleModuleSystem(
       ?.second?.toPath()
   }
 
-  override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyQueryId? =
+  override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyQueryId =
     GradleRegisteredDependencyQueryId(id.getModule())
 
-  override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyId? =
+  override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyId =
     GradleRegisteredDependencyId(id.getDependency("+"))
+
+  fun getRegisteredDependencyId(component: Component): GradleRegisteredDependencyId =
+    GradleRegisteredDependencyId(component.dependency())
+
+  fun getRegisteredDependencyId(dependency: Dependency): GradleRegisteredDependencyId =
+    GradleRegisteredDependencyId(dependency)
 
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
     getRegisteredDependency(id.module)?.let{ GradleRegisteredDependencyId(it) }
@@ -334,6 +340,12 @@ class GradleModuleSystem(
       DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"
       DependencyType.IMPLEMENTATION -> "implementation"
     }
+
+  fun registerDependency(component: Component, type: DependencyType) =
+    registerDependency(getRegisteredDependencyId(component), type)
+
+  fun registerDependency(dependency: Dependency, type: DependencyType) =
+    registerDependency(GradleRegisteredDependencyId(dependency), type)
 
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
