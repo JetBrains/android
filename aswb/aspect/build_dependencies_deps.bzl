@@ -16,8 +16,9 @@ def _get_java_info(target, rule):
     p = target[JavaInfo]
     return struct(
         compile_jars = p.compile_jars,
-        transitive_compile_time_jars = p.transitive_compile_time_jars,
         java_outputs = p.java_outputs,
+        transitive_compile_time_jars = p.transitive_compile_time_jars,
+        transitive_runtime_jars = p.transitive_runtime_jars,
     )
 
 IDE_JAVA = struct(

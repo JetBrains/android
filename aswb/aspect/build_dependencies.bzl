@@ -89,6 +89,7 @@ def _noneToEmpty(d):
 
 def _package_dependencies_impl(target, ctx, params):
     dep_info = target[DependenciesInfo]
+    java_info = IDE_JAVA.get_java_info(target, ctx.rule)
 
     if params.experiment_multi_info_file:
         java_info_files = _noneToEmpty(dep_info.java_info_files)
@@ -108,6 +109,7 @@ def _package_dependencies_impl(target, ctx, params):
 
     return [OutputGroupInfo(
         qs_jars = _noneToEmpty(dep_info.compile_time_jars),
+        qs_transitive_runtime_jars = java_info.transitive_runtime_jars if java_info else depset(),
         qs_info = java_info_files,
         qs_aars = _noneToEmpty(dep_info.aars),
         qs_gensrcs = _noneToEmpty(dep_info.gensrcs),
