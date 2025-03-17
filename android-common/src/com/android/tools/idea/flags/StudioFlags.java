@@ -2353,9 +2353,6 @@ public final class StudioFlags {
   // region Google Login
   private static final FlagGroup GOOGLE_LOGIN =
     new FlagGroup(FLAGS, "google.login", "Google Login");
-  public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
-    new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
-                    "When enabled, a combined login page will show when logging in for a new user.", true);
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_COMPOSE_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.use.compose.flow", "Enable combined login using Compose",
                     "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", false);
