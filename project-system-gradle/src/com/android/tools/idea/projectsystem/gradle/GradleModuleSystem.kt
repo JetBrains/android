@@ -167,6 +167,14 @@ class GradleModuleSystem(
       ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
 
+  fun getResolvedDependency(externalModule: ExternalModule, scope: DependencyScopeType): Component? {
+    return getCompileDependenciesFor(module, scope)
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.component }
+      ?.find { it.group == externalModule.group && it.name == externalModule.name }
+  }
+
   private fun Component.matches(dependency: Dependency): Boolean =
     this.group == dependency.group &&
     this.name == dependency.name &&
