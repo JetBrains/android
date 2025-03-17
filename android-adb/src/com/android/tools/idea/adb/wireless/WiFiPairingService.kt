@@ -49,6 +49,9 @@ interface WiFiPairingService {
 
   /** Wait for device to be available from the underlying adb implementation */
   suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
+
+  /** Get version of ADB */
+  suspend fun getAdbVersion(): String
 }
 
 /** Result of pairing a device through "adb pair" */

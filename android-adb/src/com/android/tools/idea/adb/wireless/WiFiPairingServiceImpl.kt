@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.adblib.ServerStatus
+import com.android.adblib.ServerStatus.Companion.UNKNOWN
 import com.android.annotations.concurrency.AnyThread
 import com.android.repository.Revision
 import com.android.tools.idea.adb.AdbOptionsService
@@ -101,7 +101,7 @@ class WiFiPairingServiceImpl(
     }
 
     val serverStatus = adbService.getServerStatus()
-    if (serverStatus.version == ServerStatus.UNKNOWN) {
+    if (serverStatus.version == UNKNOWN) {
       return false
     }
 
@@ -223,6 +223,15 @@ class WiFiPairingServiceImpl(
 
   override suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice {
     return adbService.waitForOnlineDevice(pairingResult)
+  }
+
+  override suspend fun getAdbVersion(): String {
+    val status = adbService.getServerStatus()
+    return when {
+      status.version == UNKNOWN -> UNKNOWN
+      status.build == UNKNOWN -> status.version
+      else -> "${status.version}-${status.build}"
+    }
   }
 }
 

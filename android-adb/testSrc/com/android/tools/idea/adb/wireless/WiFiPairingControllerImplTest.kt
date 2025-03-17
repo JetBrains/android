@@ -23,12 +23,21 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.adb.AdbOptionsService
 import com.android.tools.idea.adb.AdbServerMdnsBackend
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.testing.ThreadingCheckRule
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.WIFI_PAIRING_EVENT
+import com.google.wireless.android.sdk.stats.ApiVersion
+import com.google.wireless.android.sdk.stats.WifiPairingEvent
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.PAIRING_CODE
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingResult.FAILURE
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingResult.SUCCESS
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
@@ -58,6 +67,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @get:Rule val threadingCheckRule = ThreadingCheckRule()
 
   @get:Rule val iconLoaderRule = IconLoaderRule()
+
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val randomProvider by lazy { MockRandomProvider() }
 
@@ -390,6 +401,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
         mapOf(
           Pair(IDevice.PROP_DEVICE_MANUFACTURER, "Google"),
           Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3"),
+          Pair(IDevice.PROP_BUILD_API_LEVEL, "35"),
+          Pair(IDevice.PROP_BUILD_CODENAME, "UpsideDownCake"),
         ),
       )
 
@@ -466,6 +479,76 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Truth.assertThat(content).isEqualTo("The device is now available to use.")
       Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
       Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
+      Truth.assertThat(usageTrackerRule.events())
+        .containsExactly(wifiPairingSuccess("35.0.2", 35L, "UpsideDownCake", QR_CODE))
+    }
+  }
+
+  @Test
+  fun tracksUsageWhenPairDeviceUsingQrCodeFails() = runBlocking {
+    // Prepare
+    randomProvider.seed = 10 // some arbitrary number
+    val generatedServiceName = "studio-+8nkUqLWv2" // Depends on seed above
+    val generatedPassword = "R7)i3aUHnMnX" // Depends on seed above
+    val phoneIpAddress = "192.168.1.86"
+    val phonePairingPort = 37313
+    val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
+    val phonePairingString =
+      "${generatedServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
+    val phoneConnectPort = 12345
+
+    adbService.useMock = true
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
+
+    whenever(adbService.instance.getServerStatus())
+      .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
+
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(
+        AdbCommandResult(
+          0,
+          listOf("List of discovered mdns services", phonePairingString),
+          listOf(),
+        )
+      )
+
+    whenever(
+        adbService.instance.executeCommand(
+          listOf("pair", "${phoneIpAddress}:${phonePairingPort}"),
+          generatedPassword + newLine(),
+        )
+      )
+      .thenReturn(
+        AdbCommandResult(
+          0,
+          listOf(
+            "Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"
+          ),
+          listOf(),
+        )
+      )
+
+    whenever(adbService.instance.waitForOnlineDevice(any()))
+      .thenThrow(RuntimeException(Exception()))
+
+    // Act
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
+      pumpAndWait(view.showQrCodePairingStartedTracker.consume())
+      pumpAndWait(model.qrCodeImageTracker.consume())
+      pumpAndWait(view.showQrCodePairingInProgressTracker.consume())
+      pumpAndWait(view.showQrCodePairingWaitForDeviceTracker.consume())
+
+      // Assert
+      Truth.assertThat(usageTrackerRule.events())
+        .containsExactly(
+          wifiPairingFailure("35.0.2", QR_CODE, listOf("RuntimeException", "Exception"))
+        )
     }
   }
 
@@ -505,6 +588,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
         mapOf(
           Pair(IDevice.PROP_DEVICE_MANUFACTURER, "Google"),
           Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3"),
+          Pair(IDevice.PROP_BUILD_API_LEVEL, "35"),
+          Pair(IDevice.PROP_BUILD_CODENAME, "UpsideDownCake"),
         ),
       )
 
@@ -597,6 +682,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Truth.assertThat(content).isEqualTo("The device is now available to use.")
       Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
       Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
+      Truth.assertThat(usageTrackerRule.events())
+        .containsExactly(wifiPairingSuccess("35.0.2", 35L, "UpsideDownCake", PAIRING_CODE))
     }
 
     // Act
@@ -633,6 +720,122 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     }
   }
 
+  @Test
+  fun tracksUsageWhenPairDeviceUsingPairingCodeFails() = runBlocking {
+    // Prepare
+    val phoneIpAddress = "192.168.1.86"
+    val phonePairingPort = 37313
+    val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
+    val phonePairingString =
+      "${phoneServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
+    val phonePairingCode = "123456"
+    val phoneConnectPort = 12345
+
+    adbService.useMock = true
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
+
+    whenever(adbService.instance.getServerStatus())
+      .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
+
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(
+        AdbCommandResult(
+          0,
+          listOf("List of discovered mdns services", phonePairingString),
+          listOf(),
+        )
+      )
+
+    whenever(
+        adbService.instance.executeCommand(
+          listOf("pair", "${phoneIpAddress}:${phonePairingPort}"),
+          phonePairingCode + newLine(),
+        )
+      )
+      .thenReturn(
+        AdbCommandResult(
+          0,
+          listOf(
+            "Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"
+          ),
+          listOf(),
+        )
+      )
+
+    whenever(adbService.instance.waitForOnlineDevice(any()))
+      .thenThrow(RuntimeException(Exception()))
+
+    fun enterPairingCode(
+      pairingCodeDialog: DialogWrapper,
+      @Suppress("SameParameterValue") phonePairingCode: String,
+    ) {
+      val pairingView =
+        lastPairingCodeView ?: throw AssertionError("Pairing Code Pairing View show be set")
+
+      val fakeUi = FakeUi(pairingCodeDialog.rootPane)
+
+      // Enter the pairing code
+      phonePairingCode.forEachIndexed { index, ch ->
+        // Note: FakeUi keyboard does not emulate focus, so we need to focus each
+        //       custom component individually
+        fakeUi.keyboard.setFocus(
+          fakeUi.getComponent<JTextField> { c -> c.name == "PairingCode-Digit-${index}" }
+        )
+        fakeUi.keyboard.type(ch.code)
+      }
+
+      // Click the "pair" button
+      val okButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
+      Truth.assertThat(okButton).isNotNull()
+      fakeUi.clickOn(okButton)
+
+      // Digits should be disabled once "Pair" is clicked
+      for (index in 0..5) {
+        val digit = fakeUi.getComponent<JTextField> { c -> c.name == "PairingCode-Digit-${index}" }
+        Truth.assertThat(digit.isEnabled).isFalse()
+      }
+
+      pumpAndWait(pairingView.showDialogTracker.consume())
+      pumpAndWait(pairingView.showPairingInProgressTracker.consume())
+      pumpAndWait(pairingView.showWaitingForDeviceProgressTracker.consume())
+
+      Truth.assertThat(usageTrackerRule.events())
+        .containsExactly(
+          wifiPairingFailure("35.0.2", PAIRING_CODE, listOf("RuntimeException", "Exception"))
+        )
+    }
+
+    // Act
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
+      val fakeUi = FakeUi(it.rootPane)
+
+      // Activate the needed page of the JBTabbedPane. Tabs are implemented by JLabel.
+      val pairingCodeTab =
+        fakeUi.getComponent<JLabel> { label -> label.text == "Pair using pairing code" }
+      fakeUi.clickOn(pairingCodeTab)
+
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
+      pumpAndWait(view.showQrCodePairingStartedTracker.consume())
+
+      pumpAndWait(model.pairingCodeServicesTracker.consume())
+
+      // We need to layout, since a new panel (for the pairing code device) should have been added
+      fakeUi.layout()
+
+      val pairButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
+      Truth.assertThat(pairButton).isNotNull()
+      createModalDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pairingCodeDialog ->
+        enterPairingCode(pairingCodeDialog, phonePairingCode)
+      }
+    }
+  }
+
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
   fun <V> pumpAndWait(future: Future<V>): V {
     return pumpEventsAndWaitForFuture(
@@ -646,3 +849,35 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     return LineSeparator.getSystemLineSeparator().separatorString
   }
 }
+
+private fun UsageTrackerRule.events() =
+  usages
+    .filter { it.studioEvent.kind == WIFI_PAIRING_EVENT }
+    .map { it.studioEvent.wifiPairingEvent.toBuilder().clearElapsedTimeMs().build() }
+
+@Suppress("SameParameterValue")
+private fun wifiPairingSuccess(
+  adbVersion: String,
+  deviceApi: Long,
+  deviceCodeName: String,
+  method: PairingMethod,
+) =
+  WifiPairingEvent.newBuilder()
+    .setAdbVersion(adbVersion)
+    .setDeviceApiVersion(ApiVersion.newBuilder().setApiLevel(deviceApi).setCodename(deviceCodeName))
+    .setPairingMethod(method)
+    .setPairingResult(SUCCESS)
+    .build()
+
+@Suppress("SameParameterValue")
+private fun wifiPairingFailure(
+  adbVersion: String,
+  method: PairingMethod,
+  exceptions: List<String>,
+) =
+  WifiPairingEvent.newBuilder()
+    .setAdbVersion(adbVersion)
+    .setPairingMethod(method)
+    .setPairingResult(FAILURE)
+    .addAllExceptionClassNames(exceptions)
+    .build()

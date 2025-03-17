@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.PAIRING_CODE
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
@@ -48,6 +49,8 @@ class PairingCodePairingController(
       view.showPairingInProgress()
 
       scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+        val now = System.currentTimeMillis()
+        val adbVersion = pairingService.getAdbVersion()
         try {
           val pairingResult =
             pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
@@ -57,12 +60,25 @@ class PairingCodePairingController(
           )
           // TODO: Ensure not disposed and state still the same
           val device = pairingService.waitForDevice(pairingResult)
+          WifiPairingUsageTracker.trackSuccess(
+            adbVersion,
+            PAIRING_CODE,
+            device.properties["ro.build.version.sdk"],
+            device.properties["ro.build.version.codename"],
+            System.currentTimeMillis() - now,
+          )
           LOG.info(
             "Device ${device} corresponding to mDNS service ${view.model.service} is now connected"
           )
           // TODO: Ensure not disposed and state still the same
           view.showPairingSuccess(view.model.service, device)
         } catch (e: Throwable) {
+          WifiPairingUsageTracker.trackFailure(
+            adbVersion,
+            PAIRING_CODE,
+            e,
+            System.currentTimeMillis() - now,
+          )
           LOG.warn("Pairing code pairing process failed", e)
           // TODO: Ensure not disposed and state still the same
           view.showPairingError(view.model.service, e)

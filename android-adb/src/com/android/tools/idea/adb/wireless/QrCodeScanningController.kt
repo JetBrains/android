@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
@@ -71,14 +72,29 @@ class QrCodeScanningController(
     state = State.Pairing
     view.showQrCodePairingInProgress(mdnsService)
     scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+      val now = System.currentTimeMillis()
+      val adbVersion = service.getAdbVersion()
       try {
         val pairingResult = service.pairMdnsService(mdnsService, password)
         view.showQrCodePairingWaitForDevice(pairingResult)
         val device = service.waitForDevice(pairingResult)
+        WifiPairingUsageTracker.trackSuccess(
+          adbVersion,
+          QR_CODE,
+          device.properties["ro.build.version.sdk"],
+          device.properties["ro.build.version.codename"],
+          System.currentTimeMillis() - now,
+        )
         state = State.PairingSuccess
         view.showQrCodePairingSuccess(mdnsService, device)
       } catch (error: Throwable) {
         if (!isCancelled(error)) {
+          WifiPairingUsageTracker.trackFailure(
+            adbVersion,
+            QR_CODE,
+            error,
+            System.currentTimeMillis() - now,
+          )
           LOG.warn("Error pairing device ${mdnsService}", error)
           state = State.PairingError
           view.showQrCodePairingError(mdnsService, error)

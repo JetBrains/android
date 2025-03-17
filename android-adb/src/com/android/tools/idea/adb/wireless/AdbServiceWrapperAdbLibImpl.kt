@@ -128,6 +128,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     if (!session.hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
       return ServerStatus()
     }
+
     return session.hostServices.serverStatus()
   }
 
