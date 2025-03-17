@@ -23,7 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wear-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />

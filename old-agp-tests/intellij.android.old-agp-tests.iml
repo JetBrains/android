@@ -28,7 +28,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
