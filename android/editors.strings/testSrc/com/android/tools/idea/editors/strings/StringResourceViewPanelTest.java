@@ -382,6 +382,38 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
   }
 
+  public void testDefaultValueField() {
+    // Initial state:
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isFalse();
+
+    myPanel.getTable().getFrozenTable().setUI(new HeadlessTableUI());
+    myPanel.getTable().getScrollableTable().setUI(new HeadlessTableUI());
+    myPanel.getLoadingPanel().setSize(1200, 2000);
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+
+    // The translation field is enabled in all columns of the scrollable table:
+    clickCell(ui, 0, 4);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 5);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 6);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 7);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 8);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+
+    // And enabled in all columns of the frozen table:
+    clickCell(ui, 0, 0);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 1);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 2);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+    clickCell(ui, 0, 3);
+    assertThat(myPanel.myDefaultValueTextField.isEnabled()).isTrue();
+  }
+
   public void testTranslationTextField() {
     // Initial state:
     assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();

@@ -299,6 +299,7 @@ public class StringResourceViewPanel implements Disposable {
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
 
     myDefaultValueTextField.setButtonIcon(StudioIcons.Common.EDIT);
+    myDefaultValueTextField.setEnabled(false);
     myDefaultValueTextField.setName("defaultValueTextField");
   }
 
