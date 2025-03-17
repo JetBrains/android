@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.psi.PsiElement
@@ -37,10 +36,8 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -61,6 +58,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
 
       import androidx.compose.runtime.Composable
       import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
 
     """.trimIndent()
 
@@ -70,6 +68,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APP_WITH_SCREENSHOT_TEST)
     stubComposeAnnotation()
     stubPreviewAnnotation()
+    stubPreviewTestAnnotation()
 
   }
 
@@ -80,12 +79,14 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/PreviewScreenshotTest.kt", """
         $SRC_FILE_HEADER
         class PreviewScreenshotTest {
+           @PreviewTest
            @Preview(showBackground = true)
            @Composable
            fun GreetingAndroid() {
                println("Hello")
            }
         
+           @PreviewTest
            @Preview(showBackground = true)
            @Composable
            fun GreetingPreview() {
@@ -111,6 +112,42 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/PreviewScreenshotTest.kt", """
         $SRC_FILE_HEADER
         class PreviewScreenshotTest {
+           @PreviewTest
+           @Preview(showBackground = true)
+           @Composable
+           fun GreetingAndroid() {
+               println("Hello")
+           }
+        
+           @PreviewTest
+           @Preview(showBackground = true)
+           @Composable
+           fun GreetingPreview() {
+               println("Hi")
+           }
+        }
+      """.trimIndent())
+    val virtualFile = findFileByIoFile(cFile, true)
+    val screenshotDir = virtualFile!!.parent.parent.parent.parent.parent
+    PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotDir!!, true)
+    file = virtualFile.toPsiFile(projectRule.project)
+    val function1 = file!!.findFunctionIdentifier("GreetingAndroid")
+    val function2 = file!!.findFunctionIdentifier("GreetingPreview")
+    val classElement = file!!.findClassdentifier("PreviewScreenshotTest")
+    val fun1Info = contributor.getSlowInfo(function1)
+    val fun2Info = contributor.getSlowInfo(function2)
+    val classInfo = contributor.getSlowInfo(classElement)
+    assertNotNull(fun1Info)
+    assertNotNull(fun2Info)
+    assertNotNull(classInfo)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testRunLineMarkerContributorNoPreviewTest() {
+    val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/PreviewScreenshotTest.kt", """
+        $SRC_FILE_HEADER
+        class PreviewScreenshotTest {
            @Preview(showBackground = true)
            @Composable
            fun GreetingAndroid() {
@@ -118,6 +155,39 @@ class ScreenshotTestRunLineMarkerContributorTest {
            }
         
            @Preview(showBackground = true)
+           @Composable
+           fun GreetingPreview() {
+               println("Hi")
+           }
+        }
+      """.trimIndent())
+    val virtualFile = findFileByIoFile(cFile, true)
+    val screenshotDir = virtualFile!!.parent.parent.parent.parent.parent
+    PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotDir!!, true)
+    file = virtualFile.toPsiFile(projectRule.project)
+    val function1 = file!!.findFunctionIdentifier("GreetingAndroid")
+    val function2 = file!!.findFunctionIdentifier("GreetingPreview")
+    val classElement = file!!.findClassdentifier("PreviewScreenshotTest")
+    val fun1Info = contributor.getSlowInfo(function1)
+    val fun2Info = contributor.getSlowInfo(function2)
+    val classInfo = contributor.getSlowInfo(classElement)
+    assertNull(fun1Info)
+    assertNull(fun2Info)
+    assertNull(classInfo)
+  }
+  @Test
+  @RunsInEdt
+  fun testRunLineMarkerContributorOnlyPreviewTest() {
+    val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/PreviewScreenshotTest.kt", """
+        $SRC_FILE_HEADER
+        class PreviewScreenshotTest {
+           @PreviewTest
+           @Composable
+           fun GreetingAndroid() {
+               println("Hello")
+           }
+        
+           @PreviewTest
            @Composable
            fun GreetingPreview() {
                println("Hi")
@@ -145,6 +215,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/PreviewScreenshotTest.kt", """
         $SRC_FILE_HEADER
         class PreviewScreenshotTest {
+           @PreviewTest
            @MultiPreview(showBackground = true)
            @Composable
            fun GreetingAndroid() {
@@ -225,6 +296,21 @@ class ScreenshotTestRunLineMarkerContributorTest {
       it.node.elementType == KtTokens.IDENTIFIER }!!
   }
 
+  private fun stubPreviewTestAnnotation() {
+    createRelativeFilewithContent(
+      "app/src/screenshotTest/java/com/android/testing/screenshot/PreviewTest.kt", """
+    package com.android.tools.screenshot
+    
+    @MustBeDocumented
+    @Retention(AnnotationRetention.BINARY)
+    @Target(
+        AnnotationTarget.FUNCTION
+    )
+    annotation class PreviewTest {
+    }
+        
+      """.trimIndent())
+  }
   private fun stubComposeAnnotation() {
     createRelativeFilewithContent(
       "app/src/screenshotTest/java/androidx/compose/runtime/Composable.kt", """
