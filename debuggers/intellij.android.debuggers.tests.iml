@@ -51,7 +51,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.maven" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.maven" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.debuggers" />
 </module>

@@ -33,7 +33,5 @@
     <orderEntry type="library" scope="PROVIDED" name="javax-inject" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="javax-inject" level="project" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
   </component>
 </module>
