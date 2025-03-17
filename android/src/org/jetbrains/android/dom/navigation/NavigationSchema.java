@@ -26,6 +26,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.tools.idea.module.ModuleDisposableService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -432,7 +433,7 @@ public class NavigationSchema implements Disposable {
     result = new NavigationSchema(module);
     result.init();
     ourSchemas.put(module, result);
-    if (Disposer.tryRegister(module, result)) {
+    if (Disposer.tryRegister(ModuleDisposableService.getInstance(module), result)) {
       WeakReference<NavigationSchema> navigationSchemaWeakReference = new WeakReference<>(result);
       // b/397154986
       // After a sync, we found cases where the PsiClass cached in myTypeCache would point to a valid class

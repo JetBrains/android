@@ -5,6 +5,7 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.module.ModuleDisposableService;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.classloading.StringReplaceTransform;
@@ -34,9 +35,9 @@ import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.CheckedDisposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
@@ -191,7 +192,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    * the parent compatibility in {@link #isCompatibleParentClassLoader(ClassLoader).}
    */
   private final ClassLoader myParentAtConstruction;
-  private final AtomicBoolean isDisposed = new AtomicBoolean(false);
+  private final CheckedDisposable myDisposable = Disposer.newCheckedDisposable();
 
   StudioModuleClassLoader(@Nullable ClassLoader parent,
                           @NotNull StudioModuleRenderContext renderContext,
@@ -222,10 +223,11 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     myImpl = loader;
     myBuildTargetReference = renderContext.getBuildTargetReference();
     Module module = renderContext.getBuildTargetReference().getModuleIfNotDisposed();
-    if (module != null) {
-      Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
-    }
+    Disposer.register(myDisposable, this::disposeImpl);
     myDiagnostics = diagnostics;
+    if (module == null || !Disposer.tryRegister(ModuleDisposableService.getInstance(module), myDisposable)) {
+      Disposer.dispose(myDisposable);
+    }
   }
 
   @Override
@@ -399,12 +401,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
 
   @Override
   public boolean isDisposed() {
-    return isDisposed.get();
+    return myDisposable.isDisposed();
   }
 
-  @Override
-  public void dispose() {
-    isDisposed.set(true);
+  public void disposeImpl() {
     myImpl.dispose();
     ourDisposeService.submit(() -> {
       waitForCoroutineThreadToStop();
@@ -426,5 +426,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
         }
       });
     });
+  }
+
+  @Override
+  public void dispose() {
+    Disposer.dispose(myDisposable);
   }
 }
