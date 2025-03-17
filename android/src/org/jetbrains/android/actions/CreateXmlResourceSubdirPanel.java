@@ -34,6 +34,7 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -167,9 +168,8 @@ public class CreateXmlResourceSubdirPanel {
     List<VirtualFile> directories = Collections.emptyList();
     if (resourceDir != null) {
       directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
+      directories = ContainerUtil.sorted(directories, Comparator.comparing(VirtualFile::getName));
     }
-
-    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();
