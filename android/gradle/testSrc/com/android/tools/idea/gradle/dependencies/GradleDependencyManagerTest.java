@@ -19,7 +19,6 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.imports.UtilsKt.assertBuildGradle;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
-import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
-import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -62,7 +60,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -229,12 +226,12 @@ public class GradleDependencyManagerTest {
 
   private boolean isRecyclerViewRegistered(@NotNull Project project) {
     GradleModuleSystem moduleSystem = (GradleModuleSystem)getModuleSystem(TestModuleUtil.findAppModule(project));
-    return moduleSystem.getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+    return moduleSystem.getRegisteredDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7) != null;
   }
 
   private boolean isRecyclerViewResolved(@NotNull Project project) {
     return getModuleSystem(TestModuleUtil.findAppModule(project))
-             .getResolvedDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
+             .getResolvedDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 
   @Test

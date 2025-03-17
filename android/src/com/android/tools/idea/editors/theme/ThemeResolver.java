@@ -301,8 +301,8 @@ public class ThemeResolver {
     // The components in the design library requires the application theme to be derived from
     // either: Platform.AppCompat or Platform.AppCompat.Light
     ConfigurationModelModule module = myConfiguration.getConfigModule();
-    if (!(module.getDependencies().dependsOn(GoogleMavenArtifactId.DESIGN) ||
-          module.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN))) {
+    if (!(module.getDependencies().dependsOn(GoogleMavenArtifactId.SUPPORT_DESIGN) ||
+          module.getDependencies().dependsOn(GoogleMavenArtifactId.MATERIAL))) {
       return NO_BASE_THEMES;
     }
 
@@ -329,9 +329,9 @@ public class ThemeResolver {
 
   @Nullable
   private static ResourceNamespace getAppCompatNamespace(@NotNull ConfigurationModelModule module) {
-    if (module.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
+    if (module.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT)) {
       return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT : ResourceNamespace.RES_AUTO;
-    } else if (module.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)) {
+    } else if (module.getDependencies().dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)) {
       return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT_LEGACY : ResourceNamespace.RES_AUTO;
     }
     return null;

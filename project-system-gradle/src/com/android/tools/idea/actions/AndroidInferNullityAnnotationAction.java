@@ -184,12 +184,12 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(CommonConfigurationNames.IMPLEMENTATION)) {
         String notation = dependency.compactNotation();
-        if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
-            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
+        if (notation.startsWith(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT.toString()) ||
             notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||
-            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_LEGACY_SUPPORT_V4.toString()) ||
             notation.startsWith(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.toString()) ||
-            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.toString())) {
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_ANNOTATION.toString())) {
           dependencyFound = true;
           break;
         }
@@ -225,7 +225,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
           RepositoryUrlManager manager = RepositoryUrlManager.get();
           GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
-                                             GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                             GoogleMavenArtifactId.ANDROIDX_ANNOTATION :
                                              GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
           Component annotationsComponent = manager.getArtifactComponent(annotation, true);
           if (annotationsComponent != null) {

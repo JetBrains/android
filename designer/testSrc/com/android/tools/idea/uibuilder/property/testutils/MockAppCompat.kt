@@ -158,7 +158,7 @@ object MockAppCompat {
   fun setUp(facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
     val gradleVersion = GradleVersion.parse(String.format("%1\$d.0.0", MOST_RECENT_API_LEVEL))
     val appCompatCoordinate =
-      GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString())
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate(gradleVersion.toString())
     val projectSystem =
       TestProjectSystem(facet.module.project, ImmutableList.of(appCompatCoordinate))
     projectSystem.useInTests()

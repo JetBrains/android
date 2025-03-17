@@ -113,7 +113,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         // We have neither class resolvable in the project, so we must find a dependency to add.
         GradleCoordinate libraryCoordinate = getExifLibraryCoordinate();
         boolean useAndroidx =
-          libraryCoordinate != null && libraryCoordinate.toString().startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
+          libraryCoordinate != null && libraryCoordinate.toString().startsWith(GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE.getMavenGroupId());
         try {
           WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
             if (libraryCoordinate != null) {
@@ -154,7 +154,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
     private static GradleCoordinate getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
-      Component component = manager.getArtifactComponent(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
+      Component component = manager.getArtifactComponent(GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE, true);
       String libraryComponentIdentifier = null;
       if (component != null) {
         libraryComponentIdentifier = component.toIdentifier();
@@ -163,7 +163,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
       }
 
-      component = manager.getArtifactComponent(GoogleMavenArtifactId.EXIF_INTERFACE, true);
+      component = manager.getArtifactComponent(GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE, true);
       if (component != null) {
         libraryComponentIdentifier = component.toIdentifier();
       }
@@ -173,7 +173,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
       if (component != null) {
         if (component.getVersion().compareTo(Version.parse("25.1.0")) < 0) {
-          libraryComponentIdentifier = GoogleMavenArtifactId.EXIF_INTERFACE.getComponent("25.1.0").toIdentifier();
+          libraryComponentIdentifier = GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE.getComponent("25.1.0").toIdentifier();
         }
       }
 

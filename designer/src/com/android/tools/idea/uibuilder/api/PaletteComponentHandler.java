@@ -26,20 +26,20 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_COORDINATOR_LAYOUT;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_DESIGN;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_GRID_LAYOUT_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEANBACK_V17;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_APPCOMPAT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_COORDINATORLAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.MATERIAL;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_GRIDLAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEANBACK;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEGACY_SUPPORT_V4;
 import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_VIEWPAGER;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.APP_COMPAT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7;
 import static com.android.ide.common.repository.GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.DESIGN;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.LEANBACK_V17;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_DESIGN;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_LEANBACK_V17;
 import static com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_ADS;
 import static com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_MAPS;
 import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_V4;
@@ -95,16 +95,16 @@ public abstract class PaletteComponentHandler {
       return SUPPORT_V4;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_V7_PKG)) {
-      return APP_COMPAT_V7;
+      return SUPPORT_APPCOMPAT_V7;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
-      return DESIGN;
+      return SUPPORT_DESIGN;
     }
     else if (tagName.startsWith(ANDROID_MATERIAL_PKG)) {
-      return ANDROIDX_DESIGN;
+      return MATERIAL;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_LEANBACK_V17_PKG)) {
-      return LEANBACK_V17;
+      return SUPPORT_LEANBACK_V17;
     }
     else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_ADS_PKG)) {
       return PLAY_SERVICES_ADS;
@@ -116,31 +116,31 @@ public abstract class PaletteComponentHandler {
       return CONSTRAINT_LAYOUT;
     }
     else if (tagName.startsWith(ANDROIDX_CONSTRAINT_LAYOUT_PKG)) {
-      return ANDROIDX_CONSTRAINT_LAYOUT;
+      return ANDROIDX_CONSTRAINTLAYOUT;
     }
     else if (tagName.startsWith(ANDROIDX_RECYCLER_VIEW_PKG)) {
-      return ANDROIDX_RECYCLERVIEW_V7;
+      return ANDROIDX_RECYCLERVIEW;
     }
     else if (tagName.startsWith(ANDROIDX_CARD_VIEW_PKG)) {
-      return ANDROIDX_CARDVIEW_V7;
+      return ANDROIDX_CARDVIEW;
     }
     else if (tagName.startsWith(ANDROIDX_GRID_LAYOUT_PKG)) {
-      return ANDROIDX_GRID_LAYOUT_V7;
+      return ANDROIDX_GRIDLAYOUT;
     }
     else if (tagName.startsWith(ANDROIDX_LEANBACK_PKG)) {
-      return ANDROIDX_LEANBACK_V17;
+      return ANDROIDX_LEANBACK;
     }
     else if (tagName.startsWith(ANDROIDX_CORE_PKG)) {
-      return ANDROIDX_SUPPORT_V4;
+      return ANDROIDX_LEGACY_SUPPORT_V4;
     }
     else if (tagName.startsWith(ANDROIDX_VIEWPAGER_PKG)) {
       return ANDROIDX_VIEWPAGER;
     }
     else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
-      return ANDROIDX_APP_COMPAT_V7;
+      return ANDROIDX_APPCOMPAT;
     }
     else if (tagName.startsWith(ANDROIDX_COORDINATOR_LAYOUT_PKG)) {
-      return ANDROIDX_COORDINATOR_LAYOUT;
+      return ANDROIDX_COORDINATORLAYOUT;
     }
     return null;
   }

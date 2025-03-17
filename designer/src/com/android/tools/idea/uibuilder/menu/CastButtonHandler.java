@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.AndroidXConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import icons.StudioIcons;
@@ -26,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_MEDIA_ROUTER_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.MEDIA_ROUTER_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_MEDIAROUTER;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_MEDIAROUTER_V7;
 
 public final class CastButtonHandler extends MenuHandler {
   private final boolean myIsAndroidX;
@@ -44,7 +43,7 @@ public final class CastButtonHandler extends MenuHandler {
   @NotNull
   @Override
   public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
-    return myIsAndroidX ? ANDROIDX_MEDIA_ROUTER_V7 : MEDIA_ROUTER_V7;
+    return myIsAndroidX ? ANDROIDX_MEDIAROUTER : SUPPORT_MEDIAROUTER_V7;
   }
 
   @NotNull

@@ -24,7 +24,6 @@ import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
@@ -84,13 +83,13 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   @Test
   fun testGetAvailableDependency_fallbackToPreview() {
     setupProject()
-    // In the test repo NAVIGATION only has a preview version 0.0.1-alpha1
+    // In the test repo ANDROIDX_NAVIGATION_RUNTIME only has a preview version 0.0.1-alpha1
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.NAVIGATION.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+      listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.NAVIGATION.getCoordinate("0.0.1-alpha1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getCoordinate("0.0.1-alpha1"))
   }
 
   @Test
@@ -126,11 +125,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     )
     // Check that the version is picked up from one of the sub modules
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("23.1.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("23.1.1"))
   }
 
   @Test
@@ -142,11 +141,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     )
 
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("22.2.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("22.2.1"))
   }
 
   @Test

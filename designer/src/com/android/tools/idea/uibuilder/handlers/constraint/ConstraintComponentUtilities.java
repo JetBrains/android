@@ -102,7 +102,6 @@ import com.android.AndroidXConstants;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.configurations.Configuration;
@@ -919,7 +918,7 @@ public final class ConstraintComponentUtilities {
 
 
   public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor, String version) {
-    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
+    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT;
     Version v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     if (v == null) return true;
     return v.compareTo(Version.parse(version)) > 0;

@@ -58,11 +58,11 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testDoesNotDependOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
 
     Truth.assertThat(module.dependsOnAndroidx()).isFalse()
 
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT, module, GradleVersion(1337, 600613))
 
     Truth.assertThat(module.dependsOnAndroidx()).isFalse()
   }
@@ -75,8 +75,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testUserConfirmationMultipleArtifactsMessage() {
     val artifacts = setOf(
-      GoogleMavenArtifactId.DESIGN,
-      GoogleMavenArtifactId.APP_COMPAT_V7
+      GoogleMavenArtifactId.SUPPORT_DESIGN,
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     )
     val correctMessage = "This operation requires the libraries com.android.support:design, " +
                          "com.android.support:appcompat-v7.\n\nWould you like to add these now?"
@@ -85,7 +85,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testUserConfirmationSingleArtifactsMessage() {
-    val artifacts = setOf(GoogleMavenArtifactId.DESIGN)
+    val artifacts = setOf(GoogleMavenArtifactId.SUPPORT_DESIGN)
     val correctMessage = "This operation requires the library com.android.support:design.\n\n" +
                          "Would you like to add this now?"
 
@@ -94,8 +94,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testUserConfirmationMultipleArtifactMessageWithWarning() {
     val artifacts = setOf(
-      GoogleMavenArtifactId.DESIGN,
-      GoogleMavenArtifactId.APP_COMPAT_V7
+      GoogleMavenArtifactId.SUPPORT_DESIGN,
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     )
     val warning = "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
 
@@ -111,7 +111,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testUserConfirmationSingleArtifactMessageWithWarning() {
-    val artifacts = setOf(GoogleMavenArtifactId.DESIGN)
+    val artifacts = setOf(GoogleMavenArtifactId.SUPPORT_DESIGN)
     val warning = "Inconsistencies in the existing project dependencies found.\n" +
                   "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
 
@@ -128,19 +128,19 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testDependsOnWhenDependencyExists() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)).isTrue()
+    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isTrue()
   }
 
   fun testDependsOnWhenDependencyDoesNotExist() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.DESIGN)).isFalse()
+    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.SUPPORT_DESIGN)).isFalse()
   }
 
   fun testAddEmptyListOfDependencies() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
 
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(), false)
 
@@ -161,7 +161,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddMultipleDependencies() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
@@ -206,7 +206,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
 
   fun testAddMultipleDependenciesWithSomeUnavailable() {
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(appCompat, playServices), false)
 
@@ -248,7 +248,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddDependenciesWithSomeErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
@@ -267,7 +267,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddDependenciesAllWillErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     addFakeErrorForRegisteringMavenArtifact(constraintLayout, "Can't add constraintLayout because reasons.")
@@ -287,7 +287,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddDependenciesWithUnavailableDependenciesAndSomeErrorDuringRegistration() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     addFakeErrorForRegisteringMavenArtifact(appCompat, "Can't add appcompat because reasons.")
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
@@ -312,7 +312,7 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testAddMultipleDependenciesWithCompatibilityError() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+    val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     addIncompatibleArtifactPair(appCompat, constraintLayout)
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), true)

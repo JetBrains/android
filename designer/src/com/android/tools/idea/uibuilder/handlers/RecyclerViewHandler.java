@@ -24,8 +24,8 @@ import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_SCROLLBARS;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.RECYCLERVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.model.NlComponent;
@@ -83,7 +83,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_RECYCLERVIEW_V7 : RECYCLERVIEW_V7;
+    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_RECYCLERVIEW : SUPPORT_RECYCLERVIEW_V7;
   }
 
   @Nullable

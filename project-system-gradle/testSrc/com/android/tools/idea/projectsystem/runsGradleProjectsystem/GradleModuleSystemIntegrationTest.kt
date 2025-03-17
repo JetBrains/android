@@ -54,7 +54,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -95,7 +94,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that getRegisteredDependency gets a existing dependency correctly.
-      val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7
+      val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
       val foundDependency = moduleSystem.getRegisteredDependency(appCompat)
       assertThat(foundDependency).isNotNull()
       assertThat(foundDependency?.dependency?.module).isEqualTo(appCompat.getModule())
@@ -206,7 +205,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem()
 
       // Verify that app-compat is on version 28.0.0 so the checks below make sense.
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
+      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
       val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "+")
       val wildcardVersionResolution = moduleSystem.getResolvedDependency(appCompatDependency)
@@ -223,7 +222,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem()
 
       // Verify that app-compat is on version 28.0.0 so the checks below make sense.
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
+      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
       assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
       assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
@@ -282,7 +281,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that the module system returns a path.
-      assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getDependency("+"))).isNotNull()
+      assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("+"))).isNotNull()
     }
   }
 
@@ -454,7 +453,7 @@ class GradleModuleSystemIntegrationTest {
       .getModuleBuildModel(project.findAppModule())
       ?.dependencies()
       ?.artifacts()
-      ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.APP_COMPAT_V7.toString() }
+      ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.toString() }
 
     assertThat(appCompatArtifact).isNotNull()
     assertThat(appCompatArtifact!!.version().toString()).isEqualTo("+")

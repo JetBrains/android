@@ -40,7 +40,7 @@ internal enum class TemplateTag {
   CONSTRAINT_LAYOUT {
     override fun availableFor(module: Module): Boolean {
       return module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ||
-        module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)
+        module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT)
     }
   },
   /** This template uses GridLayoutManager (which is already included in recyclerview) */

@@ -239,8 +239,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open() {
     Project project = myModel.getProject();
     Module module = myModel.getModule();
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.DESIGN) ||
-                           DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_DESIGN);
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.SUPPORT_DESIGN) ||
+                           DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.MATERIAL);
     if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
@@ -273,8 +273,8 @@ public class AppBarConfigurationDialog extends JDialog {
     Module module = myModel.getModule();
 
     GoogleMavenArtifactId artifact = myUseAndroidxDependency ?
-                                     GoogleMavenArtifactId.ANDROIDX_DESIGN :
-                                     GoogleMavenArtifactId.DESIGN;
+                                     GoogleMavenArtifactId.MATERIAL :
+                                     GoogleMavenArtifactId.SUPPORT_DESIGN;
     boolean designAdded = DependencyManagementUtil
       .addDependenciesWithUiConfirmation(module, Set.of(artifact), true, false)
       .isEmpty();

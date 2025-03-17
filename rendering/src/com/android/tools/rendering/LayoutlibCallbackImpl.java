@@ -198,8 +198,8 @@ class LayoutlibCallbackImpl extends LayoutlibCallbackEx {
     myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7);
-    myHasAndroidXAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
+    myHasAndroidXAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT);
     myShouldUseCustomInflater = shouldUseCustomInflater;
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();

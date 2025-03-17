@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -27,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW_V7;
-import static com.android.ide.common.repository.GoogleMavenArtifactId.CARDVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7;
 
 /**
  * Handler for the {@code <CardView>} widget.
@@ -66,6 +65,6 @@ public class CardViewHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String viewTag) {
-    return viewTag.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_CARDVIEW_V7 : CARDVIEW_V7;
+    return viewTag.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_CARDVIEW : SUPPORT_CARDVIEW_V7;
   }
 }
