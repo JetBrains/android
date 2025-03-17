@@ -159,11 +159,8 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
       Collection<ApiMember> removedFields =
           apiLookup == null ? Collections.emptyList() : apiLookup.getRemovedFields(PERMISSION_CLASS_NAME_FOR_API_LOOKUP);
 
-      Map<String, ApiMember> removedFieldMap;
-      if (removedFields == null || removedFields.isEmpty()) {
-        removedFieldMap = Collections.emptyMap();
-      } else {
-        removedFieldMap = new HashMap<>();
+      Map<String, ApiMember> removedFieldMap = new HashMap<>();
+      if (removedFields != null) {
         for (ApiMember field : removedFields) {
           removedFieldMap.put(field.getSignature(), field);
         }
