@@ -272,7 +272,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
     val lintResult = LintBatchResult(myProject, map, scope, enabledIssues, null)
     val issueRegistry = lint().getIssueRegistry(enabledIssues.toList())
-    val client = lint().createIsolatedClient(lintResult, issueRegistry)
+    val client = lint().createIsolatedClient(myProject, lintResult, issueRegistry)
     // Note: We pass in *all* modules in the project here, not just those in the scope of the
     // resource refactoring. If you for example are running the unused resource refactoring on a
     // library module, we want to only remove unused resources from the specific library

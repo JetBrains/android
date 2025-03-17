@@ -169,10 +169,11 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     AndroidLintIdeClient(lintResult.getModule().project, lintResult)
 
   override fun createIsolatedClient(
-    lintResult: LintBatchResult,
+    project: Project,
+    lintResult: LintResult,
     issueRegistry: IssueRegistry,
   ): LintIdeClient {
-    return object : AndroidLintIdeClient(lintResult.project, lintResult) {
+    return object : AndroidLintIdeClient(project, lintResult) {
       override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
         emptyList()
 
