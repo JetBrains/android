@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction.EyeTracking
-import com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction.HandTracking
+import com.android.tools.idea.streaming.actions.StreamingXrInputModeAction.EyeTracking
+import com.android.tools.idea.streaming.actions.StreamingXrInputModeAction.HandTracking
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.keymap.KeymapExtension
 import com.intellij.openapi.keymap.KeymapGroup

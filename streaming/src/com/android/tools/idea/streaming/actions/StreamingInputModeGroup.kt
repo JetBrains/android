@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator.actions;
+package com.android.tools.idea.streaming.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.components.service
 
-class XrMainToolbarGroup : DefaultActionGroup() {
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isEnabledAndVisible = !service<FloatingXrToolbarState>().floatingXrToolbarEnabled
-  }
+/** A container for `StreamingHardwareInputAction` for non-XR devices. */
+internal class StreamingInputModeGroup : DefaultActionGroup() {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(event: AnActionEvent) {
+    // Enabled for all non-XR devices.
+    event.presentation.isEnabledAndVisible = getDeviceType(event) != DeviceType.XR
+  }
 }

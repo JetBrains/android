@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
@@ -42,7 +43,6 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -108,6 +108,8 @@ abstract class AbstractDisplayView(
     get() = deviceId.serialNumber
   /** ID of the device shown in the view. */
   abstract val deviceId: DeviceId
+  abstract val deviceType: DeviceType
+  abstract val apiLevel: Int
   /** Area of the window occupied by the device display image in physical pixels. */
   var displayRectangle: Rectangle? = null
     protected set
@@ -116,7 +118,6 @@ abstract class AbstractDisplayView(
   /** The difference between [displayOrientationQuadrants] and the orientation according to the internal Android data structures. */
   var displayOrientationCorrectionQuadrants: Int = 0
     protected set
-  abstract val apiLevel: Int
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */

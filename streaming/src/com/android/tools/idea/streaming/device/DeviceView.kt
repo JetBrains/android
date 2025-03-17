@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.rotatedByQuadrants
@@ -36,6 +37,7 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotOptions
@@ -147,6 +149,7 @@ internal class DeviceView(
     get() = connectionState == ConnectionState.CONNECTED
 
   override val deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
+  override val deviceType: DeviceType = deviceConfig.deviceType
 
   /**
    * Orientation of the device display according to Android's
@@ -178,6 +181,7 @@ internal class DeviceView(
     get() = deviceClient.deviceConfig
 
   override val deviceDisplaySize = Dimension()
+  private var deviceScaleFactor: Double = 1.0
 
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
@@ -219,6 +223,13 @@ internal class DeviceView(
   private val screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
     get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
 
+  private var xrInputController: DeviceXrInputController? = null
+    get() {
+      if (field == null && isConnected && deviceConfig.deviceType == DeviceType.XR) {
+        field = DeviceXrInputController.getInstance(project, deviceClient)
+      }
+      return field
+    }
 
   init {
     Disposer.register(disposableParent, this)
@@ -330,6 +341,7 @@ internal class DeviceView(
       if (disposed || connectionState == ConnectionState.DISCONNECTED) {
         return@invokeLaterIfNeeded
       }
+      xrInputController = null
       hideLongRunningOperationIndicatorInstantly()
       stopClipboardSynchronization()
       val message: String
@@ -423,10 +435,10 @@ internal class DeviceView(
       }
       val rotatedDisplaySize = displayFrame.displaySize.rotatedByQuadrants(displayFrame.orientation)
       val maxSize = computeMaxImageSize()
-      val scale = roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width,
-                                 maxSize.height.toDouble() / rotatedDisplaySize.height))
-      val w = rotatedDisplaySize.width.scaled(scale).coerceAtMost(physicalWidth)
-      val h = rotatedDisplaySize.height.scaled(scale).coerceAtMost(physicalHeight)
+      deviceScaleFactor = roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width,
+                                                maxSize.height.toDouble() / rotatedDisplaySize.height))
+      val w = rotatedDisplaySize.width.scaled(deviceScaleFactor).coerceAtMost(physicalWidth)
+      val h = rotatedDisplaySize.height.scaled(deviceScaleFactor).coerceAtMost(physicalHeight)
       val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
       displayRectangle = displayRect
       val image = displayFrame.image
@@ -683,32 +695,35 @@ internal class DeviceView(
     }
 
     override fun keyPressed(event: KeyEvent) {
-      keyPressedOrReleased(event)
-    }
-
-    override fun keyReleased(event: KeyEvent) {
-      keyPressedOrReleased(event)
-    }
-
-    private fun keyPressedOrReleased(event: KeyEvent) {
       updateMultiTouchMode(event)
-
       if (!isConnected) {
         return
       }
-
       if (isHardwareInputEnabled()) {
         hardwareInput.forwardEvent(event)
         return
       }
-
-      if (event.id == KEY_PRESSED) {
-        val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(event.keyCode, event.modifiersEx)
-        if (androidKeyStroke != null) {
-          deviceController?.sendKeyStroke(androidKeyStroke)
-          event.consume()
-        }
+      if (xrInputController?.keyPressed(event) == true) {
+        return
       }
+
+      val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(event.keyCode, event.modifiersEx)
+      if (androidKeyStroke != null) {
+        deviceController?.sendKeyStroke(androidKeyStroke)
+        event.consume()
+      }
+    }
+
+    override fun keyReleased(event: KeyEvent) {
+      updateMultiTouchMode(event)
+      if (!isConnected) {
+        return
+      }
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
+        return
+      }
+      xrInputController?.keyReleased(event)
     }
 
     private fun hostKeyStrokeToAndroidKeyStroke(hostKeyCode: Int, modifiers: Int): AndroidKeyStroke? {
@@ -776,6 +791,9 @@ internal class DeviceView(
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
+      if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       val insideDisplay = isInsideDisplay(event)
       if (handlePopup(event, insideDisplay)) {
         return
@@ -792,6 +810,9 @@ internal class DeviceView(
     }
 
     override fun mouseReleased(event: MouseEvent) {
+      if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       val insideDisplay = isInsideDisplay(event)
       if (handlePopup(event, insideDisplay)) {
         return
@@ -807,10 +828,16 @@ internal class DeviceView(
     }
 
     override fun mouseEntered(event: MouseEvent) {
+      if (xrInputController?.mouseEntered(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       updateMultiTouchMode(event)
     }
 
     override fun mouseExited(event: MouseEvent) {
+      if (xrInputController?.mouseExited(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       if ((currentModifiers and BUTTON_MASK) != 0) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
         sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
@@ -822,6 +849,9 @@ internal class DeviceView(
     }
 
     override fun mouseDragged(event: MouseEvent) {
+      if (xrInputController?.mouseDragged(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       updateMultiTouchMode(event)
       if ((currentModifiers and BUTTON_MASK) != 0) {
         sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
@@ -832,6 +862,9 @@ internal class DeviceView(
     }
 
     override fun mouseMoved(event: MouseEvent) {
+      if (xrInputController?.mouseMoved(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       updateMultiTouchMode(event)
       if (isInsideDisplay(event)) {
         if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
@@ -848,6 +881,9 @@ internal class DeviceView(
     }
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {
+      if (xrInputController?.mouseWheelMoved(event, deviceDisplaySize, deviceScaleFactor) == true) {
+        return
+      }
       if (!isInsideDisplay(event)) {
         return
       }
@@ -894,7 +930,8 @@ internal class DeviceView(
     if (event is MouseEvent) {
       wasInsideDisplay = isInsideDisplay(event)
     }
-    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isHardwareInputEnabled()
+    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
+                     !isHardwareInputEnabled() && xrInputController == null
     if (multiTouchMode && oldMultiTouchMode) {
       repaint() // If multi-touch mode changed above, the repaint method was already called.
     }

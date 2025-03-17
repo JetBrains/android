@@ -20,6 +20,7 @@ import com.android.emulator.control.XrOptions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
@@ -44,7 +45,7 @@ import kotlin.math.PI
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
  */
-internal abstract class AbstractXrInputController {
+internal abstract class AbstractXrInputController : Disposable {
 
   @Volatile var environment: XrOptions.Environment? = null
     set(value) {
@@ -96,6 +97,9 @@ internal abstract class AbstractXrInputController {
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val controlKeys
     get() = emulatorSettings.cameraVelocityControls.keys
+
+  /** Controls passthrough mode on the device. */
+  abstract suspend fun setPassthrough(passthroughCoefficient: Float)
 
   /**
    * Notifies the controller that a key was pressed.

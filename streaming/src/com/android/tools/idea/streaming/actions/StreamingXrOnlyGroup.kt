@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator.actions
+package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
-/** A container for `StreamingHardwareInputAction` for non-XR devices. */
-internal class EmulatorInputModeGroup : DefaultActionGroup() {
+/** Groups XR-specific actions. */
+internal class StreamingXrOnlyGroup : DefaultActionGroup() {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val emulatorConfig = getEmulatorConfig(event)
-    // Enabled for all non-XR devices.
-    event.presentation.isEnabledAndVisible = emulatorConfig != null && emulatorConfig.deviceType != DeviceType.XR
+    // Enabled only for XR devices.
+    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR
   }
 }

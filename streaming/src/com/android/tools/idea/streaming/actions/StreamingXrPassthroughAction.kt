@@ -13,39 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator.actions
+package com.android.tools.idea.streaming.actions
 
-import com.android.emulator.control.XrOptions
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.protobuf.Empty
-import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
-import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.UNKNOWN_PASSTHROUGH_COEFFICIENT
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
+import kotlinx.coroutines.launch
 
 /** Toggles passthrough for a virtual XR headset. */
-class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
+class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
-    val xrController = getEmulatorXrInputController(event) ?: return false
+    val xrController = getXrInputController(event) ?: return false
     return xrController.passthroughCoefficient > 0
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    val emulator = getEmulatorController(event) ?: return
-    val project = event.project ?: return
-    val xrController = EmulatorXrInputController.getInstance(project, emulator)
-    val passthroughCoefficient = if (state) 1f else 0f
-    val xrOptions =
-        XrOptions.newBuilder().setPassthroughCoefficient(passthroughCoefficient).setEnvironment(xrController.environment).build()
-    emulator.setXrOptions(xrOptions, object : EmptyStreamObserver<Empty>() {
-      override fun onNext(message: Empty) {
-        xrController.passthroughCoefficient = passthroughCoefficient
+    getXrInputController(event)?.apply {
+      createCoroutineScope().launch {
+        try {
+          setPassthrough(if (state) 1f else 0f)
+        }
+        catch (e: Exception) {
+          thisLogger().warn("Unable to set passthrough", e)
+        }
       }
-    })
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -53,12 +51,13 @@ class EmulatorXrPassthroughAction : ToggleAction(), DumbAware {
   override fun update(event: AnActionEvent) {
     super.update(event)
     val presentation = event.presentation
-    presentation.isVisible = getEmulatorConfig(event)?.deviceType == DeviceType.XR
+    presentation.isVisible = getDeviceType(event) == DeviceType.XR
     presentation.isEnabled = isEnabled(event)
   }
 
   private fun isEnabled(event: AnActionEvent): Boolean {
-    val xrController = getEmulatorXrInputController(event) ?: return false
+    val xrController = getXrInputController(event) ?: return false
+    // TODO Disable in transit.
     return xrController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT
   }
 }

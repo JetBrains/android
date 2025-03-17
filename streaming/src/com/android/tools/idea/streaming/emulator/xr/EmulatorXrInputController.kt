@@ -21,28 +21,35 @@ import com.android.emulator.control.InputEvent
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Translation
 import com.android.emulator.control.Velocity
+import com.android.emulator.control.XrOptions
+import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
+import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import io.ktor.util.collections.ConcurrentMap
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.math.min
 
 /**
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
  */
-internal class EmulatorXrInputController(private val emulator: EmulatorController) : AbstractXrInputController(), Disposable {
+internal class EmulatorXrInputController(private val emulator: EmulatorController) : AbstractXrInputController() {
 
   private val inputEvent = InputEvent.newBuilder()
   private val rotation = RotationRadian.newBuilder()
@@ -52,6 +59,23 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   init {
     Disposer.register(emulator, this)
+  }
+
+  override suspend fun setPassthrough(passthroughCoefficient: Float) {
+    suspendCancellableCoroutine { continuation ->
+      val xrOptions = XrOptions.newBuilder().setPassthroughCoefficient(passthroughCoefficient).setEnvironment(environment).build()
+      emulator.setXrOptions(xrOptions, object : EmptyStreamObserver<Empty>() {
+        override fun onNext(message: Empty) {
+          this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
+          ActivityTracker.getInstance().inc()
+          continuation.resume(Unit)
+        }
+
+        override fun onError(t: Throwable) {
+          continuation.resumeWithException(t)
+        }
+      })
+    }
   }
 
   @UiThread
