@@ -398,6 +398,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
             document.insertString(context.tailOffset, " = ${function.name}(\"\")")
             editor.caretModel.moveToOffset(context.tailOffset - 2)
           }
+        } else {
+          document.insertString(context.tailOffset, " = ")
+          editor.caretModel.moveToOffset(context.tailOffset)
         }
       }
       // rootProject completion

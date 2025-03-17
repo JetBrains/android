@@ -59,12 +59,9 @@ enum class ElementType(val str: String) {
 
 fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve: (FullName) -> ClassType?): ElementType = when (type) {
   is DataClassRef ->
-    when (resolve(type.fqName)) {
+    when (val resolvedType = resolve(type.fqName)) {
       is ClassModel ->
-        if (rootFunction
-            .map { it.returnValue }
-            .filterIsInstance<DataClassRef>()
-            .any { it.fqName == type.fqName }) OBJECT_VALUE
+        if (resolvedType.isObjectValue(rootFunction)) OBJECT_VALUE
         else ElementType.PROPERTY
 
       is EnumModel -> ENUM
@@ -73,6 +70,14 @@ fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve:
 
   is SimpleTypeRef -> getSimpleType(type.dataType)
 }
+
+val VALUE_CLASSES = setOf("org.gradle.api.file.RegularFile", "org.gradle.api.file.Directory")
+
+fun ClassModel.isObjectValue(rootFunction: List<PlainFunction>) =
+  rootFunction
+    .map { it.returnValue }
+    .filterIsInstance<DataClassRef>()
+    .any { it.fqName == name } || name.name in VALUE_CLASSES
 
 fun getType(type: SchemaFunction): ElementType = when (type.semantic) {
   is PlainFunction -> FACTORY

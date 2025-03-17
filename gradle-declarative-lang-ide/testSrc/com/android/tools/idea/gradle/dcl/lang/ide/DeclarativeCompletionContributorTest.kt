@@ -171,6 +171,25 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
   }
 
+
+  @Test
+  fun testSuggestionRegularFile() {
+    doCompletionTest("""
+    androidApp {
+      bundle  {
+        deviceTarg$caret
+      }
+    }
+    """.trimIndent() ,"""
+     androidApp {
+       bundle  {
+         deviceTargetingConfig = $caret
+       }
+     }
+     """.trimIndent()
+    )
+  }
+
   @Test
   fun testSuggestionInFactoryBlock() {
     doTest("""
