@@ -71,6 +71,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
   val myScreenshotResultView: ScreenshotResultView
   val myScreenshotTab: TabInfo
+  @VisibleForTesting var myScreenshotAttributesTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
   @VisibleForTesting var lastSelectedTab: TabInfo? = null
@@ -88,6 +89,13 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myScreenshotTab.setText("Screenshot")
     myScreenshotTab.setTooltipText("Show screenshot information")
     tabs.addTab(myScreenshotTab)
+
+    // Screenshot attributes tab
+    myScreenshotAttributesTab = TabInfo(ScreenshotAttributesView().getComponent())
+    myScreenshotAttributesTab.setText("Attributes")
+    myScreenshotAttributesTab.setTooltipText("Show preview attributes")
+    tabs.addTab(myScreenshotAttributesTab)
+    myScreenshotAttributesTab.isHidden = true
 
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
@@ -197,6 +205,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
     if (newImage != null || refImage != null || diffImage != null) {
       myScreenshotTab.isHidden = false
+      myScreenshotAttributesTab.isHidden = false
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
       myScreenshotResultView.diffImagePath = diffImage ?: ""
