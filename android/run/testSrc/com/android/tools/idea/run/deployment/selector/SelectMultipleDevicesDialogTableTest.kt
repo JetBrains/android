@@ -17,11 +17,27 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.run.LaunchCompatibility
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.JBColor
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import java.util.Arrays
 
 class SelectMultipleDevicesDialogTableTest {
   private var table: SelectMultipleDevicesDialogTable = SelectMultipleDevicesDialogTable()
+  private var wasDarkMode = false // Restore dark mode after test runs
+
+  @Before
+  fun setUp() {
+    wasDarkMode = !JBColor.isBright()
+    JBColor.setDark(false)
+  }
+
+  @After
+  fun tearDown() {
+    // Reset dark mode.
+    JBColor.setDark(wasDarkMode)
+  }
 
   @Test
   fun getSelectedTargets() {
