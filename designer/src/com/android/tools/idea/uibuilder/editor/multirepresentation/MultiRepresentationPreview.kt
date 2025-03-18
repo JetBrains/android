@@ -198,7 +198,9 @@ open class MultiRepresentationPreview(
             true
           } else false
 
-        currentRepresentation?.onCaretPositionChanged(event, isModificationTriggered)
+        currentRepresentation?.caretNavigationHandler?.let {
+          it.onCaretPositionChanged(event, isModificationTriggered)
+        }
       }
     }
 

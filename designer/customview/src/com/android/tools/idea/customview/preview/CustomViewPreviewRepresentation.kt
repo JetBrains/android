@@ -51,6 +51,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -159,6 +160,8 @@ class CustomViewPreviewRepresentation(
         return classes.map { fqcn2name(it) }
       }
     }
+
+  override val caretNavigationHandler = PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 
   override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {

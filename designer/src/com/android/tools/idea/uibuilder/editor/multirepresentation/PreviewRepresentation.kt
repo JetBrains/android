@@ -116,14 +116,36 @@ interface PreviewRepresentation : Disposable {
 
   // endregion
 
-  // region Text editor caret handling
-  /**
-   * Called when the caret position changes. This method must return ASAP and not block.
-   *
-   * @param event the [CaretEvent] being handled.
-   * @param isModificationTriggered true if the caret moved because the user modified the file, as
-   *   opposed to just navigating with arrows or the mouse.
-   */
-  fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {}
+  // region Navigation handling
+
+  val caretNavigationHandler: CaretNavigationHandler
+
+  /** An interface to handle the previews reaction to the caret being moved. */
+  interface CaretNavigationHandler {
+    /**
+     * When clicking on a component in preview the caret is moved to the position where that preview
+     * is defined. When a caret is moved to a position where a preview is defined we highlight that
+     * component in the preview. Thereby we need to distinguish whether [onCaretPositionChanged] is
+     * called due to the caret moving as a result of clicking in the preview or not. This will make
+     * sure we don't highlight extra previews.
+     */
+    var isNavigatingToCode: Boolean
+
+    /**
+     * Called when the caret position changes. This method must return ASAP and not block.
+     *
+     * @param event the [CaretEvent] being handled.
+     * @param isModificationTriggered true if the caret moved because the user modified the file, as
+     *   opposed to just navigating with arrows or the mouse.
+     */
+    fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean)
+
+    class NoopCaretNavigationHandler : CaretNavigationHandler {
+      override var isNavigatingToCode = false
+
+      override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {}
+    }
+  }
+
   // endregion
 }

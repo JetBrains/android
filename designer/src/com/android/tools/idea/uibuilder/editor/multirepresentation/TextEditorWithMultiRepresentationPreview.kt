@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.setEditorLayout
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
@@ -180,7 +181,9 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (isDesignMode()) {
       selectSplitMode(false)
     }
-
+    (preview as SourceCodePreview).currentRepresentation?.caretNavigationHandler?.let {
+      it.isNavigatingToCode = true
+    }
     super.navigateTo(navigatable)
   }
 
