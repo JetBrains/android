@@ -20,6 +20,7 @@ import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.res.isInResourceSubdirectory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
+import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
@@ -48,6 +49,7 @@ private val SEVERITY_TO_ICON =
  */
 class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   TrafficLightRenderer(file.project, editor.document) {
+  private val severityRegistrar = SeverityRegistrar.getSeverityRegistrar(project)
   private val severities = severityRegistrar.allSeverities
   override val errorCounts = IntArray(severities.size)
 
