@@ -255,7 +255,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationIdSuffix", "buildConfigField", "isMinifyEnabled", "matchingFallbacks", "multiDexEnabled", "versionNameSuffix")
+        "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled", "matchingFallbacks", "multiDexEnabled", "versionNameSuffix")
     }
   }
 
