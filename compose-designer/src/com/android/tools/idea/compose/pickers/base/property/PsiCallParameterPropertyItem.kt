@@ -127,26 +127,30 @@ internal open class PsiCallParameterPropertyItem(
     }
   }
 
-  fun deleteParameter() = runModification {
-    argumentExpression?.parent?.deleteElementAndCleanParent()
-    argumentExpression = null
+  fun deleteParameter() {
+    runModification {
+      argumentExpression?.parent?.deleteElementAndCleanParent()
+      argumentExpression = null
+    }
     model.firePropertyValuesChanged()
   }
 
-  private fun writeParameter(parameterString: String) = runModification {
-    var newValueArgument = model.psiFactory.createArgument(parameterString)
-    val currentArgumentExpression = argumentExpression
+  private fun writeParameter(parameterString: String) {
+    runModification {
+      var newValueArgument = model.psiFactory.createArgument(parameterString)
+      val currentArgumentExpression = argumentExpression
 
-    if (currentArgumentExpression != null) {
-      newValueArgument =
-        currentArgumentExpression.parent.replace(newValueArgument) as KtValueArgument
-    } else {
-      addNewArgumentToResolvedCall(newValueArgument, model.psiFactory)?.let {
-        newValueArgument = it
+      if (currentArgumentExpression != null) {
+        newValueArgument =
+          currentArgumentExpression.parent.replace(newValueArgument) as KtValueArgument
+      } else {
+        addNewArgumentToResolvedCall(newValueArgument, model.psiFactory)?.let {
+          newValueArgument = it
+        }
       }
+      argumentExpression = newValueArgument.getArgumentExpression()
+      argumentExpression?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }
     }
-    argumentExpression = newValueArgument.getArgumentExpression()
-    argumentExpression?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }
     model.firePropertyValuesChanged()
   }
 
