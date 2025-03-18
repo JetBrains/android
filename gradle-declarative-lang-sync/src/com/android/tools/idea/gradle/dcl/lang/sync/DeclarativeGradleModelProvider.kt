@@ -80,6 +80,12 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
       keyValue -> keyValue.value.convert(schema)?.let { keyValue.key.convert() to it }
     }.toMap()
   )
+  dataClasses.putAll(
+    genericInstantiationsByFqName.mapNotNull {
+      // deliberately ignore generic type for now
+      keyValue -> keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
+    }.toMap()
+  )
   topFunctions.putAll(
     externalFunctionsByFqName.mapNotNull { keyValue ->
       keyValue.value.convert()?.let { keyValue.key.simpleName to it }
@@ -98,6 +104,7 @@ private fun DataType.ClassDataType.convert(schema: BuildDeclarativeSchema): Clas
   when (this) {
     is EnumClass -> convert()
     is DataClass -> convert(schema)
+    is DataType.ParameterizedTypeInstance -> convert()
     else -> null
   }
 
@@ -113,6 +120,9 @@ private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
   val memberFunctions = memberFunctions.mapNotNull { it.convert(schema) }
   return ClassModel(memberFunctions, FullName(name.qualifiedName), properties, supertypes)
 }
+
+private fun DataType.ParameterizedTypeInstance.convert(): ParameterizedClassModel =
+  ParameterizedClassModel(FullName(name.qualifiedName), this.typeArguments.mapNotNull { it.convert() })
 
 private fun EnumClass.convert(): EnumModel =
   EnumModel(FullName(name.qualifiedName), this.entryNames)

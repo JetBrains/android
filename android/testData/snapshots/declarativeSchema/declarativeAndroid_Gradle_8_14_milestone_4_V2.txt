@@ -1501,6 +1501,10 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -1531,6 +1535,10 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Buildable
                 Name                          : org.gradle.api.Buildable
                 MemberFunctions
@@ -1769,6 +1777,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
                 MemberFunctions
@@ -1784,6 +1796,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
                 MemberFunctions
@@ -2091,6 +2107,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
                 MemberFunctions
@@ -2106,6 +2126,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
                 MemberFunctions
@@ -3867,6 +3891,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -3897,6 +3925,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Buildable
                 Name                          : org.gradle.api.Buildable
                 MemberFunctions
@@ -4114,6 +4146,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -4134,6 +4170,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 Name                          : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 MemberFunctions

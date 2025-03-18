@@ -41,7 +41,6 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
   @Before
   fun before() {
     DeclarativeIdeSupport.override(true)
-    registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
   }
 
   @After
@@ -299,6 +298,32 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
   }
 
   @Test
+  fun listProperty() {
+    doPatchedBuildFileTest("""
+       androidApp {
+         buildTypes {
+           buildType("debug") {
+             matchingFallbacks = listOf("a", "b")
+           }
+         }
+       }
+    """)
+  }
+
+  @Test
+  fun listPropertyWrongValue() {
+    doPatchedBuildFileTest("""
+       androidApp {
+         buildTypes {
+           buildType("debug") {
+            ${ "matchingFallbacks =\"a\"" highlightedAs HighlightSeverity.ERROR }
+           }
+         }
+       }
+    """)
+  }
+
+  @Test
   fun layoutNegativeTest() {
     doBuildFileTest("""
        androidApp {
@@ -325,12 +350,24 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
   }
 
   private fun doBuildFileTest(buildFileContent: String) {
+    registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
+
+    val file = addDeclarativeBuildFile(buildFileContent)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  private fun doPatchedBuildFileTest(buildFileContent: String) {
+    registerTestDeclarativeServicePatchedSchema(projectRule.project, fixture.testRootDisposable)
+
     val file = addDeclarativeBuildFile(buildFileContent)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
 
   private fun doSettingsFileTest(settingsFileContent: String) {
+    registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
+
     val file = addDeclarativeSettingsFile(settingsFileContent)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()

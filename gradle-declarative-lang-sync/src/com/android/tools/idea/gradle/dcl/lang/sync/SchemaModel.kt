@@ -42,6 +42,12 @@ data class EnumModel(
   val entryNames: List<String>,
 ) : ClassType
 
+// external class with generic like List or Array
+data class ParameterizedClassModel(
+  override val name: FullName,
+  val arguments: List<GenericTypeArgument>
+) : ClassType
+
 sealed class FunctionSemantic : Serializable
 data class PlainFunction(val returnValue: DataTypeReference) : FunctionSemantic()
 data class BlockFunction(val accessor: DataClassRef) : FunctionSemantic()

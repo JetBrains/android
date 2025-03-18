@@ -27,7 +27,9 @@ import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FunctionSemantic
+import com.android.tools.idea.gradle.dcl.lang.sync.GenericTypeArgument
 import com.android.tools.idea.gradle.dcl.lang.sync.GenericTypeRef
+import com.android.tools.idea.gradle.dcl.lang.sync.ParameterizedClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
@@ -137,6 +139,8 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       prefix = prefix.substring(4)
     }
 
+    fun wildcardGeneric() = out("Generic", "*")
+
     fun DataTypeReference.dump(prefix: String) {
       when (this) {
         is DataClassRef -> out("$prefix ReferenceType", fqName.name)
@@ -147,14 +151,21 @@ fun Project.dumpDeclarativeSchemaModel(): String {
           nest("GenericTypes") {
             typeArgument.forEach {
                 nestArrayElement {
-                  when(it){
+                  when (it) {
                     is ConcreteGeneric -> it.reference.dump("ConcreteGeneric")
-                    is StarGeneric -> out("Generic", "*")
+                    is StarGeneric -> wildcardGeneric()
                   }
                 }
               }
           }
         }
+      }
+    }
+
+    fun GenericTypeArgument.dump() {
+      when (this) {
+        is ConcreteGeneric -> reference.dump("ConcreteGeneric")
+        is StarGeneric -> wildcardGeneric()
       }
     }
 
@@ -211,10 +222,18 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       nest("EntryNames") { this.entryNames.joinToString (",") }
     }
 
+    fun ParameterizedClassModel.dump() {
+      out("Name", name.name)
+      nest("GenericArguments") {
+        arguments.forEach { it.dump() }
+      }
+    }
+
     fun ClassType.dump(){
       when(this){
         is EnumModel -> dump()
         is ClassModel -> dump()
+        is ParameterizedClassModel -> dump()
       }
     }
 
