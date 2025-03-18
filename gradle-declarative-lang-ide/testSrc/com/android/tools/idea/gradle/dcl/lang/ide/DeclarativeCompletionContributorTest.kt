@@ -147,6 +147,25 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testListProperty() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        buildTypes{
+          buildType("debug"){
+            matching$caret
+        }
+      }
+      """, """
+      androidApp {
+        buildTypes{
+          buildType("debug"){
+            matchingFallbacks = listOf($caret)
+        }
+      }
+      """)
+  }
+
+  @Test
   fun testAssignObjectType() {
     doTest("""
       androidApp {

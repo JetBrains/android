@@ -38,7 +38,9 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
@@ -390,7 +392,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       OBJECT_VALUE -> {
         if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
         val rootFunctions = getRootFunctions(parent, schemas).distinct()
-          .filter { (it.semantic as? PlainFunction)?.returnValue == (entry as? DataProperty)?.valueType }
+          .filter {
+            // reason is that function type has generic type T and data property has concrete type argument (like String)
+            (it.semantic as? PlainFunction)?.returnValue?.compareIgnoringGeneric((entry as? DataProperty)?.valueType) == true
+          }
 
         if (rootFunctions.size == 1) {
           val function = rootFunctions.first()
@@ -398,7 +403,13 @@ class DeclarativeCompletionContributor : CompletionContributor() {
             document.insertString(context.tailOffset, " = ${function.name}(\"\")")
             editor.caretModel.moveToOffset(context.tailOffset - 2)
           }
-        } else {
+          else {
+            // single function but with unknown parameter(s)
+            document.insertString(context.tailOffset, " = ${function.name}()")
+            editor.caretModel.moveToOffset(context.tailOffset - 1)
+          }
+        }
+        else {
           document.insertString(context.tailOffset, " = ")
           editor.caretModel.moveToOffset(context.tailOffset)
         }
@@ -428,6 +439,14 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
 
       else -> insert(suggestion.type).handleInsert(context, item)
+    }
+  }
+
+  private fun DataTypeReference.compareIgnoringGeneric(other: DataTypeReference?): Boolean {
+    if (this.javaClass != other?.javaClass) return false
+    return when (this) {
+      is DataClassRefWithTypes -> fqName == (other as? DataClassRefWithTypes)?.fqName
+      else -> this == other
     }
   }
 
