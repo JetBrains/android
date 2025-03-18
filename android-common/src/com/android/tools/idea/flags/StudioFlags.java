@@ -2152,7 +2152,7 @@ public final class StudioFlags {
     "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
     enabledUpTo(DEV));
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAGIVATION = new BooleanFlag(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
     enabledUpTo(DEV));

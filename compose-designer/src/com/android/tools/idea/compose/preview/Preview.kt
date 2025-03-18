@@ -937,7 +937,7 @@ class ComposePreviewRepresentation(
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAGIVATION.get())
+    if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get())
       staticNavHandler.onCaretMoved(event.newPosition.line + 1)
     if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
