@@ -27,7 +27,8 @@ import javax.swing.Icon
 import org.jetbrains.jewel.ui.icon.IconKey
 
 class VitalsLoginFeature : LoginFeature {
-  override val name = "Android Vitals"
+  override val key: String = "Android Vitals"
+  override val title = "Android Vitals"
   override val infoUrl = "https://play.google.com/console/developers/app/vitals/"
   override val infoUrlDisplayText = "Go to Play Console"
   override val settingsAction = null
@@ -41,7 +42,7 @@ class VitalsLoginFeature : LoginFeature {
       object : LoginFeature.OnboardingWizardEntry {
         override val icon: Icon = StudioIllustrations.Common.PLAY_STORE
         override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.PlayStore
-        override val name: String =
+        override val title: String =
           "<b>Google Play:</b> Enable viewing Android Vitals crash reports"
         override val annotatedTitle: AnnotatedString = buildAnnotatedString {
           withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Play:") }

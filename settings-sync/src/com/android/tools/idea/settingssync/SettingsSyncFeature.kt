@@ -32,7 +32,8 @@ import javax.swing.Icon
 import org.jetbrains.jewel.ui.icon.IconKey
 
 class SettingsSyncFeature : LoginFeature {
-  override val name: String = NAME
+  override val key: String = "Google Backup & Sync"
+  override val title: String = "Google Backup & Sync"
 
   override val description: String =
     "Sync your settings to Google Drive to keep them across computers and re-installs."
@@ -58,7 +59,7 @@ class SettingsSyncFeature : LoginFeature {
     object : LoginFeature.OnboardingWizardEntry {
       override val icon: Icon = StudioIllustrations.Common.GOOGLE_LOGO
       override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.GoogleLogo
-      override val name: String =
+      override val title: String =
         "<b>Google Drive:</b> Enable Backup & Sync" // TODO: update wording
       override val annotatedTitle: AnnotatedString = buildAnnotatedString {
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Drive:") }
@@ -68,8 +69,4 @@ class SettingsSyncFeature : LoginFeature {
         "Settings Sync backs up your IDE settings to Google Drives and restores them " +
           "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
     }
-
-  companion object {
-    internal const val NAME = "Google Backup & Sync"
-  }
 }
