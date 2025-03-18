@@ -106,6 +106,7 @@ internal class PreviewSurfaceActionManager(
     listOf(Separator()) +
       listOfNotNull(
           SavePreviewInNewSizeAction(),
+          RevertToOriginalSizeAction(),
           EnableUiCheckAction(),
           AnimationInspectorAction(
             defaultModeDescription = message("action.animation.inspector.description")

@@ -84,7 +84,7 @@ object ComposeResizeToolingUsageTracker {
     }
   }
 
-  fun logResizeReverted(surface: DesignSurface<*>, mode: ResizeMode) {
+  fun logResizeReverted(surface: DesignSurface<*>?, mode: ResizeMode) {
     logEvent(surface) {
       eventType = EventType.RESIZE_REVERTED
       resizeMode = mode
