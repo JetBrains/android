@@ -81,5 +81,7 @@
     <orderEntry type="module" module-name="intellij.android.core.editing.metrics" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.screenshot-test" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.designer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="RUNTIME" />
   </component>
 </module>
