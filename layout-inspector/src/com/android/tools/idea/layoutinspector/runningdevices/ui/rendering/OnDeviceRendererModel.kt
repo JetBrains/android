@@ -202,7 +202,10 @@ class OnDeviceRendererModel(
 
   private fun setRecomposingNodes(nodes: List<ViewNode>) {
     _recomposingNodes.value =
-      nodes.mapNotNull { it.toDrawInstruction(color = renderSettings.recompositionColor) }
+      nodes.mapNotNull {
+        val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
+        it.toDrawInstruction(color = color)
+      }
   }
 
   /** Convert a ViewNode to [DrawInstruction]. */
@@ -215,4 +218,19 @@ class OnDeviceRendererModel(
       label = label,
     )
   }
+}
+
+/** Changes the alpha channel of this color based on how frequently [node] recomposed. */
+private fun Int.applyRecompositionAlpha(node: ViewNode, inspectorModel: InspectorModel): Int {
+  val maxAlpha = 160
+  val highlightCount = node.recompositions.highlightCount
+  val alpha =
+    ((highlightCount * maxAlpha) / inspectorModel.maxHighlight).toInt().coerceIn(8, maxAlpha)
+  return setColorAlpha(alpha)
+}
+
+/** Set the alpha for the int representation of a color. */
+private fun Int.setColorAlpha(alpha: Int): Int {
+  val validAlpha = alpha.coerceIn(0, 255)
+  return (validAlpha shl 24) or (this and 0x00FFFFFF)
 }

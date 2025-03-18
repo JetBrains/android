@@ -199,7 +199,7 @@ class OnDeviceRendererModelTest {
         DrawInstruction(
           rootViewId = ROOT,
           bounds = Rectangle(0, 0, 50, 50),
-          color = RECOMPOSITION_COLOR_RED_ARGB,
+          color = RECOMPOSITION_COLOR_RED_ARGB.setColorAlpha(160),
           label = null,
         )
       )
