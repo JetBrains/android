@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
@@ -395,11 +394,8 @@ class AnnotationsGraphTest {
           it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
         }!!
       }
-      // TODO: b/381539736 Use the same timeout once we understand why K2 is slower and fix the
-      // issue
-      val timeout = if (KotlinPluginModeProvider.isK2Mode()) 50.seconds else 25.seconds
       val traverseResult =
-        withTimeout(timeout) {
+        withTimeout(25.seconds) {
           async { annotationsGraph.traverse(listOf(rootMethod)).toList() }.await()
         }
       // Results are computed in post-order
