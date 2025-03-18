@@ -22,14 +22,12 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation
@@ -141,9 +139,6 @@ private fun getFileName(processName: String): String {
   var fileName = "${processName}_${currentDate}"
   // Remove all characters that are not alphanumeric, dot or underscore.
   // This reduces the risk of having an invalid filename across different OSs.
-  fileName = fileName.replace(Regex("[^._A-Za-z0-9]"), "")
-  // Append extension manually to file name on MacOS because FileSaverDialog does not do it
-  // automatically.
-  fileName += if (SystemInfo.isMac) DOT_EXT_LAYOUT_INSPECTOR else ""
+  fileName = fileName.replace(Regex("[^._A-Za-z0-9]"), "") + DOT_EXT_LAYOUT_INSPECTOR
   return fileName
 }
