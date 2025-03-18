@@ -217,17 +217,19 @@ class DetailsViewContentViewTest {
   }
 
   @Test
-  fun attributesTabHiddenByDefault() {
+  fun screenshotTabsHiddenByDefault() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
+    assertThat(view.myScreenshotTab.isHidden).isTrue()
     assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
   }
 
   @Test
-  fun attributesTabDisplayedForScreenshotTests() {
+  fun screenshotTabsDisplayedForScreenshotTests() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAdditionalTestArtifacts(mapOf(Pair("PreviewScreenshot.newImagePath", "/path/to/newImage")))
 
+    assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
   }
 

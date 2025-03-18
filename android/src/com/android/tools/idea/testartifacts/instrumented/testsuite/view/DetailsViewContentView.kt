@@ -88,14 +88,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
     myScreenshotTab.setText("Screenshot")
     myScreenshotTab.setTooltipText("Show screenshot information")
+    myScreenshotTab.isHidden = true
     tabs.addTab(myScreenshotTab)
 
     // Screenshot attributes tab
     myScreenshotAttributesTab = TabInfo(ScreenshotAttributesView().getComponent())
     myScreenshotAttributesTab.setText("Attributes")
     myScreenshotAttributesTab.setTooltipText("Show preview attributes")
-    tabs.addTab(myScreenshotAttributesTab)
     myScreenshotAttributesTab.isHidden = true
+    tabs.addTab(myScreenshotAttributesTab)
 
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
