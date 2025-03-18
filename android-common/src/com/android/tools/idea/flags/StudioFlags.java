@@ -2150,8 +2150,8 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
                     false);
 
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_MULTIFILE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transform.multifile.enabled",
+  public static final Flag<Boolean> STUDIOBOT_MULTIFILE_TRANSFORM_OUTPUT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.multifile.transform.output.enabled",
                     "Enable the transform to be able to output multiple files.",
                     "When enabled, returns all files modified by models.",
                     enabledUpTo(DEV));
