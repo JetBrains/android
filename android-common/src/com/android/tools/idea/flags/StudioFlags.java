@@ -1753,6 +1753,12 @@ public final class StudioFlags {
     "Copy as a cURL command",
     true
   );
+  public static final Flag<Boolean> NETWORK_INSPECTOR_RULE_VARIABLES = new BooleanFlag(
+    NETWORK_INSPECTOR, "rule.variables",
+    "Enable Rule Variables",
+    "Enable Rule Variables",
+    enabledUpTo(DEV)
+  );
   // endregion
 
   // region BackgroundTask Inspector
