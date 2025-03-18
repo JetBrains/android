@@ -49,7 +49,7 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
-    if (!isMethodDeclarationPreviewannotated(psiMethod, visitedAnnotations)) return false
+    if (!isMethodDeclarationPreviewTestAnnotated(psiMethod, visitedAnnotations)) return false
 
     val configurationTaskNames = configuration.settings.taskNames
     return configurationTaskNames == taskNamesWithFilter(context, psiMethod)
@@ -89,7 +89,7 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
 
     val project = context.project ?: return false
     getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
-      if (!isMethodDeclarationPreviewannotated(elementMethod, visitedAnnotations)) return false
+      if (!isMethodDeclarationPreviewTestAnnotated(elementMethod, visitedAnnotations)) return false
       sourceElementRef.set(elementMethod)
       configuration.settings.externalProjectPath = project.basePath
       configuration.name = suggestConfigurationName(context, elementMethod, emptyList())

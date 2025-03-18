@@ -49,7 +49,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
-    if (!isClassDeclarationWithPreviewAnnotatedMethods(psiClass, visitedAnnotation)) return false
+    if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
 
     val configurationTaskNames = configuration.settings.taskNames
     return configurationTaskNames == taskNamesWithFilter(context, psiClass)
@@ -99,7 +99,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
       }
     }
     return candidates.any { psiClass ->
-      if (!isClassDeclarationWithPreviewAnnotatedMethods(psiClass, visitedAnnotation)) return false
+      if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
       sourceElementRef.set(psiClass)
       configuration.settings.externalProjectPath = project.basePath
       configuration.name = suggestConfigurationName(context, psiClass, emptyList())

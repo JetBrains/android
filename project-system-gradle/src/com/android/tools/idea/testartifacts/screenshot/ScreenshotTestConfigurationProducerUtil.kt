@@ -35,7 +35,7 @@ import com.intellij.psi.PsiAnnotation
 import org.jetbrains.plugins.gradle.util.GradleUtil
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 
-private const val COMPOSE_PREVIEW_ANNOTATION = "androidx.compose.ui.tooling.preview.Preview"
+private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
 
 /**
  * Checks if the given location belongs to screenshot test source set.
@@ -88,9 +88,9 @@ fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
  * @param visitedAnnotations A mutable map to track visited annotations to avoid infinite recursion.
  * @return {@code true} if the class has at least one preview-annotated method, {@code false} otherwise.
  */
-fun isClassDeclarationWithPreviewAnnotatedMethods(psiClass: PsiClass, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()): Boolean {
+fun isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass: PsiClass, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()): Boolean {
   return psiClass.methods.any {
-    isMethodDeclarationPreviewannotated(it, visitedAnnotations)
+    isMethodDeclarationPreviewTestAnnotated(it, visitedAnnotations)
   }
 }
 
@@ -101,8 +101,8 @@ fun isClassDeclarationWithPreviewAnnotatedMethods(psiClass: PsiClass, visitedAnn
  * @param visitedAnnotations A mutable map to track visited annotations to avoid infinite recursion.
  * @return {@code true} if the method is preview annotated, {@code false} otherwise.
  */
-fun isMethodDeclarationPreviewannotated(psiMethod: PsiMethod, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()) : Boolean {
-  return psiMethod.annotations.any{ isPreviewAnnotation(it, psiMethod, visitedAnnotations) }
+fun isMethodDeclarationPreviewTestAnnotated(psiMethod: PsiMethod, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()) : Boolean {
+  return psiMethod.annotations.any{ it.qualifiedName == PREVIEW_TEST_ANNOTATION}
 }
 
 private fun IdeaSourceProvider.containedIn(targetFolder: VirtualFile): Boolean {
@@ -120,27 +120,4 @@ private fun IdeaSourceProvider.allSourceFolderUrls() : Sequence<String> {
     jniLibsDirectoryUrls
   ).asSequence()
     .flatten()
-}
-
-private fun isPreviewAnnotation(
-  annotation: PsiAnnotation,
-  method: PsiMethod,
-  visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()
-): Boolean {
-  val annotationQualifiedName = annotation.qualifiedName ?: return false
-  if (annotationQualifiedName == COMPOSE_PREVIEW_ANNOTATION) {
-    return true
-  }
-  if (visitedAnnotations.containsKey(annotationQualifiedName)) {
-    return visitedAnnotations[annotationQualifiedName]!!
-  }
-
-  visitedAnnotations[annotationQualifiedName] = false
-  val annotationClass = JavaPsiFacade.getInstance(method.project)
-                          .findClass(annotationQualifiedName, method.resolveScope) ?: return false
-  val isMultiPreviewAnnotation = annotationClass.annotations.any {
-    isPreviewAnnotation(it, method, visitedAnnotations)
-  }
-  visitedAnnotations[annotationQualifiedName] = isMultiPreviewAnnotation
-  return isMultiPreviewAnnotation
 }

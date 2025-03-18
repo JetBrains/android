@@ -55,6 +55,7 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APP_WITH_SCREENSHOT_TEST)
     stubComposeAnnotation()
     stubPreviewAnnotation()
+    stubPreviewTestAnnotation()
     createProjectStructureForTest()
     val screenshotTestDir = requireNotNull(
       VfsUtil.findFileByIoFile(File(projectRule.project.basePath + "/app/src/screenshotTest"), true)
@@ -123,18 +124,37 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
 
         import androidx.compose.runtime.Composable
         import androidx.compose.ui.tooling.preview.Preview
+        import com.android.tools.screenshot.PreviewTest
 
         class MyScreenshotTest {
+          @PreviewTest
           @Preview(showBackground = true)
           @Composable
           fun PreviewMethod() {
           }
 
+          @PreviewTest
           @Preview(showBackground = true)
           @Composable
           fun AnotherPreviewMethod() {
           }
         }
+      """.trimIndent())
+  }
+
+  private fun stubPreviewTestAnnotation() {
+    createRelativeFileWithContent(
+      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt", """
+    package com.android.tools.screenshot
+    
+    @MustBeDocumented
+    @Retention(AnnotationRetention.BINARY)
+    @Target(
+        AnnotationTarget.FUNCTION
+    )
+    annotation class PreviewTest {
+    }
+        
       """.trimIndent())
   }
 
