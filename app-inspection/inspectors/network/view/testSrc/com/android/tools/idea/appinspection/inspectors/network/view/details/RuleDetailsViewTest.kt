@@ -630,7 +630,7 @@ class RuleDetailsViewTest {
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasHeaderAdded()).isTrue()
       assertThat(it.transformationList[1].hasHeaderReplaced()).isTrue()
     }
@@ -660,7 +660,7 @@ class RuleDetailsViewTest {
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasHeaderAdded()).isTrue()
       assertThat(it.transformationList[1].hasHeaderReplaced()).isTrue()
       assertThat(it.transformationList[1].headerReplaced.targetName.text).isEqualTo("findName")
@@ -911,7 +911,7 @@ class RuleDetailsViewTest {
     model.addRow(bodyReplacedRule)
     model.addRow(bodyModifiedRule)
     assertThat(bodyTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasBodyReplaced()).isTrue()
       assertThat(it.transformationList[1].hasBodyModified()).isTrue()
     }

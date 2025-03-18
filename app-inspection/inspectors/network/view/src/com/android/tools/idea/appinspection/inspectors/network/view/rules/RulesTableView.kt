@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.getLatestId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.newId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
@@ -48,7 +49,7 @@ import kotlinx.coroutines.launch
 import studio.network.inspection.NetworkInspectorProtocol
 
 class RulesTableView(
-  project: Project,
+  private val project: Project,
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   private val model: NetworkInspectorModel,
@@ -60,6 +61,8 @@ class RulesTableView(
   val tableModel: RulesTableModel =
     RulesTableModel(persistentStateComponent.state.rulesList).also { scope.initPersistentRules() }
   val table = TableView(tableModel)
+  private val ruleVariables
+    get() = RuleVariablesStateComponent.getInstance(project).state.ruleVariables
 
   init {
     val decorator =
@@ -144,7 +147,7 @@ class RulesTableView(
           .apply {
             interceptRuleAddedBuilder.apply {
               ruleId = ruleData.id
-              rule = ruleData.toProto()
+              rule = ruleData.toProto(ruleVariables)
             }
           }
           .build()
@@ -163,7 +166,7 @@ class RulesTableView(
                 .apply {
                   interceptRuleUpdatedBuilder.apply {
                     ruleId = ruleData.id
-                    rule = ruleData.toProto()
+                    rule = ruleData.toProto(ruleVariables)
                   }
                 }
                 .build()
@@ -186,7 +189,7 @@ class RulesTableView(
               .apply {
                 interceptRuleUpdatedBuilder.apply {
                   ruleId = ruleData.id
-                  rule = ruleData.toProto()
+                  rule = ruleData.toProto(ruleVariables)
                 }
               }
               .build()
@@ -218,7 +221,7 @@ class RulesTableView(
           .apply {
             interceptRuleAddedBuilder.apply {
               ruleId = ruleData.id
-              rule = ruleData.toProto()
+              rule = ruleData.toProto(ruleVariables)
             }
           }
           .build()
