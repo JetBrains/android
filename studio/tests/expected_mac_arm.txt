@@ -2941,9 +2941,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback.xml
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback_cjkvf.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts_cjkvf.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/framework_res.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-af.hyb
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-as.hyb
