@@ -50,6 +50,7 @@ public final class StudioIllustrations {
     /** 64x64 */ public static final @NotNull Icon GLASS = load("studio/illustrations/form-factors/glass.svg", 2139884241, 0);
     /** 100x100 */ public static final @NotNull Icon MOBILE_LARGE = load("studio/illustrations/form-factors/mobile-large.svg", -2055003623, 2);
     /** 64x64 */ public static final @NotNull Icon MOBILE = load("studio/illustrations/form-factors/mobile.svg", 2114402784, 0);
+    /** 100x100 */ public static final @NotNull Icon THINGS_LARGE = load("studio/illustrations/form-factors/things-large.svg", 722425180, 0);
     /** 100x100 */ public static final @NotNull Icon TV_LARGE = load("studio/illustrations/form-factors/tv-large.svg", 944959514, 2);
     /** 64x64 */ public static final @NotNull Icon TV = load("studio/illustrations/form-factors/tv.svg", -70870452, 0);
     /** 100x100 */ public static final @NotNull Icon WEAR_LARGE = load("studio/illustrations/form-factors/wear-large.svg", 108343192, 2);
