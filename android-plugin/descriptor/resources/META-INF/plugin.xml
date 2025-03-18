@@ -24,8 +24,6 @@
     <module name="intellij.platform.vcs.dvcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl.shared"/>
     <module name="intellij.platform.vcs.log.impl"/>
-    <module name="intellij.libraries.grpc"/>
-    <module name="intellij.libraries.grpc.netty.shaded"/>
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
