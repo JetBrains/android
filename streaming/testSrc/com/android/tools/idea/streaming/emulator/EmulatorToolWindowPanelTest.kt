@@ -436,7 +436,7 @@ class EmulatorToolWindowPanelTest {
     val call = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
     assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0")
-    waitForCondition(200.seconds) { xrInputController.passthroughCoefficient != 0f }
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != 0f }
     assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
     ui.updateToolbarsIfNecessary()
     assertThat(togglePassthroughButton.isSelected).isTrue()
