@@ -311,6 +311,25 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
   }
 
   @Test
+  fun listOfRegularFilesProperty() {
+    doPatchedBuildFileTest("""
+       androidApp {
+         fakeFileList = listOf(layout.projectDirectory.file("aaa"), layout.projectDirectory.file("bbb"))
+       }
+    """)
+  }
+
+
+  @Test
+  fun listOfRegularFilesPropertyNegativeTest() {
+    doPatchedBuildFileTest("""
+       androidApp {
+         fakeFileList = listOf(layout.${ "projectdirectory" highlightedAs HighlightSeverity.ERROR }.${ "file" highlightedAs HighlightSeverity.ERROR }("aaa"), layout.projectDirectory.file("bbb"))
+       }
+    """)
+  }
+
+  @Test
   fun listPropertyWrongValue() {
     doPatchedBuildFileTest("""
        androidApp {
