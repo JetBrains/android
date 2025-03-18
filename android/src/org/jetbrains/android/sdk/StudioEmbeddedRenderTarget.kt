@@ -37,7 +37,7 @@ class StudioEmbeddedRenderTarget {
     private val LOG = Logger.getInstance(StudioEmbeddedRenderTarget::class.java)
 
     private var ourDisableEmbeddedTargetForTesting = false
-    val ourEmbeddedLayoutlibPath = getEmbeddedLayoutLibPath()
+    val ourEmbeddedLayoutlibPath by lazy { getEmbeddedLayoutLibPath() } // fix exception on startup with lazy {}
 
     /**
      * Method that allows to disable the use of the embedded render target. Only for testing.
