@@ -32,10 +32,12 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -74,6 +76,10 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun runSucceededAndSaveHistory() {
+    Assume.assumeFalse(
+      "b/403870016: FakeAdbTestRule seems to be flaky on windows.",
+      SystemInfo.isWindows)
+
     val deviceState = fakeAdb.connectAndWaitForDevice()
     val startDownLatch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
