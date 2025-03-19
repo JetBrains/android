@@ -30,7 +30,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent
 import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -51,9 +50,6 @@ class DeviceCableMonitor : ProjectActivity {
   companion object {
     const val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
   }
-
-  private val notificationGroup: NotificationGroup
-    get() = NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
 
   override suspend fun execute(project: Project) {
     if (!isAndroidEnvironment(project)) {
@@ -137,7 +133,8 @@ class DeviceCableMonitor : ProjectActivity {
   }
 
   private fun createNotification(text: String = ""): Notification {
-    return notificationGroup
+    return NotificationGroupManager.getInstance()
+      .getNotificationGroup(NOTIFICATION_GROUP_ID)
       .createNotification(text, NotificationType.WARNING)
       .setTitle("Connection speed warning")
       .addAction(
