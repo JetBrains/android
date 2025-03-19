@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgument
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
@@ -76,6 +77,7 @@ import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.prevLeafs
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import org.jetbrains.kotlin.idea.completion.or
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
@@ -104,6 +106,13 @@ private val afterSimpleFactory = object : PatternCondition<PsiElement>(null) {
   }
 }
 
+private val factoryArgument = object : PatternCondition<PsiElement>(null) {
+  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean {
+    val grandParent = element.parent?.parent?.parent
+    return grandParent is DeclarativeArgument
+  }
+}
+
 private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
@@ -120,6 +129,8 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafP
       psiElement().whitespace(),
       psiElement().withText(".")
     ))
+    // rule does not work for function parameters
+    .andNot(psiElement().with(factoryArgument))
 
 private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -129,6 +140,11 @@ private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<L
       psiElement().whitespace(),
       psiElement().withText("=")
     )
+
+private val DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
+  psiElement(LeafPsiElement::class.java)
+    .with(declarativeFlag)
+    .with(factoryArgument)
 
 private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -184,6 +200,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   init {
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN, createCompletionProvider())
     extend(CompletionType.BASIC, DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN, createAssignValueCompletionProvider())
+    extend(CompletionType.BASIC, DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN, createAssignValueCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN, createRootProjectCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_SYNTAX_PATTERN, createPropertyCompletionProvider())
     extend(CompletionType.BASIC, AFTER_FUNCTION_DOT_SYNTAX_PATTERN, createPluginCompletionProvider())

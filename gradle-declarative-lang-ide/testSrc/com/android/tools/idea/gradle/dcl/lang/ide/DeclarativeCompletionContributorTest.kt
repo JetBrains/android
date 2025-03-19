@@ -596,6 +596,38 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testListOfHasLayoutSuggestion() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf($caret)
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret)
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf($caret
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+  }
+
+  @Test
   fun testRootProject() {
     doCompletionTest("""
     rootProje$caret
