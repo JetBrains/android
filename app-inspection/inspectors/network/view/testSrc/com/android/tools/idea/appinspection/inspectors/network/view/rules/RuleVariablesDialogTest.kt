@@ -15,27 +15,19 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.rules
 
-import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import java.util.EventObject
-import javax.swing.JButton
-import javax.swing.JTable
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,12 +47,12 @@ class RuleVariablesDialogTest {
   @Test
   fun addVariable() {
     val dialog = ruleVariablesDialog()
-    createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
+    createModalDialogAndInteractWithIt(dialog::show) { it ->
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
 
-      assertThat(it.variables()).containsExactly(RuleVariable("NEW-VARIABLE", ""))
-      assertThat(it.table.getCellEditor(0, 0).isCellEditable(EventObject("")))
-      assertThat(it.table.getCellEditor(0, 1).isCellEditable(EventObject("")))
+      assertThat(dialog.variables()).containsExactly(RuleVariable("NEW-VARIABLE", ""))
+      assertThat(dialog.table.getCellEditor(0, 0).isCellEditable(EventObject("")))
+      assertThat(dialog.table.getCellEditor(0, 1).isCellEditable(EventObject("")))
     }
   }
 
@@ -68,8 +60,8 @@ class RuleVariablesDialogTest {
   fun addVariableAndApply() {
     val dialog = ruleVariablesDialog(variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.clickOk()
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.clickOk()
     }
 
     assertThat(variables).containsExactly(RuleVariable("NEW-VARIABLE", ""))
@@ -79,8 +71,8 @@ class RuleVariablesDialogTest {
   fun addVariableAndCancel() {
     val dialog = ruleVariablesDialog(variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.clickCancel()
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.clickCancel()
     }
 
     assertThat(variables).isEmpty()
@@ -90,11 +82,11 @@ class RuleVariablesDialogTest {
   fun addVariable_multipleTimes() {
     val dialog = ruleVariablesDialog()
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
 
-      assertThat(it.variables())
+      assertThat(dialog.variables())
         .containsExactly(
           RuleVariable("NEW-VARIABLE", ""),
           RuleVariable("NEW-VARIABLE-2", ""),
@@ -107,11 +99,11 @@ class RuleVariablesDialogTest {
   fun editVariableAndApply() {
     val dialog = ruleVariablesDialog(variables = variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
 
-      it.setName(0, "NAME")
-      it.setValue(0, "Foo")
-      it.clickOk()
+      dialog.setName(0, "NAME")
+      dialog.setValue(0, "Foo")
+      dialog.clickOk()
 
       assertThat(variables).containsExactly(RuleVariable("NAME", "Foo"))
     }
@@ -124,9 +116,9 @@ class RuleVariablesDialogTest {
 
     val dialog = ruleVariablesDialog(variables = variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.selectRow(1)
-      it.removeAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.clickOk()
+      dialog.selectRow(1)
+      dialog.removeAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.clickOk()
     }
     assertThat(variables).containsExactly(RuleVariable("FOO", "foo"))
   }
@@ -135,11 +127,11 @@ class RuleVariablesDialogTest {
   fun editVariable_duplicateName() {
     val dialog = ruleVariablesDialog()
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
-      it.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
 
-      it.setName(0, "NAME")
-      it.setName(1, "NAME")
+      dialog.setName(0, "NAME")
+      dialog.setName(1, "NAME")
 
       assertThat(dialog.doValidate()).isEqualTo(ValidationInfo("Duplicate variable names: NAME"))
     }
@@ -151,7 +143,7 @@ class RuleVariablesDialogTest {
     variables.add(RuleVariable("BAR", "bar"))
     val dialog = ruleVariablesDialog(variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      assertThat(it.variables())
+      assertThat(dialog.variables())
         .containsExactly(RuleVariable("FOO", "foo"), RuleVariable("BAR", "bar"))
     }
   }
@@ -169,9 +161,9 @@ class RuleVariablesDialogTest {
 
     val dialog = ruleVariablesDialog(variables, rules) { updatedRules.add(it) }
     createModalDialogAndInteractWithIt(dialog::show) {
-      it.setValue(0, "foo1")
-      it.setValue(1, "bar1")
-      it.clickOk()
+      dialog.setValue(0, "foo1")
+      dialog.setValue(1, "bar1")
+      dialog.clickOk()
     }
     assertThat(updatedRules).containsExactly(rule1, rule2)
   }
@@ -181,51 +173,6 @@ class RuleVariablesDialogTest {
     rules: List<RuleData> = mutableListOf(),
     onRulesUpdated: (RuleData) -> Unit = {},
   ) = RuleVariablesDialog(project, variables, rules, onRulesUpdated)
-}
-
-private val DialogWrapper.addAction
-  get() = findAction("Add")
-
-private val DialogWrapper.removeAction
-  get() = findAction("Remove")
-
-private fun DialogWrapper.findAction(text: String): AnAction {
-  val toolbar = findInstanceOf<ActionToolbar>()
-  PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
-  return toolbar.actions.first { it.templateText?.contains(text) == true }
-}
-
-private val DialogWrapper.table
-  get() = findInstanceOf<JTable>()
-
-private inline fun <reified T> DialogWrapper.findInstanceOf(): T =
-  TreeWalker(rootPane).descendants().first { it is T } as T
-
-private fun DialogWrapper.clickOk() {
-  val ui = FakeUi(rootPane)
-  ui.clickOn(ui.getComponent<JButton> { button -> button.text == "OK" })
-}
-
-private fun DialogWrapper.clickCancel() {
-  val ui = FakeUi(rootPane)
-  ui.clickOn(ui.getComponent<JButton> { button -> button.text == "Cancel" })
-}
-
-private fun DialogWrapper.variableAt(row: Int) =
-  RuleVariable(table.model.getValueAt(row, 0) as String, table.model.getValueAt(row, 1) as String)
-
-private fun DialogWrapper.variables() = buildList { repeat(table.rowCount) { add(variableAt(it)) } }
-
-private fun DialogWrapper.setName(row: Int, name: String) {
-  table.model.setValueAt(name, row, 0)
-}
-
-private fun DialogWrapper.setValue(row: Int, value: String) {
-  table.model.setValueAt(value, row, 1)
-}
-
-private fun DialogWrapper.selectRow(row: Int) {
-  table.changeSelection(row, /* columnIndex= */ 0, /* toggle= */ false, /* extend= */ false)
 }
 
 private fun ruleWithVariable(id: Int, variable: String): RuleData {
