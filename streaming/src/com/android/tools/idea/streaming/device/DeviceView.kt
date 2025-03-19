@@ -461,8 +461,11 @@ internal class DeviceView(
       }
       highQualityRenderingRequested = false
 
-      deviceDisplaySize.size = displayFrame.displaySize
-      displayOrientationQuadrants = displayFrame.orientation
+      if (deviceDisplaySize != displayFrame.displaySize || displayOrientationQuadrants != displayFrame.orientation) {
+        deviceDisplaySize.size = displayFrame.displaySize
+        displayOrientationQuadrants = displayFrame.orientation
+        ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
+      }
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
       notifyFrameListeners(displayRect, displayFrame.image)

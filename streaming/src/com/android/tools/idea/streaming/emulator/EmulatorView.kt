@@ -65,6 +65,7 @@ import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -1490,7 +1491,10 @@ class EmulatorView(
       }
 
       val lastDisplayMode = lastScreenshot?.displayShape?.displayMode
-      lastScreenshot = screenshot
+      if (lastScreenshot?.displayShape != screenshot.displayShape) {
+        lastScreenshot = screenshot
+        ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
+      }
 
       receivedFrameCount++
       frameTimestampMillis = System.currentTimeMillis()
