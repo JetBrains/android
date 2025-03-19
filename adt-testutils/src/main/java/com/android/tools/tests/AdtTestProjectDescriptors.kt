@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.IdeaTestUtil
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor
 import java.io.File
@@ -172,5 +173,11 @@ object AdtTestProjectDescriptors {
    */
   @JvmStatic
   @JvmName("defaultDescriptor")  // default is a reserved word in Java
-  fun default(): AdtTestProjectDescriptor = java()
+  fun default(): AdtTestProjectDescriptor {
+    // The java.awt.GraphicsEnvironment.LocalGE.createGE function depends on `java.awt.headless` being set to `true`.
+    // Therefore, we need to load TestApplicationManager here, since initialization of
+    // `com.intellij.ui.scale.JBUIScale.systemScaleFactor` assumes this to be set during tests.
+    TestApplicationManager.getInstance()
+    return java()
+  }
 }
