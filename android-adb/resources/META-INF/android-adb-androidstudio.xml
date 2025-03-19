@@ -15,6 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceStateReporter"/>
     <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.AdbServerStatusReporter"/>
   </extensions>
 </idea-plugin>
