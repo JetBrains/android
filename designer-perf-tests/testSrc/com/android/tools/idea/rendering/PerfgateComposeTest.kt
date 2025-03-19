@@ -79,6 +79,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
           null,
           Metric("default_template_memory_use"),
         ),
+        // Measures the native memory usage of the render operation end to end.
+        LayoutlibNativeMemoryMeasurement(Metric("default_template_layoutlib_native_memory_use")),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("default_template_inflate_time"))
           .withAnalyzer(
@@ -124,6 +126,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
           null,
           Metric("complex_template_memory_use"),
         ),
+        // Measures the native memory usage of the render operation end to end.
+        LayoutlibNativeMemoryMeasurement(Metric("complex_template_layoutlib_native_memory_use")),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("complex_template_inflate_time"))
           .withAnalyzer(
@@ -168,6 +172,10 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
           "android:designTools",
           null,
           Metric("complex_with_bounds_template_memory_use"),
+        ),
+        // Measures the native memory usage of the render operation end to end.
+        LayoutlibNativeMemoryMeasurement(
+          Metric("complex_with_bounds_template_layoutlib_native_memory_use")
         ),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("complex_with_bounds_template_inflate_time")),

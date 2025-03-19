@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.perflogger.Metric
 import java.time.Instant
+import libcore.util.NativeAllocationRegistry
 
 class PerfgateRenderMetric {
 
@@ -25,6 +26,8 @@ class PerfgateRenderMetric {
   private var mMemoryUsage: Long = 0
   private var mStartTime: Long = 0
   private var mElapsedTime: Long = 0
+  private var mPrevUsedLayoutlibNativeMem: Long = 0
+  private var mLayoutlibNativeMemoryUsage: Long = 0
 
   val renderTimeMetricSample: Metric.MetricSample
     get() = Metric.MetricSample(mTimestamp, mElapsedTime)
@@ -32,15 +35,23 @@ class PerfgateRenderMetric {
   val memoryMetricSample: Metric.MetricSample
     get() = Metric.MetricSample(mTimestamp, mMemoryUsage)
 
+  val layoutlibNativeMemoryMetricSample: Metric.MetricSample
+    get() = Metric.MetricSample(mTimestamp, mLayoutlibNativeMemoryUsage)
+
   fun beforeTest() {
     mPrevUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
     mStartTime = System.currentTimeMillis()
+    mPrevUsedLayoutlibNativeMem =
+      NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes }
   }
 
   fun afterTest() {
     mElapsedTime = System.currentTimeMillis() - mStartTime
     mMemoryUsage =
       Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem
+    mLayoutlibNativeMemoryUsage =
+      NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes } -
+        mPrevUsedLayoutlibNativeMem
 
     mTimestamp = Instant.now().toEpochMilli()
   }

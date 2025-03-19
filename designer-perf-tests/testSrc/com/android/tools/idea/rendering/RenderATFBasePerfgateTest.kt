@@ -60,7 +60,12 @@ class RenderATFBasePerfgateTest : AndroidTestCase() {
         }
         metric!!
       }
-    computeAndRecordMetric("render_time_atf_base", "render_memory_atf_base", computable)
+    computeAndRecordMetric(
+      "render_time_atf_base",
+      "render_memory_atf_base",
+      "render_layoutlib_native_memory_atf_base",
+      computable,
+    )
   }
 
   /** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */

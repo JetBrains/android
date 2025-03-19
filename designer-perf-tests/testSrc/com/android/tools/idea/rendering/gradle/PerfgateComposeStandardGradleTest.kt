@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.gradle
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.perflogger.Metric
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -61,6 +62,7 @@ class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
           "layoutlib",
           Metric("standard_5_previews_layoutlib_memory"),
         ),
+        LayoutlibNativeMemoryMeasurement(Metric("standard_5_previews_layoutlib_native_memory")),
       ),
     )
   }
@@ -102,6 +104,7 @@ class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
           "layoutlib",
           Metric("standard_30_previews_layoutlib_memory"),
         ),
+        LayoutlibNativeMemoryMeasurement(Metric("standard_30_previews_layoutlib_native_memory")),
       ),
     )
   }

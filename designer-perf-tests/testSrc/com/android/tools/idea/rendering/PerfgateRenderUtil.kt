@@ -36,6 +36,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import libcore.util.NativeAllocationRegistry
 
 const val NUMBER_OF_WARM_UP = 2
 private const val NUMBER_OF_SAMPLES = 40
@@ -73,6 +74,12 @@ private val renderMemoryBenchmark =
   Benchmark.Builder("DesignTools Memory Usage Benchmark")
     .setDescription(
       "Base line for RenderTask memory usage (mean) after $NUMBER_OF_SAMPLES samples."
+    )
+    .build()
+private val renderLayoutlibNativeMemoryBenchmark =
+  Benchmark.Builder("DesignTools Layoutlib Native Memory Usage Benchmark")
+    .setDescription(
+      "Base line for RenderTask layoutlib native memory usage (mean) after $NUMBER_OF_SAMPLES samples."
     )
     .build()
 
@@ -129,10 +136,12 @@ internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurementAdap
 }
 
 /**
- * A [MetricMeasurement] that measures the memory usage using the [HeapSnapshotTraverseService].
+ * A [MetricMeasurement] that measures the JVM heap memory usage using the
+ * [HeapSnapshotTraverseService].
  *
  * When [component] is null, the measure is done over the whole [category]. Otherwhise, the measure
- * is done only over the given [component], which must be part of th given [category].
+ * is done only over the given [component], which must be part of th given [category]. This does not
+ * track native memory allocated through JNI.
  *
  * For more information on the existing categories and components, take a look at
  * tools/adt/idea/android/resources/diagnostics/integration_test_memory_usage_config.textproto
@@ -291,6 +300,29 @@ internal class PostTouchEventCallbacksExecutionTimeMeasurement(metric: Metric) :
     else null // No time available
 }
 
+/**
+ * A [MetricMeasurement] that measures the native memory usage from layoutlib JNI objects.
+ *
+ * This tracks memory that is not part of the JVM heap but was allocated by layoutlib through JNI.
+ * This does not track native memory more generally.
+ */
+internal class LayoutlibNativeMemoryMeasurement<T>(metric: Metric) :
+  MetricMeasurementAdapter<T>(metric) {
+  private var preNativeMemoryUsage = -1L
+
+  override fun before() {
+    preNativeMemoryUsage =
+      NativeAllocationRegistry.getMetrics().sumOf { it.nonmallocedBytes + it.mallocedBytes }
+  }
+
+  override fun after(result: T) =
+    MetricSample(
+      Instant.now().toEpochMilli(),
+      NativeAllocationRegistry.getMetrics().sumOf { it.nonmallocedBytes + it.mallocedBytes } -
+        preNativeMemoryUsage,
+    )
+}
+
 @Suppress("UnstableApiUsage")
 private fun Collection<Long>.median() = Quantiles.median().compute(this)
 
@@ -353,6 +385,7 @@ internal fun <T> Benchmark.measureOperation(
 fun computeAndRecordMetric(
   renderMetricName: String,
   memoryMetricName: String,
+  layoutlibNativeMemoryMetricName: String,
   computable: ThrowableComputable<PerfgateRenderMetric, out Exception?>,
 ) {
   System.gc()
@@ -363,10 +396,12 @@ fun computeAndRecordMetric(
   // baseline samples
   val renderTimes: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
   val memoryUsages: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
+  val layoutlibNativeMemoryUsages: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
   repeat(NUMBER_OF_SAMPLES) {
     val metric = computable.compute()
     renderTimes.add(metric.renderTimeMetricSample)
     memoryUsages.add(metric.memoryMetricSample)
+    layoutlibNativeMemoryUsages.add(metric.layoutlibNativeMemoryMetricSample)
   }
 
   Metric(renderMetricName).apply {
@@ -376,6 +411,10 @@ fun computeAndRecordMetric(
   // Let's start without pruning to see how bad it is.
   Metric(memoryMetricName).apply {
     addSamples(renderMemoryBenchmark, *memoryUsages.toTypedArray())
+    commit()
+  }
+  Metric(layoutlibNativeMemoryMetricName).apply {
+    addSamples(renderLayoutlibNativeMemoryBenchmark, *layoutlibNativeMemoryUsages.toTypedArray())
     commit()
   }
 }

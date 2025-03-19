@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.getComposePreviewManagerKeyForTest
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -77,6 +78,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           "layoutlib",
           Metric("essentials_5_previews_layoutlib_memory"),
         ),
+        LayoutlibNativeMemoryMeasurement(Metric("essentials_5_previews_layoutlib_native_memory")),
       ),
     )
   }
@@ -119,6 +121,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           "layoutlib",
           Metric("essentials_30_previews_layoutlib_memory"),
         ),
+        LayoutlibNativeMemoryMeasurement(Metric("essentials_30_previews_layoutlib_native_memory")),
       ),
     )
   }
@@ -161,6 +164,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           "layoutlib",
           Metric("essentials_500_previews_layoutlib_memory"),
         ),
+        LayoutlibNativeMemoryMeasurement(Metric("essentials_500_previews_layoutlib_native_memory")),
       ),
     )
   }

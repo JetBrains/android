@@ -52,7 +52,12 @@ class RenderATFComplexPerfgateTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYO
       metric!!
     }
 
-    computeAndRecordMetric("render_time_atf_complex", "render_memory_atf_complex", computable)
+    computeAndRecordMetric(
+      "render_time_atf_complex",
+      "render_memory_atf_complex",
+      "render_layoutlib_native_memory_atf_complex",
+      computable,
+    )
   }
 
   /** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
