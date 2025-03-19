@@ -226,6 +226,7 @@
     />
 
     <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.diagnostics.commit.GitCommitTrackerActivity"/>
   </extensions>
 
   <applicationListeners>
