@@ -156,11 +156,7 @@ interface ComposePreviewView : PreviewRepresentationView {
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshEventBuilder: PreviewRefreshEventBuilder?,
   ): List<PsiComposePreviewElementInstance> {
-
     return mainSurface.updatePreviewsAndRefresh(
-      // Don't reuse models when in focus mode to avoid briefly showing an unexpected/mixed
-      // state of the old and new preview.
-      tryReusingModels = focusMode == null,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),

@@ -1141,6 +1141,11 @@ class ComposePreviewRepresentation(
     // Restore
     stateManager.restoreState()
 
+    // We need to hide the panel if in focus mode to avoid the flickering b/287484743
+    if (previewModeManager.mode.value.isFocus) {
+      surface.interactionPane.isVisible = false
+    }
+
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
         !quickRefresh,
@@ -1155,6 +1160,11 @@ class ComposePreviewRepresentation(
         refreshEventBuilder,
       )
 
+    if (previewModeManager.mode.value.isFocus) {
+      // We need to get rid of the flickering when switching tabs in focus tabs b/287484743
+      withContext(uiThread) { surface.notifyZoomToFit() }
+    }
+
     composePreviewFlowManager.updateRenderedPreviews(showingPreviewElements)
     if (showingPreviewElements.size < numberOfPreviewsToRender) {
       // Some preview elements did not result in model creations. This could be because of failed
@@ -1162,6 +1172,8 @@ class ComposePreviewRepresentation(
       // TODO(b/160300892): Add better error handling for failed instantiations.
       log.warn("Some preview elements have failed")
     }
+    // Restoring the surface visibility after render as it may have been hidden in focus mode.
+    surface.interactionPane.isVisible = true
   }
 
   private fun requestRefresh(

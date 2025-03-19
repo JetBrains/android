@@ -119,7 +119,6 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
-  tryReusingModels: Boolean,
   reinflate: Boolean,
   previewElements: Collection<T>,
   log: Logger,
@@ -148,9 +147,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val existingModels = models
   val previewElementsList = previewElements.toList()
   val modelIndices =
-    if (tryReusingModels) {
-      matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
-    } else List(previewElementsList.size) { -1 }
+    matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
 
   // First, remove and dispose pre-existing models that won't be reused.
   // This will happen for example if the user removes one or more previews.
