@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_ADD_NON_IDENTIFIER_CONFIGURATION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_ALL_DEPENDENCIES
