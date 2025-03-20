@@ -185,7 +185,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // classes accessible to the current module, as the user might not remember the class's
         // package.
         val query = AllClassesSearch.search(moduleScope, project)
-        query.asIterable().forEach { psiClass -> resultSet.addElement(JavaPsiClassReferenceElement(psiClass)) }
+        query.findAll().forEach { psiClass -> resultSet.addElement(JavaPsiClassReferenceElement(psiClass)) }
       }
       else {
         // If in a subpackage (e.g. "a.b.c"), only add classes directly under that package.

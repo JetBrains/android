@@ -493,7 +493,7 @@ public class NavigationSchema implements Disposable {
     Set<String> nonCustomTags = new HashSet<>();
 
     // Now we iterate over all the navigators and collect the destinations and tags.
-    for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true).asIterable()) {
+    for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true).findAll()) {
       if (navClass.equals(navigatorRoot)) {
         // Don't keep the root navigator
         continue;
@@ -1033,7 +1033,7 @@ public class NavigationSchema implements Disposable {
       }
 
       Query<PsiClass> query = ClassInheritorsSearch.search(destinationClass, scope, true, true, false);
-      for (PsiClass inherited : query.asIterable()) {
+      for (PsiClass inherited : query.findAll()) {
         if (!NavClassHelperKt.extendsNavHostFragment(inherited, myModule)) {
           projectClasses.add(inherited);
         }

@@ -160,7 +160,7 @@ class AndroidInlineUtil {
   }
 
   static void addReferences(@NotNull PsiElement element, @NotNull Collection<UsageInfo> result) {
-    for (PsiReference reference : ReferencesSearch.search(element).asIterable()) {
+    for (PsiReference reference : ReferencesSearch.search(element).findAll()) {
       result.add(new UsageInfo(reference.getElement()));
     }
   }

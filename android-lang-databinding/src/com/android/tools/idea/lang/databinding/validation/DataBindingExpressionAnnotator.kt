@@ -78,7 +78,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       if (bindingConversionAnnotation != null) {
         AnnotatedElementsSearch.searchElements(
           bindingConversionAnnotation, moduleScope, PsiMethod::class.java)
-          .asIterable()
+          .findAll()
           .forEach { annotatedMethod ->
             val parameters = annotatedMethod.parameterList.parameters
             val returnType = annotatedMethod.returnType ?: return@forEach
@@ -172,7 +172,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val nameSet = mutableSetOf<String>()
     AnnotatedElementsSearch.searchElements(
       inverseMethodAnnotation, moduleScope, PsiMethod::class.java)
-      .asIterable()
+      .findAll()
       .forEach { annotatedMethod ->
         nameSet.addIfNotNull(annotatedMethod.name)
         val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseMethod) ?: return@forEach

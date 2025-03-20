@@ -229,7 +229,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         return listOf(GotoRelatedItem(declared))
       }
 
-      return ReferencesSearch.search(field, module.getModuleScope(false)).asIterable().mapNotNull { reference ->
+      return ReferencesSearch.search(field, module.getModuleScope(false)).findAll().mapNotNull { reference ->
         val element = reference.element
         when (element.language) {
           KotlinLanguage.INSTANCE -> checkKotlinReference(element)
