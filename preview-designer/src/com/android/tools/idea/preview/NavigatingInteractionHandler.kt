@@ -32,6 +32,7 @@ import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
@@ -150,14 +151,11 @@ class NavigatingInteractionHandler(
     }
   }
 
-  /** Resizing is not allowed when the current mode is not Normal mode. */
+  /** Resizing is allowed only in Focus mode. */
   override fun getViewInResizeZone(mouseX: Int, mouseY: Int): SceneView? {
     return super.getViewInResizeZone(mouseX, mouseY)?.takeIf { sceneView ->
-      sceneView.sceneManager.model.dataProvider
-        ?.getData(PreviewModeManager.KEY)
-        ?.mode
-        ?.value
-        ?.isNormal == true
+      sceneView.sceneManager.model.dataProvider?.getData(PreviewModeManager.KEY)?.mode?.value is
+        PreviewMode.Focus
     }
   }
 

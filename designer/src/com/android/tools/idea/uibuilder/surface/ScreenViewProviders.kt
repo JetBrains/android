@@ -185,7 +185,7 @@ internal fun blueprintProvider(
             add(BorderLayer(it, isRotating = { surface.isRotating }))
           }
           if (!isSecondary) {
-            add(CanvasResizeLayer(it) { surface.repaint() })
+            add(CanvasResizeLayer(it, surface::repaint))
           }
           add(SceneLayer(surface, it, true))
         }

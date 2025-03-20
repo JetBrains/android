@@ -84,7 +84,7 @@ class NavigatingInteractionHandlerTest {
     val modifiersEx = 0
     handler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx)
 
-    previewModeManager.setMode(PreviewMode.Default())
+    previewModeManager.setMode(PreviewMode.Focus(mock()))
 
     assertThat(handler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx))
       .isEqualTo(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR))

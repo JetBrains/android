@@ -24,9 +24,20 @@ import java.awt.Rectangle
 
 /**
  * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
+ *
+ * This layer is only visible when the scene is resizable.
+ *
+ * @param screenView the screen view to paint on.
+ * @param repaint a callback to repaint the surface.
+ * @param isVisibleCustom a callback to determine if the layer should be visible.
  */
-class CanvasResizeLayer(private val screenView: ScreenView, private val repaint: () -> Unit) :
-  Layer() {
+class CanvasResizeLayer
+@JvmOverloads
+constructor(
+  private val screenView: ScreenView,
+  private val repaint: () -> Unit,
+  private val isVisibleCustom: () -> Boolean = { true },
+) : Layer() {
   private var isHovering = false
 
   /**
@@ -73,5 +84,5 @@ class CanvasResizeLayer(private val screenView: ScreenView, private val repaint:
   }
 
   override val isVisible: Boolean
-    get() = screenView.scene.isResizeAvailable
+    get() = screenView.scene.isResizeAvailable && isVisibleCustom()
 }
