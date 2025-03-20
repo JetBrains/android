@@ -583,7 +583,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 class EnableAutoPopupInDeclarativeCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
     return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement) ||
-               DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN.accepts(contextElement)) ThreeState.NO
+               DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_PROPERTY_DOT_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_FUNCTION_DOT_SYNTAX_PATTERN.accepts(contextElement)) ThreeState.NO
     else ThreeState.UNSURE
   }
 }
