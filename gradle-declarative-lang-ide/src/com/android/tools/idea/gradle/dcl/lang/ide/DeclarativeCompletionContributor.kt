@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
+
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
@@ -145,6 +146,8 @@ private val DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN: PsiElementPattern.Captu
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
     .with(factoryArgument)
+    // not inside property
+    .andNot(psiElement().withParents(DeclarativeIdentifier::class.java, DeclarativeQualified::class.java))
 
 private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -200,7 +203,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   init {
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN, createCompletionProvider())
     extend(CompletionType.BASIC, DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN, createAssignValueCompletionProvider())
-    extend(CompletionType.BASIC, DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN, createAssignValueCompletionProvider())
+    extend(CompletionType.BASIC, DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN, createFactoryArgumentCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN, createRootProjectCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_SYNTAX_PATTERN, createPropertyCompletionProvider())
     extend(CompletionType.BASIC, AFTER_FUNCTION_DOT_SYNTAX_PATTERN, createPluginCompletionProvider())
@@ -255,10 +258,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
         val element = parameters.position.parent
-        result.addAllElements(getSuggestionList(element, schema).map { (entry, suggestion) ->
-          LookupElementBuilder.create(suggestion.name)
-            .withTypeText(suggestion.type.str, null, true)
-        })
+        val suggestions = getSuggestionList(element, schema).map{ it.second }
+        addSimpleSuggestions(result, suggestions)
       }
     }
   }
@@ -276,13 +277,34 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                         getRootProperties(identifier, schema). map { Suggestion (it.name, PROPERTY)}
 
         }
-        result.addAllElements(suggestions.map {
-          LookupElementBuilder.create(it.name)
-            .withTypeText(it.type.str, null, true)
-            .withInsertHandler(insertAssignmentValue(it.type))
-        })
+        addSimpleSuggestions(result, suggestions)
       }
     }
+  }
+
+  private fun createFactoryArgumentCompletionProvider(): CompletionProvider<CompletionParameters> {
+    return object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+        val project = parameters.originalFile.project
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+
+        val element = parameters.position
+        val suggestions = getRootFunctions(element, schema).map { Suggestion(it.name, FACTORY) } +
+                        getRootProperties(element, schema). map { Suggestion (it.name, PROPERTY)}
+        addSimpleSuggestions(result, suggestions)
+      }
+    }
+  }
+
+  private fun addSimpleSuggestions(
+    result: CompletionResultSet,
+    suggestions: List<Suggestion>
+  ) {
+    result.addAllElements(suggestions.map {
+      LookupElementBuilder.create(it.name)
+        .withTypeText(it.type.str, null, true)
+        .withInsertHandler(insertAssignmentValue(it.type))
+    })
   }
 
   private fun createRootProjectCompletionProvider(): CompletionProvider<CompletionParameters> {

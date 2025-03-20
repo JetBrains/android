@@ -166,6 +166,54 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testForPropertyAsFunctionCallArgument() {
+    doTestOnPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.$caret)
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "projectDirectory", "settingsDirectory"
+      )
+    }
+    doTestOnPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.$caret)
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "dir", "file"
+      )
+    }
+  }
+
+  @Test
+  fun testCompletionLayoutFileAsArgument() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.f$caret)
+      }
+      """, """
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.file($caret))
+      }
+      """)
+  }
+
+  @Test
+  fun testCompletionProjectDirectoryAsArgument() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.p$caret)
+      }
+      """, """
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory$caret)
+      }
+      """)
+  }
+
+  @Test
   fun testAssignObjectType() {
     doTest("""
       androidApp {
