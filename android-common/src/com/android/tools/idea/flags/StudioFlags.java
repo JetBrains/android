@@ -1377,7 +1377,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = new BooleanFlag(
     TESTING, "screenshot.testing", "Run screenshot tests",
     "If enabled, preview screenshot tests can be run from Studio and test results will be displayed in the test matrix",
-    false
+    enabledUpTo(DEV)
   );
 
   public static final Flag<Boolean> ENABLE_BACKUP_TESTING = new BooleanFlag(
