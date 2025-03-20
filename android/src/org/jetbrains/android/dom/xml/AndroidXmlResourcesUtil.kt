@@ -58,6 +58,7 @@ object AndroidXmlResourcesUtil {
     add(AccessibilityServiceDomFileDescription.ROOT_TAG_NAME)
     if (StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) {
       add(SdkConstants.TAG_WATCH_FACES)
+      add(SdkConstants.TAG_WATCH_FACE_INFO)
     }
   }
 

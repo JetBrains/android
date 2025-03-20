@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2024 The Android Open Source Project
+  ~ Copyright (C) 2025 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,10 +13,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
-    <xml.schemaProvider implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchfaceXmlSchemaProvider"/>
-    <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceShapesDescription" rootTagName="WatchFaces" />
-    <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceInfoDescription" rootTagName="WatchFaceInfo" />
-  </extensions>
-</idea-plugin>
+<WatchFaceInfo>
+  <Pr<caret>
+</WatchFaceInfo>
