@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
@@ -60,7 +61,12 @@ internal class NetworkInspectorDetailsPanel(
     val getRuleNames: () -> Set<String> = {
       inspectorView.rulesView.tableModel.items.mapTo(HashSet()) { it.name }
     }
-    ruleDetailsView = RuleDetailsView(getRuleNames, usageTracker)
+    ruleDetailsView =
+      RuleDetailsView(
+        getRuleNames,
+        RuleVariablesStateComponent.getInstance(inspectorView.project).state.ruleVariables,
+        usageTracker,
+      )
     cardLayoutView.add(connectionDataDetailsView, CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model

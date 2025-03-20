@@ -27,6 +27,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Protocol
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.applyTo
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerTabKeyAction
 import com.intellij.icons.AllIcons
@@ -61,6 +63,7 @@ private const val INVALID_PORT = "Port should be an integer between 0 and 65535"
 /** View to display a single network interception rule and its detailed information. */
 class RuleDetailsView(
   private val getRuleNames: () -> Set<String>,
+  private val ruleVariables: MutableList<RuleVariable>,
   private val usageTracker: NetworkInspectorTracker,
 ) : JPanel() {
 
@@ -222,7 +225,7 @@ class RuleDetailsView(
         criteria.host,
         "www.google.com",
         "url",
-        { validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$it", it) },
+        { validateHostInput(protocolComboBox.selectedItem as Protocol, it) },
       ) {
         if (criteria.host != it) {
           criteria.host = it
@@ -375,32 +378,34 @@ class RuleDetailsView(
     ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
     return decoratedTableView
   }
-}
 
-/**
- * Validate the input in text field to be a valid host. Compare the host field of the [url] to the
- * [host].
- */
-private fun validateHostInput(url: String, host: String): String? {
-  // Empty host is acceptable.
-  if (host.isEmpty()) return null
-  return try {
-    if (URI(url).host == host) null else MALFORMED_URL
-  } catch (_: Exception) {
-    MALFORMED_URL
+  /** Validate the input in text field to be an integer. */
+  private fun validateIntegerInput(
+    text: String,
+    isEmptyValid: Boolean,
+    lowerBound: Int = Int.MIN_VALUE,
+    upperBound: Int = Int.MAX_VALUE,
+  ): Boolean {
+    val expanded = ruleVariables.applyTo(text)!!
+    if (expanded.isEmpty()) return isEmptyValid
+    val intInput = expanded.toIntOrNull() ?: return false
+    return intInput in lowerBound..upperBound
   }
-}
 
-/** Validate the input in text field to be an integer. */
-private fun validateIntegerInput(
-  text: String,
-  isEmptyValid: Boolean,
-  lowerBound: Int = Int.MIN_VALUE,
-  upperBound: Int = Int.MAX_VALUE,
-): Boolean {
-  if (text.isEmpty()) return isEmptyValid
-  val intInput = text.toIntOrNull() ?: return false
-  return intInput in lowerBound..upperBound
+  /**
+   * Validate the input in text field to be a valid host. Compare the host field of the `url]` to
+   * the [host].
+   */
+  private fun validateHostInput(protocol: Protocol, host: String): String? {
+    // Empty host is acceptable.
+    val expanded = ruleVariables.applyTo(host)!!
+    if (expanded.isEmpty()) return null
+    return try {
+      if (URI("${protocol.name}://$expanded").host == expanded) null else MALFORMED_URL
+    } catch (_: Exception) {
+      MALFORMED_URL
+    }
+  }
 }
 
 private fun Container.findDescendantByName(name: String): Component {

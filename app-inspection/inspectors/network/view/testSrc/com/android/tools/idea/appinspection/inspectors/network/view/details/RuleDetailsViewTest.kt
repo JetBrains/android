@@ -32,6 +32,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.TestNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
@@ -124,6 +126,9 @@ class RuleDetailsViewTest {
   private val timer: FakeTimer = FakeTimer()
   private lateinit var scope: CoroutineScope
 
+  private val ruleVariables
+    get() = RuleVariablesStateComponent.getInstance(inspectorView.project).state.ruleVariables
+
   @Before
   fun before() {
     enableHeadlessDialogs(testRootDisposable)
@@ -171,6 +176,7 @@ class RuleDetailsViewTest {
   fun tearDown() {
     TestDialogManager.setTestDialog(null)
     scope.cancel()
+    ruleVariables.clear()
   }
 
   @Test
@@ -1287,6 +1293,76 @@ class RuleDetailsViewTest {
 
     assertThat(warningLabel.isVisible).isFalse()
     assertThat(rule.name).isEqualTo("Valid Name")
+  }
+
+  @Test
+  fun hostFromVariableIsValid() {
+    ruleVariables.add(RuleVariable("HOST", "www.google.com"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "urlTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "urlWarningLabel") as JBLabel
+    textField.text = "\${INVALID}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+
+    textField.text = "\${HOST}"
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
+  @Test
+  fun portFromVariableIsValid() {
+    ruleVariables.add(RuleVariable("PORT", "80"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
+    textField.text = "\${INVALID}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+
+    textField.text = "\${PORT}"
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
+  @Test
+  fun findCodeFromVariableIsValid() {
+    ruleVariables.add(RuleVariable("CODE", "200"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val warningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    textField.text = "\${INVALID}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+
+    textField.text = "\${CODE}"
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
+  @Test
+  fun newCodeFromVariableIsValid() {
+    ruleVariables.add(RuleVariable("CODE", "200"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val warningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    textField.text = "\${INVALID}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+
+    textField.text = "\${CODE}"
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isFalse()
   }
 
   private fun addNewRule(): RuleData {
