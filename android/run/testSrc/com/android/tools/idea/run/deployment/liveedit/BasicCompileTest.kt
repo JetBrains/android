@@ -463,6 +463,34 @@ class BasicCompileTest {
   }
 
   @Test
+  fun `File in non-default package`() {
+    val file = projectRule.createKtFile("Package.kt", """
+      package a.b
+      class MyClass() {
+        fun hasLambda() {
+          val x = 0
+          val y = { x + 1 }
+        }
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      package a.b
+      class MyClass() {
+        fun hasLambda() {
+          val x = 1
+          val y = { x + 2 }
+        }
+      }
+    """)
+
+    val output = compile(file, cache)
+    assertContains(output.classesMap, "a/b/MyClass")
+    assertContains(output.supportClassesMap, "a/b/MyClass\$hasLambda\$y$1")
+  }
+
+  @Test
   fun `Adding new WithMapping`() {
     val enumDef = projectRule.createKtFile("Food.kt", """
       enum class Food { Pizza, Donuts }
