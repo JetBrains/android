@@ -20,11 +20,10 @@ import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
-import com.intellij.ide.ui.IdeUiService
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
@@ -186,7 +185,13 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     val contents = getAllContents()
     val tabIds =
       contents
-        .mapNotNull { it.deviceId }
+        .map { it.component }
+        .filterIsInstance<UiDataProvider>()
+        .mapNotNull { dataProvider ->
+          val dataContext =
+            DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
+          DEVICE_ID_KEY.getData(dataContext)
+        }
 
     return tabIds
   }
@@ -207,6 +212,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
 private val Content.deviceId: DeviceId?
   get() {
-    return IdeUiService.getInstance().createCustomizedDataContext(
-      DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, component) }).getData(DEVICE_ID_KEY)
+    val dataContext =
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
+    return DEVICE_ID_KEY.getData(dataContext)
   }

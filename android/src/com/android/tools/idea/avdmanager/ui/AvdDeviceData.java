@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager.ui;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
@@ -33,6 +34,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.adtui.device.SkinLayoutDefinition;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
+import com.android.tools.idea.avdmanager.DeviceSkinUpdater;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -475,7 +477,7 @@ public final class AvdDeviceData {
 
   @Nullable
   private static Dimension computeSkinDimension(@Nullable File skinFolder) {
-    if (skinFolder == null || FileUtil.filesEqual(skinFolder, AvdWizardUtils.NO_SKIN)) {
+    if (skinFolder == null || FileUtil.filesEqual(skinFolder, SkinUtils.noSkin().toFile())) {
       return null;
     }
     File skinLayoutFile = new File(skinFolder, SdkConstants.FN_SKIN_LAYOUT);
@@ -576,11 +578,14 @@ public final class AvdDeviceData {
     updateSkinFromDeviceAndSystemImage(device, systemImage);
   }
 
+  @Slow
   public void updateSkinFromDeviceAndSystemImage(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     Hardware defaultHardware = device.getDefaultHardware();
     File defaultHardwareSkinFile = defaultHardware.getSkinFile();
-    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardwareSkinFile == null ? null : defaultHardwareSkinFile.toPath(),
-                                                      systemImage);
+    // This reads skins from disk; this should be moved off the EDT using
+    // DeviceSkinUpdaterService#updateSkins(Path, SystemImageDescription) or similar
+    File skinFile =
+      defaultHardwareSkinFile == null ? null : DeviceSkinUpdater.updateSkin(defaultHardwareSkinFile.toPath(), systemImage).toFile();
     myCustomSkinFile.setValue(skinFile == null ? SkinUtils.noSkin() : skinFile.toPath());
   }
 

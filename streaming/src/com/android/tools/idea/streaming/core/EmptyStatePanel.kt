@@ -83,7 +83,6 @@ internal class EmptyStatePanel(
     Disposer.register(disposableParent, this)
 
     isOpaque = true
-    background = StandardColors.BACKGROUND_COLOR
     border = JBUI.Borders.empty()
     // Allow the panel to receive focus so that the framework considers the tool window active (b/157181475).
     isFocusable = true

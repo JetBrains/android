@@ -252,7 +252,7 @@ abstract class DesignSurface<T : SceneManager>(
                 // Premature zoom updates can occur if NOTIFY_COMPONENT_RESIZED_INT_MASK is updated
                 // before the component is created.
                 // This is avoided by calling NOTIFY_LAYOUT_CREATED_INT_MASK on component creation.
-                checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+                zoomToFitIfReady(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
               }
             }
           }
@@ -444,7 +444,7 @@ abstract class DesignSurface<T : SceneManager>(
                 width > 0 &&
                 height > 0
             ) {
-              checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
+              zoomToFitIfReady(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
             }
             // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
             sceneManagers.forEach { manager: T -> manager.scene.needsRebuildList() }
@@ -596,7 +596,7 @@ abstract class DesignSurface<T : SceneManager>(
    */
   @UiThread
   fun notifyZoomToFit() {
-    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
+    zoomToFitIfReady(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
   }
 
   /**
@@ -613,25 +613,12 @@ abstract class DesignSurface<T : SceneManager>(
    * performed at least once before trying to apply zoom-to-fit.
    */
   fun resetZoomToFitNotifier(shouldWaitForResize: Boolean = true) {
-    var newZoomToFitStateMask = INITIAL_STATE_INT_MASK
-
-    if (!shouldWaitForResize && height > 0 && width > 0) {
-      // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
-      // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
-      newZoomToFitStateMask =
-        newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
-    }
-
-    if (
-      readyToZoomToFitMask.get() == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
-        height > 0 &&
-        width > 0
-    ) {
-      // If we have already performed a zoom-to-fit and we want to perform it again but the
-      // [DesignSurface] has changed we shouldn't wait for zoom-to-fit again. In this the new mask
-      // value will be NOTIFY_ZOOM_TO_FIT_INT_MASK flag.
-      newZoomToFitStateMask = newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK
-    }
+    val newZoomToFitStateMask =
+      if (!shouldWaitForResize && height > 0 && width > 0) {
+        // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
+        // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+      } else INITIAL_STATE_INT_MASK
 
     // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
     // the resize of design surface we set the mask to its initial bitwise number
@@ -641,26 +628,26 @@ abstract class DesignSurface<T : SceneManager>(
 
   @TestOnly
   fun notifyComponentResizedForTest() {
-    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
+    zoomToFitIfReady(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
   }
 
   @TestOnly
   fun notifyLayoutCreatedForTest() {
-    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+    zoomToFitIfReady(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
   }
 
   /**
-   * Synchronized function that checks if we can call [zoomToFit]. We can call it only when
-   * [bitwiseNumber] has received both "1" and "2" and "4". This function solves a race condition of
-   * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
-   * causing a wrong fitScale value.
+   * Try to apply [zoomToFit] if [DesignSurface] has been resized and its [bitwiseNumber] mask is
+   * equal to the [expectedZoomToFitMask]. This function solves a race condition of when the sizes
+   * of the content to show and the sizes of [DesignSurface] aren't yet synchronized causing a wrong
+   * fitScale value.
    *
    * Note: if [waitForRenderBeforeZoomToFit] is enabled it will wait [notifyZoomToFit] to be
    * performed at least once. if [waitForRenderBeforeZoomToFit] is disabled it will directly perform
    * [zoomToFit]
    */
   @UiThread
-  private fun checkIfReadyToZoomToFit(bitwiseNumber: Int): Boolean {
+  private fun zoomToFitIfReady(bitwiseNumber: Int): Boolean {
     val newMask =
       readyToZoomToFitMask.updateAndGet {
         if (it == expectedZoomToFitMask || it == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
@@ -1104,13 +1091,13 @@ abstract class DesignSurface<T : SceneManager>(
       override var scrollPosition: Point
         get() = viewport.viewPosition
         set(value) {
-          value.setLocation(max(0.0, value.x.toDouble()), max(0.0, value.y.toDouble()))
+          value.setLocation(max(0, value.x), max(0, value.y))
 
           val extent: Dimension = viewport.extentSize
           val view: Dimension = viewport.viewSize
 
-          val minX = min(value.x.toDouble(), (view.width - extent.width).toDouble()).toInt()
-          val minY = min(value.y.toDouble(), (view.height - extent.height).toDouble()).toInt()
+          val minX = min(value.x, view.width - extent.width)
+          val minY = min(value.y, view.height - extent.height)
 
           value.setLocation(minX, minY)
 
@@ -1346,7 +1333,7 @@ abstract class DesignSurface<T : SceneManager>(
       /**
        * Number used as part of the bitwise mask to notify [DesignSurface] has been resized.
        *
-       * @see also [DesignSurface.checkIfReadyToZoomToFit].
+       * @see also [DesignSurface.zoomToFitIfReady].
        */
       const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
@@ -1354,7 +1341,7 @@ abstract class DesignSurface<T : SceneManager>(
        * Number used as part of the bitwise mask to notify to [DesignSurface] its layout has been
        * created.
        *
-       * @see also [DesignSurface.checkIfReadyToZoomToFit].
+       * @see also [DesignSurface.zoomToFitIfReady].
        */
       const val NOTIFY_LAYOUT_CREATED_INT_MASK = 4
 

@@ -281,8 +281,9 @@ class AehdWizardTest {
         )
         .apply { init() }
 
-    val fakeUi = FakeUi(getRoot(wizard.contentPane), createFakeWindow = true)
-    createModalDialogAndInteractWithIt(dialogTrigger = { wizard.show() }) { showCallback(fakeUi) }
+    createModalDialogAndInteractWithIt(dialogTrigger = { wizard.show() }) {
+      showCallback(FakeUi(getRoot(wizard.contentPane), createFakeWindow = true))
+    }
   }
 
   private fun showNewWizard(

@@ -16,11 +16,11 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.Slow
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -29,9 +29,12 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeList
 import com.android.utils.isBindingExpression
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -53,13 +56,18 @@ import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlToken
 import com.intellij.util.application
 import com.intellij.util.concurrency.SameThreadExecutor
-import com.intellij.util.concurrency.annotations.RequiresEdt
 import java.util.Collections
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.jvm.java
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
@@ -85,7 +93,8 @@ import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
  * * Add listener or remove listener can be done from any thread
  */
 @Service(Service.Level.PROJECT)
-class ResourceNotificationManager private constructor(private val project: Project) :
+class ResourceNotificationManager
+private constructor(private val project: Project, private val scope: CoroutineScope) :
   Disposable.Default {
 
   /**
@@ -114,7 +123,18 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
   /** Set of events we've observed since the last notification. */
   private var events: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
+  /** Channel used to deliver the events to listeners. */
+  private val eventsChannel = Channel<ImmutableSet<Reason>>(Channel.UNLIMITED)
 
+  init {
+    scope.launch {
+      for (reason in eventsChannel) {
+        notifyListeners(reason)
+      }
+    }
+  }
+
+  @Slow // Slow because this method might trigger the AppResources repository initialization
   fun getCurrentVersion(
     facet: AndroidFacet,
     file: PsiFile?,
@@ -153,14 +173,13 @@ class ResourceNotificationManager private constructor(private val project: Proje
    *   file.
    * @param configuration if file is not null, this is an optional configuration you can listen for
    *   changes in (must be a configuration corresponding to the file)
-   * @return the current resource modification stamp of the given module
    */
   fun addListener(
     listener: ResourceChangeListener,
     facet: AndroidFacet,
     file: VirtualFile?,
     configuration: Configuration?,
-  ): ResourceVersion {
+  ) {
     require(configuration == null || file != null) {
       "If configuration is specified, file must be as well. $configuration $file"
     }
@@ -192,12 +211,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
     if (AndroidModel.isRequired(facet)) {
       ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
     }
-
-    return getCurrentVersion(
-      facet,
-      file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) },
-      configuration,
-    )
   }
 
   /**
@@ -242,7 +255,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
    */
   private fun notice(reason: Reason, source: VirtualFile?) {
-    events.add(reason)
+    synchronized(events) { events.add(reason) }
     if (!pendingNotify.compareAndSet(false, true)) return
 
     application.invokeLater {
@@ -287,18 +300,17 @@ class ResourceNotificationManager private constructor(private val project: Proje
   }
 
   private fun scheduleFinalNotification() {
-    application.invokeLater {
-      val reason = ImmutableSet.copyOf(events)
-      events = EnumSet.noneOf(Reason::class.java)
-      notifyListeners(reason)
-      events.clear()
-    }
+    val reason =
+      synchronized(events) {
+        val reason = ImmutableSet.copyOf(events)
+        events = EnumSet.noneOf(Reason::class.java)
+        reason
+      }
+
+    eventsChannel.trySend(reason)
   }
 
-  @RequiresEdt
-  private fun notifyListeners(reason: ImmutableSet<Reason>) {
-    application.assertIsDispatchThread()
-
+  private suspend fun notifyListeners(reason: ImmutableSet<Reason>) {
     // Not every module may have pending changes; each one will check.
     moduleToObserverMap.invokeOnObservers { notifyListeners(reason) }
   }
@@ -494,8 +506,16 @@ private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
 
   fun containsKey(key: TKey) = synchronized(map) { map.containsKey(key) }
 
-  fun invokeOnObservers(lambda: TObserver.() -> Unit) {
-    synchronized(map) { ArrayList(map.values) }.forEach { it.lambda() }
+  inline fun invokeOnObservers(lambda: TObserver.() -> Unit) {
+    synchronized(map) { ArrayList(map.values) }
+      .forEach {
+        try {
+          it.lambda()
+        } catch (t: Throwable) {
+          // Avoid listeners crashing stopping other events from being delivered.
+          thisLogger().error(t)
+        }
+      }
   }
 }
 
@@ -520,25 +540,33 @@ private class ModuleEventObserver(
     }
   }
 
-  @RequiresEdt
-  fun notifyListeners(reason: ImmutableSet<Reason>) {
+  suspend fun notifyListeners(reason: ImmutableSet<Reason>) {
     if (this.isDisposed()) return
 
-    val generation = appResourcesModificationCount
-    if (reason.singleOrNull() == Reason.RESOURCE_EDIT && generation == this.generation) {
-      // Notified of an edit in some file that could potentially affect the resources, but
-      // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
-      // such as a variant change, then notify regardless.)
-      return
+    val appResources = blockingContextScope {
+      StudioResourceRepositoryManager.getInstance(facet).appResources
     }
+    withContext(Dispatchers.EDT) {
+      if (this@ModuleEventObserver.isDisposed()) return@withContext
+      if (
+        reason.singleOrNull() == Reason.RESOURCE_EDIT &&
+          appResources.modificationCount == this@ModuleEventObserver.generation
+      ) {
+        // Notified of an edit in some file that could potentially affect the resources, but
+        // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
+        // such as a variant change, then notify regardless.)
+        return@withContext
+      }
 
-    this.generation = generation
-    invokeOnListeners { resourcesChanged(reason) }
+      this@ModuleEventObserver.generation = generation
+      invokeOnListeners { resourcesChanged(reason) }
+    }
   }
 
   private val appResourcesModificationCount
     get() =
-      StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount ?: 0L
+      StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount
+        ?: -1L
 
   inner class Listener : ResourceFolderListener {
     override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {

@@ -69,7 +69,7 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
       .androidProject
       .let { androidProject ->
         androidProject.copy(
-          javaCompileOptions = androidProject.javaCompileOptions.copy(encoding = modelEncoding)
+          javaCompileOptions = androidProject.javaCompileOptions?.copy(encoding = modelEncoding)
         )
       }
     whenever(androidModel.androidProject).thenAnswer { invocation: InvocationOnMock? -> ideAndroidProject }

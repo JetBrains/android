@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.awaitLogQueueProcessed
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestLoggerFactory
@@ -34,10 +35,12 @@ class TestLoggerTest {
   }
 
   @Test
+  @Suppress("UnstableApiUsage") // For awaitLogQueueProcessed().
   fun testLoggerWritesToLogFile() {
     val logFile = TestLoggerFactory.getTestLogDir().resolve("idea.log")
     val before = logFile.readText()
     thisLogger().warn("A sample warning message")
+    awaitLogQueueProcessed()
     val after = logFile.readText()
     val diff = after.removePrefix(before)
     assertThat(diff).contains("A sample warning message")

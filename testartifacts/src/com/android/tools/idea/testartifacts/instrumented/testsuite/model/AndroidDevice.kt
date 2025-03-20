@@ -30,7 +30,7 @@ import com.android.sdklib.AndroidVersion
  * @param additionalInfo an additional device info (such as RAM, processor name) as a key value pair
  */
 data class AndroidDevice(val id: String,
-                         val deviceName: String,
+                         var deviceName: String,
                          val avdName: String,
                          val deviceType: AndroidDeviceType,
                          val version: AndroidVersion,

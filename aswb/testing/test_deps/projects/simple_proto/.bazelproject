@@ -1,0 +1,7 @@
+
+directories:
+  simple_proto/project
+
+android_sdk_platform: android-34
+
+

@@ -47,6 +47,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/.idea/libraries:layoutlib",
     ],
+    test_friends = ["//tools/adt/idea/rendering:intellij.android.rendering"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -91,6 +92,9 @@ kotlin_test(
     ]),
     data = [
         "//tools/adt/idea/rendering/testData",
+    ],
+    friends = [
+        ":tools.rendering",
     ],
     jvm_flags = ["-Dtest.suite.jar=tools.rendering.tests.jar"],
     lint_baseline = "lint_baseline_tests.xml",

@@ -171,11 +171,9 @@ private fun doesOverlayContainClass(buildTargetReference: BuildTargetReference, 
 private fun defaultClassFinderFactory(buildTargetReference: BuildTargetReference): suspend ((String) -> Boolean) {
   val buildSystemFilePreviewServices =
     buildTargetReference.getBuildSystemFilePreviewServices()
-  val classFileFinder by lazy {
-    buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
-  }
+  val renderingServices =  buildSystemFilePreviewServices.getRenderingServices(buildTargetReference)
   return { fqcn: String ->
-    readAction { (classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
+    readAction { (renderingServices.classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
   }
 }
 

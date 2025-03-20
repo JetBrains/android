@@ -40,6 +40,7 @@
   <xi:include href="/META-INF/android-editing-metrics.xml"/>
   <xi:include href="/META-INF/android-lang.xml"/>
   <xi:include href="/META-INF/android-lang-databinding.xml"/>
+  <xi:include href="/META-INF/android-keys.xml"/>
   <xi:include href="/META-INF/android-navigator.xml"/>
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>
@@ -80,6 +81,7 @@
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
   <xi:include href="/META-INF/gradle-dsl.xml"/>
+  <xi:include href="/META-INF/gradle-dsl-groovy.xml"/>
   <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
   <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
   <xi:include href="/META-INF/gradle-dsl-toml.xml"/>

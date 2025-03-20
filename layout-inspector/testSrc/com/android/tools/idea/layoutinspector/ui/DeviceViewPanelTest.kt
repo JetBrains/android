@@ -72,6 +72,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ICON_LEGACY_PHONE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
@@ -754,59 +755,60 @@ class DeviceViewPanelTest {
   }
 
   @Test
-  fun textXrZoom() {
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    val model = InspectorModel(projectRule.project, coroutineScope)
-    val notificationModel = NotificationModel(projectRule.project)
-    val processModel = ProcessesModel(TestProcessDiscovery())
-    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
-    val launcher =
-      InspectorClientLauncher(
-        processModel,
-        listOf(),
-        projectRule.project,
-        notificationModel,
-        coroutineScope,
-        disposableRule.disposable,
-        executor = MoreExecutors.directExecutor(),
-        metrics = mock(),
-      )
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    val treeSettings = FakeTreeSettings()
-    val inspector =
-      LayoutInspector(
-        coroutineScope,
-        processModel,
-        deviceModel,
-        null,
-        clientSettings,
-        launcher,
-        model,
-        notificationModel,
-        treeSettings,
-        FakeRenderSettings(),
-        MoreExecutors.directExecutor(),
-      )
-    treeSettings.hideSystemNodes = true
-    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
+  fun textXrZoom() =
+    withEmbeddedLayoutInspector(false) {
+      val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+      val model = InspectorModel(projectRule.project, coroutineScope)
+      val notificationModel = NotificationModel(projectRule.project)
+      val processModel = ProcessesModel(TestProcessDiscovery())
+      val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+      val launcher =
+        InspectorClientLauncher(
+          processModel,
+          listOf(),
+          projectRule.project,
+          notificationModel,
+          coroutineScope,
+          disposableRule.disposable,
+          executor = MoreExecutors.directExecutor(),
+          metrics = mock(),
+        )
+      val clientSettings = InspectorClientSettings(projectRule.project)
+      val treeSettings = FakeTreeSettings()
+      val inspector =
+        LayoutInspector(
+          coroutineScope,
+          processModel,
+          deviceModel,
+          null,
+          clientSettings,
+          launcher,
+          model,
+          notificationModel,
+          treeSettings,
+          FakeRenderSettings(),
+          MoreExecutors.directExecutor(),
+        )
+      treeSettings.hideSystemNodes = true
+      val panel = DeviceViewPanel(inspector, disposableRule.disposable)
 
-    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
-    scrollPane.setSize(200, 300)
-    model.resourceLookup.screenDimension = Dimension(200, 300)
+      val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
+      scrollPane.setSize(200, 300)
+      model.resourceLookup.screenDimension = Dimension(200, 300)
 
-    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
+      assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
-    val newWindow1 =
-      viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
-    model.update(newWindow1, listOf(ROOT), 0)
+      val newWindow1 =
+        viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
+      model.update(newWindow1, listOf(ROOT), 0)
 
-    val newWindow2 =
-      viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
-    model.update(newWindow2, listOf(ROOT, ROOT2), 1)
+      val newWindow2 =
+        viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
+      model.update(newWindow2, listOf(ROOT, ROOT2), 1)
 
-    // now we should be zoomed to fit
-    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(11)
-  }
+      // now we should be zoomed to fit
+      assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(11)
+    }
 
   @Test
   fun testDrawNewWindow() {

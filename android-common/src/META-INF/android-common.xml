@@ -14,6 +14,11 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.googleapis.googleApiKeyProvider"
+                    interface="com.android.tools.idea.googleapis.GoogleApiKeyProvider"
+                    dynamic="true"/>
+  </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.concurrency.AndroidIoManager"
                         serviceImplementation="com.android.tools.idea.concurrency.StudioIoManager"/>

@@ -103,7 +103,9 @@ class ResourceImportDialogViewModelTest {
     }
     viewModel.commit()
     viewModel.summaryScreenViewModel.doImport()
-    val first = mainIdeaSourceProvider.resDirectories.first().toIoFile()
+    assertThat(mainIdeaSourceProvider).isNotNull()
+    assertThat(mainIdeaSourceProvider?.resDirectories).hasSize(1)
+    val first = mainIdeaSourceProvider?.resDirectories?.first()?.toIoFile()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
   }
 

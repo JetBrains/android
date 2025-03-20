@@ -35,6 +35,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.RuleVariablesDialog
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.addAction
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.clickOk
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.setName
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.setValue
 import com.android.tools.idea.appinspection.inspectors.network.view.utils.findComponentWithUniqueName
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -71,6 +76,7 @@ import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
+@Suppress("OverrideOnly")
 @RunsInEdt
 class RuleDetailsViewTest {
 
@@ -630,7 +636,7 @@ class RuleDetailsViewTest {
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasHeaderAdded()).isTrue()
       assertThat(it.transformationList[1].hasHeaderReplaced()).isTrue()
     }
@@ -660,7 +666,7 @@ class RuleDetailsViewTest {
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasHeaderAdded()).isTrue()
       assertThat(it.transformationList[1].hasHeaderReplaced()).isTrue()
       assertThat(it.transformationList[1].headerReplaced.targetName.text).isEqualTo("findName")
@@ -911,7 +917,7 @@ class RuleDetailsViewTest {
     model.addRow(bodyReplacedRule)
     model.addRow(bodyModifiedRule)
     assertThat(bodyTable.rowCount).isEqualTo(2)
-    ruleData.toProto().let {
+    ruleData.toProto(emptyList()).let {
       assertThat(it.transformationList[0].hasBodyReplaced()).isTrue()
       assertThat(it.transformationList[1].hasBodyModified()).isTrue()
     }
@@ -1316,5 +1322,26 @@ class RuleDetailsViewTest {
       }
     }
     return true
+  }
+
+  @Test
+  fun openVariableDialogAndAddVariableThatAffectsRule() {
+    addNewRule().apply { criteria.host = "\${HOST}" }
+
+    val variablesAction = findAction(inspectorView.rulesView.component, "Variables")
+    createModalDialogAndInteractWithIt({
+      variablesAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as RuleVariablesDialog
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.setName(0, "HOST")
+      dialog.setValue(0, "foo")
+      dialog.clickOk()
+    }
+
+    client.verifyLatestCommand {
+      val criteria = it.interceptRuleUpdated.rule.criteria
+      assertThat(criteria.host == "foo")
+    }
   }
 }

@@ -51,7 +51,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, config.deviceType)
-        showUiSettingsPopup(panel, this@EmulatorUiSettingsAction, event, emulatorView)
+        showUiSettingsPopup(panel, emulatorView)
       }
     }
   }

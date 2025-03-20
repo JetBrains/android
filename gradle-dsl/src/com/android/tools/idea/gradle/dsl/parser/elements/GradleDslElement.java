@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}s.
@@ -133,6 +134,7 @@ public interface GradleDslElement extends GradleDslAnchorProvider {
   GradleDslFile getDslFile();
 
   @NotNull
+  @Unmodifiable
   List<GradleReferenceInjection> getResolvedVariables();
 
   @Nullable

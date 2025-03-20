@@ -34,8 +34,8 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -311,6 +311,16 @@ internal class DeviceViewTest {
     assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_UP, 0, 0, 0, false))
     fakeUi.mouse.release()
+
+    // Check mouse leaving the device view while hovering.
+    fakeUi.mouse.moveTo(55, 10)
+    assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, false))
+    assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, false))
+    fakeUi.mouse.moveTo(60, -10)
+    assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, false))
   }
 
   @Test

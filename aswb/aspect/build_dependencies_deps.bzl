@@ -38,11 +38,17 @@ def _get_dependency_attribute(rule, attr):
 
 def _get_followed_kotlin_dependencies(rule):
     deps = []
-    if rule.kind in ["kt_jvm_library_helper", "kt_android_library", "android_library"]:
+    if rule.kind in ["kt_jvm_library_helper", "kt_jvm_library", "kt_android_library", "android_library"]:
         deps.extend(_get_dependency_attribute(rule, "_toolchain"))
     if rule.kind in ["kt_jvm_toolchain"]:
         deps.extend(_get_dependency_attribute(rule, "kotlin_libs"))
     return deps
+
+def _get_kotlin_info(target, rule):
+    if rule.kind in ["kt_jvm_toolchain"]:
+        # Kotlin stdlib is provided through toolchain attributes.
+        return struct()
+    return None
 
 IDE_KOTLIN = struct(
     srcs_attributes = [
@@ -57,6 +63,7 @@ IDE_KOTLIN = struct(
     ],
     followed_dependencies = _get_followed_kotlin_dependencies,
     toolchains_aspects = [],
+    get_kotlin_info = _get_kotlin_info,
 )
 
 # PROTO

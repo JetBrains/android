@@ -252,63 +252,19 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val elementsToSceneManagers =
     elementsToReusableModels
       .map { (previewElement, model) ->
-        val fileContents = previewElementModelAdapter.toXml(previewElement)
-        debugLogger?.logPreviewElement(
-          previewElementModelAdapter.toLogString(previewElement),
-          fileContents,
-        )
-
-        val newModel: NlModel
-        var forceReinflate = true
-        var invalidatePreviousRender = false
-        if (model != null) {
-          debugLogger?.log("Re-using model ${model.virtualFile.name}")
-          val affinity =
-            previewElementModelAdapter.calcAffinity(
-              previewElement,
-              previewElementModelAdapter.modelToElement(model),
-            )
-          // If the model is for the same element (affinity=0) and we know that it is not spoiled by
-          // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
-          // quicker
-          if (affinity == 0 && !reinflate) forceReinflate = false
-          // If the model is not the same element (affinity>0), ensure that we do not use the cached
-          // result from a previous render.
-          if (affinity > 0) invalidatePreviousRender = true
-          model.updateFileContentBlocking(fileContents)
-          newModel = model
-          this@NlDesignSurface.getSceneManager(newModel)?.let {
-            if (forceReinflate) it.sceneRenderConfiguration.needsInflation.set(true)
-            if (invalidatePreviousRender) it.invalidateCachedResponse()
-          }
-        } else {
-          val now = System.currentTimeMillis()
-          debugLogger?.log("No models to reuse were found. New model $now.")
-          val file =
-            previewElementModelAdapter.createLightVirtualFile(
-              fileContents,
-              psiFile.virtualFile,
-              now,
-            )
-          val configuration =
-            Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          configuration.imageTransformation = this.getGlobalImageTransformation()
-          newModel =
-            NlModel.Builder(
-                parentDisposable,
-                AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
-                file,
-                configuration,
-              )
-              .withComponentRegistrar(NlComponentRegistrar)
-              .withXmlProvider { project, virtualFile ->
-                NlModel.getDefaultFile(project, virtualFile).also {
-                  it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
-                }
-              }
-              .build()
-        }
-
+        val newModel: NlModel =
+          getNewModel(
+            model,
+            debugLogger,
+            previewElementModelAdapter,
+            previewElement,
+            reinflate,
+            psiFile,
+            configurationManager,
+            parentDisposable,
+            facet,
+          )
+        newModel.configuration.startBulkEditing()
         // Common configuration steps for new and reused models
         newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
         newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
@@ -368,6 +324,10 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           }
       }
 
+  elementsToSceneManagers.forEach { (_, sceneManager) ->
+    sceneManager.model.configuration.finishBulkEditing()
+  }
+
   // Relayout the scene views and repaint, so that the updated lists of previews is shown before
   // the renders start, according to the placeholders added above. At this point, reused models
   // will keep their current Preview image and new models will be empty.
@@ -395,6 +355,76 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   return elementsToSceneManagers.map { it.first }
 }
 
+/**
+ * Creates a new [NlModel] or reuses an existing one.
+ *
+ * @return the [NlModel] to use for rendering.
+ */
+private suspend fun <T : PsiPreviewElement> NlDesignSurface.getNewModel(
+  modelToReuse: NlModel?,
+  debugLogger: PreviewElementDebugLogger?,
+  previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
+  previewElement: T,
+  reinflate: Boolean,
+  psiFile: PsiFile,
+  configurationManager: ConfigurationManager,
+  parentDisposable: Disposable,
+  facet: AndroidFacet,
+): NlModel {
+  val fileContents = previewElementModelAdapter.toXml(previewElement)
+  debugLogger?.logPreviewElement(
+    previewElementModelAdapter.toLogString(previewElement),
+    fileContents,
+  )
+  var newModel: NlModel
+  if (modelToReuse != null) {
+    var forceReinflate = true
+    var invalidatePreviousRender = false
+    debugLogger?.log("Re-using model ${modelToReuse.virtualFile.name}")
+    val affinity =
+      previewElementModelAdapter.calcAffinity(
+        previewElement,
+        previewElementModelAdapter.modelToElement(modelToReuse),
+      )
+    // If the model is for the same element (affinity=0) and we know that it is not spoiled by
+    // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
+    // quicker
+    if (affinity == 0 && !reinflate) forceReinflate = false
+    // If the model is not the same element (affinity>0), ensure that we do not use the cached
+    // result from a previous render.
+    if (affinity > 0) invalidatePreviousRender = true
+    modelToReuse.updateFileContentBlocking(fileContents)
+    newModel = modelToReuse
+    this.getSceneManager(newModel)?.let {
+      if (forceReinflate) it.sceneRenderConfiguration.needsInflation.set(true)
+      if (invalidatePreviousRender) it.invalidateCachedResponse()
+    }
+  } else {
+    val now = System.currentTimeMillis()
+    debugLogger?.log("No models to reuse were found. New model $now.")
+    val file =
+      previewElementModelAdapter.createLightVirtualFile(fileContents, psiFile.virtualFile, now)
+    val configuration =
+      Configuration.create(configurationManager, FolderConfiguration.createDefault())
+    configuration.imageTransformation = this.getGlobalImageTransformation()
+    newModel =
+      NlModel.Builder(
+          parentDisposable,
+          AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
+          file,
+          configuration,
+        )
+        .withComponentRegistrar(NlComponentRegistrar)
+        .withXmlProvider { project, virtualFile ->
+          NlModel.getDefaultFile(project, virtualFile).also {
+            it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+          }
+        }
+        .build()
+  }
+  return newModel
+}
+
 private suspend fun renderAndTrack(
   sceneManager: LayoutlibSceneManager,
   refreshEventBuilder: PreviewRefreshEventBuilder?,
@@ -405,7 +435,7 @@ private suspend fun renderAndTrack(
   sceneManager.requestRenderAndWait()
   val renderResult = sceneManager.renderResult
   refreshEventBuilder?.addPreviewRenderDetails(
-    renderResult?.isErrorResult() ?: false,
+    renderResult?.isErrorResult() == true,
     inflate,
     quality,
     System.currentTimeMillis() - startMs,

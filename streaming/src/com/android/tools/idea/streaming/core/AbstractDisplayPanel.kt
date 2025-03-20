@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
-import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
+import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -132,15 +132,15 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   protected fun createFloatingToolbar() {
     floatingToolbarLayerPane.removeAll()
-    if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId) {
+    if (deviceType == DeviceType.XR) {
       val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.7).apply {
         val actionManager = ActionManager.getInstance()
-        val inputModeGroup = actionManager.getAction("android.emulator.xr.input.mode.group") as? ActionGroup
+        val inputModeGroup = actionManager.getAction("android.streaming.xr.input.mode.group") as? ActionGroup
         if (inputModeGroup != null) {
           addToolbar("FloatingToolbar", inputModeGroup, collapsible = true)
         }
 
-        val recenterGroup = actionManager.getAction("android.emulator.xr.recenter.group") as? ActionGroup
+        val recenterGroup = actionManager.getAction("android.streaming.xr.recenter.group") as? ActionGroup
         if (recenterGroup != null) {
           addToolbar("FloatingToolbar", recenterGroup, collapsible = false)
         }

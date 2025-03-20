@@ -933,7 +933,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createPhoneAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29)): Path {
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29, 0)): Path {
       val api = androidVersion.apiStringWithoutExtension
       val avdId = "Pixel_3_XL_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1028,8 +1028,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createAvdWithSkinButtons(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(26)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(26, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Nexus_One_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1123,8 +1123,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createTabletAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Nexus_10_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1220,8 +1220,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createFoldableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(33)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(33, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1345,8 +1345,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createRollableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(31)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(31, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "7.4_Rollable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1481,8 +1481,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createResizableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Resizable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1588,9 +1588,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createWatchAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(30),
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(30, 0),
         skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
-      val api = androidVersion.apiLevel
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Android_Wear_Round_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1681,8 +1681,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     /** Creates a fake XR AVD. */
     @JvmStatic
     fun createXrAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "XR_Device_API_$api"
       val abi = "x86_64"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1777,8 +1777,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createAutomotiveAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32)): Path {
-      val api = androidVersion.apiLevel
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32, 0)): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Automotive_1024p_landscape_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1893,7 +1893,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/01">
             <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
               <type-details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns:sysImgDetailsType">
-                <api-level>${androidVersion.apiLevel}</api-level>
+                <api-level>${androidVersion.androidApiLevel.majorVersion}</api-level>
                 <tag><id>google_apis</id><display>Google APIs</display></tag>
                 <vendor><id>google</id><display>Google Inc.</display></vendor>
                 <abi>$abi</abi>
@@ -1964,7 +1964,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 private val AndroidVersion.sourceProperties: String
   get() {
     val result = StringBuilder()
-    result.append("AndroidVersion.ApiLevel=$apiLevel\n")
+    result.append("AndroidVersion.ApiLevel=${androidApiLevel.majorVersion}\n")
     if (codename != null) {
       result.append("AndroidVersion.CodeName=$codename\n")
     }

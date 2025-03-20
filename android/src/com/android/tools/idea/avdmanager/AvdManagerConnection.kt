@@ -22,29 +22,16 @@ import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoPackage
-import com.android.repository.io.FileOpUtils
-import com.android.resources.ScreenOrientation
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.devices.Abi
-import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
-import com.android.sdklib.internal.avd.AvdManagerException
-import com.android.sdklib.internal.avd.AvdNames
-import com.android.sdklib.internal.avd.AvdNames.cleanAvdName
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures
 import com.android.sdklib.internal.avd.EmulatorPackage
-import com.android.sdklib.internal.avd.GenericSkin
-import com.android.sdklib.internal.avd.HardwareProperties
-import com.android.sdklib.internal.avd.OnDiskSkin
-import com.android.sdklib.internal.avd.SdCard
 import com.android.sdklib.internal.avd.getEmulatorPackage
-import com.android.sdklib.internal.avd.uniquifyAvdName
-import com.android.sdklib.internal.avd.uniquifyDisplayName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.NULL_CONNECTION
@@ -88,13 +75,6 @@ import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -104,6 +84,13 @@ import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.ide.PooledThreadExecutor
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -121,8 +108,7 @@ open class AvdManagerConnection
 constructor(
   private val sdkHandler: AndroidSdkHandler?,
   private val avdManager: AvdManager?,
-  private val uiContext: CoroutineContext =
-    Dispatchers.EDT + ModalityState.any().asContextElement(),
+  private val uiContext: CoroutineContext = Dispatchers.EDT + ModalityState.any().asContextElement(),
 ) {
   val emulator: EmulatorPackage?
     get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
@@ -421,7 +407,9 @@ constructor(
 
     // These are defined in the HTTP Proxy section of the Settings dialog.
     // We can only use static HTTP proxies; ignore the other types.
-    val config = ProxySettings.getInstance().getProxyConfiguration() as? StaticProxyConfiguration ?: return null
+    val config =
+      ProxySettings.getInstance().getProxyConfiguration() as? StaticProxyConfiguration
+        ?: return null
     val params = config.toStudioParams(ProxyCredentialStore.getInstance())
     if (params.isEmpty()) {
       return null
@@ -488,90 +476,6 @@ constructor(
     }
   }
 
-  /**
-   * Update the given AVD with the new settings or create one if no AVD is specified. Returns the
-   * created AVD.
-   */
-  fun createOrUpdateAvd(
-    currentInfo: AvdInfo?,
-    avdName: String,
-    device: Device,
-    systemImageDescription: SystemImageDescription,
-    orientation: ScreenOrientation,
-    isCircular: Boolean,
-    sdCard: SdCard?,
-    skinFolder: Path?,
-    hardwareProperties: Map<String, String>,
-    userSettings: Map<String, String>?,
-    removePrevious: Boolean,
-  ): AvdInfo? {
-    var skinFolder = skinFolder
-    val hardwareProperties = hardwareProperties.toMutableMap()
-    avdManager ?: return null
-    checkNotNull(sdkHandler)
-
-    val avdFolder =
-      try {
-        currentInfo?.dataFolderPath ?: AvdInfo.getDefaultAvdFolder(avdManager, avdName, true)
-      } catch (e: Throwable) {
-        IJ_LOG.error("Could not create AVD $avdName", e)
-        return null
-      }
-
-    val resolution = checkNotNull(device.getScreenSize(orientation))
-    if (skinFolder == null && isCircular) {
-      val skinFile = getRoundSkin(systemImageDescription)
-      skinFolder = if (skinFile == null) null else sdkHandler.toCompatiblePath(skinFile)
-    }
-    if (skinFolder == SkinUtils.noSkin()) {
-      skinFolder = null
-    }
-    val skin =
-      if (skinFolder == null) {
-        GenericSkin(
-          Math.round(resolution.getWidth()).toInt(),
-          Math.round(resolution.getHeight()).toInt(),
-        )
-      } else {
-        OnDiskSkin(skinFolder)
-      }
-    if (orientation == ScreenOrientation.LANDSCAPE) {
-      hardwareProperties[HardwareProperties.HW_INITIAL_ORIENTATION] =
-        ScreenOrientation.LANDSCAPE.shortDisplayValue.lowercase()
-    }
-    if (currentInfo != null && avdName != currentInfo.name && removePrevious) {
-      try {
-        avdManager.moveAvd(currentInfo, avdName, currentInfo.dataFolderPath)
-      } catch (e: AvdManagerException) {
-        IJ_LOG.error("Could not move AVD ${currentInfo.name} to $avdName", e)
-        return null
-      }
-    }
-
-    return avdManager.createAvd(
-      avdFolder,
-      avdName,
-      systemImageDescription.systemImage,
-      skin,
-      sdCard,
-      hardwareProperties,
-      userSettings,
-      device.bootProps,
-      device.hasPlayStore(),
-      false,
-      removePrevious,
-    )
-  }
-
-  private fun getRoundSkin(systemImageDescription: SystemImageDescription): File? {
-    for (skin in systemImageDescription.skins) {
-      if (skin.fileName.toString().contains("Round")) {
-        return FileOpUtils.toFile(skin)
-      }
-    }
-    return null
-  }
-
   fun reloadAvd(avdFolder: Path): AvdInfo? {
     val avd = findAvdWithFolder(avdFolder)
     if (avd != null) {
@@ -602,34 +506,12 @@ constructor(
     return true
   }
 
-  /**
-   * Computes a reasonable display name for a newly-created AVD with the given device and version.
-   */
-  fun getDefaultDeviceDisplayName(device: Device, version: AndroidVersion): String {
-    val name = AvdNames.getDefaultDeviceDisplayName(device, version)
-    return avdManager?.uniquifyDisplayName(name) ?: name
-  }
-
   fun findAvdWithDisplayName(name: String): Boolean {
     return avdManager?.findAvdWithDisplayName(name) != null
   }
 
   open fun findAvdWithFolder(avdFolder: Path): AvdInfo? {
     return avdManager?.findAvdWithFolder(avdFolder)
-  }
-
-  /**
-   * Get a version of `candidateBase` modified such that it is a valid filename. Invalid characters
-   * will be removed, and if requested the name will be made unique.
-   *
-   * @param candidateBase the name on which to base the avd name.
-   * @param uniquify if true, _n will be appended to the name if necessary to make the name unique,
-   *   where n is the first number that makes the filename unique.
-   * @return The modified filename.
-   */
-  fun cleanAvdName(candidateBase: String, uniquify: Boolean): String {
-    val cleaned = cleanAvdName(candidateBase)
-    return if (uniquify && avdManager != null) avdManager.uniquifyAvdName(cleaned) else cleaned
   }
 
   companion object {
@@ -686,8 +568,8 @@ constructor(
     /** Checks whether the emulator can be launched in the Running Device tool window. */
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
-        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null  &&
-             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrDevice)
+        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrDevice)
     }
 
     @JvmStatic
@@ -753,7 +635,9 @@ constructor(
 
 private fun OptionalLong.orNull(): Long? = if (isPresent) asLong else null
 
-internal fun StaticProxyConfiguration.toStudioParams(credentialStore: ProxyCredentialStore): List<String> {
+internal fun StaticProxyConfiguration.toStudioParams(
+  credentialStore: ProxyCredentialStore
+): List<String> {
   // The emulator consumes this in settings-page-proxy.cpp:getStudioProxyString().
   val proxyParameters = mutableListOf<String>()
   if (protocol == ProxyConfiguration.ProxyProtocol.HTTP && host.isNotBlank() && port > 0) {

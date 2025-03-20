@@ -90,11 +90,10 @@ class ScreenshotOptions(
         defaultFrameIndex = framingOptions.indexOfFirst { it.skinFolder == bestMatch.skinFolder }
       }
     }
-    if (deviceType != DeviceType.WEAR && deviceType != DeviceType.TV) {
+    if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.AUTOMOTIVE) {
       val displaySize = screenshotImage.displaySize
-      val displayDensity = screenshotImage.displayDensity
-      if (displaySize != null && displayDensity.isFinite()) {
-        val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
+      val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
+      if (displaySize != null) {
         if (deviceType == DeviceType.AUTOMOTIVE) {
           val automotive = descriptors["automotive_1024"]
           val screenSize = automotive?.getScreenSize(ScreenOrientation.LANDSCAPE)
@@ -103,10 +102,14 @@ class ScreenshotOptions(
             framingOptions.add(DeviceFramingOption(automotive))
           }
         }
-        val diagonalSize = hypot(displaySize.width.toDouble(), displaySize.height.toDouble()) / displayDensity
-        val deviceArtId = if (diagonalSize < MIN_TABLET_DIAGONAL_SIZE) "phone" else "tablet"
-        descriptors[deviceArtId]?.let { framingOptions.add(DeviceFramingOption(it)) }
       }
+      val displayDensity = screenshotImage.displayDensity
+      val diagonalSize = displaySize?.let { hypot(it.width.toDouble(), it.height.toDouble()) / displayDensity } ?: Double.NaN
+      val deviceArtId = when {
+        deviceType == DeviceType.HANDHELD && (diagonalSize.isNaN() || diagonalSize < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
+        else -> "tablet"
+      }
+      descriptors[deviceArtId]?.let { framingOptions.add(DeviceFramingOption(it)) }
     }
     return framingOptions
   }

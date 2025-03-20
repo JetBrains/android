@@ -575,13 +575,19 @@ class FakeScreenSharingAgent(
     }
   }
 
-  private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
+  private suspend fun setMaxVideoResolution(message: SetMaxVideoResolutionMessage) {
     if (message.displayId == PRIMARY_DISPLAY_ID) {
       maxVideoResolution = message.maxVideoSize
     }
     val displayStreamer = displayStreamers[message.displayId] ?: return
     displayStreamer.maxVideoResolution = message.maxVideoSize
     displayStreamer.renderDisplay()
+  }
+
+  private suspend fun produceNewFrame() {
+    for (streamer in displayStreamers.values) {
+      streamer.renderDisplay()
+    }
   }
 
   private suspend fun startVideoStream(message: StartVideoStreamMessage) {
@@ -1104,7 +1110,7 @@ class FakeScreenSharingAgent(
     private suspend fun processControlMessage(message: ControlMessage) {
       when (message) {
         is SetDeviceOrientationMessage -> setDeviceOrientation(message)
-        is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
+        is SetMaxVideoResolutionMessage -> setMaxVideoResolution(message)
         is StartVideoStreamMessage -> startVideoStream(message)
         is StopVideoStreamMessage -> stopVideoStream(message)
         is StartAudioStreamMessage -> startAudioStream()
@@ -1112,6 +1118,10 @@ class FakeScreenSharingAgent(
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
+        is XrRotationMessage -> produceNewFrame()
+        is XrTranslationMessage -> produceNewFrame()
+        is XrAngularVelocityMessage -> produceNewFrame()
+        is XrVelocityMessage -> produceNewFrame()
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
         is UiSettingsRequest -> sendUiSettings(message)
         is UiSettingsChangeRequest<*> -> sendUiSettingsCommand(message)

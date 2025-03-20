@@ -219,6 +219,7 @@ studio_plugin(
             "//tools/adt/idea/streaming:intellij.android.streaming",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
+            "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
@@ -279,6 +280,7 @@ studio_plugin(
             "//tools/adt/idea/gmaven:intellij.android.gmaven",
             "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
             "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+            "//tools/vendor/google/android-keys:android-keys",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -1209,7 +1211,6 @@ iml_module(
     runtime_deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:Coverage",
-        "@intellij//:DevKit",
         "@intellij//:Git4Idea",
         "@intellij//:HtmlTools",
         "@intellij//:JUnit",

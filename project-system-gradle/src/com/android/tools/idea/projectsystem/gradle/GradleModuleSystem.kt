@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
@@ -164,14 +163,22 @@ class GradleModuleSystem(
       ?.libraries
       ?.filterIsInstance<IdeArtifactLibrary>()
       ?.mapNotNull { it.component }
-      ?.find { it.matches(coordinate) }
+      ?.find { it.matches(coordinate.toDependency()) }
       ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
 
-  private fun Component.matches(coordinate: GradleCoordinate): Boolean =
-    this.group == coordinate.groupId &&
-    this.name == coordinate.artifactId &&
-    RichVersion.parse(coordinate.revision).contains(this.version)
+  fun getResolvedDependency(externalModule: ExternalModule, scope: DependencyScopeType): Component? {
+    return getCompileDependenciesFor(module, scope)
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.component }
+      ?.find { it.group == externalModule.group && it.name == externalModule.name }
+  }
+
+  private fun Component.matches(dependency: Dependency): Boolean =
+    this.group == dependency.group &&
+    this.name == dependency.name &&
+    dependency.version?.contains(this.version) == true
 
   private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
@@ -182,12 +189,12 @@ class GradleModuleSystem(
       else -> null
     }
 
-  fun getDependencyPath(coordinate: GradleCoordinate): Path? {
+  fun getDependencyPath(dependency: Dependency): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.libraries
       ?.filterIsInstance<IdeArtifactLibrary>()
       ?.mapNotNull { it.componentToArtifact() }
-      ?.find { it.first.matches(coordinate) }
+      ?.find { it.first.matches(dependency) }
       ?.second?.toPath()
   }
 
@@ -338,48 +345,18 @@ class GradleModuleSystem(
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val dependencies = Collections.singletonList(coordinate.toDependency())
-    if (module.isMultiPlatformModule) {
-      getGradleSourceSetName(module)?.let { registerDependencies(dependencies, type, it) }
-    } else {
-      registerDependencies(dependencies, type)
+    registerDependencies(dependencies, type)
+  }
+
+  private val DependencyType.configurationName get() = when(this) {
+      DependencyType.ANNOTATION_PROCESSOR -> "annotationProcessor"
+      DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"
+      DependencyType.IMPLEMENTATION -> "implementation"
     }
-  }
-
-  @RequiresBackgroundThread
-  private fun getGradleSourceSetName(module: Module): String? {
-    val moduleNode = CachedModuleDataFinder.findModuleData(module) ?: return null
-    val sourceSetData = moduleNode.data as? GradleSourceSetData ?: return null
-    return sourceSetData.moduleName
-  }
-
-  private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType, sourceSet: String) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    manager.addDependencies(module, dependencies, sourceSet)
-  }
 
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
-
-    when (type) {
-      DependencyType.ANNOTATION_PROCESSOR -> {
-        // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependencies(module, dependencies) { _, name, _ ->
-          when {
-            name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
-            name.startsWith("test") -> "testAnnotationProcessor"
-            else -> "annotationProcessor"
-          }
-        }
-      }
-      DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependencies(module, dependencies) { _, _, _ ->
-          "debugImplementation"
-        }
-      }
-      else -> {
-        manager.addDependencies(module, dependencies)
-      }
-    }
+    manager.addDependencies(module, dependencies, type.configurationName)
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
@@ -727,6 +704,14 @@ class GradleModuleSystem(
       generateManifestClass = false,
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
+
+    @RequiresBackgroundThread
+    @JvmStatic
+    fun getGradleSourceSetName(module: Module): String? {
+      val moduleNode = CachedModuleDataFinder.findModuleData(module) ?: return null
+      val sourceSetData = moduleNode.data as? GradleSourceSetData ?: return null
+      return sourceSetData.moduleName
+    }
   }
 }
 

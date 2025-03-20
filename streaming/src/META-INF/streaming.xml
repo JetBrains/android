@@ -135,8 +135,8 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.hand.tracking"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HandTracking"
+      <action id="android.streaming.xr.hand.tracking"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$HandTracking"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
               text="Hand Tracking"
               description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
@@ -144,8 +144,8 @@
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.eye.tracking"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$EyeTracking"
+      <action id="android.streaming.xr.eye.tracking"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$EyeTracking"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
               text="Eye Tracking"
               description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
@@ -153,8 +153,8 @@
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.view.direction"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
+      <action id="android.streaming.xr.view.direction"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$ViewDirection"
               icon="StudioIcons.Emulator.XR.ROTATE"
               text="View Direction"
               description="Dragging mouse and arrow keys controls the view direction. The WASDQE keys control location in the virtual space.">
@@ -162,8 +162,8 @@
         <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.location.in.space.xy"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceXY"
+      <action id="android.streaming.xr.location.in.space.xy"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$LocationInSpaceXY"
               icon="StudioIcons.Emulator.XR.PAN"
               text="Move Right/Left and Up/Down"
               description="Dragging mouse moves left/right and up/down in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
@@ -171,8 +171,8 @@
         <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.location.in.space.z"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceZ"
+      <action id="android.streaming.xr.location.in.space.z"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$LocationInSpaceZ"
               icon="StudioIcons.Emulator.XR.DOLLY"
               text="Move Forward/Backward"
               description="Dragging mouse vertically moves forward/backward in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
@@ -180,16 +180,16 @@
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.recenter"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
+      <action id="android.streaming.xr.recenter"
+              class="com.android.tools.idea.streaming.actions.StreamingXrRecenterAction"
               icon="StudioIcons.Emulator.XR.RESET_POSITION"
               text="Reset View" description="Reset the view to the default">
         <keyboard-shortcut first-keystroke="control R" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.passthrough"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrPassthroughAction"
+      <action id="android.streaming.xr.passthrough"
+              class="com.android.tools.idea.streaming.actions.StreamingXrPassthroughAction"
               icon="StudioIcons.Emulator.XR.PASSTHROUGH_ON"
               text="Toggle Passthrough" description="Turn passthrough on or off">
         <keyboard-shortcut first-keystroke="control P" keymap="$default"/>
@@ -234,6 +234,7 @@
       <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
               icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
     </group>
+
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
@@ -245,6 +246,29 @@
 
     <!-- Placeholder group for placing the Wear Health Services action registered in a separate module. -->
     <group id="android.emulator.wear.health.services"/>
+
+    <group id="android.streaming.xr.navigation.group" class="com.android.tools.idea.streaming.actions.XrMainToolbarGroup">
+      <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+        <reference ref="android.streaming.xr.hand.tracking"/>
+        <reference ref="android.streaming.xr.eye.tracking"/>
+        <reference ref="android.streaming.hardware.input"/>
+        <reference ref="android.streaming.xr.view.direction"/>
+        <reference ref="android.streaming.xr.location.in.space.xy"/>
+        <reference ref="android.streaming.xr.location.in.space.z"/>
+        <separator/>
+      </group>
+      <group id="android.streaming.xr.recenter.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+        <reference ref="android.streaming.xr.recenter"/>
+        <separator/>
+      </group>
+    </group>
+    <group id="android.streaming.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingInputModeGroup">
+      <reference ref="android.streaming.hardware.input"/>
+      <separator/>
+    </group>
+    <group id="android.streaming.xr.passthrough.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+      <reference ref="android.streaming.xr.passthrough"/>
+    </group>
 
     <group id="ContextMenuVirtualDevice">
       <reference ref="android.streaming.ui.settings"/>
@@ -301,31 +325,12 @@
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
       <separator/>
-      <group id="android.emulator.xr.navigation.group" class="com.android.tools.idea.streaming.emulator.actions.XrMainToolbarGroup">
-        <group id="android.emulator.xr.input.mode.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
-          <reference ref="android.emulator.xr.hand.tracking"/>
-          <reference ref="android.emulator.xr.eye.tracking"/>
-          <reference ref="android.streaming.hardware.input"/>
-          <reference ref="android.emulator.xr.view.direction"/>
-          <reference ref="android.emulator.xr.location.in.space.xy"/>
-          <reference ref="android.emulator.xr.location.in.space.z"/>
-          <separator/>
-        </group>
-        <group id="android.emulator.xr.recenter.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
-          <reference ref="android.emulator.xr.recenter"/>
-          <separator/>
-        </group>
+      <reference ref="android.streaming.xr.navigation.group"/>
+      <reference ref="android.streaming.input.mode.group"/>
+      <reference ref="android.streaming.xr.passthrough.group"/>
+      <group id="InToolbarContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
+        <reference ref="ContextMenuVirtualDevice"/>
       </group>
-      <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
-        <reference ref="android.streaming.hardware.input"/>
-        <separator/>
-      </group>
-      <group id="android.emulator.xr.passthrough.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
-        <reference ref="android.emulator.xr.passthrough"/>
-      </group>
-    <group id="InToolbarContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
-      <reference ref="ContextMenuVirtualDevice"/>
-    </group>
     </group>
 
     <group id="StreamingToolbarPhysicalDevice">
@@ -344,8 +349,9 @@
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
       <separator/>
-      <reference ref="android.streaming.hardware.input"/>
-      <separator/>
+      <reference ref="android.streaming.xr.navigation.group"/>
+      <reference ref="android.streaming.input.mode.group"/>
+      <reference ref="android.streaming.xr.passthrough.group"/>
       <group id="InToolbarContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
         <reference ref="ContextMenuPhysicalDevice"/>
       </group>

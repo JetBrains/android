@@ -71,13 +71,13 @@ private constructor(
     ): Device {
       return Device(
         deviceId = avdPath,
-        name = avdName.replace('_', ' '),
+        name = avdName,
         serialNumber,
         isOnline,
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model = avdName.substringBefore("_API_").replace('_', ' '),
+        model = avdName.substringBefore(" API "),
         type,
       )
     }

@@ -63,6 +63,7 @@ internal class VirtualDevice(
     EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity(),
 ) {
   var name: String by mutableStateOf("")
+  var image: ISystemImage? by mutableStateOf(null)
   var skin: Skin by mutableStateOf(NoSkin.INSTANCE)
   var frontCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
   var rearCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
@@ -90,7 +91,12 @@ internal class VirtualDevice(
   var defaultSkin: Skin by mutableStateOf(skin)
 
   val isValid
-    get() = internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
+    get() =
+      image != null &&
+        internalStorage != null &&
+        expandedStorage != null &&
+        ram != null &&
+        vmHeapSize != null
 
   fun hasPlayStore(image: ISystemImage) =
     hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
@@ -112,9 +118,8 @@ internal class VirtualDevice(
 
   /** Copies an existing AVD definition into this device. */
   internal fun copyFrom(avdBuilder: AvdBuilder) {
-    // TODO: System image
-
     name = avdBuilder.displayName
+    image = avdBuilder.systemImage
     skin = avdBuilder.skin.toSkin()
     frontCamera = avdBuilder.frontCamera
     rearCamera = avdBuilder.backCamera
@@ -148,11 +153,11 @@ private fun Device.hasFrontCamera() =
 private fun Device.hasRearCamera() =
   defaultHardware.cameras.any { it.location == CameraLocation.BACK }
 
-internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
+internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   this.device = device.deviceProfile
   displayName = device.name
 
-  systemImage = image
+  systemImage = device.image
 
   sdCard = requireNotNull(device.expandedStorage).toSdCard()
   skin = device.skin.toAvdSkin()
@@ -166,7 +171,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
 
-  gpuMode = device.graphicsMode.toGpuMode(image)
+  gpuMode = device.graphicsMode.toGpuMode(device.image!!)
 
   networkSpeed = device.speed
   networkLatency = device.latency

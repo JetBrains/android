@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.draw.ColorSet
+import com.android.tools.idea.common.surface.layer.HighlightLayer
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -208,6 +209,20 @@ abstract class SceneView(
    */
   fun onHover(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int) {
     getLayers().forEach { it.onHover(mouseX, mouseY) }
+  }
+
+  /**
+   * Called by the [DesignSurface] when caret moved and landed on a line that has a preview of a
+   * component.
+   */
+  fun highlighBox(@SwingCoordinate x: Int, @SwingCoordinate y: Int, width: Int, height: Int) {
+
+    getLayers().forEach { if (it is HighlightLayer) it.highlight(x, y, width, height) }
+  }
+
+  /** Called by the [DesignSurface] when we want to clear previous highlights */
+  fun clearHighlight() {
+    getLayers().forEach { if (it is HighlightLayer) it.clear() }
   }
 
   /**

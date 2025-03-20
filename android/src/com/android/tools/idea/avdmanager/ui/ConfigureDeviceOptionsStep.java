@@ -60,6 +60,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureDeviceModel> {
   private static final String DEFAULT_DEVICE_TYPE_LABEL = "Phone/Tablet";
+  private static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   private JPanel myRootPanel;
   @SuppressWarnings("unused") // Control is meant for display only.
@@ -237,7 +238,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
     myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
-    myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", CREATE_SKIN_HELP_LINK);
     createDefaultSkinComboBox();
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }

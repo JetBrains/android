@@ -171,7 +171,7 @@ public class RenderTask {
   @NotNull private final RenderContext myContext;
 
   @NotNull private final RenderLogger myLogger;
-  @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
+  @NotNull private final LayoutlibCallbackEx myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
   /**
@@ -280,16 +280,17 @@ public class RenderTask {
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
-        new LayoutlibCallbackImpl(
-          this,
-          myLayoutLib,
-          renderContextModule,
-          myLogger,
-          myCredential,
-          actionBarHandler,
-          parserFactory,
-          moduleClassLoader,
-          useCustomInflater);
+        new LayoutlibCallbackExDelegate(renderContextModule.getParentDisposable(),
+                                        new LayoutlibCallbackImpl(
+                                          this,
+                                          myLayoutLib,
+                                          renderContextModule,
+                                          myLogger,
+                                          myCredential,
+                                          actionBarHandler,
+                                          parserFactory,
+                                          moduleClassLoader,
+                                          useCustomInflater));
       if (renderContextModule.getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
@@ -460,7 +461,7 @@ public class RenderTask {
         clearClassLoader();
       }
       myImageFactoryDelegate = null;
-      Disposer.dispose(myContext.getModule());
+      myContext.getModule().dispose();
 
       return null;
     });
@@ -481,22 +482,35 @@ public class RenderTask {
    *
    * @param overrideRenderWidth  the width in pixels of the layout to be rendered
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
-   * @return this (such that chains of setters can be stringed together)
    */
-  @SuppressWarnings("UnusedReturnValue")
-  @NotNull
-  public RenderTask setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
+  public void setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
     myHardwareConfigHelper.setOverrideRenderSize(overrideRenderWidth, overrideRenderHeight);
+    updateHardwareConfiguration();
+  }
+
+  /**
+   * Clears the override width and height to be used during rendering.
+   */
+  public void clearOverrideRenderSize() {
+    myHardwareConfigHelper.clearOverrideRenderSize();
+    updateHardwareConfiguration();
+  }
+
+  /**
+   * Updates the hardware configuration of the current {@link RenderSession} and sets {@link #isSizeChanged} to true.
+   * This method should be called whenever the size of the hardware used for rendering has changed.
+   */
+  private void updateHardwareConfiguration() {
     if (myRenderSession != null) {
       myRenderSession.updateHardwareConfiguration(myHardwareConfigHelper.getConfig());
       isSizeChanged = true;
     }
-    return this;
   }
 
   public boolean isRenderSizeOverridden() {
     return myHardwareConfigHelper.isRenderSizeOverridden();
   }
+
 
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if

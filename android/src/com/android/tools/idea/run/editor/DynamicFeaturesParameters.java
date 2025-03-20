@@ -26,18 +26,25 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,11 +53,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.UIManager;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -62,13 +71,19 @@ import org.jetbrains.annotations.TestOnly;
 
 public class DynamicFeaturesParameters {
 
-  /** Specifies how these features may be deployed in this run configuration */
+  /**
+   * Specifies how these features may be deployed in this run configuration
+   */
   public enum AvailableDeployTypes {
-    /** Run configuration is deployable in installed state only, don't annotate instant status
-     *  or prevent selection of non-instant features when checkbox is selected */
+    /**
+     * Run configuration is deployable in installed state only, don't annotate instant status
+     * or prevent selection of non-instant features when checkbox is selected
+     */
     INSTALLED_ONLY,
-    /** Run configuration is deployable as installed or instant, annotate instant status of
-     *  features and disable non-instant features when checkbox is selected */
+    /**
+     * Run configuration is deployable as installed or instant, annotate instant status of
+     * features and disable non-instant features when checkbox is selected
+     */
     INSTANT_AND_INSTALLED
   }
 
@@ -81,7 +96,7 @@ public class DynamicFeaturesParameters {
   private static final int PREFERRED_HEIGHT_IN_ROWS = 4;
 
   @NotNull
-  private final DynamicFeaturesTableModel myTableModel = new DynamicFeaturesTableModel();
+  private final DynamicFeaturesTableModel myTableModel;
   @NotNull
   private final Set<String> myDisabledDynamicFeatures = new HashSet<>();
 
@@ -95,6 +110,8 @@ public class DynamicFeaturesParameters {
   private LinkLabel myDependencyUndoLink;
 
   public DynamicFeaturesParameters() {
+    setupUI();
+    myTableModel = new DynamicFeaturesTableModel();
     // Additional text should show as "gray"
     myAdditionalTextLabel.setForeground(NamedColorUtil.getInactiveTextColor());
 
@@ -133,6 +150,63 @@ public class DynamicFeaturesParameters {
     disable();
   }
 
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1, true, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new BorderLayout(0, 0));
+    myRootPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                null, 0, false));
+    panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                      TitledBorder.DEFAULT_POSITION, null, null));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Dynamic features to deploy:");
+    panel1.add(jBLabel1, BorderLayout.WEST);
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new BorderLayout(0, 0));
+    panel1.add(panel2, BorderLayout.CENTER);
+    panel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                      TitledBorder.DEFAULT_POSITION, null, null));
+    myAdditionalTextLabel = new JBLabel();
+    myAdditionalTextLabel.setText("(for devices that support dynamic features)");
+    panel2.add(myAdditionalTextLabel, BorderLayout.CENTER);
+    myTableScrollPane = new JBScrollPane();
+    myRootPanel.add(myTableScrollPane, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myTable = new JBTable();
+    myTable.setPreferredScrollableViewportSize(new Dimension(450, 115));
+    myTableScrollPane.setViewportView(myTable);
+    myDependencyUndoPanel = new JPanel();
+    myDependencyUndoPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 5));
+    myDependencyUndoPanel.setVisible(true);
+    myRootPanel.add(myDependencyUndoPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               null, null, null, 0, false));
+    myDependencyUndoPanel.setBorder(
+      IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEmptyBorder(), "", TitledBorder.DEFAULT_JUSTIFICATION,
+                                                               TitledBorder.DEFAULT_POSITION, null, null));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:noGrow"));
+    myDependencyUndoPanel.add(panel3);
+    myDependencyUndoLabel = new JLabel();
+    myDependencyUndoLabel.setIconTextGap(5);
+    myDependencyUndoLabel.setText("This is placeholder text describing dependencies");
+    myDependencyUndoLabel.setVisible(true);
+    CellConstraints cc = new CellConstraints();
+    panel3.add(myDependencyUndoLabel, cc.xy(1, 1));
+    myDependencyUndoLink = new LinkLabel();
+    myDependencyUndoLink.setAlignmentX(0.0f);
+    myDependencyUndoLink.setDoubleBuffered(false);
+    myDependencyUndoLink.setEnabled(true);
+    myDependencyUndoLink.setFocusTraversalPolicyProvider(true);
+    myDependencyUndoLink.setInheritsPopupMenu(true);
+    myDependencyUndoLink.setText("Undo");
+    panel3.add(myDependencyUndoLink, cc.xy(3, 1));
+  }
 
   /**
    * Returns the root component of this form, to be used into its container
@@ -172,6 +246,7 @@ public class DynamicFeaturesParameters {
 
   /**
    * Update the list of features after a new {@link Module} is activated
+   *
    * @param module
    */
   public void setActiveModule(@Nullable Module module, AvailableDeployTypes deployType) {
@@ -183,7 +258,7 @@ public class DynamicFeaturesParameters {
 
     myTableModel.clear();
     addBaseModule(module);
-    java.util.List<Module> features = getModuleSystem(module).getDynamicFeatureModules();
+    List<Module> features = getModuleSystem(module).getDynamicFeatureModules();
     if (features.isEmpty()) {
       disable();
       return;
@@ -197,9 +272,9 @@ public class DynamicFeaturesParameters {
    */
   public void addFeatureList(@NotNull List<Module> features, AvailableDeployTypes deployType) {
     features.stream()
-            .sorted((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true))
-            .map(f -> createRow(f, deployType))
-            .forEach(row -> myTableModel.addRow(row));
+      .sorted((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true))
+      .map(f -> createRow(f, deployType))
+      .forEach(row -> myTableModel.addRow(row));
     enable();
   }
 
@@ -209,10 +284,12 @@ public class DynamicFeaturesParameters {
       AndroidModel model = AndroidModel.get(module);
       if (model != null && model.isInstantAppCompatible()) {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()));
-      } else {
+      }
+      else {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()), true, FeatureType.NON_INSTANT_DYNAMIC_FEATURE);
       }
-    } else {
+    }
+    else {
       return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()));
     }
   }
@@ -248,7 +325,7 @@ public class DynamicFeaturesParameters {
   }
 
   public void updateBasedOnInstantState(@NotNull Module module, boolean instantAppDeploy) {
-    java.util.List<Module> features = DynamicAppUtils.getDependentInstantFeatureModules(module);
+    List<Module> features = DynamicAppUtils.getDependentInstantFeatureModules(module);
     List<String> featurenames = ContainerUtil.map(features, x -> x.getName());
     if (instantAppDeploy) {
       myTableModel.myFeatures.forEach(x -> {
@@ -258,7 +335,8 @@ public class DynamicFeaturesParameters {
           myDisabledDynamicFeatures.add(x.getFeatureName());
         }
       });
-    } else {
+    }
+    else {
       myTableModel.myFeatures.forEach(x -> {
         if (!x.isBaseFeature()) {
           x.setEnabled(true);
@@ -314,7 +392,8 @@ public class DynamicFeaturesParameters {
       if (featureType == FeatureType.BASE_FEATURE) {
         dependentFeatureNames = ImmutableSet.of(); // Base feature dependencies are handled differently
         dependencyFeatureNames = ImmutableSet.of();
-      } else {
+      }
+      else {
         dependentFeatureNames = DynamicAppUtils.getFeatureModulesDependingOnFeature(module).stream().map(Module::getName).collect(
           ImmutableSet.toImmutableSet());
         dependencyFeatureNames = DynamicAppUtils.getFeatureModuleDependenciesForFeature(module).stream().map(Module::getName).collect(
@@ -337,9 +416,11 @@ public class DynamicFeaturesParameters {
     public String getDisplayName() {
       if (featureType == FeatureType.BASE_FEATURE) {
         return this.featureName + " (base)";
-      } else if (featureType == FeatureType.NON_INSTANT_DYNAMIC_FEATURE) {
+      }
+      else if (featureType == FeatureType.NON_INSTANT_DYNAMIC_FEATURE) {
         return this.featureName + " (not instant app enabled)";
-      } else {
+      }
+      else {
         return this.featureName;
       }
     }
@@ -409,9 +490,11 @@ public class DynamicFeaturesParameters {
     public Object getValueAt(int rowIndex, int columnIndex) {
       if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         return myFeatures.get(rowIndex).isChecked;
-      } else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
+      }
+      else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
         return myFeatures.get(rowIndex).getFeatureName();
-      } else if (columnIndex == DEPENDENCY_LABEL_COLUMN_INDEX) {
+      }
+      else if (columnIndex == DEPENDENCY_LABEL_COLUMN_INDEX) {
         return myFeatures.get(rowIndex).getDependentFeatureLabel();
       }
 
@@ -430,7 +513,8 @@ public class DynamicFeaturesParameters {
           if (newRowsChecked.size() > 1) { // Dependencies were checked automatically
             myUndoHandler.saveRowsSelected(row.featureName, newRowsChecked);
           }
-        } else {
+        }
+        else {
           Set<DynamicFeatureRow> newRowsUnchecked = excludeDynamicFeature(row);
           if (newRowsUnchecked.size() > 1) { // Dependent modules were unchecked automatically
             myUndoHandler.saveRowsDeselected(row.featureName, newRowsUnchecked);
@@ -438,13 +522,14 @@ public class DynamicFeaturesParameters {
         }
         // Refresh the whole table since multiple dependencies may have been updated
         fireAllRowsUpdated();
-      } else {
+      }
+      else {
         fireTableRowsUpdated(rowIndex, rowIndex);
       }
     }
 
     private void fireAllRowsUpdated() {
-      fireTableRowsUpdated(0, getRowCount()- 1);
+      fireTableRowsUpdated(0, getRowCount() - 1);
     }
 
     @Override
@@ -464,7 +549,9 @@ public class DynamicFeaturesParameters {
       return false;
     }
 
-    /** Enables a dynamic feature and all of its dependencies. Returns the set of feature rows whose inclusion status changed. */
+    /**
+     * Enables a dynamic feature and all of its dependencies. Returns the set of feature rows whose inclusion status changed.
+     */
     private Set<DynamicFeatureRow> includeDynamicFeature(DynamicFeatureRow row) {
       Set<DynamicFeatureRow> resultSet = new HashSet<>();
       if (!row.isChecked) {
@@ -482,7 +569,9 @@ public class DynamicFeaturesParameters {
       return resultSet;
     }
 
-    /** Disables a dynamic feature and all of its dependents. Returns the set of feature rows whose inclusion status changed. */
+    /**
+     * Disables a dynamic feature and all of its dependents. Returns the set of feature rows whose inclusion status changed.
+     */
     private Set<DynamicFeatureRow> excludeDynamicFeature(DynamicFeatureRow row) {
       Set<DynamicFeatureRow> resultSet = new HashSet<>();
       if (row.isChecked) {
@@ -514,8 +603,8 @@ public class DynamicFeaturesParameters {
       /**
        * Records an action where a set of feature rows were enabled so that it can be undone later
        *
-       * @param clickedFeatureName  the name of the feature clicked by the user to precipitate the change
-       * @param selectedRows        the set of rows enabled as a result of the change
+       * @param clickedFeatureName the name of the feature clicked by the user to precipitate the change
+       * @param selectedRows       the set of rows enabled as a result of the change
        */
       void saveRowsSelected(String clickedFeatureName, Set<DynamicFeatureRow> selectedRows) {
         int additionalAffectedCount = selectedRows.size() - 1;
@@ -523,7 +612,8 @@ public class DynamicFeaturesParameters {
         if (additionalAffectedCount == 1) {
           myDependencyUndoLabel
             .setText(String.format(Locale.US, "1 module required by %s has been selected", clickedFeatureName));
-        } else {
+        }
+        else {
           myDependencyUndoLabel
             .setText(String.format(Locale.US, "%d modules required by %s have been selected", additionalAffectedCount, clickedFeatureName));
         }
@@ -535,8 +625,8 @@ public class DynamicFeaturesParameters {
       /**
        * Records an action where a set of feature rows were disabled so that it can be undone later
        *
-       * @param clickedFeatureName  the name of the feature clicked by the user to precipitate the change
-       * @param selectedRows        the set of rows disabled as a result of the change
+       * @param clickedFeatureName the name of the feature clicked by the user to precipitate the change
+       * @param selectedRows       the set of rows disabled as a result of the change
        */
       void saveRowsDeselected(String clickedFeatureName, Set<DynamicFeatureRow> deselectedRows) {
         int additionalAffectedCount = deselectedRows.size() - 1;
@@ -544,7 +634,8 @@ public class DynamicFeaturesParameters {
         if (additionalAffectedCount == 1) {
           myDependencyUndoLabel
             .setText(String.format(Locale.US, "1 module requiring %s has been deselected", clickedFeatureName));
-        } else {
+        }
+        else {
           myDependencyUndoLabel
             .setText(String.format(Locale.US, "%d modules requiring %s have been deselected", additionalAffectedCount, clickedFeatureName));
         }
@@ -561,7 +652,8 @@ public class DynamicFeaturesParameters {
             if (row.isChecked) {
               row.isChecked = false;
               myDisabledDynamicFeatures.add(row.featureName);
-            } else {
+            }
+            else {
               row.isChecked = true;
               myDisabledDynamicFeatures.remove(row.featureName);
             }

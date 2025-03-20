@@ -19,6 +19,7 @@
   <description><![CDATA[
   Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
 ]]></description>
+  <category>Android</category>
   <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
   <depends>org.jetbrains.android</depends>

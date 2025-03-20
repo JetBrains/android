@@ -80,14 +80,14 @@ class RuleData(
       get() =
         "$protocol://${host.ifBlank { "<Any>" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
 
-    fun toProto(): InterceptCriteria =
+    fun toProto(variables: List<RuleVariable>): InterceptCriteria =
       InterceptCriteria.newBuilder()
         .apply {
           protocol = this@CriteriaData.protocol.proto
-          host = this@CriteriaData.host
-          port = this@CriteriaData.port
-          path = this@CriteriaData.path
-          query = this@CriteriaData.query
+          host = variables.applyTo(this@CriteriaData.host)
+          port = variables.applyTo(this@CriteriaData.port)
+          path = variables.applyTo(this@CriteriaData.path)
+          query = variables.applyTo(this@CriteriaData.query)
           method = this@CriteriaData.method.proto
         }
         .build()
@@ -105,7 +105,7 @@ class RuleData(
   }
 
   interface TransformationRuleData {
-    fun toProto(): Transformation
+    fun toProto(variables: List<RuleVariable>): Transformation
   }
 
   class StatusCodeRuleData(findCode: String?, isActive: Boolean?, newCode: String?) :
@@ -120,17 +120,17 @@ class RuleData(
 
     var findCode: String by delegate(findCode ?: "")
     var newCode: String by delegate(newCode ?: "")
-    var isActive: Boolean by delegate(isActive ?: false)
+    var isActive: Boolean by delegate(isActive == true)
 
-    override fun toProto(): Transformation =
+    override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
           statusCodeReplacedBuilder.apply {
             targetCodeBuilder.apply {
               type = Type.PLAIN
-              text = findCode
+              text = variables.applyTo(findCode)
             }
-            newCode = this@StatusCodeRuleData.newCode
+            newCode = variables.applyTo(this@StatusCodeRuleData.newCode)
           }
         }
         .build()
@@ -149,12 +149,12 @@ class RuleData(
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this(null, null)
 
-    override fun toProto(): Transformation =
+    override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
           headerAddedBuilder.apply {
-            name = this@HeaderAddedRuleData.name
-            value = this@HeaderAddedRuleData.value
+            name = variables.applyTo(this@HeaderAddedRuleData.name)
+            value = variables.applyTo(this@HeaderAddedRuleData.value)
           }
         }
         .build()
@@ -173,27 +173,27 @@ class RuleData(
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this(null, false, null, false, null, null)
 
-    override fun toProto(): Transformation =
+    override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
           headerReplacedBuilder.apply {
             if (findName != null) {
               targetNameBuilder.apply {
-                text = findName
+                text = variables.applyTo(findName)
                 type = matchingTextTypeFrom(isFindNameRegex)
               }
             }
             if (findValue != null) {
               targetValueBuilder.apply {
-                text = findValue
+                text = variables.applyTo(findValue)
                 type = matchingTextTypeFrom(isFindValueRegex)
               }
             }
             if (this@HeaderReplacedRuleData.newName != null) {
-              newName = this@HeaderReplacedRuleData.newName
+              newName = variables.applyTo(this@HeaderReplacedRuleData.newName)
             }
             if (this@HeaderReplacedRuleData.newValue != null) {
-              newValue = this@HeaderReplacedRuleData.newValue
+              newValue = variables.applyTo(this@HeaderReplacedRuleData.newValue)
             }
           }
         }
@@ -268,11 +268,12 @@ class RuleData(
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this("")
 
-    override fun toProto(): Transformation =
+    override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
           bodyReplacedBuilder.apply {
-            body = ByteString.copyFrom(this@BodyReplacedRuleData.body.toByteArray())
+            body =
+              ByteString.copyFrom(variables.applyTo(this@BodyReplacedRuleData.body)!!.toByteArray())
           }
         }
         .build()
@@ -287,15 +288,15 @@ class RuleData(
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this("", false, "")
 
-    override fun toProto(): Transformation =
+    override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
           bodyModifiedBuilder.apply {
             targetTextBuilder.apply {
-              text = this@BodyModifiedRuleData.targetText
+              text = variables.applyTo(this@BodyModifiedRuleData.targetText)
               type = matchingTextTypeFrom(isRegex)
             }
-            newText = this@BodyModifiedRuleData.newText
+            newText = variables.applyTo(this@BodyModifiedRuleData.newText)
           }
         }
         .build()
@@ -365,16 +366,16 @@ class RuleData(
   var headerRuleTableModel = HeaderRulesTableModel()
   var bodyRuleTableModel = BodyRulesTableModel()
 
-  fun toProto(): InterceptRule =
+  fun toProto(variables: List<RuleVariable>): InterceptRule =
     InterceptRule.newBuilder()
       .apply {
         enabled = isActive
-        criteria = this@RuleData.criteria.toProto()
+        criteria = this@RuleData.criteria.toProto(variables)
         if (statusCodeRuleData.isActive) {
-          addTransformation(statusCodeRuleData.toProto())
+          addTransformation(statusCodeRuleData.toProto(variables))
         }
-        addAllTransformation(headerRuleTableModel.items.map { it.toProto() })
-        addAllTransformation(bodyRuleTableModel.items.map { it.toProto() })
+        addAllTransformation(headerRuleTableModel.items.map { it.toProto(variables) })
+        addAllTransformation(bodyRuleTableModel.items.map { it.toProto(variables) })
       }
       .build()
 
@@ -392,6 +393,7 @@ class RuleData(
 fun matchingTextTypeFrom(isRegex: Boolean): Type = if (isRegex) Type.REGEX else Type.PLAIN
 
 private object MyRenderer : ColoredTableCellRenderer() {
+  @Suppress("unused") // a `ColoredTableCellRenderer` must implement `readResolve`
   private fun readResolve(): Any = MyRenderer
 
   override fun customizeCellRenderer(

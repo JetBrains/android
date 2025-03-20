@@ -42,6 +42,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.scene.decorator.nlDecoratorProvider"
                     interface="com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory$Provider"
                     dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.analytics.resizeTracker"
+                    interface="com.android.tools.idea.uibuilder.analytics.ResizeTracker"
+                    dynamic="true" />
   </extensionPoints>
 
   <!-- New layout editor -->

@@ -137,6 +137,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+      override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
     }
   }
 }

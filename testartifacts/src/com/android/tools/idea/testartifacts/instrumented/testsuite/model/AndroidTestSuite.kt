@@ -26,7 +26,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  */
 data class AndroidTestSuite(val id: String,
                             val name: String,
-                            val testCaseCount: Int,
+                            var testCaseCount: Int,
                             var result: AndroidTestSuiteResult? = null)
 
 /**

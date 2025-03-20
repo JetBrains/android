@@ -49,7 +49,6 @@ import org.jetbrains.jewel.ui.theme.defaultTabStyle
 @Composable
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
-  initialSystemImage: ISystemImage?,
   images: SystemImageState,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -63,13 +62,7 @@ internal fun ConfigureDevicePanel(
         modifier =
           Modifier.padding(horizontal = Padding.EXTRA_LARGE).padding(bottom = Padding.SMALL_MEDIUM),
       )
-      Tabs(
-        configureDevicePanelState,
-        initialSystemImage,
-        images,
-        onDownloadButtonClick,
-        onSystemImageTableRowClick,
-      )
+      Tabs(configureDevicePanelState, images, onDownloadButtonClick, onSystemImageTableRowClick)
     }
 
     Divider(Orientation.Vertical, Modifier.fillMaxHeight())
@@ -87,7 +80,6 @@ internal fun ConfigureDevicePanel(
 @Composable
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
-  initialSystemImage: ISystemImage?,
   imageState: SystemImageState,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -114,25 +106,27 @@ private fun Tabs(
 
   val androidVersions = imageState.images.map { it.androidVersion }.relevantVersions()
 
-  val systemImageFilterState = remember {
-    if (initialSystemImage == null) {
-      SystemImageFilterState(
-        selectedApi =
-          AndroidVersionSelection(
-            androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-          ),
-        selectedServices = servicesSet.firstOrNull(),
-      )
-    } else {
-      SystemImageFilterState(
-        selectedApi =
-          AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
-        selectedServices = initialSystemImage.getServices(),
-        showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
-        showUnsupportedSystemImages = !initialSystemImage.isSupported(),
-      )
+  val systemImageFilterState =
+    remember(configureDevicePanelState.device) {
+      val initialSystemImage = configureDevicePanelState.device.image
+      if (initialSystemImage == null) {
+        SystemImageFilterState(
+          selectedApi =
+            AndroidVersionSelection(
+              androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+            ),
+          selectedServices = servicesSet.firstOrNull(),
+        )
+      } else {
+        SystemImageFilterState(
+          selectedApi =
+            AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
+          selectedServices = initialSystemImage.getServices(),
+          showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
+          showUnsupportedSystemImages = !initialSystemImage.isSupported(),
+        )
+      }
     }
-  }
 
   when (selectedTab) {
     Tab.DEVICE ->

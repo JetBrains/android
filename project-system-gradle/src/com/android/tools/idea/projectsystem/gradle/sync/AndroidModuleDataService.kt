@@ -323,9 +323,9 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
 
   val modulePath = gradleAndroidModel.rootDirPath
   val sourceProvider = gradleAndroidModel.defaultSourceProvider
-  androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider.manifestFile)
-  androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
-  androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
+  androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.manifestFile)
+  androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.resDirectories?.firstOrNull())
+  androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.assetsDirectories?.firstOrNull())
   AndroidModel.set(androidFacet, gradleAndroidModel)
   syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)
 }

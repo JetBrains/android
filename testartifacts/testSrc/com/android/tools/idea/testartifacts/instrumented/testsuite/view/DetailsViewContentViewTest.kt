@@ -38,7 +38,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
-import java.io.File
 
 /**
  * Unit tests for [DetailsViewContentView].
@@ -215,6 +214,23 @@ class DetailsViewContentViewTest {
                                                   ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     verify(mockLogger).addImpressionWhenDisplayed(view.myDeviceInfoTableView.getComponent(),
                                                   ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
+  }
+
+  @Test
+  fun screenshotTabsHiddenByDefault() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+
+    assertThat(view.myScreenshotTab.isHidden).isTrue()
+    assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
+  }
+
+  @Test
+  fun screenshotTabsDisplayedForScreenshotTests() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    view.setAdditionalTestArtifacts(mapOf(Pair("PreviewScreenshot.newImagePath", "/path/to/newImage")))
+
+    assertThat(view.myScreenshotTab.isHidden).isFalse()
+    assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
   }
 
   private fun device(id: String, name: String): AndroidDevice {

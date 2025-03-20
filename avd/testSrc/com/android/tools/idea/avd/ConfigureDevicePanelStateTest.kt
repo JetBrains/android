@@ -107,10 +107,9 @@ class ConfigureDevicePanelStateTest {
     val skins = listOf(NoSkin.INSTANCE, skin, device.skin).toImmutableList()
     device.setNoSkin()
 
-    val image = mock<ISystemImage>()
-    whenever(image.hasPlayStore()).thenReturn(true)
+    device.image = mockPlayStoreImage()
 
-    val state = configureDevicePanelState(device, skins, image)
+    val state = configureDevicePanelState(device, skins)
 
     state.initDeviceSkins(device.skin.path())
 
@@ -126,10 +125,9 @@ class ConfigureDevicePanelStateTest {
     // Arrange
     val device = TestDevices.mediumPhone()
 
-    val image = mock<ISystemImage>()
-    whenever(image.hasPlayStore()).thenReturn(true)
+    device.image = mockPlayStoreImage()
 
-    val state = configureDevicePanelState(device, listOf(NoSkin.INSTANCE).toImmutableList(), image)
+    val state = configureDevicePanelState(device, listOf(NoSkin.INSTANCE).toImmutableList())
     state.initDeviceSkins(device.skin.path())
 
     // Act
@@ -162,14 +160,12 @@ class ConfigureDevicePanelStateTest {
     // Arrange
     val device = TestDevices.pixel9Pro()
 
-    val image = mock<ISystemImage>()
-    whenever(image.hasPlayStore()).thenReturn(true)
+    device.image = mockPlayStoreImage()
 
     val state =
       configureDevicePanelState(
         device,
         listOf(NoSkin.INSTANCE, device.defaultSkin).toImmutableList(),
-        image,
       )
 
     state.initDeviceSkins(device.defaultSkin.path())
@@ -181,6 +177,9 @@ class ConfigureDevicePanelStateTest {
     // Assert
     assertEquals(NoSkin.INSTANCE, state.device.skin)
   }
+
+  private fun mockPlayStoreImage(): ISystemImage =
+    mock<ISystemImage>().also { whenever(it.hasPlayStore()).thenReturn(true) }
 }
 
 private fun VirtualDevice.setNoSkin() {
@@ -191,9 +190,7 @@ private fun VirtualDevice.setNoSkin() {
 private fun configureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin> = emptyList<Skin>().toImmutableList(),
-  image: ISystemImage? = mock(),
   deviceNameValidator: DeviceNameValidator = DeviceNameValidator(emptySet()),
   fileSystem: FileSystem = FileSystems.getDefault(),
   maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
-) =
-  ConfigureDevicePanelState(device, skins, image, deviceNameValidator, fileSystem, maxCpuCoreCount)
+) = ConfigureDevicePanelState(device, skins, deviceNameValidator, fileSystem, maxCpuCoreCount)

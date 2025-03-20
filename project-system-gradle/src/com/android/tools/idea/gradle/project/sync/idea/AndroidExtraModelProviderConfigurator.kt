@@ -58,7 +58,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     GradleExperimentalSettings.getInstance().USE_MULTI_VARIANT_EXTRA_ARTIFACTS &&
     StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
 
-  val modelConsumerVersion = ModelConsumerVersion(73, 1, ApplicationInfo.getInstance().fullApplicationName)
+  val modelConsumerVersion = ModelConsumerVersion(74, 1, ApplicationInfo.getInstance().fullApplicationName)
 
   val studioFlags = GradleSyncStudioFlags(
     modelConsumerVersion = modelConsumerVersion,

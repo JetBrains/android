@@ -273,17 +273,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public BuildInvoker getBuildInvoker(Project project) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project));
-    }
-
-    @Override
-    public BuildInvoker getBuildInvoker(
-        Project project, BlazeCommandName command) {
-      return new BuildInvokerWrapper(inner.getBuildInvoker(project));
-    }
-
-    @Override
     public SyncStrategy getSyncStrategy(Project project) {
       if (syncStrategy != null) {
         return syncStrategy;

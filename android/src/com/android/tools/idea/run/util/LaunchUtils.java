@@ -25,7 +25,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -36,12 +35,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class LaunchUtils {
@@ -119,16 +115,5 @@ public class LaunchUtils {
         }
       });
     }
-  }
-
-  private static final Pattern idKeyPattern = Pattern.compile("--user\\s+([0-9]+)");
-
-  @Nullable
-  public static Integer getUserIdFromFlags(@Nullable String flags) {
-    if (flags == null) {
-      return null;
-    }
-    Matcher m = idKeyPattern.matcher(flags);
-    return m.find() ? Integer.parseInt(m.group(1)) : null;
   }
 }

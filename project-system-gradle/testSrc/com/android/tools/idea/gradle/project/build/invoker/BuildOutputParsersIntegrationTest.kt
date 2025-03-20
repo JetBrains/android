@@ -21,7 +21,6 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,9 +47,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.BuildViewTestFixture
@@ -159,7 +156,7 @@ class BuildOutputParsersIntegrationTest {
         myRequest,
         ""
       )
-    buildListener.onStart(myTaskId, basePath)
+    buildListener.onStart(basePath, myTaskId)
     output.lines().forEach { line ->
       if (line.startsWith("> Task :")) {
         // Send out task start and task finish events. GradleOutputMessageDispatcher creates sub-readers for each task,
@@ -182,12 +179,12 @@ class BuildOutputParsersIntegrationTest {
     }
     buildListener.onTaskOutput(myTaskId, output, true)
     if (exception != null) {
-      buildListener.onFailure(myTaskId, exception)
+      buildListener.onFailure(basePath, myTaskId, exception)
     }
     else {
-      buildListener.onSuccess(myTaskId)
+      buildListener.onSuccess(basePath, myTaskId)
     }
-    buildListener.onEnd(myTaskId)
+    buildListener.onEnd(basePath, myTaskId)
   }
 
   private fun List<BuildErrorMessage>.checkSentMetricsData(assertions: List<(BuildErrorMessage) -> Unit>) {

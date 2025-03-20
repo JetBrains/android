@@ -1037,16 +1037,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     VersionQualifier apply() throws InvalidOptionValueException {
-      try {
-        final int apiLevel = Integer.parseInt(myTextField.getText().trim());
-        if (apiLevel < 0) {
-          throw new InvalidOptionValueException("Incorrect API level");
-        }
-        return new VersionQualifier(apiLevel);
-      }
-      catch (NumberFormatException e) {
+      VersionQualifier qualifier = VersionQualifier.getQualifier(myTextField.getText().trim());
+      if (qualifier == null || qualifier.getVersion() < 0) {
         throw new InvalidOptionValueException("Incorrect API level");
       }
+
+      return qualifier;
     }
   }
 

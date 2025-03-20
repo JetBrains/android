@@ -44,6 +44,10 @@ bazel_dep(
     version = "6.0.0",
 )
 bazel_dep(
+    name = "protobuf",
+    version = "29.0",
+)
+bazel_dep(
     name = "apple_support",
     version = "1.15.1",
     repo_name = "build_bazel_apple_support",

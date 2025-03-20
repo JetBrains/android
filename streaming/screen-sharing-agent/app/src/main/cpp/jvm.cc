@@ -399,8 +399,24 @@ JClass Jni::GetClass(const char* name) const {
   return JClass(jni_env_, clazz);
 }
 
-JCharArray Jni::NewCharArray(int32_t length) const {
-  return JCharArray(jni_env_, jni_env_->NewCharArray(length));
+JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length) {
+  return JCharArray(jni_env, jni_env->NewCharArray(length));
+}
+
+JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars) {
+  JCharArray array = Create(jni_env, length);
+  array.SetRegion(jni_env, 0, length, chars);
+  return array;
+}
+
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length) {
+  return JFloatArray(jni_env, jni_env->NewFloatArray(length));
+}
+
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length, const float* elements) {
+  JFloatArray array = Create(jni_env, length);
+  array.SetRegion(jni_env, 0, length, elements);
+  return array;
 }
 
 std::vector<int64_t> Jni::GetElements(jlongArray array) const {

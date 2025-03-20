@@ -19,7 +19,7 @@ import java.io.File
 
 interface IdeSourceProvider {
   val name: String
-  val manifestFile: File
+  val manifestFile: File?
   val javaDirectories: Collection<File>
   val kotlinDirectories: Collection<File>
   val resourcesDirectories: Collection<File>

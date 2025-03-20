@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
@@ -84,13 +85,13 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
         is SchemaFunction ->
           when (val semantic = it.semantic) {
             is BlockFunction -> semantic.accessor.fqName.name
-            is PlainFunction -> null
+            else -> null
           }
 
         is DataProperty ->
           when (val type = it.valueType) {
             is DataClassRef -> type.fqName.name
-            is SimpleTypeRef -> null
+            else -> null
           }
       }
     }

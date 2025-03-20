@@ -41,6 +41,7 @@ public final class AdbOptionsService {
   private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
   private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name3";
   private static final String BURST_MODE_NAME = "adb.burst.mode";
+  private static final String LOG_ENABLED = "adb.log.enabled";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
@@ -98,6 +99,10 @@ public final class AdbOptionsService {
     return PropertiesComponent.getInstance().getInt(USER_MANAGED_ADB_PORT, USER_MANAGED_ADB_PORT_DEFAULT);
   }
 
+  boolean getAdbServerLogsEnabled() {
+    return PropertiesComponent.getInstance().getBoolean(LOG_ENABLED, false);
+  }
+
   @NotNull
   public AdbOptionsUpdater getOptionsUpdater() {
     return new AdbOptionsUpdater(this);
@@ -110,6 +115,7 @@ public final class AdbOptionsService {
     props.setValue(USE_USER_MANAGED_ADB, options.useUserManagedAdb());
     props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
     props.setValue(BURST_MODE_NAME, options.getBurstMode().name());
+    props.setValue(LOG_ENABLED, options.getAdbServerLogsEnabled());
     updateListeners();
   }
 
@@ -143,6 +149,7 @@ public final class AdbOptionsService {
     private boolean myUseUserManagedAdb;
     private int myUserManagedAdbPort;
     private AdbServerBurstMode myServerBurstMode;
+    private boolean myLogEnabled;
 
     private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
       myService = service;
@@ -151,6 +158,7 @@ public final class AdbOptionsService {
       myUseUserManagedAdb = service.shouldUseUserManagedAdb();
       myUserManagedAdbPort = service.getUserManagedAdbPort();
       myServerBurstMode = service.getAdbServerBurstMode();
+      myLogEnabled = service.getAdbServerLogsEnabled();
     }
 
     public AdbServerUsbBackend getAdbServerUsbBackend() {
@@ -195,6 +203,15 @@ public final class AdbOptionsService {
 
     public AdbOptionsUpdater setBurstMode(AdbServerBurstMode burstMode) {
       myServerBurstMode = burstMode;
+      return this;
+    }
+
+    public boolean getAdbServerLogsEnabled() {
+      return myLogEnabled;
+    }
+
+    public AdbOptionsUpdater setAdbServerLogsEnabled(boolean logEnabled) {
+      myLogEnabled = logEnabled;
       return this;
     }
 

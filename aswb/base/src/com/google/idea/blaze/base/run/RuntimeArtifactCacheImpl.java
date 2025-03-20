@@ -119,9 +119,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
         buildArtifactCache,
               workspaceRoot,
               runfilesDirectory,
-              artifactDirectoryContents,
-              null,
-              false)
+              artifactDirectoryContents)
           .update();
     } catch (IOException e) {
       throw new IllegalStateException("Exception while updating artifact directory", e);

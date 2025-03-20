@@ -31,4 +31,16 @@
     </context>
   </template>
   <!-- endregion -->
+
+  <template name="prevMul"
+            value="@androidx.compose.ui.tooling.preview.PreviewScreenSizes&#10;@androidx.compose.runtime.Composable&#10;private fun $NAME$() {&#10;$END$&#10;}"
+            description="Create Multipreview composable function"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="ANDROID_KOTLIN" value="true" />
+      <option name="ANDROID_KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
 </templateSet>

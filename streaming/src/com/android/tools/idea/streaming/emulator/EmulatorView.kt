@@ -62,7 +62,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
-import com.android.tools.idea.streaming.emulator.xr.XrInputMode
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener
@@ -213,10 +213,12 @@ class EmulatorView(
         requestScreenshotFeed(deviceDisplaySize, value)
       }
     }
+  private val emulatorId = emulator.emulatorId
+  override val deviceId: DeviceId = DeviceId.ofEmulator(emulatorId)
+  override val deviceType: DeviceType = emulatorConfig.deviceType
   override val apiLevel: Int
     get() = emulatorConfig.api
   private var lastScreenshot: Screenshot? = null
-  private var deviceScaleFactor: Double = 1.0
   private val displayTransform = AffineTransform()
   private val screenshotShape: DisplayShape
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
@@ -228,8 +230,7 @@ class EmulatorView(
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
     get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
-  private val emulatorId = emulator.emulatorId
-  override val deviceId: DeviceId = DeviceId.ofEmulator(emulatorId)
+  private var deviceScaleFactor: Double = 1.0
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L
@@ -987,8 +988,10 @@ class EmulatorView(
         hardwareInput.forwardEvent(event)
         return
       }
-
       if (xrInputController?.keyPressed(event) == true) {
+        return
+      }
+      if (!isConnected) {
         return
       }
 
@@ -1007,37 +1010,23 @@ class EmulatorView(
         return
       }
 
-      keyPressedOrReleased(event)
+      val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(event.keyCode, event.modifiersEx)
+      if (emulatorKeyStroke != null) {
+        emulator.sendKeyStroke(emulatorKeyStroke)
+        event.consume()
+      }
     }
 
     override fun keyReleased(event: KeyEvent) {
       updateCameraPromptAndMultiTouchFeedback(event)
-
       if (isHardwareInputEnabled()) {
         hardwareInput.forwardEvent(event)
         return
       }
-
       if (xrInputController?.keyReleased(event) == true) {
         return
       }
-
       virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
-
-      keyPressedOrReleased(event)
-    }
-
-    private fun keyPressedOrReleased(event: KeyEvent) {
-      if (!isConnected) {
-        return
-      }
-      if (event.id == KEY_PRESSED) {
-        val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(event.keyCode, event.modifiersEx)
-        if (emulatorKeyStroke != null) {
-          emulator.sendKeyStroke(emulatorKeyStroke)
-          event.consume()
-        }
-      }
     }
 
     private fun hostKeyStrokeToEmulatorKeyStroke(hostKeyCode: Int, modifiers: Int): EmulatorKeyStroke? {

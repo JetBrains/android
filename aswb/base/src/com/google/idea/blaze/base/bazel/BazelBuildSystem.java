@@ -41,16 +41,6 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, ExecutorType executorType, Kind targetKind) {
-    return getBuildInvoker(project);
-  }
-
-  @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeCommandName command) {
-    return getBuildInvoker(project);
-  }
-
-  @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return SyncStrategy.SERIAL;
   }

@@ -46,9 +46,7 @@ void KeyCharacterMap::Initialize() {
 
 JObjectArray KeyCharacterMap::GetEvents(const uint16_t* chars, int num_chars) {
   Initialize();
-  JCharArray char_array = jni_.NewCharArray(num_chars);
-  char_array.SetRegion(0, num_chars, chars);
-  return JObjectArray(java_object_.CallObjectMethod(jni_, get_events_method_, char_array.ref()));
+  return JObjectArray(java_object_.CallObjectMethod(jni_, get_events_method_, JCharArray::Create(jni_, num_chars, chars).ref()));
 }
 
 }  // namespace screensharing

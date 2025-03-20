@@ -78,7 +78,7 @@ class SystemPropertyInjectionForSyncTest {
         taskOutput.append(text)
       }
 
-      override fun onSuccess(id: ExternalSystemTaskId) {
+      override fun onSuccess(proojecPath: String, id: ExternalSystemTaskId) {
         successDetected = true
       }
     }

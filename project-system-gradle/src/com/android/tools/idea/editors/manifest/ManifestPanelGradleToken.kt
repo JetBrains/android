@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.manifest
 import com.android.SdkConstants
 import com.android.ide.common.blame.SourceFilePosition
 import com.android.ide.common.blame.SourcePosition
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Component
 import com.android.manifmerger.Actions
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -47,7 +47,7 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
 
   /**
    * Computes a library name intended for display purposes; names may not be unique
-   * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
+   * (and separator is always ":"). It will show only the artifact id, if that id contains hyphens; otherwise
    * it will include the last component of the group id (unless identical to the artifact id).
    * <p>
    * E.g.
@@ -57,25 +57,26 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
    */
   override fun getExternalAndroidLibraryDisplayName(library: ExternalAndroidLibrary): String {
     val artifactAddress = library.address
-    val coordinates = GradleCoordinate.parseCoordinateString(artifactAddress)
-    if (coordinates != null) {
-      var name = coordinates.artifactId
+    val componentString = artifactAddress.substringBefore('@')
+    val component = Component.tryParse(componentString)
+    if (component != null) {
+      val result = StringBuilder()
+      val name = component.name
 
       // For something like android.arch.lifecycle:runtime, instead of just showing "runtime",
       // we show "lifecycle:runtime"
       if (!name.contains("-")) {
-        val groupId = coordinates.groupId
-        val index = groupId.lastIndexOf('.') // okay if it doesn't exist
-        val groupSuffix = groupId.substring(index + 1)
-        if (groupSuffix != name) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
-          name = "$groupSuffix:$name"
+        val groupSuffix = component.group.substringAfterLast('.')
+        if (groupSuffix != name) {
+          result.append(groupSuffix).append(':')
         }
       }
-      val version = coordinates.lowerBoundVersion
-      if (version != null && "unspecified" != version.toString()) {
-        name += ":$version"
+      result.append(name)
+      val version = component.version
+      if ("unspecified" != version.toString()) {
+        result.append(':').append(version)
       }
-      return name
+      return result.toString()
     }
     return StringUtil.trimLeading(artifactAddress, ':')
   }

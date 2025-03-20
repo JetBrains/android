@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
-import com.google.idea.blaze.base.qsync.artifacts.GeneratedSourcesStripper;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -250,7 +249,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             latestProjectDef,
             projectPathResolver,
             QuerySync.ATTACH_DEP_SRCJARS::getValue,
-            QuerySync.enableBazelAdditionalLibraryRootsProvider()));
+            QuerySync.enableLibraryEntity()));
     projectTransformRegistry.add(new CcProjectProtoTransform());
 
     artifactTracker = tracker;
@@ -267,8 +266,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             ideProjectBasePath,
             workspaceRoot.path(),
             artifactCache,
-            new FileRefresher(project),
-            new GeneratedSourcesStripper(project));
+            new FileRefresher(project));
     DependencyTracker dependencyTracker =
         new DependencyTrackerImpl(graph, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =

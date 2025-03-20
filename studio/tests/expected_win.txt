@@ -2208,9 +2208,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback.xml
-android-studio/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback_cjkvf.xml
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
-android-studio/plugins/design-tools/resources/layoutlib/data/fonts/fonts_cjkvf.xml
 android-studio/plugins/design-tools/resources/layoutlib/data/framework_res.jar
 android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-af.hyb
 android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-as.hyb
@@ -2271,15 +2269,13 @@ android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extension
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/layoutlib_jni.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libandroid_runtime.dll
 android-studio/plugins/dev/lib/dev.jar
-android-studio/plugins/devkit/lib/devkit-jps.jar
-android-studio/plugins/devkit/lib/devkit-runtimeModuleRepository-jps.jar
-android-studio/plugins/devkit/lib/devkit.jar
 android-studio/plugins/directaccess/lib/device_streaming_kt_proto.jar
 android-studio/plugins/directaccess/lib/directaccess.jar
 android-studio/plugins/directaccess/lib/directaccess.so.jar
 android-studio/plugins/directaccess/lib/ftl_client_kt_proto.jar
 android-studio/plugins/directaccess/lib/google-api-services-cloudbilling-v1-rev20240119-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-monitoring-v3-rev20230806-2.0.0.jar
+android-studio/plugins/directaccess/lib/google-api-services-serviceusage-v1-rev20240220-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
@@ -2359,7 +2355,7 @@ android-studio/plugins/gradle/lib/ant/ant-swing.jar
 android-studio/plugins/gradle/lib/ant/ant-testutil.jar
 android-studio/plugins/gradle/lib/ant/ant-xz.jar
 android-studio/plugins/gradle/lib/ant/ant.jar
-android-studio/plugins/gradle/lib/gradle-api-8.13.jar
+android-studio/plugins/gradle/lib/gradle-api-8.14-milestone-4.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle.jar

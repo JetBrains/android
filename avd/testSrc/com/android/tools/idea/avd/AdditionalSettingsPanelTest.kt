@@ -128,12 +128,14 @@ class AdditionalSettingsPanelTest {
     // This uses the default file system
     val device = TestDevices.pixel6()
 
-    val image = mock<ISystemImage>()
-    whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
+    device.image =
+      mock<ISystemImage>().apply {
+        whenever(androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
+      }
 
     val fileSystem = createInMemoryFileSystem()
 
-    val state = configureDevicePanelState(device, image = image, fileSystem = fileSystem)
+    val state = configureDevicePanelState(device, fileSystem = fileSystem)
     val initialExpandedStorage = device.expandedStorage
 
     val mySdCardFileImg = fileSystem.getPath(System.getProperty("user.home"), "mySdCardFile.img")
@@ -341,12 +343,10 @@ class AdditionalSettingsPanelTest {
 private fun configureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin> = emptyList<Skin>().toImmutableList(),
-  image: ISystemImage? = null,
   deviceNameValidator: DeviceNameValidator = DeviceNameValidator(emptySet()),
   fileSystem: FileSystem = FileSystems.getDefault(),
   maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
-) =
-  ConfigureDevicePanelState(device, skins, image, deviceNameValidator, fileSystem, maxCpuCoreCount)
+) = ConfigureDevicePanelState(device, skins, deviceNameValidator, fileSystem, maxCpuCoreCount)
 
 private fun SemanticsNodeInteractionsProvider.onRamTextField() =
   onNodeWithTag("RamRow").onChildren().filterToOne(hasSetTextAction())

@@ -30,6 +30,7 @@ add_library(
         accessors/surface_control.cc
         accessors/virtual_display.cc
         accessors/window_manager.cc
+        accessors/xr_simulated_input_manager.cc
         agent.cc
         audio_streamer.cc
         base128_input_stream.cc

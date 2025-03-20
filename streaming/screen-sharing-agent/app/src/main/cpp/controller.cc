@@ -26,6 +26,7 @@
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "accessors/surface_control.h"
+#include "accessors/xr_simulated_input_manager.h"
 #include "agent.h"
 #include "flags.h"
 #include "jvm.h"
@@ -326,6 +327,22 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       RequestDeviceState((const RequestDeviceStateMessage&) message);
       break;
 
+    case XrRotationMessage::TYPE:
+      ProcessXrRotation((const XrRotationMessage&) message);
+      break;
+
+    case XrTranslationMessage::TYPE:
+      ProcessXrTranslation((const XrTranslationMessage&) message);
+      break;
+
+    case XrAngularVelocityMessage::TYPE:
+      ProcessXrAngularVelocity((const XrAngularVelocityMessage&) message);
+      break;
+
+    case XrVelocityMessage::TYPE:
+      ProcessXrVelocity((const XrVelocityMessage&) message);
+      break;
+
     case DisplayConfigurationRequest::TYPE:
       SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
       break;
@@ -578,7 +595,7 @@ void Controller::InjectInputEvent(const JObject& input_event) {
         input_event_injection_disabled_ = true;
       }
     } else {
-      Log::E("Unable to inject an input event %s", JString::ValueOf(exception).c_str());
+      Log::E("Unable to inject an input event %s", JString::ValueOf(input_event).c_str());
     }
   }
 }
@@ -710,6 +727,26 @@ void Controller::SendClipboardChangedNotification() {
   ClipboardChangedNotification message(std::move(text));
   message.Serialize(output_stream_);
   output_stream_.Flush();
+}
+
+void Controller::ProcessXrRotation(const XrRotationMessage& message) {
+  float data[3] = { message.x(), message.y(), 0 };
+  XrSimulatedInputManager::InjectHeadRotation(jni_, data);
+}
+
+void Controller::ProcessXrTranslation(const XrTranslationMessage& message) {
+  float data[3] = { message.x(), message.y(), message.z() };
+  XrSimulatedInputManager::InjectHeadMovement(jni_, data);
+}
+
+void Controller::ProcessXrAngularVelocity(const XrAngularVelocityMessage& message) {
+  float data[3] = { message.x(), message.y(), 0 };
+  XrSimulatedInputManager::InjectHeadAngularVelocity(jni_, data);
+}
+
+void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
+  float data[3] = { message.x(), message.y(), message.z() };
+  XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
 }
 
 void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {

@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.compose.ComposeWizard
@@ -58,8 +57,6 @@ import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.checkAcceleration
-import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
 import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
 import com.android.tools.idea.avdmanager.ui.DeleteDeviceAction
@@ -70,7 +67,6 @@ import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.openapi.project.Project
@@ -89,43 +85,34 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 
 /**
- * Shows either the new or old AVD creation dialog, depending on
- * [StudioFlags.DEVICE_CATALOG_ENABLED].
+ * Shows the AVD creation dialog.
  *
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
 suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
-  if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-    val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
-    return withContext(uiThread) {
-      initializeComposeMainDispatcherChecker()
-      var avdInfo: AvdInfo? = null
-      val wizard =
-        AddDeviceWizard(
-          source,
-          project,
-          accelerationCheck = { checkAcceleration(source.sdkHandler) },
-          onAdd = { avdInfo = it },
-        )
-      val created = wizard.createDialog(parent = parent).showAndGet()
-      if (created) {
-        UsageTracker.log(
-          AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-            .setDeviceManagerEvent(
-              DeviceManagerEvent.newBuilder()
-                .setKind(DeviceManagerEvent.EventKind.VIRTUAL_CREATE_ACTION)
-            )
-        )
-      }
-      avdInfo
+  val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
+  return withContext(uiThread) {
+    initializeComposeMainDispatcherChecker()
+    var avdInfo: AvdInfo? = null
+    val wizard =
+      AddDeviceWizard(
+        source,
+        project,
+        accelerationCheck = { checkAcceleration(source.sdkHandler) },
+        onAdd = { avdInfo = it },
+      )
+    val created = wizard.createDialog(parent = parent).showAndGet()
+    if (created) {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+          .setDeviceManagerEvent(
+            DeviceManagerEvent.newBuilder()
+              .setKind(DeviceManagerEvent.EventKind.VIRTUAL_CREATE_ACTION)
+          )
+      )
     }
-  } else {
-    val avdOptionsModel = AvdOptionsModel(null)
-    withContext(uiThread) {
-      AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
-    }
-    return avdOptionsModel.createdAvd.orElse(null)
+    avdInfo
   }
 }
 
@@ -276,11 +263,9 @@ internal class AddDeviceWizard(
     }
   }
 
-  private suspend fun finish(device: VirtualDevice, image: ISystemImage): Boolean {
+  private suspend fun finish(device: VirtualDevice): Boolean {
     val avdInfo =
-      withContext(AndroidDispatchers.diskIoThread) {
-        VirtualDevices(source.avdManager).add(device, image)
-      }
+      withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(source.avdManager).add(device) }
     if (avdInfo != null) {
       onAdd(avdInfo)
     }

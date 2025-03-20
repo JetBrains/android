@@ -23,14 +23,17 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.getLatestId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.newId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.RunManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
@@ -48,18 +51,21 @@ import kotlinx.coroutines.launch
 import studio.network.inspection.NetworkInspectorProtocol
 
 class RulesTableView(
-  project: Project,
+  private val project: Project,
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   private val model: NetworkInspectorModel,
   private val usageTracker: NetworkInspectorTracker,
 ) {
+  private val logger = thisLogger()
 
   private val persistentStateComponent: RulesPersistentStateComponent = project.service()
   val component: JComponent
   val tableModel: RulesTableModel =
     RulesTableModel(persistentStateComponent.state.rulesList).also { scope.initPersistentRules() }
   val table = TableView(tableModel)
+  private val ruleVariables
+    get() = RuleVariablesStateComponent.getInstance(project).state.ruleVariables
 
   init {
     val decorator =
@@ -97,6 +103,7 @@ class RulesTableView(
           }
         }
         .addExtraAction(CloneRuleAction())
+        .addExtraAction(OpenRuleVariablesAction(project))
     component = decorator.createPanel()
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
@@ -144,7 +151,8 @@ class RulesTableView(
           .apply {
             interceptRuleAddedBuilder.apply {
               ruleId = ruleData.id
-              rule = ruleData.toProto()
+              rule = ruleData.toProto(ruleVariables)
+              logger.debug("New rule added:\n$rule")
             }
           }
           .build()
@@ -163,7 +171,8 @@ class RulesTableView(
                 .apply {
                   interceptRuleUpdatedBuilder.apply {
                     ruleId = ruleData.id
-                    rule = ruleData.toProto()
+                    rule = ruleData.toProto(ruleVariables)
+                    logger.debug("Rule data changed:\n$rule")
                   }
                 }
                 .build()
@@ -186,7 +195,8 @@ class RulesTableView(
               .apply {
                 interceptRuleUpdatedBuilder.apply {
                   ruleId = ruleData.id
-                  rule = ruleData.toProto()
+                  rule = ruleData.toProto(ruleVariables)
+                  logger.debug("Rule activation changed:\n$rule")
                 }
               }
               .build()
@@ -218,7 +228,8 @@ class RulesTableView(
           .apply {
             interceptRuleAddedBuilder.apply {
               ruleId = ruleData.id
-              rule = ruleData.toProto()
+              rule = ruleData.toProto(ruleVariables)
+              logger.debug("Rule initialized:\n$rule")
             }
           }
           .build()
@@ -245,6 +256,36 @@ class RulesTableView(
       ruleData.copyFrom(oldRule)
       ruleData.name = RunManager.suggestUniqueName(ruleData.name, table.items.map { it.name })
       addRule(ruleData)
+    }
+  }
+
+  private inner class OpenRuleVariablesAction(private val project: Project) :
+    DumbAwareAction("Variables", "Define variables", AllIcons.General.InlineVariables) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabledAndVisible = StudioFlags.NETWORK_INSPECTOR_RULE_VARIABLES.get()
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      RuleVariablesDialog(project, ruleVariables, tableModel.items) { ruleData ->
+          if (ruleData.isActive) {
+            scope.launch {
+              client.interceptResponse(
+                NetworkInspectorProtocol.InterceptCommand.newBuilder()
+                  .apply {
+                    interceptRuleUpdatedBuilder.apply {
+                      ruleId = ruleData.id
+                      rule = ruleData.toProto(ruleVariables)
+                      logger.debug("Rule variables changed:\n$rule")
+                    }
+                  }
+                  .build()
+              )
+            }
+          }
+        }
+        .show()
     }
   }
 }

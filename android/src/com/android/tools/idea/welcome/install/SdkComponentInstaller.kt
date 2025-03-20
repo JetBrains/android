@@ -102,8 +102,9 @@ class SdkComponentInstaller {
     downloader: Downloader,
     progress: ProgressIndicator,
   ) {
+    val sdkManager =
+      sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
     val throttledProgress = ThrottledProgressWrapper(progress)
-    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(throttledProgress)
     var progressMax = 0.0
     val progressIncrement = 0.9 / (packages.size * 2.0)
     val factory = BasicInstallerFactory()

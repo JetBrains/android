@@ -8,6 +8,7 @@ iml_module(
     lint_baseline = "lint_baseline.xml",
     module_visibility = [
         # Language-specific implementation modules
+        "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
@@ -50,6 +51,7 @@ iml_module(
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/base/common:studio.android.sdktools.common",
@@ -102,6 +104,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",

@@ -119,8 +119,8 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
 
     val virtualFile = drawableFileGenerator.generateColorsFile(colors.toMutableList())
     val sourceProvider = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider
-    val resFolder = sourceProvider.resDirectories.firstOrNull()
-                    ?: VfsUtil.createDirectories(VfsUtilCore.urlToPath(sourceProvider.resDirectoryUrls.first()))
+    val resFolder = sourceProvider?.resDirectories?.firstOrNull()
+                    ?: VfsUtil.createDirectories(VfsUtilCore.urlToPath(sourceProvider?.resDirectoryUrls?.first()))
 
     WriteCommandAction.runWriteCommandAction(facet.module.project) {
       val directory = VfsUtil.createDirectoryIfMissing(resFolder, valuesFolder)

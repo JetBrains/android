@@ -103,7 +103,6 @@ class StartUpSafeModeTest {
       "Mercurial",
       "NetBeans Keymap",
       "Performance Testing",
-      "Plugin DevKit",
       "Properties",
       "Shell Script",
       "Smali Support",

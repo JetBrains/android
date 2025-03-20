@@ -29,9 +29,12 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
+import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
+import com.android.tools.idea.gradle.dcl.lang.sync.ParameterizedClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
@@ -123,12 +126,15 @@ class DeclarativeAnnotator : Annotator {
         is FoundObjectProperty -> ElementType.OBJECT_VALUE
         is FoundSimpleProperty -> getSimpleType(type)
         is FoundEnum -> ElementType.ENUM
+        is FoundParametrizedType -> ElementType.OBJECT_VALUE
       }
     }
   }
 
   data class FoundBlock(val type: ClassModel) : SearchResult()
   data class FoundEnum(val type: EnumModel) : SearchResult()
+  // FoundParametrizedType its non gradle class like List or Array that does not have properties or methods
+  data class FoundParametrizedType(val type: ParameterizedClassModel) : SearchResult()
   data class FoundFunction(val type: SchemaFunction) : SearchResult()
   data class FoundSimpleProperty(val type: SimpleDataType) : SearchResult()
   data class FoundObjectProperty(val type: ClassModel) : SearchResult()
@@ -146,23 +152,23 @@ class DeclarativeAnnotator : Annotator {
       receivers = receivers.flatMap { it.getNextLevel(path[index]) }
     }
 
-    return receivers.flatMap { receiver ->
+    return receivers.distinct().flatMap { receiver ->
       when (val entry = receiver.entry) {
         is SchemaFunction -> listOf(FoundFunction(entry))
         is DataProperty -> when (val type = entry.valueType) {
-          is DataClassRef -> receiver.resolveRef(type.fqName)?.let {
-            listOf(
-              when (it) {
-                is ClassModel -> FoundObjectProperty(it)
-                is EnumModel -> FoundEnum(it)
-              }
-            )
-          } ?: listOf()
-
+          is DataClassRef -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
           is SimpleTypeRef -> listOf(FoundSimpleProperty(type.dataType))
+          is DataClassRefWithTypes -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
+          else -> listOf()
         }
       }
     }
+  }
+
+  private fun ClassType.wrap() = when (this) {
+    is ClassModel -> FoundObjectProperty(this)
+    is EnumModel -> FoundEnum(this)
+    is ParameterizedClassModel -> FoundParametrizedType(this)
   }
 
   private fun showUnknownName(holder: AnnotationHolder) {

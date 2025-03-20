@@ -291,11 +291,27 @@ class JCharArray : public JRef<JCharArray, jcharArray> {
 public:
   using JRef::JRef;
 
+  static JCharArray Create(JNIEnv* jni_env, int32_t length);
+  static JCharArray Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars);
   void SetRegion(int32_t start, int32_t len, const uint16_t* chars) const {
     SetRegion(GetJni(), start, len, chars);
   }
   void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const uint16_t* chars) const {
     jni_env->SetCharArrayRegion(ref(), start, len, chars);
+  }
+};
+
+class JFloatArray : public JRef<JFloatArray, jfloatArray> {
+public:
+  using JRef::JRef;
+
+  static JFloatArray Create(JNIEnv* jni_env, int32_t length);
+  static JFloatArray Create(JNIEnv* jni_env, int32_t length, const float* elements);
+  void SetRegion(int32_t start, int32_t len, const float* elements) const {
+    SetRegion(GetJni(), start, len, elements);
+  }
+  void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const float* elements) const {
+    jni_env->SetFloatArrayRegion(ref(), start, len, elements);
   }
 };
 
@@ -374,8 +390,6 @@ public:
   }
 
   JClass GetClass(const char* name) const;
-
-  [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
 
   std::vector<int64_t> GetElements(jlongArray array) const;
 

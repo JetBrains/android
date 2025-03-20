@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.sync
 import com.google.common.base.Objects
-import org.gradle.declarative.dsl.schema.DataClass
 import java.io.Serializable
 
 data class FullName(val name: String) : Serializable
@@ -32,7 +31,7 @@ sealed interface ClassType: Serializable {
 }
 
 data class ClassModel(
-  val memberFunctions: List<SchemaFunction>,
+  val memberFunctions: List<SchemaMemberFunction>,
   override val name: FullName,
   val properties: List<DataProperty>,
   val supertypes: Set<FullName>,
@@ -43,21 +42,28 @@ data class EnumModel(
   val entryNames: List<String>,
 ) : ClassType
 
+// external class with generic like List or Array
+data class ParameterizedClassModel(
+  override val name: FullName,
+  val arguments: List<GenericTypeArgument>
+) : ClassType
+
 sealed class FunctionSemantic : Serializable
 data class PlainFunction(val returnValue: DataTypeReference) : FunctionSemantic()
 data class BlockFunction(val accessor: DataClassRef) : FunctionSemantic()
 
-data class SchemaFunction(val receiver: DataClassRef,
-                          val name: String,
-                          val parameters: List<IdeDataParameter>,
-                          val semantic: FunctionSemantic) : Entry(name) {
+data class SchemaMemberFunction(val receiver: DataClassRef,
+                                override val name: String,
+                                override val parameters: List<IdeDataParameter>,
+                                override val semantic: FunctionSemantic) : SchemaFunction(name = name, parameters = parameters,
+                                                                                          semantic = semantic) {
   override fun hashCode(): Int {
     return Objects.hashCode(name, receiver, parameters, semantic)
   }
 
   // ignore schema when comparing objects
   override fun equals(other: Any?): Boolean {
-    return (other is SchemaFunction && other.name == this.name && other.receiver == this.receiver && other.parameters == this.parameters && other.semantic == this.semantic)
+    return (other is SchemaMemberFunction && other.name == this.name && other.receiver == this.receiver && other.parameters == this.parameters && other.semantic == this.semantic)
   }
 
   override fun getNextLevel(schema: BuildDeclarativeSchema, predicate: (name: String) -> Boolean): List<Entry> = when (semantic) {
@@ -65,13 +71,31 @@ data class SchemaFunction(val receiver: DataClassRef,
       getEntries(schema, it, predicate)
     }
                         ?: listOf() //TODO need to make it universal (b/355179149)
-    is PlainFunction -> {
-      (semantic.returnValue as? DataClassRef)?.let { classType ->
-        schema.resolveRef(classType.fqName)?.let { getEntries(it, predicate) }
-      } ?: listOf()
-    }
+    is PlainFunction -> semantic.getNextLevelPlainFunction(schema, predicate)
   }
 }
+
+open class SchemaFunction(open val name: String,
+                          open val parameters: List<IdeDataParameter>,
+                          open val semantic: FunctionSemantic) : Entry(name) {
+  override fun hashCode(): Int {
+    return Objects.hashCode(name, parameters, semantic)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    return (other is SchemaFunction && other.name == this.name && other.parameters == this.parameters && other.semantic == this.semantic)
+  }
+
+  override fun getNextLevel(schema: BuildDeclarativeSchema, predicate: (name: String) -> Boolean): List<Entry> = when (semantic) {
+    is PlainFunction -> (semantic as PlainFunction).getNextLevelPlainFunction(schema, predicate)
+    else -> listOf()
+  }
+}
+
+private fun PlainFunction.getNextLevelPlainFunction(schema: BuildDeclarativeSchema, predicate: (name: String) -> Boolean): List<Entry> =
+  (returnValue as? DataClassRef)?.let { classType ->
+    schema.resolveRef(classType.fqName)?.let { getEntries(it, predicate) }
+  } ?: listOf()
 
 data class DataProperty(val name: String, val valueType: DataTypeReference) : Entry(name) {
   override fun hashCode(): Int {
@@ -88,28 +112,47 @@ data class DataProperty(val name: String, val valueType: DataTypeReference) : En
       getEntries(schema, it, predicate)
     } ?: listOf()
     is SimpleTypeRef -> listOf() // no next for simple types
+    is DataClassRefWithTypes -> schema.resolveRef(valueType.fqName)?.let {
+      getEntries(schema, it, predicate)
+    } ?: listOf()
+    else -> listOf()
   }
 }
 
 data class IdeDataParameter(val name: String?, val type: DataTypeReference) : Serializable {}
 
-enum class SimpleDataType : Serializable {
+sealed interface PrimitiveType: Serializable
+enum class SimpleDataType : PrimitiveType {
   INT, LONG, STRING, BOOLEAN, UNIT, NULL;
 }
+data object GenericType : PrimitiveType
 
 sealed class DataTypeReference : Serializable
 data class DataClassRef(val fqName: FullName) : DataTypeReference()
 data class SimpleTypeRef(val dataType: SimpleDataType) : DataTypeReference()
-class BuildDeclarativeSchema(var topLevelReceiver: ClassModel?, val dataClassesByFqName: Map<FullName, ClassType>) : Serializable {
+data object GenericTypeRef : DataTypeReference()
+data class DataClassRefWithTypes(val fqName: FullName, val typeArgument: List<GenericTypeArgument>) : DataTypeReference()
+
+interface GenericTypeArgument : Serializable
+data class ConcreteGeneric(val reference: DataTypeReference) : GenericTypeArgument
+data object StarGeneric : GenericTypeArgument
+
+class BuildDeclarativeSchema(
+  var topLevelReceiver: ClassModel?,
+  val dataClassesByFqName: Map<FullName, ClassType>,
+  val topLevelFunctions: Map<String, SchemaFunction>
+) : Serializable {
   fun resolveRef(fqName: FullName): ClassType? = dataClassesByFqName[fqName]
 
   fun getRootReceiver(): ClassModel {
     return topLevelReceiver ?: throw RuntimeException("topLevelReceiver is null")
   }
 
-  fun getRootEntries(predicate: (String) -> Boolean): List<Entry> = getEntries(getRootReceiver(), predicate)
+  fun getRootEntries(predicate: (String) -> Boolean): List<Entry> =
+    getEntries(getRootReceiver(), predicate) + topLevelFunctions.values.filter { predicate(it.name) }
 
-  fun getRootEntries(): List<Entry> = getEntries(getRootReceiver()) { true }
+  fun getRootEntries(): List<Entry> =
+    getEntries(getRootReceiver()) { true } + topLevelFunctions.values
 }
 
 // Idea cannot serialize lazy attributes so we pass schemas in simple wrappers

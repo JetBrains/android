@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.vitals
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import com.google.gct.login2.LoginFeature
 import icons.StudioIllustrations
+import icons.StudioIllustrationsCompose
+import javax.swing.Icon
+import org.jetbrains.jewel.ui.icon.IconKey
 
 class VitalsLoginFeature : LoginFeature {
-  override val name = "Android Vitals"
+  override val key: String = "Android Vitals"
+  override val title = "Android Vitals"
   override val infoUrl = "https://play.google.com/console/developers/app/vitals/"
   override val infoUrlDisplayText = "Go to Play Console"
   override val settingsAction = null
@@ -30,15 +39,18 @@ class VitalsLoginFeature : LoginFeature {
 
   override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry
     get() =
-      LoginFeature.OnboardingWizardEntry(
-        icon = StudioIllustrations.Common.PLAY_STORE,
-        name = "<b>Google Play:</b> Enable viewing Android Vitals crash reports",
-        description =
-          """
-          Android Vitals is a Google Play service that helps you discover
-           and address top stability issues for your app. Enable this service
-            to access detailed crash reports from Android Vitals directly from the IDE.
-        """
-            .trimIndent(),
-      )
+      object : LoginFeature.OnboardingWizardEntry {
+        override val icon: Icon = StudioIllustrations.Common.PLAY_STORE
+        override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.PlayStore
+        override val title: String =
+          "<b>Google Play:</b> Enable viewing Android Vitals crash reports"
+        override val annotatedTitle: AnnotatedString = buildAnnotatedString {
+          withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Play:") }
+          append(" Enable viewing Android Vitals crash reports")
+        }
+        override val description: String =
+          "Android Vitals is a Google Play service that helps you discover" +
+            " and address top stability issues for your app. Enable this service" +
+            " to access detailed crash reports from Android Vitals directly from the IDE."
+      }
 }

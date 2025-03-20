@@ -26,6 +26,7 @@ import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 
 /** Provides the name and basic state properties of the Android module for logging. */
 interface RenderModelModuleLoggingId {
@@ -36,7 +37,7 @@ interface RenderModelModuleLoggingId {
 }
 
 /** Provides all the module-specific Android resources information required for rendering. */
-interface RenderModelModule : Disposable, IdeaModuleProvider, RenderModelModuleLoggingId {
+interface RenderModelModule : IdeaModuleProvider, RenderModelModuleLoggingId {
 
   val assetRepository: AssetRepository?
 
@@ -73,4 +74,15 @@ interface RenderModelModule : Disposable, IdeaModuleProvider, RenderModelModuleL
   }
 
   fun getClassLoaderProvider(privateClassLoader: Boolean): ClassLoaderProvider
+
+  /**
+   * Disposable that can be used as a parent for [Disposable]s that depend on the
+   * [RenderModelModule] lifecycle.
+   */
+  val parentDisposable: Disposable
+
+  /** Marks this [RenderModelModule] as disposed. */
+  fun dispose() {
+    Disposer.dispose(parentDisposable)
+  }
 }

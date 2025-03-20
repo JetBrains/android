@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.device.actions.getDeviceClient
+import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorController
+import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
@@ -63,6 +68,18 @@ internal open class StreamingAction(virtualDeviceAction: AnAction, physicalDevic
 
 internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
     event.getData(DISPLAY_VIEW_KEY)
+
+internal fun getDeviceType(event: AnActionEvent): DeviceType? =
+    getDisplayView(event)?.deviceType
+
+internal fun getXrInputController(event: AnActionEvent): AbstractXrInputController? {
+  if (getDeviceType(event) != DeviceType.XR) {
+    return null
+  }
+  val project = event.project ?: return null
+  return getEmulatorController(event)?.let { emulatorController -> EmulatorXrInputController.getInstance(project, emulatorController) } ?:
+      getDeviceClient(event)?.let { deviceClient -> DeviceXrInputController.getInstance(project, deviceClient) }
+}
 
 internal val AnActionEvent.toolWindowContents: List<Content>
   get() {

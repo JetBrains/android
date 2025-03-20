@@ -50,17 +50,20 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .setAdbServerLogsEnabled(false)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
+    myConfigurable.setAdbServerLogsEnabled(true)
     myConfigurable.apply(myAdbOptionsService)
 
     assertThat(myAdbOptionsService.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.LIBUSB)
     assertThat(myAdbOptionsService.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.OPENSCREEN)
     assertThat(myAdbOptionsService.adbServerBurstMode).isEqualTo(AdbServerBurstMode.ENABLED)
+    assertThat(myAdbOptionsService.adbServerLogsEnabled).isEqualTo(true)
   }
 
   @Test
@@ -70,17 +73,20 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .setAdbServerLogsEnabled(false)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
+    myConfigurable.setAdbServerLogsEnabled(true)
     myConfigurable.reset(myAdbOptionsService)
 
     assertThat(myConfigurable.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.DEFAULT)
     assertThat(myConfigurable.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.DEFAULT)
     assertThat(myConfigurable.adbServerBurstMode).isEqualTo(AdbServerBurstMode.DEFAULT)
+    assertThat(myConfigurable.adbServerLogsEnabled).isEqualTo(false)
   }
 
   @Test
@@ -90,6 +96,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .setAdbServerLogsEnabled(false)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
@@ -103,6 +110,10 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
     myConfigurable.reset(myAdbOptionsService)
     myConfigurable.adbServerBurstMode = AdbServerBurstMode.ENABLED
+    assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
+
+    myConfigurable.reset(myAdbOptionsService)
+    myConfigurable.adbServerLogsEnabled = true
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
   }
 

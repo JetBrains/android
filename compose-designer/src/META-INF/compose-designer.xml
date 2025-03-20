@@ -146,16 +146,12 @@
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager$MyStartupActivity"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
-    <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewRepresentationProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.handlers">
-    <viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
-    <infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector" />
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
+    <editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider
+        implementation="com.android.tools.idea.compose.preview.ComposePreviewRepresentationProvider"/>
+    <handlers.viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
+    <troubleshooting.infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector" />
+    <analytics.resizeTracker implementation="com.android.tools.idea.compose.preview.analytics.ComposeResizeTracker"/>
   </extensions>
 
   <actions>

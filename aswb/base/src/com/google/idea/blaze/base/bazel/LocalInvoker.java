@@ -27,7 +27,7 @@ import com.google.idea.blaze.base.command.CommandLineBlazeCommandRunner;
 import com.google.idea.blaze.base.command.WorkspaceRootReplacement;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolUtils;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.execution.BazelGuard;
@@ -222,13 +222,13 @@ public class LocalInvoker extends AbstractBuildInvoker {
   }
 
   private BuildEventStreamProvider getBepStream(File outputFile)
-      throws BuildResultHelper.GetArtifactsException {
+    throws GetArtifactsException {
     try {
       return BuildEventStreamProvider.fromInputStream(
           new BufferedInputStream(new FileInputStream(outputFile)));
     } catch (FileNotFoundException e) {
       logger.error(e);
-      throw new BuildResultHelper.GetArtifactsException(e.getMessage());
+      throw new GetArtifactsException(e.getMessage());
     }
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getFullReleaseName
+import com.android.tools.adtui.common.WrappedFlowLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -67,6 +68,7 @@ import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -346,18 +348,15 @@ class VitalsIssueDetailsPanel(
       add(JSeparator())
       add(Box.createVerticalStrut(5))
       add(
-        transparentPanel().apply {
-          layout = BoxLayout(this, BoxLayout.X_AXIS)
+        transparentPanel(WrappedFlowLayout(FlowLayout.LEFT, 0, 5)).apply {
           add(eventIdLabel)
           add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
           add(vitalsConsoleLink)
-          add(Box.createHorizontalGlue())
         }
       )
       add(Box.createVerticalStrut(5))
       add(
-        transparentPanel().apply {
-          layout = BoxLayout(this, BoxLayout.X_AXIS)
+        transparentPanel(WrappedFlowLayout(FlowLayout.LEFT, 0, 5)).apply {
           add(deviceLabel)
           add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
           add(affectedApiLevelsLabel)
@@ -365,11 +364,10 @@ class VitalsIssueDetailsPanel(
           add(timestampLabel)
           add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
           add(commitLabel)
-          add(Box.createHorizontalGlue())
         }
       )
       add(Box.createVerticalStrut(5))
-      add(add(insightsPanel))
+      add(insightsPanel)
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {

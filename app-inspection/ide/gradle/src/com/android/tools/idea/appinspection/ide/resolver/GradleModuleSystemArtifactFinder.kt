@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.project.modules
@@ -28,11 +29,9 @@ class GradleModuleSystemArtifactFinder(private val projectSystem: GradleProjectS
    */
   fun findLibrary(artifactCoordinate: RunningArtifactCoordinate) =
     projectSystem.project.modules.asList().firstNotNullOfOrNull { module ->
-      projectSystem
-        .getModuleSystem(module)
-        .getDependencyPath(artifactCoordinate.toGradleCoordinate())
+      projectSystem.getModuleSystem(module).getDependencyPath(artifactCoordinate.toDependency())
     }
 }
 
-private fun RunningArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =
-  GradleCoordinate(groupId, artifactId, version)
+private fun RunningArtifactCoordinate.toDependency(): Dependency =
+  Dependency(group = groupId, name = artifactId, version = RichVersion.parse(version))

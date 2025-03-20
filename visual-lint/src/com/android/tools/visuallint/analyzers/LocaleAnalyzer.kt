@@ -138,7 +138,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
     }
 
     val textView = view.viewObject as TextView
-    val layout = textView.layout
+    val layout = textView.layout ?: return false
     val lines = layout.lineCount
     return ((lines - 1) downTo 0).any { layout.getEllipsisCount(it) > 0 }
   }

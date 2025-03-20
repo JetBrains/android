@@ -693,17 +693,19 @@ class ComposePreviewRepresentation(
         )
       }
 
+  val staticNavHandler =
+    NavigatingInteractionHandler(
+      composeWorkBench.mainSurface,
+      navigationHandler,
+      isSelectionEnabled = true,
+      isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
+    )
+
   @VisibleForTesting
   val staticPreviewInteractionHandler =
-    ComposeNavigationInteractionHandler(
-        NavigatingInteractionHandler(
-          composeWorkBench.mainSurface,
-          navigationHandler,
-          isSelectionEnabled = true,
-          isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
-        )
-      )
-      .also { delegateInteractionHandler.delegate = it }
+    ComposeNavigationInteractionHandler(staticNavHandler).also {
+      delegateInteractionHandler.delegate = it
+    }
 
   private val fpsLimitFlow =
     essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
@@ -935,6 +937,8 @@ class ComposePreviewRepresentation(
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+    if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get())
+      staticNavHandler.onCaretMoved(event.newPosition.line + 1)
     if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return

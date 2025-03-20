@@ -164,8 +164,8 @@ class ModuleTemplateDataBuilder(
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
     val baseModuleResourceRootPath =
-      mainSourceProvider.resDirectories.firstOrNull()?.path
-        ?: VfsUtilCore.urlToPath(mainSourceProvider.resDirectoryUrls.first())
+      mainSourceProvider?.resDirectories?.firstOrNull()?.path
+        ?: VfsUtilCore.urlToPath(mainSourceProvider?.resDirectoryUrls?.first())
 
     this.baseFeature =
       BaseFeature(

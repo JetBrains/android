@@ -86,14 +86,6 @@ java_library(
 )
 
 java_library(
-    name = "devkit",
-    neverlink = 1,
-    exports = [
-        "@intellij//:DevKit",
-    ],
-)
-
-java_library(
     name = "jsr305",
     exports = [
         "//prebuilts/tools/common/m2:jsr305-2.0.1",

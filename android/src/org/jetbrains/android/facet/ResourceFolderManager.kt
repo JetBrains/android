@@ -113,7 +113,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
 
   private fun computeFolders(facet: AndroidFacet): List<VirtualFile> {
     return if (!AndroidModel.isRequired(facet)) {
-      SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList()
+      SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories?.toList() ?: emptyList()
     }
     else {
       readFromFacetState(facet)

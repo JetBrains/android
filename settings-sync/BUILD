@@ -5,6 +5,14 @@ iml_module(
     name = "intellij.android.settings-sync",
     srcs = ["src"],
     iml_files = ["intellij.android.settings-sync.iml"],
+    kotlin_use_compose = True,
+    # do not sort: must match IML order
+    test_deps = [
+        "@intellij//:test-framework",
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -15,5 +23,8 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
         "@intellij//:intellij.settingsSync.core",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
 )

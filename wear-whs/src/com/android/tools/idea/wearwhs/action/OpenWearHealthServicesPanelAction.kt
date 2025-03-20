@@ -21,20 +21,22 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
-import com.android.tools.idea.streaming.uisettings.ui.findRelativePoint
 import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.view.WearHealthServicesPanelController
 import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManagerImpl
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.getOrCreateUserData
+import com.intellij.ui.awt.RelativePoint
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 
@@ -98,5 +100,21 @@ class OpenWearHealthServicesPanelAction :
     val position = findRelativePoint(component, emulatorView)
 
     panelController.showWearHealthServicesToolPopup(emulatorView, position)
+  }
+}
+
+/**
+ * Returns the point for displaying the balloon.
+ * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard)
+ *   returns the point NW of the [component]
+ * - If [component] is in a popup itself, converts the point relative to the [displayView]
+ * - Otherwise, returns the center of the button that was pressed
+ */
+fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
+  return when {
+    component is AbstractDisplayView -> RelativePoint.getNorthWestOf(component)
+    PopupUtil.getPopupContainerFor(component) != null ->
+      RelativePoint.getCenterOf(component).getPointOn(displayView)
+    else -> RelativePoint.getCenterOf(component)
   }
 }

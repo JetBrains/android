@@ -38,13 +38,13 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Studio-specific [RenderModelModule] constructed from a [AndroidBuildTargetReference] that is an [AndroidFacet] wrapper.
@@ -52,14 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetReference) : RenderModelModule {
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
-  private val _isDisposed = AtomicBoolean(false)
   private val facet: AndroidFacet get() = buildTarget.facet
-
-  init {
-    if (!Disposer.tryRegister(facet, this)) {
-      _isDisposed.set(true)
-    }
-  }
 
   override fun getIdeaModule(): Module = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryBase(
@@ -99,12 +92,17 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   override val dependencies: ModuleDependencies = facet.getModuleSystem().moduleDependencies
   override val project: Project
     get() = facet.module.project
+  override val parentDisposable: CheckedDisposable = Disposer.newCheckedDisposable()
   override val isDisposed: Boolean
-    get() = _isDisposed.get() || buildTarget.buildTarget.moduleIfNotDisposed == null
+    get() = parentDisposable.isDisposed || buildTarget.buildTarget.moduleIfNotDisposed == null
 
-  override fun dispose() {
-    _isDisposed.set(true)
-    assetRepository = null
+  init {
+    Disposer.register(parentDisposable) {
+      assetRepository = null
+    }
+    if (!Disposer.tryRegister(facet, parentDisposable)) {
+      Disposer.dispose(parentDisposable)
+    }
   }
 
   override val name: String

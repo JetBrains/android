@@ -680,7 +680,7 @@ class AppInsightsProjectLevelControllerTest {
               )
             ),
           detailsState = LoadingState.Ready(ISSUE1_DETAILS),
-          eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")),
           notesState = LoadingState.Ready(emptyList()),
         )
       )
@@ -690,7 +690,8 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
+          currentEvents =
+            LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           permission = Permission.FULL,
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
@@ -1015,7 +1016,7 @@ class AppInsightsProjectLevelControllerTest {
           ),
         issueVariantsState = LoadingState.Ready(emptyList()),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
       )
     assertThat(newModel)
       .isEqualTo(
@@ -1025,7 +1026,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
-          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")),
         )
       )
 
@@ -1555,7 +1556,7 @@ class AppInsightsProjectLevelControllerTest {
               DEFAULT_FETCHED_PERMISSIONS,
             )
           ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
       )
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
 
@@ -1583,7 +1584,7 @@ class AppInsightsProjectLevelControllerTest {
               DEFAULT_FETCHED_PERMISSIONS,
             )
           ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
         insightState = LoadingState.Ready(AiInsight("insight")),
       )
 
@@ -1619,6 +1620,30 @@ class AppInsightsProjectLevelControllerTest {
 
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+  }
+
+  @Test
+  fun `fetch insight on event with empty stacktrace returns Unsupported`() = runBlocking {
+    controllerRule.consumeInitialState(
+      state =
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1.copy(sampleEvent = Event("1"))),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            DEFAULT_FETCHED_PERMISSIONS,
+          )
+        ),
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+    )
+    controllerRule.controller.refreshInsight(false)
+    val state = controllerRule.consumeNext()
+
+    assertThat(state.currentInsight)
+      .isEqualTo(
+        LoadingState.UnsupportedOperation("Insights cannot be generated for empty stacktrace")
+      )
   }
 }
 

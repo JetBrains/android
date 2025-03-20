@@ -111,6 +111,7 @@ class VirtualDeviceTest {
     val device =
       VirtualDevice(deviceProfile = pixel8).apply {
         name = "My Pixel"
+        image = mockSystemImage()
         expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB))
         skin = DefaultSkin(Paths.get("pixel_8"))
         orientation = ScreenOrientation.LANDSCAPE
@@ -127,7 +128,7 @@ class VirtualDeviceTest {
         preferredAbi = SdkConstants.ABI_RISCV64
       }
 
-    avdBuilder.copyFrom(device, mockSystemImage())
+    avdBuilder.copyFrom(device)
 
     with(avdBuilder) {
       assertThat(displayName).isEqualTo("My Pixel")

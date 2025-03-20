@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForResourceRepositoryUpdates;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -403,9 +404,8 @@ public class ResourceNotificationManagerTest {
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
     waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(called1.get());
+    waitForCondition(5, TimeUnit.SECONDS, () -> called1.get() && called2.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());
-    assertTrue(called2.get());
     assertEquals(EnumSet.of(reason), calledValue2.get());
   }
 
@@ -420,8 +420,11 @@ public class ResourceNotificationManagerTest {
   private void ensureNotCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Boolean> called2) throws InterruptedException, TimeoutException {
     waitForResourceRepositoryUpdates(myModule);
     UIUtil.dispatchAllInvocationEvents();
-    assertFalse(called1.get());
-    assertFalse(called2.get());
+    try {
+      waitForCondition(5, TimeUnit.SECONDS, () -> called1.get() || called2.get());
+      assertFalse(called1.get());
+      assertFalse(called2.get());
+    } catch (TimeoutException e) {}
   }
 
   private void addText(@NotNull PsiFile file, @NotNull String location, @NotNull String insertedText) {

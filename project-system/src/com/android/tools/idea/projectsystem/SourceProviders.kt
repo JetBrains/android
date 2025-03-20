@@ -83,7 +83,7 @@ interface SourceProviders {
    * Note: This source provider does not necessarily include all the source code required to build the module. Consider using [sources]
    *       source provider which includes all the production source files.
    */
-  val mainIdeaSourceProvider: NamedIdeaSourceProvider
+  val mainIdeaSourceProvider: NamedIdeaSourceProvider?
 
   /**
    * The main manifest file of the module.
@@ -91,7 +91,7 @@ interface SourceProviders {
    * Note: A module may have multiple manifest files which are merged by the build process. Consider using [MergedManifestManager] APIs to
    *       look up data in the merged manifest.
    */
-  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFiles.singleOrNull()
+  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider?.manifestFiles?.singleOrNull()
 
   /**
    * Returns a list of source providers, in the overlay order (meaning that later providers

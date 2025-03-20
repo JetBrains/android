@@ -90,9 +90,9 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
 
   override suspend fun findBoundsOfComponents(
     sceneView: SceneView,
-    fileName: String,
-  ): Map<Int, Rectangle> {
-    return mapOf()
+    lineNumber: Int,
+  ): List<Rectangle> {
+    return listOf()
   }
 
   override suspend fun navigateTo(

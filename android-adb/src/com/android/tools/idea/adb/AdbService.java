@@ -375,6 +375,10 @@ public final class AdbService implements Disposable {
       case DEFAULT -> {}
     }
 
+    if (AdbOptionsService.getInstance().getAdbServerLogsEnabled()) {
+      options.withEnv("ADB_TRACE", "all");
+    }
+
     getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
       // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox

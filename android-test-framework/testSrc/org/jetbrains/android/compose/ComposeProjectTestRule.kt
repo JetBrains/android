@@ -53,6 +53,9 @@ class ComposeProjectRule(
   val project: Project
     get() = projectRule.project
 
+  val module
+    get() = projectRule.module
+
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 

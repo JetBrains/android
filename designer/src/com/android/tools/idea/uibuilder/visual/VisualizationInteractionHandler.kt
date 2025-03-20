@@ -111,6 +111,8 @@ class VisualizationInteractionHandler(
     }
   }
 
+  override fun onCaretMoved(line: Int) {}
+
   private fun applyConfiguration(destination: Configuration, source: Configuration) {
     with(destination) {
       startBulkEditing()

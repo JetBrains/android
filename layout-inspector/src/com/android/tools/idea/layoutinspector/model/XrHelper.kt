@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import java.awt.Polygon
 import java.awt.Rectangle
 import org.jetbrains.annotations.VisibleForTesting
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.VisibleForTesting
 fun reLayoutWindowsForXr(writeAccess: ViewNode.WriteAccess, windows: List<AndroidWindow>) {
   val hasXr = windows.filterIsInstance<ViewAndroidWindow>().find { it.isXr } != null
 
-  if (!hasXr) {
+  if (!hasXr || LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
     return
   }
 

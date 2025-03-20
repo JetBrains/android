@@ -23,7 +23,7 @@ import java.io.Serializable
 data class IdeSourceProviderImpl private constructor(
   private val nameField: String,
   private val folderField: File?,
-  private val manifestFileField: File,
+  private val manifestFileField: File?,
   private val javaDirectoriesField: Collection<File>,
   private val kotlinDirectoriesField: Collection<File>,
   private val resourcesDirectoriesField: Collection<File>,
@@ -41,7 +41,7 @@ data class IdeSourceProviderImpl private constructor(
   constructor(
     name: String,
     folder: File?,
-    manifestFile: String,
+    manifestFile: String?,
     javaDirectories: Collection<String>,
     kotlinDirectories: Collection<String>,
     resourcesDirectories: Collection<String>,
@@ -57,7 +57,7 @@ data class IdeSourceProviderImpl private constructor(
   ) : this(
     name,
     folder,
-    manifestFile.translate(folder),
+    manifestFile?.translate(folder),
     javaDirectories.translate(folder),
     kotlinDirectories.translate(folder),
     resourcesDirectories.translate(folder),
@@ -76,7 +76,7 @@ data class IdeSourceProviderImpl private constructor(
   constructor() : this(
     nameField = "",
     folderField = File(""),
-    manifestFileField = File(""),
+    manifestFileField = null,
     javaDirectoriesField = mutableListOf(),
     kotlinDirectoriesField = mutableListOf(),
     resourcesDirectoriesField = mutableListOf(),
@@ -119,7 +119,7 @@ data class IdeSourceProviderImpl private constructor(
 
 
   override val name: String get() = nameField
-  override val manifestFile: File get() = manifestFileField
+  override val manifestFile: File? get() = manifestFileField
   override val javaDirectories: Collection<File> get() = javaDirectoriesField
   override val kotlinDirectories: Collection<File> get() = kotlinDirectoriesField
   override val resourcesDirectories: Collection<File> get() = resourcesDirectoriesField

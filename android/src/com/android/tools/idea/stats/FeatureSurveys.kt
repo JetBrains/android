@@ -16,17 +16,25 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.actions.BrowserNotificationAction
 import com.android.tools.idea.actions.FeatureSurveyNotificationAction
+import com.android.tools.idea.serverflags.BROWSER_SURVEY_ROOT
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_CONFIG
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_ROOT
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.BrowserSurvey
 import com.android.tools.idea.serverflags.protos.FeatureSurveyConfig
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
+import com.google.wireless.android.sdk.stats.BrowserSurveyEvent
+import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
+import java.util.UUID
 
 object FeatureSurveys {
   private var isFeatureSurveyPending = false
@@ -37,24 +45,9 @@ object FeatureSurveys {
   }
 
   fun triggerSurveyByName(surveyFileName: String) {
-    val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
-    val survey = ServerFlagService.instance
-                   .getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY)
-                 ?: return
-
-    if (!shouldInvokeFeatureSurvey(name)) {
-      return
-    }
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
-
-    val notification = notificationGroup.createNotification(
-      survey.title,
-      "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
-      NotificationType.INFORMATION
-    )
-
-    notification.addAction(FeatureSurveyNotificationAction(survey))
+    val notification = getFeatureSurveyNotification(surveyFileName)
+                       ?: getBrowserNotification(surveyFileName)
+                       ?: return
 
     ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
@@ -109,6 +102,71 @@ object FeatureSurveys {
 
       else -> config
     }
+  }
+
+  private fun getFeatureSurveyNotification(surveyFileName: String): Notification? {
+    val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
+    val survey = ServerFlagService.instance
+                   .getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY)
+                 ?: return null
+
+    if (shouldInvokeFeatureSurvey(name)) {
+      return null
+    }
+
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return null
+
+    val notification = notificationGroup.createNotification(
+      survey.title,
+      "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
+      NotificationType.INFORMATION
+    )
+
+    notification.addAction(FeatureSurveyNotificationAction(survey))
+
+    return notification
+  }
+
+  private fun getBrowserNotification(surveyFileName: String): Notification? {
+    val name = "$BROWSER_SURVEY_ROOT$surveyFileName"
+    val emptySurvey = BrowserSurvey.newBuilder().build()
+    val survey = ServerFlagService.instance
+                   .getProtoOrNull(name, emptySurvey)
+                 ?: return null
+
+    if (shouldInvokeFeatureSurvey(name)) {
+      return null
+    }
+
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Browser Survey") ?: return null
+
+    val notification = notificationGroup.createNotification(
+      survey.title,
+      survey.description,
+      NotificationType.INFORMATION
+    )
+
+    val uniqueId = when {
+      AnalyticsSettings.optedIn -> UUID.randomUUID().toString()
+      else -> "none"
+    }
+
+    val url = survey.url.replace("_unique_id", uniqueId)
+
+    notification.addAction(BrowserNotificationAction(url))
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = EventKind.BROWSER_SURVEY_EVENT
+        browserSurveyEvent = BrowserSurveyEvent.newBuilder().apply {
+          this.name = survey.name
+          this.uniqueId = uniqueId
+        }.build()
+      })
+
+    return notification
   }
 
   @VisibleForTesting

@@ -27,7 +27,11 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.DisplayType
+import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
@@ -36,8 +40,10 @@ import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POL
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
+import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -52,6 +58,7 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -78,7 +85,22 @@ import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_A
+import java.awt.event.KeyEvent.VK_D
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_E
+import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
+import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_P
+import java.awt.event.KeyEvent.VK_PAGE_DOWN
+import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_Q
+import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
+import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.KeyEvent.VK_W
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Path
@@ -91,6 +113,7 @@ import javax.swing.JViewport
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.test.assertEquals
+import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -250,6 +273,212 @@ class DeviceToolWindowPanelTest {
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2.seconds) { !agent.videoStreamActive }
+  }
+
+  @Test
+  fun testXrToolbarActions() {
+    // Move XR buttons to the Running Devices toolbar to check its appearance.
+    service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    panel.createContent(false)
+    val displayView = panel.primaryDisplayView ?: fail()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+    fakeUi.updateToolbarsIfNecessary()
+
+    // Check that the buttons not applicable to XR devices are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Back" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    // Check XR-specific actions.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
+    val xrInputController = DeviceXrInputController.getInstance(project, panel.deviceClient)
+    assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HARDWARE)
+    val modes = mapOf(
+      "Hardware Input" to XrInputMode.HARDWARE,
+      "View Direction" to XrInputMode.VIEW_DIRECTION,
+      "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+      "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+    )
+    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+    for ((actionName, mode) in modes) {
+      fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(displayView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
+    }
+
+    val toggleAction = ToggleFloatingXrToolbarAction()
+    toggleAction.actionPerformed(createTestEvent(displayView, project, ActionPlaces.TOOLWINDOW_POPUP))
+    assertAppearance("XrToolbarActions2", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+  }
+
+  @Test
+  fun testXrKeyboardNavigation() {
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    panel.createContent(false)
+    val displayView = panel.primaryDisplayView ?: fail()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    expandFloatingToolbar()
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "View Direction" })
+
+    val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
+    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+
+    fakeUi.keyboard.setFocus(displayView)
+    fakeUi.keyboard.press(VK_ENTER)
+    // Keys that are not used for navigation produce keypress events.
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_ENTER, 0))
+    fakeUi.keyboard.release(VK_ENTER)
+
+    val velocityKeys = mapOf(
+      VK_W to XrVelocityMessage(0f, 0f, -1f),
+      VK_A to XrVelocityMessage(-1f, 0f, 0f),
+      VK_S to XrVelocityMessage(0f, 0f, 1f),
+      VK_D to XrVelocityMessage(1f, 0f, 0f),
+      VK_Q to XrVelocityMessage(0f, -1f, 0f),
+      VK_E to XrVelocityMessage(0f, 1f, 0f),
+    )
+    for ((k, message) in velocityKeys) {
+      fakeUi.keyboard.press(k)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(message)
+      fakeUi.keyboard.release(k)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 0f, 0f))
+    }
+
+    // Expectations are represented by strings to avoid rounding problems.
+    val angularVelocityKeys = mapOf(
+      VK_RIGHT to "XrAngularVelocityMessage(x = 0.0, y = -0.5235988)",
+      VK_LEFT to "XrAngularVelocityMessage(x = 0.0, y = 0.5235988)",
+      VK_UP to "XrAngularVelocityMessage(x = 0.5235988, y = 0.0)",
+      VK_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = 0.0)",
+      VK_PAGE_UP to "XrAngularVelocityMessage(x = 0.5235988, y = -0.5235988)",
+      VK_PAGE_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = -0.5235988)",
+      VK_HOME to "XrAngularVelocityMessage(x = 0.5235988, y = 0.5235988)",
+      VK_END to "XrAngularVelocityMessage(x = -0.5235988, y = 0.5235988)",
+    )
+    for ((k, message) in angularVelocityKeys) {
+      fakeUi.keyboard.press(k)
+      assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(message)
+      fakeUi.keyboard.release(k)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrAngularVelocityMessage(0f, 0f))
+    }
+
+    // Two keys pressed together.
+    fakeUi.keyboard.press(VK_D)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(1f, 0f, 0f))
+    fakeUi.keyboard.press(VK_E)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(1f, 1f, 0f))
+    fakeUi.keyboard.press(VK_A)
+    // D and A cancel each other out.
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 1f, 0f))
+    fakeUi.keyboard.release(VK_D)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, 1f, 0f))
+    fakeUi.keyboard.press(VK_Q)
+    // E and Q cancel each other out.
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, 0f, 0f))
+    fakeUi.keyboard.release(VK_E)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, -1f, 0f))
+
+    expandFloatingToolbar()
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
+    // Switching to Hardware Input resets state of the navigation keys.
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 0f, 0f))
+    fakeUi.keyboard.release(VK_A)
+    fakeUi.keyboard.release(VK_Q)
+  }
+
+  @Test
+  fun testXrMouseViewRotation() {
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    panel.createContent(false)
+    val displayView = panel.primaryDisplayView ?: fail()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    expandFloatingToolbar()
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "View Direction" })
+
+    val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
+    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+
+    fakeUi.mouse.press(50, 50)
+    fakeUi.mouse.dragTo(200, 50)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = 0.019084575)")
+    fakeUi.mouse.dragTo(200, 200)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.019084575, y = 0.0)")
+    fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
+    fakeUi.mouse.dragTo(100, 35) // Enter the DeviceView component in a different location.
+    fakeUi.mouse.dragTo(150, 200)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.020993032, y = 0.0063615246)")
+  }
+
+  @Test
+  fun testXrMouseMovementInSpace() {
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    panel.createContent(false)
+    val displayView = panel.primaryDisplayView ?: fail()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    expandFloatingToolbar()
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Right/Left and Up/Down" })
+
+    val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_XY)
+    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+
+    fakeUi.mouse.press(50, 50)
+    fakeUi.mouse.dragTo(200, 50)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.03037404, y = 0.0, z = 0.0)")
+    fakeUi.mouse.dragTo(200, 200)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.03037404, z = 0.0)")
+    fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
+    fakeUi.mouse.dragTo(100, 35) // Enter the DeviceView component in a different location.
+    fakeUi.mouse.dragTo(150, 200)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(
+        "XrTranslationMessage(x = -0.010124681, y = 0.033411447, z = 0.0)")
+    fakeUi.mouse.release()
+
+    // Moving forward and backward by rotating the mouse wheel.
+    fakeUi.mouse.wheel(10, 100, 1)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.0625)")
+    fakeUi.mouse.wheel(10, 100, -3)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = -0.1875)")
+
+    expandFloatingToolbar()
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Forward/Backward" })
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_Z)
+    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+
+    fakeUi.mouse.press(50, 50)
+    fakeUi.mouse.dragTo(100, 200)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.03037404)")
+    fakeUi.mouse.release()
   }
 
   @Test
@@ -506,6 +735,16 @@ class DeviceToolWindowPanelTest {
     return panel.findDisplayView(displayId)!!.frameNumber
   }
 
+  private fun expandFloatingToolbar() {
+    fakeUi.layoutAndDispatchEvents()
+    val toolbar = fakeUi.getComponent<FloatingToolbarContainer>()
+    // Trigger expansion of the floating toolbar.
+    fakeUi.mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
+    fakeUi.layoutAndDispatchEvents()
+  }
+
   @Suppress("SameParameterValue")
   private fun assertAppearance(goldenImageName: String,
                                maxPercentDifferentLinux: Double = 0.0003,
@@ -529,7 +768,7 @@ class DeviceToolWindowPanelTest {
     get() = primaryDisplayView?.isConnected == true
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
-    if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
+      if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
 }
 
 

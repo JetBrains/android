@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device.actions
 import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
+import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceController
 import com.android.tools.idea.streaming.device.DeviceView
@@ -45,6 +46,9 @@ internal abstract class AbstractDeviceAction(private val configFilter: Predicate
     isDeviceConnected(event)
 }
 
+internal fun getDeviceClient(event: AnActionEvent): DeviceClient? =
+  event.dataContext.getData(DEVICE_CLIENT_KEY)
+
 internal fun getDeviceController(event: AnActionEvent): DeviceController? =
   event.dataContext.getData(DEVICE_CONTROLLER_KEY)
 
@@ -52,7 +56,7 @@ internal fun getDeviceView(event: AnActionEvent): DeviceView? =
   event.dataContext.getData(DEVICE_VIEW_KEY)
 
 internal fun getDeviceConfig(event: AnActionEvent): DeviceConfiguration? =
-  event.dataContext.getData(DEVICE_CLIENT_KEY)?.deviceConfig
+  getDeviceClient(event)?.deviceConfig
 
 internal fun isDeviceConnected(event: AnActionEvent) =
   getDeviceView(event)?.isConnected == true

@@ -42,11 +42,9 @@ public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    if (containsExternalCppProjects(project)) {
-      super.doUpdate(e, project);
-    }
-    else {
-      e.getPresentation().setEnabled(false);
+    super.doUpdate(e, project);  // Will disable if sync running.
+    if (e.getPresentation().isEnabled() && !containsExternalCppProjects(project)) {
+      e.getPresentation().setEnabled(false);  // No C++ project.
     }
   }
 

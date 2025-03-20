@@ -18,10 +18,12 @@ package com.android.tools.idea.editors.strings.table;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -44,6 +46,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -63,16 +66,24 @@ public class FrozenColumnTable<M extends TableModel> {
   private SubTable<M> myLastFocusedSubTable;
   private JScrollPane myScrollPane;
   private int rowHeight;
-  private int mySelectedRow;
+
+  // Row and Column index that were sent via the FrozenColumnTableListeners
+  private int myLastSelectedRow;
+  private int myLastSelectedColumn;
+
+  // Column selection across the 2 tables:
+  private int myAnchorColumn;
   private int mySelectedColumn;
 
   @Nullable
   private FrozenColumnTableRowSorter<M> myRowSorter;
+  private final CellSelectionListener<M> myCellSelectionListener;
 
   FrozenColumnTable(@NotNull M model, int frozenColumnCount) {
     myModel = model;
     myFrozenColumnCount = frozenColumnCount;
     myListeners = new ArrayList<>();
+    myCellSelectionListener = new CellSelectionListener<>();
 
     initFrozenTable();
     initScrollableTable();
@@ -82,19 +93,22 @@ public class FrozenColumnTable<M extends TableModel> {
     registerActionOverrides();
     new SubTableHoverListener(myFrozenTable, myScrollableTable).install();
 
-    mySelectedRow = -1;
+    myLastSelectedRow = -1;
+    myLastSelectedColumn = -1;
+
+    myAnchorColumn = -1;
     mySelectedColumn = -1;
   }
 
   private void registerActionOverrides() {
-    registerActionOverrides(new ActionTable(myFrozenTable, myFrozenTable, myScrollableTable));
-    registerActionOverrides(new ActionTable(myFrozenTable, myScrollableTable, myScrollableTable));
+    registerActionOverrides(myFrozenTable);
+    registerActionOverrides(myScrollableTable);
   }
 
-  private void registerActionOverrides(@NotNull ActionTable table) {
-    ActionMap map = table.getCurrentTable().getActionMap();
+  private void registerActionOverrides(@NotNull JTable table) {
+    ActionMap map = table.getActionMap();
     for (ActionType type : ActionType.getEntries()) {
-      map.put(type.getActionName(), new TableAction(type, table));
+      map.put(type.getActionName(), new TableAction(type, this));
     }
   }
 
@@ -111,11 +125,7 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myFrozenTable.getColumnModel().getSelectionModel().addListSelectionListener(event -> {
-      if (myFrozenTable.getSelectedColumn() == -1) {
-        return;
-      }
-
-      myScrollableTable.getColumnModel().getSelectionModel().clearSelection();
+      removeEmptyColumnSelection(myFrozenTable);
       fireSelectedCellChanged(false);
     });
 
@@ -133,6 +143,8 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myFrozenTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myFrozenTable.addMouseListener(myCellSelectionListener);
+    myFrozenTable.addMouseMotionListener(myCellSelectionListener);
     myFrozenTable.addFocusListener(new FocusAdapter() {
       public void focusGained(@NotNull FocusEvent event) {
         myLastFocusedSubTable = myFrozenTable;
@@ -153,15 +165,13 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myScrollableTable.getColumnModel().getSelectionModel().addListSelectionListener(event -> {
-      if (myScrollableTable.getSelectedColumn() == -1) {
-        return;
-      }
-
-      myFrozenTable.getColumnModel().getSelectionModel().clearSelection();
+      removeEmptyColumnSelection(myScrollableTable);
       fireSelectedCellChanged(false);
     });
 
     myScrollableTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myScrollableTable.addMouseListener(myCellSelectionListener);
+    myScrollableTable.addMouseMotionListener(myCellSelectionListener);
     myScrollableTable.addFocusListener(new FocusAdapter() {
       public void focusGained(@NotNull FocusEvent event) {
         myLastFocusedSubTable = myScrollableTable;
@@ -170,7 +180,7 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   private void mirrorRowSelection(@NotNull JTable fromTable, JTable toTable) {
-    ListSelectionModel fsm =  fromTable.getSelectionModel();
+    ListSelectionModel fsm = fromTable.getSelectionModel();
     int first = fsm.getMinSelectionIndex();
     int last = fsm.getMaxSelectionIndex();
     if (first == -1) {
@@ -184,6 +194,21 @@ public class FrozenColumnTable<M extends TableModel> {
       }
       toTable.setRowSelectionInterval(first, last);
     }
+  }
+
+  private void removeEmptyColumnSelection(@NotNull JTable table) {
+    ListSelectionModel sm = table.getColumnModel().getSelectionModel();
+    if ((mySelectedColumn < 0 || myAnchorColumn < 0) && !sm.isSelectionEmpty()) {
+      mySelectedColumn = adjustedColumnIndex(sm.getLeadSelectionIndex(), table);
+      myAnchorColumn = adjustedColumnIndex(sm.getAnchorSelectionIndex(), table);
+    }
+  }
+
+  private int adjustedColumnIndex(int index, JTable table) {
+    if (index < 0) {
+      return index;
+    }
+    return table == myFrozenTable ? index : index + getFrozenColumnCount();
   }
 
   public boolean skipTransferTo(@NotNull Component toComponent, @NotNull Component fromComponent) {
@@ -242,12 +267,12 @@ public class FrozenColumnTable<M extends TableModel> {
     int selectedRow = getSelectedRow();
     int selectedColumn = getSelectedColumn();
 
-    if (!force && (mySelectedRow == selectedRow && mySelectedColumn == selectedColumn)) {
+    if (!force && (myLastSelectedRow == selectedRow && myLastSelectedColumn == selectedColumn)) {
       return;
     }
 
-    mySelectedRow = selectedRow;
-    mySelectedColumn = selectedColumn;
+    myLastSelectedRow = selectedRow;
+    myLastSelectedColumn = selectedColumn;
 
     myListeners.forEach(FrozenColumnTableListener::selectedCellChanged);
   }
@@ -287,6 +312,48 @@ public class FrozenColumnTable<M extends TableModel> {
     }
   }
 
+  private static final class CellSelectionListener<M extends TableModel> extends MouseAdapter {
+
+    @Override
+    public void mousePressed(@NotNull MouseEvent event) {
+      @SuppressWarnings("unchecked")
+      SubTable<M> subTable = (SubTable<M>)event.getSource();
+      FrozenColumnTable<M> source = subTable.getFrozenColumnTable();
+
+      Point point = event.getPoint();
+      int viewRowIndex = subTable.rowAtPoint(point);
+      int viewColumnIndex = source.adjustedColumnIndex(subTable.columnAtPoint(point), subTable);
+      boolean extend = event.isShiftDown();
+      source.gotoColumn(viewColumnIndex, extend);
+      int viewRowAnchor = !extend || subTable.getSelectionModel().isSelectionEmpty()
+                          ? viewRowIndex
+                          : subTable.getSelectionModel().getAnchorSelectionIndex();
+      subTable.getSelectionModel().setSelectionInterval(viewRowAnchor, viewRowIndex);
+      event.consume();
+    }
+
+    @Override
+    public void mouseDragged(@NotNull MouseEvent event) {
+      @SuppressWarnings("unchecked")
+      SubTable<M> subTable = (SubTable<M>)event.getSource();
+      FrozenColumnTable<M> source = subTable.getFrozenColumnTable();
+
+      Point point = event.getPoint();
+      int viewRowIndex = subTable.rowAtPoint(point);
+      int viewColumnIndex = source.adjustedColumnIndex(subTable.columnAtPoint(point), subTable);
+      if (viewColumnIndex < 0) {
+        JTable otherTable = source.getFrozenTable() == subTable ? source.getScrollableTable() : source.getFrozenTable();
+        point = SwingUtilities.convertPoint(subTable, point, otherTable);
+        viewColumnIndex = source.adjustedColumnIndex(otherTable.columnAtPoint(point), otherTable);
+      }
+      source.gotoColumn(viewColumnIndex, true);
+      int viewRowAnchor =
+        subTable.getSelectionModel().isSelectionEmpty() ? viewRowIndex : subTable.getSelectionModel().getAnchorSelectionIndex();
+      subTable.getSelectionModel().setSelectionInterval(viewRowAnchor, viewRowIndex);
+      event.consume();
+    }
+  }
+
   private void initScrollPane() {
     myScrollPane = new JBScrollPane(myScrollableTable);
 
@@ -309,23 +376,13 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   public final void selectCellAt(int viewRowIndex, int viewColumnIndex) {
-    int count = myFrozenTable.getColumnCount();
-
     setRowSelectionInterval(viewRowIndex, viewRowIndex);
-    if (viewColumnIndex < count) {
-      myFrozenTable.setColumnSelectionInterval(viewColumnIndex, viewColumnIndex);
-      return;
-    }
-
-    viewColumnIndex -= count;
-    myScrollableTable.setColumnSelectionInterval(viewColumnIndex, viewColumnIndex);
+    gotoColumn(viewColumnIndex, false);
   }
 
   public final int getSelectedModelRowIndex() {
-    int index = myFrozenTable.getSelectedModelRowIndex();
-    assert index == myScrollableTable.getSelectedModelRowIndex();
-
-    return index;
+    int row = getSelectedRow();
+    return myFrozenTable.convertRowIndexToModel(row);
   }
 
   public final int[] getSelectedModelRows() {
@@ -342,10 +399,155 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   public final int getSelectedModelColumnIndex() {
-    int index = myFrozenTable.getSelectedModelColumnIndex();
-    return index == -1
-      ? myScrollableTable.getSelectedModelColumnIndex()
-      : index;
+    int column = getSelectedColumn();
+    return column >= 0 ? convertColumnIndexToModel(column) : -1;
+  }
+
+  public final void selectAll() {
+    if (getRowCount() == 0) {
+      return;
+    }
+    myFrozenTable.changeSelection(getRowCount() - 1, getFrozenColumnCount() - 1, false, false);
+    myScrollableTable.changeSelection(getRowCount() - 1, getScrollableTable().getColumnCount() - 1, false, false);
+    myFrozenTable.changeSelection(0, 0, false, true);
+    myScrollableTable.changeSelection(0, 0, false, true);
+    myAnchorColumn = getColumnCount() - 1;
+    mySelectedColumn = 0;
+    scrollIntoView();
+  }
+
+  public final void clearSelection() {
+    myAnchorColumn = -1;
+    mySelectedColumn = -1;
+    myFrozenTable.clearSelection();
+    myScrollableTable.clearSelection();
+  }
+
+  // Override row movement when not extending the selection: This should clear the selection in the other table.
+  public final void gotoRow(int row) {
+    // Note: extendFromAnchor is false for all row actions in TableActions.
+    if (getRowCount() == 0) {
+      return;
+    }
+    row = Math.max(0, Math.min(row, getRowCount() - 1));
+    int column = Math.max(0, mySelectedColumn);
+    myFrozenTable.getSelectionModel().setSelectionInterval(row, row);
+    myScrollableTable.getSelectionModel().setSelectionInterval(row, row);
+    int fixedColumns = getFrozenColumnCount();
+    if (column < fixedColumns) {
+      myFrozenTable.getColumnModel().getSelectionModel().setSelectionInterval(column, column);
+      myScrollableTable.getColumnModel().getSelectionModel().clearSelection();
+    }
+    else {
+      myFrozenTable.getColumnModel().getSelectionModel().clearSelection();
+      myScrollableTable.getColumnModel().getSelectionModel().setSelectionInterval(column - fixedColumns, column - fixedColumns);
+    }
+    myAnchorColumn = column;
+    mySelectedColumn = column;
+    fireSelectedCellChanged(false);
+    scrollIntoView();
+  }
+
+  // Override row PgUp, PgDn when not extending the selection: This should clear the selection in the other table.
+  public final void scrollRow(boolean forwards) {
+    // Code taken from BasicTableUI:
+    int selectedRow = getSelectedRow();
+    if (selectedRow < 0 || !(SwingUtilities.getUnwrappedParent(myFrozenTable).getParent() instanceof JScrollPane)) {
+      return;
+    }
+    Dimension delta = myFrozenTable.getParent().getSize();
+    Rectangle r = myFrozenTable.getCellRect(selectedRow, 0, true);
+    if (forwards) {
+      // scroll by at least one cell
+      r.y += Math.max(delta.height, r.height);
+    } else {
+      r.y -= delta.height;
+    }
+
+    int newRow = myFrozenTable.rowAtPoint(r.getLocation());
+    if (newRow == -1 && forwards) {
+      newRow = getRowCount();
+    }
+    gotoRow(newRow);
+  }
+
+  public final void gotoColumn(int column, boolean extendFromAnchor) {
+    if (!extendFromAnchor) {
+      myAnchorColumn = -1;
+
+      int row = getSelectedRow();
+      myFrozenTable.getSelectionModel().setSelectionInterval(row, row);
+    }
+    if (column < getFrozenColumnCount()) {
+      gotoFrozenColumn(column);
+    }
+    else {
+      gotoScrollableColumn(column - getFrozenColumnCount());
+    }
+    fireSelectedCellChanged(false);
+    scrollIntoView();
+  }
+
+  private void gotoFrozenColumn(int column) {
+    final int targetColumn = Math.max(0, column);
+    if (myAnchorColumn < 0) {
+      myAnchorColumn = targetColumn;
+    }
+
+    int scrollableAnchor = myAnchorColumn - getFrozenColumnCount();
+    if (scrollableAnchor < 0) {
+      myScrollableTable.getColumnModel().getSelectionModel().clearSelection();
+    }
+    else {
+      myScrollableTable.getColumnModel().getSelectionModel().setSelectionInterval(scrollableAnchor, 0);
+    }
+
+    int frozenAnchor = Math.min(myAnchorColumn, getFrozenColumnCount() - 1);
+    myFrozenTable.getColumnModel().getSelectionModel().setSelectionInterval(frozenAnchor, targetColumn);
+
+    if (!myFrozenTable.hasFocus()) {
+      myFrozenTable.requestFocus();
+    }
+    mySelectedColumn = targetColumn;
+  }
+
+  private void gotoScrollableColumn(int column) {
+    final int targetColumn = Math.min(myScrollableTable.getColumnCount() - 1, column);
+    if (myAnchorColumn < 0) {
+      myAnchorColumn = targetColumn + getFrozenColumnCount();
+    }
+
+    if (myAnchorColumn >= myFrozenTable.getColumnCount()) {
+      myFrozenTable.getColumnModel().getSelectionModel().clearSelection();
+    }
+    else {
+      myFrozenTable.getColumnModel().getSelectionModel().setSelectionInterval(myAnchorColumn, getFrozenColumnCount() - 1);
+    }
+
+    int scrollableAnchor = Math.max(myAnchorColumn - getFrozenColumnCount(), 0);
+    myScrollableTable.getColumnModel().getSelectionModel().setSelectionInterval(scrollableAnchor, targetColumn);
+
+    if (!myScrollableTable.hasFocus()) {
+      myScrollableTable.requestFocus();
+    }
+    mySelectedColumn = targetColumn + getFrozenColumnCount();
+  }
+
+  private void scrollIntoView() {
+    int row = getSelectedRow();
+    int column = mySelectedColumn;
+    if (row < 0 || column < 0) {
+      return;
+    }
+    JTable table = myFrozenTable;
+    if (column >= getFrozenColumnCount()) {
+      table = myScrollableTable;
+      column -= getFrozenColumnCount();
+    }
+    Rectangle cellRect = table.getCellRect(row, column, false);
+    if (cellRect != null) {
+      table.scrollRectToVisible(cellRect);
+    }
   }
 
   public final int getFrozenColumnCount() {
@@ -539,30 +741,27 @@ public class FrozenColumnTable<M extends TableModel> {
 
   /** Returns whether any cell in the table is selected. */
   public final boolean hasSelectedCell() {
-    return myFrozenTable.hasSelectedCell() || myScrollableTable.hasSelectedCell();
+    return getSelectedRow() >= 0 && getSelectedColumn() >= 0;
   }
 
   public final int getSelectedRow() {
-    int row = myFrozenTable.getSelectedRow();
-    assert row == myScrollableTable.getSelectedRow();
+    int row = getSelectedRow(myFrozenTable);
+    assert row == getSelectedRow(myScrollableTable);
 
     return row;
   }
 
+  private int getSelectedRow(@NotNull JTable table) {
+    ListSelectionModel sm = table.getSelectionModel();
+    return sm.isSelectionEmpty() ? -1 : sm.getLeadSelectionIndex();
+  }
+
   public final int getSelectedColumn() {
-    int column = myFrozenTable.getSelectedColumn();
+    return mySelectedColumn;
+  }
 
-    if (column != -1) {
-      return column;
-    }
-
-    column = myScrollableTable.getSelectedColumn();
-
-    if (column != -1) {
-      return myFrozenTable.getColumnCount() + column;
-    }
-
-    return -1;
+  public final int getAnchorColumn() {
+    return myAnchorColumn;
   }
 
   public final int getRowCount() {

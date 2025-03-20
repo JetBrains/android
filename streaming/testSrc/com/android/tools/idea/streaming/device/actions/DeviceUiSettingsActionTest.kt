@@ -20,7 +20,6 @@ import com.android.adblib.DevicePropertyNames
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -43,7 +42,6 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -62,7 +60,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
-import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
@@ -113,8 +110,8 @@ class DeviceUiSettingsActionTest {
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isInstanceOf(ActionButton::class.java)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(8, 8))
+    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
+    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(0, 400))
   }
 
   @Test
@@ -135,42 +132,6 @@ class DeviceUiSettingsActionTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
-  }
-
-  @Test
-  fun testActiveActionFromActionButtonInPopup() {
-    val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView()
-    val event = createTestMouseEvent(action, view)
-    (event.inputEvent?.component as? JComponent)?.putClientProperty(JBPopup.KEY, FakeJBPopup<String>(listOf()))
-
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
-  }
-
-  @Test
-  fun testActiveActionViaKeyboard() {
-    val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView()
-    val event = createTestKeyEvent(view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
   }
 
   @Test

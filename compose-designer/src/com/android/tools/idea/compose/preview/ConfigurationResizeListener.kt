@@ -31,7 +31,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 /**
@@ -51,24 +51,16 @@ class ConfigurationResizeListener(
   private val scope =
     CoroutineScope(defaultDispatcher + SupervisorJob() + CoroutineName(javaClass.simpleName))
 
-  private val deviceSizeChangedFlow = MutableStateFlow<Dimension?>(null)
+  private val deviceSizeChangedFlow = MutableStateFlow<Dimension>(configuration.deviceSize())
 
   init {
     Disposer.register(sceneManager, this)
-    scope.launch { deviceSizeChangedFlow.filterNotNull().collectLatest(::requestRender) }
+    scope.launch { deviceSizeChangedFlow.drop(1).collectLatest(::requestRender) }
   }
 
   override fun changed(changeType: Int): Boolean {
     if (changeType and ConfigurationListener.CFG_DEVICE != 0) {
-      val newDevice = configuration.device ?: return true
-      val newDeviceSize =
-        calculateDimensions(
-          newDevice.defaultHardware.screen.xDimension,
-          newDevice.defaultHardware.screen.yDimension,
-          configuration.deviceState?.orientation,
-        )
-
-      deviceSizeChangedFlow.value = newDeviceSize
+      deviceSizeChangedFlow.value = configuration.deviceSize()
     }
     return true
   }
@@ -110,6 +102,14 @@ class ConfigurationResizeListener(
     } else {
       Dimension(x, y)
     }
+  }
+
+  private fun Configuration.deviceSize(): Dimension {
+    val deviceState = deviceState ?: return Dimension(0, 0)
+    val orientation = deviceState.orientation
+    val x = deviceState.hardware.screen.xDimension
+    val y = deviceState.hardware.screen.yDimension
+    return calculateDimensions(x, y, orientation)
   }
 
   override fun dispose() {

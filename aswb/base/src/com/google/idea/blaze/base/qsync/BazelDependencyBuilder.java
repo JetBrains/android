@@ -22,6 +22,7 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 import static com.intellij.openapi.util.text.StringUtil.sanitizeJavaIdentifier;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -108,7 +109,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class BazelDependencyBuilder implements DependencyBuilder {
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
-  public static final BoolExperiment buildGeneratedSrcJars =
+  private static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", false);
 
   // Note, this is currently incompatible with the build API.
@@ -408,16 +409,31 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       return Path.of(aspectPath);
     }
     PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
-    Path rootAspectDirectory;
     if (Strings.isNotEmpty(aspectLocation.getValue())) {
       Path workspaceAbsolutePath = workspaceRoot.absolutePathFor("");
       // NOTE: aspectLocation allows both relative and absolute paths.
-      rootAspectDirectory = workspaceAbsolutePath.resolve(aspectLocation.getValue());
-      logger.info("Using build aspect from: " + rootAspectDirectory);
+      ImmutableList<Path> candidates = Splitter.on(":")
+        .splitToStream(aspectLocation.getValue())
+        .map(workspaceAbsolutePath::resolve)
+        .map(it -> it.resolve(dir).resolve(filename))
+        .collect(toImmutableList());
+
+      final var result =
+        candidates
+          .stream()
+          .filter(Files::exists)
+          .findFirst()
+          .orElseThrow(() ->
+                         new IllegalStateException(
+                           String.format(
+                             Locale.ROOT,
+                             "None of %s exists",
+                             candidates)));
+      logger.info("Using build aspect file: " + result);
+      return result;
     } else {
-      rootAspectDirectory = plugin.getPluginPath();
+      return plugin.getPluginPath().resolve(dir).resolve(filename);
     }
-    return rootAspectDirectory.resolve(dir).resolve(filename);
   }
 
   protected Path getBundledAspectPath(String filename) {

@@ -33,7 +33,7 @@ public class AndroidFacetModuleCustomizer {
     this.models = models;
   }
 
-  public void createAndroidFacet(Module module, boolean isApp) {
+  public AndroidFacet createAndroidFacet(Module module, boolean isApp) {
     ModifiableFacetModel modifiableFacetModel = models.getModifiableFacetModel(module);
     AndroidFacet facet = modifiableFacetModel.getFacetByType(AndroidFacet.ID);
     FacetManager facetManager = FacetManager.getInstance(module);
@@ -45,6 +45,7 @@ public class AndroidFacetModuleCustomizer {
       modifiableFacetModel.addFacet(facet);
       configureFacet(facet, isApp);
     }
+    return facet;
   }
 
   private static void configureFacet(AndroidFacet facet, boolean isApp) {

@@ -31,6 +31,7 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
+import libcore.util.NativeAllocationRegistry
 
 private val PCT_FORMAT = DecimalFormat("###.##")
 private val LAST_RENDER_BACKGROUND = Color(0x10, 0x10, 0x10, 0x20)
@@ -57,6 +58,8 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
     val freeMemPct = runtime.freeMemory().toDouble() / runtime.totalMemory() * 100
     val lastRenderMs = diagnostics.lastRenders().takeLast(1).firstOrNull() ?: -1
     val poolStats = StudioRenderService.getInstance(project).sharedImagePool.stats
+    val mallocedBytes = NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes }
+    val nonmallocedBytes = NativeAllocationRegistry.getMetrics().sumOf { it.nonmallocedBytes }
 
     val bucketStats =
       poolStats?.bucketStats?.joinToString("\n") {
@@ -77,6 +80,10 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
       | Allocated     ${(poolStats?.totalBytesAllocated() ?: -1) / MiB}MB
       | In use        ${(poolStats?.totalBytesInUse() ?: -1) / MiB}MB
       | Free          ${((poolStats?.totalBytesAllocated() ?: -1) - (poolStats?.totalBytesInUse() ?: 0)) / MiB}MB
+      |
+      |Native memory
+      | mallocedBytes       ${mallocedBytes / MiB}MB
+      | nonmallocedBytes    ${nonmallocedBytes / MiB}MB
       |
       |Buckets
       |${bucketStats}

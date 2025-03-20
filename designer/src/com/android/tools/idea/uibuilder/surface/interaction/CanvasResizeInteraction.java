@@ -36,18 +36,23 @@ import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.AdditionalDeviceService;
+import com.android.tools.idea.uibuilder.analytics.ResizeTracker;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -65,9 +70,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.swing.JComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CanvasResizeInteraction implements Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
@@ -284,6 +288,11 @@ public class CanvasResizeInteraction implements Interaction {
       else {
         Configurations.updateScreenSize(myConfiguration, androidX, androidY);
       }
+      ResizeTracker tracker = ResizeTracker.getTracker(myScreenView.getSceneManager());
+
+      int androidXDp = Coordinates.getAndroidXDip(myScreenView, event.getInfo().getX());
+      int androidYDp = Coordinates.getAndroidYDip(myScreenView, event.getInfo().getY());
+      if (tracker != null) tracker.reportResizeStopped(myScreenView.getSceneManager(), androidXDp, androidYDp);
     }
   }
 

@@ -115,12 +115,10 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       var finalMessage = ""
 
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-        super.onTaskOutput(id, text, stdOut)
         messagesLog.append(text)
       }
 
-      override fun onEnd(id: ExternalSystemTaskId) {
-        super.onEnd(id)
+      override fun onEnd(proojecPath: String, id: ExternalSystemTaskId) {
         finalMessage = messagesLog.toString()
       }
     }

@@ -68,7 +68,8 @@ import javax.swing.KeyStroke
 import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
-private const val UI_CONFIGURATION_KEY =
+@VisibleForTesting
+const val UI_CONFIGURATION_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
 
 private val logger = Logger.getInstance(SelectedTabState::class.java)

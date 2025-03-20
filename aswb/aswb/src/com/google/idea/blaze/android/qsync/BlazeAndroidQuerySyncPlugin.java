@@ -93,10 +93,9 @@ public class BlazeAndroidQuerySyncPlugin implements BlazeQuerySyncPlugin {
         new AndroidFacetModuleCustomizer(models);
 
     // Attach AndroidFacet to workspace modules
-    androidFacetModuleCustomizer.createAndroidFacet(workspaceModule, false);
+    AndroidFacet workspaceFacet = androidFacetModuleCustomizer.createAndroidFacet(workspaceModule, false);
 
     // Add all source resource directories to this AndroidFacet
-    AndroidFacet workspaceFacet = AndroidFacet.getInstance(workspaceModule);
     if (workspaceFacet == null) {
       context.output(
           PrintOutput.error(

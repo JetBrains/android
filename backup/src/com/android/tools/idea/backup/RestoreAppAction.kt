@@ -28,11 +28,14 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Restores an Android Application from a backup file */
 internal class RestoreAppAction(
@@ -88,7 +91,9 @@ internal class RestoreAppAction(
       }
       val file =
         (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return@launch
-      backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
+      withContext(Dispatchers.EDT) {
+        backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
+      }
     }
   }
 

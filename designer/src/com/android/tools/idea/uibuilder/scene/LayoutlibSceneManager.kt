@@ -82,7 +82,7 @@ open class LayoutlibSceneManager(
 ) : SceneManager(model, designSurface, sceneComponentProvider), InteractiveSceneManager {
   private var areListenersRegistered = false
 
-  override val designSurface: NlDesignSurface
+  public override val designSurface: NlDesignSurface
     get() = super.designSurface as NlDesignSurface
 
   val viewEditor: ViewEditor = ViewEditorImpl(model, scene)

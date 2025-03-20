@@ -193,9 +193,17 @@ internal fun SortOrder.Icon() =
   }
 
 @Stable
-class TableSelectionState<T>(selectedValue: T? = null) {
-  var selection by mutableStateOf(selectedValue)
+interface TableSelectionState<T> {
+  var selection: T?
 }
+
+@Stable
+private class TableSelectionStateImpl<T>(selectedValue: T? = null) : TableSelectionState<T> {
+  override var selection by mutableStateOf(selectedValue)
+}
+
+fun <T> TableSelectionState(selectedValue: T? = null): TableSelectionState<T> =
+  TableSelectionStateImpl(selectedValue)
 
 @Stable
 class TableSortState<T> {

@@ -81,7 +81,7 @@ interface IdeAndroidProject : Serializable {
   val lintOptions: IdeLintOptions?
 
   /** Returns the compile options for Java code.  */
-  val javaCompileOptions: IdeJavaCompileOptions
+  val javaCompileOptions: IdeJavaCompileOptions?
 
   /** Returns the build folder of this project.  */
   val buildFolder: File

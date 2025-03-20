@@ -16,7 +16,6 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.remember
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
@@ -62,7 +61,7 @@ internal class LocalVirtualDeviceSource(
 
   fun WizardPageScope.selectionUpdated(
     profile: VirtualDeviceProfile,
-    finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+    finish: suspend (VirtualDevice) -> Boolean,
   ) {
     nextAction = WizardAction {
       pushPage {
@@ -78,7 +77,6 @@ internal class LocalVirtualDeviceSource(
           }
         ConfigurationPage(
           device,
-          null,
           systemImageStateFlow,
           skins,
           deviceNameValidator,

@@ -80,7 +80,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
     builder.put("abi.type", "x86_64");
     builder.put("avd.ini.displayname", "Medium Phone API 34");
     builder.put("avd.ini.encoding", "UTF-8");
-    builder.put("disk.dataPartition.size", "2G");
+    builder.put("disk.dataPartition.size", "6G");
     builder.put("hw.accelerometer", "yes");
     builder.put("hw.arc", "false");
     builder.put("hw.audioInput", "yes");

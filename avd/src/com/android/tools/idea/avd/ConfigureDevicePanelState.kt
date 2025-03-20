@@ -36,13 +36,16 @@ import kotlinx.collections.immutable.toImmutableList
 internal class ConfigureDevicePanelState(
   val device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
-  image: ISystemImage?,
   val deviceNameValidator: DeviceNameValidator,
   fileSystem: FileSystem = FileSystems.getDefault(),
   val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
   private var skins by mutableStateOf(skins)
-  val systemImageTableSelectionState = TableSelectionState(image)
+  val systemImageTableSelectionState =
+    object : TableSelectionState<ISystemImage> {
+      override var selection: ISystemImage? by device::image
+    }
+
   val storageGroupState = StorageGroupState(device, fileSystem)
   val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 

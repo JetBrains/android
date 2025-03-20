@@ -148,13 +148,13 @@ internal fun modelCacheV2Impl(
   /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
-    val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
+    val folder: File? = provider.manifestFile?.let { it.parentFile?.deduplicateFile() }
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
       name = provider.name.deduplicate(),
       folder = folder,
-      manifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
+      manifestFile = provider.manifestFile?.makeRelativeAndDeduplicate(),
       javaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
       kotlinDirectories = provider.kotlinDirectories.makeRelativeAndDeduplicate(),
       resourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
@@ -1209,7 +1209,8 @@ internal fun modelCacheV2Impl(
     isCheckReleaseBuilds = options.checkReleaseBuilds
   )
 
-  fun javaCompileOptionsFrom(options: JavaCompileOptions): IdeJavaCompileOptionsImpl {
+  fun javaCompileOptionsFrom(options: JavaCompileOptions?): IdeJavaCompileOptionsImpl? {
+    options ?: return null
     return IdeJavaCompileOptionsImpl(
       encoding = options.encoding,
       sourceCompatibility = options.sourceCompatibility,
@@ -1301,14 +1302,14 @@ internal fun modelCacheV2Impl(
       androidDsl.buildTypes,
       basicProject.buildTypeSourceSets,
       { it.name },
-      { it.sourceProvider.name },
+      { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       ::buildTypeContainerFrom
     )
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = zip(
       androidDsl.productFlavors,
       basicProject.productFlavorSourceSets,
       { it.name },
-      { it.sourceProvider.name },
+      { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       ::productFlavorContainerFrom
     )
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { variant ->

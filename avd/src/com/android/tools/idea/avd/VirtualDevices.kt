@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
@@ -23,9 +22,9 @@ import com.android.sdklib.internal.avd.uniquifyAvdFolder
 import com.android.sdklib.internal.avd.uniquifyAvdName
 
 internal class VirtualDevices(private val avdManager: AvdManager) {
-  internal fun add(device: VirtualDevice, image: ISystemImage): AvdInfo? {
+  internal fun add(device: VirtualDevice): AvdInfo? {
     val avdBuilder = avdManager.createAvdBuilder(device.deviceProfile)
-    avdBuilder.copyFrom(device, image)
+    avdBuilder.copyFrom(device)
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
     avdBuilder.avdFolder = avdManager.uniquifyAvdFolder(avdBuilder.avdName)
 

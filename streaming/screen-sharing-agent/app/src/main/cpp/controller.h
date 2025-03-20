@@ -117,6 +117,11 @@ private:
   void OnPrimaryClipChanged();
   void SendClipboardChangedNotification();
 
+  void ProcessXrRotation(const XrRotationMessage& message);
+  void ProcessXrTranslation(const XrTranslationMessage& message);
+  void ProcessXrAngularVelocity(const XrAngularVelocityMessage& message);
+  void ProcessXrVelocity(const XrVelocityMessage& message);
+
   void RequestDeviceState(const RequestDeviceStateMessage& message);
   void OnDeviceStateChanged(int32_t device_state);
   void SendDeviceStateNotification();

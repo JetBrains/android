@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
 import com.google.common.base.Objects;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.kotlin.idea.base.facet.KotlinFacetUtils;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
@@ -143,39 +145,23 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(@NotNull Module module, @NotNull Iterable<Dependency> dependencies) {
-    return addDependenciesInTransaction(module, dependencies, null, null);
+    return addDependenciesInTransaction(module, dependencies, null);
   }
 
   /**
    * Like {@link #addDependencies(Module, Iterable)} but allows you to customize the configuration
    * name of the inserted dependencies.
    *
-   * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest
-   * @param nameMapper   a factory to produce configuration names and artifact specs
+   * @param module        the module to add dependencies to
+   * @param dependencies  the dependencies of interest
+   * @param configuration the name of the configuration to add to
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependencies(
     @NotNull Module module,
     @NotNull Iterable<Dependency> dependencies,
-    @Nullable ConfigurationNameMapper nameMapper) {
-    return addDependenciesInTransaction(module, dependencies, nameMapper, null);
-  }
-
-  /**
-   * Like {@link #addDependencies(Module, Iterable)} but allows you to customize the configuration
-   * name of the inserted dependencies.
-   *
-   * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest
-   * @param nameMapper   a factory to produce configuration names and artifact specs
-   * @return true if the dependencies were successfully added or were already present in the module.
-   */
-  public boolean addDependencies(
-    @NotNull Module module,
-    @NotNull Iterable<Dependency> dependencies,
-    @NotNull String sourceSet) {
-    return addDependenciesInTransaction(module, dependencies, null, sourceSet);
+    @Nullable String configuration) {
+    return addDependenciesInTransaction(module, dependencies, configuration);
   }
 
   /**
@@ -197,8 +183,7 @@ public class GradleDependencyManager {
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<Dependency> dependencies,
-                                               @Nullable ConfigurationNameMapper nameMapper,
-                                               @Nullable String sourceSet) {
+                                               @Nullable String configuration) {
 
     Project project = module.getProject();
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
@@ -208,14 +193,22 @@ public class GradleDependencyManager {
       return false;
     }
 
+    String sourceSet;
+    if (KotlinFacetUtils.isMultiPlatformModule(module)) {
+      sourceSet = GradleModuleSystem.getGradleSourceSetName(module);
+    }
+    else {
+      sourceSet = null;
+    }
+
     List<ArtifactDependencyModel> compileDependencies = buildModel.dependencies().artifacts();
     String declaredAppCompatVersion = getDeclaredAppCompatVersion(compileDependencies);
 
     WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
       for (Dependency dependency : dependencies) {
         String name = IMPLEMENTATION;
-        if (nameMapper != null) {
-          name = nameMapper.mapName(module, name, dependency);
+        if (configuration != null) {
+          name = configuration;
         }
         Optional<Dependency> resolvedCoordinate = resolveCoordinate(project, dependency, declaredAppCompatVersion);
         Dependency finalDependency = resolvedCoordinate.orElse(dependency);

@@ -19,7 +19,6 @@ import com.android.adblib.DeviceSelector
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
@@ -45,7 +44,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -61,12 +59,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
-import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
@@ -103,7 +99,7 @@ class EmulatorUiSettingsActionTest {
   fun testActiveAction() {
     simulateDarkTheme(false)
     val controller = uiRule.getControllerOf(uiRule.emulator)
-    val view = createEmulatorView(controller)
+    val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
     action.update(event)
@@ -114,8 +110,8 @@ class EmulatorUiSettingsActionTest {
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isInstanceOf(ActionButton::class.java)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(8, 8))
+    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
+    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(0, 400))
   }
 
   @Test
@@ -154,52 +150,12 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testActiveActionFromActionButtonInPopup() {
-    simulateDarkTheme(false)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
-    val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
-    val action = EmulatorUiSettingsAction()
-    val event = createTestMouseEvent(action, controller, view)
-    (event.inputEvent?.component as? JComponent)?.putClientProperty(JBPopup.KEY, FakeJBPopup<String>(listOf()))
-
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
-  }
-
-  @Test
-  fun testActiveActionFromKeyEvent() {
-    simulateDarkTheme(true)
-    val action = EmulatorUiSettingsAction()
-    val controller = uiRule.getControllerOf(uiRule.emulator)
-    val view = createEmulatorView(controller)
-    val event = createTestKeyEvent(action, controller, view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
-  }
-
-  @Test
   fun testPickerClosesWhenWindowCloses() {
     simulateDarkTheme(false)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
-    val event = createTestKeyEvent(action, controller, view)
+    val event = createTestMouseEvent(action, controller, view)
     action.update(event)
     assertThat(event.presentation.isVisible).isTrue()
 
@@ -241,6 +197,27 @@ class EmulatorUiSettingsActionTest {
     assertThat(balloon.isDisposed).isTrue()
   }
 
+  @Test
+  fun testPopupIsMovable() {
+    simulateDarkTheme(false)
+    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
+    val action = EmulatorUiSettingsAction()
+    val event = createTestMouseEvent(action, controller, view)
+
+    action.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+    assertThat(balloon.component.location).isEqualTo(Point())
+    balloon.ui!!.mouse.press(10, 10)
+    balloon.ui!!.mouse.dragTo(100, 100)
+    assertThat(balloon.component.location).isEqualTo(Point(90, 90))
+  }
+
   private fun simulateDarkTheme(on: Boolean) {
     val state = if (on) "yes" else "no"
     uiRule.adb.configureShellCommand(uiRule.emulatorDeviceSelector, "cmd uimode night", "Night mode: $state")
@@ -249,12 +226,6 @@ class EmulatorUiSettingsActionTest {
   private fun createTestMouseEvent(action: AnAction, controller: EmulatorController, view: EmulatorView): AnActionEvent {
     val component = createActionButton(action)
     val input = MouseEvent(component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false)
-    val presentation = action.templatePresentation.clone()
-    return AnActionEvent.createEvent(createTestDataContext(controller, view), presentation, ActionPlaces.TOOLBAR, ActionUiKind.NONE, input)
-  }
-
-  private fun createTestKeyEvent(action: AnAction, controller: EmulatorController, view: EmulatorView): AnActionEvent {
-    val input = KeyEvent(view, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_B, 'b')
     val presentation = action.templatePresentation.clone()
     return AnActionEvent.createEvent(createTestDataContext(controller, view), presentation, ActionPlaces.TOOLBAR, ActionUiKind.NONE, input)
   }

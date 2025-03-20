@@ -111,6 +111,11 @@ interface AndroidTestResults {
    * Returns the snapshot artifact from Android Test Retention if available.
    */
   fun getRetentionSnapshot(device: AndroidDevice): File?
+
+  /**
+   * Returns the additional test artifacts.
+   */
+  fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String>
 }
 
 /**

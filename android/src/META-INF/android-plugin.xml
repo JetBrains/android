@@ -134,6 +134,10 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
+    <action id="AndroidMigrateToCatalogAction" class="com.android.tools.idea.refactoring.catalog.MigrateToCatalogAction" text="Migrate to Version Catalog..."
+            description="Migrates build files to use Gradle version catalogs">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
     <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction" text="Modularize..."
             description="Moves classes and their associated resources to another module">
       <add-to-group group-id="RefactoringMenu"/>
@@ -495,6 +499,7 @@
     <moduleService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderOverlays" />
     <moduleService serviceImplementation="com.android.tools.idea.res.AndroidDependenciesCache" />
     <moduleService serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryBackgroundActions" />
+    <moduleService serviceImplementation="com.android.tools.idea.module.ModuleDisposableService" />
 
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
     <spellchecker.dictionary.runtimeDictionaryProvider implementation="com.android.tools.idea.AndroidDictionaryProvider"/>
@@ -630,6 +635,7 @@
     <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Android Debug Bridge (adb)" displayType="BALLOON"/>
     <notificationGroup id="Android 16 KB Alignment" displayType="BALLOON"/>
+    <notificationGroup id="Browser Survey" displayType="BALLOON"/>
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 

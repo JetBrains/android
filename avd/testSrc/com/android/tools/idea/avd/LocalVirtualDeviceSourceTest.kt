@@ -33,7 +33,6 @@ import com.android.SdkConstants
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.adtui.compose.TestComposeWizard
@@ -150,9 +149,9 @@ class LocalVirtualDeviceSourceTest {
       }
     }
 
-    private suspend fun finish(device: VirtualDevice, image: ISystemImage): Boolean {
+    private suspend fun finish(device: VirtualDevice): Boolean {
       withContext(AndroidDispatchers.diskIoThread) {
-        VirtualDevices(sdkFixture.avdManager).add(device, image)
+        VirtualDevices(sdkFixture.avdManager).add(device)
       }
       return true
     }

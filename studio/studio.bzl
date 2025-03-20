@@ -1137,6 +1137,7 @@ def android_studio(
 def _intellij_plugin_import_impl(ctx):
     files = {}
     plugin_dir = "plugins/" + ctx.attr.target_dir
+    id = ctx.attr.id or ctx.attr.name
 
     # Note: platform plugins will have no files because they are already in intellij-sdk.
     if ctx.attr.files:
@@ -1145,17 +1146,25 @@ def _intellij_plugin_import_impl(ctx):
                 fail("File " + f.short_path + " does not start with prefix " + ctx.attr.strip_prefix)
             relpath = f.short_path[len(ctx.attr.strip_prefix):]
             files[plugin_dir + "/" + relpath] = f
-    plugin_files_linux = _studio_plugin_os(ctx, LINUX, [], plugin_dir) | files
-    plugin_files_mac = _studio_plugin_os(ctx, MAC, [], plugin_dir) | files
-    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, [], plugin_dir) | files
-    plugin_files_win = _studio_plugin_os(ctx, WIN, [], plugin_dir) | files
+
+    plugin_jars = []
+
+    # Pack searchable-options metadata.
+    if ctx.attr.searchable_options:
+        so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
+        if id in so_jars:
+            plugin_jars.append((ctx.attr.target_dir + ".so.jar", so_jars[id]))
+
+    plugin_files_linux = _studio_plugin_os(ctx, LINUX, plugin_jars, plugin_dir) | files
+    plugin_files_mac = _studio_plugin_os(ctx, MAC, plugin_jars, plugin_dir) | files
+    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, plugin_jars, plugin_dir) | files
+    plugin_files_win = _studio_plugin_os(ctx, WIN, plugin_jars, plugin_dir) | files
 
     # buildifier: disable=native-java-common (@rules_java is not usable in this file yet)
     # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
 
-    id = ctx.attr.id or ctx.attr.name
     _check_plugin(ctx, ctx.outputs.plugin_metadata, jars, ctx.attr.kind, id)
 
     return [
@@ -1193,6 +1202,7 @@ _intellij_plugin_import = rule(
         "resources_dirs": attr.string_list(),
         # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
+        "searchable_options": attr.label(providers = [_SearchableOptionsInfo]),
         "compress": attr.bool(),
         "overwrite_plugin_version": attr.bool(),
         "_check_plugin": attr.label(

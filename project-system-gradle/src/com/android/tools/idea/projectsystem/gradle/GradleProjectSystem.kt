@@ -416,7 +416,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   return SourceProvidersImpl(
-    mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
+    mainIdeaSourceProvider = model.defaultSourceProvider?.toIdeaSourceProvider(),
     currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
     currentHostTestSourceProviders = model.hostTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
@@ -429,7 +429,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    listOf(model.defaultSourceProvider.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
+    listOfNotNull(model.defaultSourceProvider?.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
       val flavorNames = model.selectedVariant.productFlavors.toSet()
       multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
@@ -453,7 +453,9 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
     it.name,
     scopeType,
     core = object : NamedIdeaSourceProviderImpl.Core {
-      override val manifestFileUrl: String get() = VfsUtil.fileToUrl(it.manifestFile)
+      override val manifestFileUrl: String? get() {
+        return VfsUtil.fileToUrl(it.manifestFile ?: return null)
+      }
       override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
       override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
       override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import java.io.Serializable
 
 data class IdeBuildTasksAndOutputInformationImpl(
-  override val assembleTaskName: String,
+  override val assembleTaskName: String?,
   override val assembleTaskOutputListingFile: String?,
   override val bundleTaskName: String?,
   override val bundleTaskOutputListingFile: String?,

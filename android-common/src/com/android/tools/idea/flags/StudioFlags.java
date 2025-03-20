@@ -1265,6 +1265,10 @@ public final class StudioFlags {
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
+  public static final Flag<Boolean> MIGRATE_TO_VERSION_CATALOG_REFACTORING_ENABLED = new BooleanFlag(
+    REFACTORINGS, "migrateto.versioncatalog.enabled", "Enable the Migrate to Version Catalog refactoring",
+    "If enabled, show the action in the refactoring menu", false);
+
   //endregion
 
   //region NDK
@@ -1314,6 +1318,12 @@ public final class StudioFlags {
     EDITOR, "compose.state.read.inlay.hints.enabled",
     "Enable inlay hints for State reads in @Composable functions",
     "If enabled, calls out reads of variables of type State inside @Composable functions.",
+    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED = new BooleanFlag(
+    EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
+    "Enable use of the ContentServing API for fetching Android SDK documentation.",
+    "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation.",
     enabledUpTo(CANARY));
 
   //endregion
@@ -1678,6 +1688,12 @@ public final class StudioFlags {
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
     enabledUpTo(DEV)
   );
+
+  public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
+    WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
+    "If enabled, the editor will support Watch Face Format in XML files",
+    enabledUpTo(DEV)
+  );
   // endregion
 
   // region App Inspection
@@ -1736,6 +1752,12 @@ public final class StudioFlags {
     "Copy as a cURL command",
     "Copy as a cURL command",
     true
+  );
+  public static final Flag<Boolean> NETWORK_INSPECTOR_RULE_VARIABLES = new BooleanFlag(
+    NETWORK_INSPECTOR, "rule.variables",
+    "Enable Rule Variables",
+    "Enable Rule Variables",
+    enabledUpTo(DEV)
   );
   // endregion
 
@@ -1831,6 +1853,15 @@ public final class StudioFlags {
       "FTL Direct Access endpoint",
       "The URL for FTL Direct Access to connect to, in host:port form (with no protocol specified).",
       "testing.googleapis.com"
+    );
+
+  public static final Flag<String> DEVICE_STREAMING_ENDPOINT =
+    new StringFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.new.endpoint",
+      "New Device Streaming endpoint",
+      "The new URL for Direct Access to connect to, in host:port form (with no protocol specified).",
+      "devicestreaming.googleapis.com"
     );
 
   public static final Flag<String> DIRECT_ACCESS_MONITORING_ENDPOINT =
@@ -2130,6 +2161,11 @@ public final class StudioFlags {
     "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
+    COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
+    "If a user moves their caret to a element present in a preview, we highlight those elements",
+    enabledUpTo(DEV));
+
 
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
@@ -2147,7 +2183,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
                     "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
-                    enabledUpTo(DEV));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
     new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
@@ -2240,6 +2276,12 @@ public final class StudioFlags {
                     "Use AI to fix simple compiler errors",
                     "Editor action to provide quick fixes for errors", enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_APPLY_CHANGES_ACTION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "studiobot.apply.changes.action",
+                    "Enable the apply changes action",
+                    "When enabled, applies the code block from the chat to the open editor",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
@@ -2293,7 +2335,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
                     "Enable support for GCA Enterprise tier",
                     "Enable support for GCA Enterprise tier",
-                    enabledUpTo(DEV));
+                    false);
 
   // endregion STUDIO_BOT
 
@@ -2326,9 +2368,9 @@ public final class StudioFlags {
   // region Google Login
   private static final FlagGroup GOOGLE_LOGIN =
     new FlagGroup(FLAGS, "google.login", "Google Login");
-  public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
-    new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
-                    "When enabled, a combined login page will show when logging in for a new user.", true);
+  public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_COMPOSE_UI =
+    new BooleanFlag(GOOGLE_LOGIN, "combined.login.use.compose.flow", "Enable combined login using Compose",
+                    "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", false);
   // endregion Google Login
 
   // region Cloud Integration

@@ -24,13 +24,14 @@ import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.android.tools.idea.streaming.emulator.FutureStreamObserver
+import com.android.tools.idea.streaming.emulator.DeferredResultStreamObserver
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
+import com.google.common.base.Throwables.throwIfUnchecked
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -42,6 +43,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Graphics2D
@@ -112,28 +115,19 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       Disposer.register(emulatorController, this)
     }
 
+    @Throws(RuntimeException::class, CancellationException::class)
     override fun captureScreenshot(): ScreenshotImage {
-      val receiver = FutureStreamObserver<Image>()
+      val receiver = DeferredResultStreamObserver<Image>()
       emulatorController.getScreenshot(getScreenshotRequest(displayId), receiver)
 
       try {
-        val screenshot = receiver.futureResult.get()
+        val screenshot = runBlocking { receiver.deferredResult.await() }
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
         return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
       }
-      catch (_: InterruptedException) {
-        throw ProcessCanceledException()
-      }
-      catch (e: IOException) {
+      catch (e: Throwable) {
+        throwIfUnchecked(e)
         throw RuntimeException(e)
-      }
-      catch (e: ExecutionException) {
-        Throwables.throwIfUnchecked(e.cause!!)
-        throw UncheckedExecutionException(e.cause!!)
-      }
-      catch (e: UncheckedExecutionException) {
-        Throwables.throwIfUnchecked(e.cause!!)
-        throw e
       }
     }
 

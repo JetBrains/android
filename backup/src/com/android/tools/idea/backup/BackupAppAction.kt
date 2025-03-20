@@ -26,8 +26,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Backups the state of an app to a file */
 internal class BackupAppAction(
@@ -61,10 +64,15 @@ internal class BackupAppAction(
     }
   }
 
-  private fun doBackup(project: Project, backupInfo: Valid) {
+  private suspend fun doBackup(project: Project, backupInfo: Valid) {
     val backupManager = BackupManager.getInstance(project)
-    val applicationId = backupInfo.applicationId
-    backupManager.showBackupDialog(backupInfo.serialNumber, applicationId, BACKUP_APP_ACTION)
+    withContext(Dispatchers.EDT) {
+      backupManager.showBackupDialog(
+        backupInfo.serialNumber,
+        backupInfo.applicationId,
+        BACKUP_APP_ACTION,
+      )
+    }
   }
 
   private suspend fun AnActionEvent.getBackupInfo(): BackupInfo {

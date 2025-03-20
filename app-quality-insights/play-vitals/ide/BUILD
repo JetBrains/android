@@ -25,6 +25,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "@intellij//:intellij.libraries.grpc",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
     ],
 )
 

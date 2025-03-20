@@ -32,12 +32,12 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.TestUtils.runningFromBazel
-import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.SystemImageDescription
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.utils.FileUtils
 import com.google.common.base.CharMatcher
 import org.junit.Assert
@@ -125,10 +125,10 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     generatedSdkLocation = sdkLocation
 
     val sdkManager = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
-    val avdMan = AvdManagerConnection.getAvdManagerConnection(sdkManager)
+    val avdMan = IdeAvdManagers.getAvdManager(sdkManager)
 
     var avd: AvdInfo?
-    avd = avdMan.getAvds(true).find {
+    avd = avdMan.validAvds.find {
       if (it.name == avdSpec.avdName) {
         if (it.abiType == avdSpec.systemImageSpec.abiType
           && it.androidVersion.apiLevel == avdSpec.systemImageSpec.apiLevel.toInt()) {
@@ -189,7 +189,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     FileUtils.copyDirectoryToDirectory(emu.toFile(), sdkLocation)
   }
 
-  private fun createAvd(sdkManager: AndroidSdkHandler, avdManager: AvdManagerConnection): AvdInfo? {
+  private fun createAvd(sdkManager: AndroidSdkHandler, avdManager: AvdManager): AvdInfo? {
     val deviceBuilder = Device.Builder()
     deviceBuilder.setName(avdSpec.avdName)
     deviceBuilder.setManufacturer("Google")
@@ -224,20 +224,13 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     }
 
     val systemImage = availableApiImages.first()
-    avdManager.getAvds(true)
-    return avdManager.createOrUpdateAvd(
-      null,
-      avdSpec.avdName,
-      deviceConfig,
-      SystemImageDescription(systemImage),
-      ScreenOrientation.PORTRAIT,
-      false,
-      null,
-      null,
-      HashMap<String, String>(),
-      null,
-      true
-    )
+    val builder =
+      avdManager.createAvdBuilder(deviceConfig).apply {
+        this.avdName = avdSpec.avdName
+        this.systemImage = systemImage
+        this.screenOrientation = ScreenOrientation.PORTRAIT
+      }
+    return avdManager.createAvd(builder)
   }
 
   private fun startAvd(emulatorBinary: File, avdInfo: AvdInfo): Process {

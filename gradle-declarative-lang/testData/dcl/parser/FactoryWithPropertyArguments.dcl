@@ -1,0 +1,1 @@
+customerFile = listOf(layout.projectDirectory.file("abc"), layout.projectDirectory.file("xyz"))

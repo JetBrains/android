@@ -200,7 +200,11 @@ class SceneViewPanel(
               .mapIndexed { index, sceneView ->
                 existingScenePanels.firstOrNull { it.sceneView == sceneView }
                   ?: withContext(uiThreadDispatcher) {
-                    createScenePanel(sceneView, index, scope.createChildScope())
+                    createScenePanel(
+                      sceneView,
+                      index,
+                      scope.createChildScope(parentDisposable = sceneView),
+                    )
                   }
               }
               .toMutableList()

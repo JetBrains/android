@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.command.buildresult.bepparser.BepParser;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.intellij.openapi.diagnostic.Logger;
 
 /**
  * A utility class that knows how to collect data from {@link BuildEventStreamProvider} in a use case specific way.
@@ -37,12 +38,13 @@ public final class BuildResultParser {
    */
   public static ParsedBepOutput getBuildOutput(
     BuildEventStreamProvider bepStream, Interner<String> stringInterner)
-    throws BuildResultHelper.GetArtifactsException {
+    throws GetArtifactsException {
     try {
       return BepParser.parseBepArtifacts(bepStream, stringInterner);
-    } catch (BuildEventStreamProvider.BuildEventStreamException e) {
-      BuildResultHelper.logger.error(e);
-      throw new BuildResultHelper.GetArtifactsException(String.format(
+    }
+    catch (BuildEventStreamProvider.BuildEventStreamException e) {
+      Logger.getInstance(BuildResultParser.class).error(e);
+      throw new GetArtifactsException(String.format(
         "Failed to parse bep for build id: %s: %s", bepStream.getId(), e.getMessage()));
     }
   }
@@ -57,12 +59,13 @@ public final class BuildResultParser {
    */
   public static ParsedBepOutput.Legacy getBuildOutputForLegacySync(
     BuildEventStreamProvider bepStream, Interner<String> stringInterner)
-    throws BuildResultHelper.GetArtifactsException {
+    throws GetArtifactsException {
     try {
       return BepParser.parseBepArtifactsForLegacySync(bepStream, stringInterner);
-    } catch (BuildEventStreamProvider.BuildEventStreamException e) {
-      BuildResultHelper.logger.error(e);
-      throw new BuildResultHelper.GetArtifactsException(String.format(
+    }
+    catch (BuildEventStreamProvider.BuildEventStreamException e) {
+      Logger.getInstance(BuildResultParser.class).error(e);
+      throw new GetArtifactsException(String.format(
         "Failed to parse bep for build id: %s: %s", bepStream.getId(), e.getMessage()));
     }
   }
@@ -71,24 +74,13 @@ public final class BuildResultParser {
    * Parses BEP stream and returns the corresponding {@link BlazeTestResults}. May
    * only be called once on a given stream.
    */
-  public static BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) throws BuildResultHelper.GetArtifactsException {
-    try  {
-      return BuildEventProtocolOutputReader.parseTestResults(bepStream);
-    } catch (BuildEventStreamProvider.BuildEventStreamException e) {
-      BuildResultHelper.logger.warn(e);
-      throw new BuildResultHelper.GetArtifactsException(
-        String.format("Failed to parse bep for build id: %s", bepStream.getId()), e);
-    }
-  }
-
-  /**
-   * Parses the BEP stream and  collects all build flags used. Return all flags that pass filters
-   */
-  public static BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws BuildResultHelper.GetFlagsException {
+  public static BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) throws GetArtifactsException {
     try {
-      return BuildFlags.parseBep(bepStream);
-    } catch (BuildEventStreamProvider.BuildEventStreamException e) {
-      throw new BuildResultHelper.GetFlagsException(
+      return BuildEventProtocolOutputReader.parseTestResults(bepStream);
+    }
+    catch (BuildEventStreamProvider.BuildEventStreamException e) {
+      BuildResultHelper.logger.warn(e);
+      throw new GetArtifactsException(
         String.format("Failed to parse bep for build id: %s", bepStream.getId()), e);
     }
   }

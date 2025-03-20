@@ -33,14 +33,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /** Adds compiled jars from dependencies to the project. */
 public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
-  private final boolean enableBazelAdditionalLibraryRootsProvider;
+  private final boolean enableLibraryEntity;
 
-  public AddCompiledJavaDeps(boolean enableBazelAdditionalLibraryRootsProvider) {
-    this.enableBazelAdditionalLibraryRootsProvider = enableBazelAdditionalLibraryRootsProvider;
+  public AddCompiledJavaDeps(boolean enableLibraryEntity) {
+    this.enableLibraryEntity = enableLibraryEntity;
   }
 
   @Override
@@ -72,7 +71,7 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
       }
     }
     context.output(PrintOutput.output("Skipped " + skipped.size() + " duplicate jars"));
-    if (!enableBazelAdditionalLibraryRootsProvider) {
+    if (!enableLibraryEntity) {
       updateProjectProtoUpdateAllJarsInOneLibrary(javaDepsDir, update);
     } else {
       updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update);

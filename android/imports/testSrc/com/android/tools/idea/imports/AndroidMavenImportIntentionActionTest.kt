@@ -62,7 +62,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "RecyclerView|",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
         addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
       )
       .run()
@@ -104,7 +104,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "cameraCoreTopLevelFunction|",
         actionText = "Add dependency on androidx.camera:camera-core (alpha) and import",
-        addedGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
+        finalGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
         addedImports = listOf("androidx.camera.core.cameraCoreTopLevelFunction"),
       )
       .run()
@@ -153,7 +153,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "RecyclerView|()",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
       .run()
   }
@@ -179,7 +179,7 @@ class AndroidMavenImportIntentionActionTest {
         fileExtension = "java",
         caretPlacement = "recyc|lerview",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
 
     val caretPlacements =
@@ -210,7 +210,7 @@ class AndroidMavenImportIntentionActionTest {
         fileExtension = "java",
         caretPlacement = "recyc|lerview",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
       .run()
   }
@@ -232,7 +232,7 @@ class AndroidMavenImportIntentionActionTest {
           """
             .trimIndent(),
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
 
     val caretPlacements =
@@ -250,7 +250,7 @@ class AndroidMavenImportIntentionActionTest {
         forbiddenGradleText = listOf("my.madeup.package:amazing-package:"),
         caretPlacement = "extension|Function",
         actionText = "Add dependency on my.madeup.pkg:amazing-pkg and import",
-        addedGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
+        finalGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
         addedImports = listOf("my.madeup.pkg.amazing.extensionFunction"),
       )
 
@@ -291,7 +291,7 @@ class AndroidMavenImportIntentionActionTest {
         forbiddenGradleText = listOf("my.madeup.package:amazing-package:"),
         caretPlacement = "extension|Function",
         actionText = "Add dependency on my.madeup.pkg:amazing-pkg and import",
-        addedGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
+        finalGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
         addedImports = listOf("my.madeup.pkg.amazing.extensionFunction"),
       )
 
@@ -339,7 +339,7 @@ class AndroidMavenImportIntentionActionTest {
           """
             .trimIndent(),
         actionText = "Add dependency on my.madeup.pkg:amazing-pkg and import",
-        addedGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
+        finalGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
       )
 
     val caretPlacements =
@@ -379,7 +379,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "recyc|lerview",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
-        addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
+        finalGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
       .run()
   }
@@ -398,7 +398,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "Palette|",
         actionText = "Add dependency on androidx.palette:palette-ktx and import",
-        addedGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
+        finalGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
         addedImports = listOf("androidx.palette.graphics.Palette"),
       )
       .run()
@@ -422,7 +422,7 @@ class AndroidMavenImportIntentionActionTest {
         fileExtension = "java",
         caretPlacement = "Palette|",
         actionText = "Add dependency on androidx.palette:palette and import",
-        addedGradleText = listOf("implementation 'androidx.palette:palette:1.0.0"),
+        finalGradleText = listOf("implementation 'androidx.palette:palette:1.0.0"),
         addedImports = listOf("androidx.palette.graphics.Palette"),
       )
       .run()
@@ -445,7 +445,7 @@ class AndroidMavenImportIntentionActionTest {
         fileExtension = "java",
         caretPlacement = "Room|Database",
         actionText = "Add dependency on androidx.room:room-runtime and import",
-        addedGradleText =
+        finalGradleText =
           listOf(
             "implementation 'androidx.room:room-runtime:2.2.6",
             "annotationProcessor 'androidx.room:room-compiler:2.2.6",
@@ -475,7 +475,7 @@ class AndroidMavenImportIntentionActionTest {
         fileExtension = "java",
         caretPlacement = "@Previe|w",
         actionText = "Add dependency on androidx.compose.ui:ui-tooling-preview and import",
-        addedGradleText =
+        finalGradleText =
           listOf(
             "implementation 'androidx.compose.ui:ui-tooling-preview:1.0.5",
             "debugImplementation 'androidx.compose.ui:ui-tooling:1.0.5",
@@ -527,7 +527,7 @@ class AndroidMavenImportIntentionActionTest {
         syncAfterAction = true,
         // The deterministic order of suggestions are ensured, so the first option
         // `androidx.palette:palette` is applied.
-        addedGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
+        finalGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
         addedImports = listOf("androidx.palette.graphics.FakeClass"),
       )
       .runAndThen { action ->
@@ -559,7 +559,7 @@ class AndroidMavenImportIntentionActionTest {
         actionText = "Add dependency on androidx.camera:camera-core (alpha) and import",
         // The deterministic order of suggestions are ensured, so the first option
         // `androidx.palette:palette` is applied.
-        addedGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
+        finalGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
       )
       .run()
   }
@@ -581,7 +581,7 @@ class AndroidMavenImportIntentionActionTest {
             .trimIndent(),
         caretPlacement = "came|ra",
         actionText = "Add dependency on androidx.camera:camera-core (alpha) and import",
-        addedGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
+        finalGradleText = listOf("implementation 'androidx.camera:camera-core:1.1.0-alpha03"),
       )
       .run()
   }
@@ -623,7 +623,20 @@ class AndroidMavenImportIntentionActionTest {
         caretPlacement = "RecyclerView|",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         available = true,
-        addedGradleText = listOf("implementation(\"androidx.recyclerview:recyclerview:1.1.0\")"),
+        finalGradleText =
+          listOf(
+            """
+            sourceSets.getByName("androidMain") {
+              dependencies {
+                api(project(":androidLib"))
+                implementation(project(":kmpSecondLib"))
+                implementation(project(":kmpJvmOnly"))
+                  implementation("androidx.recyclerview:recyclerview:1.1.0")
+              }
+            }
+            """
+              .replaceIndent("  ")
+          ),
         addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
       )
       .run()
@@ -641,7 +654,7 @@ class AndroidMavenImportIntentionActionTest {
     val available: Boolean = true,
     val syncAfterAction: Boolean = false,
     val actionText: String? = null,
-    val addedGradleText: Collection<String> = listOf(),
+    val finalGradleText: Collection<String> = listOf(),
     val addedImports: Collection<String> = listOf(),
     val mavenClassRegistryManager: MavenClassRegistryManager = fakeMavenClassRegistryManager,
     val filePath: String? = null,
@@ -715,7 +728,7 @@ class AndroidMavenImportIntentionActionTest {
               false,
             )
         }
-        for (added in addedGradleText) {
+        for (added in finalGradleText) {
           assertBuildGradle(project, buildFilePath) { it.contains(added) }
         }
 

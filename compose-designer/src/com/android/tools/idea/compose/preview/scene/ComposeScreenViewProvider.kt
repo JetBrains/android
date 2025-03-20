@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.android.tools.idea.common.surface.layer.HighlightLayer
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
@@ -64,6 +65,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               )
             }
             add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
+            add(HighlightLayer(it, surface))
             add(
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true

@@ -270,9 +270,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val javaModuleData = ExternalSystemApiUtil.find(moduleDataNode, JavaModuleData.KEY) ?: return
     val moduleData = javaModuleData.data
     if (androidProject != null) {
-      val languageLevel = LanguageLevel.parse(androidProject.javaCompileOptions.sourceCompatibility)
-      moduleData.languageLevel = languageLevel
-      moduleData.targetBytecodeVersion = androidProject.javaCompileOptions.targetCompatibility
+      androidProject.javaCompileOptions?.let { compileOptions ->
+        val languageLevel = LanguageLevel.parse(compileOptions.sourceCompatibility)
+        languageLevel?.let {
+          moduleData.languageLevel = languageLevel
+          moduleData.targetBytecodeVersion = compileOptions.targetCompatibility
+        }
+      }
     } else {
       // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
       // For this we set the language level based on the "main" source set of the module.

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -468,9 +469,9 @@ class DeviceAdapterTest {
     }
 
     override val deviceId: DeviceId = DeviceId.ofPhysicalDevice("test")
+    override val deviceType: DeviceType = DeviceType.HANDHELD
+    override val apiLevel: Int = 0
     override val displayOrientationQuadrants = 0
-    override val apiLevel: Int
-      get() = 0
     override val hardwareInput = HardwareInput()
 
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}

@@ -410,6 +410,119 @@ private:
   DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
 };
 
+// Rotation in a 3D space. Each component is the angle of rotation in radians around
+// the corresponding axis. Z rotation is not used.
+class XrRotationMessage : ControlMessage {
+public:
+  explicit XrRotationMessage(float x, float y)
+      : ControlMessage(TYPE),
+        x_(x),
+        y_(y) {
+  }
+  ~XrRotationMessage() override = default;
+
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+
+  static constexpr int TYPE = 13;
+
+private:
+  friend class ControlMessage;
+
+  static XrRotationMessage* Deserialize(Base128InputStream& stream);
+
+  float x_;
+  float y_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrRotationMessage);
+};
+
+// Translation in a 3D space. Each component is the distance in meters along the corresponding axis.
+class XrTranslationMessage : ControlMessage {
+public:
+  explicit XrTranslationMessage(float x, float y, float z)
+      : ControlMessage(TYPE),
+        x_(x),
+        y_(y),
+        z_(z) {
+  }
+  ~XrTranslationMessage() override = default;
+
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+  [[nodiscard]] float z() const { return z_; }
+
+  static constexpr int TYPE = 14;
+
+private:
+  friend class ControlMessage;
+
+  static XrTranslationMessage* Deserialize(Base128InputStream& stream);
+
+  float x_;
+  float y_;
+  float z_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrTranslationMessage);
+};
+
+// Angular velocity in a 3D space. Each component is the angular velocity in radians per second
+// around the corresponding axis. Z rotation is not used.
+class XrAngularVelocityMessage : ControlMessage {
+public:
+  explicit XrAngularVelocityMessage(float x, float y)
+      : ControlMessage(TYPE),
+        x_(x),
+        y_(y) {
+  }
+  ~XrAngularVelocityMessage() override = default;
+
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+
+  static constexpr int TYPE = 15;
+
+private:
+  friend class ControlMessage;
+
+  static XrAngularVelocityMessage* Deserialize(Base128InputStream& stream);
+
+  float x_;
+  float y_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrAngularVelocityMessage);
+};
+
+// Velocity in a 3D space. Each component is the speed in meters per second along the corresponding
+// axis.
+class XrVelocityMessage : ControlMessage {
+public:
+  explicit XrVelocityMessage(float x, float y, float z)
+      : ControlMessage(TYPE),
+        x_(x),
+        y_(y),
+        z_(z) {
+  }
+  ~XrVelocityMessage() override = default;
+
+  [[nodiscard]] float x() const { return x_; }
+  [[nodiscard]] float y() const { return y_; }
+  [[nodiscard]] float z() const { return z_; }
+
+  static constexpr int TYPE = 16;
+
+private:
+  friend class ControlMessage;
+
+  static XrVelocityMessage* Deserialize(Base128InputStream& stream);
+
+  float x_;
+  float y_;
+  float z_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrVelocityMessage);
+};
+
 // Asks the agent to send back configurations of all displays.
 class DisplayConfigurationRequest : public CorrelatedMessage {
 public:
@@ -418,7 +531,7 @@ public:
   }
   ~DisplayConfigurationRequest() override = default;
 
-  static constexpr int TYPE = 13;
+  static constexpr int TYPE = 17;
 
 private:
   friend class ControlMessage;
@@ -447,7 +560,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 14;
+  static constexpr int TYPE = 18;
 
 private:
   friend class ControlMessage;
@@ -470,7 +583,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 15;
+  static constexpr int TYPE = 19;
 
 private:
   friend class ControlMessage;
@@ -497,7 +610,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 16;
+  static constexpr int TYPE = 20;
 
 private:
   friend class ControlMessage;
@@ -522,7 +635,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 17;
+  static constexpr int TYPE = 21;
 
 private:
   friend class ControlMessage;
@@ -547,7 +660,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 18;
+  static constexpr int TYPE = 22;
 
 private:
   friend class ControlMessage;
@@ -577,7 +690,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 19;
+  static constexpr int TYPE = 23;
 
 private:
   friend class ControlMessage;
@@ -603,7 +716,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 20;
+  static constexpr int TYPE = 24;
 
 private:
   friend class ControlMessage;
@@ -623,7 +736,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 21;
+  static constexpr int TYPE = 25;
 
 private:
   friend class ControlMessage;
@@ -764,7 +877,7 @@ public:
     return gesture_overlay_installed_;
   }
 
-  static constexpr int TYPE = 22;
+  static constexpr int TYPE = 26;
 
 private:
   friend class ControlMessage;
@@ -854,7 +967,7 @@ public:
     return locale_;
   }
 
-  static constexpr int TYPE = 23;
+  static constexpr int TYPE = 27;
 
 private:
   friend class ControlMessage;
@@ -899,7 +1012,7 @@ public:
   [[nodiscard]] bool original_values() const {
     return original_values_;
   }
-  static constexpr int TYPE = 24;
+  static constexpr int TYPE = 28;
 
 private:
   friend class ControlMessage;
@@ -917,7 +1030,7 @@ public:
   }
   ~ResetUiSettingsRequest() override = default;
 
-  static constexpr int TYPE = 25;
+  static constexpr int TYPE = 29;
 
 private:
   friend class ControlMessage;

@@ -116,7 +116,8 @@ class DesignAssetImporter {
  */
 fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
   val resDirectories =
-    SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider.resDirectoryUrls.map { File(VfsUtil.urlToPath(it)) }
+    SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider?.resDirectoryUrls?.map { File(VfsUtil.urlToPath(it)) }
+    ?: emptyList()
   if (resDirectories.isNotEmpty()) {
     return resDirectories.firstOrNull { it.exists() }
            ?: resDirectories.first().also { it.mkdirs() }

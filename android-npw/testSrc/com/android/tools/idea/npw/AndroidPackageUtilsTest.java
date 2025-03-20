@@ -43,6 +43,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     loadProject(SIMPLE_APPLICATION);
     // Run assemble task to generate output listing file.
     String taskName = GradleAndroidModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    assertNotNull(taskName);
     invokeGradleTasks(getProject(), taskName);
 
     File javaSrcDir = new File(AndroidRootUtil.findModuleRootFolderPath(myAndroidFacet.getModule()), "src/main/java");

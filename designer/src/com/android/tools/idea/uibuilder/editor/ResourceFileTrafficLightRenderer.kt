@@ -24,7 +24,6 @@ import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorMarkupModel
@@ -48,20 +47,17 @@ private val SEVERITY_TO_ICON =
  * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
 class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
-  TrafficLightRenderer(file.project, editor.document) {
-  private val severityRegistrar = SeverityRegistrar.getSeverityRegistrar(project)
-  private val severities = severityRegistrar.allSeverities
+  TrafficLightRenderer(file.project, editor) {
+  private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   override val errorCounts = IntArray(severities.size)
-
+  
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(
       IssueProviderListener.TOPIC,
       IssueProviderListener { _, _ ->
-        ApplicationManager.getApplication().invokeLater {
-          if (!project.isDisposed) {
-            ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
-          }
+        if (!project.isDisposed) {
+          ErrorStripeUpdateManager.getInstance(project).launchRepaintErrorStripePanel(editor, file)
         }
       },
     )
@@ -86,7 +82,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       errorCounts.indices
         .reversed()
         .filterNot { errorCounts[it] == 0 }
-        .map { severityRegistrar.getSeverityByIndex(it) }
+        .map { SeverityRegistrar.getSeverityRegistrar(project).getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
     if (currentItems.size != nonZeroSeverities.size) {

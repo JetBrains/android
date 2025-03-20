@@ -118,7 +118,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * Loader for Android Project class in order to use them in the layout editor.
  */
-class LayoutlibCallbackImpl extends LayoutlibCallback {
+class LayoutlibCallbackImpl extends LayoutlibCallbackEx {
   private static final Logger LOG = Logger.getInstance(LayoutlibCallback.class);
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
@@ -234,8 +234,8 @@ class LayoutlibCallbackImpl extends LayoutlibCallback {
     myFontFamilies = fontBuilder.build();
   }
 
-  /** Resets the callback state for another render */
-  void reset() {
+  @Override
+  public void reset() {
     myParserCount = 0;
     myParserFiles = null;
     myLayoutName = null;
@@ -243,11 +243,7 @@ class LayoutlibCallbackImpl extends LayoutlibCallback {
     myAaptDeclaredResources = ImmutableMap.of();
   }
 
-  /**
-   * Sets the {@link ILayoutLog} logger to use for error messages during problems.
-   *
-   * @param logger the new logger to use
-   */
+  @Override
   public void setLogger(@NotNull IRenderLogger logger) {
     myLogger = logger;
     myViewLoader.setLogger(logger);
@@ -298,16 +294,7 @@ class LayoutlibCallbackImpl extends LayoutlibCallback {
     return myRenderModule.getResourceIdManager().getOrGenerateId(resource);
   }
 
-  /**
-   * Returns whether the loader has received requests to load custom views. Note that
-   * the custom view loading may not actually have succeeded; this flag only records
-   * whether it was <b>requested</b>.
-   * <p/>
-   * This allows to efficiently only recreate when needed upon code change in the
-   * project.
-   *
-   * @return true if the loader has been asked to load custom views
-   */
+  @Override
   public boolean isUsed() {
     return myUsed;
   }
@@ -405,15 +392,18 @@ class LayoutlibCallbackImpl extends LayoutlibCallback {
     return new NamedXmlParser(null);
   }
 
+  @Override
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
     myLayoutName = layoutName;
     myLayoutEmbeddedParser = layoutParser;
   }
 
+  @Override
   public void setAaptDeclaredResources(@NotNull Map<String, TagSnapshot> resources) {
     myAaptDeclaredResources = ImmutableMap.copyOf(resources);
   }
 
+  @Override
   @Nullable
   public ILayoutPullParser getLayoutEmbeddedParser() {
     return myLayoutEmbeddedParser;
@@ -775,14 +765,7 @@ class LayoutlibCallbackImpl extends LayoutlibCallback {
     return binding;
   }
 
-  /**
-   * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly.
-   *
-   * <p>This only needs to be done if the build system compiles code of the given module against R.java files generated with final fields,
-   * which will cause the chosen numeric resource ids to be inlined into the consuming code. In this case we treat the R class bytecode as
-   * the source of truth for mapping resources to numeric ids.
-   */
+  @Override
   public void loadAndParseRClass() {
     myViewLoader.loadAndParseRClassSilently();
   }

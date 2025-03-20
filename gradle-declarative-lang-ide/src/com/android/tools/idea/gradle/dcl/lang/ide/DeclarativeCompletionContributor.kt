@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.codeInsight.completion.CompletionConfidence
@@ -138,7 +138,7 @@ private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capt
     )
     .afterLeafSkipping(
       psiElement().andOr(psiElement().whitespace(), psiElement().withText(".")),
-      psiElement().withText("rootProject")
+      psiElement().withText("rootProject") // rootProject remains only root object with assignable properties
     )
 
 private val AFTER_PROPERTY_DOT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
@@ -285,7 +285,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
         findPreviousSimpleFunction(parameters.position)?.let { parent ->
           result.addAllElements(
-            getSuggestionList(parent, schema, true).filter { it.first is SchemaFunction }
+            getSuggestionList(parent, schema, true).filter { it.first is SchemaMemberFunction }
               .map {
                 val suggestion = it.second
                 LookupElementBuilder.create(suggestion.name)
@@ -389,7 +389,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       // object type property
       OBJECT_VALUE -> {
         if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
-        val rootFunctions = getRootFunctions(parent, schemas)
+        val rootFunctions = getRootFunctions(parent, schemas).distinct()
           .filter { (it.semantic as? PlainFunction)?.returnValue == (entry as? DataProperty)?.valueType }
 
         if (rootFunctions.size == 1) {
@@ -398,6 +398,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
             document.insertString(context.tailOffset, " = ${function.name}(\"\")")
             editor.caretModel.moveToOffset(context.tailOffset - 2)
           }
+        } else {
+          document.insertString(context.tailOffset, " = ")
+          editor.caretModel.moveToOffset(context.tailOffset)
         }
       }
       // rootProject completion

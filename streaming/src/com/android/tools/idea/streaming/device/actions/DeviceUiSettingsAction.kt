@@ -55,7 +55,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, deviceType)
-        showUiSettingsPopup(panel, this@DeviceUiSettingsAction, event, deviceView)
+        showUiSettingsPopup(panel, deviceView)
       }
     }
   }

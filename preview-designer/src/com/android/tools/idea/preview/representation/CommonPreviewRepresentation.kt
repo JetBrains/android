@@ -221,15 +221,18 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @VisibleForTesting
   val navigationHandler =
-    DefaultNavigationHandler { sceneView, _, _, _, _, _ ->
-        val model = sceneView.sceneManager.model
-        val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
-        val navigatableElement =
-          previewElement?.previewElementDefinition?.element?.navigationElement
-            as? NavigatablePsiElement
-        if (navigatableElement == null ) emptyList<PreviewNavigatableWrapper>()
-        listOf(PreviewNavigatableWrapper("", navigatableElement!!))
-      }
+    DefaultNavigationHandler(
+        componentNavigationDelegate = { sceneView, _, _, _, _, _ ->
+          val model = sceneView.sceneManager.model
+          val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
+          val navigatableElement =
+            previewElement?.previewElementDefinition?.element?.navigationElement
+              as? NavigatablePsiElement
+          if (navigatableElement == null) emptyList<PreviewNavigatableWrapper>()
+          listOf(PreviewNavigatableWrapper("", navigatableElement!!))
+        },
+        componentNavigationDelegateTwo = { sceneView, _ , _-> listOf() },
+      )
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
   @VisibleForTesting

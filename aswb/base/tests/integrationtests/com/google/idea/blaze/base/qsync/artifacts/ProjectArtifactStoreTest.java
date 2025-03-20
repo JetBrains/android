@@ -32,7 +32,6 @@ public class ProjectArtifactStoreTest {
   @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
   @Rule public MockitoRule rule = MockitoJUnit.rule();
   @Mock public FileRefresher fileRefresher;
-  @Mock GeneratedSourcesStripper generatedSourcesStripper;
 
   private Path projectPath;
   private Path workspacePath;
@@ -54,8 +53,7 @@ public class ProjectArtifactStoreTest {
             projectPath,
             workspacePath,
             new MockArtifactCache(cacheDir),
-            fileRefresher,
-            generatedSourcesStripper);
+            fileRefresher);
   }
 
   @Test
