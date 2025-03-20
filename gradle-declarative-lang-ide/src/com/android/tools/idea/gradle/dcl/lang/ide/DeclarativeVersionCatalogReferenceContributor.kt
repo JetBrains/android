@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
@@ -55,6 +56,13 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
         super.visitBare(o)
       }
     })
+
+    // TODO need to migrate to getVersionCatalogFiles(element.module) call instead of
+    //  using `project` as an argument. Need this to support composite projects.
+    //  Currently element.module is null - b/405161686
+    val aliases = getVersionCatalogFiles(element.project).keys
+    if(aliases.isEmpty() || !aliases.contains(fileIdentifier.name)) return arrayOf()
+
     val identifiers: MutableList<DeclarativeIdentifier> = mutableListOf()
     element.accept(object : DeclarativeRecursiveVisitor() {
       override fun visitQualified(o: DeclarativeQualified) {

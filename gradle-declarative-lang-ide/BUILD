@@ -16,6 +16,7 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.plugins.gradle",
     ],
 )
 

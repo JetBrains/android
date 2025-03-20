@@ -722,6 +722,7 @@ studio_plugin(
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.gradle",
     ],
 )
 

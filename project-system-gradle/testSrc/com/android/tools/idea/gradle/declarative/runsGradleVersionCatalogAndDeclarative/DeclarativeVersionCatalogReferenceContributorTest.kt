@@ -130,8 +130,7 @@ class DeclarativeVersionCatalogReferenceContributorTest {
     val withoutCaret = text.substring(0, caret) + text.substring(caret + 1)
 
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
-
-    val file = projectRule.fixture.createFile(FN_BUILD_GRADLE_DECLARATIVE, withoutCaret)
+    val file = projectRule.fixture.addFileToProject("app/$FN_BUILD_GRADLE_DECLARATIVE", withoutCaret).virtualFile
     projectRule.fixture.openFileInEditor(file)
 
     runReadAction {
