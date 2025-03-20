@@ -46,6 +46,7 @@ public final class RuleKinds {
           "android_library",
           "android_binary",
           "android_local_test",
+          "_wrapped_android_local_test",
           "android_instrumentation_test",
           "kt_android_library_helper");
 

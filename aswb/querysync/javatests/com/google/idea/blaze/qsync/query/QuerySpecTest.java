@@ -98,7 +98,7 @@ public class QuerySpecTest {
     assertThat(qs.getQueryExpression())
       .hasValue(
         "let base = //some/included/path/...:* + //another/included/path/...:* - //some/included/path/excluded/...:* - //another/included/path/excluded/...:*\n" +
-        " in let known = kind(\"source file|android_library|android_binary|android_local_test|android_instrumentation_test|kt_android_library_helper|java_library|java_binary|kt_jvm_library|kt_jvm_binary|kt_jvm_library_helper|kt_native_library|java_test|java_proto_library|java_lite_proto_library|java_mutable_proto_library|_java_grpc_library|_kotlin_library|_java_lite_grpc_library|_iml_module_|cc_library|cc_binary|cc_shared_library|cc_test|proto_library\", $base) \n" +
+        " in let known = kind(\"source file|android_library|android_binary|android_local_test|_wrapped_android_local_test|android_instrumentation_test|kt_android_library_helper|java_library|java_binary|kt_jvm_library|kt_jvm_binary|kt_jvm_library_helper|kt_native_library|java_test|java_proto_library|java_lite_proto_library|java_mutable_proto_library|_java_grpc_library|_kotlin_library|_java_lite_grpc_library|_iml_module_|cc_library|cc_binary|cc_shared_library|cc_test|proto_library\", $base) \n" +
         " in let unknown = $base except $known \n" +
         " in $known union ($base intersect allpaths($known, $unknown)) \n");
   }
