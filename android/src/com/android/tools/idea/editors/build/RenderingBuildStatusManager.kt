@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
@@ -31,11 +32,13 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Co
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ThrowableComputable
@@ -325,13 +328,45 @@ private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiF
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 
   fun editorHasExistingClassFile(): Boolean {
-    val psiClassOwner = editorFile as? PsiClassOwner ?: return false
-    val classFileFinder by lazy {
-      buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
-    }
+    val psiFile = editorFile ?: return false
     return SlowOperations.knownIssue("IDEA-359567").use {
-      runReadAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
-        .firstNotNullOfOrNull { classFileFinder?.findClassFile(it) } != null
+      runReadAction {
+        val classesFqNames = psiFile.findClassesFqNames()
+        if (classesFqNames.isEmpty()) {
+          false
+        } else {
+          val module = ModuleUtil.findModuleForFile(psiFile) ?: return@runReadAction false
+          val moduleSystem = module.getModuleSystem()
+          val androidModule = module.findAndroidModule()
+          val androidModuleSystem = androidModule?.getModuleSystem()
+          classesFqNames.any {
+            moduleSystem.moduleClassFileFinder.findClassFile(it) != null ||
+            androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) != null
+          }
+        }
+      }
     }
+  }
+}
+
+private fun PsiFile.findClassesFqNames(): List<String> {
+  return when (this) {
+    is KtFile -> kotlinClassDeclarations()
+    is PsiClassOwner -> classes.mapNotNull { it.qualifiedName }
+    else -> listOf()
+  }
+}
+
+private fun KtFile.kotlinClassDeclarations(): List<String> =
+  declarations.filterIsInstance<KtClassOrObject>().mapNotNull { ktClass -> ktClass.fqName?.asString() } + fetchTopLevelClasses(this)
+
+private fun fetchTopLevelClasses(file: KtFile): List<String> = buildList {
+  if (!file.isJvmMultifileClassFile && !file.hasTopLevelCallables()) return@buildList
+
+  val kotlinAsJavaSupport = KotlinAsJavaSupport.getInstance(file.project)
+  if (file.analysisContext == null) {
+    kotlinAsJavaSupport.getLightFacade(file)?.qualifiedName?.let(this::add)
+  } else {
+    kotlinAsJavaSupport.createFacadeForSyntheticFile(file).qualifiedName?.let(this::add)
   }
 }
