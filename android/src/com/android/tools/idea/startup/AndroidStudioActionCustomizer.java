@@ -32,6 +32,7 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     setupResourceManagerActions(actionManager);
     setUpCodeMenuActions(actionManager);
     setUpGradleActions(actionManager);
+    hideDebuggerHotSwapAction(actionManager);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
@@ -62,5 +63,14 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
     // Hide the Save File as Template action due to its rare use in Studio.
     Actions.hideAction(actionManager, "SaveFileAsTemplate");
+  }
+
+  /**
+   * Hide IntelliJ's debugger hot swap action as we support our own
+   * @see com.android.tools.idea.execution.common.applychanges.ApplyChangesAction
+   * @see com.android.tools.idea.execution.common.applychanges.CodeSwapAction
+   */
+  private static void hideDebuggerHotSwapAction(ActionManager actionManager) {
+    Actions.hideAction(actionManager, "Hotswap");
   }
 }
