@@ -18,7 +18,7 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.common.util.Transactions
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
@@ -125,7 +125,7 @@ class ProjectUpdaterWithWorkspaceEntity(
       val changes = MutableEntityStorage.from(originalSnapshot)
       buildChanges(changes, ProjectData.from(spec))
       withContext(Dispatchers.EDT) {
-        writeAction {
+        edtWriteAction {
           WorkspaceModel.getInstance(project).updateProjectModel("Updating project model") { builder ->
             context.output(PrintOutput.output("Applying project model changes"))
             if (originalSnapshot !== WorkspaceModel.getInstance(project).currentSnapshot) {

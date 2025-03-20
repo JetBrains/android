@@ -30,7 +30,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -95,7 +95,7 @@ class RenderingBuildStatusManagerTest {
     ) {
       it == RenderingBuildStatus.Ready
     }
-    val newVirtualFile = writeAction {
+    val newVirtualFile = edtWriteAction {
       val newVirtualFile =
         projectRoot.createFile(SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR.path + "/newFile")
       newVirtualFile.writeText("")
