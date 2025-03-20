@@ -229,7 +229,10 @@ class InsightContentPanel(
             }
             // Gemini plugin disabled or scope is not authorized
             is LoadingState.Unauthorized -> {
-              if (LoginFeature.getExtensionByKey("Gemini") == null) {
+              if (
+                LoginFeature.getExtensionByKey("Gemini") == null &&
+                  LoginFeature.getExtensionByKey("GiAS") == null
+              ) {
                 emptyStateText.apply {
                   clear()
                   appendText(GEMINI_NOT_AVAILABLE, EMPTY_STATE_TITLE_FORMAT)
