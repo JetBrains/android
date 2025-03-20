@@ -33,8 +33,8 @@ const val MULTI_APP_100_NAME = "100Apps_1300Modules"
 const val MULTI_APP_190_NAME = "190Apps_2200Modules"
 
 // Benchmarks with different versions than standard benchmarks
-const val SUBSET_1000_GRADLE_SNAPSHOT_NAME = "1000Modules_GradleSnapshot"
-const val SUBSET_1000_KOTLIN_LATEST_NAME = "1000Modules_KotlinLatest"
+const val SUBSET_2000_GRADLE_LATEST_NAME = "2000Modules_GradleLatest"
+const val SUBSET_2000_KOTLIN_LATEST_NAME = "2000Modules_KotlinLatest"
 
 // Feature benchmark names
 const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"

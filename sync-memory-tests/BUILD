@@ -43,8 +43,9 @@ iml_module(
             ],
         },
         # Release branch tests with comparison to main branch
-        "Benchmark1000CpuReleaseBranch": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+        "Benchmark2000CpuReleaseBranch": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "perfgate-release",
             ],
@@ -59,8 +60,9 @@ iml_module(
             "additional_jvm_args": ["-Drunning.from.release.branch=true"],
         },
         # Comparison tests
-        "Benchmark1000CpuLatestGradleTest": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
+        "Benchmark2000CpuLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuLatestGradleTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -69,8 +71,9 @@ iml_module(
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
-        "Benchmark1000MemoryLatestGradleTest": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestGradleTest",
+        "Benchmark2000MemoryLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryLatestGradleTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -79,8 +82,9 @@ iml_module(
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
-        "Benchmark1000CpuLatestKotlinTest": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestKotlinTest",
+        "Benchmark2000CpuLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuLatestKotlinTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -89,8 +93,9 @@ iml_module(
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
-        "Benchmark1000MemoryLatestKotlinTest": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestKotlinTest",
+        "Benchmark2000MemoryLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryLatestKotlinTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
