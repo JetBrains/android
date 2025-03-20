@@ -63,7 +63,7 @@ public class BlazeAndroidBinaryProgramRunner extends AsyncProgramRunner<RunnerSe
 
     ProgressManager.getInstance()
         .run(
-            new Task.Backgroundable(environment.getProject(), "Launching ${runProfile.name}") {
+            new Task.Backgroundable(environment.getProject(), String.format("Launching %s", environment.getRunProfile().getName())) {
               @Override
               public void run(ProgressIndicator indicator) {
                 try {
