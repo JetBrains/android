@@ -25,7 +25,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "ci:perfgate-win",
             ],
         },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
@@ -143,7 +142,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "ci:perfgate-win",
             ],
         },
         # Disabled tests
