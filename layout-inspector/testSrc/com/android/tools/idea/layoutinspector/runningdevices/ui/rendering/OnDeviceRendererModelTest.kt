@@ -718,4 +718,22 @@ class OnDeviceRendererModelTest {
     Disposer.dispose(onDeviceRendererModel)
     assertThat(renderSettings.modificationListeners).isEmpty()
   }
+
+  @Test
+  fun testSelectedNodeHasNoLabelWhenDisabledInRenderSettings() = runTest {
+    onDeviceRendererModel.selectNode(15.0, 55.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    renderSettings.drawLabel = false
+
+    val expectedInstructions =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(10, 50, 80, 50),
+        color = SELECTION_COLOR_ARGB,
+        label = null,
+      )
+    val instructions1 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions1).isEqualTo(expectedInstructions)
+  }
 }

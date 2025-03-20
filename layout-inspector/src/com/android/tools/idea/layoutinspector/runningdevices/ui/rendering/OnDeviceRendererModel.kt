@@ -125,11 +125,9 @@ class OnDeviceRendererModel(
       override fun onChange(state: RenderSettings.State) {
         renderSettingsState = state
 
-        if (state.drawBorders == false) {
-          setVisibleNodes(emptyList())
-        } else {
-          setVisibleNodes(getNodes())
-        }
+        // Update draw instruction to apply new settings.
+        setSelectedNode(inspectorModel.selection)
+        setVisibleNodes(getNodes())
       }
     }
 
@@ -181,9 +179,14 @@ class OnDeviceRendererModel(
   }
 
   private fun setSelectedNode(node: ViewNode?) {
-    // TODO(next CL): don't set label if disabled in render settings.
+    val label =
+      if (renderSettings.drawLabel) {
+        node?.unqualifiedName
+      } else {
+        null
+      }
     _selectedNode.value =
-      node?.toDrawInstruction(color = renderSettings.selectionColor, label = node.unqualifiedName)
+      node?.toDrawInstruction(color = renderSettings.selectionColor, label = label)
   }
 
   private fun setHoveredNode(node: ViewNode?) {
