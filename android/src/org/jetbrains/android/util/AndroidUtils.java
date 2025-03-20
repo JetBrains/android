@@ -382,7 +382,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     // that will lead to compilation errors, which the package manager doesn't need to worry about
     // (the code wouldn't have compiled)
 
-    getApplication().assertReadAccessAllowed();
     int index = 0;
     while (true) {
       int index1 = name.indexOf('.', index);
