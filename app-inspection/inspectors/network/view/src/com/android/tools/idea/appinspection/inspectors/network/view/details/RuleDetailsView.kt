@@ -40,21 +40,23 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.TableView
 import com.intellij.util.applyIf
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.net.URI
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.text.AbstractDocument
-import javax.swing.text.AttributeSet
-import javax.swing.text.DocumentFilter
+
+private const val MALFORMED_URL = "URL is malformed"
+
+private const val INVALID_PORT = "Port should be an integer between 0 and 65535"
 
 /** View to display a single network interception rule and its detailed information. */
 class RuleDetailsView(
@@ -91,22 +93,10 @@ class RuleDetailsView(
   }
 
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
-    val nameWarningLabel = createWarningLabel("", "nameWarningLabel")
-    val nameTextField =
-      createTextField(rule.name, "Enter rule name", "nameTextField") { text ->
-        if (text != rule.name) {
-          val warningText = validateRuleName(text)
-          if (warningText != null) {
-            nameWarningLabel.isVisible = true
-            nameWarningLabel.toolTipText = warningText
-            return@createTextField
-          }
-        }
-        rule.name = text
+    val namePanel =
+      TextFieldWithWarning(rule.name, "Enter rule name", "name", { validateRuleName(it, rule) }) {
+        rule.name = it
       }
-    nameTextField.installWarningLabelFilter(nameWarningLabel)
-
-    val namePanel = createPanelWithTextFieldAndWarningLabel(nameTextField, nameWarningLabel)
     val nameCategoryPanel = createCategoryPanel(null, JBLabel("Name:") to namePanel)
     detailsPanel.add(nameCategoryPanel)
 
@@ -124,85 +114,85 @@ class RuleDetailsView(
     detailsPanel.background = primaryContentBackground
   }
 
-  private fun validateRuleName(name: String): String? {
+  private fun validateRuleName(name: String, self: RuleData): String? {
     return when {
       name.isBlank() -> "Rule name cannot be blank"
+      self.name == name -> null
       getRuleNames().contains(name) -> "Rule named '$name' already exists"
       else -> null
     }
   }
 
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
-    val statusCodeData = rule.statusCodeRuleData
-    fun validateStatusCode(text: String, isEmptyValid: Boolean) =
-      validateIntegerInput(text, isEmptyValid, 100, 599)
+    val data = rule.statusCodeRuleData
+    val doReplace = JBCheckBox("Replace with status code:")
 
-    val findCodeWarningLabel =
-      createWarningLabel(
-        "Status code should be an integer between 100 and 599",
-        "findCodeWarningLabel",
-      )
-    val newCodeWarningLabel =
-      createWarningLabel(
-        "Status code should be an integer between 100 and 599",
-        "newCodeWarningLabel",
-      )
-    val newCodeTextField =
-      createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
-        if (isEnabled && !validateStatusCode(it, false)) {
-          newCodeWarningLabel.isVisible = true
-          statusCodeData.isActive = false
-          return@createTextField
-        }
-        statusCodeData.isActive = !findCodeWarningLabel.isVisible
-        if (statusCodeData.newCode != it) {
-          statusCodeData.newCode = it
-          usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
-        }
+    fun validateStatusCode(text: String, isEmptyValid: Boolean): String? {
+      return when (validateIntegerInput(text, isEmptyValid, 100, 599)) {
+        true -> null
+        false -> "Status code should be an integer between 100 and 599"
       }
-    newCodeTextField.installWarningLabelFilter(newCodeWarningLabel)
-    val newCodePanel =
-      createPanelWithTextFieldAndWarningLabel(newCodeTextField, newCodeWarningLabel)
+    }
 
-    val findCodeTextField =
-      createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
-        // newCodeTextField is enabled only when the isActiveCheckBox is checked. Use that as a
-        // marker to check if empty input is acceptable
-        if (!validateStatusCode(it, !newCodeTextField.isEnabled)) {
-          findCodeWarningLabel.isVisible = true
-          statusCodeData.isActive = false
-          return@createTextField
-        }
-        statusCodeData.isActive = newCodeTextField.isEnabled && !newCodeWarningLabel.isVisible
-        if (statusCodeData.findCode != it) {
-          statusCodeData.findCode = it
+    val findCodePanel =
+      TextFieldWithWarning(
+        data.findCode,
+        "200",
+        "findCode",
+        {
+          val warning = validateStatusCode(it, !doReplace.isSelected)
+          if (warning != null) {
+            data.isActive = false
+          }
+          warning
+        },
+      ) {
+        data.isActive =
+          doReplace.isSelected && !parent.findDescendantByName("newCodeWarningLabel").isVisible
+        if (data.findCode != it) {
+          data.findCode = it
           usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
         }
       }
-    findCodeTextField.installWarningLabelFilter(findCodeWarningLabel)
-    val findCodePanel =
-      createPanelWithTextFieldAndWarningLabel(findCodeTextField, findCodeWarningLabel)
-
-    val isActiveCheckBox =
-      JBCheckBox("Replace with status code:").apply {
-        isSelected = statusCodeData.isActive
-        newCodeTextField.isEnabled = isSelected
-        addItemListener {
-          newCodeTextField.isEnabled = isSelected
-          newCodeWarningLabel.isVisible =
-            isSelected && !validateStatusCode(newCodeTextField.text, false)
-          findCodeWarningLabel.isVisible = !validateStatusCode(findCodeTextField.text, !isSelected)
-          statusCodeData.isActive =
-            isSelected && !newCodeWarningLabel.isVisible && !findCodeWarningLabel.isVisible
+    val newCodePanel =
+      TextFieldWithWarning(
+        data.newCode,
+        "500",
+        "newCode",
+        {
+          val warning = validateStatusCode(it, !doReplace.isSelected)
+          if (warning != null) {
+            data.isActive = false
+          }
+          warning
+        },
+      ) {
+        data.isActive =
+          doReplace.isSelected && !parent.findDescendantByName("findCodeWarningLabel").isVisible
+        if (data.newCode != it) {
+          data.newCode = it
+          usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
         }
       }
-    return JPanel(VerticalLayout(6)).apply {
+
+    with(doReplace) {
+      isSelected = data.isActive
+      newCodePanel.isEnabled = isSelected
+      addItemListener {
+        data.isActive = isSelected
+        newCodePanel.isEnabled = isSelected
+        findCodePanel.validateText()
+        newCodePanel.validateText()
+      }
+    }
+    val root = JPanel(VerticalLayout(6))
+    return root.apply {
       add(TitledSeparator("Response").apply { minimumSize = Dimension(0, 34) })
       add(
         JPanel(TabularLayout("Fit,5px,*,40px,Fit,5px,*")).apply {
           add(JLabel("Apply rule for status:"), TabularLayout.Constraint(0, 0))
           add(findCodePanel, TabularLayout.Constraint(0, 2))
-          add(isActiveCheckBox, TabularLayout.Constraint(0, 4))
+          add(doReplace, TabularLayout.Constraint(0, 4))
           add(newCodePanel, TabularLayout.Constraint(0, 6))
         }
       )
@@ -210,62 +200,59 @@ class RuleDetailsView(
   }
 
   private fun createOriginCategoryPanel(rule: RuleData): JPanel {
+    val criteria = rule.criteria
     val protocolComboBox =
       CommonComboBox(DefaultCommonComboBoxModel("", enumValues<Protocol>().toList())).apply {
         isEditable = false
         selectedIndex = 0
-        selectedItem = rule.criteria.protocol
+        selectedItem = criteria.protocol
         addActionListener {
           (selectedItem as? Protocol)?.let {
-            if (rule.criteria.protocol != it) {
-              rule.criteria.protocol = it
+            if (criteria.protocol != it) {
+              criteria.protocol = it
               usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PROTOCOL)
             }
           }
         }
         name = "protocolComboBox"
       }
-    val urlWarningLabel = createWarningLabel("URL is malformed", "urlWarningLabel")
-    val urlTextField =
-      createTextField(rule.criteria.host, "www.google.com", "urlTextField") { text ->
-        if (
-          !validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$text", text)
-        ) {
-          urlWarningLabel.isVisible = true
-          return@createTextField
-        }
-        rule.criteria.apply {
-          if (host != text) {
-            host = text
-            usageTracker.trackRuleUpdated(InterceptionCriteria.URL_HOST)
-          }
-        }
-      }
-    val urlPanel = createPanelWithTextFieldAndWarningLabel(urlTextField, urlWarningLabel)
-    urlTextField.installWarningLabelFilter(urlWarningLabel)
 
-    val portWarningLabel =
-      createWarningLabel("Port should be an integer between 0 and 65535", "portWarningLabel")
-    val portTextField =
-      createTextField(rule.criteria.port, "80", "portTextField") { text ->
-        if (text == "-0" || !validateIntegerInput(text, true, 0, 65535)) {
-          portWarningLabel.isVisible = true
-          return@createTextField
-        }
-        rule.criteria.apply {
-          if (port != text) {
-            port = text
-            usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PORT)
-          }
+    val urlPanel =
+      TextFieldWithWarning(
+        criteria.host,
+        "www.google.com",
+        "url",
+        { validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$it", it) },
+      ) {
+        if (criteria.host != it) {
+          criteria.host = it
+          usageTracker.trackRuleUpdated(InterceptionCriteria.URL_HOST)
         }
       }
-    portTextField.installWarningLabelFilter(portWarningLabel)
-    val portPanel = createPanelWithTextFieldAndWarningLabel(portTextField, portWarningLabel)
+
+    val portPanel =
+      TextFieldWithWarning(
+        criteria.port,
+        "80",
+        "port",
+        {
+          when {
+            it == "-0" -> INVALID_PORT
+            !validateIntegerInput(it, true, 0, 65535) -> INVALID_PORT
+            else -> null
+          }
+        },
+      ) {
+        if (criteria.port != it) {
+          criteria.port = it
+          usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PORT)
+        }
+      }
 
     val pathTextField =
-      createTextField(rule.criteria.path, "search", "pathTextField") { input ->
+      createTextField(criteria.path, "search", "pathTextField") { input ->
         val text = input.applyIf(input.isNotBlank() && !input.startsWith('/')) { "/$input" }
-        rule.criteria.apply {
+        criteria.apply {
           if (path != text) {
             path = text
             usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PATH)
@@ -273,8 +260,8 @@ class RuleDetailsView(
         }
       }
     val queryTextField =
-      createTextField(rule.criteria.query, "q=android+studio", "queryTextField") { text ->
-        rule.criteria.apply {
+      createTextField(criteria.query, "q=android+studio", "queryTextField") { text ->
+        criteria.apply {
           if (query != text) {
             query = text
             usageTracker.trackRuleUpdated(InterceptionCriteria.URL_QUERY)
@@ -285,11 +272,11 @@ class RuleDetailsView(
       CommonComboBox(DefaultCommonComboBoxModel("", enumValues<Method>().toList())).apply {
         isEditable = false
         selectedIndex = 0
-        selectedItem = rule.criteria.method
+        selectedItem = criteria.method
         addActionListener {
           (selectedItem as? Method)?.let {
-            if (rule.criteria.method != it) {
-              rule.criteria.method = it
+            if (criteria.method != it) {
+              criteria.method = it
             }
           }
         }
@@ -390,37 +377,17 @@ class RuleDetailsView(
   }
 }
 
-/** Document filter to make the [warningLabel] invisible when addition/deletion occurs in input. */
-private class ClearWarningLabelDocumentFilter(private val warningLabel: JLabel) : DocumentFilter() {
-
-  override fun remove(fb: FilterBypass?, offset: Int, length: Int) {
-    warningLabel.isVisible = false
-    super.remove(fb, offset, length)
-  }
-
-  override fun replace(
-    fb: FilterBypass?,
-    offset: Int,
-    length: Int,
-    text: String?,
-    attrs: AttributeSet?,
-  ) {
-    warningLabel.isVisible = false
-    super.replace(fb, offset, length, text, attrs)
-  }
-}
-
 /**
  * Validate the input in text field to be a valid host. Compare the host field of the [url] to the
  * [host].
  */
-private fun validateHostInput(url: String, host: String): Boolean {
+private fun validateHostInput(url: String, host: String): String? {
   // Empty host is acceptable.
-  if (host.isEmpty()) return true
+  if (host.isEmpty()) return null
   return try {
-    URI(url).host == host
-  } catch (ignored: Exception) {
-    false
+    if (URI(url).host == host) null else MALFORMED_URL
+  } catch (_: Exception) {
+    MALFORMED_URL
   }
 }
 
@@ -436,8 +403,6 @@ private fun validateIntegerInput(
   return intInput in lowerBound..upperBound
 }
 
-private fun JBTextField.installWarningLabelFilter(warningLabel: JBLabel) {
-  ClearWarningLabelDocumentFilter(warningLabel).also {
-    (document as AbstractDocument).documentFilter = it
-  }
+private fun Container.findDescendantByName(name: String): Component {
+  return TreeWalker(this).descendants().first { it.name == name }
 }
