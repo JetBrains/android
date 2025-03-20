@@ -4,9 +4,6 @@
 package android.services.xr.simulatedinputmanager;
 
 interface IXrSimulatedInputManager {
-    // Name of the default xr simulated input manager service
-    const String DEFAULT_SERVICE_NAME = "xrsimulatedinputmanager";
-
     // Unused methods are replaced by placeholders to preserve generated ids of the subsequent methods.
     void placeholder1();
     void placeholder2();
