@@ -1296,8 +1296,9 @@ class RuleDetailsViewTest {
   }
 
   @Test
-  fun hostFromVariableIsValid() {
-    ruleVariables.add(RuleVariable("HOST", "www.google.com"))
+  fun hostWithVariable() {
+    val variable = RuleVariable("HOST", "www.google.com")
+    ruleVariables.add(variable)
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "urlTextField") as JTextField
@@ -1305,16 +1306,22 @@ class RuleDetailsViewTest {
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID")
 
     textField.text = "\${HOST}"
     textField.onFocusLost()
-
     assertThat(warningLabel.isVisible).isFalse()
+
+    variable.value = ":"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("URL is malformed")
   }
 
   @Test
-  fun portFromVariableIsValid() {
-    ruleVariables.add(RuleVariable("PORT", "80"))
+  fun portWithVariable() {
+    val variable = RuleVariable("PORT", "80")
+    ruleVariables.add(variable)
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
@@ -1322,16 +1329,22 @@ class RuleDetailsViewTest {
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID")
 
     textField.text = "\${PORT}"
     textField.onFocusLost()
-
     assertThat(warningLabel.isVisible).isFalse()
+
+    variable.value = "10000000"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Port should be an integer between 0 and 65535")
   }
 
   @Test
-  fun findCodeFromVariableIsValid() {
-    ruleVariables.add(RuleVariable("CODE", "200"))
+  fun findCodeWithVariable() {
+    val variable = RuleVariable("CODE", "200")
+    ruleVariables.add(variable)
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
@@ -1340,16 +1353,23 @@ class RuleDetailsViewTest {
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID")
 
     textField.text = "\${CODE}"
     textField.onFocusLost()
-
     assertThat(warningLabel.isVisible).isFalse()
+
+    variable.value = "boo"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText)
+      .isEqualTo("Status code should be an integer between 100 and 599")
   }
 
   @Test
-  fun newCodeFromVariableIsValid() {
-    ruleVariables.add(RuleVariable("CODE", "200"))
+  fun newCodeWithVariable() {
+    val variable = RuleVariable("CODE", "200")
+    ruleVariables.add(variable)
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
@@ -1358,10 +1378,51 @@ class RuleDetailsViewTest {
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID")
 
     textField.text = "\${CODE}"
     textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isFalse()
 
+    variable.value = "10"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText)
+      .isEqualTo("Status code should be an integer between 100 and 599")
+  }
+
+  @Test
+  fun pathWithVariable() {
+    ruleVariables.add(RuleVariable("PATH1", "foo"))
+    ruleVariables.add(RuleVariable("PATH2", "foo"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "pathTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "pathWarningLabel") as JBLabel
+    textField.text = "\${INVALID1}/\${INVALID2}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID1, INVALID2")
+
+    textField.text = "\${PATH1}/\${PATH2}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
+  @Test
+  fun queryWithVariable() {
+    ruleVariables.add(RuleVariable("QUERY", "foo"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "queryWarningLabel") as JBLabel
+    textField.text = "\${INVALID}"
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: INVALID")
+
+    textField.text = "\${QUERY}"
+    textField.onFocusLost()
     assertThat(warningLabel.isVisible).isFalse()
   }
 

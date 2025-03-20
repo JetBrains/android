@@ -55,10 +55,11 @@ import java.net.URI
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.text.RegexOption.IGNORE_CASE
 
 private const val MALFORMED_URL = "URL is malformed"
-
 private const val INVALID_PORT = "Port should be an integer between 0 and 65535"
+private val VARIABLE_REGEX = "\\$\\{([a-z_0-9]+)}".toRegex(IGNORE_CASE)
 
 /** View to display a single network interception rule and its detailed information. */
 class RuleDetailsView(
@@ -131,6 +132,10 @@ class RuleDetailsView(
     val doReplace = JBCheckBox("Replace with status code:")
 
     fun validateStatusCode(text: String, isEmptyValid: Boolean): String? {
+      val warning = validateVariables(text)
+      if (warning != null) {
+        return warning
+      }
       return when (validateIntegerInput(text, isEmptyValid, 100, 599)) {
         true -> null
         false -> "Status code should be an integer between 100 and 599"
@@ -239,7 +244,9 @@ class RuleDetailsView(
         "80",
         "port",
         {
+          val warning = validateVariables(it)
           when {
+            warning != null -> warning
             it == "-0" -> INVALID_PORT
             !validateIntegerInput(it, true, 0, 65535) -> INVALID_PORT
             else -> null
@@ -252,23 +259,19 @@ class RuleDetailsView(
         }
       }
 
-    val pathTextField =
-      createTextField(criteria.path, "search", "pathTextField") { input ->
-        val text = input.applyIf(input.isNotBlank() && !input.startsWith('/')) { "/$input" }
-        criteria.apply {
-          if (path != text) {
-            path = text
-            usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PATH)
-          }
+    val pathPanel =
+      TextFieldWithWarning(criteria.path, "search", "path", ::validateVariables) {
+        val text = it.applyIf(it.isNotBlank() && !it.startsWith('/')) { "/$it" }
+        if (criteria.path != text) {
+          criteria.path = text
+          usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PATH)
         }
       }
-    val queryTextField =
-      createTextField(criteria.query, "q=android+studio", "queryTextField") { text ->
-        criteria.apply {
-          if (query != text) {
-            query = text
-            usageTracker.trackRuleUpdated(InterceptionCriteria.URL_QUERY)
-          }
+    val queryPanel =
+      TextFieldWithWarning(criteria.query, "q=android+studio", "query", ::validateVariables) {
+        if (criteria.query != it) {
+          criteria.query = it
+          usageTracker.trackRuleUpdated(InterceptionCriteria.URL_QUERY)
         }
       }
     val methodComboBox =
@@ -290,8 +293,8 @@ class RuleDetailsView(
       JLabel("Protocol:") to protocolComboBox,
       JLabel("Host URL:") to urlPanel,
       JLabel("Port:") to portPanel,
-      JLabel("Path:") to pathTextField,
-      JLabel("Query:") to queryTextField,
+      JLabel("Path:") to pathPanel,
+      JLabel("Query:") to queryPanel,
       JLabel("Method:") to methodComboBox,
     )
   }
@@ -397,14 +400,31 @@ class RuleDetailsView(
    * the [host].
    */
   private fun validateHostInput(protocol: Protocol, host: String): String? {
-    // Empty host is acceptable.
+    val warning = validateVariables(host)
+    if (warning != null) {
+      return warning
+    }
     val expanded = ruleVariables.applyTo(host)!!
+    // Empty host is acceptable.
     if (expanded.isEmpty()) return null
     return try {
       if (URI("${protocol.name}://$expanded").host == expanded) null else MALFORMED_URL
     } catch (_: Exception) {
       MALFORMED_URL
     }
+  }
+
+  private fun validateVariables(value: String): String? {
+    val names = ruleVariables.mapTo(hashSetOf()) { it.name }
+    val invalidArgs =
+      VARIABLE_REGEX.findAll(value)
+        .map { it.groupValues[1] }
+        .filter { !names.contains(it) }
+        .toList()
+    if (invalidArgs.isEmpty()) {
+      return null
+    }
+    return invalidArgs.joinToString(prefix = "Invalid variables: ") { it }
   }
 }
 
