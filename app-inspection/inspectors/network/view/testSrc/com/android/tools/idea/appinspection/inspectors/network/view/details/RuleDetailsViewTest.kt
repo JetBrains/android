@@ -1440,6 +1440,76 @@ class RuleDetailsViewTest {
     return model.selectedRule!!
   }
 
+  @Test
+  fun headerWithVariables() {
+    ruleVariables.add(RuleVariable("NAME", "name"))
+    ruleVariables.add(RuleVariable("VALUE", "value"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "headerRulesWarningLabel")!!
+    assertThat(headerTable.rowCount).isEqualTo(0)
+
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as HeaderRuleDialog
+      dialog.tabs.selectedComponent = dialog.newHeaderPanel
+      dialog.newAddedNameLabel.text = "\${NAME1}"
+      dialog.newAddedValueLabel.text = "\${VALUE1}"
+      dialog.clickDefaultButton()
+    }
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: NAME1, VALUE1")
+
+    val editAction = findAction(headerTable.parent.parent.parent, "Edit")
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as HeaderRuleDialog
+      dialog.tabs.selectedComponent = dialog.newHeaderPanel
+      dialog.newAddedNameLabel.text = "\${NAME}"
+      dialog.newAddedValueLabel.text = "\${VALUE}"
+      dialog.clickDefaultButton()
+    }
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
+  @Test
+  fun bodyWithVariables() {
+    ruleVariables.add(RuleVariable("OLD", "old"))
+    ruleVariables.add(RuleVariable("NEW", "new"))
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val bodyTable = findComponentWithUniqueName(ruleDetailsView, "bodyRules") as TableView<*>
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "bodyRulesWarningLabel")!!
+    assertThat(bodyTable.rowCount).isEqualTo(0)
+
+    val addAction = findAction(bodyTable.parent.parent.parent, "Add")
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as BodyRuleDialog
+      dialog.findTextArea.text = "\${OLD1}"
+      dialog.replaceTextArea.text = "\${NEW1}"
+      dialog.clickDefaultButton()
+    }
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: OLD1, NEW1")
+
+    val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as BodyRuleDialog
+      dialog.findTextArea.text = "\${OLD}"
+      dialog.replaceTextArea.text = "\${NEW}"
+      dialog.clickDefaultButton()
+    }
+    assertThat(warningLabel.isVisible).isFalse()
+  }
+
   private fun JComponent.onFocusLost() {
     focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
   }

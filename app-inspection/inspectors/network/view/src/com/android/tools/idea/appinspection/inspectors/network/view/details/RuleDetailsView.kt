@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker.InterceptionCriteria
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
@@ -29,21 +28,12 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.Proto
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.applyTo
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
-import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerTabKeyAction
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
-import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.ui.TableUtil
 import com.intellij.ui.TitledSeparator
-import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.ui.table.TableView
 import com.intellij.util.applyIf
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
@@ -108,11 +98,24 @@ class RuleDetailsView(
 
     detailsPanel.add(createStatusCodeCategoryPanel(rule))
 
+    val validator: (ListTableModel<RuleData.TransformationRuleData>) -> String? = { model ->
+      val string = buildString {
+        (1 until model.columnCount).forEach { col ->
+          repeat(model.rowCount) { row -> append(model.getValueAt(row, col)) }
+        }
+      }
+      validateVariables(string)
+    }
+
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Header rules"))
-    detailsPanel.add(createRulesTable(rule.headerRuleTableModel, "headerRules"))
+    detailsPanel.add(
+      RuleTableWithWarning(rule.headerRuleTableModel, "headerRules", usageTracker, validator)
+    )
 
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Body rules"))
-    detailsPanel.add(createRulesTable(rule.bodyRuleTableModel, "bodyRules"))
+    detailsPanel.add(
+      RuleTableWithWarning(rule.bodyRuleTableModel, "bodyRules", usageTracker, validator)
+    )
 
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
@@ -297,89 +300,6 @@ class RuleDetailsView(
       JLabel("Query:") to queryPanel,
       JLabel("Method:") to methodComboBox,
     )
-  }
-
-  private fun createRulesTable(
-    model: ListTableModel<RuleData.TransformationRuleData>,
-    name: String,
-  ): JComponent {
-    val table = TableView(model)
-    table.registerTabKeyAction { table.transferFocus() }
-    table.name = name
-    val decorator = ToolbarDecorator.createDecorator(table)
-
-    val trackAction: (RuleData.TransformationRuleData) -> Unit = { newItem ->
-      val component =
-        when (newItem) {
-          is RuleData.HeaderAddedRuleData -> InterceptionCriteria.ADD_HEADER
-          is RuleData.HeaderReplacedRuleData -> InterceptionCriteria.FIND_REPLACE_HEADER
-          is RuleData.BodyReplacedRuleData -> InterceptionCriteria.REPLACE_BODY
-          is RuleData.BodyModifiedRuleData -> InterceptionCriteria.FIND_REPLACE_BODY
-          else -> null
-        }
-      component?.let { usageTracker.trackRuleUpdated(it) }
-    }
-
-    val addRowAction: (RuleData.TransformationRuleData) -> Unit = { newItem ->
-      model.addRow(newItem)
-      val index = table.convertRowIndexToView(model.rowCount - 1)
-      table.selectionModel.setSelectionInterval(index, index)
-      trackAction(newItem)
-    }
-    decorator.setAddAction {
-      when (model) {
-        is RuleData.HeaderRulesTableModel -> HeaderRuleDialog(null, addRowAction).show()
-        is RuleData.BodyRulesTableModel -> BodyRuleDialog(null, addRowAction).show()
-      }
-    }
-    decorator.setRemoveAction {
-      val message =
-        when (model) {
-          is RuleData.HeaderRulesTableModel -> NetworkInspectorBundle.message("confirmation.header")
-          else -> NetworkInspectorBundle.message("confirmation.body")
-        }
-      val isConfirmed =
-        MessageDialogBuilder.okCancel(NetworkInspectorBundle.message("confirmation.title"), message)
-          .ask(table)
-      if (isConfirmed) {
-        if (TableUtil.doRemoveSelectedItems(table, model, null)) {
-          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
-            IdeFocusManager.getGlobalInstance().requestFocus(table, true)
-          }
-          TableUtil.updateScroller(table)
-        }
-      }
-    }
-
-    val replaceRowAction: (RuleData.TransformationRuleData) -> Unit = { newItem ->
-      val selectedItem = table.selectedObject
-      val replaceIndex = model.items.indexOf(selectedItem)
-      if (replaceIndex != -1) {
-        model.items = model.items.map { if (it == selectedItem) newItem else it }
-        model.fireTableRowsUpdated(replaceIndex, replaceIndex)
-        val tableIndex = table.convertRowIndexToView(replaceIndex)
-        table.selectionModel.setSelectionInterval(tableIndex, tableIndex)
-        trackAction(newItem)
-      }
-    }
-    decorator.setEditAction {
-      val selectedItem = table.selectedObject
-      when (model) {
-        is RuleData.HeaderRulesTableModel -> HeaderRuleDialog(selectedItem, replaceRowAction).show()
-        is RuleData.BodyRulesTableModel -> BodyRuleDialog(selectedItem, replaceRowAction).show()
-      }
-    }
-
-    val decoratedTableView = decorator.createPanel()
-    val infoLabel =
-      JBLabel(AllIcons.General.Information).apply {
-        border = JBUI.Borders.emptyRight(8)
-        isEnabled = false
-        toolTipText = "Order of rules indicate execution order."
-      }
-    decorator.actionsPanel.setToolbarLabel(infoLabel, ActionToolbarPosition.RIGHT)
-    ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
-    return decoratedTableView
   }
 
   /** Validate the input in text field to be an integer. */
