@@ -20,9 +20,6 @@
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.AddComposableAnnotationQuickFix$Contributor"/>
 
-    <!-- Compose compiler plugin -->
-    <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
-
     <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
     <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
