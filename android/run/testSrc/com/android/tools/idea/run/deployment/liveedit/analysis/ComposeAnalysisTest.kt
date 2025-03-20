@@ -58,8 +58,8 @@ class ComposeAnalysisTest {
       """)
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
-    groupTable.assertGroupTable(methodGroupCount = 1, restartLambdaCount = 1, lambdaGroupCount = 0, innerClassCount = 1)
-    val test = groupTable.assertMethodGroup(956630616)
+    groupTable.assertGroupTable(groupCount = 1, restartLambdaCount = 1, lambdaGroupCount = 0, innerClassCount = 1)
+    val test = groupTable.assertGroup(956630616)
     groupTable.assertRestartLambda(test)
     assertEquals("test", test.name)
   }
@@ -76,13 +76,13 @@ class ComposeAnalysisTest {
 
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
-    groupTable.assertGroupTable(methodGroupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 0, innerClassCount = 2)
+    groupTable.assertGroupTable(groupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 0, innerClassCount = 2)
 
-    val first = groupTable.assertMethodGroup(-1619759206)
+    val first = groupTable.assertGroup(-1619759206)
     groupTable.assertRestartLambda(first)
     assertEquals("first", first.name)
 
-    val second = groupTable.assertMethodGroup(-130088134)
+    val second = groupTable.assertGroup(-130088134)
     groupTable.assertRestartLambda(second)
     assertEquals("second", second.name)
   }
@@ -98,14 +98,14 @@ class ComposeAnalysisTest {
       """)
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
-    groupTable.assertGroupTable(methodGroupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 0, innerClassCount = 2)
+    groupTable.assertGroupTable(groupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 0, innerClassCount = 2)
 
-    val first = groupTable.assertMethodGroup(1872838441)
+    val first = groupTable.assertGroup(1872838441)
     groupTable.assertRestartLambda(first)
     assertEquals("group", first.name)
     assertEquals("(Landroidx/compose/runtime/Composer;I)V", first.desc)
 
-    val second = groupTable.assertMethodGroup(690094472)
+    val second = groupTable.assertGroup(690094472)
     groupTable.assertRestartLambda(second)
     assertEquals("group", second.name)
     assertEquals("(ILandroidx/compose/runtime/Composer;I)V", second.desc)
@@ -113,18 +113,6 @@ class ComposeAnalysisTest {
 
   @Test
   fun `composable with content`() {
-    // TODO(386111622): We have exception related to a few compose compiler
-    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
-    //  does not create a composer param for nested lambda argument for
-    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
-    //  The parameter mismatch causes an exception. `isNestedScope` defined in
-    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
-    //  composer parameter creation, but the upstream KT compiler makes the
-    //  lambda argument as a value of `get-lambda` function call, so it does
-    //  not have this issue. We can re-enable this test when the upstream
-    //  KT compiler is merged.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       @Composable
@@ -145,41 +133,29 @@ class ComposeAnalysisTest {
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
 
-    groupTable.assertGroupTable(methodGroupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 4, innerClassCount = 2)
+    groupTable.assertGroupTable(groupCount = 6, restartLambdaCount = 2, lambdaGroupCount = 4, innerClassCount = 2)
 
-    val test = groupTable.assertMethodGroup(956630616)
+    val test = groupTable.assertGroup(956630616)
     groupTable.assertRestartLambda(test)
     assertEquals("test", test.name)
 
     val outer = if (!KotlinPluginModeProvider.isK2Mode()) {
-      groupTable.assertMethodGroup(169591811)
+      groupTable.assertGroup(169591811)
     } else {
-      groupTable.assertMethodGroup(-270222928)
+      groupTable.assertGroup(-270222928)
     }
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 
     // We don't assert lambda names, because the compiler is free to name them anything without impacting the group analysis
-    val lambda3 = groupTable.assertLambdaGroup(58708456, test)
-    val lambda2 = groupTable.assertLambdaGroup(-2103565224, lambda3)
-    groupTable.assertLambdaGroup(302052328, lambda2)
-    groupTable.assertLambdaGroup(-289044847, test)
+    val lambda3 = groupTable.assertLambdaParent(58708456, test)
+    val lambda2 = groupTable.assertLambdaParent(-2103565224, lambda3)
+    groupTable.assertLambdaParent(302052328, lambda2)
+    groupTable.assertLambdaParent(-289044847, test)
   }
 
   @Test
   fun `nested composable with captures`() {
-    // TODO(386111622): We have exception related to a few compose compiler
-    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
-    //  does not create a composer param for nested lambda argument for
-    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
-    //  The parameter mismatch causes an exception. `isNestedScope` defined in
-    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
-    //  composer parameter creation, but the upstream KT compiler makes the
-    //  lambda argument as a value of `get-lambda` function call, so it does
-    //  not have this issue. We can re-enable this test when the upstream
-    //  KT compiler is merged.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       @Composable
@@ -201,24 +177,24 @@ class ComposeAnalysisTest {
       """)
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
-    groupTable.assertGroupTable(methodGroupCount = 2, restartLambdaCount = 2, lambdaGroupCount = 3, innerClassCount = 5)
+    groupTable.assertGroupTable(groupCount = 5, restartLambdaCount = 2, lambdaGroupCount = 3, innerClassCount = 5)
 
-    val test = groupTable.assertMethodGroup(956630616)
+    val test = groupTable.assertGroup(956630616)
     groupTable.assertRestartLambda(test)
     assertEquals("test", test.name)
 
     val outer = if (!KotlinPluginModeProvider.isK2Mode()) {
-      groupTable.assertMethodGroup(169591811)
+      groupTable.assertGroup(169591811)
     } else {
-      groupTable.assertMethodGroup(-270222928)
+      groupTable.assertGroup(-270222928)
     }
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 
     // We don't assert lambda names, because the compiler is free to name them anything without impacting the group analysis
-    val lambda1 = groupTable.assertLambdaGroup(58708456, test)
-    val lambda11 = groupTable.assertLambdaGroup(-2103565224, lambda1)
-    groupTable.assertLambdaGroup(302052328, lambda11)
+    val lambda1 = groupTable.assertLambdaParent(58708456, test)
+    val lambda11 = groupTable.assertLambdaParent(-2103565224, lambda1)
+    groupTable.assertLambdaParent(302052328, lambda11)
   }
 
   @Test
@@ -236,33 +212,21 @@ class ComposeAnalysisTest {
     val groupTable = computeGroupTableForTest(output)
 
     // No restart lambdas for composable functions that return values
-    groupTable.assertGroupTable(methodGroupCount = 1, restartLambdaCount = 0, lambdaGroupCount = 0, innerClassCount = 0)
+    groupTable.assertGroupTable(groupCount = 1, restartLambdaCount = 0, lambdaGroupCount = 0, innerClassCount = 0)
 
     if (KotlinPluginModeProvider.isK2Mode()) {
       ensureComposeCalls(output, START_REPLACE_GROUP)
-      val compute = groupTable.assertMethodGroup(1273468969)
+      val compute = groupTable.assertGroup(1273468969)
       assertEquals("compute", compute.name)
     } else {
       ensureComposeCalls(output, START_REPLACEABLE_GROUP)
-      val compute = groupTable.assertMethodGroup(1157296644)
+      val compute = groupTable.assertGroup(1273468969)
       assertEquals("compute", compute.name)
     }
   }
 
   @Test
   fun `restartable, replaceable, reusable, and movable groups`() {
-    // TODO(386111622): We have exception related to a few compose compiler
-    //  lowering passes. In `IrSimpleFunction.copyWithComposerParam()`, it
-    //  does not create a composer param for nested lambda argument for
-    //  `outer`, but `ComposableFunctionBodyTransformer` tries to generate it.
-    //  The parameter mismatch causes an exception. `isNestedScope` defined in
-    //  `IrSimpleFunction.copyWithComposerParam()` determines the behavior of
-    //  composer parameter creation, but the upstream KT compiler makes the
-    //  lambda argument as a value of `get-lambda` function call, so it does
-    //  not have this issue. We can re-enable this test when the upstream
-    //  KT compiler is merged.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
     val output = compileForTest("""
       import androidx.compose.runtime.Composable
       import androidx.compose.runtime.remember
@@ -277,12 +241,14 @@ class ComposeAnalysisTest {
       
       @Composable
       fun MyList(items: List<Data>) {
-        items.forEach {
-          key (it.id) {
-            Text(it.word.value)
-          }
-          ReusableContent(it.id) {
-            Text(it.word.value)
+        if (items.size > 1) {
+          items.forEach {
+            key (it.id) {
+              Text(it.word.value)
+            }
+            ReusableContent(it.id) {
+              Text(it.word.value)
+            }
           }
         }
       }
@@ -292,38 +258,46 @@ class ComposeAnalysisTest {
         // Pretend this does something
       }
       """)
-    ensureComposeCalls(output, START_RESTART_GROUP, START_REUSABLE_GROUP, START_MOVABLE_GROUP, START_REPLACEABLE_GROUP)
+
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      ensureComposeCalls(output, START_RESTART_GROUP, START_REUSABLE_GROUP, START_MOVABLE_GROUP)
+    } else {
+      ensureComposeCalls(output, START_RESTART_GROUP, START_REUSABLE_GROUP, START_MOVABLE_GROUP, START_REPLACEABLE_GROUP)
+    }
 
     // This test doesn't care about the contents of the group table; only that we successfully construct it without errors
     computeGroupTableForTest(output)
   }
 
 
-  private fun GroupTable.assertMethodGroup(key: Int): IrMethod {
-    val (method, _) = methodGroups.filterValues { it.key == key }.entries.single()
+  /**
+   * Asserts that the table contains a @Composable method with the provided key and returns that method.
+   */
+  private fun GroupTable.assertGroup(key: Int): IrMethod {
+    val (method, _) = groups.filterValues { it.key == key }.entries.single()
     return method
   }
 
+  /**
+   * Asserts that the table contains a restart lambda associated with the provided @Composable method and returns that lambda class.
+   */
   private fun GroupTable.assertRestartLambda(method: IrMethod): IrClass {
     return restartLambdas.filterValues { it == method }.keys.single()
   }
 
-  private fun GroupTable.assertLambdaGroup(key: Int, parentClass: IrClass): IrClass {
-    val (clazz, _) = lambdaGroups.filterValues { it.key == key }.entries.single()
-    assertEquals(parentClass, lambdaParents[clazz]!!.clazz)
-    return clazz
+  /**
+   * Asserts that the provided method is the parent of the lambda class associated with the provided group key. Returns the lambda's
+   * invoke() method.
+   */
+  private fun GroupTable.assertLambdaParent(key: Int, parentMethod: IrMethod): IrMethod {
+    val (method, _) = groups.filterValues { it.key == key }.entries.single()
+    assertEquals(parentMethod, lambdaParents[method.clazz]!!)
+    return method
   }
 
-  private fun GroupTable.assertLambdaGroup(key: Int, parentMethod: IrMethod): IrClass {
-    val (clazz, _) = lambdaGroups.filterValues { it.key == key }.entries.single()
-    assertEquals(parentMethod, lambdaParents[clazz]!!)
-    return clazz
-  }
-
-  private fun GroupTable.assertGroupTable(methodGroupCount: Int, restartLambdaCount: Int, lambdaGroupCount: Int, innerClassCount: Int) {
-    assertEquals(methodGroupCount, methodGroups.size)
+  private fun GroupTable.assertGroupTable(groupCount: Int, restartLambdaCount: Int, lambdaGroupCount: Int, innerClassCount: Int) {
+    assertEquals(groupCount, groups.size)
     assertEquals(restartLambdaCount, restartLambdas.size)
-    assertEquals(lambdaGroupCount, lambdaGroups.size)
     assertEquals(lambdaGroupCount, lambdaParents.size)
     assertEquals(innerClassCount, composableInnerClasses.size)
   }

@@ -37,18 +37,13 @@ interface GroupTable {
   /**
    * Map of @Composable methods to their corresponding group
    */
-  val methodGroups: Map<IrMethod, ComposeGroup>
+  val groups: Map<IrMethod, ComposeGroup>
 
   /**
    * Map of restart lambda classes to the method they recompose. Restart lambdas are a cached lambda invoked by Compose to re-run the body
    * of a @Composable method when it is invalidated
    */
   val restartLambdas: Map<IrClass, IrMethod>
-
-  /**
-   * Map of @Composable lambda classes to their corresponding group
-   */
-  val lambdaGroups: Map<IrClass, ComposeGroup>
 
   /**
    * Map of @Composable lambda classes to the method where they are instantiated
@@ -66,18 +61,13 @@ interface GroupTable {
   /**
    * A method is associated with a group key if:
    *  - it is a @Composable method associated with a group key
-   *  - it is a lambda class associated with a group key via a ComposableLambda
-   *  - it is an inner class of either of the above.
+   *  - it is defined in an inner class of a method associated with a group key
    *
    *  These rules apply recursively; an inner class of an inner class of a @Composable lambda group is treated as being in that group
    */
   fun getComposeGroup(method: IrMethod): ComposeGroup? {
-    if (method in methodGroups) {
-      return methodGroups[method]
-    }
-
-    if (method.clazz in lambdaGroups) {
-      return lambdaGroups[method.clazz]
+    if (method in groups) {
+      return groups[method]
     }
 
     if (method.clazz in composableInnerClasses) {
@@ -90,9 +80,8 @@ interface GroupTable {
 }
 
 class MutableGroupTable : GroupTable {
-  override val methodGroups = mutableMapOf<IrMethod, ComposeGroup>()
+  override val groups = mutableMapOf<IrMethod, ComposeGroup>()
   override val restartLambdas = mutableMapOf<IrClass, IrMethod>()
-  override val lambdaGroups = mutableMapOf<IrClass, ComposeGroup>()
   override val lambdaParents = mutableMapOf<IrClass, IrMethod>()
   override val composableInnerClasses = mutableMapOf<IrClass, IrMethod>()
 }
@@ -129,7 +118,7 @@ fun computeGroupTable(classes: List<IrClass>): GroupTable {
 
   // Starting from the lambda classes associated with group keys, walk down the inner class hierarchy and associate each inner class with
   // the lambda at the root of the tree
-  for (entry in inners.filter { it.key.clazz in groupTable.lambdaGroups || it.key in groupTable.methodGroups }) {
+  for (entry in inners.filter { it.key in groupTable.groups }) {
     val queue = ArrayDeque(entry.value)
     while (queue.isNotEmpty()) {
       val cur = queue.removeFirst()
@@ -143,8 +132,8 @@ fun computeGroupTable(classes: List<IrClass>): GroupTable {
 fun GroupTable.toStringWithLineInfo(sourceFile: KtFile): String {
   val doc = sourceFile.fileDocument
   with(StringBuilder()) {
-    appendLine("===Composable Methods===")
-    for ((method, group) in methodGroups) {
+    appendLine("===Composable Groups===")
+    for ((method, group) in groups) {
       val startLine = doc.getLineNumber(group.range.startOffset) + 1
       val endLine = doc.getLineNumber(group.range.endOffset) + 1
       appendLine("\t$method} - group: ${group.key} - lines: [$startLine, $endLine]")
@@ -153,11 +142,9 @@ fun GroupTable.toStringWithLineInfo(sourceFile: KtFile): String {
     for ((clazz, method) in restartLambdas) {
       appendLine("\t${clazz.name} - $method")
     }
-    appendLine("===Composable Lambdas===")
-    for ((clazz, group) in lambdaGroups) {
-      val startLine = doc.getLineNumber(group.range.startOffset) + 1
-      val endLine = doc.getLineNumber(group.range.endOffset) + 1
-      appendLine("\t${clazz.name} - group: ${group.key} - lines: [$startLine, $endLine] - parent: ${lambdaParents[clazz]}")
+    appendLine("===Composable Lambda Parents===")
+    for ((clazz, method) in lambdaParents) {
+      appendLine("\t${clazz.name} - parent: $method")
     }
     appendLine("===Inner Classes===")
     for ((clazz, method) in composableInnerClasses) {
@@ -174,11 +161,6 @@ private val COMPOSABLE_LAMBDA_TYPE = Type.getObjectType("androidx/compose/runtim
 private val COMPOSABLE_LAMBDA_N_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambdaN")
 private val COMPOSABLE_LAMBDA_TYPES = setOf(COMPOSABLE_LAMBDA_TYPE, COMPOSABLE_LAMBDA_N_TYPE)
 
-// Map of Compose compiler API calls that start groups to the stack position of the group key when the method is invoked, zero
-// being the most recently pushed stack item.
-private val GROUP_START_METHOD_NAMES = mapOf("startRestartGroup" to 0, "startReplaceableGroup" to 0, "startReplaceGroup" to 0,
-                                             "startMovableGroup" to 1, "startReusableGroup" to 1)
-
 private fun analyzeMethod(
   analyzer: ComposeAnalyzer,
   method: IrMethod,
@@ -186,6 +168,19 @@ private fun analyzeMethod(
   groupTable: MutableGroupTable
 ) {
   val frames = analyzer.analyze(method.clazz.name, method.node)
+
+  val keyMeta = method.annotations.singleOrNull { it.desc == "Landroidx/compose/runtime/internal/FunctionKeyMeta;" }
+  if (keyMeta != null) {
+    if (method !in groupTable.groups) {
+      val key = keyMeta.values["key"] as Int
+      val startOffset = keyMeta.values["startOffset"] as Int
+      val endOffset = keyMeta.values["endOffset"] as Int
+      groupTable.groups[method] = ComposeGroup(key, TextRange(startOffset, endOffset))
+    } else {
+      throw RuntimeException("Multiple group keys associated with method $method")
+    }
+  }
+
   for (i in 0 until method.node.instructions.size()) {
     val instr = method.node.instructions[i]
     val frame = frames[i]
@@ -197,24 +192,6 @@ private fun analyzeMethod(
           val clazz = classesByName[type?.internalName] ?: throw RuntimeException("Unexpected restart lambda type: $type")
           groupTable.restartLambdas[clazz] = method
         }
-
-        if (methodInstr.owner == "androidx/compose/runtime/Composer") {
-          val idParamStackOffset = GROUP_START_METHOD_NAMES[methodInstr.name]
-          if (idParamStackOffset == null) {
-            continue
-          }
-
-          val stackValue = frame.getStackValue(idParamStackOffset)
-          if (stackValue !is IntValue) {
-            throw IllegalStateException(
-              "While analyzing call to Composer.${methodInstr.name + methodInstr.desc} in $method, analysis expected stack value @ $idParamStackOffset to be an integer.")
-          }
-          val key = stackValue.value
-
-          // Ignore groups that were not specified in the FunctionKeyMeta information that we parsed; we use that as the source of truth for
-          // which group keys we need to care about.
-          groupTable.methodGroups[method] = ComposeGroup(key, TextRange.EMPTY_RANGE)
-        }
       }
 
       INVOKESTATIC -> {
@@ -222,17 +199,15 @@ private fun analyzeMethod(
         if (methodInstr.owner == "androidx/compose/runtime/internal/ComposableLambdaKt" && Type.getReturnType(
             methodInstr.desc) in COMPOSABLE_LAMBDA_TYPES) {
           val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
-          val group = ComposeGroup(lambda.key, TextRange.EMPTY_RANGE)
           val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException(
             "Unknown class type in ComposableLambda in $method: ${lambda.block} associated with key ${lambda.key}")
-          groupTable.lambdaGroups[clazz] = group
           groupTable.lambdaParents[clazz] = method
         }
       }
 
       INVOKEVIRTUAL -> {
         val methodInstr = instr as MethodInsnNode
-        if (isComposableSingleton(methodInstr.owner)) { // Look at the  next stack frame to see what was returned from this method invocation
+        if (isComposableSingleton(methodInstr.owner)) { // Look at the next stack frame to see what was returned from this method invocation
           val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
           val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException("Unknown singleton lambda type: ${lambda.block}")
           groupTable.lambdaParents[clazz] = method
