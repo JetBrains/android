@@ -20,9 +20,26 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestBas
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.DeclarativeTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class DeclarativeSnapshots: SyncedProjectTestBase<DeclarativeTestProject>(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT){
+@RunWith(Parameterized::class)
+class DeclarativeSnapshots(val version: AgpVersionSoftwareEnvironmentDescriptor) :
+  SyncedProjectTestBase<DeclarativeTestProject>(agpVersion = version) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}")
+    fun testParameters(): Collection<*> {
+      return listOf(AGP_DECLARATIVE_GRADLE_SNAPSHOT,
+                    // making sure we can consume schema for stable Gradle version
+                    AGP_CURRENT)
+    }
+  }
+
   override fun getTestDefs(testProject: DeclarativeTestProject): List<SyncedProjectTestDef> {
     return DeclarativeSchemaModelTestDef.tests
   }

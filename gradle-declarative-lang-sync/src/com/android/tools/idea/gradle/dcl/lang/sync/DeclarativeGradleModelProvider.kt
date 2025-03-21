@@ -80,18 +80,30 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
       keyValue -> keyValue.value.convert(schema)?.let { keyValue.key.convert() to it }
     }.toMap()
   )
-  dataClasses.putAll(
-    genericInstantiationsByFqName.mapNotNull {
-      // deliberately ignore generic type for now
-      keyValue -> keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
-    }.toMap()
-  )
+  safeRun {
+    dataClasses.putAll(
+      genericInstantiationsByFqName.mapNotNull {
+        // deliberately ignore generic type for now
+        keyValue ->
+        keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
+      }.toMap()
+    )
+  }
   topFunctions.putAll(
     externalFunctionsByFqName.mapNotNull { keyValue ->
       keyValue.value.convert()?.let { keyValue.key.simpleName to it }
     }.toMap()
   )
   return schema
+}
+
+fun safeRun(f: () -> Unit) {
+  try {
+    f.invoke()
+  }
+  catch (e: Exception) {
+    LOG.warn(ExternalSystemException("Caught exception during declarative schema serialization", e))
+  }
 }
 
 private fun DataTopLevelFunction.convert(): SchemaFunction? {
