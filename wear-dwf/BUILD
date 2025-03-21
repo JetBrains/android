@@ -14,6 +14,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/wear-wff-schema:studio.intellij.android.wear-wff-schema",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
     ],
 )
 
