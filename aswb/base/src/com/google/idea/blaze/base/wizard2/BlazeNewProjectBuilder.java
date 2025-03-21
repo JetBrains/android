@@ -240,9 +240,10 @@ public final class BlazeNewProjectBuilder {
         new ProjectViewParser(BlazeContext.create(), new WorkspacePathResolverImpl(workspaceRoot));
     projectViewParser.parseProjectView(projectViewFile);
     return projectViewParser
-        .getResult()
-        .getScalarValue(UseQuerySyncSection.KEY)
-        .orElse(QuerySync.useForNewProjects());
+      .getResult()
+      .getScalarValue(UseQuerySyncSection.KEY)
+      .map(UseQuerySyncSection.UseQuerySync::isEnabled)
+      .orElseGet(QuerySync::useForNewProjects);
   }
 
   private BlazeImportSettings getImportSettings() {

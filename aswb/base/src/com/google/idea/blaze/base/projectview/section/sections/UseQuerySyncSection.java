@@ -29,28 +29,40 @@ import javax.annotation.Nullable;
  */
 public final class UseQuerySyncSection {
   private static final Logger logger = Logger.getInstance(UseQuerySyncSection.class);
-  public static final SectionKey<Boolean, ScalarSection<Boolean>> KEY =
+  public static final SectionKey<UseQuerySync, ScalarSection<UseQuerySync>> KEY =
       SectionKey.of("use_query_sync");
   public static final SectionParser PARSER = new UseQuerySyncSectionParser();
-  private static class UseQuerySyncSectionParser extends ScalarSectionParser<Boolean> {
+
+  public enum UseQuerySync {
+    TRUE,
+    FALSE,
+    COMPATIBILITY;
+
+    public static UseQuerySync fromString(String label) {
+      for (UseQuerySync v : UseQuerySync.values()) {
+        if (v.toString().equalsIgnoreCase(label)) {
+          return v;
+        }
+      }
+      return null;
+    }
+
+    public boolean isEnabled() {
+      return this != FALSE;
+    }
+  }
+
+  private static class UseQuerySyncSectionParser extends ScalarSectionParser<UseQuerySync> {
     UseQuerySyncSectionParser() {
       super(KEY, ':');
     }
     @Override
     @Nullable
-    protected Boolean parseItem(ProjectViewParser parser, ParseContext parseContext, String text) {
-      if (text.equals("true")) {
-        return true;
-      }
-      if (text.equals("false")) {
-        return false;
-      }
-      // Do not throw exception as it's not required when users have query sync enabled via settings
-      logger.info("use_query_sync is not set.");
-      return null;
+    protected UseQuerySync parseItem(ProjectViewParser parser, ParseContext parseContext, String text) {
+      return UseQuerySync.fromString(text);
     }
     @Override
-    protected void printItem(StringBuilder sb, Boolean item) {
+    protected void printItem(StringBuilder sb, UseQuerySync item) {
       sb.append(item);
     }
     @Override
