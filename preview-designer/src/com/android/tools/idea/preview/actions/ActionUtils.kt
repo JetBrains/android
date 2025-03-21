@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -188,3 +189,13 @@ private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGrou
  * Returns an [ActionGroup] that handles the visibility.
  */
 fun AnAction.visibleOnlyInDefaultPreview(): ActionGroup = PreviewDefaultWrapper(listOf(this))
+
+/** Makes the given action only visible when the preview is in the [PreviewMode.Focus] mode. */
+fun AnAction.visibleOnlyInFocus(): AnAction =
+  object : AnActionWrapper(this) {
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isVisible =
+        e.presentation.isVisible && e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
+    }
+  }

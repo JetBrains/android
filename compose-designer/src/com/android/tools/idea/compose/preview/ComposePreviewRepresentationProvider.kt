@@ -30,6 +30,8 @@ import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
 import com.android.tools.idea.compose.preview.actions.ComposeViewControlAction
 import com.android.tools.idea.compose.preview.actions.ComposeViewSingleWordFilter
+import com.android.tools.idea.compose.preview.actions.RevertToOriginalSizeAction
+import com.android.tools.idea.compose.preview.actions.SavePreviewInNewSizeAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
@@ -43,6 +45,7 @@ import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
+import com.android.tools.idea.preview.actions.visibleOnlyInFocus
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
@@ -111,6 +114,8 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           )
           .visibleOnlyInDefaultPreview(),
         ComposeViewControlAction().visibleOnlyInStaticPreview(),
+        SavePreviewInNewSizeAction().visibleOnlyInFocus(),
+        RevertToOriginalSizeAction().visibleOnlyInFocus(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },

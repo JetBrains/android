@@ -20,7 +20,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.actions.SCENE_VIEW
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
@@ -31,10 +32,13 @@ import com.android.tools.idea.compose.preview.TestView
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneRenderConfiguration
-import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -72,12 +76,14 @@ class RevertToOriginalSizeActionTest {
   @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val sceneManager: LayoutlibSceneManager = mock()
-  private val sceneView: ScreenView = mock()
+  private val designSurface: NlDesignSurface = mock()
   private val model: NlModel = mock()
+  private lateinit var modeManager: PreviewModeManager
 
   @Before
   fun setup() {
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
+    modeManager = CommonPreviewModeManager()
+    `when`(designSurface.sceneManagers).thenReturn(listOf(sceneManager))
     `when`(sceneManager.model).thenReturn(model)
   }
 
@@ -87,9 +93,10 @@ class RevertToOriginalSizeActionTest {
   }
 
   @Test
-  fun `update isVisible and isEnabled when scene manager is resized`() {
+  fun `update isVisible and isEnabled when scene manager is resized and mode is Focus`() {
     `when`(sceneManager.isResized).thenReturn(true)
-    val dataContext = createDataContext(sceneView)
+    modeManager.setMode(PreviewMode.Focus(mock()))
+    val dataContext = createDataContext()
     val event = TestActionEvent.createTestEvent(dataContext)
     val action = RevertToOriginalSizeAction()
 
@@ -100,9 +107,24 @@ class RevertToOriginalSizeActionTest {
   }
 
   @Test
+  fun `update isVisible and isEnabled when preview mode is not focus`() {
+    `when`(sceneManager.isResized).thenReturn(true)
+    val dataContext = createDataContext()
+    modeManager.setMode(PreviewMode.AnimationInspection(mock()))
+    val event = TestActionEvent.createTestEvent(dataContext)
+
+    val action = RevertToOriginalSizeAction()
+
+    action.update(event)
+
+    assertThat(event.presentation.isVisible).isFalse()
+    assertThat(event.presentation.isEnabled).isFalse()
+  }
+
+  @Test
   fun `update isVisible and isEnabled when resizing is disabled`() {
     `when`(sceneManager.isResized).thenReturn(true)
-    val dataContext = createDataContext(sceneView)
+    val dataContext = createDataContext()
     val event = TestActionEvent.createTestEvent(dataContext)
     val action = RevertToOriginalSizeAction()
 
@@ -116,7 +138,7 @@ class RevertToOriginalSizeActionTest {
 
   @Test
   fun `update isVisible and isEnabled when scene manager is null`() {
-    val dataContext = createDataContext(null)
+    val dataContext = createDataContext()
     val event = TestActionEvent.createTestEvent(dataContext)
     val action = RevertToOriginalSizeAction()
 
@@ -129,7 +151,7 @@ class RevertToOriginalSizeActionTest {
   @Test
   fun `update isVisible and isEnabled when scene manager is not resized`() {
     `when`(sceneManager.isResized).thenReturn(false)
-    val dataContext = createDataContext(sceneView)
+    val dataContext = createDataContext()
     val event = TestActionEvent.createTestEvent(dataContext)
     val action = RevertToOriginalSizeAction()
 
@@ -148,13 +170,23 @@ class RevertToOriginalSizeActionTest {
         ConfigurationManager.getOrCreateInstance(projectRule.module),
         FolderConfiguration.createDefault(),
       )
+    val previewElement = createPreviewElement()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+
     `when`(model.configuration).thenReturn(configuration)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
     `when`(sceneManager.isResized).thenReturn(true)
     val sceneRenderConfiguration =
       LayoutlibSceneRenderConfiguration(model, mock(), LayoutScannerConfiguration.DISABLED)
     `when`(sceneManager.sceneRenderConfiguration).thenReturn(sceneRenderConfiguration)
 
-    val dataContext = createDataContext(sceneView, createPreviewElement())
+    val dataContext = createDataContext()
 
     val event = TestActionEvent.createTestEvent(dataContext)
     val action = RevertToOriginalSizeAction()
@@ -181,6 +213,14 @@ class RevertToOriginalSizeActionTest {
       val heightDp = 200
 
       val previewElement = createPreviewElement(widthDp, heightDp)
+      `when`(model.dataProvider)
+        .thenReturn(
+          object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+            override fun getData(dataId: String) =
+              previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          }
+        )
+      modeManager.setMode(PreviewMode.Focus(previewElement))
 
       val configuration =
         Configuration.create(
@@ -209,7 +249,7 @@ class RevertToOriginalSizeActionTest {
       val testView = TestView()
       whenever(sceneManager.viewObject).thenReturn(testView)
 
-      val dataContext = createDataContext(sceneView, previewElement)
+      val dataContext = createDataContext()
 
       val event = TestActionEvent.createTestEvent(dataContext)
       val action = RevertToOriginalSizeAction()
@@ -232,15 +272,12 @@ class RevertToOriginalSizeActionTest {
       assertThat(sceneRenderConfiguration.clearOverrideRenderSize).isTrue()
     }
 
-  private fun createDataContext(
-    sceneView: ScreenView?,
-    previewElement: PsiComposePreviewElementInstance? = null,
-  ): DataContext {
-    val builder = SimpleDataContext.builder().add(SCENE_VIEW, sceneView)
-    if (previewElement != null) {
-      builder.add(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, previewElement)
-    }
-    builder.add(CommonDataKeys.PROJECT, projectRule.project)
+  private fun createDataContext(): DataContext {
+    val builder =
+      SimpleDataContext.builder()
+        .add(DESIGN_SURFACE, designSurface)
+        .add(PreviewModeManager.KEY, modeManager)
+        .add(CommonDataKeys.PROJECT, projectRule.project)
     return builder.build()
   }
 

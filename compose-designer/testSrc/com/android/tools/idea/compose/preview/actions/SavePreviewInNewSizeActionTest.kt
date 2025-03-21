@@ -28,20 +28,26 @@ import com.android.sdklib.devices.State
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.updateScreenSize
-import com.android.tools.idea.actions.SCENE_VIEW
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.model.NlDataProvider
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
@@ -49,10 +55,13 @@ import kotlinx.coroutines.test.runTest
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.mock
 
@@ -67,17 +76,32 @@ class SavePreviewInNewSizeActionTest {
   @get:Rule val studioFlagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_RESIZING, true)
   @get:Rule val usageTrackerRule = UsageTrackerRule()
 
+  private val sceneManager: LayoutlibSceneManager = Mockito.mock()
+  private val designSurface: NlDesignSurface = Mockito.mock()
+  private val model: NlModel = Mockito.mock()
+  private lateinit var modeManager: PreviewModeManager
+
+  @Before
+  fun setup() {
+    `when`(designSurface.sceneManagers).thenReturn(listOf(sceneManager))
+    `when`(sceneManager.model).thenReturn(model)
+    modeManager = CommonPreviewModeManager()
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(sceneManager)
+  }
+
   @Test
   fun `update isVisible and isEnabled when scene manager is resized`() {
-    val sceneManager = mock<LayoutlibSceneManager>()
     `when`(sceneManager.isResized).thenReturn(true)
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-
+    val model = mock<NlModel>()
+    `when`(sceneManager.model).thenReturn(model)
     val configuration = createConfiguration(500, 500)
-    `when`(sceneView.configuration).thenReturn(configuration)
-    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).build()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    `when`(model.configuration).thenReturn(configuration)
+    modeManager.setMode(PreviewMode.Focus(mock()))
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     val action = SavePreviewInNewSizeAction()
 
@@ -85,20 +109,37 @@ class SavePreviewInNewSizeActionTest {
 
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
-    assertThat(event.presentation.text).isEqualTo("Save Size (500 x 500)")
+    assertThat(event.presentation.text).isEqualTo("Save Size (500dp x 500dp)")
     assertThat(event.presentation.description)
-      .isEqualTo("Add the @Preview annotation with the current preview size (500 x 500)")
+      .isEqualTo("Add the @Preview annotation with the current preview size (500dp x 500dp)")
+  }
+
+  private fun getDataContext(): DataContext =
+    SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, projectRule.project)
+      .add(DESIGN_SURFACE, designSurface)
+      .add(PreviewModeManager.KEY, modeManager)
+      .build()
+
+  @Test
+  fun `update isVisible and isEnabled when preview mode is not focus`() {
+    `when`(sceneManager.isResized).thenReturn(true)
+    modeManager.setMode(PreviewMode.AnimationInspection(mock()))
+
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    val action = SavePreviewInNewSizeAction()
+
+    action.update(event)
+
+    assertThat(event.presentation.isVisible).isFalse()
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
-  fun `update isVisible and isEnabled when resizing is disabled`() {
-    val sceneManager = mock<LayoutlibSceneManager>()
+  fun `update isVisible and isEnabled when flag is disabled`() {
     `when`(sceneManager.isResized).thenReturn(true)
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-
-    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).build()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     val action = SavePreviewInNewSizeAction()
 
@@ -111,33 +152,10 @@ class SavePreviewInNewSizeActionTest {
   }
 
   @Test
-  fun `update isVisible and isEnabled when configuration is null`() {
-    val sceneManager = mock<LayoutlibSceneManager>()
-    `when`(sceneManager.isResized).thenReturn(true)
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-    `when`(sceneView.configuration).thenReturn(null)
-
-    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).build()
-    val event = TestActionEvent.createTestEvent(dataContext)
-
-    val action = SavePreviewInNewSizeAction()
-
-    action.update(event)
-
-    assertThat(event.presentation.isVisible).isFalse()
-    assertThat(event.presentation.isEnabled).isFalse()
-  }
-
-  @Test
   fun `update isVisible and isEnabled when scene manager is not resized`() {
-    val sceneManager = mock<LayoutlibSceneManager>()
     `when`(sceneManager.isResized).thenReturn(false)
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-
-    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).build()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    modeManager.setMode(PreviewMode.Focus(mock()))
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     val action = SavePreviewInNewSizeAction()
 
@@ -171,6 +189,7 @@ class SavePreviewInNewSizeActionTest {
           composeTest.virtualFile,
         )
         .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
     val configuration = createConfiguration(500, 600)
@@ -181,25 +200,18 @@ class SavePreviewInNewSizeActionTest {
     configuration.updateScreenSize(newWidth, newHeight)
     configuration.deviceState!!.orientation = ScreenOrientation.LANDSCAPE
 
-    val sceneManager = mock<LayoutlibSceneManager>()
     `when`(sceneManager.isResized).thenReturn(true)
-
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-    `when`(sceneView.configuration).thenReturn(configuration)
-
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(SCENE_VIEW, sceneView)
-        .add(
-          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
-          previewElement as PsiComposePreviewElementInstance,
-        )
-        .build()
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
 
     val action = SavePreviewInNewSizeAction()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     action.actionPerformed(event)
 
@@ -259,6 +271,7 @@ class SavePreviewInNewSizeActionTest {
           composeTest.virtualFile,
         )
         .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
     val configuration = createConfiguration(500, 600)
@@ -268,25 +281,18 @@ class SavePreviewInNewSizeActionTest {
 
     configuration.updateScreenSize(newWidth, newHeight)
 
-    val sceneManager = mock<LayoutlibSceneManager>()
     `when`(sceneManager.isResized).thenReturn(true)
-
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-    `when`(sceneView.configuration).thenReturn(configuration)
-
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(SCENE_VIEW, sceneView)
-        .add(
-          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
-          previewElement as PsiComposePreviewElementInstance,
-        )
-        .build()
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
 
     val action = SavePreviewInNewSizeAction()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     action.actionPerformed(event)
 
@@ -345,6 +351,7 @@ class SavePreviewInNewSizeActionTest {
           composeTest.virtualFile,
         )
         .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
 
     val configuration = createConfiguration(500, 600)
 
@@ -353,25 +360,18 @@ class SavePreviewInNewSizeActionTest {
 
     configuration.updateScreenSize(newWidth, newHeight)
 
-    val sceneManager = mock<LayoutlibSceneManager>()
     `when`(sceneManager.isResized).thenReturn(true)
-
-    val sceneView = mock<SceneView>()
-    `when`(sceneView.sceneManager).thenReturn(sceneManager)
-    `when`(sceneView.configuration).thenReturn(configuration)
-
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(SCENE_VIEW, sceneView)
-        .add(
-          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
-          previewElement as PsiComposePreviewElementInstance,
-        )
-        .build()
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
 
     val action = SavePreviewInNewSizeAction()
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(getDataContext())
 
     action.actionPerformed(event)
 

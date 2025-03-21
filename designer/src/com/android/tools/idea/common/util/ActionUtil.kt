@@ -27,6 +27,9 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 
 /**
  * Wrapper that delegates whether the given [ActionGroup] is visible or not to the passed condition.
+ *
+ * WARNING: creates custom component for each action, which is different from standard action, and
+ * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
  */
 class ShowGroupUnderConditionWrapper(
   delegate: ActionGroup,
@@ -43,7 +46,12 @@ class ShowGroupUnderConditionWrapper(
     ActionButtonWithToolTipDescription(delegate, presentation, place)
 }
 
-/** Wrapper that delegates whether the given action is visible or not to the passed condition. */
+/**
+ * Wrapper that delegates whether the given action is visible or not to the passed condition.
+ *
+ * WARNING: creates custom component for each action, which is different from standard action, and
+ * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
+ */
 class ShowUnderConditionWrapper(
   delegate: AnAction,
   private val isVisible: (DataContext) -> Boolean,
@@ -66,6 +74,9 @@ class ShowUnderConditionWrapper(
  * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a
  * reason using [reasonForDisabling]. The wrapped [AnAction] will only be able to be performed
  * through the [actionPerformed] method if [isEnabled] returns `true`.
+ *
+ * WARNING: creates custom component for each action, which is different from standard action, and
+ * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
  *
  * @param delegate The original action.
  * @param isEnabled Determines if the action should be enabled.

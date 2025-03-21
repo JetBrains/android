@@ -18,13 +18,11 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
@@ -32,6 +30,7 @@ import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbAwareAction
 import java.util.Locale
@@ -49,9 +48,10 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val previewElement = e.dataContext.previewElement() ?: return
-    val configuration = e.getData(SCENE_VIEW)?.configuration ?: return
+    val sceneManager = e.getSceneManagerInFocusMode() ?: return
+    val previewElement = sceneManager.model.dataProvider?.previewElement() ?: return
 
+    val configuration = sceneManager.model.configuration
     val showDecorations = previewElement.displaySettings.showDecoration
     val ktPsiFactory = KtPsiFactory(project)
 
@@ -92,21 +92,18 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
   }
 
   override fun update(e: AnActionEvent) {
-    val sceneManager = e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager
-    val isResized = sceneManager?.isResized == true
-    val configuration = e.getData(SCENE_VIEW)?.configuration
-    val (widthDp, heightDp) =
-      if (configuration != null) getDimensions(configuration) else Pair(0, 0)
+    e.presentation.isEnabledAndVisible = false
+    val sceneManager = e.getSceneManagerInFocusMode() ?: return
+    val configuration = sceneManager.model.configuration
     e.presentation.isEnabledAndVisible =
-      StudioFlags.COMPOSE_PREVIEW_RESIZING.get() && isResized && configuration != null
+      StudioFlags.COMPOSE_PREVIEW_RESIZING.get() && sceneManager.isResized
 
     if (e.presentation.isEnabledAndVisible) {
+      val (widthDp, heightDp) = getDimensions(configuration)
       e.presentation.text = message("action.save.preview.current.size.title", widthDp, heightDp)
       e.presentation.description =
         message("action.save.preview.current.size.description", widthDp, heightDp)
-    } else {
-      e.presentation.text = ""
-      e.presentation.description = ""
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
 

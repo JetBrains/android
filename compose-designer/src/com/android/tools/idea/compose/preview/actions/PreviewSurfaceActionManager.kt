@@ -33,6 +33,7 @@ import com.android.tools.idea.preview.actions.ViewInFocusModeAction
 import com.android.tools.idea.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
+import com.android.tools.idea.preview.actions.visibleOnlyInFocus
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -105,8 +106,8 @@ internal class PreviewSurfaceActionManager(
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
-          SavePreviewInNewSizeAction(),
-          RevertToOriginalSizeAction(),
+          SavePreviewInNewSizeAction().visibleOnlyInFocus(),
+          RevertToOriginalSizeAction().visibleOnlyInFocus(),
           EnableUiCheckAction(),
           AnimationInspectorAction(
             defaultModeDescription = message("action.animation.inspector.description")
