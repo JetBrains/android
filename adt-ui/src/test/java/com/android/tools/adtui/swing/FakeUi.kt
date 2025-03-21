@@ -103,6 +103,7 @@ class FakeUi @JvmOverloads constructor(
       val application = ApplicationManager.getApplication()
       // Use an exact class comparison so that the check fails if the TestWindowManager class stops
       // being final in future and a subclass is introduced.
+      @Suppress("UnstableApiUsage")
       if (application != null && WindowManager.getInstance()?.javaClass == TestWindowManager::class.java) {
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
@@ -395,7 +396,7 @@ class FakeUi @JvmOverloads constructor(
     override fun contentsLost(): Boolean = false
   }
 
-  private class FakeGraphicsDevice constructor(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
+  private class FakeGraphicsDevice(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
 
     override fun getType(): Int = TYPE_RASTER_SCREEN
 
