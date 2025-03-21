@@ -271,15 +271,25 @@ class LayoutlibSceneRenderer(
    */
   @RequiresBackgroundThread
   suspend fun requestRenderAndWait(trigger: LayoutEditorRenderResult.Trigger?) {
-    val request = enqueueRenderRequest(trigger)
+    val request = enqueueRenderRequest(trigger) ?: return
     // Suspends until this or any newer request is processed
     lastProcessedRenderRequestTime.first { it >= request.requestTime }
   }
 
-  /** Creates a new [RenderRequest] request, adds it to the queue and returns it. */
+  /**
+   * Creates a new [RenderRequest] request, adds it to the queue and returns it.
+   *
+   * Note: this method will return `null` if the renderer has been disposed.
+   */
   private suspend fun enqueueRenderRequest(
     trigger: LayoutEditorRenderResult.Trigger?
-  ): RenderRequest {
+  ): RenderRequest? {
+    // TODO(b/405340706): remove once the root cause of the early facet disposal is fixed
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("requesting render after LayoutlibSceneManager has been disposed")
+      return null
+    }
     // Mutex is needed to guarantee that requests are sent to the channel in order of their
     // requestTime
     return requestsLock.withLock { RenderRequest(trigger).also { requestsChannel.send(it) } }
