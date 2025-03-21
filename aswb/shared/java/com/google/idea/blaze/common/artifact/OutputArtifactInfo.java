@@ -50,22 +50,23 @@ public interface OutputArtifactInfo {
   /**
    * The blaze-out-relative path.
    *
-   * <p><b>Do not use</b> as it is quirky due to compatibility with old code. See: {@link #artifactPathToBazelOutRelativePath(Path)}
+   * <p><b>Do not use</b> as it is quirky due to compatibility with old code. See: {@link #artifactPathToRelativePath(Path, int)}
    */
   @Deprecated
   default String getBazelOutRelativePath() {
     final Path artifactPath = getArtifactPath();
-    return artifactPathToBazelOutRelativePath(artifactPath);
+    if (artifactPath.startsWith("bazel-out") || artifactPath.startsWith("blaze-out")) {
+      // bazel-out or blaze-out is one prefix, so pass 1.
+      return artifactPathToRelativePath(artifactPath, 1);
+    }
+    return artifactPath.toString();
   }
 
   /**
-   * Returns the "bazel-out" relative part of an artifact path in the way compatible with the old implementation that leave workspace paths
-   * intact without replacing them with ../artifact_path, which would be the right "bazel-out" relative path.
+   * Returns the relative part of an artifact path with respect to the prefix length in the way compatible with
+   * the old implementation that leave workspace paths intact without replacing them with ../artifact_path.
    */
-  static String artifactPathToBazelOutRelativePath(Path artifactPath) {
-    return (artifactPath.startsWith("bazel-out") || artifactPath.startsWith("blaze-out")
-            ? artifactPath.subpath(1, artifactPath.getNameCount())
-            : artifactPath
-    ).toString();
+  static String artifactPathToRelativePath(Path artifactPath, int artifactPathPrefixLength) {
+    return artifactPath.subpath(artifactPathPrefixLength, artifactPath.getNameCount()).toString();
   }
 }
