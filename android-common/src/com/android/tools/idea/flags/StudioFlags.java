@@ -2100,7 +2100,7 @@ public final class StudioFlags {
                     "Enable deferred multiline suggestions.",
                     "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
                     "offered later to the user if they accept the first line of the completion.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
