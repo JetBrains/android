@@ -257,17 +257,17 @@ private fun ensureSystemImageIsPresent(
   parent: Component,
 ): Boolean {
   val image = device.image
-  if (image is RemoteSystemImage) {
-    val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
+  if (image !is RemoteSystemImage) return true
 
-    if (!yes) {
-      return false
-    }
-
-    if (downloadSystemImage(parent, image.`package`.path)) {
-      device.image = sdkHandler.toLocalImage(image)
-    }
+  if (!MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)) {
+    return false
   }
+
+  if (!downloadSystemImage(parent, image.`package`.path)) {
+    return false
+  }
+
+  device.image = sdkHandler.toLocalImage(image)
   return true
 }
 
