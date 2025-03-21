@@ -19,14 +19,14 @@ import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.ZoomableKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Action for performing a zooming operation according to the {@link ZoomType}
  */
-abstract public class SetZoomAction extends AnAction {
+public abstract class SetZoomAction extends DumbAwareAction {
   @VisibleForTesting
   @NotNull
   public final ZoomType myType;
