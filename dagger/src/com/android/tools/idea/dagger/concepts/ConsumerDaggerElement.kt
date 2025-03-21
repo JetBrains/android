@@ -19,10 +19,12 @@ import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.psiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.CachedValue
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
@@ -72,6 +74,13 @@ internal data class ConsumerDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.CONSUMER
 
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
+
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
   override val relationDescriptionKey: String = "navigate.to.provider"
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>("ConsumerDaggerElement_RelatedElements")
+  }
 }

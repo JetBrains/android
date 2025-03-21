@@ -24,12 +24,14 @@ import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.progress.checkCanceled
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
@@ -56,9 +58,11 @@ sealed class DaggerElement {
 
   abstract val metricsElementType: DaggerEditorEvent.ElementType
 
+  internal abstract val relatedElementsKey: Key<CachedValue<List<DaggerRelatedElement>>>
+
   /** Looks up related Dagger elements. */
   fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
-    return CachedValuesManager.getCachedValue(psiElement) {
+    return CachedValuesManager.getCachedValue(psiElement, relatedElementsKey) {
       CachedValueProvider.Result(
         doGetRelatedDaggerElements(),
         PsiModificationTracker.MODIFICATION_COUNT,

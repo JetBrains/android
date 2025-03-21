@@ -27,12 +27,14 @@ import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
@@ -230,6 +232,8 @@ internal data class AssistedInjectConstructorDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
 
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
+
   override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     return getRelatedDaggerElementsFromIndex<AssistedFactoryMethodDaggerElement>(
         constructedType.getIndexKeys()
@@ -247,4 +251,11 @@ internal data class AssistedInjectConstructorDaggerElement(
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
     resolveCandidate is AssistedFactoryMethodDaggerElement &&
       resolveCandidate.returnedType == this.constructedType
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>(
+        "AssistedInjectConstructorDaggerElement_RelatedElements"
+      )
+  }
 }
