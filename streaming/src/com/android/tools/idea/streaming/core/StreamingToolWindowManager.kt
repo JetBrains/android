@@ -144,7 +144,7 @@ private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.stream
 private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
 private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000L
 
-private val ID_KEY = Key.create<DeviceId>("device-id")
+private val CONTENT_DEVICE_ID_KEY = Key.create<DeviceId>("DeviceId")
 
 private val ATTENTION_REQUEST_EXPIRATION = 30.seconds
 private val REMOTE_DEVICE_REQUEST_EXPIRATION = 60.seconds
@@ -153,7 +153,6 @@ private val AUTO_RECONNECTION_TIMEOUT = 5.seconds // Auto reconnection timeout i
 @VisibleForTesting
 internal val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
 @VisibleForTesting
-@Suppress("UnstableApiUsage")
 internal val LIVE_ICON = BadgeIconSupplier(INACTIVE_ICON).liveIndicatorIcon
 
 /**
@@ -449,7 +448,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     for (contentManager in contentManagers) {
       // Remove panels of inactive devices.
       for (content in contentManager.contents) {
-        val deviceId = ID_KEY.get(content) ?: continue
+        val deviceId = content.deviceId ?: continue
         when (deviceId) {
           is DeviceId.EmulatorDeviceId -> {
             val emulator = emulators.find { it.emulatorId == deviceId.emulatorId }
@@ -538,8 +537,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       description = panel.description
       icon = panel.icon
       popupIcon = panel.icon
+      deviceId = panel.id
       setPreferredFocusedComponent(panel::preferredFocusableComponent)
-      ID_KEY.set(this, panel.id)
     }
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
@@ -577,7 +576,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
     emulator.removeConnectionStateListener(connectionStateListener)
     val content = findContentByEmulatorId(emulator.emulatorId) ?: return false
-    savedUiState.remove(ID_KEY.get(content))
+    savedUiState.remove(content.deviceId)
     content.removeAndDispose()
     return true
   }
@@ -588,7 +587,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       updateMirroringHandlesFlow()
     }
     val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
-    savedUiState.remove(ID_KEY.get(content))
+    savedUiState.remove(content.deviceId)
     content.removeAndDispose()
   }
 
@@ -642,13 +641,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun findContentByDeviceId(deviceId: DeviceId): Content? =
-      findContent { ID_KEY.get(it) == deviceId }
+      findContent { it.deviceId == deviceId }
   private fun findContentByEmulatorId(emulatorId: EmulatorId): Content? =
-      findContent { (ID_KEY.get(it) as? DeviceId.EmulatorDeviceId)?.emulatorId == emulatorId }
+      findContent { (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId == emulatorId }
   private fun findContentByAvdId(avdId: String): Content? =
-      findContent { (ID_KEY.get(it) as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId == avdId }
+      findContent { (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId == avdId }
   private fun findContentBySerialNumberOfPhysicalDevice(serialNumber: String): Content? =
-      findContent { ID_KEY.get(it)?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel}
+      findContent { it.deviceId?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel}
 
   private fun findContent(predicate: (Content) -> Boolean): Content? {
     for (contentManager in contentManagers) {
@@ -1285,7 +1284,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
     }
   }
 
-  val apiLevel = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+  val apiLevel = properties.androidVersion?.androidApiLevel?.majorVersion ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
   // Mirroring is supported for API >= 26. Wear OS devices with API < 30 don't support VP8/VP9 video encoders.
   return apiLevel >= 26 && (properties.deviceType != DeviceType.WEAR || apiLevel >= 30) && properties.primaryAbi != null
 }
@@ -1300,7 +1299,7 @@ private fun ContentManager.addSelectedPanelDataProvider() {
 private val ContentManager.placeholderContent: Content?
   get() {
     val content = if (contentCount == 1) getContent(0) else return null
-    return if (ID_KEY.get(content) == null) content else null
+    return if (content?.deviceId == null) content else null
   }
 
 private fun Content.select(activation: ActivationLevel) {
@@ -1439,8 +1438,12 @@ internal class DeviceClientRegistry : Disposable {
   }
 }
 
-private fun <K, V> buildCache(expiration: Duration): Cache<K, V> =
+private fun <K : Any, V> buildCache(expiration: Duration): Cache<K, V> =
     Caffeine.newBuilder().expireAfterWrite(expiration.toJavaDuration()).build()
-private fun <K, V> buildWeakCache(expiration: Duration): Cache<K, V> =
+private fun <K : Any, V> buildWeakCache(expiration: Duration): Cache<K, V> =
     Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(expiration.toJavaDuration()).build()
-private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
+private fun <K : Any, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
+
+private var Content.deviceId: DeviceId?
+    get() = CONTENT_DEVICE_ID_KEY.get(this)
+    set(deviceId) = CONTENT_DEVICE_ID_KEY.set(this, deviceId)
