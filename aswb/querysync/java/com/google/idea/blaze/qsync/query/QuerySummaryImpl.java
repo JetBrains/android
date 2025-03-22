@@ -265,6 +265,12 @@ public abstract class QuerySummaryImpl implements QuerySummary {
       } else {
         builder.manifest(Optional.empty());
       }
+
+      if (r.hasTestRule()) {
+        builder.testRule(Optional.of(lookupLabel(r.getTestRule())));
+      } else {
+        builder.testRule(Optional.empty());
+      }
       return builder.build();
     }
 
@@ -368,6 +374,9 @@ public abstract class QuerySummaryImpl implements QuerySummary {
               rule.setTestApp(indexer.index(a.getStringValue()));
             } else if (attributeName.equals("instruments")) {
               rule.setInstruments(indexer.index(a.getStringValue()));
+            }
+            if (attributeName.equals("test_rule")) {
+              rule.setTestRule(indexer.indexLabel(Label.of(a.getStringValue())));
             }
           }
           ruleMap.put(label, rule.build());

@@ -37,6 +37,7 @@ import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -76,6 +77,8 @@ public class ProjectSourceToTargetFinder implements SourceToTargetFinder {
                     return kind.getRuleType().equals(ruleType.get());
                   })
               .map(TargetInfo::fromBuildTarget)
+              .sorted(
+                Comparator.comparingInt(target -> target.getKind().getKindPriority()))
               .collect(toImmutableSet());
       return Futures.immediateFuture(targets);
     }

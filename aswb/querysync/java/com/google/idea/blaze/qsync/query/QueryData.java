@@ -43,7 +43,8 @@ public class QueryData {
       ImmutableList<Label> hdrs,
       ImmutableList<String> copts,
       ImmutableList<String> tags,
-      String mainClass) {
+      String mainClass,
+      Optional<Label> testRule) {
 
     public Builder toBuilder() {
       return new AutoBuilder_QueryData_Rule_Builder(this);
@@ -68,7 +69,8 @@ public class QueryData {
         .hdrs(ImmutableList.of())
         .copts(ImmutableList.of())
         .tags(ImmutableList.of())
-        .mainClass("");
+        .mainClass("")
+        .testRule(Optional.empty());
     }
 
 
@@ -103,6 +105,9 @@ public class QueryData {
       Builder tags(ImmutableList<String> sources);
 
       Builder mainClass(String value);
+
+
+      Builder testRule(Optional<Label> value);
 
       Rule build();
     }

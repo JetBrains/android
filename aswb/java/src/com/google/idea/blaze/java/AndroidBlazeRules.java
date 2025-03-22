@@ -39,7 +39,7 @@ public final class AndroidBlazeRules implements Kind.Provider {
     ANDROID_TEST("android_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_ROBOLECTRIC_TEST("android_robolectric_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_LOCAL_TEST("android_local_test", LanguageClass.ANDROID, RuleType.TEST),
-    WRAPPED_ANDROID_LOCAL_TEST("_wrapped_android_local_test", LanguageClass.ANDROID, RuleType.TEST),
+    WRAPPED_ANDROID_LOCAL_TEST("_wrapped_android_local_test", LanguageClass.ANDROID, RuleType.TEST, 0),
     KT_ANDROID_LOCAL_TEST("kt_android_local_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_INSTRUMENTATION_TEST(
         "android_instrumentation_test", LanguageClass.ANDROID, RuleType.TEST),
@@ -55,15 +55,25 @@ public final class AndroidBlazeRules implements Kind.Provider {
     private final String name;
     private final ImmutableSet<LanguageClass> languageClasses;
     private final RuleType ruleType;
+    private final int priority;
 
     RuleTypes(String name, Collection<LanguageClass> languageClasses, RuleType ruleType) {
+      this(name, languageClasses, ruleType, 1);
+    }
+
+    RuleTypes(String name, Collection<LanguageClass> languageClasses, RuleType ruleType, int priority) {
       this.name = name;
       this.languageClasses = ImmutableSet.copyOf(languageClasses);
       this.ruleType = ruleType;
+      this.priority = priority;
     }
 
     RuleTypes(String name, LanguageClass languageClass, RuleType ruleType) {
       this(name, ImmutableSet.of(languageClass), ruleType);
+    }
+
+    RuleTypes(String name, LanguageClass languageClass, RuleType ruleType, int priority) {
+      this(name, ImmutableSet.of(languageClass), ruleType, priority);
     }
 
     public Kind getKind() {
@@ -74,7 +84,7 @@ public final class AndroidBlazeRules implements Kind.Provider {
   @Override
   public ImmutableSet<Kind> getTargetKinds() {
     return Arrays.stream(RuleTypes.values())
-        .map(e -> Kind.Provider.create(e.name, e.languageClasses, e.ruleType))
+        .map(e -> Kind.Provider.create(e.name, e.languageClasses, e.ruleType, e.priority))
         .collect(toImmutableSet());
   }
 }

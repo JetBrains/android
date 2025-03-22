@@ -67,12 +67,16 @@ public abstract class Kind {
     }
 
     static Kind create(String ruleName, LanguageClass languageClass, RuleType ruleType) {
-      return create(ruleName, ImmutableSet.of(languageClass), ruleType);
+      return create(ruleName, languageClass, ruleType, 1);
+    }
+
+    static Kind create(String ruleName, LanguageClass languageClass, RuleType ruleType, int kindPriority) {
+      return create(ruleName, ImmutableSet.of(languageClass), ruleType, kindPriority);
     }
 
     static Kind create(
-        String ruleName, Collection<LanguageClass> languageClasses, RuleType ruleType) {
-      return new AutoValue_Kind(ruleName, ImmutableSet.copyOf(languageClasses), ruleType);
+        String ruleName, Collection<LanguageClass> languageClasses, RuleType ruleType, int kindPriority) {
+      return new AutoValue_Kind(ruleName, ImmutableSet.copyOf(languageClasses), ruleType, kindPriority);
     }
   }
 
@@ -159,6 +163,9 @@ public abstract class Kind {
   public abstract ImmutableSet<LanguageClass> getLanguageClasses();
 
   public abstract RuleType getRuleType();
+
+  /** Only used when some rule should be listed before/ after others*/
+  public abstract int  getKindPriority();
 
   public boolean isOneOf(Kind... kinds) {
     return Arrays.asList(kinds).contains(this);

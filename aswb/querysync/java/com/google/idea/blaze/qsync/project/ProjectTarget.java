@@ -77,6 +77,8 @@ public abstract class ProjectTarget implements BuildTarget {
 
   public abstract Optional<String> mainClass();
 
+  public abstract Optional<Label> testRule();
+
   public static Builder builder() {
     return new AutoValue_ProjectTarget.Builder();
   }
@@ -107,6 +109,8 @@ public abstract class ProjectTarget implements BuildTarget {
     public abstract Builder tags(Iterable<String> tags);
 
     public abstract Builder mainClass(String mainClass);
+
+    public abstract Builder testRule(Label testRule);
 
     public abstract ProjectTarget build();
   }

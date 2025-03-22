@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static java.util.Arrays.stream;
@@ -354,6 +353,8 @@ public record BuildGraphDataImpl(
           for (Label rdep : target.deps()) {
             rdeps.put(rdep, target.label());
           }
+          Optional<Label> testRule = target.testRule();
+          testRule.ifPresent(label -> rdeps.put(label, target.label()));
         }
         return rdeps.build();
       }

@@ -170,6 +170,9 @@ public class BlazeQueryParser {
       if (!rule.mainClass().isEmpty()) {
         targetBuilder.mainClass(rule.mainClass());
       }
+      if (rule.testRule().isPresent()) {
+        targetBuilder.testRule(rule.testRule().get());
+      }
 
       visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
       if (alwaysBuildRuleKinds.contains(rule.ruleClass())) {

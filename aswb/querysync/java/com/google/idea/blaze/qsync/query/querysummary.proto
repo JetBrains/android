@@ -65,4 +65,5 @@ message StoredRule {
   repeated int32 copts = 13;
   repeated int32 tags = 14;
   int32 main_class = 15;
+  StoredLabel test_rule = 16;
 }
