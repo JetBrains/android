@@ -151,6 +151,7 @@ internal constructor(
     return result
   }
 
+  @UiThread
   override fun chooseRestoreFile(): Path? {
     return FileChooserFactory.getInstance()
       .createFileChooser(FILE_CHOOSER_DESCRIPTOR, project, null)

@@ -71,7 +71,11 @@ class FakeBackupManager : BackupManager {
     notify: Boolean,
   ): BackupResult = Success
 
-  override fun chooseRestoreFile(): Path? = Path.of("file.backup")
+  @UiThread
+  override fun chooseRestoreFile(): Path? {
+    assert(EDT.isCurrentThreadEdt())
+    return Path.of("file.backup")
+  }
 
   override suspend fun getMetadata(backupFile: Path): BackupMetadata? = null
 

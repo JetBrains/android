@@ -86,7 +86,7 @@ interface BackupManager {
   ): BackupResult
 
   /** Display a file chooser dialog for loading a backup file */
-  fun chooseRestoreFile(): Path?
+  @UiThread fun chooseRestoreFile(): Path?
 
   /**
    * Gets the application id of the associated app
