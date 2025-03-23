@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.SdkConstants
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.collect.Maps
 import com.intellij.openapi.application.ApplicationManager
@@ -52,9 +53,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
 
       val projectMap = Maps.newHashMap<com.android.tools.lint.detector.api.Project, Module>()
       val moduleMap = Maps.newHashMap<Module, com.android.tools.lint.detector.api.Project>()
-      if (files != null && !files.isEmpty()) {
-        // Wrap list with a mutable list since we'll be removing the files as we see them
-        val files = files.toMutableList()
+      if (!files.isNullOrEmpty()) {
         for (module in modules) {
           addProjects(client, module, files, moduleMap, projectMap, projects)
         }
@@ -71,7 +70,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
         // included by other projects (e.g. because they are library projects)
         val roots = HashSet<com.android.tools.lint.detector.api.Project>(projects)
         for (project in projects) {
-          roots.removeAll(project.getAllLibraries())
+          roots.removeAll(project.getAllLibraries().toSet())
         }
         return roots.toList()
       } else {
@@ -80,7 +79,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     }
 
     /**
-     * Creates a project for a single file. Also optionally creates a main project for the file, if
+     * Creates a project for a single file. Also, optionally creates a main project for the file, if
      * applicable.
      *
      * @param client the lint client
@@ -107,17 +106,12 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
         if (file != null) {
           project.addFile(VfsUtilCore.virtualToIoFile(file))
         }
-        projectMap.put(project, module)
+        projectMap[project] = module
+        project.isGradleRootHolder = true
       }
       client.setModuleMap(projectMap)
 
-      return Pair.create<
-        com.android.tools.lint.detector.api.Project,
-        com.android.tools.lint.detector.api.Project,
-      >(
-        project,
-        main,
-      )
+      return Pair.create(project, main)
     }
 
     /**
@@ -128,7 +122,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     private fun addProjects(
       client: LintClient,
       module: Module,
-      files: MutableList<VirtualFile>?,
+      files: List<VirtualFile>?,
       moduleMap: MutableMap<Module, com.android.tools.lint.detector.api.Project>,
       projectMap: MutableMap<com.android.tools.lint.detector.api.Project, Module>,
       projects: MutableList<com.android.tools.lint.detector.api.Project>,
@@ -137,25 +131,23 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
         return
       }
 
-      val project: LintModuleProject? = createModuleProject(client, module)
-
-      if (project == null) {
-        return
-      }
+      val project: LintModuleProject = createModuleProject(client, module) ?: return
 
       project.ideaProject = module.project
-
+      project.isGradleRootHolder =
+        File(project.dir, SdkConstants.FN_SETTINGS_GRADLE).exists() ||
+          File(project.dir, SdkConstants.FN_SETTINGS_GRADLE_KTS).exists() ||
+          File(project.dir, SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE).exists()
       projects.add(project)
-      moduleMap.put(module, project)
-      projectMap.put(project, module)
+      moduleMap[module] = project
+      projectMap[project] = module
 
       if (processFileFilter(module, files, project)) {
         // No need to process dependencies when doing single file analysis
         return
       }
 
-      val dependencies: MutableList<com.android.tools.lint.detector.api.Project> =
-        ArrayList<com.android.tools.lint.detector.api.Project>()
+      val dependencies: MutableList<com.android.tools.lint.detector.api.Project> = ArrayList()
       val entries = ModuleRootManager.getInstance(module).orderEntries
 
       // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
@@ -165,10 +157,9 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
       while (--i >= 0) {
         val orderEntry = entries[i]
         if (orderEntry is ModuleOrderEntry) {
-          val moduleOrderEntry = orderEntry
 
-          if (moduleOrderEntry.scope == DependencyScope.COMPILE) {
-            val depModule = moduleOrderEntry.module
+          if (orderEntry.scope == DependencyScope.COMPILE) {
+            val depModule = orderEntry.module
 
             if (depModule != null) {
               deps.add(depModule)
@@ -197,10 +188,10 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
       files: List<VirtualFile>?,
       project: com.android.tools.lint.detector.api.Project,
     ): Boolean {
-      if (files != null && !files.isEmpty()) {
+      if (!files.isNullOrEmpty()) {
         val allMatched =
           ApplicationManager.getApplication()
-            .runReadAction<Boolean>(
+            .runReadAction(
               Computable {
                 var matched = true
                 for (file in files) {
@@ -217,7 +208,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
         if (allMatched) {
           // We're only scanning a subset of files (typically the current file in the editor);
           // in that case, don't initialize all the libraries etc
-          project.setDirectLibraries(listOf<com.android.tools.lint.detector.api.Project>())
+          project.directLibraries = listOf<com.android.tools.lint.detector.api.Project>()
           return true
         }
       }
@@ -226,10 +217,10 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
 
     /** Creates a new module project */
     private fun createModuleProject(client: LintClient, module: Module): LintModuleProject? {
-      val dir: File? = getLintProjectDirectory(module)
-      if (dir == null) return null
+      val dir = getLintProjectDirectory(module) ?: return null
       val project = LintModuleProject(client, dir, dir, module)
       project.ideaProject = module.project
+
       client.registerProject(dir, project)
       return project
     }
@@ -267,7 +258,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
       return false
     }
 
-    protected fun includeTests(): Boolean {
+    private fun includeTests(): Boolean {
       val model = getBuildModule()
       if (model != null) {
         return model.lintOptions.checkTestSources
@@ -318,7 +309,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
         val project = module.project
         val dirs = ArrayList<File>(sourceAndTestRoots.size)
         for (root in sourceAndTestRoots) {
-          if (!ArrayUtil.contains<VirtualFile>(root, *sourceRoots)) {
+          if (!ArrayUtil.contains(root, *sourceRoots)) {
             if (GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(root, project)) {
               // Skip generated sources
               continue
@@ -338,7 +329,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
           val folder = extension?.compilerOutputPath
           javaClassFolders =
             if (folder != null) {
-              listOf<File>(VfsUtilCore.virtualToIoFile(folder))
+              listOf(VfsUtilCore.virtualToIoFile(folder))
             } else {
               emptyList()
             }
@@ -363,8 +354,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
           for (i in entries.indices.reversed()) {
             val orderEntry = entries[i]
             if (orderEntry is LibraryOrderEntry) {
-              val libraryOrderEntry = orderEntry
-              val classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES)
+              val classes = orderEntry.getRootFiles(OrderRootType.CLASSES)
               for (file in classes) {
                 javaLibraries.add(VfsUtilCore.virtualToIoFile(file))
               }
