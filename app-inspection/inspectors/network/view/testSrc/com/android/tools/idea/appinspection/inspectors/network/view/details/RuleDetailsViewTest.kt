@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.TestNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.HeaderAddedRuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
@@ -629,7 +630,7 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val model = ruleData.headerRuleTableModel
-    val headerAddedRule = RuleData.HeaderAddedRuleData("name", "value")
+    val headerAddedRule = HeaderAddedRuleData("name", "value")
     val headerReplacedRule =
       RuleData.HeaderReplacedRuleData(
         "findName",
@@ -666,7 +667,7 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val model = ruleData.headerRuleTableModel
-    val headerAddedRule = RuleData.HeaderAddedRuleData("name", "value")
+    val headerAddedRule = HeaderAddedRuleData("name", "value")
     val headerReplacedRule =
       RuleData.HeaderReplacedRuleData("findName", true, null, false, null, "replaceValue")
     model.addRow(headerAddedRule)
@@ -1426,6 +1427,53 @@ class RuleDetailsViewTest {
     assertThat(warningLabel.isVisible).isFalse()
   }
 
+  @Test
+  fun applyVariableDialogValidates() {
+    // This is the rule we test with
+    val rule = addNewRule()
+    // Add another rule so we can change ruleDetailsView.selectedRule after
+    // setting values
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    // Set invalid variable data in all fields
+    rule.criteria.host = "\${STRING}"
+    rule.criteria.port = "\${NUM}"
+    rule.criteria.path = "\${STRING}"
+    rule.criteria.query = "\${STRING}"
+    rule.statusCodeRuleData.findCode = "\${NUM}"
+    rule.statusCodeRuleData.newCode = "\${NUM}"
+    rule.headerRuleTableModel.items = mutableListOf(HeaderAddedRuleData("\${STRING}", "\${STRING}"))
+    rule.bodyRuleTableModel.items = mutableListOf(RuleData.BodyReplacedRuleData("\${STRING}"))
+    ruleDetailsView.selectedRule = rule
+    ruleDetailsView.validateRule(rule)
+
+    // All warning labels should be visible
+    val warningLabels =
+      TreeWalker(ruleDetailsView).descendants().filter {
+        it.name?.endsWith("WarningLabel") == true && it.name != "nameWarningLabel"
+      }
+    assertThat(warningLabels.filter { it.isVisible }.names())
+      .containsExactlyElementsIn(warningLabels.names())
+
+    // Open variables dialog and add the missing variables
+    val variablesAction = findAction(inspectorView.rulesView.component, "Variables")
+    createModalDialogAndInteractWithIt({
+      variablesAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
+      val dialog = it as RuleVariablesDialog
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.setName(0, "STRING")
+      dialog.setValue(0, "foo")
+      dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
+      dialog.setName(1, "NUM")
+      dialog.setValue(1, "200")
+      dialog.clickOk()
+    }
+
+    // All warning labels should be invisible
+    assertThat(warningLabels.filter { it.isVisible }.names()).isEmpty()
+  }
+
   private fun addNewRule(): RuleData {
     val rulesView = inspectorView.rulesView
     val addAction = findAction(rulesView.component, "Add")
@@ -1510,27 +1558,6 @@ class RuleDetailsViewTest {
     assertThat(warningLabel.isVisible).isFalse()
   }
 
-  private fun JComponent.onFocusLost() {
-    focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
-  }
-
-  private fun findAction(decoratedTable: Component, templateText: String): AnAction {
-    val toolbar = TreeWalker(decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0]
-    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
-    return toolbar.actions.first { it.templateText?.contains(templateText) == true }
-  }
-
-  private fun Component.isVisibleToRoot(root: Component): Boolean {
-    var current = this
-    while (current != root) {
-      current = current.parent
-      if (!current.isVisible) {
-        return false
-      }
-    }
-    return true
-  }
-
   @Test
   fun openVariableDialogAndAddVariableThatAffectsRule() {
     addNewRule().apply { criteria.host = "\${HOST}" }
@@ -1551,4 +1578,27 @@ class RuleDetailsViewTest {
       assertThat(criteria.host == "foo")
     }
   }
+
+  private fun JComponent.onFocusLost() {
+    focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
+  }
+
+  private fun findAction(decoratedTable: Component, templateText: String): AnAction {
+    val toolbar = TreeWalker(decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0]
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    return toolbar.actions.first { it.templateText?.contains(templateText) == true }
+  }
+
+  private fun Component.isVisibleToRoot(root: Component): Boolean {
+    var current = this
+    while (current != root) {
+      current = current.parent
+      if (!current.isVisible) {
+        return false
+      }
+    }
+    return true
+  }
 }
+
+private fun List<Component>.names() = map { it.name }

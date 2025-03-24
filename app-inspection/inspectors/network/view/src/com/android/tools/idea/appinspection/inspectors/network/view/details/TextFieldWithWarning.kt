@@ -37,7 +37,7 @@ internal class TextFieldWithWarning(
   name: String? = null,
   private val validate: (String) -> String?,
   apply: (String) -> Unit,
-) : JPanel(TabularLayout("*,Fit")) {
+) : JPanel(TabularLayout("*,Fit")), StateValidator {
   private val warningLabel =
     JBLabel(StudioIcons.Common.WARNING).apply {
       this.name = "${name}WarningLabel"
@@ -58,7 +58,7 @@ internal class TextFieldWithWarning(
       addFocusListener(
         object : FocusAdapter() {
           override fun focusLost(e: FocusEvent) {
-            if (validateText()) {
+            if (validateState()) {
               apply(text.trim())
             }
           }
@@ -67,7 +67,7 @@ internal class TextFieldWithWarning(
       document.addDocumentListener(
         object : DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
-            validateText()
+            validateState()
           }
         }
       )
@@ -76,7 +76,7 @@ internal class TextFieldWithWarning(
   init {
     add(textField, TabularLayout.Constraint(0, 0))
     add(warningLabel, TabularLayout.Constraint(0, 1))
-    validateText()
+    validateState()
   }
 
   override fun setEnabled(enabled: Boolean) {
@@ -87,7 +87,7 @@ internal class TextFieldWithWarning(
     return textField.isEnabled
   }
 
-  fun validateText(): Boolean {
+  override fun validateState(): Boolean {
     val warning = validate(textField.text.trim())
     val isValid = warning == null
     warningLabel.isVisible = !isValid

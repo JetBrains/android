@@ -42,7 +42,7 @@ internal class RuleTableWithWarning(
   name: String,
   private val usageTracker: NetworkInspectorTracker,
   private val validate: (ListTableModel<TransformationRuleData>) -> String?,
-) : JPanel(TabularLayout("*,Fit", "*")) {
+) : JPanel(TabularLayout("*,Fit", "*")), StateValidator {
   private val table = createTable(model, name)
   private val warningLabel =
     JBLabel(StudioIcons.Common.WARNING).apply {
@@ -54,10 +54,10 @@ internal class RuleTableWithWarning(
   init {
     add(table, TabularLayout.Constraint(0, 0))
     add(warningLabel, TabularLayout.Constraint(0, 1))
-    validateContent()
+    validateState()
   }
 
-  fun validateContent(): Boolean {
+  override fun validateState(): Boolean {
     val warning = validate(model)
     val isValid = warning == null
     warningLabel.isVisible = !isValid
@@ -88,7 +88,7 @@ internal class RuleTableWithWarning(
       val index = table.convertRowIndexToView(model.rowCount - 1)
       table.selectionModel.setSelectionInterval(index, index)
       trackAction(newItem)
-      validateContent()
+      validateState()
     }
     decorator.setAddAction {
       when (model) {
@@ -124,7 +124,7 @@ internal class RuleTableWithWarning(
         val tableIndex = table.convertRowIndexToView(replaceIndex)
         table.selectionModel.setSelectionInterval(tableIndex, tableIndex)
         trackAction(newItem)
-        validateContent()
+        validateState()
       }
     }
     decorator.setEditAction {

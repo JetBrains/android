@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Protocol
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.TransformationRuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariable
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.applyTo
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
@@ -56,7 +57,9 @@ class RuleDetailsView(
   private val getRuleNames: () -> Set<String>,
   private val ruleVariables: MutableList<RuleVariable>,
   private val usageTracker: NetworkInspectorTracker,
-) : JPanel() {
+) : JPanel(), RuleValidator {
+
+  private val validators = mutableListOf<StateValidator>()
 
   var selectedRule = RuleData(-1, "", false)
     set(value) {
@@ -88,7 +91,7 @@ class RuleDetailsView(
 
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
     val namePanel =
-      TextFieldWithWarning(rule.name, "Enter rule name", "name", { validateRuleName(it, rule) }) {
+      textFieldWithWarning(rule.name, "Enter rule name", "name", { validateRuleName(it, rule) }) {
         rule.name = it
       }
     val nameCategoryPanel = createCategoryPanel(null, JBLabel("Name:") to namePanel)
@@ -98,7 +101,7 @@ class RuleDetailsView(
 
     detailsPanel.add(createStatusCodeCategoryPanel(rule))
 
-    val validator: (ListTableModel<RuleData.TransformationRuleData>) -> String? = { model ->
+    val validator: (ListTableModel<TransformationRuleData>) -> String? = { model ->
       val string = buildString {
         (1 until model.columnCount).forEach { col ->
           repeat(model.rowCount) { row -> append(model.getValueAt(row, col)) }
@@ -109,16 +112,22 @@ class RuleDetailsView(
 
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Header rules"))
     detailsPanel.add(
-      RuleTableWithWarning(rule.headerRuleTableModel, "headerRules", usageTracker, validator)
+      ruleTableWithWarning(rule.headerRuleTableModel, "headerRules", usageTracker, validator)
     )
 
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Body rules"))
     detailsPanel.add(
-      RuleTableWithWarning(rule.bodyRuleTableModel, "bodyRules", usageTracker, validator)
+      ruleTableWithWarning(rule.bodyRuleTableModel, "bodyRules", usageTracker, validator)
     )
 
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
+  }
+
+  override fun validateRule(rule: RuleData) {
+    if (rule == selectedRule) {
+      validators.forEach { it.validateState() }
+    }
   }
 
   private fun validateRuleName(name: String, self: RuleData): String? {
@@ -146,7 +155,7 @@ class RuleDetailsView(
     }
 
     val findCodePanel =
-      TextFieldWithWarning(
+      textFieldWithWarning(
         data.findCode,
         "200",
         "findCode",
@@ -166,7 +175,7 @@ class RuleDetailsView(
         }
       }
     val newCodePanel =
-      TextFieldWithWarning(
+      textFieldWithWarning(
         data.newCode,
         "500",
         "newCode",
@@ -192,8 +201,8 @@ class RuleDetailsView(
       addItemListener {
         data.isActive = isSelected
         newCodePanel.isEnabled = isSelected
-        findCodePanel.validateText()
-        newCodePanel.validateText()
+        findCodePanel.validateState()
+        newCodePanel.validateState()
       }
     }
     val root = JPanel(VerticalLayout(6))
@@ -229,7 +238,7 @@ class RuleDetailsView(
       }
 
     val urlPanel =
-      TextFieldWithWarning(
+      textFieldWithWarning(
         criteria.host,
         "www.google.com",
         "url",
@@ -242,7 +251,7 @@ class RuleDetailsView(
       }
 
     val portPanel =
-      TextFieldWithWarning(
+      textFieldWithWarning(
         criteria.port,
         "80",
         "port",
@@ -263,7 +272,7 @@ class RuleDetailsView(
       }
 
     val pathPanel =
-      TextFieldWithWarning(criteria.path, "search", "path", ::validateVariables) {
+      textFieldWithWarning(criteria.path, "search", "path", ::validateVariables) {
         val text = it.applyIf(it.isNotBlank() && !it.startsWith('/')) { "/$it" }
         if (criteria.path != text) {
           criteria.path = text
@@ -271,7 +280,7 @@ class RuleDetailsView(
         }
       }
     val queryPanel =
-      TextFieldWithWarning(criteria.query, "q=android+studio", "query", ::validateVariables) {
+      textFieldWithWarning(criteria.query, "q=android+studio", "query", ::validateVariables) {
         if (criteria.query != it) {
           criteria.query = it
           usageTracker.trackRuleUpdated(InterceptionCriteria.URL_QUERY)
@@ -346,6 +355,22 @@ class RuleDetailsView(
     }
     return invalidArgs.joinToString(prefix = "Invalid variables: ") { it }
   }
+
+  private fun textFieldWithWarning(
+    initialText: String?,
+    hintText: String,
+    name: String? = null,
+    validate: (String) -> String?,
+    apply: (String) -> Unit,
+  ) = TextFieldWithWarning(initialText, hintText, name, validate, apply).also { validators.add(it) }
+
+  private fun ruleTableWithWarning(
+    model: ListTableModel<TransformationRuleData>,
+    name: String,
+    usageTracker: NetworkInspectorTracker,
+    validate: (ListTableModel<TransformationRuleData>) -> String?,
+  ): RuleTableWithWarning =
+    RuleTableWithWarning(model, name, usageTracker, validate).also { validators.add(it) }
 }
 
 private fun Container.findDescendantByName(name: String): Component {
