@@ -28,8 +28,6 @@
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
 
-  <xi:include href="/META-INF/android-plugin-k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
-
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
