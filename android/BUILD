@@ -9,13 +9,13 @@ load("//tools/base/bazel:proto.bzl", "studio_java_proto_library")
 
 studio_java_proto_library(
     name = "android-core-proto",
-    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    srcs = glob(["proto/main/*.proto"]),
     visibility = ["//visibility:public"],
 )
 
 studio_java_proto_library(
     name = "android-core-proto-test",
-    srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
+    srcs = glob(["proto/test/*.proto"]),
     visibility = ["//visibility:public"],
 )
 

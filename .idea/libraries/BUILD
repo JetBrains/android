@@ -185,7 +185,7 @@ jvm_import(
     jars = [
         "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto.jar",
         "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto.jar",
-        "//tools/adt/idea/layout-inspector/src/proto:layout_inspector_snapshot_java_proto.jar",
+        "//tools/adt/idea/layout-inspector/proto:layout_inspector_snapshot_java_proto.jar",
     ],
     visibility = ["//visibility:public"],
 )

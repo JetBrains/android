@@ -4,7 +4,7 @@ load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 java_proto_library(
     name = "server-flag-test-proto",
-    srcs = glob(["testSrc/com/android/tools/idea/serverflags/proto/*.proto"]),
+    srcs = glob(["proto/test/*.proto"]),
     visibility = ["//visibility:public"],
 )
 
