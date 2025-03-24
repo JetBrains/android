@@ -84,7 +84,7 @@ class TraceProcessorDaemonManager(
     private val TPD_RELEASE_PATH by lazy {
       val os = when {
         SystemInfo.isWindows -> "windows"
-        SystemInfo.isMac -> "darwin"
+        SystemInfo.isMac -> if (SystemInfo.isAarch64) "darwin-arm64" else "darwin-x86_64"
         SystemInfo.isLinux -> "linux"
         else -> {
           LOGGER.warn("Unsupported platform for TPD. Using linux binary.")
