@@ -26,6 +26,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -781,7 +782,8 @@ public class LiveEditProjectMonitor implements Disposable {
   static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    // we use EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() to make sure the path is correctly adjuasted in IJ.
+    return new AdbInstaller(EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(

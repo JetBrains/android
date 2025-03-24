@@ -18,22 +18,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library name="jb-r8" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/232.1.23.0/jb-r8-232.1.23.0.jar">
-              <sha256sum>2f0cb16c17ded3eaeeebbd3abd350651569d94f28bee887563de65f0e8b54153</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/232.1.23.0/jb-r8-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
