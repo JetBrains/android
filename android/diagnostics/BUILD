@@ -8,7 +8,7 @@ iml_module(
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
-        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
+        "//tools/adt/idea/android/native/diagnostics/heap:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
     ],
     # do not sort: must match IML order

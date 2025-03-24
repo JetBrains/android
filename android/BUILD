@@ -162,7 +162,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
-        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
+        "//tools/adt/idea/android/native/diagnostics/heap:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/compose-ide-plugin/testData",

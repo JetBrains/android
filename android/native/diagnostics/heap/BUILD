@@ -23,10 +23,10 @@ studio_data(
     files_mac_arm = glob(["mac_arm/*"]),
     files_win = glob(["win/*"]),
     mappings = {
-        "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/linux/": "native/",
-        "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac/": "native/",
-        "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac_arm/": "native/",
-        "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/win/": "native/",
+        "tools/adt/idea/android/native/diagnostics/heap/linux/": "native/",
+        "tools/adt/idea/android/native/diagnostics/heap/mac/": "native/",
+        "tools/adt/idea/android/native/diagnostics/heap/mac_arm/": "native/",
+        "tools/adt/idea/android/native/diagnostics/heap/win/": "native/",
     },
     visibility = ["//visibility:public"],
 )
@@ -119,10 +119,10 @@ sh_binary(
     args = [
         "$(execpath libjni_object_tagger)",
     ] + select({
-        "@platforms//os:linux": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/linux"],
-        ":macos": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac"],
-        ":macos_arm": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac_arm"],
-        "@platforms//os:windows": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/win"],
+        "@platforms//os:linux": ["tools/adt/idea/android/native/diagnostics/heap/linux"],
+        ":macos": ["tools/adt/idea/android/native/diagnostics/heap/mac"],
+        ":macos_arm": ["tools/adt/idea/android/native/diagnostics/heap/mac_arm"],
+        "@platforms//os:windows": ["tools/adt/idea/android/native/diagnostics/heap/win"],
     }),
     data = [":libjni_object_tagger"],
 )

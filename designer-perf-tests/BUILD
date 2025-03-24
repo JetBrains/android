@@ -93,7 +93,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-35",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
+        "//tools/adt/idea/android/native/diagnostics/heap:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/adt/idea/designer-perf-tests/testData",

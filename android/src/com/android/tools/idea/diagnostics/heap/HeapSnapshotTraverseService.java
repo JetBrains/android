@@ -61,7 +61,7 @@ public final class HeapSnapshotTraverseService {
   // The name of the flag that is used for enabling gathering hprof snapshots
   private static final String DUMP_HPROF_SNAPSHOT = "studio.dump.hprof.snapshot";
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
-    "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
+    "tools/adt/idea/android/native/diagnostics/heap";
 
   private static final String MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX = "Memory usage report collection failed: ";
   private static final String JNI_OBJECT_TAGGER_LIB_NAME = "jni_object_tagger";
