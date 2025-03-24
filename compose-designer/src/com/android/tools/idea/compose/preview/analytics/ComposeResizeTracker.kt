@@ -65,8 +65,7 @@ object ComposeResizeToolingUsageTracker {
     logEvent(surface) {
       eventType = EventType.RESIZE_STOPPED
       resizeMode = mode
-      stoppedDeviceWidth = deviceWidthDp
-      stoppedDeviceHeight = deviceHeightDp
+      // TODO("b/405935324"): update builder
     }
   }
 
@@ -79,8 +78,7 @@ object ComposeResizeToolingUsageTracker {
     logEvent(surface) {
       eventType = EventType.RESIZE_SAVED
       resizeMode = mode
-      savedDeviceWidth = deviceWidthDp
-      savedDeviceHeight = deviceHeightDp
+      // TODO("b/405935324"): update builder
     }
   }
 
