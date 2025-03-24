@@ -2411,6 +2411,14 @@ public final class StudioFlags {
       "Display Backup action in Running Devices",
       "Display Backup action in Running Devices",
       true);
+
+  public static final Flag<Boolean> BACKUP_ALLOW_NON_PROJECT_APPS =
+    new BooleanFlag(
+      BACKUP,
+      "allow.non.project.apps",
+      "Allow Backup/Restore on Non Project Apps",
+      "Allow invocation of Backup & Restore actions on apps that are not part of the project. Unexpected results may occur.",
+      false);
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX
