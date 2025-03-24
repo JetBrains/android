@@ -14,7 +14,6 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:android-kotlin-idea-common-jb-r8",
     "@lib//:guava",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",

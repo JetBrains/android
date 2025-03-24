@@ -33,7 +33,6 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "//android/android/lib:instantapps-api-1-8",
-    "@lib//:android-core-jb-r8",
     "@lib//:asm",
     "@lib//:gradle",
     "@lib//:guava",

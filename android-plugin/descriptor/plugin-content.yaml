@@ -243,7 +243,6 @@
 - name: lib/javacpp-macos-aarch64-1.5.9.jar
 - name: lib/javacpp-macos-x64-1.5.9.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
-- name: lib/jb-r8.jar
 - name: lib/jewel-ide-laf-bridge-243.jar
 - name: lib/jewel-markdown-ide-laf-bridge-styling-243.jar
 - name: lib/layoutlib-loader.jar
