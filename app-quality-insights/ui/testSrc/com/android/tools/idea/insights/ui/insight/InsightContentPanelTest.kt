@@ -220,7 +220,7 @@ class InsightContentPanelTest {
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
-    assertThat(errorText).isEqualTo("Request failed")
+    assertThat(errorText).isEqualTo("Failed to generate insight")
     assertThat(secondaryText).isEqualTo("Some failure")
   }
 
@@ -231,7 +231,7 @@ class InsightContentPanelTest {
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
-    assertThat(errorText).isEqualTo("Request failed")
+    assertThat(errorText).isEqualTo("Failed to generate insight")
     assertThat(secondaryText).isEqualTo("An unknown failure occurred")
   }
 
@@ -324,7 +324,7 @@ class InsightContentPanelTest {
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
-    assertThat(errorText).isEqualTo("Request failed")
+    assertThat(errorText).isEqualTo("Failed to generate insight")
     assertThat(secondaryText)
       .isEqualTo("Insights feature is temporarily unavailable, check back later.")
   }

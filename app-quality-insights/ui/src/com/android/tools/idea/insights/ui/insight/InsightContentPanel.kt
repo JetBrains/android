@@ -291,7 +291,7 @@ class InsightContentPanel(
                 }
               emptyStateText.apply {
                 clear()
-                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+                appendText("Failed to generate insight", EMPTY_STATE_TITLE_FORMAT)
                 appendLine(message, EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()
@@ -299,7 +299,7 @@ class InsightContentPanel(
             is LoadingState.Failure -> {
               emptyStateText.apply {
                 clear()
-                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+                appendText("Failed to generate insight", EMPTY_STATE_TITLE_FORMAT)
                 appendLine(aiInsight.getCauseMessageOrDefault(), EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()

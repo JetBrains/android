@@ -96,6 +96,7 @@ class EventsChangedTest {
         AppInsightsCacheImpl(),
       )
     assertThat(transition.newState.currentEvents).isEqualTo(failure)
-    assertThat(transition.action).isEqualTo(Action.NONE)
+    assertThat(transition.action)
+      .isEqualTo(Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, Event.EMPTY))
   }
 }
