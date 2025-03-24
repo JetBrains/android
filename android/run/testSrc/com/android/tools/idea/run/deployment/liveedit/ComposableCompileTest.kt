@@ -178,7 +178,6 @@ class ComposableCompileTest {
   }
 
   @Test
-  @Ignore("b/327357129")
   fun multipleEditsInOneUpdate() {
     val simpleFile = projectRule.createKtFile("ComposeSimple.kt", """
         import androidx.compose.runtime.Composable
@@ -220,16 +219,27 @@ class ComposableCompileTest {
       LiveEditCompilerInput(simpleFile, simpleState),
       LiveEditCompilerInput(nestedFile, nestedState)), cache)
 
-    Assert.assertEquals(3, output.classes.size)
+    // We *had* an issue where a flakey test outputs only 2 classes. Printing out all the class name we got here so we
+    // can see it in the test log when it flakes. If that happens, we should assign a bug to the compiler team and inform them
+    // we might have a non-deterministic compiler output.
+    Assert.assertEquals("Expecting [ComposeSimpleKt, ComposableSingletons<lambda_name>, ComposeNestedKt] " +
+                        "but got ${output.classes.map { it.name }}",3, output.classes.size)
     Assert.assertEquals(2, output.classesMap.size)
     Assert.assertEquals(1, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
     Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
     Assert.assertEquals(3, output.groupIds.size)
-    Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
-    Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1050554150))
-    Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
+
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(877730311))
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
+    } else {
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1050554150))
+      Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
+    }
     Assert.assertEquals(InvalidateMode.INVALIDATE_GROUPS, output.invalidateMode) // Compose only edits should not request for a full state reset.
   }
 
