@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.UiThread
 import com.android.repository.api.RemotePackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
@@ -47,8 +48,15 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.util.system.CpuArch
+import com.jetbrains.rd.framework.util.withContext
 import java.nio.file.Path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Logic for setting up Android virtual device */
@@ -98,9 +106,28 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     return SystemImageDescription(systemImages.iterator().next())
   }
 
+  @UiThread
   fun isAvdCreationNeeded(sdkHandler: AndroidSdkHandler): Boolean {
     val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
-    return avdManager.getAvds(true).isEmpty()
+
+    var shouldCreateAvd = true
+    try {
+      // Fetching the current AVDs is slow due to FileIO - so let's run it
+      // in a background thread and show a modal progress indicator.
+      runWithModalProgressBlocking(
+        owner = ModalTaskOwner.guess(),
+        title = "Checking for existing Android Virtual Devices",
+        cancellation = TaskCancellation.cancellable(),
+      ) {
+        withContext(Dispatchers.IO) { shouldCreateAvd = avdManager.getAvds(true).isEmpty() }
+      }
+    } catch (e: ProcessCanceledException) {
+      // Default to showing option to install AVDs when the user
+      // cancels the check
+      shouldCreateAvd = true
+    }
+
+    return shouldCreateAvd
   }
 
   @Throws(WizardException::class)
