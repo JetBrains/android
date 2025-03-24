@@ -13,68 +13,64 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom;
+package org.jetbrains.android.dom
 
-import com.android.SdkConstants;
-import com.android.tools.idea.testing.AndroidTestUtils;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.android.SdkConstants
+import com.android.tools.idea.testing.getIntentionAction
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 
-public class CreateMissingClassFixTest extends AndroidDomTestCase {
-  public CreateMissingClassFixTest() {
-    super("dom/manifest");
+class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
+  @Throws(Exception::class)
+  override fun setUp() {
+    super.setUp()
+
+    myFixture.addFileToProject(
+      "src/p1/p2/EmptyClass.java", // language=JAVA
+      "package p1.p2; public class EmptyClass {}",
+    )
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-
-    myFixture.addFileToProject("src/p1/p2/EmptyClass.java",
-                               // language=JAVA
-                               "package p1.p2; public class EmptyClass {}");
-  }
-
-  @Override
-  protected boolean providesCustomManifest() {
+  override fun providesCustomManifest(): Boolean {
     // Actually, this test doesn't provide a custom manifest, but saying we do allows us to check
     // for it missing as a side-effect of having the base-class not create one.
-    return true;
+    return true
   }
 
-  @Override
-  protected String getPathToCopy(String testFileName) {
-    return null;
+  override fun getPathToCopy(testFileName: String?): String? {
+    return null
   }
 
-  public void testMissingActivityClass() throws Exception {
-    final VirtualFile file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(file);
+  @Throws(Exception::class)
+  fun testMissingActivityClass() {
+    val file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
+    myFixture.configureFromExistingVirtualFile(file)
 
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyActivity'");
-    assertNotNull(action);
+    val action = myFixture.getIntentionAction("Create class 'MyActivity'")
+    assertNotNull(action)
 
-    action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-    final PsiClass psiClass =
-      JavaPsiFacade.getInstance(getProject()).findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(getProject()));
+    action!!.invoke(getProject(), myFixture.getEditor(), myFixture.getFile())
+    val psiClass =
+      JavaPsiFacade.getInstance(getProject())
+        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(getProject()))
 
     // Class has been created
-    assertNotNull(psiClass);
+    assertNotNull(psiClass)
   }
 
-  public void testMissingApplicationClass() throws Exception {
-    final VirtualFile file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(file);
+  @Throws(Exception::class)
+  fun testMissingApplicationClass() {
+    val file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
+    myFixture.configureFromExistingVirtualFile(file)
 
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyApplication'");
-    assertNotNull(action);
+    val action = myFixture.getIntentionAction("Create class 'MyApplication'")
+    assertNotNull(action)
 
-    action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-    final PsiClass psiClass =
-      JavaPsiFacade.getInstance(getProject()).findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(getProject()));
+    action!!.invoke(getProject(), myFixture.getEditor(), myFixture.getFile())
+    val psiClass =
+      JavaPsiFacade.getInstance(getProject())
+        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(getProject()))
 
-    assertNotNull(psiClass);
+    assertNotNull(psiClass)
   }
 }
