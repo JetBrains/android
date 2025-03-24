@@ -171,6 +171,7 @@ public class IdeSdks {
     if (envSdkPath != null) {
       File candidate = new File(envSdkPath);
       if (AndroidSdkPath.isValid(candidate)) {
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(candidate.toPath());
         return candidate;
       }
     }
