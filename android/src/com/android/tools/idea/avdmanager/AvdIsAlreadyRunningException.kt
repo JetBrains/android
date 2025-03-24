@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.avdmanager
 
-import com.android.sdklib.deviceprovisioner.DeviceActionException;
-import com.android.sdklib.internal.avd.AvdInfo;
-import java.io.File;
-import org.jetbrains.annotations.NotNull;
+import com.android.sdklib.deviceprovisioner.DeviceActionException
 
-final class AvdIsAlreadyRunningException extends DeviceActionException {
-  AvdIsAlreadyRunningException(@NotNull AvdInfo avd) {
-    super(avd.getDisplayName() + " is already running. If that is not the case, delete " + avd.getDataFolderPath() + File.separatorChar +
-          "*.lock and try again.");
-  }
-}
+internal data class AvdIsAlreadyRunningException(
+  val avdName: String,
+  val pid: Long
+) : DeviceActionException("$avdName is already running as process $pid.")

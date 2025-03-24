@@ -75,6 +75,13 @@ import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -84,13 +91,7 @@ import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.ide.PooledThreadExecutor
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -135,17 +136,6 @@ constructor(
   @Slow
   fun deleteAvd(info: AvdInfo): Boolean {
     return avdManager?.deleteAvd(info) ?: false
-  }
-
-  @Slow
-  fun isAvdRunning(avd: AvdInfo): Boolean {
-    avdManager ?: return false
-
-    return avdManager.getPid(avd).orNull()?.let { ProcessHandle.of(it).orElse(null) }?.isAlive
-      ?: run {
-        SDK_LOG.warning("Unable to determine if " + avd.name + " is online, assuming it's not")
-        false
-      }
   }
 
   @Slow
@@ -299,15 +289,15 @@ constructor(
     avd = avdManager.reloadAvd(avd) // Reload the AVD in case it was modified externally.
     val avdName = avd.displayName
 
-    // TODO: The emulator stores pid of the running process inside the .lock file
-    // (userdata-qemu.img.lock in Linux and userdata-qemu.img.lock/pid on Windows). We should detect
-    // whether those lock files are stale and if so, delete them without showing this error. Either
-    // the emulator provides a command to do that, or we learn about its internals
-    // (qemu/android/utils/filelock.c) and perform the same action here. If it is not stale, then we
-    // should show this error and if possible, bring that window to the front.
-    if (avdManager.isAvdRunning(avd)) {
-      avdManager.logRunningAvdInfo(avd)
-      throw AvdIsAlreadyRunningException(avd)
+    val pid = avdManager.getPid(avd)
+    if (pid != null) {
+      if (ProcessHandle.of(pid).getOrNull()?.isAlive == true) {
+        // TODO: Bring the running emulator's window to the front.
+        throw AvdIsAlreadyRunningException(avd.displayName, pid)
+      }
+      else {
+        avdManager.deleteLockFiles(avd)
+      }
     }
 
     val commandLine =
