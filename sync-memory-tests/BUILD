@@ -279,7 +279,7 @@ kotlin_library(
 
 # for Kotlin update
 # bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- kotlin 2.0.0-dev-6897
-# available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
+# available versions: https://packages.jetbrains.team/maven/p/kt/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
 # This one might take a while since maven_fetch.sh takes some time
 # This will generate commits at
 # tools/adt/idea
