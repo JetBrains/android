@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -29,7 +30,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -372,7 +372,9 @@ class DeviceAdapterTest {
       spikiness = spikiness,
       timeSource = testTimeSource,
       installer = fakeInstaller,
-      coroutineScope = TestScope(),
+      // we use fqns to suppress deprecation on import level
+      coroutineScope = @Suppress("DEPRECATION_ERROR") kotlinx.coroutines.test.TestCoroutineScope(
+        kotlinx.coroutines.test.TestCoroutineDispatcher()),
     )
     .apply { setCallbacks(callbacks) }
   }

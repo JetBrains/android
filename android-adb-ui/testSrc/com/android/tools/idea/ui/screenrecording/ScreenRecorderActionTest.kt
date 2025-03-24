@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -79,7 +79,8 @@ class ScreenRecorderActionTest {
   }
 
   @Test
-  fun update_deviceDoesNotSupportScreenRecording_disabled() = runTest {
+  @Suppress("DEPRECATION_ERROR")
+  fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
     val event = TestActionEvent.createTestEvent { userData[it] }
 
@@ -89,7 +90,8 @@ class ScreenRecorderActionTest {
   }
 
   @Test
-  fun update_deviceDoesSupportScreenRecording_enabled() = runTest {
+  @Suppress("DEPRECATION_ERROR")
+  fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
     val event = TestActionEvent.createTestEvent { userData[it] }
 

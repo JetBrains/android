@@ -27,7 +27,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.junit.Assert
@@ -76,7 +76,8 @@ class CoroutinesUtilsTest {
   fun androidCoroutineScopeAllowsOverridingDispatcher() {
     val disposable = Disposer.newDisposable()
     try {
-      runTest {
+      @Suppress("DEPRECATION_ERROR")
+      runBlockingTest {
         // Prepare
         val scope = AndroidCoroutineScope(disposable, coroutineContext)
 
@@ -108,7 +109,8 @@ class CoroutinesUtilsTest {
   @Test
   @Ignore("b/303086924")
   fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() {
-    runTest {
+    @Suppress("DEPRECATION_ERROR")
+    runBlockingTest {
       // Prepare
       val disposable = Disposer.newDisposable()
       val scope = AndroidCoroutineScope(disposable, coroutineContext)
@@ -129,7 +131,8 @@ class CoroutinesUtilsTest {
 
   @Test
   fun childScopeIsCancelledOnDispose() {
-    runTest {
+    @Suppress("DEPRECATION_ERROR")
+    runBlockingTest {
       // Prepare
       val disposable = Disposer.newDisposable()
       val scope = this.createChildScope(parentDisposable = disposable)
@@ -152,7 +155,8 @@ class CoroutinesUtilsTest {
   fun childScopeIsNotDisposedOnCancel() {
     val disposable = Disposer.newCheckedDisposable()
     try {
-      runTest {
+      @Suppress("DEPRECATION_ERROR")
+      runBlockingTest {
         // Prepare
         val scope = this.createChildScope(parentDisposable = disposable)
         scope.launch {
