@@ -284,6 +284,7 @@ studio_plugin(
             "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
             "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
             "//tools/vendor/google/android-keys:android-keys",
+            "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

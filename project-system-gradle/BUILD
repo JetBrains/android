@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
+        "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
         # Project System Token implementation modules
         "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle",
         "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
