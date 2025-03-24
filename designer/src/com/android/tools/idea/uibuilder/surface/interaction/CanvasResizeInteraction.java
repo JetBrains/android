@@ -111,6 +111,7 @@ public class CanvasResizeInteraction implements Interaction {
       }
     }
   };
+  private int myCurrentDpi;
   private int myCurrentX;
   private int myCurrentY;
   @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
@@ -136,7 +137,7 @@ public class CanvasResizeInteraction implements Interaction {
     myOriginalDevice = configuration.getCachedDevice();
     myOriginalDeviceState = configuration.getDeviceState();
 
-    double currentDpi = configuration.getDensity().getDpiValue();
+    myCurrentDpi = configuration.getDensity().getDpiValue();
     ConfigurationSettings configSettings = configuration.getSettings();
 
     boolean addSmallScreen = false;
@@ -158,7 +159,7 @@ public class CanvasResizeInteraction implements Interaction {
     for (Device device : devicesToShow) {
       assert device != null;
       Screen screen = device.getDefaultHardware().getScreen();
-      double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
+      double dpiRatio = 1.0 * myCurrentDpi / screen.getPixelDensity().getDpiValue();
       int px = (int)(screen.getXDimension() * dpiRatio);
       int py = (int)(screen.getYDimension() * dpiRatio);
       myDeviceSizeList.add(device, px, py);
@@ -167,11 +168,11 @@ public class CanvasResizeInteraction implements Interaction {
     myDeviceSizeList.sort();
 
     if (addSmallScreen) {
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, (int)(426 * currentDpi / DEFAULT_DENSITY),
-                                                                 (int)(320 * currentDpi / DEFAULT_DENSITY), "Small Screen"));
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, (int)(426.0 * myCurrentDpi / DEFAULT_DENSITY),
+                                                                 (int)(320.0 * myCurrentDpi / DEFAULT_DENSITY), "Small Screen"));
     }
 
-    myMaxSize = (int)(MAX_ANDROID_SIZE * currentDpi / DEFAULT_DENSITY);
+    myMaxSize = (int)(1.0 * MAX_ANDROID_SIZE * myCurrentDpi / DEFAULT_DENSITY);
   }
 
   @Override
@@ -255,6 +256,7 @@ public class CanvasResizeInteraction implements Interaction {
     int androidY = Coordinates.getAndroidY(myScreenView, y);
     int snapThreshold = Coordinates.getAndroidDimension(myScreenView, MAX_MATCH_DISTANCE);
     myLastSnappedDevice = myDeviceSizeList.snapToDevice(androidX, androidY, snapThreshold);
+    myCurrentDpi = myLastSnappedDevice == null ? myCurrentDpi : myLastSnappedDevice.getDevice().getDefaultHardware().getScreen().getPixelDensity().getDpiValue();
 
     if (myLastSnappedDevice != null) {
       myCurrentX = Coordinates.getSwingX(myScreenView, myLastSnappedDevice.getX());
@@ -292,7 +294,7 @@ public class CanvasResizeInteraction implements Interaction {
 
       int androidXDp = Coordinates.getAndroidXDip(myScreenView, event.getInfo().getX());
       int androidYDp = Coordinates.getAndroidYDip(myScreenView, event.getInfo().getY());
-      if (tracker != null) tracker.reportResizeStopped(myScreenView.getSceneManager(), androidXDp, androidYDp);
+      if (tracker != null) tracker.reportResizeStopped(myScreenView.getSceneManager(), androidXDp, androidYDp, myCurrentDpi);
     }
   }
 

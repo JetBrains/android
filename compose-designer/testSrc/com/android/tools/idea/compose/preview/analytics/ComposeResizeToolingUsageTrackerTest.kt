@@ -30,12 +30,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.RESIZE
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-@Ignore("b/405935324")
 class ComposeResizeToolingUsageTrackerTest {
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
@@ -76,6 +74,7 @@ class ComposeResizeToolingUsageTrackerTest {
       ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
       100,
       200,
+      100,
     )
 
     val event =
@@ -84,7 +83,9 @@ class ComposeResizeToolingUsageTrackerTest {
         .studioEvent
         .resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_SAVED)
-    // TODO("b/405935324"): update
+    Truth.assertThat(event.deviceHeightDp).isEqualTo(200)
+    Truth.assertThat(event.deviceWidthDp).isEqualTo(100)
+    Truth.assertThat(event.dpi).isEqualTo(100)
     Truth.assertThat(event.resizeMode)
       .isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
   }
@@ -112,6 +113,7 @@ class ComposeResizeToolingUsageTrackerTest {
       ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE,
       100,
       200,
+      444,
     )
 
     val event =
@@ -120,7 +122,9 @@ class ComposeResizeToolingUsageTrackerTest {
         .studioEvent
         .resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
-    // TODO("b/405935324"): update
+    Truth.assertThat(event.deviceHeightDp).isEqualTo(200)
+    Truth.assertThat(event.deviceWidthDp).isEqualTo(100)
+    Truth.assertThat(event.dpi).isEqualTo(444)
     Truth.assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }
 }

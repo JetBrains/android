@@ -49,7 +49,6 @@ import kotlinx.coroutines.test.runTest
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -320,7 +319,6 @@ class SavePreviewInNewSizeActionTest {
       )
   }
 
-  @Ignore("b/405935324")
   @Test
   fun `send statistics on save`() = runTest {
     ComposeResizeToolingUsageTracker.forceEnableForUnitTests = true
@@ -385,7 +383,10 @@ class SavePreviewInNewSizeActionTest {
         }!!
         .studioEvent
         .resizeComposePreviewEvent
-    // TODO("b/405935324"): update
+    assertThat(eventAnalytics.deviceWidthDp).isEqualTo(newWidth)
+    assertThat(eventAnalytics.deviceHeightDp).isEqualTo(newHeight)
+    assertThat(eventAnalytics.dpi)
+      .isEqualTo(configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue)
     assertThat(eventAnalytics.resizeMode)
       .isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }

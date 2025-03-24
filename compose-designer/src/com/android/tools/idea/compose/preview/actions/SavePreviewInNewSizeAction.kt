@@ -63,11 +63,13 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     val mode =
       if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
       else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
+    val dpi = configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue
     ComposeResizeToolingUsageTracker.logResizeSaved(
       DESIGN_SURFACE.getData(e.dataContext),
       mode,
       widthDp,
       heightDp,
+      dpi,
     )
 
     WriteCommandAction.runWriteCommandAction(

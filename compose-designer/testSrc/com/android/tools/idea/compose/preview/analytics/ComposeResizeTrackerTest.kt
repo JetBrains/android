@@ -35,12 +35,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.RESIZE
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-@Ignore("b/405935324")
 class ComposeResizeTrackerTest {
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
@@ -89,7 +87,8 @@ class ComposeResizeTrackerTest {
         .studioEvent
         .resizeComposePreviewEvent
     assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
-    // TODO("b/405935324"): update
+    assertThat(event.deviceHeightDp).isEqualTo(y)
+    assertThat(event.deviceWidthDp).isEqualTo(x)
     assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
   }
 }

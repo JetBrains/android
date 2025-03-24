@@ -52,7 +52,6 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -140,7 +139,6 @@ class RevertToOriginalSizeActionTest {
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
-  @Ignore("b/405935324")
   @Test
   fun `send statistics on revert`() = runTest {
     ComposeResizeToolingUsageTracker.forceEnableForUnitTests = true
