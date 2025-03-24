@@ -15,9 +15,7 @@
  */
 package org.jetbrains.android.dom.converters
 
-import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.getInstance
-import com.google.common.collect.Iterables
-import com.google.common.collect.Lists
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.ide.util.DirectoryChooserUtil
@@ -26,13 +24,10 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaDirectoryService
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.SmartPointerManager
@@ -47,117 +42,80 @@ import org.jetbrains.annotations.Nls
  */
 class CreateMissingClassQuickFix
 internal constructor(
-  aPackage: PsiPackage,
-  private val myClassName: String,
-  private val myModule: Module,
-  private val myBaseClassFqcn: String?,
+  destinationPackage: PsiPackage,
+  private val className: String,
+  private val module: Module,
+  private val baseClassFqName: String?,
 ) : LocalQuickFix {
-  private val myPackage: SmartPsiElementPointer<PsiPackage?>
 
-  /**
-   * @param aPackage destination package of a new class
-   * @param myClassName created class name
-   * @param myModule application module where class should be created
-   * @param myBaseClassFqcn if provided, created class would inherit this one
-   */
-  init {
-    myPackage =
-      SmartPointerManager.getInstance(aPackage.getProject())
-        .createSmartPsiElementPointer<PsiPackage?>(aPackage)
-  }
+  private val packagePointer: SmartPsiElementPointer<PsiPackage> =
+    SmartPointerManager.getInstance(destinationPackage.project)
+      .createSmartPsiElementPointer(destinationPackage)
 
-  override fun startInWriteAction(): Boolean {
-    return false
-  }
+  override fun startInWriteAction() = false
 
-  override fun getName(): @Nls String {
-    return String.format("Create class '%s'", myClassName)
-  }
+  override fun getName(): @Nls String = "Create class '$className'"
 
-  override fun getFamilyName(): @Nls String {
-    return "Create class"
-  }
+  override fun getFamilyName(): @Nls String = "Create class"
 
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-    val aPackage = myPackage.getElement()
-    if (aPackage == null) {
-      return
-    }
+    val destinationPackage = packagePointer.getElement() ?: return
+    val facet = AndroidFacet.getInstance(module) ?: return
 
-    val facet = AndroidFacet.getInstance(myModule)
-    if (facet == null) {
-      return
-    }
+    val sources = SourceProviderManager.getInstance(facet).sources
+    val sourceDirs = sources.javaDirectories + sources.kotlinDirectories
 
-    val sources = getInstance(facet).sources
-    val sourceDirs: Iterable<VirtualFile> =
-      Iterables.concat<VirtualFile?>(sources.javaDirectories, sources.kotlinDirectories)
-    val directories = aPackage.getDirectories()
-    val filteredDirectories: MutableList<PsiDirectory?> =
-      Lists.newArrayListWithExpectedSize<PsiDirectory?>(directories.size)
-    for (directory in directories) {
-      for (file in sourceDirs) {
-        if (VfsUtilCore.isAncestor(file, directory.getVirtualFile(), true)) {
-          filteredDirectories.add(directory)
-          break
+    val filteredPackageDirectories =
+      destinationPackage.directories.filter { packageDirectory ->
+        sourceDirs.any { sourceDir ->
+          VfsUtilCore.isAncestor(sourceDir, packageDirectory.virtualFile, true)
         }
       }
-    }
 
-    val directory: PsiDirectory?
-    when (filteredDirectories.size) {
-      0 -> directory = null
-      1 -> directory = filteredDirectories.get(0)
-      else -> {
-        // There are several directories, present a dialog window for a user to choose a particular
-        // destination directory
-        val array: Array<PsiDirectory?> =
-          filteredDirectories.toArray<PsiDirectory?>(PsiDirectory.EMPTY_ARRAY)
-        directory =
+    val directory =
+      when (filteredPackageDirectories.size) {
+        0 -> return
+        1 -> filteredPackageDirectories.single()
+        else -> {
+          // There are several directories, present a dialog window for a user to choose a
+          // particular destination directory
           DirectoryChooserUtil.selectDirectory(
-            aPackage.getProject(),
-            array,
-            filteredDirectories.get(0),
+            destinationPackage.project,
+            filteredPackageDirectories.toTypedArray(),
+            filteredPackageDirectories[0],
             "",
-          )
+          ) ?: return
+        }
       }
-    }
 
-    if (directory == null) {
-      return
-    }
+    val createdClass =
+      WriteCommandAction.runWriteCommandAction(
+        project,
+        Computable {
+          // Create a new class
+          val psiClass = JavaDirectoryService.getInstance().createClass(directory, className)
 
-    val aClass =
-      WriteCommandAction.writeCommandAction(project)
-        .compute<PsiClass, RuntimeException?>(
-          ThrowableComputable {
-            // Create a new class
-            val psiClass = JavaDirectoryService.getInstance().createClass(directory, myClassName)
-
-            val facade = JavaPsiFacade.getInstance(project)
-
-            // Add a base class to "extends" list
-            val list = psiClass.getExtendsList()
-            if (list != null && myBaseClassFqcn != null) {
+          // Add a base class to "extends" list
+          if (baseClassFqName != null) {
+            psiClass.extendsList?.let { extendsList ->
+              val facade = JavaPsiFacade.getInstance(project)
               val parentClass =
-                facade.findClass(myBaseClassFqcn, GlobalSearchScope.allScope(project))
+                facade.findClass(baseClassFqName, GlobalSearchScope.allScope(project))
               if (parentClass != null) {
-                list.add(facade.getElementFactory().createClassReferenceElement(parentClass))
+                extendsList.add(facade.elementFactory.createClassReferenceElement(parentClass))
               }
             }
-
-            // Add a "public" modifier, which is absent by default. Required because classes
-            // references in AndroidManifest
-            // have to point to public classes.
-            val modifierList = psiClass.getModifierList()
-            if (modifierList != null) {
-              modifierList.setModifierProperty(PsiModifier.PUBLIC, true)
-            }
-            psiClass
           }
-        )
 
-    val fileDescriptor = OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile())
+          // Add a "public" modifier, which is absent by default. Required because class references
+          // in AndroidManifest have to point to public classes.
+          psiClass.modifierList?.setModifierProperty(PsiModifier.PUBLIC, true)
+
+          psiClass
+        },
+      )
+
+    val fileDescriptor = OpenFileDescriptor(project, createdClass.containingFile.virtualFile)
     FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
   }
 }
