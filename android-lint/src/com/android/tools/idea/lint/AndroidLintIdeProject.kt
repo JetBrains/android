@@ -16,7 +16,9 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Module as ExternalModule
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId.Companion.androidxIdOf
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.AndroidxNameUtils
@@ -29,8 +31,11 @@ import com.android.tools.idea.lint.common.LintIdeProject
 import com.android.tools.idea.lint.model.LintModelFactory
 import com.android.tools.idea.lint.model.LintModelFactory.Companion.getModuleType
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
@@ -542,31 +547,39 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       return resourceFolders
     }
 
-    override fun dependsOn(artifact: String): Boolean? {
-      var queryCoordinate = GradleCoordinate.parseCoordinateString("$artifact:+")
-      if (queryCoordinate != null) {
-        var foundDependency = facet.module.getModuleSystem().getResolvedDependency(queryCoordinate)
-        if (foundDependency != null) {
-          return java.lang.Boolean.TRUE
-        }
+    private fun dependsOn(id: GoogleMavenArtifactId, moduleSystem: AndroidModuleSystem): Boolean? {
+      if (moduleSystem.getResolvedDependency(id) != null) return true
+      androidxIdOf(id)
+        .takeIf { it != id }
+        ?.let { if (moduleSystem.getResolvedDependency(it) != null) return true }
+      return null
+    }
 
-        // Check new AndroidX namespace too
-        if (artifact.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID)) {
-          val newArtifact = AndroidxNameUtils.getCoordinateMapping(artifact)
-          if (newArtifact != artifact) {
-            queryCoordinate = GradleCoordinate.parseCoordinateString("$newArtifact:+")
-            if (queryCoordinate != null) {
-              foundDependency =
-                facet.module.getModuleSystem().getResolvedDependency(queryCoordinate)
-              if (foundDependency != null) {
-                return java.lang.Boolean.TRUE
-              }
-            }
-          }
+    private fun dependsOnForGradleProject(
+      artifact: String,
+      moduleSystem: GradleModuleSystem,
+    ): Boolean? {
+      ExternalModule.tryParse(artifact)?.let {
+        if (moduleSystem.getResolvedDependency(it, DependencyScopeType.MAIN) != null) return true
+      } ?: return null
+      if (artifact.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID)) {
+        val newArtifact = AndroidxNameUtils.getCoordinateMapping(artifact)
+        if (newArtifact == artifact) return null
+        ExternalModule.tryParse(newArtifact)?.let {
+          if (moduleSystem.getResolvedDependency(it, DependencyScopeType.MAIN) != null) return true
         }
       }
+      return null
+    }
 
-      return super.dependsOn(artifact)
+    override fun dependsOn(artifact: String): Boolean? {
+      val id = GoogleMavenArtifactId.find(artifact)
+      val moduleSystem = facet.module.getModuleSystem()
+      return when {
+        id != null -> dependsOn(id, moduleSystem)
+        moduleSystem is GradleModuleSystem -> dependsOnForGradleProject(artifact, moduleSystem)
+        else -> null
+      } ?: super.dependsOn(artifact)
     }
   }
 
