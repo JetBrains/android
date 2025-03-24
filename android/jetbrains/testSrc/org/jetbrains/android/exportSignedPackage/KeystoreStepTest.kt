@@ -27,6 +27,7 @@ import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.TestPasswordSafeImpl
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
@@ -106,7 +107,12 @@ class KeystoreStepTest : LightPlatformTestCase() {
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
     unsortedModulesOrder.forEach { name ->
-      facets.add(FakeAndroidFacet(name, module))
+      val nModule = object : ModuleBridge by module {
+        override fun getName(): String = name
+        override fun dispose() {}
+      }
+      Disposer.register(testRootDisposable, nModule)
+      facets.add(FakeAndroidFacet(nModule))
     }
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
@@ -437,14 +443,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
   }
 
   private class FakeAndroidFacet(
-    moduleName: String,
     module: Module,
-  ) : AndroidFacet(
-    object : ModuleBridge by module {
-      override fun getName(): String = moduleName
-    },
-    NAME,
-    AndroidFacetConfiguration())
+  ) : AndroidFacet(module, NAME, AndroidFacetConfiguration())
 
   private fun setupWizardHelper(): ExportSignedPackageWizard {
     val testKeyStorePath = "/test/path/to/keystore"
