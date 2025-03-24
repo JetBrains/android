@@ -623,7 +623,11 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
         return collectFixesFromMavenClassRegistry(value, myModule.getProject());
       }
       final String baseClassFqcn = myExtendsClasses.length == 0 ? null : myExtendsClasses[0];
-      return new LocalQuickFix[]{new CreateMissingClassQuickFix(aPackage, value.substring(dot + 1), myModule, baseClassFqcn)};
+      final String className = value.substring(dot + 1);
+      return new LocalQuickFix[] {
+        new CreateMissingKotlinClassQuickFix(aPackage, className, myModule, baseClassFqcn),
+        new CreateMissingJavaClassQuickFix(aPackage, className, myModule, baseClassFqcn)
+      };
     }
 
     @NotNull

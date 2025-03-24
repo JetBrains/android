@@ -26,8 +26,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaDirectoryService
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.SmartPointerManager
@@ -35,17 +37,90 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Nls
+import org.jetbrains.kotlin.psi.KtPsiFactory
+
+class CreateMissingJavaClassQuickFix(
+  destinationPackage: PsiPackage,
+  className: String,
+  module: Module,
+  baseClassFqName: String?,
+) : CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
+
+  override fun getName(): @Nls String = "Create Java class '$className'"
+
+  override fun getFamilyName(): @Nls String = "Create Java class"
+
+  override fun createClass(directory: PsiDirectory, project: Project): VirtualFile {
+    val psiClass = JavaDirectoryService.getInstance().createClass(directory, className)
+
+    // Add a base class to "extends" list
+    if (baseClassFqName != null) {
+      psiClass.extendsList?.let { extendsList ->
+        val facade = JavaPsiFacade.getInstance(project)
+        val parentClass = facade.findClass(baseClassFqName, GlobalSearchScope.allScope(project))
+        if (parentClass != null) {
+          extendsList.add(facade.elementFactory.createClassReferenceElement(parentClass))
+        }
+      }
+    }
+
+    // Add a "public" modifier, which is absent by default. Required because class references
+    // in AndroidManifest have to point to public classes.
+    psiClass.modifierList?.setModifierProperty(PsiModifier.PUBLIC, true)
+
+    return psiClass.containingFile.virtualFile
+  }
+}
+
+class CreateMissingKotlinClassQuickFix(
+  destinationPackage: PsiPackage,
+  className: String,
+  module: Module,
+  baseClassFqName: String?,
+) : CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
+
+  private val packageQualifiedName = destinationPackage.qualifiedName
+
+  override fun getName(): @Nls String = "Create Kotlin class '$className'"
+
+  override fun getFamilyName(): @Nls String = "Create Kotlin class"
+
+  override fun createClass(directory: PsiDirectory, project: Project): VirtualFile {
+    val fileName = "$className.kt"
+    val fileText = buildString {
+      appendLine("package $packageQualifiedName")
+      appendLine()
+
+      if (baseClassFqName != null) {
+        val baseClassShortName = baseClassFqName.substringAfterLast('.')
+
+        appendLine("import $baseClassFqName")
+        appendLine()
+        append("class $className : $baseClassShortName()")
+      } else {
+        append("class $className")
+      }
+
+      appendLine(" {\n\n}")
+    }
+
+    val file = KtPsiFactory(project).createPhysicalFile(fileName, fileText)
+    directory.add(file)
+
+    return file.viewProvider.virtualFile
+  }
+}
 
 /**
  * A quick fix that creates non-existing class, used, e.g., for invalid android:name references in
  * AndroidManifest.xml file
  */
-class CreateMissingClassQuickFix
-internal constructor(
+sealed class CreateMissingClassQuickFix
+protected constructor(
   destinationPackage: PsiPackage,
-  private val className: String,
+  protected val className: String,
   private val module: Module,
-  private val baseClassFqName: String?,
+  protected val baseClassFqName: String?,
 ) : LocalQuickFix {
 
   private val packagePointer: SmartPsiElementPointer<PsiPackage> =
@@ -54,16 +129,12 @@ internal constructor(
 
   override fun startInWriteAction() = false
 
-  override fun getName(): @Nls String = "Create class '$className'"
-
-  override fun getFamilyName(): @Nls String = "Create class"
-
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
     val destinationPackage = packagePointer.getElement() ?: return
     val facet = AndroidFacet.getInstance(module) ?: return
 
     val sources = SourceProviderManager.getInstance(facet).sources
-    val sourceDirs = sources.javaDirectories + sources.kotlinDirectories
+    val sourceDirs = (sources.javaDirectories + sources.kotlinDirectories).distinct()
 
     val filteredPackageDirectories =
       destinationPackage.directories.filter { packageDirectory ->
@@ -88,34 +159,15 @@ internal constructor(
         }
       }
 
-    val createdClass =
+    val createdFile =
       WriteCommandAction.runWriteCommandAction(
         project,
-        Computable {
-          // Create a new class
-          val psiClass = JavaDirectoryService.getInstance().createClass(directory, className)
-
-          // Add a base class to "extends" list
-          if (baseClassFqName != null) {
-            psiClass.extendsList?.let { extendsList ->
-              val facade = JavaPsiFacade.getInstance(project)
-              val parentClass =
-                facade.findClass(baseClassFqName, GlobalSearchScope.allScope(project))
-              if (parentClass != null) {
-                extendsList.add(facade.elementFactory.createClassReferenceElement(parentClass))
-              }
-            }
-          }
-
-          // Add a "public" modifier, which is absent by default. Required because class references
-          // in AndroidManifest have to point to public classes.
-          psiClass.modifierList?.setModifierProperty(PsiModifier.PUBLIC, true)
-
-          psiClass
-        },
+        Computable { createClass(directory, project) },
       )
 
-    val fileDescriptor = OpenFileDescriptor(project, createdClass.containingFile.virtualFile)
+    val fileDescriptor = OpenFileDescriptor(project, createdFile)
     FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
   }
+
+  protected abstract fun createClass(directory: PsiDirectory, project: Project): VirtualFile
 }

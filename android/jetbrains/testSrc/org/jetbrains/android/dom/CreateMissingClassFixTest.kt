@@ -17,8 +17,11 @@ package org.jetbrains.android.dom
 
 import com.android.SdkConstants
 import com.android.tools.idea.testing.getIntentionAction
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
   override fun setUp() {
@@ -39,11 +42,11 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
 
   override fun getPathToCopy(testFileName: String?): String? = null
 
-  fun testMissingActivityClass() {
+  fun testMissingActivityJavaClass() {
     val file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(file)
 
-    val action = myFixture.getIntentionAction("Create class 'MyActivity'")
+    val action = myFixture.getIntentionAction("Create Java class 'MyActivity'")
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
@@ -53,13 +56,15 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
 
     // Class has been created
     kotlin.test.assertNotNull(psiClass)
+    assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Activity")
+    assertThat(psiClass.containingFile.fileType).isEqualTo(JavaFileType.INSTANCE)
   }
 
-  fun testMissingApplicationClass() {
+  fun testMissingApplicationJavaClass() {
     val file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(file)
 
-    val action = myFixture.getIntentionAction("Create class 'MyApplication'")
+    val action = myFixture.getIntentionAction("Create Java class 'MyApplication'")
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
@@ -68,5 +73,42 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
         .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
 
     kotlin.test.assertNotNull(psiClass)
+    assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Application")
+    assertThat(psiClass.containingFile.fileType).isEqualTo(JavaFileType.INSTANCE)
+  }
+
+  fun testMissingActivityKotlinClass() {
+    val file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
+    myFixture.configureFromExistingVirtualFile(file)
+
+    val action = myFixture.getIntentionAction("Create Kotlin class 'MyActivity'")
+    kotlin.test.assertNotNull(action)
+
+    action.invoke(project, myFixture.editor, myFixture.file)
+    val psiClass =
+      JavaPsiFacade.getInstance(project)
+        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
+
+    // Class has been created
+    kotlin.test.assertNotNull(psiClass)
+    assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Activity")
+    assertThat(psiClass.containingFile.fileType).isEqualTo(KotlinFileType.INSTANCE)
+  }
+
+  fun testMissingApplicationKotlinClass() {
+    val file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
+    myFixture.configureFromExistingVirtualFile(file)
+
+    val action = myFixture.getIntentionAction("Create Kotlin class 'MyApplication'")
+    kotlin.test.assertNotNull(action)
+
+    action.invoke(project, myFixture.editor, myFixture.file)
+    val psiClass =
+      JavaPsiFacade.getInstance(project)
+        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
+
+    kotlin.test.assertNotNull(psiClass)
+    assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Application")
+    assertThat(psiClass.containingFile.fileType).isEqualTo(KotlinFileType.INSTANCE)
   }
 }
