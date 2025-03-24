@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteIntentReadAction
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Computable
@@ -103,14 +104,16 @@ class ComplicationTypeUtilsTest {
   @Test
   fun testGetComplicationTypesFromManifestWhileHoldingReadLockReturnsNullIfNotReady() {
     val module = projectRule.project.findAppModule()
-    addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
     val readLockIsReady = CountDownLatch(1)
     val testIsComplete = CountDownLatch(1)
 
     try {
-      // Ensure the read lock is blocked to the manifest merger does not have the chance to run
+      // Ensure the read lock is blocked before and while setting up the manifest so the manifest merger does not have the chance to run
       runInEdt {
         WriteIntentReadAction.run {
+          WriteAction.run<Throwable> {
+            addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
+          }
           readLockIsReady.countDown()
           testIsComplete.await()
         }
