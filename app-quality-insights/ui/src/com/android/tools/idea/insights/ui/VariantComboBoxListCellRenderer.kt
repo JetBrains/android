@@ -116,7 +116,6 @@ object HeaderRow : Row {
           },
           BorderLayout.EAST,
         )
-        isOpaque = false
       }
 
   override fun getRendererComponent() = component
