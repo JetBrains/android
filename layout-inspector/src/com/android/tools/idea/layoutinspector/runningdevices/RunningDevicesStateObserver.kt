@@ -212,6 +212,9 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
 private val Content.deviceId: DeviceId?
   get() {
+    if (component !is UiDataProvider) {
+      return null
+    }
     val dataContext =
       DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
     return DEVICE_ID_KEY.getData(dataContext)
