@@ -111,7 +111,7 @@ internal fun defaultCreateInformationPopup(
           override fun actionPerformed(e: AnActionEvent) {
             ActionUtil.invokeAction(
               ActionManager.getInstance().getAction("AgpUpgrade"),
-              dataContext,
+              e.dataContext,
               RUNNING_DEVICES_TOOL_WINDOW_ID,
               null,
               null)
