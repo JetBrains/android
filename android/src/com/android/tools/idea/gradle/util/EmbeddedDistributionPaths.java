@@ -28,6 +28,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.system.CpuArch;
@@ -41,7 +42,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EmbeddedDistributionPaths {
+@Service
+public final class EmbeddedDistributionPaths {
   @NotNull
   public static EmbeddedDistributionPaths getInstance() {
     return ApplicationManager.getApplication().getService(EmbeddedDistributionPaths.class);
