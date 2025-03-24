@@ -36,6 +36,7 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.CursorFollowingTooltipLabel
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
@@ -183,7 +184,7 @@ class VitalsIssueDetailsPanel(
 
   // Event id, console link
   private val eventIdLabel =
-    JLabel(StudioIcons.AppQualityInsights.ISSUE).apply { toolTipText = "Event ID" }
+    CursorFollowingTooltipLabel(parentDisposable, StudioIcons.AppQualityInsights.ISSUE, "Event ID")
   private val vitalsConsoleLink: HyperlinkLabel =
     HyperlinkLabel("View on Android Vitals").apply {
       isFocusable = true
@@ -194,13 +195,24 @@ class VitalsIssueDetailsPanel(
 
   // Device, SDK level, Timestamp, VCS Commit
   private val deviceLabel =
-    JLabel(StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN).apply { toolTipText = "Affected Device" }
+    CursorFollowingTooltipLabel(
+      parentDisposable,
+      StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN,
+      "Affected Device",
+    )
   private val affectedApiLevelsLabel =
-    JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API).apply {
-      toolTipText = "Affected API Level"
-    }
+    CursorFollowingTooltipLabel(
+      parentDisposable,
+      StudioIcons.LayoutEditor.Toolbar.ANDROID_API,
+      "Affected API Level",
+    )
+
   private val timestampLabel =
-    JLabel(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK).apply { toolTipText = "Event Timestamp" }
+    CursorFollowingTooltipLabel(
+      parentDisposable,
+      StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK,
+      "Event Timestamp",
+    )
   private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
