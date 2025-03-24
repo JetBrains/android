@@ -69,6 +69,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myBenchmarkTab: TabInfo
   @VisibleForTesting val myBenchmarkView: ConsoleViewImpl
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
+  @VisibleForTesting val myDeviceInfoTab: TabInfo
   val myScreenshotResultView: ScreenshotResultView
   val myScreenshotTab: TabInfo
   @VisibleForTesting var myScreenshotAttributesTab: TabInfo
@@ -138,10 +139,10 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     logger.addImpressionWhenDisplayed(
       myDeviceInfoTableView.getComponent(),
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
-    val deviceInfoTab = TabInfo(myDeviceInfoTableView.getComponent())
-    deviceInfoTab.setText("Device Info")
-    deviceInfoTab.setTooltipText("Show device information")
-    tabs.addTab(deviceInfoTab)
+    myDeviceInfoTab = TabInfo(myDeviceInfoTableView.getComponent())
+    myDeviceInfoTab.setText("Device Info")
+    myDeviceInfoTab.setTooltipText("Show device information")
+    tabs.addTab(myDeviceInfoTab)
 
     rootPanel = JPanel(BorderLayout()).apply {
       add(JPanel().apply {
@@ -207,6 +208,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     if (newImage != null || refImage != null || diffImage != null) {
       myScreenshotTab.isHidden = false
       myScreenshotAttributesTab.isHidden = false
+      myDeviceInfoTab.isHidden = true
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
       myScreenshotResultView.diffImagePath = diffImage ?: ""

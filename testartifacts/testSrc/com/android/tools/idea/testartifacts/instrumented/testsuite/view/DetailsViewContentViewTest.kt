@@ -222,6 +222,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isTrue()
     assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
+    assertThat(view.myDeviceInfoTab.isHidden).isFalse()
   }
 
   @Test
@@ -231,6 +232,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
+    assertThat(view.myDeviceInfoTab.isHidden).isTrue()
   }
 
   private fun device(id: String, name: String): AndroidDevice {
