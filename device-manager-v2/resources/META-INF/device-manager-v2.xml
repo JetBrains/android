@@ -20,7 +20,6 @@
     <android.toolWindow id="Device Manager 2"
                 anchor="right"
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
     <notificationGroup id="Device Manager Messages"
                        displayType="BALLOON"
