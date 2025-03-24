@@ -21,12 +21,12 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 
 class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
 
     myFixture.addFileToProject(
-      "src/p1/p2/EmptyClass.java", // language=JAVA
+      "src/p1/p2/EmptyClass.java",
+      // language=JAVA
       "package p1.p2; public class EmptyClass {}",
     )
   }
@@ -37,40 +37,36 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
     return true
   }
 
-  override fun getPathToCopy(testFileName: String?): String? {
-    return null
-  }
+  override fun getPathToCopy(testFileName: String?): String? = null
 
-  @Throws(Exception::class)
   fun testMissingActivityClass() {
     val file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(file)
 
     val action = myFixture.getIntentionAction("Create class 'MyActivity'")
-    assertNotNull(action)
+    kotlin.test.assertNotNull(action)
 
-    action!!.invoke(getProject(), myFixture.getEditor(), myFixture.getFile())
+    action.invoke(project, myFixture.editor, myFixture.file)
     val psiClass =
-      JavaPsiFacade.getInstance(getProject())
-        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(getProject()))
+      JavaPsiFacade.getInstance(project)
+        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
 
     // Class has been created
-    assertNotNull(psiClass)
+    kotlin.test.assertNotNull(psiClass)
   }
 
-  @Throws(Exception::class)
   fun testMissingApplicationClass() {
     val file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(file)
 
     val action = myFixture.getIntentionAction("Create class 'MyApplication'")
-    assertNotNull(action)
+    kotlin.test.assertNotNull(action)
 
-    action!!.invoke(getProject(), myFixture.getEditor(), myFixture.getFile())
+    action.invoke(project, myFixture.editor, myFixture.file)
     val psiClass =
-      JavaPsiFacade.getInstance(getProject())
-        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(getProject()))
+      JavaPsiFacade.getInstance(project)
+        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
 
-    assertNotNull(psiClass)
+    kotlin.test.assertNotNull(psiClass)
   }
 }
