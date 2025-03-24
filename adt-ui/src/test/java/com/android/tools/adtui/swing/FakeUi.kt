@@ -21,9 +21,11 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.android.tools.idea.concurrency.executeAsync
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -33,6 +35,7 @@ import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
@@ -329,8 +332,14 @@ class FakeUi @JvmOverloads constructor(
       when (val c = componentQueue.removeFirst()) {
         is ActionToolbar -> futures.add(c.updateActionsAsync())
         is ActionButton -> {
+          if (c.action.getActionUpdateThread() == ActionUpdateThread.EDT) {
+            c.update()
+          }
+          else {
+            // Execute update on a background thread to avoid ActionButton.update logging an error.
+            futures.add(getAppExecutorService().executeAsync { c.update() })
+          }
           c.updateUI()
-          c.updateIcon()
         }
         is Container -> {
           for (child in c.components) {

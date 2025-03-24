@@ -37,6 +37,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.Companion.defaultControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
@@ -111,6 +112,7 @@ import javax.sound.sampled.LineListener
 import javax.sound.sampled.SourceDataLine
 import javax.swing.JViewport
 import kotlin.math.PI
+import kotlin.math.max
 import kotlin.math.sin
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -166,7 +168,8 @@ class DeviceToolWindowPanelTest {
 
     // Check appearance.
     waitForFrame(5.seconds)
-    assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
+    assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06,
+                     maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
 
@@ -681,11 +684,12 @@ class DeviceToolWindowPanelTest {
     waitForFrame()
 
     DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
-    assertThat(agent.getNextControlMessage(1.seconds)).isEqualTo(StartAudioStreamMessage())
+    val filter = defaultControlMessageFilter.or(SetMaxVideoResolutionMessage.TYPE)
+    assertThat(agent.getNextControlMessage(1.seconds, filter)).isEqualTo(StartAudioStreamMessage())
     waitForCondition(1.seconds) { agent.audioStreamActive }
 
     DeviceMirroringSettings.getInstance().redirectAudio = false
-    assertThat(agent.getNextControlMessage(1.seconds)).isEqualTo(StopAudioStreamMessage())
+    assertThat(agent.getNextControlMessage(1.seconds, filter)).isEqualTo(StopAudioStreamMessage())
     waitForCondition(1.seconds) { !agent.audioStreamActive }
   }
 
@@ -751,13 +755,16 @@ class DeviceToolWindowPanelTest {
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
     fakeUi.updateToolbarsIfNecessary()
-    val image = fakeUi.render()
     val maxPercentDifferent = when {
       SystemInfo.isMac -> maxPercentDifferentMac
       SystemInfo.isWindows -> maxPercentDifferentWindows
       else -> maxPercentDifferentLinux
     }
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
+    // First rendering may be low quality.
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.6),
+                                     ignoreMissingGoldenFile = true)
+    // Second rendering is guaranteed to be high quality.
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), maxPercentDifferent)
   }
 
   private fun getGoldenFile(name: String): Path {

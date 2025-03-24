@@ -1141,8 +1141,11 @@ internal class DeviceViewTest {
   }
 
   private fun assertAppearance(goldenImageName: String) {
-    val image = fakeUi.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
+    // First rendering may be low quality.
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), 0.5,
+                                     ignoreMissingGoldenFile = true)
+    // Second rendering is guaranteed to be high quality.
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render())
   }
 
   private fun getGoldenFile(name: String): Path =
