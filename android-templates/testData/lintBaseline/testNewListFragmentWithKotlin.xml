@@ -2,4 +2,59 @@
 <!-- This file should not be edited manually! See go/template-diff-tests -->
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
+    <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {@kotlin.internal.IntrinsicConstEvaluation&#xA;open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
+        errorLine1="        return PlaceholderItem(position.toString(), &quot;Item &quot; + position, makeDetails(position))"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            line="39"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {open fun append(obj: kotlin.Any?): java.lang.StringBuilder, open fun append(i: kotlin.Int): java.lang.StringBuilder}, extensions {@kotlin.Deprecated(message = &quot;Use append(value: Any?) instead&quot;, replaceWith = kotlin/ReplaceWith(expression = &quot;append(value = obj)&quot;, , imports = [], ), level = kotlin.DeprecationLevel.WARNING)&#xA;@kotlin.internal.InlineOnly&#xA;inline fun kotlin.text.StringBuilder.append(obj: kotlin.Any?): kotlin.text.StringBuilder, fun kotlin.text.StringBuilder.append(vararg value: kotlin.Any?): kotlin.text.StringBuilder}"
+        errorLine1="        builder.append(&quot;Details about Item: &quot;).append(position)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            line="44"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {open fun append(obj: kotlin.Any?): java.lang.StringBuilder, open fun append(str: kotlin.String?): java.lang.StringBuilder, open fun append(s: kotlin.CharSequence?): java.lang.StringBuilder}, extensions {fun &lt;T : kotlin.text.Appendable> T.append(vararg value: kotlin.CharSequence?): T, @kotlin.Deprecated(message = &quot;Use append(value: Any?) instead&quot;, replaceWith = kotlin/ReplaceWith(expression = &quot;append(value = obj)&quot;, , imports = [], ), level = kotlin.DeprecationLevel.WARNING)&#xA;@kotlin.internal.InlineOnly&#xA;inline fun kotlin.text.StringBuilder.append(obj: kotlin.Any?): kotlin.text.StringBuilder, fun kotlin.text.StringBuilder.append(vararg value: kotlin.Any?): kotlin.text.StringBuilder, fun kotlin.text.StringBuilder.append(vararg value: kotlin.String?): kotlin.text.StringBuilder}"
+        errorLine1="        builder.append(&quot;Details about Item: &quot;).append(position)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            line="44"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {open fun append(obj: kotlin.Any?): java.lang.StringBuilder, open fun append(str: kotlin.String?): java.lang.StringBuilder, open fun append(s: kotlin.CharSequence?): java.lang.StringBuilder}, extensions {fun &lt;T : kotlin.text.Appendable> T.append(vararg value: kotlin.CharSequence?): T, @kotlin.Deprecated(message = &quot;Use append(value: Any?) instead&quot;, replaceWith = kotlin/ReplaceWith(expression = &quot;append(value = obj)&quot;, , imports = [], ), level = kotlin.DeprecationLevel.WARNING)&#xA;@kotlin.internal.InlineOnly&#xA;inline fun kotlin.text.StringBuilder.append(obj: kotlin.Any?): kotlin.text.StringBuilder, fun kotlin.text.StringBuilder.append(vararg value: kotlin.Any?): kotlin.text.StringBuilder, fun kotlin.text.StringBuilder.append(vararg value: kotlin.String?): kotlin.text.StringBuilder}"
+        errorLine1="            builder.append(&quot;\nMore details information here.&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
+        errorLine1="        return builder.toString()"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            line="48"
+            column="16"/>
+    </issue>
+
 </issues>

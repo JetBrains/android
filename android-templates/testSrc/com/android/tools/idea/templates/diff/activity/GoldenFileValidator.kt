@@ -153,11 +153,6 @@ class GoldenFileValidator(
         setOf(
           "'fun startDrag(p0: ClipData!, p1: View.DragShadowBuilder!, p2: Any!, p3: Int): Boolean' is deprecated. Deprecated in Java."
         ),
-      // TODO: b/390509550
-      "testAutomotiveMediaService" to
-        setOf(
-          "Java compiler has deprecated support for compiling with source/target compatibility version 8."
-        ),
       // TODO: b/390509164
       "testNewFullscreenActivityWithKotlin" to
         setOf(

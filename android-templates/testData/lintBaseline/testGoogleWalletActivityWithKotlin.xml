@@ -14,6 +14,17 @@
     </issue>
 
     <issue
+        id="MemberExtensionConflict"
+        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
+        errorLine1="            passId = UUID.randomUUID().toString()"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/WalletActivity.kt"
+            line="107"
+            column="22"/>
+    </issue>
+
+    <issue
         id="VectorRaster"
         message="Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more"
         errorLine1="    android:width=&quot;227dp&quot;"
