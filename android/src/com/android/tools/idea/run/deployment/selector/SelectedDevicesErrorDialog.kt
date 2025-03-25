@@ -84,7 +84,7 @@ internal constructor(
           icon(IconUtil.scale(icon, null, 2.5f))
           panel {
             devices.forEach {
-              row { text("${it.launchCompatibility.reason} on device ${it.name}", 50) }
+              row { label("<html>${it.launchCompatibility.reason} on device ${it.name}</html>") }
             }
           }
         }

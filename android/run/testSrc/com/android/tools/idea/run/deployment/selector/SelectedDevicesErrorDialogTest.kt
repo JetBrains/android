@@ -27,7 +27,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RunsInEdt
 import javax.swing.JButton
 import javax.swing.JCheckBox
-import javax.swing.JEditorPane
+import javax.swing.JLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,8 +56,8 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Error")
       val message =
-        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
-          it.text.contains("error message")
+        treeWalker.descendants().filterIsInstance<JLabel>().find {
+          it.text?.contains("error message") ?: false
         }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
@@ -84,8 +84,8 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Warning")
       val message =
-        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
-          it.text.contains("warning message on device Pixel 3 API 29")
+        treeWalker.descendants().filterIsInstance<JLabel>().find {
+          it.text?.contains("warning message on device Pixel 3 API 29") ?: false
         }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
@@ -119,13 +119,13 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Error")
       val warning =
-        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
-          it.text.contains("warning message on device Pixel 3 API 29")
+        treeWalker.descendants().filterIsInstance<JLabel>().find {
+          it.text?.contains("warning message on device Pixel 3 API 29") ?: false
         }
       assertThat(warning).isNotNull()
       val error =
-        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
-          it.text.contains("error message on device Pixel 3 API 30")
+        treeWalker.descendants().filterIsInstance<JLabel>().find {
+          it.text?.contains("error message on device Pixel 3 API 30") ?: false
         }
       assertThat(error).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
