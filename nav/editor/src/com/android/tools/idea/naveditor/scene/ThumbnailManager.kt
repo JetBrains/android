@@ -37,14 +37,14 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.lang.ref.SoftReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetScopedService
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 
@@ -65,12 +65,12 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
   AndroidFacetScopedService(facet) {
 
   private val myImages =
-    HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
+    HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>>()
   private val myScaledImages =
     HashBasedTable.create<
       VirtualFile,
       Configuration,
-      HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?,
+      HashBasedTable<Dimension, ScaleContext, SoftReference<Image>>,
     >()
   private val myRenderVersions =
     HashBasedTable.create<VirtualFile, Configuration, ResourceNotificationManager.ResourceVersion>()
@@ -122,7 +122,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
     val file = xmlFile.virtualFile
     val cachedByDimension =
       myScaledImages[file, configuration]
-        ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>().also {
+        ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>().also {
           myScaledImages.put(file, configuration, it)
         }
     val cached = cachedByDimension[dimensions, scaleContext]?.get()
@@ -174,9 +174,9 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
           val scaledFuture =
             scaleImage(full, dimensions, scaleContext)
               .thenApply { scaled ->
-                val dimensionMap: HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?> =
+                val dimensionMap: HashBasedTable<Dimension, ScaleContext, SoftReference<Image>> =
                   myScaledImages[xmlFile.virtualFile, configuration]
-                    ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>()
+                    ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>()
                       .also { myScaledImages.put(xmlFile.virtualFile, configuration, it) }
                 dimensionMap.put(dimensions, scaleContext, SoftReference(scaled))
                 scaled

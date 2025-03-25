@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture
 
 internal class ListenableFutureToCompletionStageAdapter<T>(val wrapped: ListenableFuture<T>) : CompletableFuture<T>(), FutureCallback<T> {
   init {
-    Futures.addCallback(wrapped, this, MoreExecutors.directExecutor());
+    Futures.addCallback(wrapped, this, MoreExecutors.directExecutor())
   }
 
   override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
@@ -34,7 +34,7 @@ internal class ListenableFutureToCompletionStageAdapter<T>(val wrapped: Listenab
     return result1 && result2
   }
 
-  override fun onSuccess(result: T?) {
+  override fun onSuccess(result: T) {
     complete(result)
   }
 

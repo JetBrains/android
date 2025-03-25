@@ -46,7 +46,7 @@ import java.util.concurrent.Future
  * @param parent: Disposable parent
  */
 class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val parent: Disposable,
-                                                                 private val uiCallback: FutureCallback<DeviceNameProperties>,
+                                                                 private val uiCallback: FutureCallback<DeviceNameProperties?>,
                                                                  private val isDisposed: (Disposable) -> Boolean) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
@@ -65,10 +65,10 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
 
   internal constructor(parent: Disposable) : this(parent, DefaultCallback())
 
-  constructor(parent: Disposable, uiCallback: FutureCallback<DeviceNameProperties>) : this(parent, uiCallback, Disposer::isDisposed)
+  constructor(parent: Disposable, uiCallback: FutureCallback<DeviceNameProperties?>) : this(parent, uiCallback, Disposer::isDisposed)
 
   @VisibleForTesting
-  class DefaultCallback : FutureCallback<DeviceNameProperties> {
+  class DefaultCallback : FutureCallback<DeviceNameProperties?> {
     /** Does nothing. Use [DeviceNamePropertiesFetcher.get] to get the properties. */
     override fun onSuccess(properties: DeviceNameProperties?) {
     }
@@ -120,7 +120,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       },
       { t ->
         if (!isDisposed(this)) {
-          uiCallback.onFailure(t!!)
+          uiCallback.onFailure(t)
         }
       })
     tasksMap[device] = task
@@ -161,7 +161,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       edtExecutor.execute {
         assertThreadMatch(ThreadType.EDT)
         deviceNamePropertiesMap.remove(device)
-        tasksMap.remove(device);
+        tasksMap.remove(device)
       }
     }
 

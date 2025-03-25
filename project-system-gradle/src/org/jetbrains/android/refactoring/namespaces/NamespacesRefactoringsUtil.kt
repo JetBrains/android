@@ -257,17 +257,22 @@ internal fun inferPackageNames(
     val facet = resourceUsageInfo.element?.androidFacet ?: return@forEachIndexed
     val leafRepos = StudioResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
 
-    resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
+    val row = inferredNamespaces.row(resourceUsageInfo.resourceType)
+    var inferredPackage = row[resourceUsageInfo.name]
+    if (inferredPackage == null) {
       for (repo in leafRepos) {
         if (repo.hasResources(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
           // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
-          return@computeIfAbsent (repo as SingleNamespaceResourceRepository).packageName
+          inferredPackage = (repo as SingleNamespaceResourceRepository).packageName
+          break
         }
       }
 
-      null
+      if (inferredPackage != null) {
+        row.put(resourceUsageInfo.name, inferredPackage)
+      }
     }
-
+    resourceUsageInfo.inferredPackage = inferredPackage
     progressIndicator?.fraction = (index + 1) / total
   }
 }

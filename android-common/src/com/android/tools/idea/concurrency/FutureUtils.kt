@@ -101,13 +101,13 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
-fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
+fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable) -> Unit) {
   addCallback(executor, object : FutureCallback<I> {
-    override fun onFailure(t: Throwable?) {
+    override fun onFailure(t: Throwable) {
       failure(t)
     }
 
-    override fun onSuccess(result: I?) {
+    override fun onSuccess(result: I) {
       success(result)
     }
   })
@@ -224,7 +224,7 @@ fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> 
   val futureResult = SettableFuture.create<I>()
   val inputFuture = this
   addCallback(executor, object : FutureCallback<I> {
-    override fun onSuccess(result: I?) {
+    override fun onSuccess(result: I) {
       try {
         finallyBlock()
         futureResult.set(result)
@@ -274,7 +274,7 @@ fun <V, X : Throwable> ListenableFuture<out V>.catching(
  */
 fun <V, X : Throwable> ListenableFuture<out V>.catchingAsync(
     executor: Executor, exceptionType: Class<X>, fallback: (X) -> ListenableFuture<V>): ListenableFuture<V> {
-  return Futures.catchingAsync(this, exceptionType, { t -> fallback(t!!) }, executor)
+  return Futures.catchingAsync(this, exceptionType, { t -> fallback(t) }, executor)
 }
 
 /**

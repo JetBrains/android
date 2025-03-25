@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
-import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.PSDEvent
@@ -81,7 +80,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
                                                                      Configurable.NoScroll {
   private var myHistory = History(this)
   private val myDetails = Wrapper()
-  private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent>()
+  private val myConfigurables = LinkedHashMap<Configurable, JComponent>()
   private val myUiState = UIState().also { it.load(myProject) }
   private val myEmptySelection = JLabel(
     "<html><body><center>Select a setting to view or edit its details here</center></body></html>",
@@ -186,7 +185,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       detailsContent = myConfigurables[toSelect]
       if (detailsContent == null) {
         detailsContent = toSelect.createComponent()
-        myConfigurables[toSelect] = detailsContent
+        myConfigurables[toSelect] = detailsContent!!
       }
       myDetails.setContent(detailsContent)
       myUiState.lastEditedConfigurable = toSelect.displayName
@@ -405,7 +404,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   private fun addConfigurable(configurable: Configurable) {
-    myConfigurables[configurable] = null
+    myConfigurables.remove(configurable)
     (configurable as? Place.Navigator)?.setHistory(myHistory)
     val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
     val validationDisplayConfigurable = configurable as? ValidationAggregateDisplayConfigurable

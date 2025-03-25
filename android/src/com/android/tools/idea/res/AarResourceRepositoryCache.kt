@@ -154,7 +154,7 @@ open class AarResourceRepositoryCache protected constructor() {
     val instance: AarResourceRepositoryCache
       get() = ApplicationManager.getApplication().getService(AarResourceRepositoryCache::class.java)
 
-    private fun <K, T : AarResourceRepository> getRepository(
+    private fun <K : Any, T : AarResourceRepository> getRepository(
       key: K,
       cache: Cache<K, T>,
       factory: () -> T,

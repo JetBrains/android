@@ -136,7 +136,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
       .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     Futures.addCallback(
       syncResult,
-      object : FutureCallback<ProjectSystemSyncManager.SyncResult> {
+      object : FutureCallback<ProjectSystemSyncManager.SyncResult?> {
         override fun onSuccess(syncResult: ProjectSystemSyncManager.SyncResult?) {
           if (syncResult != null && syncResult.isSuccessful) {
             restartAnalysis(project, scope)
