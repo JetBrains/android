@@ -209,6 +209,7 @@ def intellij_integration_test_suite(
         deps,
         size = "medium",
         jvm_flags = [],
+        shard_count = 1,
         runtime_deps = [],
         plugins = DEFAULT_INTEGRATION_TEST_PLUGINS,
         required_plugins = None,
@@ -238,6 +239,7 @@ def intellij_integration_test_suite(
       deps: the required deps.
       size: the test size.
       jvm_flags: extra flags to be passed to the test vm.
+      shard_count: the number of parallel shards to use to run the test.
       runtime_deps: the required runtime dependencies, (e.g., intellij_plugin targets).
       required_plugins: optional comma-separated list of plugin IDs. Integration tests will fail if
           these plugins aren't loaded at runtime.
@@ -327,6 +329,7 @@ def intellij_integration_test_suite(
         data = data,
         tags = tags,
         args = args,
+        shard_count = shard_count,
         jvm_flags = jvm_flags,
         test_class = suite_class,
         runtime_deps = runtime_deps + [name + ".testlib"],
