@@ -62,7 +62,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     super(project);
     myProject = project;
     List<String> deepLinks = new ArrayList<>();
-    if (module != null && module.getModuleFile() != null && module.getModuleFile().getParent() != null) {
+    if (module != null) {
       XmlFile manifest = getAndroidManifestPsi(module);
       if (manifest != null) {
         deepLinks.addAll(getAllDeepLinks(manifest.getRootTag()));
