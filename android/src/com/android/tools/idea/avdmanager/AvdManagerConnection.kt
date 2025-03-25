@@ -290,7 +290,7 @@ constructor(
     val avdName = avd.displayName
 
     val pid = avdManager.getPid(avd)
-    if (pid != null) {
+    if (pid != 0L) {
       if (ProcessHandle.of(pid).getOrNull()?.isAlive == true) {
         // TODO: Bring the running emulator's window to the front.
         throw AvdIsAlreadyRunningException(avd.displayName, pid)
