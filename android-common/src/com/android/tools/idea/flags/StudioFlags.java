@@ -134,7 +134,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
