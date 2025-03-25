@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
@@ -25,7 +24,6 @@ import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableCo
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
-import com.android.tools.idea.uibuilder.layout.positionable.content
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
@@ -33,23 +31,10 @@ import java.awt.Point
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 
 class GridLayoutManagerTest {
   private val gridLayoutManager: GridLayoutManager = createGridLayoutManager()
-
-  @Before
-  fun setUp() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
-  }
 
   private val regularPadding =
     OrganizationPadding(25, 10, 20, 30, 40, { 5 }, { _, _ -> 5 }, { _, _ -> 5 })
@@ -369,200 +354,6 @@ class GridLayoutManagerTest {
           availableWidth = widthChange,
         )
       assertNotEquals(layoutGroup3, layoutGroup4)
-    }
-  }
-
-  @Test
-  fun `test layout group doesn't change when zoom changes and flag enabled`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-    val groups = createGroups()
-
-    gridLayoutManager.useCachedLayoutGroups(MutableStateFlow(emptyList()))
-
-    run {
-      // Zooming in the surface shouldn't change layoutGroup when the SCROLLABLE_ZOOM_ON_GRID flag
-      // is enabled
-      val width = 300
-      val initialScale = 1.0
-      val initialLayoutGroup =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = width,
-        )
-
-      var zoomIn = 1.0
-      var layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
-      assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
-
-      zoomIn = 5.0
-      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
-      assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
-
-      zoomIn = 50.0
-      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
-      assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
-
-      zoomIn = 2.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { zoomIn },
-          availableWidth = width,
-        )
-      assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
-
-      zoomIn = 100.0
-      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
-      assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
-    }
-  }
-
-  @Test
-  fun `test layout group doesn't change on same content and flag enabled`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-    val groups = createGroups()
-    gridLayoutManager.useCachedLayoutGroups(MutableStateFlow(emptyList()))
-    run {
-      // Zooming in the surface shouldn't change layoutGroup when the SCROLLABLE_ZOOM_ON_GRID flag
-      // is enabled
-      val width = 500
-      val initialScale = 1.0
-      val initialLayoutGroup =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = width,
-        )
-
-      val newLayoutGroupWithSameContent =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = width,
-        )
-
-      assertEquals(initialLayoutGroup, newLayoutGroupWithSameContent)
-    }
-  }
-
-  @Test
-  fun `test get cached layout group when content doesn't change`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-
-    // Both gridLayoutGroup and positionableGroup contains the same items
-    val gridLayoutGroup: List<GridLayoutGroup> = listOf(createGridLayoutGroup1())
-    val positionableGroup: List<PositionableGroup> = listOf(getPositionableGroup1())
-
-    gridLayoutManager.useCachedLayoutGroups(MutableStateFlow(gridLayoutGroup))
-
-    run {
-      // Zooming in the surface shouldn't change layoutGroup when the SCROLLABLE_ZOOM_ON_GRID flag
-      // is enabled
-      val width = 500
-      val initialScale = 1.0
-
-      // Whenever we call createLayoutGroups we organize the positionable group in grid.
-      // If the content is the same so we would not create new GridLayoutGroups
-      val newLayoutGroupWithSameContent: List<GridLayoutGroup> =
-        gridLayoutManager.createLayoutGroups(
-          groups = positionableGroup,
-          scaleFunc = { initialScale },
-          availableWidth = width,
-        )
-
-      // The resulting value is the cache
-      assertEquals(gridLayoutGroup, newLayoutGroupWithSameContent)
-      assertEquals(newLayoutGroupWithSameContent, gridLayoutManager.cachedLayoutGroups?.value)
-    }
-  }
-
-  @Test
-  fun `test get cached layout group when content changes`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-
-    // Both gridLayoutGroup and positionableGroup are different items
-    val gridLayoutGroup: List<GridLayoutGroup> = listOf(createGridLayoutGroup1())
-    val positionableGroup: List<PositionableGroup> = listOf(getPositionableGroup2())
-
-    gridLayoutManager.useCachedLayoutGroups(MutableStateFlow(gridLayoutGroup))
-
-    run {
-      // Zooming in the surface shouldn't change layoutGroup when the SCROLLABLE_ZOOM_ON_GRID flag
-      // is enabled
-      val width = 500
-      val initialScale = 1.0
-
-      // Whenever we call createLayoutGroups we organize the positionable group in grid.
-      // If the content is not the same (as this case) we would invalidate update the cache with
-      // the new items
-      val newLayoutGroupWithDifferentContent: List<GridLayoutGroup> =
-        gridLayoutManager.createLayoutGroups(
-          groups = positionableGroup,
-          scaleFunc = { initialScale },
-          availableWidth = width,
-        )
-
-      // The value is not the one stored in the cache
-      assertNotEquals(gridLayoutGroup, newLayoutGroupWithDifferentContent)
-
-      val actualPositionableGroup = newLayoutGroupWithDifferentContent.map { it.content() }
-      val expectedPositionableGroup = positionableGroup.map { it.content }
-      assertEquals(expectedPositionableGroup, actualPositionableGroup)
-      assertEquals(newLayoutGroupWithDifferentContent, gridLayoutManager.cachedLayoutGroups?.value)
-    }
-  }
-
-  @Test
-  fun `test layout group changes when on different content and flag enabled`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-
-    val group1 = OrganizationGroup("0", "0")
-    val positionableGroup1 =
-      PositionableGroup(
-        content =
-          listOf(
-            TestPositionableContent(group1, Dimension(400, 400)),
-            TestPositionableContent(group1, Dimension(400, 500)),
-            TestPositionableContent(group1, Dimension(600, 1000)),
-            TestPositionableContent(group1, Dimension(400, 500)),
-          ),
-        header = HeaderTestPositionableContent(group1),
-      )
-
-    val positionableGroup2 = getPositionableGroup2()
-    val initialGroups = listOf(positionableGroup1, positionableGroup2)
-
-    run {
-      // Zooming in the surface shouldn't change layoutGroup when the SCROLLABLE_ZOOM_ON_GRID flag
-      // is enabled
-      val initialWidth = 500
-      val initialScale = 1.0
-      val initialLayoutGroup =
-        gridLayoutManager.createLayoutGroups(
-          groups = initialGroups,
-          scaleFunc = { initialScale },
-          availableWidth = initialWidth,
-        )
-
-      val newPositionableContentGroup1 =
-        PositionableGroup(
-          header = HeaderTestPositionableContent(group1),
-          content =
-            listOf(
-              TestPositionableContent(group1, Dimension(400, 400)),
-              TestPositionableContent(group1, Dimension(400, 500)),
-              TestPositionableContent(group1, Dimension(600, 1000)),
-              TestPositionableContent(group1, Dimension(400, 500)),
-            ),
-        )
-
-      val changedGroups = listOf(newPositionableContentGroup1, positionableGroup2)
-      val layoutGroupWithDifferentContent =
-        gridLayoutManager.createLayoutGroups(changedGroups, { initialScale }, initialWidth)
-
-      assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
     }
   }
 

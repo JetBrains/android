@@ -22,7 +22,6 @@ import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
@@ -50,15 +49,8 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     scope.launch { currentLayoutOption.collect { currentLayout = it.createLayoutManager() } }
   }
 
-  /**
-   * The current [GridLayoutGroup] applied in the layout manager. This state is only used to store
-   * group layouts, and it doesn't apply on list layout.
-   */
-  private val cachedLayoutGroups = MutableStateFlow(listOf<GridLayoutGroup>())
-
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
-    currentLayout.useCachedLayoutGroups(cachedLayoutGroups)
     currentLayout.layout(
       content,
       availableSize.width,
@@ -80,7 +72,6 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     availableSize: Dimension,
   ): Dimension {
     availableSize.size = surface.extentSize
-    currentLayout.useCachedLayoutGroups(cachedLayoutGroups)
     val dimension =
       currentLayout.getRequiredSize(content, availableSize.width, availableSize.height, null)
     dimension.setSize(

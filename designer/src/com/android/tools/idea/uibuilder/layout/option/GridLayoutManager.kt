@@ -22,21 +22,18 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.DEFAULT_LAYOUT_PADDING
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
-import com.android.tools.idea.uibuilder.layout.positionable.content
 import com.android.tools.idea.uibuilder.surface.layout.MAX_ITERATION_TIMES
 import com.android.tools.idea.uibuilder.surface.layout.SCALE_UNIT
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -50,12 +47,6 @@ open class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
   val transform: (Collection<PositionableContent>) -> List<PositionableGroup> = NO_GROUP_TRANSFORM,
 ) : SurfaceLayoutManager {
-
-  @VisibleForTesting var cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>? = null
-
-  override fun useCachedLayoutGroups(cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>) {
-    this.cachedLayoutGroups = cachedLayoutGroups
-  }
 
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
@@ -103,33 +94,13 @@ open class GridLayoutManager(
     )
   }
 
-  /**
-   * Creates a layout from the given [PositionableGroup]s considering the available width, it can
-   * return a cached value if the content of the Groups hasn't changed.
-   */
+  /** Creates a layout from the given [PositionableGroup]s considering the available width. */
   @VisibleForTesting
   fun createLayoutGroups(
     groups: List<PositionableGroup>,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-  ): List<GridLayoutGroup> {
-    val cachedGroups = cachedLayoutGroups?.value
-    // We skip creating a new layout group if the content hasn't changed, in this way we keep the
-    // same size and layout group order when zooming in or when resizing the window.
-    val canUseCachedGroups =
-      cachedGroups != null &&
-        StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() &&
-        groups.all { group: PositionableGroup ->
-          cachedGroups.any { it.content() == group.content }
-        }
-    return if (canUseCachedGroups && cachedGroups != null) {
-      cachedGroups
-    } else {
-      val newGroup = groups.map { calculateNewLayout(it, scaleFunc, availableWidth) }
-      cachedLayoutGroups?.value = newGroup
-      newGroup
-    }
-  }
+  ): List<GridLayoutGroup> = groups.map { calculateNewLayout(it, scaleFunc, availableWidth) }
 
   /** Get the total required size of the [PositionableContent]s in grid layout. */
   @VisibleForTesting

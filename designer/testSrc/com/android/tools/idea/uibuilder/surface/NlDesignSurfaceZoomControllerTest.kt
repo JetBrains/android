@@ -17,26 +17,13 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.createNlDesignSurfaceZoomController
-import com.android.tools.idea.flags.StudioFlags
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import org.junit.After
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class NlDesignSurfaceZoomControllerTest {
-
-  @Before
-  fun setUp() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
-  }
 
   @Test
   fun `test fit scale when the surface is empty`() {
@@ -173,8 +160,6 @@ class NlDesignSurfaceZoomControllerTest {
 
   @Test
   fun `can zoom to fit`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(false)
-
     val zoomController = createNlDesignSurfaceZoomController()
 
     repeat(5) { zoomController.zoom(ZoomType.IN) }
@@ -207,8 +192,6 @@ class NlDesignSurfaceZoomControllerTest {
 
   @Test
   fun `test can zoom to fit`() {
-    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(false)
-
     val zoomController = createNlDesignSurfaceZoomController()
 
     repeat(4) { zoomController.zoom(ZoomType.OUT) }

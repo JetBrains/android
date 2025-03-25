@@ -51,7 +51,6 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.getFitContentIntoWindowScale
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.getViewHandler
@@ -521,23 +520,13 @@ internal constructor(
     val scrollPosition = pannable.scrollPosition
     var focusPoint = update.focusPoint
 
-    // If layout is grouped grid layout.
-    val isGroupedGridLayout =
-      sceneViewLayoutManager.currentLayoutOption.value.layoutType ==
-        SurfaceLayoutOption.LayoutType.OrganizationGrid
-
-    if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
-      viewportScroller =
-        createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
-    } else {
-      if (focusPoint.x < 0 || focusPoint.y < 0) {
-        focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
-      }
-      val zoomCenterInView = Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y)
-
-      viewportScroller =
-        ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
+    if (focusPoint.x < 0 || focusPoint.y < 0) {
+      focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
     }
+    val zoomCenterInView = Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y)
+
+    viewportScroller =
+      ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
   }
 
   /**
