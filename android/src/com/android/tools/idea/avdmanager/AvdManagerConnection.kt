@@ -138,9 +138,22 @@ constructor(
     return avdManager?.deleteAvd(info) ?: false
   }
 
+  /** Stops the emulator if it is running and waits for it to terminate. */
   @Slow
-  fun stopAvd(info: AvdInfo) {
-    avdManager?.stopAvd(info)
+  @JvmOverloads
+  fun stopAvd(avd: AvdInfo, forcibly: Boolean = false) {
+    // TODO: Move the implementation to AvdManager when it starts targeting JDK 9+.
+    avdManager ?: return
+    val pid = avdManager.getPid(avd)
+    if (pid != 0L) {
+      ProcessHandle.of(pid).getOrNull()?.let {
+        // Kill the emulator process if it is running.
+        val termination = it.onExit()
+        if (!termination.isDone && (if (forcibly) it.destroyForcibly() else it.destroy())) {
+          try { termination.get() } catch (_: Exception) {} // Wait for the emulator process to terminate.
+        }
+      }
+    }
   }
 
   /**
@@ -474,10 +487,13 @@ constructor(
     return null
   }
 
+  /** Kills the emulator if it is running and deletes the `userdata-qemu.img` file and the `snapshots` directory. */
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
     avdManager ?: return false
     checkNotNull(sdkHandler)
+    stopAvd(avdInfo, forcibly = true)
+
     // Delete the current user data file
     val path = avdInfo.dataFolderPath.resolve(AvdManager.USERDATA_QEMU_IMG)
     if (Files.exists(path)) {
