@@ -28,6 +28,7 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
@@ -100,7 +101,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
         (IdeInfo.getInstance().isAndroidStudio || IdeInfo.getInstance().isGameTools)
     ) {
       true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
-      false -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
+      false -> AndroidProfilerDownloader.getInstance().getHostDir("plugins/android/$AGENT_RESOURCE_PROD").toPath()
     }
   }
 }
