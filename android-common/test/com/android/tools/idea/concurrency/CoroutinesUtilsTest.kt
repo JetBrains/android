@@ -19,7 +19,6 @@ import com.android.tools.concurrency.AndroidIoManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -27,27 +26,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CoroutinesUtilsTest {
-  private val projectRule = ProjectRule()
-
   @get:Rule
-  val rule = RuleChain(projectRule)
-
-  @JvmField
-  @Rule
-  var exceptionRule: ExpectedException = ExpectedException.none()
+  val projectRule = ProjectRule()
 
   @Before
   fun setUp() {
@@ -55,30 +45,28 @@ class CoroutinesUtilsTest {
   }
 
   @Test
-  fun androidCoroutineScopeIsCancelledOnDispose() {
-    runBlocking {
-      // Prepare
-      val disposable = Disposer.newDisposable()
-      val scope = AndroidCoroutineScope(disposable)
-      val job = scope.launch {
-        while (true) {
-          delay(1_000)
-        }
+  fun androidCoroutineScopeIsCancelledOnDispose() = runTest {
+    // Prepare
+    val disposable = Disposer.newDisposable()
+    val scope = AndroidCoroutineScope(disposable)
+    val job = scope.launch {
+      while (true) {
+        delay(1_000)
       }
-
-      // Act
-      Disposer.dispose(disposable)
-
-      // Assert
-      Assert.assertTrue(job.isCancelled)
     }
+
+    // Act
+    Disposer.dispose(disposable)
+
+    // Assert
+    Assert.assertTrue(job.isCancelled)
   }
 
   @Test
   fun androidCoroutineScopeAllowsOverridingDispatcher() {
     val disposable = Disposer.newDisposable()
     try {
-      runBlockingTest {
+      runTest {
         // Prepare
         val scope = AndroidCoroutineScope(disposable, coroutineContext)
 
@@ -108,53 +96,48 @@ class CoroutinesUtilsTest {
   }
 
   @Test
-  @Ignore("b/303086924")
-  fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() {
-    runBlockingTest {
-      // Prepare
-      val disposable = Disposer.newDisposable()
-      val scope = AndroidCoroutineScope(disposable, coroutineContext)
-      val job = scope.launch {
-        while (true) {
-          delay(50)
-          yield()
-        }
+  fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() = runTest {
+    // Prepare
+    val disposable = Disposer.newDisposable()
+    val scope = AndroidCoroutineScope(disposable)
+    val job = scope.launch {
+      while (true) {
+        delay(50)
+        yield()
       }
-
-      // Act
-      Disposer.dispose(disposable)
-
-      // Assert
-      Assert.assertTrue(job.isCancelled)
     }
+
+    // Act
+    Disposer.dispose(disposable)
+
+    // Assert
+    Assert.assertTrue(job.isCancelled)
   }
 
   @Test
-  fun childScopeIsCancelledOnDispose() {
-    runBlockingTest {
-      // Prepare
-      val disposable = Disposer.newDisposable()
-      val scope = this.createChildScope(parentDisposable = disposable)
-      scope.launch {
-        while (true) {
-          delay(1_000)
-        }
+  fun childScopeIsCancelledOnDispose() = runTest {
+    // Prepare
+    val disposable = Disposer.newDisposable()
+    val scope = this.createChildScope(parentDisposable = disposable)
+    scope.launch {
+      while (true) {
+        delay(1_000)
       }
-
-      // Act
-      Disposer.dispose(disposable)
-
-      // Assert
-      Assert.assertFalse(scope.isActive)
-      Assert.assertTrue(scope.coroutineContext.job.isCancelled)
     }
+
+    // Act
+    Disposer.dispose(disposable)
+
+    // Assert
+    Assert.assertFalse(scope.isActive)
+    Assert.assertTrue(scope.coroutineContext.job.isCancelled)
   }
 
   @Test
   fun childScopeIsNotDisposedOnCancel() {
     val disposable = Disposer.newCheckedDisposable()
     try {
-      runBlockingTest {
+      runTest {
         // Prepare
         val scope = this.createChildScope(parentDisposable = disposable)
         scope.launch {
