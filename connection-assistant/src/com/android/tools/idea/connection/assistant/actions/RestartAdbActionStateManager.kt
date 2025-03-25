@@ -17,6 +17,7 @@ package com.android.tools.idea.connection.assistant.actions
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.assistant.AssistActionState
@@ -97,7 +98,10 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
     }
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
-      refreshDependencyState(project)
+      // We are only interested in the updates to the device state, e.g. device going online/offline
+      if (changeMask == IDevice.CHANGE_STATE) {
+        refreshDependencyState(project)
+      }
     }
 
     override fun dispose() {
@@ -188,13 +192,16 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
       val htmlBodyBuilder = HtmlBuilder()
       devices.forEach { device ->
+        val deviceVersion = device.version.takeIf { it != AndroidVersion.DEFAULT }
         htmlBodyBuilder.addHtml("<p><span>${device.name}</span>")
-            .newline()
-            .addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>")
-            .newline()
+            .newline().apply {
+              if (deviceVersion != null) {
+                addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>")
+                  .newline()
+              }
+            }
       }
       ButtonMessage(title, htmlBodyBuilder.html)
     }
   }
-
 }
