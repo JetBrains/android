@@ -26,11 +26,13 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
+import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
@@ -42,6 +44,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ContentEntry
@@ -524,13 +527,14 @@ private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGrad
 
 private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)
 
-class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
+class DumpProjectAction : InternalDumpAction("Structure") {
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val dumper = ProjectDumper(projectJdk = ProjectRootManager.getInstance(project).projectSdk)
     dumper.dumpProject(project)
     val dump = dumper.toString().trimIndent()
-    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
+    val outputFile = File(project.guessProjectDir()!!.toIoFile(), sanitizeFileName(project.name) + ".project_dump")
     outputFile.writeText(dump)
     FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)

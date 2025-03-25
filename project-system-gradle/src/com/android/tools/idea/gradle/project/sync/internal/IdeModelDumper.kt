@@ -61,6 +61,8 @@ import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
+import com.android.tools.idea.util.toIoFile
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -69,6 +71,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
@@ -874,13 +877,14 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   }
 }
 
-class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
+class DumpProjectIdeModelAction : InternalDumpAction("IDE Models") {
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val dumper = ProjectDumper(projectJdk = ProjectRootManager.getInstance(project).projectSdk)
     dumper.dumpAndroidIdeModel(project, { null }, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
-    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
+    val outputFile = File(project.guessProjectDir()!!.toIoFile(), sanitizeFileName(project.name) + ".project_ide_models_dump")
     outputFile.writeText(dump)
     FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
