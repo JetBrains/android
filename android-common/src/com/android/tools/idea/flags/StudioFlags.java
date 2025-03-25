@@ -197,7 +197,7 @@ public final class StudioFlags {
   public static final Flag<Integer> NPW_COMPILE_SDK_VERSION = new IntFlag(
     NPW, "new.project.compile.sdk", "New project Compile SDK version",
     "SDK version to be used for compileSdk for newly created project.",
-    35);
+    36);
   //endregion
 
   //region Memory Usage Reporting
