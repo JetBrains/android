@@ -557,6 +557,10 @@ internal class DeviceClient(
     }
   }
 
+  override fun toString(): String {
+    return "Mirroring client for $deviceName ($deviceSerialNumber)"
+  }
+
   private suspend fun AdbSession.pushFile(device: DeviceSelector, file: Path, remoteFilePath: String, permissions: RemoteFileMode) {
     try {
       deviceServices.syncSend(device, file, remoteFilePath, permissions)
