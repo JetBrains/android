@@ -577,7 +577,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -604,7 +604,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -620,7 +620,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2046,7 +2046,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2060,7 +2060,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2074,7 +2074,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2088,7 +2088,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2102,7 +2102,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2116,7 +2116,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2203,7 +2203,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2217,7 +2217,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2231,7 +2231,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2245,7 +2245,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2259,7 +2259,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2333,7 +2333,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2349,7 +2349,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2392,7 +2392,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2406,7 +2406,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2422,7 +2422,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2438,7 +2438,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2551,7 +2551,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2565,7 +2565,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2579,7 +2579,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2593,7 +2593,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2607,7 +2607,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2621,7 +2621,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2635,7 +2635,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2649,7 +2649,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2663,7 +2663,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2677,7 +2677,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2691,7 +2691,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2705,7 +2705,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -2861,7 +2861,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2875,7 +2875,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2889,7 +2889,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2903,7 +2903,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2917,7 +2917,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2931,7 +2931,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2945,7 +2945,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2959,7 +2959,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2973,7 +2973,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -2987,7 +2987,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3001,7 +3001,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3015,7 +3015,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3132,7 +3132,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3146,7 +3146,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3160,7 +3160,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3375,7 +3375,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3389,7 +3389,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3403,7 +3403,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3525,7 +3525,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3539,7 +3539,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3553,7 +3553,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3665,7 +3665,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3679,7 +3679,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3792,7 +3792,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -3819,7 +3819,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -3835,7 +3835,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -4196,7 +4196,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -4377,7 +4377,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -4553,7 +4553,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -4714,7 +4714,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -5477,7 +5477,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5491,7 +5491,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -5569,7 +5569,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5596,7 +5596,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -5612,7 +5612,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5626,7 +5626,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5640,7 +5640,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -5931,7 +5931,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -5947,7 +5947,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5961,7 +5961,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5975,7 +5975,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -5989,7 +5989,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -6321,7 +6321,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -7150,7 +7150,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -7525,7 +7525,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -7539,7 +7539,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -7564,7 +7564,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -7580,7 +7580,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -7594,7 +7594,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -7721,7 +7721,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -7746,7 +7746,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 }
@@ -7885,7 +7885,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -7910,7 +7910,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -7926,7 +7926,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -8043,7 +8043,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -8180,7 +8180,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -8205,7 +8205,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 }
@@ -8447,7 +8447,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -8472,7 +8472,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 }
@@ -8764,7 +8764,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -8778,7 +8778,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -8803,7 +8803,7 @@
                         ]
                     },
                     "mode": {
-                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
                 },
@@ -8819,7 +8819,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -8833,7 +8833,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -9090,7 +9090,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -9104,7 +9104,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -9118,7 +9118,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -10017,7 +10017,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10031,7 +10031,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10045,7 +10045,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -10252,7 +10252,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10266,7 +10266,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -10579,7 +10579,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10593,7 +10593,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10607,7 +10607,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -10734,7 +10734,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10748,7 +10748,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10762,7 +10762,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10776,7 +10776,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -10903,7 +10903,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10917,7 +10917,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -10931,7 +10931,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -11078,7 +11078,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11092,7 +11092,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11106,7 +11106,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11120,7 +11120,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11134,7 +11134,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11148,7 +11148,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11162,7 +11162,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11176,7 +11176,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11190,7 +11190,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11204,7 +11204,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11218,7 +11218,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11232,7 +11232,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -11364,7 +11364,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11378,7 +11378,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11392,7 +11392,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -11539,7 +11539,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11553,7 +11553,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11567,7 +11567,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -11714,7 +11714,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11728,7 +11728,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11742,7 +11742,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11756,7 +11756,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -11903,7 +11903,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11917,7 +11917,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -11931,7 +11931,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -12103,7 +12103,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12117,7 +12117,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -12561,7 +12561,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12575,7 +12575,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12589,7 +12589,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12603,7 +12603,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12617,7 +12617,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -12685,7 +12685,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12699,7 +12699,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12713,7 +12713,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12727,7 +12727,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -12894,7 +12894,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -12908,7 +12908,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -13265,7 +13265,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13279,7 +13279,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13293,7 +13293,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13307,7 +13307,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -13542,7 +13542,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13556,7 +13556,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13570,7 +13570,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 },
                 {
                     "type": "dataProperty",
@@ -13584,7 +13584,7 @@
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
-                    "hasDefaultValue": false
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -14458,6 +14458,48 @@
                         }
                     }
                 ]
+            },
+            [
+                {
+                    "type": "concreteType",
+                    "dataType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "typeVariableUsage",
+                            "variableId": 1
+                        }
+                    }
+                }
+            ],
+            {
+                "type": "parameterizedTypeInstance",
+                "typeSignature": {
+                    "type": "parameterizedOpaqueTypeSignature",
+                    "name": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "kotlin.collections",
+                        "simpleName": "List"
+                    },
+                    "typeParameters": [
+                        {
+                            "name": "E",
+                            "isOutVariant": true
+                        }
+                    ],
+                    "javaTypeName": "java.util.List"
+                },
+                "typeArguments": [
+                    {
+                        "type": "concreteType",
+                        "dataType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "typeVariableUsage",
+                                "variableId": 1
+                            }
+                        }
+                    }
+                ]
             }
         ],
         {
@@ -14572,5 +14614,107 @@
             "packageName": "kotlin.collections",
             "simpleName": "listOf"
         }
+    ],
+    "assignmentAugmentationsByTypeName": [
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "kotlin.collections",
+            "simpleName": "List"
+        },
+        [
+            {
+                "type": "assignmentAugmentation",
+                "kind": {
+                    "type": "org.gradle.internal.declarativedsl.analysis.AssignmentAugmentationKindInternal.DefaultPlus"
+                },
+                "function": {
+                    "type": "dataTopLevelFunction",
+                    "packageName": "org.gradle.internal.declarativedsl.common",
+                    "ownerJvmTypeName": "org.gradle.internal.declarativedsl.common.StandardLibraryComponentKt",
+                    "simpleName": "builtinListAugmentation",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "lhs",
+                            "privateType": {
+                                "type": "dataTypeRefNameWithArgs",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin.collections",
+                                    "simpleName": "List"
+                                },
+                                "typeArguments": [
+                                    {
+                                        "type": "concreteType",
+                                        "dataType": {
+                                            "type": "dataTypeRefType",
+                                            "dataType": {
+                                                "type": "typeVariableUsage",
+                                                "variableId": 1
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        },
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "rhs",
+                            "privateType": {
+                                "type": "dataTypeRefNameWithArgs",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin.collections",
+                                    "simpleName": "List"
+                                },
+                                "typeArguments": [
+                                    {
+                                        "type": "concreteType",
+                                        "dataType": {
+                                            "type": "dataTypeRefType",
+                                            "dataType": {
+                                                "type": "typeVariableUsage",
+                                                "variableId": 1
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefNameWithArgs",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin.collections",
+                                "simpleName": "List"
+                            },
+                            "typeArguments": [
+                                {
+                                    "type": "concreteType",
+                                    "dataType": {
+                                        "type": "dataTypeRefType",
+                                        "dataType": {
+                                            "type": "typeVariableUsage",
+                                            "variableId": 1
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
     ]
 }
