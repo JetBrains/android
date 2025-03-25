@@ -1760,7 +1760,7 @@ public final class StudioFlags {
     NETWORK_INSPECTOR, "rule.variables",
     "Enable Rule Variables",
     "Enable Rule Variables",
-    enabledUpTo(DEV)
+    true
   );
   // endregion
 
