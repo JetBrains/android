@@ -297,7 +297,8 @@ categories {
     label: "kotlin_findUsages"
     package_names: "org.jetbrains.kotlin.findUsages"
   }
-  categories: {
+}
+categories: {
     label: "android:aiplugin"
 
     components: {
@@ -306,7 +307,6 @@ categories {
       package_names: "com.google.tools.intellij.aiplugin"
     }
   }
-}
 shared_components_limit: 200
 shared_cluster_extended_report_threshold_bytes: 280000000
 uncategorized_component_extended_report_threshold_bytes: 100000000
