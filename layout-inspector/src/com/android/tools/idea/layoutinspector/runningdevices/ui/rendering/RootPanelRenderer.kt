@@ -65,6 +65,7 @@ class RootPanelRenderer(
         // No need to replace if it's the same instance.
         return
       }
+      logger.info("Setting up renderer: ${value?.javaClass?.name}")
 
       field?.let {
         // Remove and dispose the old renderer
@@ -111,7 +112,6 @@ class RootPanelRenderer(
           when (currentRenderer) {
             is StudioRendererPanel,
             null -> {
-              logger.info("Setting up on-device renderer.")
               currentRenderer = onDeviceRendererProvider(this@RootPanelRenderer)
             }
             is OnDeviceRendererPanel -> {}
@@ -122,7 +122,6 @@ class RootPanelRenderer(
             is StudioRendererPanel -> {}
             is OnDeviceRendererPanel,
             null -> {
-              logger.info("Setting up studio-side renderer.")
               currentRenderer = studioRendererProvider(this@RootPanelRenderer)
             }
             else -> throw IllegalArgumentException("Unknown renderer: $currentRenderer")
